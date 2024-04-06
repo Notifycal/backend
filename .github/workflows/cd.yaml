@@ -31,11 +31,11 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.head_ref || github.ref_name }}
-      # - name: Validate commits with commitlint
-      #   uses: wagoid/commitlint-github-action@v5
-      #   id: commitlint
-      #   with:
-      #     configFile: .commitlintrc.json
+      - name: Validate commits with commitlint
+        uses: wagoid/commitlint-github-action@v5
+        id: commitlint
+        with:
+          configFile: .commitlintrc.json
       - uses: dorny/paths-filter@v3
         # Skip the filter if there is no PR to filter
         if: github.event_name == 'pull_request'
