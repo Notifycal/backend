@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.1](https://github.com/Notifycal/backend/compare/v1.0.0...v1.0.1) (2024-04-06)
+
+
+### Bug Fixes
+
+* **ci:** attach build zip to release ([#7](https://github.com/Notifycal/backend/issues/7)) ([e976610](https://github.com/Notifycal/backend/commit/e976610425c8f6e23704d5e0f693d40102720b25))
+* **ci:** attach right build zip to release ([#8](https://github.com/Notifycal/backend/issues/8)) ([eff933a](https://github.com/Notifycal/backend/commit/eff933aa7674333f0373ebba88592cf1511c00aa))
+
 ## 1.0.0 (2024-04-06)
 
 
