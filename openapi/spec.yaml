@@ -1,0 +1,55 @@
+---
+openapi: '3.0.1'
+info:
+  title: 'tasks-api'
+  version: ${version}
+paths:
+  /watch_me:
+    post:
+      summary: Receive GCal watch endpoint data
+      responses:
+        200:
+          description: 'OK'
+          content: {}
+        500:
+          description: 'Internal Server Error'
+          content: {}
+      x-amazon-apigateway-integration:
+        uri: 'arn:aws:apigateway:${aws_region}:lambda:path/2015-03-31/functions/${lambda_functions.post_watch_events_arn}/invocations'
+        responses:
+          default:
+            statusCode: '200'
+        passthroughBehavior: 'when_no_match'
+        httpMethod: 'POST'
+        type: 'aws_proxy'
+  /version:
+    # Fake endpoint with no Lambda, just to return the version
+    get:
+      responses:
+        200:
+          description: 'OK'
+          content:
+            application/json:
+              schema:
+                type: string
+      x-amazon-apigateway-integration:
+        responses:
+          default:
+            statusCode: '200'
+            responseTemplates:
+              application/json: '{"version": "${version}"}'
+        requestTemplates:
+          application/json: '{ "statusCode": 200 }'
+        passthroughBehavior: 'when_no_match'
+        type: 'mock'
+
+components:
+  schemas:
+    Task:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        Task:
+          type: string
