@@ -31,11 +31,11 @@ cp "${openapi_spec}" "${target_folder}"
 # Now create a zip with all these zips + the OpenAPI YAML spec
 echo "${target_folder}"
 pushd "${target_folder}" > /dev/null || exit
-zip -r backend.zip .
+zip -r build.zip .
 popd > /dev/null || exit
 
 # And copy it to the dist folder.
-mv "${target_folder}/backend.zip" "dist/"
+mv "${target_folder}/build.zip" "dist/"
 
 # Cleanup
 rm -rf "${target_folder}"
