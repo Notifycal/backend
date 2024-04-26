@@ -1,5 +1,5 @@
 locals {
-  rendered_openapi_spec = templatefile("${path.root}/${var.openapi_spec_file}", {
+  rendered_openapi_spec = templatefile("${path.root}/../dist/${var.openapi_spec_file}", {
     version    = "v0.0.1"
     aws_region = "eu-west-1"
     lambda_functions = {

@@ -7,7 +7,7 @@ module "post_watch_lambda" {
   function_name = "post-watch-events-${var.resource_suffix}"
   publish = true
   create_package = false
-  local_existing_package = "../dist/api/post-watch-events.zip"
+  local_existing_package = "${path.root}/../dist/api/post-watch-events.zip"
 
   runtime     = "nodejs20.x"
   timeout     = 30

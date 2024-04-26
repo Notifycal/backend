@@ -8,8 +8,8 @@ variable "api_stage_name" {
 
 variable "openapi_spec_file" {
   type        = string
-  description = "Path to the OpenAPI spec file for this API"
-  default     = "../openapi/spec.yaml"
+  description = "Name of the OpenAPI spec file for this API"
+  default     = "spec.yaml"
 }
 
 variable "resource_suffix" {
