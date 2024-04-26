@@ -5,13 +5,13 @@ module "post_watch_lambda" {
   version = "~> 7.2"
 
   function_name = "post-watch-events-${var.resource_suffix}"
-  source_path   = "../dist/api/post-watch-events.zip"
+  create_package = false
+  local_existing_package = "../dist/api/post-watch-events.zip"
 
   runtime     = "nodejs20.x"
   timeout     = 30
   memory_size = 128
   handler     = "index.handler"
-  create_package = false
 
   logging_log_format = "JSON"
 
