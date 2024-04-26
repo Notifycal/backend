@@ -11,10 +11,6 @@ variable "aws_region" {
   type = string
 }
 
-variable "api_gw_api_name" {
-  type = string
-}
-
 variable "api_stage_name" {
   type = string
 }
