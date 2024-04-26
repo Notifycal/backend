@@ -1,12 +1,3 @@
-# unique suffix to be able to deploy multiple copies of this stack
-resource "random_id" "suffix" {
-  byte_length = 3
-}
-
-locals {
-  suffix = "${var.environment}-${random_id.suffix.hex}"
-}
-
 variable "aws_region" {
   type = string
 }
@@ -21,9 +12,7 @@ variable "openapi_spec_file" {
   default     = "../openapi/spec.yaml"
 }
 
-variable "suffix" {
+variable "resource_suffix" {
   description = "Suffix to use when naming resources in this module."
   type        = string
 }
-
-
