@@ -13,11 +13,9 @@ STACK_NAME=$1
 STACK_VERSION="v1.0.0"
 # STACK_VERSION=$2
 
-# current path is working dir unless there is an argument
+# running path is the working dir as this script makes "changes" in the
+# actual TF "execution folder"
 RUNNING_PATH="$(pwd)"
-if [[ $# -eq 3 ]] ; then
-  RUNNING_PATH=$3
-fi
 
 echo
 echo "Running $0..."
@@ -28,33 +26,13 @@ echo "PATH: $RUNNING_PATH"
 echo "==================================="
 echo
 
-pushd $RUNNING_PATH > /dev/null
-
-
-# echo "Retrieving outputs from ${TF_TOOL}..."
-# JSON_OUTPUT=$(${TF_TOOL} output -json 2>/dev/null | jq -r '.')
-# BUCKET_NAME=$(jq -r '.bucket_name.value' <<< "$JSON_OUTPUT")
-# SITE_URL=$(jq -r '.site_url.value' <<< "$JSON_OUTPUT")
-# echo
 
 echo "Retrieving release from Github..."
 TMP_DIR=$(mktemp -d "/tmp/${STACK_NAME}.XXXXX")
-pushd "${TMP_DIR}" > /dev/null
-gh release download "${STACK_VERSION}" --repo "${_GH_ORG}/${STACK_NAME}"
-unzip build.zip
-ls -laR
-echo
+gh release download "${STACK_VERSION}" --repo "${_GH_ORG}/${STACK_NAME}" --dir "${TMP_DIR}"
 
-# echo "Uploading to S3 static site bucket..."
-# aws s3 sync --delete ./dist/ "s3://${BUCKET_NAME}"
-# echo
-
-# Display site URL
-# echo "Site deployed at: ${SITE_URL}"
-# echo
-
-popd > /dev/null
-popd > /dev/null
+unzip "${TMP_DIR}/build.zip" -d dist/
+echo -e "Download finished!\n"
 
 echo "Removing temp folder..."
 rm -rf "${TMP_DIR}"
