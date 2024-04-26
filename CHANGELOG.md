@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/Notifycal/backend/compare/v1.0.0...v1.1.0) (2024-04-26)
+
+
+### Features
+
+* add pre-plan-apply ci script ([#14](https://github.com/Notifycal/backend/issues/14)) ([e1c07e4](https://github.com/Notifycal/backend/commit/e1c07e4bbc86b8b7b4849b163ce046c57fc60566))
+
 ## 1.0.0 (2024-04-06)
 
 
