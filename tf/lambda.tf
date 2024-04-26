@@ -4,8 +4,10 @@ module "post_watch_lambda" {
   source  = "terraform-aws-modules/lambda/aws"
   version = "~> 7.2"
 
-  function_name = "post-watch-events-${local.suffix}"
-  source_path   = "../dist/api/post-watch-events.zip"
+  function_name          = "post-watch-events-${var.resource_suffix}"
+  publish                = true
+  create_package         = false
+  local_existing_package = "${path.root}/../dist/api/post-watch-events.zip"
 
   runtime     = "nodejs20.x"
   timeout     = 30

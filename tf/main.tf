@@ -1,5 +1,5 @@
 locals {
-  rendered_openapi_spec = templatefile("${path.root}/${var.openapi_spec_file}", {
+  rendered_openapi_spec = templatefile("${path.root}/../dist/${var.openapi_spec_file}", {
     version    = "v0.0.1"
     aws_region = "eu-west-1"
     lambda_functions = {
@@ -9,7 +9,7 @@ locals {
 }
 
 resource "aws_api_gateway_rest_api" "auth_service" {
-  name = var.api_gw_api_name
+  name = "backend-api-${var.resource_suffix}"
 
   # OpenAPI spec file
   body = local.rendered_openapi_spec
