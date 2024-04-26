@@ -5,6 +5,7 @@ module "post_watch_lambda" {
   version = "~> 7.2"
 
   function_name = "post-watch-events-${var.resource_suffix}"
+  publish = true
   create_package = false
   local_existing_package = "../dist/api/post-watch-events.zip"
 
