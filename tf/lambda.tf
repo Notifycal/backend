@@ -11,6 +11,7 @@ module "post_watch_lambda" {
   timeout     = 30
   memory_size = 128
   handler     = "index.handler"
+  create_package = false
 
   logging_log_format = "JSON"
 
