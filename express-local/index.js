@@ -21,12 +21,12 @@ const initialize = (router) => {
         // Some responses do not have a body. In this case, the end message must be used to send the response.
         if (data.body) {
           if (isJSONString(data.body)) {
-            response.status(data.statusCode).json(JSON.parse(data.body));
+            response.status(data.statusCode).set(data.headers).json(JSON.parse(data.body));
           } else {
-            response.status(data.statusCode).send(data.body);
+            response.status(data.statusCode).set(data.headers).send(data.body);
           }
         } else {
-          response.status(data.statusCode).end();
+          response.status(data.statusCode).set(data.headers).end();
         }
       })
       .catch((err) => {
@@ -55,7 +55,6 @@ const initialize = (router) => {
     event.headers = req.headers || {};
 
     const responsePromise = routes[endpoint][method](event, req.body);
-
     respond(responsePromise, res);
   };
 
