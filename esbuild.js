@@ -23,5 +23,6 @@ await esbuild.build({
   target: 'node20',
   format: 'esm',
   outExtension: { '.js': '.mjs' },
+  inject: ['shim.ts'],
   tsconfig
 });
