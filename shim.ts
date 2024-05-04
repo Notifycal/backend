@@ -1,6 +1,5 @@
 import { createRequire } from 'node:module';
-/* eslint-disable */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import buffer from 'node:buffer';
-/* eslint-enable */
 
 globalThis.require = createRequire(import.meta.url);
