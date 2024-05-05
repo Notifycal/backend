@@ -1,4 +1,7 @@
+data "aws_caller_identity" "current" {}
+
 locals {
+  aws_account_id = data.aws_caller_identity.current.account_id
   rendered_openapi_spec = templatefile("${path.root}/../dist/${var.openapi_spec_file}", {
     version    = "v0.0.1"
     aws_region = "eu-west-1"

@@ -1,5 +1,3 @@
-data "aws_caller_identity" "current" {}
-
 module "post_watch_lambda" {
   source  = "terraform-aws-modules/lambda/aws"
   version = "~> 7.2"
@@ -21,7 +19,7 @@ module "post_watch_lambda" {
       principal = "apigateway.amazonaws.com"
       source_arn = format("arn:aws:execute-api:%s:%s:%s/%s/*/*",
         var.aws_region,
-        data.aws_caller_identity.current.account_id,
+        locals.aws_account_id,
         aws_api_gateway_rest_api.auth_service.id,
         var.api_stage_name
       )
