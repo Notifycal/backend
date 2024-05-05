@@ -1,5 +1,5 @@
-resource "aws_sqs_queue" "get_users" {
-  name                      = "get-users-${var.resource_suffix}"
+resource "aws_sqs_queue" "users" {
+  name                      = "users-${var.resource_suffix}"
   
   # TODO: FIFO? Not really, right?
 

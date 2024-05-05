@@ -40,14 +40,20 @@ module "get_users_scheduled_lambda" {
 
   attach_policy_statements = true
   policy_statements = {
-    sqs_get_users = {
+    sqs_users = {
       effect    = "Allow",
       actions   = ["sqs:SendMessage"],
-      resources = [aws_sqs_queue.get_users.arn]
+      resources = [aws_sqs_queue.users.arn]
+    }
+    dynamo_users_table = {
+      effect    = "Allow",
+      actions   = ["sqs:SendMessage"],
+      resources = [aws_sqs_queue.users.arn]
     }
   }
 
   environment_variables = merge({
-    GET_USERS_SQS_QUEUE = aws_sqs_queue.get_users.id
+    USERS_SQS_QUEUE_URL = aws_sqs_queue.users.id
+    USERS_DYNAMO_TABLE = aws_dynamodb_table.users.id
   }, local.common_lambda_env_vars)
 }

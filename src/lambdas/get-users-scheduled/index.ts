@@ -2,7 +2,7 @@ import { Context, ScheduledEvent, ScheduledHandler } from 'aws-lambda';
 
 import { SQSClient, SendMessageCommand } from '@aws-sdk/client-sqs';
 
-const { GET_USERS_SQS_QUEUE, AWS_REGION } = process.env;
+const { USERS_SQS_QUEUE_URL, USERS_DYNAMO_TABLE, AWS_REGION } = process.env;
 
 // TODO
 import { Logger } from '@aws-lambda-powertools/logger';
@@ -20,7 +20,7 @@ export const handler: ScheduledHandler = async (event: ScheduledEvent, ctx: Cont
   // TODO: add user email to MessageAttributes/MessageGroupId?
   const input = {
     // SendMessageRequest
-    QueueUrl: GET_USERS_SQS_QUEUE,
+    QueueUrl: USERS_SQS_QUEUE_URL,
     MessageBody: 'I am a SQS message!'
   };
 
