@@ -4,9 +4,9 @@ source_folder="dist"
 target_folder="$(mktemp -d /tmp/dist.XXXXX)"
 openapi_spec="openapi/spec.yaml"
 
-# lambdas live in `dist/api/*` and `dist/*`. Need to search for `index.mjs`
+# lambdas live in `dist/api/*` and `dist/*`. Need to search for `index.cjs`
 # Create a zip file per lambda
-find ${source_folder} -type f -name 'index.mjs' | while read -r file; do
+find ${source_folder} -type f -name 'index.cjs' | while read -r file; do
   target_lambda_zip=$(dirname "${file}")
   source_folder=$target_lambda_zip
   target_lambda_zip="${target_folder}/${target_lambda_zip//dist\//}.zip"

@@ -21,8 +21,8 @@ await esbuild.build({
   sourcemap: 'linked',
   minify: process.env.NODE_ENV == 'production',
   target: 'node20',
-  format: 'esm',
-  outExtension: { '.js': '.mjs' },
+  format: 'cjs',
+  outExtension: { '.js': '.cjs' },
   inject: ['shim.ts'],
   tsconfig
 });
