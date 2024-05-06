@@ -1,5 +1,5 @@
 locals {
-  get_users_lambda_minutes_frequency = 5
+  get_users_lambda_minutes_frequency = 30
 }
 
 resource "aws_cloudwatch_event_rule" "get_users_trigger_rule" {
@@ -49,8 +49,12 @@ module "get_users_scheduled_lambda" {
     }
     dynamo_users_table = {
       effect    = "Allow",
-      actions   = ["sqs:SendMessage"],
-      resources = [aws_sqs_queue.users.arn]
+      actions   = [
+        "dynamodb:DescribeTable",
+        "dynamodb:Query",
+        "dynamodb:Scan"
+      ]
+      resources = [aws_dynamodb_table.users.arn]
     }
   }
 
