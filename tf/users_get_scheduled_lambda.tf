@@ -30,6 +30,8 @@ module "get_users_scheduled_lambda" {
   handler     = "index.handler"
 
   logging_log_format = "JSON"
+  attach_tracing_policy = true
+  tracing_mode = "Active"
 
   allowed_triggers = {
     AllowEventBridgeInvoke = {
