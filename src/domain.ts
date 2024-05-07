@@ -1,9 +1,11 @@
+import AWSXRay from 'aws-xray-sdk-core';
+
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { ScanCommand, DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
 
 export const getUsers = async (usersTable: string) => {
   // The future might require pagination
-  const client = new DynamoDBClient({ region: process.env.AWS_REGION });
+  const client = AWSXRay.captureAWSv3Client(new DynamoDBClient({ region: process.env.AWS_REGION }));
   const documentClient = DynamoDBDocumentClient.from(client);
 
   const command = new ScanCommand({

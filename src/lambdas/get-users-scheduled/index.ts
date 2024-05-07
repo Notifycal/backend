@@ -1,5 +1,7 @@
 import { Context, ScheduledEvent, ScheduledHandler } from 'aws-lambda';
 
+import AWSXRay from 'aws-xray-sdk-core';
+
 import { SQSClient, SendMessageCommand } from '@aws-sdk/client-sqs';
 
 const { USERS_SQS_QUEUE_URL, USERS_DYNAMO_TABLE, AWS_REGION } = process.env;
@@ -9,7 +11,7 @@ import { Logger } from '@aws-lambda-powertools/logger';
 import { getUsers } from '../../domain.js';
 const logger = new Logger();
 
-const sqsClient = new SQSClient({ region: AWS_REGION });
+const sqsClient = AWSXRay.captureAWSv3Client(new SQSClient({ region: AWS_REGION }));
 
 export const handler: ScheduledHandler = async (event: ScheduledEvent, ctx: Context) => {
   // All log statements are written to CloudWatch
@@ -20,6 +22,7 @@ export const handler: ScheduledHandler = async (event: ScheduledEvent, ctx: Cont
 
   const users = await getUsers(USERS_DYNAMO_TABLE);
 
+  // TODO: Send batch message: https://docs.aws.amazon.com/AWSSimpleQueueService/latest/APIReference/API_SendMessageBatch.html
   for (const user of users) {
     const input = {
       // SendMessageRequest
