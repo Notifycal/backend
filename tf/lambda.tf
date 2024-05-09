@@ -2,7 +2,7 @@ module "post_watch_lambda" {
   source  = "terraform-aws-modules/lambda/aws"
   version = "~> 7.2"
 
-  function_name          = "post-watch-events-${var.resource_suffix}"
+  function_name          = "post-watch-events-${var.environment}"
   publish                = true
   create_package         = false
   local_existing_package = "${path.root}/../dist/api/post-watch-events.zip"
