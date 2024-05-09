@@ -12,7 +12,6 @@ variable "openapi_spec_file" {
   default     = "spec.yaml"
 }
 
-variable "resource_suffix" {
-  description = "Suffix to use when naming resources in this module."
-  type        = string
+variable "environment" {
+  type = string
 }
