@@ -4,24 +4,16 @@ import { SQSClient, SendMessageCommand } from '@aws-sdk/client-sqs';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { ScanCommand, DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
 
-// TODO
-import { Tracer } from '@aws-lambda-powertools/tracer';
+// Tracing, logging and metrics setup
+import { logger, metrics, tracer } from '@powertools';
+
 import { captureLambdaHandler } from '@aws-lambda-powertools/tracer/middleware';
-
-import { Logger } from '@aws-lambda-powertools/logger';
 import { injectLambdaContext } from '@aws-lambda-powertools/logger/middleware';
-
-import { Metrics, MetricUnit } from '@aws-lambda-powertools/metrics';
+import { MetricUnit } from '@aws-lambda-powertools/metrics';
 import { logMetrics } from '@aws-lambda-powertools/metrics/middleware';
-
 import middy from '@middy/core';
 
 const { USERS_SQS_QUEUE_URL, USERS_DYNAMO_TABLE, AWS_REGION } = process.env;
-
-// Tracing, logging and metrics setup
-const tracer = new Tracer();
-const logger = new Logger(); // All log statements are written to CloudWatch
-const metrics = new Metrics();
 
 // AWS client initialization (with tracing)
 const sqsClient = tracer.captureAWSv3Client(new SQSClient({ region: AWS_REGION }));
