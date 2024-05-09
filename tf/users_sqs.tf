@@ -1,5 +1,5 @@
 resource "aws_sqs_queue" "users" {
-  name                      = "users-${var.resource_suffix}"
+  name                      = "users-${var.environment}"
   
   # TODO: FIFO? Not really, right?
 
