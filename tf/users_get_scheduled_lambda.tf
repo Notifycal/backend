@@ -1,6 +1,7 @@
 locals {
   get_users_lambda_minutes_frequency = 5
-  get_users_lambda_function_name = "get-users-scheduled-${var.environment}"
+  get_users_lambda_function_name = "get-users-scheduled"
+  get_users_lambda_function_full_name = "${local.get_users_lambda_function_name}-${var.environment}"
 }
 
 resource "aws_cloudwatch_event_rule" "get_users_trigger_rule" {
@@ -20,7 +21,7 @@ module "get_users_scheduled_lambda" {
   source  = "terraform-aws-modules/lambda/aws"
   version = "~> 7.2"
 
-  function_name          = local.get_users_lambda_function_name
+  function_name          = local.get_users_lambda_function_full_name
   publish                = true
   create_package         = false
   local_existing_package = "${path.root}/../dist/get-users-scheduled.zip"
