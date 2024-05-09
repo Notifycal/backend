@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.1](https://github.com/Notifycal/backend/compare/v1.1.0...v1.1.1) (2024-05-06)
+
+
+### Bug Fixes
+
+* use CommonJS modules instead of ESM as support is crap ([#24](https://github.com/Notifycal/backend/issues/24)) ([e81c066](https://github.com/Notifycal/backend/commit/e81c0669c10c09d83e32053be4b07885847cdc01))
+
 ## [1.1.0](https://github.com/Notifycal/backend/compare/v1.0.0...v1.1.0) (2024-04-26)
 
 
