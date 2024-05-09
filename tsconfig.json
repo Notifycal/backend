@@ -1,13 +1,18 @@
+// This config is purely for type checking
+// Bundling is done with esbuild
 {
   "compilerOptions": {
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
+    "module": "Preserve",   // 
+    "moduleResolution": "Bundler",
     "target": "ES2020",
     "strict": true,
     "preserveConstEnums": true,
     "noEmit": true,
-    "baseUrl": ".",
+    "baseUrl": "src",
     "typeRoots": ["node_modules/@types"],
+    "paths": {
+      "@powertools": ["common/powertools"]
+    }
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules"]
