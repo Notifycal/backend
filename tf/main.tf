@@ -9,7 +9,7 @@ locals {
 }
 
 resource "aws_api_gateway_rest_api" "auth_service" {
-  name = "backend-api-${var.resource_suffix}"
+  name = "backend-api-${var.environment}"
 
   # OpenAPI spec file
   body = local.rendered_openapi_spec
