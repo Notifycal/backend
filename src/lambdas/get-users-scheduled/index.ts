@@ -18,12 +18,10 @@ import middy from '@middy/core';
 
 const { USERS_SQS_QUEUE_URL, USERS_DYNAMO_TABLE, AWS_REGION } = process.env;
 
-const serviceName = 'getUsersScheduled';
-
 // Tracing, logging and metrics setup
-const tracer = new Tracer({ serviceName });
-const logger = new Logger({ serviceName }); // All log statements are written to CloudWatch
-const metrics = new Metrics({ namespace: 'core', serviceName });
+const tracer = new Tracer();
+const logger = new Logger(); // All log statements are written to CloudWatch
+const metrics = new Metrics();
 
 // AWS client initialization (with tracing)
 const sqsClient = tracer.captureAWSv3Client(new SQSClient({ region: AWS_REGION }));

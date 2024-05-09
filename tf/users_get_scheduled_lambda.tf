@@ -1,5 +1,6 @@
 locals {
-  get_users_lambda_minutes_frequency = 30
+  get_users_lambda_minutes_frequency = 5
+  get_users_lambda_function_name = "get-users-scheduled-${var.resource_suffix}"
 }
 
 resource "aws_cloudwatch_event_rule" "get_users_trigger_rule" {
@@ -19,7 +20,7 @@ module "get_users_scheduled_lambda" {
   source  = "terraform-aws-modules/lambda/aws"
   version = "~> 7.2"
 
-  function_name          = "get-users-scheduled-${var.resource_suffix}"
+  function_name          = local.get_users_lambda_function_name
   publish                = true
   create_package         = false
   local_existing_package = "${path.root}/../dist/get-users-scheduled.zip"
@@ -61,5 +62,8 @@ module "get_users_scheduled_lambda" {
   environment_variables = merge({
     USERS_SQS_QUEUE_URL = aws_sqs_queue.users.id
     USERS_DYNAMO_TABLE = aws_dynamodb_table.users.id
+
+    POWERTOOLS_SERVICE_NAME = local.get_users_lambda_function_name
+    POWERTOOLS_METRICS_NAMESPACE = "core"
   }, local.common_lambda_env_vars)
 }
