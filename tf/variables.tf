@@ -13,5 +13,5 @@ variable "openapi_spec_file" {
 }
 
 variable "environment" {
-  type        = string
+  type = string
 }
