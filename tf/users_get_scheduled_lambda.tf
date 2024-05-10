@@ -35,6 +35,8 @@ module "get_users_scheduled_lambda" {
   attach_tracing_policy = true
   tracing_mode          = "Active"
 
+  maximum_retry_attempts = 0
+
   allowed_triggers = {
     AllowEventBridgeInvoke = {
       principal  = "events.amazonaws.com"

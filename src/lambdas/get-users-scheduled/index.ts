@@ -1,6 +1,8 @@
+import * as crypto from 'node:crypto';
+
 import { Context, ScheduledEvent, ScheduledHandler } from 'aws-lambda';
 
-import { SendMessageCommand } from '@aws-sdk/client-sqs';
+import { SendMessageCommand, SendMessageBatchCommand } from '@aws-sdk/client-sqs';
 import { ScanCommand } from '@aws-sdk/lib-dynamodb';
 
 import { dynamodbClient } from '@clients/dynamodb';
@@ -15,16 +17,21 @@ import { MetricUnit } from '@aws-lambda-powertools/metrics';
 import { logMetrics } from '@aws-lambda-powertools/metrics/middleware';
 import middy from '@middy/core';
 
+import { User } from 'model/User';
+
+const CHUNK_SIZE = 10; // Max AWS SQS BatchMessageSend number of messages
 const { USERS_SQS_QUEUE_URL, USERS_DYNAMO_TABLE } = process.env;
 
-const queueUserPromise = (user) => {
-  logger.info('Queueing message for user', { user });
-  const command = new SendMessageCommand({
-    // TODO: add user email to MessageAttributes/MessageGroupId?
+const queueUserBatchPromise = (userBatch: User[]) => {
+  logger.info('Queueing batch');
+  const command = new SendMessageBatchCommand({
     QueueUrl: USERS_SQS_QUEUE_URL,
-    MessageBody: JSON.stringify({
-      UserId: user.UserId
-    })
+    Entries: userBatch.map((user) => ({
+      Id: crypto.createHash('sha1').update(user.UserId).digest('hex'),
+      MessageBody: JSON.stringify({
+        UserId: user.UserId
+      })
+    }))
   });
   return sqsClient.send(command);
 };
@@ -43,35 +50,15 @@ const lambdaHandler: ScheduledHandler = async (event: ScheduledEvent, ctx: Conte
 
   logger.info('Requesting user list from DynamoDB', commandPayload);
   const response = await dynamodbClient.send(command);
-  const users = response.Items;
+  const users = response.Items as User[];
 
-  let success: boolean;
-
-  if (users !== undefined) {
-    const sendUsersPromises = users.map(queueUserPromise);
-
-    try {
-      const responses = await Promise.all(sendUsersPromises);
-      metrics.addMetric('successfulGetUsers', MetricUnit.Count, responses.length);
-      logger.info('Users successfully queued');
-      success = true;
-    } catch (error) {
-      let errorMessage = '';
-      if (typeof error === 'string') {
-        errorMessage = error;
-      } else if (error instanceof Error) {
-        errorMessage = error.message;
-      }
-      logger.error('Error queueing one or more users:', errorMessage);
-
-      success = false;
-    }
-  } else {
-    metrics.addMetric('successfulGetUsers', MetricUnit.Count, 0);
-    success = false;
+  if (!users) {
+    throw new Error('Something went wrong.');
   }
 
-  tracer.putAnnotation('successfulGetUsers', success);
+  for (let i = 0; i < users.length; i += CHUNK_SIZE) {
+    await queueUserBatchPromise(users.slice(i, i + CHUNK_SIZE));
+  }
 
   return;
 };
