@@ -4,7 +4,7 @@ resource "aws_sqs_queue" "users" {
 
   # Using a fifo queue as it guarantees exactly-once processing
   # https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/FIFO-queues-exactly-once-processing.html
-  fifo_queue                  = true
+  fifo_queue = true
 
   # When ContentBasedDeduplication is in effect, messages with identical
   # content sent within the deduplication interval are treated as duplicates
