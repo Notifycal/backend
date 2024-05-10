@@ -28,6 +28,7 @@ const queueUserBatchPromise = (userBatch: User[]) => {
     QueueUrl: USERS_SQS_QUEUE_URL,
     Entries: userBatch.map((user) => ({
       Id: crypto.createHash('sha1').update(user.UserId).digest('hex'),
+      MessageGroupId: crypto.randomUUID(),
       MessageBody: JSON.stringify({
         UserId: user.UserId
       })

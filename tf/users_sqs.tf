@@ -1,7 +1,16 @@
 resource "aws_sqs_queue" "users" {
-  name = "users-${var.environment}"
+  # FIFO queues need the `.fifo` suffix, otherwise AWS will complain about the name
+  name = "users-${var.environment}.fifo"
 
-  # TODO: FIFO? Not really, right?
+  # Using a fifo queue as it guarantees exactly-once processing
+  # https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/FIFO-queues-exactly-once-processing.html
+  fifo_queue                  = true
+
+  # When ContentBasedDeduplication is in effect, messages with identical
+  # content sent within the deduplication interval are treated as duplicates
+  # and only one copy of the message is delivered.
+  # The interval is 5 minutes and cannot be changed.
+  content_based_deduplication = true
 
   # Any message that is sent to the queue remains invisible to consumers
   # for the duration of this delay period.
