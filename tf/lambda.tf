@@ -12,9 +12,9 @@ module "post_watch_lambda" {
   memory_size = 128
   handler     = "index.handler"
 
-  logging_log_format = "JSON"
+  logging_log_format    = "JSON"
   attach_tracing_policy = true
-  tracing_mode = "Active"
+  tracing_mode          = "Active"
 
   allowed_triggers = {
     AllowAPIGatewayInvoke = {

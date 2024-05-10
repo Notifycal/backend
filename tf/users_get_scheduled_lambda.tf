@@ -1,6 +1,6 @@
 locals {
-  get_users_lambda_minutes_frequency = 5
-  get_users_lambda_function_name = "get-users-scheduled"
+  get_users_lambda_minutes_frequency  = 5
+  get_users_lambda_function_name      = "get-users-scheduled"
   get_users_lambda_function_full_name = "${local.get_users_lambda_function_name}-${var.environment}"
 }
 
@@ -31,13 +31,13 @@ module "get_users_scheduled_lambda" {
   memory_size = 128
   handler     = "index.handler"
 
-  logging_log_format = "JSON"
+  logging_log_format    = "JSON"
   attach_tracing_policy = true
-  tracing_mode = "Active"
+  tracing_mode          = "Active"
 
   allowed_triggers = {
     AllowEventBridgeInvoke = {
-      principal = "events.amazonaws.com"
+      principal  = "events.amazonaws.com"
       source_arn = aws_cloudwatch_event_rule.get_users_trigger_rule.arn
     }
   }
@@ -50,8 +50,8 @@ module "get_users_scheduled_lambda" {
       resources = [aws_sqs_queue.users.arn]
     }
     dynamo_users_table = {
-      effect    = "Allow",
-      actions   = [
+      effect = "Allow",
+      actions = [
         "dynamodb:DescribeTable",
         "dynamodb:Query",
         "dynamodb:Scan"
@@ -61,9 +61,9 @@ module "get_users_scheduled_lambda" {
   }
 
   environment_variables = merge({
-    USERS_SQS_QUEUE_URL = aws_sqs_queue.users.id
-    USERS_DYNAMO_TABLE = aws_dynamodb_table.users.id
-    POWERTOOLS_SERVICE_NAME = local.get_users_lambda_function_name
+    USERS_SQS_QUEUE_URL          = aws_sqs_queue.users.id
+    USERS_DYNAMO_TABLE           = aws_dynamodb_table.users.id
+    POWERTOOLS_SERVICE_NAME      = local.get_users_lambda_function_name
     POWERTOOLS_METRICS_NAMESPACE = "core"
   }, local.common_lambda_env_vars)
 }
