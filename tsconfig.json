@@ -2,7 +2,7 @@
 // Bundling is done with esbuild
 {
   "compilerOptions": {
-    "module": "Preserve",   // 
+    "module": "Preserve",   // This is for dev experience, in reality esbuild uses CommonJS
     "moduleResolution": "Bundler",
     "target": "ES2020",
     "strict": true,

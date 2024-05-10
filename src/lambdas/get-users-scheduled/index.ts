@@ -54,7 +54,14 @@ const lambdaHandler: ScheduledHandler = async (event: ScheduledEvent, ctx: Conte
       logger.info('Users successfully queued');
       success = true;
     } catch (error) {
-      logger.error('Error queueing one or more users:', error);
+      let errorMessage = '';
+      if (typeof error === 'string') {
+        errorMessage = error;
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      logger.error('Error queueing one or more users:', errorMessage);
+
       success = false;
     }
   } else {
