@@ -17,6 +17,18 @@ import middy from '@middy/core';
 
 const { USERS_SQS_QUEUE_URL, USERS_DYNAMO_TABLE } = process.env;
 
+const queueUserPromise = (user) => {
+  logger.info('Queueing message for user', { user });
+  const command = new SendMessageCommand({
+    // TODO: add user email to MessageAttributes/MessageGroupId?
+    QueueUrl: USERS_SQS_QUEUE_URL,
+    MessageBody: JSON.stringify({
+      UserId: user.UserId
+    })
+  });
+  return sqsClient.send(command);
+};
+
 // Lambda code goes here
 const lambdaHandler: ScheduledHandler = async (event: ScheduledEvent, ctx: Context) => {
   // Append awsRequestId to each log statement
@@ -36,17 +48,7 @@ const lambdaHandler: ScheduledHandler = async (event: ScheduledEvent, ctx: Conte
   let success: boolean;
 
   if (users !== undefined) {
-    const sendUsersPromises = users.map((user) => {
-      logger.info('Queueing message for user', { user });
-      const command = new SendMessageCommand({
-        // TODO: add user email to MessageAttributes/MessageGroupId?
-        QueueUrl: USERS_SQS_QUEUE_URL,
-        MessageBody: JSON.stringify({
-          UserId: user.UserId
-        })
-      });
-      return sqsClient.send(command);
-    });
+    const sendUsersPromises = users.map(queueUserPromise);
 
     try {
       const responses = await Promise.all(sendUsersPromises);
