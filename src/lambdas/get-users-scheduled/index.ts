@@ -1,8 +1,10 @@
 import { Context, ScheduledEvent, ScheduledHandler } from 'aws-lambda';
 
-import { SQSClient, SendMessageCommand } from '@aws-sdk/client-sqs';
-import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { ScanCommand, DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
+import { SendMessageCommand } from '@aws-sdk/client-sqs';
+import { ScanCommand } from '@aws-sdk/lib-dynamodb';
+
+import { dynamodbClient } from '@clients/dynamodb';
+import { sqsClient } from '@clients/sqs';
 
 // Tracing, logging and metrics setup
 import { logger, metrics, tracer } from '@powertools';
@@ -13,14 +15,7 @@ import { MetricUnit } from '@aws-lambda-powertools/metrics';
 import { logMetrics } from '@aws-lambda-powertools/metrics/middleware';
 import middy from '@middy/core';
 
-const { USERS_SQS_QUEUE_URL, USERS_DYNAMO_TABLE, AWS_REGION } = process.env;
-
-// AWS client initialization (with tracing)
-const sqsClient = tracer.captureAWSv3Client(new SQSClient({ region: AWS_REGION }));
-const dynamoDBDocumentClient = tracer.captureAWSv3Client(
-  new DynamoDBClient({ region: AWS_REGION })
-);
-const documentClient = DynamoDBDocumentClient.from(dynamoDBDocumentClient);
+const { USERS_SQS_QUEUE_URL, USERS_DYNAMO_TABLE } = process.env;
 
 // Lambda code goes here
 const lambdaHandler: ScheduledHandler = async (event: ScheduledEvent, ctx: Context) => {
@@ -35,7 +30,7 @@ const lambdaHandler: ScheduledHandler = async (event: ScheduledEvent, ctx: Conte
   const command = new ScanCommand(commandPayload);
 
   logger.info('Requesting user list from DynamoDB', commandPayload);
-  const response = await documentClient.send(command);
+  const response = await dynamodbClient.send(command);
   const users = response.Items;
 
   let success: boolean;

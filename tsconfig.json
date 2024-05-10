@@ -11,7 +11,8 @@
     "baseUrl": "src",
     "typeRoots": ["node_modules/@types"],
     "paths": {
-      "@powertools": ["common/powertools"]
+      "@powertools": ["common/powertools"],
+      "@clients/*": ["clients/*"]
     }
   },
   "include": ["src/**/*"],
