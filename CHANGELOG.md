@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.2](https://github.com/Notifycal/backend/compare/v1.1.1...v1.1.2) (2024-05-09)
+
+
+### Bug Fixes
+
+* replace var.resource_suffix with var.environment ([#26](https://github.com/Notifycal/backend/issues/26)) ([593ab72](https://github.com/Notifycal/backend/commit/593ab72955e41050a222b1a537005a50048ace16))
+
 ## [1.1.1](https://github.com/Notifycal/backend/compare/v1.1.0...v1.1.1) (2024-05-06)
 
 
