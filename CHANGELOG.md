@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/Notifycal/backend/compare/v1.1.2...v1.2.0) (2024-05-12)
+
+
+### Features
+
+* AWS Powertools (Observability) ([#29](https://github.com/Notifycal/backend/issues/29)) ([9182ed6](https://github.com/Notifycal/backend/commit/9182ed6f4ec61c12a2a729e66861e52202860250))
+
 ## [1.1.2](https://github.com/Notifycal/backend/compare/v1.1.1...v1.1.2) (2024-05-09)
 
 
