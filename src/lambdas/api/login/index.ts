@@ -16,23 +16,27 @@ const client = new OAuth2Client();
 export const handler: APIGatewayProxyHandler = async (
   event: APIGatewayProxyEvent,
   ctx: Context
-): Promise<APIGatewayProxyResult> => {  
+): Promise<APIGatewayProxyResult> => {
   return parseReqBody(event.body)
-    .then(googleTokenId => verifyGoogleToken(googleTokenId))
-    .then(email => lookupUser(email))
-    .then(user => generateJwt(user, loginConfig.privateKey))
-    .then(jwt => { return {
-      statusCode: 200,
-      headers: {
-        'Set-Authorization': jwt,
-        'Set-Refresh-Token': 'WIP'
-      },
-      body: ''
-    }})
-    .catch(() => { return {
-      statusCode: 401,
-      body: ''
-    }});
+    .then((googleTokenId) => verifyGoogleToken(googleTokenId))
+    .then((email) => lookupUser(email))
+    .then((user) => generateJwt(user, loginConfig.privateKey))
+    .then((jwt) => {
+      return {
+        statusCode: 200,
+        headers: {
+          'Set-Authorization': jwt,
+          'Set-Refresh-Token': 'WIP'
+        },
+        body: ''
+      };
+    })
+    .catch(() => {
+      return {
+        statusCode: 401,
+        body: ''
+      };
+    });
 };
 
 function parseReqBody(body: string | null): Promise<jwt> {
@@ -43,40 +47,41 @@ function parseReqBody(body: string | null): Promise<jwt> {
     } else {
       rejectReqBody(body, reject);
     }
-  })
+  });
 }
 
 function rejectReqBody(body: string | null, rejectionFn: () => void): void {
-  const msg = `Unexpected request body. It does not contain '${tokenIdReqFieldName}'. Request body: ${body}.`
+  const msg = `Unexpected request body. It does not contain '${tokenIdReqFieldName}'. Request body: ${body}.`;
   logger.warn(msg);
   rejectionFn();
 }
 
 function verifyGoogleToken(idToken: string): Promise<email> {
-  return client.verifyIdToken({
-    idToken: idToken,
-    audience: loginConfig.googleClientId
-  }).then(ticket => {
-    const email = ticket.getPayload()?.['email']
-    if (email) {
-      return email;
-    } else {
-      const msg = 'Email could not be extracted out of token id';
-      logger.warn(msg);
-      throw new Error(msg);
-    }
-  });
+  return client
+    .verifyIdToken({
+      idToken: idToken,
+      audience: loginConfig.googleClientId
+    })
+    .then((ticket) => {
+      const email = ticket.getPayload()?.['email'];
+      if (email) {
+        return email;
+      } else {
+        const msg = 'Email could not be extracted out of token id';
+        logger.warn(msg);
+        throw new Error(msg);
+      }
+    });
 }
 
-const notifycalDB = ['notifycal@gmail.com']
+const notifycalDB = ['notifycal@gmail.com'];
 
 function lookupUser(email: string): Promise<User> {
-  if (notifycalDB.includes(email))
-    return Promise.resolve({ email: email });
+  if (notifycalDB.includes(email)) return Promise.resolve({ email: email });
   else {
     // create user in Notifycal
     return Promise.resolve({ email: email });
-  }  
+  }
 }
 
 function generateJwt(user: User, privateKey: string): jwt {
@@ -84,11 +89,11 @@ function generateJwt(user: User, privateKey: string): jwt {
     email: user.email,
     role: 'user',
     permissions: {}
-  }
+  };
   return jwt.sign(tokenPayload, privateKey, {
     algorithm: loginConfig.jwt.algorithm,
     issuer: loginConfig.jwt.issuer,
-    expiresIn: loginConfig.jwt.expiresIn  
+    expiresIn: loginConfig.jwt.expiresIn
   } as SignOptions);
 }
 
@@ -96,6 +101,5 @@ interface User {
   email: string;
 }
 
-type email = string
-type jwt = string
-
+type email = string;
+type jwt = string;

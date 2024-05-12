@@ -1,0 +1,6 @@
+{
+  "preset": "./node_modules/ts-jest/presets/default-esm/jest-preset.js",
+  "testEnvironment": "node",
+  "verbose": true,
+  "automock": true
+}

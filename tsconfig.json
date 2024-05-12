@@ -4,6 +4,7 @@
   "compilerOptions": {
     "module": "Preserve", // This is for dev experience, in reality esbuild uses CommonJS
     "moduleResolution": "Bundler",
+    "esModuleInterop": true,
     "target": "ES2020",
     "strict": true,
     "preserveConstEnums": true,
@@ -16,5 +17,5 @@
     }
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "src/**/*.test.ts", "src/**/*.spec.ts"]
 }

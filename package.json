@@ -14,7 +14,7 @@
     "prettier": "prettier . --check",
     "prettier:fix": "$npm_execpath run prettier -- --write",
     "types": "tsc",
-    "test": "echo \"Write some!\""
+    "test": "npx jest"
   },
   "author": "",
   "license": "ISC",
@@ -31,7 +31,9 @@
     "jsonwebtoken": "^9.0.2"
   },
   "devDependencies": {
+    "@jest/globals": "^29.7.0",
     "@types/aws-lambda": "^8.10.136",
+    "@types/jest": "^29.5.12",
     "@types/jsonwebtoken": "^9.0.6",
     "@types/node": "^20.12.2",
     "@typescript-eslint/eslint-plugin": "^7.4.0",
@@ -40,12 +42,15 @@
     "esbuild": "^0.21.2",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-jest": "^28.5.0",
     "eslint-plugin-prettier": "^5.1.3",
     "express": "^4.19.2",
     "glob": "^10.3.12",
+    "jest": "^29.7.0",
     "nodemon": "^3.1.0",
     "prettier": "^3.2.5",
+    "ts-jest": "^29.1.2",
     "ts-node": "^10.9.2",
-    "typescript": "^5.4.3"
+    "typescript": "^5.4.5"
   }
 }

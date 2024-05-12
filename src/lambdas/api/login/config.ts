@@ -1,9 +1,9 @@
 export interface LoginConfig {
-  privateKey: string
+  privateKey: string;
   jwt: {
-    algorithm: string
-    issuer: string
-    expiresIn: string
-  }
-  googleClientId: string
+    algorithm: string;
+    issuer: string;
+    expiresIn: string;
+  };
+  googleClientId: string;
 }

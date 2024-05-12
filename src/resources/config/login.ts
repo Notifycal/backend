@@ -1,4 +1,4 @@
-import { LoginConfig } from "../../lambdas/api/login/config.js";
+import { LoginConfig } from '../../lambdas/api/login/config.js';
 import * as env from 'env-var';
 
 export var loginConfig: LoginConfig = {
@@ -9,4 +9,4 @@ export var loginConfig: LoginConfig = {
     expiresIn: env.get('JWT_EXPIRATATION').required().default('5m').asString()
   },
   googleClientId: env.get('GOOGLE_CLIENT_ID').required().asString()
-}
+};
