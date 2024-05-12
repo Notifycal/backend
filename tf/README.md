@@ -16,6 +16,7 @@
 
 | Name | Source | Version |
 |------|--------|---------|
+| <a name="module_get_actionable_events_sqs_lambda"></a> [get\_actionable\_events\_sqs\_lambda](#module\_get\_actionable\_events\_sqs\_lambda) | terraform-aws-modules/lambda/aws | ~> 7.2 |
 | <a name="module_get_users_scheduled_lambda"></a> [get\_users\_scheduled\_lambda](#module\_get\_users\_scheduled\_lambda) | terraform-aws-modules/lambda/aws | ~> 7.2 |
 | <a name="module_post_watch_lambda"></a> [post\_watch\_lambda](#module\_post\_watch\_lambda) | terraform-aws-modules/lambda/aws | ~> 7.2 |
 
@@ -29,6 +30,7 @@
 | [aws_cloudwatch_event_rule.get_users_trigger_rule](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_event_rule) | resource |
 | [aws_cloudwatch_event_target.get_users_event_target](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_event_target) | resource |
 | [aws_dynamodb_table.users](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/dynamodb_table) | resource |
+| [aws_lambda_event_source_mapping.get_actionable_events_sqs_trigger](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lambda_event_source_mapping) | resource |
 | [aws_sqs_queue.users](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/sqs_queue) | resource |
 | [aws_caller_identity.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/caller_identity) | data source |
 

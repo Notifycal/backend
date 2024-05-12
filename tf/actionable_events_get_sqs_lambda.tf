@@ -40,8 +40,8 @@ module "get_actionable_events_sqs_lambda" {
   attach_policy_statements = true
   policy_statements = {
     sqs_process_user = {
-      effect    = "Allow",
-      actions   = [
+      effect = "Allow",
+      actions = [
         "sqs:ReceiveMessage",
         "sqs:DeleteMessage",
         "sqs:GetQueueAttributes",

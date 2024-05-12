@@ -13,7 +13,7 @@ resource "aws_cloudwatch_event_rule" "get_users_trigger_rule" {
 
 resource "aws_cloudwatch_event_target" "get_users_event_target" {
   rule      = aws_cloudwatch_event_rule.get_users_trigger_rule.name
-  target_id = "GetUsers"    # TODO: rename this
+  target_id = "GetUsers" # TODO: rename this
   arn       = module.get_users_scheduled_lambda.lambda_function_arn
 }
 
