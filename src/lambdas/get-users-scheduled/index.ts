@@ -1,21 +1,18 @@
-import * as crypto from 'node:crypto';
-
 import { Context, ScheduledEvent, ScheduledHandler } from 'aws-lambda';
 
-import { SendMessageCommand, SendMessageBatchCommand } from '@aws-sdk/client-sqs';
-import { ScanCommand } from '@aws-sdk/lib-dynamodb';
-
-import { dynamodbClient } from '@clients/dynamodb';
-import { sqsClient } from '@clients/sqs';
-
-// Tracing, logging and metrics setup
 import { logger, metrics, tracer } from '@powertools';
-
+import middy from '@middy/core';
 import { captureLambdaHandler } from '@aws-lambda-powertools/tracer/middleware';
 import { injectLambdaContext } from '@aws-lambda-powertools/logger/middleware';
 import { MetricUnit } from '@aws-lambda-powertools/metrics';
 import { logMetrics } from '@aws-lambda-powertools/metrics/middleware';
-import middy from '@middy/core';
+
+import * as crypto from 'node:crypto';
+
+import { sqsClient } from '@clients/sqs';
+import { SendMessageCommand, SendMessageBatchCommand } from '@aws-sdk/client-sqs';
+import { dynamodbClient } from '@clients/dynamodb';
+import { ScanCommand } from '@aws-sdk/lib-dynamodb';
 
 import { User } from 'model/User';
 
