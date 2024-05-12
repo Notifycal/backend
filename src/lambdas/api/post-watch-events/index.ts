@@ -5,22 +5,19 @@ import {
   Context
 } from 'aws-lambda';
 
-// TODO
-import { Logger } from '@aws-lambda-powertools/logger';
-const logger = new Logger();
+import { logger, metrics, tracer } from '@powertools';
+import middy from '@middy/core';
+import { captureLambdaHandler } from '@aws-lambda-powertools/tracer/middleware';
+import { injectLambdaContext } from '@aws-lambda-powertools/logger/middleware';
+import { logMetrics } from '@aws-lambda-powertools/metrics/middleware';
 
-/**
- * A Lambda function that spits out its invocation event
- */
-export const handler: APIGatewayProxyHandler = async (
+export const lambdaHandler: APIGatewayProxyHandler = async (
   event: APIGatewayProxyEvent,
   ctx: Context
 ): Promise<APIGatewayProxyResult> => {
-  // All log statements are written to CloudWatch
-
-  logger.info('Invocation event', { event });
   // Append awsRequestId to each log statement
   logger.appendKeys({ requestId: ctx.awsRequestId });
+  logger.info('Invocation event', { event });
 
   logger.info('Event Body', { body: event.body });
 
@@ -29,3 +26,8 @@ export const handler: APIGatewayProxyHandler = async (
     body: 'OK'
   };
 };
+
+export const handler = middy(lambdaHandler)
+  .use(captureLambdaHandler(tracer))
+  .use(injectLambdaContext(logger, { logEvent: true }))
+  .use(logMetrics(metrics, { captureColdStartMetric: true }));
