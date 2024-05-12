@@ -1,8 +1,6 @@
-// This config is purely for type checking
-// Bundling is done with esbuild
 {
   "compilerOptions": {
-    "module": "Preserve", // This is for dev experience, in reality esbuild uses CommonJS
+    "module": "Preserve",
     "moduleResolution": "Bundler",
     "esModuleInterop": true,
     "target": "ES2020",
@@ -17,5 +15,5 @@
     }
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "src/**/*.test.ts", "src/**/*.spec.ts"]
+  "exclude": ["node_modules"]
 }

@@ -1,30 +1,34 @@
 import {
-  APIGatewayProxyEvent,
   APIGatewayProxyHandler,
   APIGatewayProxyResult,
   Context
 } from 'aws-lambda';
-import { logger, metrics, tracer } from '@powertools';
-import middy from '@middy/core';
-import { captureLambdaHandler } from '@aws-lambda-powertools/tracer/middleware';
-import { injectLambdaContext } from '@aws-lambda-powertools/logger/middleware';
-import { logMetrics } from '@aws-lambda-powertools/metrics/middleware';
-import jwt, { SignOptions } from 'jsonwebtoken';
-import { OAuth2Client } from 'google-auth-library';
-import { loginConfig } from '../../../resources/config/login.js';
+import { verifyGoogleToken } from 'services/google-oauth';
+import { readLoginConfig } from './config';
+import { buildJwt } from 'services/jwt';
+import { apply } from 'common/lambda-middleware';
+import { logger } from '@powertools';
+import { parser } from '@aws-lambda-powertools/parser/middleware';
+import { z } from 'zod';
+import { APIGatewayProxyEventV2Schema } from '@aws-lambda-powertools/parser/schemas';
+import { ApiGatewayV2Envelope } from '@aws-lambda-powertools/parser/envelopes';
 
 const tokenIdReqFieldName = 'google-id-token';
-const client = new OAuth2Client();
+const loginRequestEventSchema = APIGatewayProxyEventV2Schema.extend({
+  [tokenIdReqFieldName]: z.string()
+});
+type Payload = z.infer<typeof loginRequestEventSchema>;
 
-export const lambdaHandler: APIGatewayProxyHandler = async (
-  event: APIGatewayProxyEvent,
+const lambdaHandler: APIGatewayProxyHandler = async (
+  event: Payload,
   ctx: Context
 ): Promise<APIGatewayProxyResult> => {
-  return parseReqBody(event.body)
-    .then((googleTokenId) => verifyGoogleToken(googleTokenId))
-    .then((email) => lookupUser(email))
-    .then((user) => generateJwt(user, loginConfig.privateKey))
-    .then((jwt) => {
+  const config = readLoginConfig();
+  console.log(event)
+  return verifyGoogleToken(event[tokenIdReqFieldName], config.googleClientId)
+    .then(email => lookupUser(email))
+    .then(user => buildJwt(user, config.privateKey, config.jwt))
+    .then(jwt => {
       return {
         statusCode: 200,
         headers: {
@@ -34,7 +38,8 @@ export const lambdaHandler: APIGatewayProxyHandler = async (
         body: ''
       };
     })
-    .catch(() => {
+    .catch(err => {
+      onError(err);
       return {
         statusCode: 401,
         body: ''
@@ -42,49 +47,10 @@ export const lambdaHandler: APIGatewayProxyHandler = async (
     });
 };
 
-export const handler = middy(lambdaHandler)
-  .use(captureLambdaHandler(tracer))
-  .use(injectLambdaContext(logger, { logEvent: true }))
-  .use(logMetrics(metrics, { captureColdStartMetric: true }));
-
-function parseReqBody(body: string | null): Promise<jwt> {
-  return new Promise((resolve, reject) => {
-    if (body) {
-      const googleTokenId = JSON.parse(body)[tokenIdReqFieldName];
-      googleTokenId ? resolve(googleTokenId) : rejectReqBody(body, reject);
-    } else {
-      rejectReqBody(body, reject);
-    }
-  });
-}
-
-function rejectReqBody(body: string | null, rejectionFn: () => void): void {
-  const msg = `Unexpected request body. It does not contain '${tokenIdReqFieldName}'. Request body: ${body}.`;
-  logger.warn(msg);
-  rejectionFn();
-}
-
-function verifyGoogleToken(idToken: string): Promise<email> {
-  return client
-    .verifyIdToken({
-      idToken: idToken,
-      audience: loginConfig.googleClientId
-    })
-    .then((ticket) => {
-      const email = ticket.getPayload()?.['email'];
-      if (email) {
-        return email;
-      } else {
-        const msg = 'Email could not be extracted out of token id';
-        logger.warn(msg);
-        throw new Error(msg);
-      }
-    });
-}
-
-const notifycalDB = ['notifycal@gmail.com'];
+export const handler = apply(lambdaHandler).use(parser({ schema: loginRequestEventSchema, envelope: ApiGatewayV2Envelope }));
 
 function lookupUser(email: string): Promise<User> {
+  const notifycalDB = ['notifycal@gmail.com'];
   if (notifycalDB.includes(email)) return Promise.resolve({ email: email });
   else {
     // create user in Notifycal
@@ -92,22 +58,6 @@ function lookupUser(email: string): Promise<User> {
   }
 }
 
-function generateJwt(user: User, privateKey: string): jwt {
-  const tokenPayload = {
-    email: user.email,
-    role: 'user',
-    permissions: {}
-  };
-  return jwt.sign(tokenPayload, privateKey, {
-    algorithm: loginConfig.jwt.algorithm,
-    issuer: loginConfig.jwt.issuer,
-    expiresIn: loginConfig.jwt.expiresIn
-  } as SignOptions);
+function onError(err: any): void {
+  logger.warn(err);
 }
-
-interface User {
-  email: string;
-}
-
-type email = string;
-type jwt = string;
