@@ -16,6 +16,8 @@ module "post_watch_lambda" {
   attach_tracing_policy = true
   tracing_mode          = "Active"
 
+  maximum_retry_attempts = 0
+
   allowed_triggers = {
     AllowAPIGatewayInvoke = {
       principal = "apigateway.amazonaws.com"

@@ -5,7 +5,7 @@ import { Tracer } from '@aws-lambda-powertools/tracer';
 
 const defaultValues = {
   app_version: process.env.APP_VERSION || 'N/A',
-  aws_region: process.env.AWS_REGION || 'N/A'
+  aws_region: process.env.AWS_REGION || 'eu-west-1'
 };
 
 const logger = new Logger({
