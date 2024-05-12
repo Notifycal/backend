@@ -11,7 +11,7 @@ import { captureLambdaHandler } from '@aws-lambda-powertools/tracer/middleware';
 import { injectLambdaContext } from '@aws-lambda-powertools/logger/middleware';
 import { logMetrics } from '@aws-lambda-powertools/metrics/middleware';
 
-export const lambdaHandler: APIGatewayProxyHandler = async (
+const lambdaHandler: APIGatewayProxyHandler = async (
   event: APIGatewayProxyEvent,
   ctx: Context
 ): Promise<APIGatewayProxyResult> => {

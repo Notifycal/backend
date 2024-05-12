@@ -4,16 +4,19 @@ import {
   APIGatewayProxyResult,
   Context
 } from 'aws-lambda';
-import { Logger } from '@aws-lambda-powertools/logger';
+import { logger, metrics, tracer } from '@powertools';
+import middy from '@middy/core';
+import { captureLambdaHandler } from '@aws-lambda-powertools/tracer/middleware';
+import { injectLambdaContext } from '@aws-lambda-powertools/logger/middleware';
+import { logMetrics } from '@aws-lambda-powertools/metrics/middleware';
 import jwt, { SignOptions } from 'jsonwebtoken';
 import { OAuth2Client } from 'google-auth-library';
 import { loginConfig } from '../../../resources/config/login.js';
 
 const tokenIdReqFieldName = 'google-id-token';
-const logger = new Logger();
 const client = new OAuth2Client();
 
-export const handler: APIGatewayProxyHandler = async (
+export const lambdaHandler: APIGatewayProxyHandler = async (
   event: APIGatewayProxyEvent,
   ctx: Context
 ): Promise<APIGatewayProxyResult> => {
@@ -38,6 +41,11 @@ export const handler: APIGatewayProxyHandler = async (
       };
     });
 };
+
+export const handler = middy(lambdaHandler)
+  .use(captureLambdaHandler(tracer))
+  .use(injectLambdaContext(logger, { logEvent: true }))
+  .use(logMetrics(metrics, { captureColdStartMetric: true }));
 
 function parseReqBody(body: string | null): Promise<jwt> {
   return new Promise((resolve, reject) => {
