@@ -18,40 +18,30 @@ describe('Login', () => {
   });
 
   test('should be ok', () => {
-    const body = JSON.stringify({
+    const event = testEvent(JSON.stringify({
       'google-id-token': 'eyJhbGciOiJSUzI1NiIsImtpZCI6ImEzYjc2MmY4NzFjZGIzYmFlMDA0NGM2NDk2MjJmYzEzOTZlZGEzZTMiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJhenAiOiI2NTg2NDAwNzgxMzctb211YW9rZzZyY2FqdjUwODc5Njc0bW9pZWxicHZsamwuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJhdWQiOiI2NTg2NDAwNzgxMzctb211YW9rZzZyY2FqdjUwODc5Njc0bW9pZWxicHZsamwuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJzdWIiOiIxMDAxOTE3Nzk1ODg2MTAyNzE4NzEiLCJlbWFpbCI6InNlcmdpby5hbmdlckBnbWFpbC5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwibmJmIjoxNzE1NTU1OTA0LCJuYW1lIjoiU2VyZ2lvIE1hcnTDrW4gU8OhbmNoZXoiLCJwaWN0dXJlIjoiaHR0cHM6Ly9saDMuZ29vZ2xldXNlcmNvbnRlbnQuY29tL2EvQUNnOG9jS2Q5S1lnTjIwdUxQZlV6MW5KUDJQS3BtNjRBd1VITVJIUjRVYnM0MXM2cnVJWW1RPXM5Ni1jIiwiZ2l2ZW5fbmFtZSI6IlNlcmdpbyIsImZhbWlseV9uYW1lIjoiTWFydMOtbiBTw6FuY2hleiIsImlhdCI6MTcxNTU1NjIwNCwiZXhwIjoxNzE1NTU5ODA0LCJqdGkiOiJjYjc5YjU4ZjU4M2RjMzhjYzAwZDBhMjhhODUwYmZhOGQ3NTZlNDVmIn0.HvTYegUoRgDx_qbUV48g2l9f8VE2kSYEEMCp7DAmDjxvLn_JOZTPDkP6lGM5sNnzrq2zYiSpkSwvzChIldlgeOFMwPGl209BqljN2g_5XnoBT92dDbjmX0N1-NZm6b3MRcXtCuGRJiy2S91FgUUeag_4PB7QcHztaFjlDuLSg3u5KqjvvuGJF7E1YCZn7SZm0wH9MkKVLP0suJvfpAmeWufAU7f6GwQjxs2IdD4DOdc0n_PykbYZX-YHntCUu89thfMuqj1trszW9dDw0YD3TxGjt_COgXyBEBFeVdB2kYgUF0iwihVQo_yeQfrjD9Am_wxs0yYuGKXRYg_LXcDMwg'
-    });
-    return testit(body).then(resp => {
+    }));
+    return testit(event).then(resp => {
       expect(resp.statusCode).toEqual(200);
       expect(resp.body).toEqual(null);
       expect(resp.headers?.['Set-Authorization']).toBeTruthy();
       expect(resp.headers?.['Set-Refresh-Token']).toEqual("WIP");
     });
   });
+  test('should fail validation', () => {
+    const event = testEvent(JSON.stringify({
+      'google-id-token': 999
+    }));
+    return testit(event).then(resp => {
+      expect(resp.statusCode).toEqual(401);
+      expect(resp.body).toEqual('');
+      expect(resp.headers?.['Set-Authorization']).toBeUndefined();
+      expect(resp.headers?.['Set-Refresh-Token']).toBeUndefined();
+    });
+  });
 });
 
-function testit(body: string | null, env: LoginConfig = defaultEnv) {
-  const event = {
-    body: body,
-    resource: 'someResource',
-    path: 'somePath',
-    httpMethod: 'POST',
-    queryStringParameters: {},
-    multiValueQueryStringParameters: {},
-    requestContext: {
-      accountId: 'someAccountId',
-      apiId: 'someApiId',
-      stage: 'someStage',
-      protocol: 'someProtocol',
-      identity: {},
-      requestId: 'someRequestId',
-      requestTime: 'someRequestTime',
-      requestTimeEpoch: 123456789,
-      resourcePath: 'someResourcePath',
-      httpMethod: 'POST',
-      path: 'somePath2'
-    }
-  } as APIGatewayProxyEvent;
+function testit(event: APIGatewayProxyEvent, env: LoginConfig = defaultEnv) {
   setEnv(env);
   return handler(event, c);
 }
@@ -80,6 +70,30 @@ function setEnv(config: LoginConfig) {
   process.env.JWT_EXPIRATION = config.jwt.expiresIn;
   process.env.GOOGLE_CLIENT_ID = config.googleClientId;
   process.env.POWERTOOLS_DEV = "true";
+}
+
+function testEvent(body: string | null): APIGatewayProxyEvent {
+  return {
+    body: body,
+    resource: 'someResource',
+    path: 'somePath',
+    httpMethod: 'POST',
+    queryStringParameters: {},
+    multiValueQueryStringParameters: {},
+    requestContext: {
+      accountId: 'someAccountId',
+      apiId: 'someApiId',
+      stage: 'someStage',
+      protocol: 'someProtocol',
+      identity: {},
+      requestId: 'someRequestId',
+      requestTime: 'someRequestTime',
+      requestTimeEpoch: 123456789,
+      resourcePath: 'someResourcePath',
+      httpMethod: 'POST',
+      path: 'somePath2'
+    }
+  } as APIGatewayProxyEvent;
 }
 
 const c: Context = {

@@ -1,15 +1,17 @@
 import {
+  APIGatewayProxyEvent,
   APIGatewayProxyResult,
   Context
 } from 'aws-lambda';
 import { verifyGoogleToken } from 'services/google-oauth';
 import { readLoginConfig } from './config';
 import { buildJwt } from 'services/jwt';
-import { apply } from 'common/lambda-middleware';
+import { apply, handleInputValidation } from 'common/lambda-middleware';
 import { logger } from '@powertools';
 import { parser } from '@aws-lambda-powertools/parser/middleware';
 import { z } from 'zod';
 import { ApiGatewayEnvelope } from '@aws-lambda-powertools/parser/envelopes';
+import { ParsedResult } from '@aws-lambda-powertools/parser/types';
 
 const tokenIdReqFieldName = 'google-id-token';
 const loginRequestEventSchema = z.object({
@@ -17,11 +19,11 @@ const loginRequestEventSchema = z.object({
 });
 type Payload = z.infer<typeof loginRequestEventSchema>;
 
-async function lambdaHandler(event: Payload,
+async function lambdaHandler(event: ParsedResult<APIGatewayProxyEvent, Payload>,
   ctx: Context): Promise<APIGatewayProxyResult> {
   const config = readLoginConfig();
-  console.log(event);
-  return verifyGoogleToken(event[tokenIdReqFieldName], config.googleClientId)
+  return handleInputValidation<Payload>(event)
+    .then(event => verifyGoogleToken(event[tokenIdReqFieldName], config.googleClientId))
     .then(email => lookupUser(email))
     .then(user => buildJwt(user, config.privateKey, config.jwt))
     .then(jwt => {
@@ -43,7 +45,7 @@ async function lambdaHandler(event: Payload,
     });
 }
 
-export const handler = apply(lambdaHandler).use(parser({ schema: loginRequestEventSchema, envelope: ApiGatewayEnvelope }));
+export const handler = apply(lambdaHandler).use(parser({ schema: loginRequestEventSchema, envelope: ApiGatewayEnvelope, safeParse: true }));
 
 function lookupUser(email: string): Promise<User> {
   const notifycalDB = ['notifycal@gmail.com'];

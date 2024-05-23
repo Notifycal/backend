@@ -48,12 +48,28 @@ const initialize = (router) => {
   };
 
   const respondParam = (endpoint, method) => (req, res) => {
-    const event = {};
-    event.body = JSON.stringify(req.body || {});
-    event.queryStringParameters = req.query || {};
-    event.pathParameters = req.params || {};
-    event.headers = req.headers || {};
-
+    // TODO: only valid while all endpoints are of type APIGatewayProxyEvent.
+    const event = {
+      body: JSON.stringify(req.body || {}),
+      resource: 'someResource',
+      path: 'somePath',
+      httpMethod: 'POST',
+      queryStringParameters: {},
+      multiValueQueryStringParameters: {},
+      requestContext: {
+        accountId: 'someAccountId',
+        apiId: 'someApiId',
+        stage: 'someStage',
+        protocol: 'someProtocol',
+        identity: {},
+        requestId: 'someRequestId',
+        requestTime: 'someRequestTime',
+        requestTimeEpoch: 123456789,
+        resourcePath: 'someResourcePath',
+        httpMethod: 'POST',
+        path: 'somePath2'
+      }
+    };
     const responsePromise = routes[endpoint][method](event, req.body);
     respond(responsePromise, res);
   };
