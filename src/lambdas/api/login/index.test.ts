@@ -32,7 +32,25 @@ describe('Login', () => {
 
 function testit(body: string | null, env: LoginConfig = defaultEnv) {
   const event = {
-    body: body
+    body: body,
+    resource: 'someResource',
+    path: 'somePath',
+    httpMethod: 'POST',
+    queryStringParameters: {},
+    multiValueQueryStringParameters: {},
+    requestContext: {
+      accountId: 'someAccountId',
+      apiId: 'someApiId',
+      stage: 'someStage',
+      protocol: 'someProtocol',
+      identity: {},
+      requestId: 'someRequestId',
+      requestTime: 'someRequestTime',
+      requestTimeEpoch: 123456789,
+      resourcePath: 'someResourcePath',
+      httpMethod: 'POST',
+      path: 'somePath2'
+    }
   } as APIGatewayProxyEvent;
   setEnv(env);
   return handler(event, c);
