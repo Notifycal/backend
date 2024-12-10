@@ -1,8 +1,10 @@
 import { describe, test, expect, jest } from '@jest/globals';
-import { APIGatewayProxyEvent } from 'aws-lambda/trigger/api-gateway-proxy';
 import { Context } from 'aws-lambda/handler';
 import { LoginConfig } from './config';
-import { handler } from '.';
+import { handler, Payload } from '.';
+import { APIGatewayProxyEventV2 } from '@aws-lambda-powertools/parser/types';
+import * as googleOAuth from 'services/google-oauth';
+import { email } from 'services/google-oauth';
 
 describe('Login', () => {
   const OLD_ENV = process.env;
@@ -17,50 +19,81 @@ describe('Login', () => {
     jest.clearAllMocks();
   });
 
-  test('should be ok', () => {
-    const event = testEvent(JSON.stringify({
-      'google-id-token': 'eyJhbGciOiJSUzI1NiIsImtpZCI6ImEzYjc2MmY4NzFjZGIzYmFlMDA0NGM2NDk2MjJmYzEzOTZlZGEzZTMiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJhenAiOiI2NTg2NDAwNzgxMzctb211YW9rZzZyY2FqdjUwODc5Njc0bW9pZWxicHZsamwuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJhdWQiOiI2NTg2NDAwNzgxMzctb211YW9rZzZyY2FqdjUwODc5Njc0bW9pZWxicHZsamwuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJzdWIiOiIxMDAxOTE3Nzk1ODg2MTAyNzE4NzEiLCJlbWFpbCI6InNlcmdpby5hbmdlckBnbWFpbC5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwibmJmIjoxNzE1NTU1OTA0LCJuYW1lIjoiU2VyZ2lvIE1hcnTDrW4gU8OhbmNoZXoiLCJwaWN0dXJlIjoiaHR0cHM6Ly9saDMuZ29vZ2xldXNlcmNvbnRlbnQuY29tL2EvQUNnOG9jS2Q5S1lnTjIwdUxQZlV6MW5KUDJQS3BtNjRBd1VITVJIUjRVYnM0MXM2cnVJWW1RPXM5Ni1jIiwiZ2l2ZW5fbmFtZSI6IlNlcmdpbyIsImZhbWlseV9uYW1lIjoiTWFydMOtbiBTw6FuY2hleiIsImlhdCI6MTcxNTU1NjIwNCwiZXhwIjoxNzE1NTU5ODA0LCJqdGkiOiJjYjc5YjU4ZjU4M2RjMzhjYzAwZDBhMjhhODUwYmZhOGQ3NTZlNDVmIn0.HvTYegUoRgDx_qbUV48g2l9f8VE2kSYEEMCp7DAmDjxvLn_JOZTPDkP6lGM5sNnzrq2zYiSpkSwvzChIldlgeOFMwPGl209BqljN2g_5XnoBT92dDbjmX0N1-NZm6b3MRcXtCuGRJiy2S91FgUUeag_4PB7QcHztaFjlDuLSg3u5KqjvvuGJF7E1YCZn7SZm0wH9MkKVLP0suJvfpAmeWufAU7f6GwQjxs2IdD4DOdc0n_PykbYZX-YHntCUu89thfMuqj1trszW9dDw0YD3TxGjt_COgXyBEBFeVdB2kYgUF0iwihVQo_yeQfrjD9Am_wxs0yYuGKXRYg_LXcDMwg'
-    }));
-    return testit(event).then(resp => {
+  it('should be ok', () => {
+    const event = testEvent({
+      'google-id-token': '<SOME-FAKE-GOOGLE-ID-TOKEN>'
+    }) as unknown as Payload;
+    const idTokenVerificationResult = Promise.resolve('success@notifycal.com');
+    return testit(event, idTokenVerificationResult).then(resp => {
       expect(resp.statusCode).toEqual(200);
-      expect(resp.body).toEqual(null);
+      expect(resp.body).toEqual('OK');
       expect(resp.headers?.['Set-Authorization']).toBeTruthy();
       expect(resp.headers?.['Set-Refresh-Token']).toEqual("WIP");
     });
   });
-  test('should fail validation', () => {
-    const event = testEvent(JSON.stringify({
-      'google-id-token': 999
-    }));
-    return testit(event).then(resp => {
+  it('should fail id token verification', () => {
+    const event = testEvent({
+      'google-id-token': '<SOME-INCORRECT-GOOGLE-ID-TOKEN>'
+    }) as unknown as Payload;
+    const idTokenVerificationResult = Promise.reject('failure@notifycal.com');
+    return testit(event, idTokenVerificationResult).then(resp => {
       expect(resp.statusCode).toEqual(401);
-      expect(resp.body).toEqual('');
+      expect(resp.body).toEqual('Unauthorised');
+      expect(resp.headers?.['Set-Authorization']).toBeUndefined();
+      expect(resp.headers?.['Set-Refresh-Token']).toBeUndefined();
+    });
+  });
+  it('should fail input validation', () => {
+    const event = unsafeTestEvent({
+      'incorrect-field': '<SOME-FAKE-GOOGLE-ID-TOKEN>'
+    }) as unknown as Payload;
+    const idTokenVerificationResult = Promise.resolve('success@notifycal.com');
+    return testit(event, idTokenVerificationResult).then(resp => {
+      expect(resp.statusCode).toEqual(401);
+      expect(resp.body).toEqual('Unauthorised');
+      expect(resp.headers?.['Set-Authorization']).toBeUndefined();
+      expect(resp.headers?.['Set-Refresh-Token']).toBeUndefined();
+    });
+  });
+  it('should fail to generate JWT', () => {
+    const event = testEvent({
+      'google-id-token': '<SOME-FAKE-GOOGLE-ID-TOKEN>'
+    }) as unknown as Payload;
+    const idTokenVerificationResult = Promise.resolve('success@notifycal.com');
+    return testit(event, idTokenVerificationResult, {...defaultEnv, privateKey: 'some wrong private key'}).then(resp => {
+      expect(resp.statusCode).toEqual(500);
+      expect(resp.body).toEqual('KO');
       expect(resp.headers?.['Set-Authorization']).toBeUndefined();
       expect(resp.headers?.['Set-Refresh-Token']).toBeUndefined();
     });
   });
 });
 
-function testit(event: APIGatewayProxyEvent, env: LoginConfig = defaultEnv) {
+function testit(event: any, idTokenVerificationResult: Promise<email>, env: LoginConfig = defaultEnv) {
   setEnv(env);
+  jest.spyOn(googleOAuth, 'verifyGoogleToken').mockReturnValue(idTokenVerificationResult);
   return handler(event, c);
 }
-// ssh-keygen -t ed25519
-// const publicKey = `ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIO8XdoQm3Cg82JrbOLiouT/GFhQ+xfSFyjeyXdzSFzZU sj11@sj11box`
+// openssl ecparam -name prime256v1 -genkey -noout -out private.ec.key
+// openssl ec -in private.ec.key -pubout -out public.pem
+// PUBLIC KEY
+// -----BEGIN PUBLIC KEY-----
+// MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEcLLFj6lOjORJHlCT4+2QrxNyq5Ak
+// bBnPn6rRLeuDhGwhClRkg5tp0/r2oWst8tDiUNK9w3+3d7n8HGaP49b6WQ==
+// -----END PUBLIC KEY-----
 const defaultEnv: LoginConfig = {
-  privateKey: `-----BEGIN OPENSSH PRIVATE KEY-----
-  b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtzc2gtZW
-  QyNTUxOQAAACDvF3aEJtwoPNia2zi4qLk/xhYUPsX0hco3sl3c0hc2VAAAAJCXcQmQl3EJ
-  kAAAAAtzc2gtZWQyNTUxOQAAACDvF3aEJtwoPNia2zi4qLk/xhYUPsX0hco3sl3c0hc2VA
-  AAAEAVNTEhqnEQAFQB21EoM6Ebh+k9tOSsoowg+1tNLHKdQe8XdoQm3Cg82JrbOLiouT/G
-  FhQ+xfSFyjeyXdzSFzZUAAAADHNqMTFAc2oxMWJveAE=
-  -----END OPENSSH PRIVATE KEY-----`,
+  privateKey: `-----BEGIN EC PRIVATE KEY-----
+MHcCAQEEIEF6NI6CascYRtOFXEQrbsbsi7ZzTsKaktkDRZ/PSZ8hoAoGCCqGSM49
+AwEHoUQDQgAEcLLFj6lOjORJHlCT4+2QrxNyq5AkbBnPn6rRLeuDhGwhClRkg5tp
+0/r2oWst8tDiUNK9w3+3d7n8HGaP49b6WQ==
+-----END EC PRIVATE KEY-----
+`,
   jwt: {
     algorithm: 'ES256',
     issuer: 'test@notifycal.com',
     expiresIn: '5m'
   },
-  googleClientId: 'testing.google.com'
+  googleClientId: '658640078137-omuaokg6rcajv50879674moielbpvljl.apps.googleusercontent.com'
 }
 
 function setEnv(config: LoginConfig) {
@@ -72,28 +105,78 @@ function setEnv(config: LoginConfig) {
   process.env.POWERTOOLS_DEV = "true";
 }
 
-function testEvent(body: string | null): APIGatewayProxyEvent {
+function unsafeTestEvent(body: any): APIGatewayProxyEventV2 {
+  return ttestEvent(JSON.stringify(body));
+}
+
+function testEvent(body: Payload): APIGatewayProxyEventV2 {
+  return ttestEvent(JSON.stringify(body));
+}
+
+function ttestEvent(body: string): APIGatewayProxyEventV2 {
   return {
     body: body,
-    resource: 'someResource',
-    path: 'somePath',
-    httpMethod: 'POST',
-    queryStringParameters: {},
-    multiValueQueryStringParameters: {},
-    requestContext: {
-      accountId: 'someAccountId',
-      apiId: 'someApiId',
-      stage: 'someStage',
-      protocol: 'someProtocol',
-      identity: {},
-      requestId: 'someRequestId',
-      requestTime: 'someRequestTime',
-      requestTimeEpoch: 123456789,
-      resourcePath: 'someResourcePath',
-      httpMethod: 'POST',
-      path: 'somePath2'
+    version: "2.0",
+    routeKey: "$default",
+    rawPath: "/my/path",
+    rawQueryString: "parameter1=value1&parameter1=value2&parameter2=value",
+    cookies: [
+      "cookie1"
+    ],
+    headers: {
+      header1: "value1"
+    },
+    queryStringParameters: {
+      parameter1: "value1,value2"
+    },
+    "requestContext": {
+      accountId: "123456789012",
+      apiId: "api-id",
+      authentication: {
+        clientCert: {
+          clientCertPem: "CERT_CONTENT",
+          subjectDN: "www.example.com",
+          issuerDN: "Example issuer",
+          serialNumber: "a1:a1:a1:a1:a1:a1:a1:a1:a1:a1:a1:a1:a1:a1:a1:a1",
+          validity: {
+            notBefore: "May 28 12:30:02 2019 GMT",
+            notAfter: "Aug  5 09:36:04 2021 GMT"
+          }
+        }
+      },
+      authorizer: {
+        jwt: {
+          claims: {
+            claim1: "value1"
+          },
+          scopes: [
+            "scope1"
+          ]
+        }
+      },
+      domainName: "id.execute-api.us-east-1.amazonaws.com",
+      domainPrefix: "id",
+      http: {
+        method: "POST",
+        path: "/my/path",
+        protocol: "HTTP/1.1",
+        sourceIp: "192.0.2.1",
+        userAgent: "agent"
+      },
+      requestId: "id",
+      routeKey: "$default",
+      stage: "$default",
+      time: "12/Mar/2020:19:03:58 +0000",
+      timeEpoch: 1583348638390
+    },
+    pathParameters: {
+      parameter1: "value1"
+    },
+    isBase64Encoded: false,
+    stageVariables: {
+      stageVariable1: "value1"
     }
-  } as APIGatewayProxyEvent;
+  };
 }
 
 const c: Context = {

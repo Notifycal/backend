@@ -1,10 +1,10 @@
+import { LoginTicket } from "google-auth-library";
 import { OAuth2Client } from "google-auth-library/build/src/auth/oauth2client";
 
-type email = string;
+export type email = string;
 
 export function verifyGoogleToken(idToken: string, googleClientId: string): Promise<email> {
-  const client = new OAuth2Client();
-  console.error("Should never reach this point")
+  const client = new OAuth2Client(googleClientId);
   return client
     .verifyIdToken({
       idToken: idToken,
