@@ -1,16 +1,16 @@
-import { describe, test, expect, jest } from '@jest/globals';
-import { Context } from 'aws-lambda/handler';
+import { describe, expect, jest } from '@jest/globals';
 import { LoginConfig } from './config';
 import { handler, Payload } from '.';
-import { APIGatewayProxyEventV2 } from '@aws-lambda-powertools/parser/types';
 import * as googleOAuth from 'services/google-oauth';
-import { email } from 'services/google-oauth';
+import * as jwt from 'services/jwt';
+import { Email, Jwt } from 'types/model';
+import { APIGatewayProxyStructuredResultV2 } from 'aws-lambda';
+import { c, testEvent, unsafeTestEvent } from 'testing/apigateway';
 
 describe('Login', () => {
   const OLD_ENV = process.env;
 
   beforeEach(() => {
-    // jest.resetModules();
     process.env = { ...OLD_ENV };
   });
 
@@ -19,81 +19,147 @@ describe('Login', () => {
     jest.clearAllMocks();
   });
 
-  it('should be ok', () => {
+  it('should sign up a user', () => {
     const event = testEvent({
       'google-id-token': '<SOME-FAKE-GOOGLE-ID-TOKEN>'
     }) as unknown as Payload;
-    const idTokenVerificationResult = Promise.resolve('success@notifycal.com');
-    return testit(event, idTokenVerificationResult).then(resp => {
-      expect(resp.statusCode).toEqual(200);
-      expect(resp.body).toEqual('OK');
-      expect(resp.headers?.['Set-Authorization']).toBeTruthy();
-      expect(resp.headers?.['Set-Refresh-Token']).toEqual("WIP");
+    const idTokenVerificationFn = () => Promise.resolve('success@notifycal.com');
+    const validJwt = 'some_valid_jwt';
+    const jwtBuildFn = () => Promise.resolve(validJwt);
+
+    return testit(event, idTokenVerificationFn, jwtBuildFn).then(resp => {
+      assert(resp, {
+        statusCode: 200,
+        body: 'OK',
+        headers: {
+          'Set-Authorization': validJwt,
+          'Set-Refresh-Token': "WIP"
+        }
+      });
     });
   });
-  it('should fail id token verification', () => {
+
+  it('should sign in a user', () => {
+    const event = testEvent({
+      'google-id-token': '<SOME-FAKE-GOOGLE-ID-TOKEN>'
+    }) as unknown as Payload;
+    const idTokenVerificationFn = () => Promise.resolve('success@notifycal.com');
+    const validJwt1 = 'some_valid_jwt_1';
+    const jwtBuildFn1 = () => Promise.resolve(validJwt1);
+    const validJwt2 = 'some_valid_jwt_2';
+    const jwtBuildFn2 = () => Promise.resolve(validJwt2);
+
+    return testit(event, idTokenVerificationFn, jwtBuildFn1)
+      .then(_ => testit(event, idTokenVerificationFn, jwtBuildFn2).then(resp => 
+        assert(resp, {
+          statusCode: 200,
+          body: 'OK',
+          headers: {
+            'Set-Authorization': validJwt2,
+            'Set-Refresh-Token': "WIP"
+          }
+        })
+      ));
+    });
+
+  it('should fail id token verification with 401', () => {
     const event = testEvent({
       'google-id-token': '<SOME-INCORRECT-GOOGLE-ID-TOKEN>'
     }) as unknown as Payload;
-    const idTokenVerificationResult = Promise.reject('failure@notifycal.com');
-    return testit(event, idTokenVerificationResult).then(resp => {
-      expect(resp.statusCode).toEqual(401);
-      expect(resp.body).toEqual('Unauthorised');
-      expect(resp.headers?.['Set-Authorization']).toBeUndefined();
-      expect(resp.headers?.['Set-Refresh-Token']).toBeUndefined();
-    });
+    const idTokenVerificationFn = () => Promise.reject('failure@notifycal.com');
+    const validJwt = 'some_valid_jwt';
+    const jwtBuildFn = () => Promise.resolve(validJwt);
+
+    return testit(event, idTokenVerificationFn, jwtBuildFn).then(resp => 
+      assert(resp, {
+        statusCode: 401,
+        body: 'Unauthorised'
+      })
+    );
   });
-  it('should fail input validation', () => {
+
+  it('should fail input validation with 401', () => {
     const event = unsafeTestEvent({
       'incorrect-field': '<SOME-FAKE-GOOGLE-ID-TOKEN>'
     }) as unknown as Payload;
-    const idTokenVerificationResult = Promise.resolve('success@notifycal.com');
-    return testit(event, idTokenVerificationResult).then(resp => {
-      expect(resp.statusCode).toEqual(401);
-      expect(resp.body).toEqual('Unauthorised');
-      expect(resp.headers?.['Set-Authorization']).toBeUndefined();
-      expect(resp.headers?.['Set-Refresh-Token']).toBeUndefined();
-    });
+    const idTokenVerificationFn = () => Promise.resolve('success@notifycal.com');
+    const validJwt = 'some_valid_jwt';
+    const jwtBuildFn = () => Promise.resolve(validJwt);
+
+    return testit(event, idTokenVerificationFn, jwtBuildFn).then(resp => 
+      assert(resp, {
+        statusCode: 401,
+        body: 'Unauthorised'
+      })
+    );
   });
-  it('should fail to generate JWT', () => {
+
+  it('should fail to generate JWT with 500', () => {
     const event = testEvent({
       'google-id-token': '<SOME-FAKE-GOOGLE-ID-TOKEN>'
     }) as unknown as Payload;
-    const idTokenVerificationResult = Promise.resolve('success@notifycal.com');
-    return testit(event, idTokenVerificationResult, {...defaultEnv, privateKey: 'some wrong private key'}).then(resp => {
-      expect(resp.statusCode).toEqual(500);
-      expect(resp.body).toEqual('KO');
-      expect(resp.headers?.['Set-Authorization']).toBeUndefined();
-      expect(resp.headers?.['Set-Refresh-Token']).toBeUndefined();
-    });
+    const idTokenVerificationFn = () => Promise.resolve('success@notifycal.com');
+    const jwtBuildFn = () => Promise.reject("Boooom!");
+
+    return testit(event, idTokenVerificationFn, jwtBuildFn).then(resp => 
+      assert(resp, {
+        statusCode: 500,
+        body: 'KO'
+      }));
+  });
+
+  it('should fail if environment is not set correctly with 500', () => {
+    const event = testEvent({
+      'google-id-token': '<SOME-FAKE-GOOGLE-ID-TOKEN>'
+    }) as unknown as Payload;
+    const idTokenVerificationFn = () => Promise.resolve('success@notifycal.com');
+    const jwtBuildFn = () => Promise.resolve("JWT build error");
+    const env = {
+      ...defaultEnv,
+      googleClientId: null as unknown as string
+    }
+
+    return testit(event, idTokenVerificationFn, jwtBuildFn, env).then(resp => 
+      assert(resp, {
+        statusCode: 500,
+        body: 'KO'
+      }));
   });
 });
 
-function testit(event: any, idTokenVerificationResult: Promise<email>, env: LoginConfig = defaultEnv) {
+function testit(event: any, idTokenVerificationResult: () => Promise<Email>, jwtBuildResult: () => Promise<Jwt>, env: LoginConfig = defaultEnv): Promise<APIGatewayProxyStructuredResultV2> {
   setEnv(env);
-  jest.spyOn(googleOAuth, 'verifyGoogleToken').mockReturnValue(idTokenVerificationResult);
+  jest.spyOn(googleOAuth, 'verifyGoogleToken').mockImplementation(idTokenVerificationResult);
+  jest.spyOn(jwt, 'buildJwt').mockImplementation(jwtBuildResult);
   return handler(event, c);
 }
-// openssl ecparam -name prime256v1 -genkey -noout -out private.ec.key
-// openssl ec -in private.ec.key -pubout -out public.pem
-// PUBLIC KEY
-// -----BEGIN PUBLIC KEY-----
-// MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEcLLFj6lOjORJHlCT4+2QrxNyq5Ak
-// bBnPn6rRLeuDhGwhClRkg5tp0/r2oWst8tDiUNK9w3+3d7n8HGaP49b6WQ==
-// -----END PUBLIC KEY-----
+
+function assert(result: APIGatewayProxyStructuredResultV2, expectation: APIGatewayProxyStructuredResultV2): void {
+  expect(result.statusCode).toEqual(expectation.statusCode);
+  expect(result.body).toEqual(expectation.body);
+  expect(result.headers?.['Set-Authorization']).toEqual(expectation.headers?.['Set-Authorization']);
+  expect(result.headers?.['Set-Refresh-Token']).toEqual(expectation.headers?.['Set-Refresh-Token']);
+}
+
 const defaultEnv: LoginConfig = {
-  privateKey: `-----BEGIN EC PRIVATE KEY-----
-MHcCAQEEIEF6NI6CascYRtOFXEQrbsbsi7ZzTsKaktkDRZ/PSZ8hoAoGCCqGSM49
-AwEHoUQDQgAEcLLFj6lOjORJHlCT4+2QrxNyq5AkbBnPn6rRLeuDhGwhClRkg5tp
-0/r2oWst8tDiUNK9w3+3d7n8HGaP49b6WQ==
------END EC PRIVATE KEY-----
-`,
+  privateKey: `some_fake_private_key`,
   jwt: {
     algorithm: 'ES256',
     issuer: 'test@notifycal.com',
     expiresIn: '5m'
   },
-  googleClientId: '658640078137-omuaokg6rcajv50879674moielbpvljl.apps.googleusercontent.com'
+  googleClientId: '658640078137-omuaokg6rcajv50879674moielbpvljl.apps.googleusercontent.com',
+  userProvider: {
+    tableName: 'Users-local',
+    awsConfig: {
+      awsRegion: 'eu-west-1',
+      endpoint: 'http://localhost:4566',
+      credentials: {
+        accessKeyId: 'foo',
+        secretAccessKey: 'bar'
+      }
+    }
+  }
 }
 
 function setEnv(config: LoginConfig) {
@@ -103,93 +169,9 @@ function setEnv(config: LoginConfig) {
   process.env.JWT_EXPIRATION = config.jwt.expiresIn;
   process.env.GOOGLE_CLIENT_ID = config.googleClientId;
   process.env.POWERTOOLS_DEV = "true";
-}
-
-function unsafeTestEvent(body: any): APIGatewayProxyEventV2 {
-  return ttestEvent(JSON.stringify(body));
-}
-
-function testEvent(body: Payload): APIGatewayProxyEventV2 {
-  return ttestEvent(JSON.stringify(body));
-}
-
-function ttestEvent(body: string): APIGatewayProxyEventV2 {
-  return {
-    body: body,
-    version: "2.0",
-    routeKey: "$default",
-    rawPath: "/my/path",
-    rawQueryString: "parameter1=value1&parameter1=value2&parameter2=value",
-    cookies: [
-      "cookie1"
-    ],
-    headers: {
-      header1: "value1"
-    },
-    queryStringParameters: {
-      parameter1: "value1,value2"
-    },
-    "requestContext": {
-      accountId: "123456789012",
-      apiId: "api-id",
-      authentication: {
-        clientCert: {
-          clientCertPem: "CERT_CONTENT",
-          subjectDN: "www.example.com",
-          issuerDN: "Example issuer",
-          serialNumber: "a1:a1:a1:a1:a1:a1:a1:a1:a1:a1:a1:a1:a1:a1:a1:a1",
-          validity: {
-            notBefore: "May 28 12:30:02 2019 GMT",
-            notAfter: "Aug  5 09:36:04 2021 GMT"
-          }
-        }
-      },
-      authorizer: {
-        jwt: {
-          claims: {
-            claim1: "value1"
-          },
-          scopes: [
-            "scope1"
-          ]
-        }
-      },
-      domainName: "id.execute-api.us-east-1.amazonaws.com",
-      domainPrefix: "id",
-      http: {
-        method: "POST",
-        path: "/my/path",
-        protocol: "HTTP/1.1",
-        sourceIp: "192.0.2.1",
-        userAgent: "agent"
-      },
-      requestId: "id",
-      routeKey: "$default",
-      stage: "$default",
-      time: "12/Mar/2020:19:03:58 +0000",
-      timeEpoch: 1583348638390
-    },
-    pathParameters: {
-      parameter1: "value1"
-    },
-    isBase64Encoded: false,
-    stageVariables: {
-      stageVariable1: "value1"
-    }
-  };
-}
-
-const c: Context = {
-  callbackWaitsForEmptyEventLoop: false,
-  functionName: "fnName",
-  functionVersion: "test",
-  invokedFunctionArn: "arn:test",
-  memoryLimitInMB: "100mb",
-  awsRequestId: "someId",
-  logGroupName: "logGroupName",
-  logStreamName: "logStreamName",
-  getRemainingTimeInMillis: () => 1,
-  done: () => {},
-  fail: () => {},
-  succeed: () => {}
+  process.env.USERS_TABLE_NAME = config.userProvider.tableName,
+  process.env.AWS_REGION = config.userProvider.awsConfig.awsRegion
+  process.env.AWS_ENDPOINT_URL = config.userProvider.awsConfig.endpoint
+  process.env.AWS_ACCESS_KEY_ID = config.userProvider.awsConfig.credentials?.accessKeyId
+  process.env.AWS_SECRET_ACCESS_KEY = config.userProvider.awsConfig.credentials?.secretAccessKey
 }

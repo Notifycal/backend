@@ -4,7 +4,7 @@ import {
   Context
 } from 'aws-lambda';
 import { verifyGoogleToken } from 'services/google-oauth';
-import { readLoginConfig } from './config';
+import { LoginConfig, readLoginConfig } from './config';
 import { buildJwt } from 'services/jwt';
 import { apply, handleInputValidation } from 'common/lambda-middleware';
 import { logger } from '@powertools';
@@ -12,6 +12,9 @@ import { parser } from '@aws-lambda-powertools/parser/middleware';
 import { z } from 'zod';
 import { ApiGatewayV2Envelope } from '@aws-lambda-powertools/parser/envelopes';
 import { ParsedResult } from '@aws-lambda-powertools/parser/types';
+import { UserProvider, UserProviderConfig } from 'services/users-provider';
+import { User } from 'model/User';
+import { Jwt } from 'types/model';
 
 const tokenIdReqFieldName = 'google-id-token';
 const loginRequestEventSchema = z.object({
@@ -22,24 +25,31 @@ export { loginRequestEventSchema, type Payload }
 
 async function lambdaHandler(event: ParsedResult<APIGatewayProxyEventV2, Payload>,
   ctx: Context): Promise<APIGatewayProxyStructuredResultV2> {
-  const config = readLoginConfig();
+  let config: LoginConfig;
+  try {
+    config = readLoginConfig()
+  } catch(e) {
+    return internalErrorHandler(e);
+  }
   return handleInputValidation<Payload>(event)
     .then(event => verifyGoogleToken(event[tokenIdReqFieldName], config.googleClientId))
-    .then(email => lookupUser(email))
-    .then(user => buildJwt(user, config.privateKey, config.jwt).then(jwt => {
-      return {
-        statusCode: 200,
-        headers: {
-          'Set-Authorization': jwt,
-          'Set-Refresh-Token': 'WIP'
-        },
-        body: 'OK'
-      };
-    }, internalErrorHandler))
+    .then(email => signInOrUpUser(email, config.userProvider))
+    .then(user => buildJwt(user, config.privateKey, config.jwt).then(authenticationSuccessHandler, internalErrorHandler))
     .catch(authenticationFailureHandler);
 }
 
-function internalErrorHandler(error: any) {
+function authenticationSuccessHandler(jwt: Jwt): APIGatewayProxyStructuredResultV2 {
+  return {
+    statusCode: 200,
+    headers: {
+      'Set-Authorization': jwt,
+      'Set-Refresh-Token': 'WIP'
+    },
+    body: 'OK'
+  };
+}
+
+function internalErrorHandler(error: any): APIGatewayProxyStructuredResultV2 {
   logger.error(error);
   return {
     statusCode: 500,
@@ -47,7 +57,7 @@ function internalErrorHandler(error: any) {
   };
 }
 
-function authenticationFailureHandler(reason: any) {
+function authenticationFailureHandler(reason: any): APIGatewayProxyStructuredResultV2 {
   logger.warn(reason);
   return {
     statusCode: 401,
@@ -57,11 +67,12 @@ function authenticationFailureHandler(reason: any) {
 
 export const handler = apply(lambdaHandler).use(parser({ schema: loginRequestEventSchema, envelope: ApiGatewayV2Envelope, safeParse: true }));
 
-function lookupUser(email: string): Promise<User> {
-  const notifycalDB = ['notifycal@gmail.com', 'sergio.anger@gmail.com'];
-  if (notifycalDB.includes(email)) return Promise.resolve({ email: email });
-  else {
-    // create user in Notifycal
-    return Promise.resolve({ email: email });
-  }
+function signInOrUpUser(email: string, config: UserProviderConfig): Promise<User> {
+  const userProvider = new UserProvider(config);
+  return userProvider.getUserByEmail(email).then(user => 
+    user)
+  .catch(_ => {
+    const newUser = { UserId: email } as User;
+    return userProvider.putUser(newUser).then(_ => newUser);
+  }); 
 }

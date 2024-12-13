@@ -8,6 +8,7 @@ const jestConfig: JestConfigWithTsJest = {
   verbose: true,
   modulePaths: [compilerOptions.baseUrl],
   moduleNameMapper: pathsToModuleNameMapper(compilerOptions.paths),
+  setupFilesAfterEnv: ['jest-plugin-must-assert'],
 }
 
 export default jestConfig
