@@ -1,8 +1,4 @@
-import {
-  APIGatewayProxyEventV2,
-  APIGatewayProxyStructuredResultV2,
-  Context
-} from 'aws-lambda';
+import { APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2, Context } from 'aws-lambda';
 import { verifyGoogleToken } from 'services/google-oauth';
 import { LoginConfig, readLoginConfig } from './config';
 import { buildJwt } from 'services/jwt';
@@ -21,20 +17,27 @@ const loginRequestEventSchema = z.object({
   [tokenIdReqFieldName]: z.string()
 });
 type Payload = z.infer<typeof loginRequestEventSchema>;
-export { loginRequestEventSchema, type Payload }
+export { loginRequestEventSchema, type Payload };
 
-async function lambdaHandler(event: ParsedResult<APIGatewayProxyEventV2, Payload>,
-  ctx: Context): Promise<APIGatewayProxyStructuredResultV2> {
+async function lambdaHandler(
+  event: ParsedResult<APIGatewayProxyEventV2, Payload>,
+  ctx: Context
+): Promise<APIGatewayProxyStructuredResultV2> {
   let config: LoginConfig;
   try {
-    config = readLoginConfig()
-  } catch(e) {
+    config = readLoginConfig();
+  } catch (e) {
     return internalErrorHandler(e);
   }
   return handleInputValidation<Payload>(event)
-    .then(event => verifyGoogleToken(event[tokenIdReqFieldName], config.googleClientId))
-    .then(email => signInOrUpUser(email, config.userProvider))
-    .then(user => buildJwt(user, config.privateKey, config.jwt).then(authenticationSuccessHandler, internalErrorHandler))
+    .then((event) => verifyGoogleToken(event[tokenIdReqFieldName], config.googleClientId))
+    .then((email) => signInOrUpUser(email, config.userProvider))
+    .then((user) =>
+      buildJwt(user, config.privateKey, config.jwt).then(
+        authenticationSuccessHandler,
+        internalErrorHandler
+      )
+    )
     .catch(authenticationFailureHandler);
 }
 
@@ -65,14 +68,17 @@ function authenticationFailureHandler(reason: any): APIGatewayProxyStructuredRes
   };
 }
 
-export const handler = apply(lambdaHandler).use(parser({ schema: loginRequestEventSchema, envelope: ApiGatewayV2Envelope, safeParse: true }));
+export const handler = apply(lambdaHandler).use(
+  parser({ schema: loginRequestEventSchema, envelope: ApiGatewayV2Envelope, safeParse: true })
+);
 
 function signInOrUpUser(email: string, config: UserProviderConfig): Promise<User> {
   const userProvider = new UserProvider(config);
-  return userProvider.getUserByEmail(email).then(user => 
-    user)
-  .catch(_ => {
-    const newUser = { UserId: email } as User;
-    return userProvider.putUser(newUser).then(_ => newUser);
-  }); 
+  return userProvider
+    .getUserByEmail(email)
+    .then((user) => user)
+    .catch((_) => {
+      const newUser = { UserId: email } as User;
+      return userProvider.putUser(newUser).then((_) => newUser);
+    });
 }

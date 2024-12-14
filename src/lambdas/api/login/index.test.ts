@@ -27,13 +27,13 @@ describe('Login', () => {
     const validJwt = 'some_valid_jwt';
     const jwtBuildFn = () => Promise.resolve(validJwt);
 
-    return testit(event, idTokenVerificationFn, jwtBuildFn).then(resp => {
+    return testit(event, idTokenVerificationFn, jwtBuildFn).then((resp) => {
       assert(resp, {
         statusCode: 200,
         body: 'OK',
         headers: {
           'Set-Authorization': validJwt,
-          'Set-Refresh-Token': "WIP"
+          'Set-Refresh-Token': 'WIP'
         }
       });
     });
@@ -49,18 +49,19 @@ describe('Login', () => {
     const validJwt2 = 'some_valid_jwt_2';
     const jwtBuildFn2 = () => Promise.resolve(validJwt2);
 
-    return testit(event, idTokenVerificationFn, jwtBuildFn1)
-      .then(_ => testit(event, idTokenVerificationFn, jwtBuildFn2).then(resp => 
+    return testit(event, idTokenVerificationFn, jwtBuildFn1).then((_) =>
+      testit(event, idTokenVerificationFn, jwtBuildFn2).then((resp) =>
         assert(resp, {
           statusCode: 200,
           body: 'OK',
           headers: {
             'Set-Authorization': validJwt2,
-            'Set-Refresh-Token': "WIP"
+            'Set-Refresh-Token': 'WIP'
           }
         })
-      ));
-    });
+      )
+    );
+  });
 
   it('should fail id token verification with 401', () => {
     const event = testEvent({
@@ -70,7 +71,7 @@ describe('Login', () => {
     const validJwt = 'some_valid_jwt';
     const jwtBuildFn = () => Promise.resolve(validJwt);
 
-    return testit(event, idTokenVerificationFn, jwtBuildFn).then(resp => 
+    return testit(event, idTokenVerificationFn, jwtBuildFn).then((resp) =>
       assert(resp, {
         statusCode: 401,
         body: 'Unauthorised'
@@ -86,7 +87,7 @@ describe('Login', () => {
     const validJwt = 'some_valid_jwt';
     const jwtBuildFn = () => Promise.resolve(validJwt);
 
-    return testit(event, idTokenVerificationFn, jwtBuildFn).then(resp => 
+    return testit(event, idTokenVerificationFn, jwtBuildFn).then((resp) =>
       assert(resp, {
         statusCode: 401,
         body: 'Unauthorised'
@@ -99,13 +100,14 @@ describe('Login', () => {
       'google-id-token': '<SOME-FAKE-GOOGLE-ID-TOKEN>'
     }) as unknown as Payload;
     const idTokenVerificationFn = () => Promise.resolve('success@notifycal.com');
-    const jwtBuildFn = () => Promise.reject("Boooom!");
+    const jwtBuildFn = () => Promise.reject('Boooom!');
 
-    return testit(event, idTokenVerificationFn, jwtBuildFn).then(resp => 
+    return testit(event, idTokenVerificationFn, jwtBuildFn).then((resp) =>
       assert(resp, {
         statusCode: 500,
         body: 'KO'
-      }));
+      })
+    );
   });
 
   it('should fail if environment is not set correctly with 500', () => {
@@ -113,28 +115,37 @@ describe('Login', () => {
       'google-id-token': '<SOME-FAKE-GOOGLE-ID-TOKEN>'
     }) as unknown as Payload;
     const idTokenVerificationFn = () => Promise.resolve('success@notifycal.com');
-    const jwtBuildFn = () => Promise.resolve("JWT build error");
+    const jwtBuildFn = () => Promise.resolve('JWT build error');
     const env = {
       ...defaultEnv,
       googleClientId: null as unknown as string
-    }
+    };
 
-    return testit(event, idTokenVerificationFn, jwtBuildFn, env).then(resp => 
+    return testit(event, idTokenVerificationFn, jwtBuildFn, env).then((resp) =>
       assert(resp, {
         statusCode: 500,
         body: 'KO'
-      }));
+      })
+    );
   });
 });
 
-function testit(event: any, idTokenVerificationResult: () => Promise<Email>, jwtBuildResult: () => Promise<Jwt>, env: LoginConfig = defaultEnv): Promise<APIGatewayProxyStructuredResultV2> {
+function testit(
+  event: any,
+  idTokenVerificationResult: () => Promise<Email>,
+  jwtBuildResult: () => Promise<Jwt>,
+  env: LoginConfig = defaultEnv
+): Promise<APIGatewayProxyStructuredResultV2> {
   setEnv(env);
   jest.spyOn(googleOAuth, 'verifyGoogleToken').mockImplementation(idTokenVerificationResult);
   jest.spyOn(jwt, 'buildJwt').mockImplementation(jwtBuildResult);
   return handler(event, c);
 }
 
-function assert(result: APIGatewayProxyStructuredResultV2, expectation: APIGatewayProxyStructuredResultV2): void {
+function assert(
+  result: APIGatewayProxyStructuredResultV2,
+  expectation: APIGatewayProxyStructuredResultV2
+): void {
   expect(result.statusCode).toEqual(expectation.statusCode);
   expect(result.body).toEqual(expectation.body);
   expect(result.headers?.['Set-Authorization']).toEqual(expectation.headers?.['Set-Authorization']);
@@ -160,7 +171,7 @@ const defaultEnv: LoginConfig = {
       }
     }
   }
-}
+};
 
 function setEnv(config: LoginConfig) {
   process.env.JWT_PRIVATE_KEY = config.privateKey;
@@ -168,10 +179,10 @@ function setEnv(config: LoginConfig) {
   process.env.JWT_ISSUER = config.jwt.issuer;
   process.env.JWT_EXPIRATION = config.jwt.expiresIn;
   process.env.GOOGLE_CLIENT_ID = config.googleClientId;
-  process.env.POWERTOOLS_DEV = "true";
-  process.env.USERS_TABLE_NAME = config.userProvider.tableName,
-  process.env.AWS_REGION = config.userProvider.awsConfig.awsRegion
-  process.env.AWS_ENDPOINT_URL = config.userProvider.awsConfig.endpoint
-  process.env.AWS_ACCESS_KEY_ID = config.userProvider.awsConfig.credentials?.accessKeyId
-  process.env.AWS_SECRET_ACCESS_KEY = config.userProvider.awsConfig.credentials?.secretAccessKey
+  process.env.POWERTOOLS_DEV = 'true';
+  (process.env.USERS_TABLE_NAME = config.userProvider.tableName),
+    (process.env.AWS_REGION = config.userProvider.awsConfig.awsRegion);
+  process.env.AWS_ENDPOINT_URL = config.userProvider.awsConfig.endpoint;
+  process.env.AWS_ACCESS_KEY_ID = config.userProvider.awsConfig.credentials?.accessKeyId;
+  process.env.AWS_SECRET_ACCESS_KEY = config.userProvider.awsConfig.credentials?.secretAccessKey;
 }

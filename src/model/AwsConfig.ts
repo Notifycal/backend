@@ -1,9 +1,9 @@
 interface AwsConfig {
-    awsRegion?: string
-    endpoint?: string
-    credentials?: { accessKeyId: string; secretAccessKey: string }
+  awsRegion?: string;
+  endpoint?: string;
+  credentials?: { accessKeyId: string; secretAccessKey: string };
 }
-  
-  const defaultConfig = {
-    awsRegion: 'eu-west-1',
-  }
+
+const defaultConfig = {
+  awsRegion: 'eu-west-1'
+};

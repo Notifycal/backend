@@ -33,7 +33,7 @@ export function readLoginConfig(): LoginConfig {
         credentials: awsCredentials
       }
     }
-  }
+  };
 }
 
 function readAwsCredentials(env: any) {

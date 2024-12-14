@@ -1,4 +1,4 @@
-import { Email } from "types/model";
+import { Email } from 'types/model';
 
 export interface User {
   UserId: Email;
