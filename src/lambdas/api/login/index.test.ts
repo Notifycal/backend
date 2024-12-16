@@ -1,11 +1,12 @@
 import { describe, expect, jest } from '@jest/globals';
 import { LoginConfig } from './config';
-import { handler, Payload } from '.';
+import { handler, type Payload } from './index';
 import * as googleOAuth from 'services/google-oauth';
 import * as jwt from 'services/jwt';
 import { Email, Jwt } from 'types/model';
-import { APIGatewayProxyStructuredResultV2 } from 'aws-lambda';
+import { type APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2 } from 'aws-lambda';
 import { c, testEvent, unsafeTestEvent } from 'testing/apigateway';
+import type { ParsedResult } from '@aws-lambda-powertools/parser/types';
 
 describe('Login', () => {
   const OLD_ENV = process.env;
@@ -22,7 +23,7 @@ describe('Login', () => {
   it('should sign up a user', () => {
     const event = testEvent({
       'google-id-token': '<SOME-FAKE-GOOGLE-ID-TOKEN>'
-    }) as unknown as Payload;
+    }) as unknown as ParsedResult<APIGatewayProxyEventV2, Payload>;
     const idTokenVerificationFn = () => Promise.resolve('success@notifycal.com');
     const validJwt = 'some_valid_jwt';
     const jwtBuildFn = () => Promise.resolve(validJwt);
@@ -42,14 +43,14 @@ describe('Login', () => {
   it('should sign in a user', () => {
     const event = testEvent({
       'google-id-token': '<SOME-FAKE-GOOGLE-ID-TOKEN>'
-    }) as unknown as Payload;
+    }) as unknown as ParsedResult<APIGatewayProxyEventV2, Payload>;
     const idTokenVerificationFn = () => Promise.resolve('success@notifycal.com');
     const validJwt1 = 'some_valid_jwt_1';
     const jwtBuildFn1 = () => Promise.resolve(validJwt1);
     const validJwt2 = 'some_valid_jwt_2';
     const jwtBuildFn2 = () => Promise.resolve(validJwt2);
 
-    return testit(event, idTokenVerificationFn, jwtBuildFn1).then((_) =>
+    return testit(event, idTokenVerificationFn, jwtBuildFn1).then(() =>
       testit(event, idTokenVerificationFn, jwtBuildFn2).then((resp) =>
         assert(resp, {
           statusCode: 200,
@@ -66,7 +67,7 @@ describe('Login', () => {
   it('should fail id token verification with 401', () => {
     const event = testEvent({
       'google-id-token': '<SOME-INCORRECT-GOOGLE-ID-TOKEN>'
-    }) as unknown as Payload;
+    }) as unknown as ParsedResult<APIGatewayProxyEventV2, Payload>;
     const idTokenVerificationFn = () => Promise.reject('failure@notifycal.com');
     const validJwt = 'some_valid_jwt';
     const jwtBuildFn = () => Promise.resolve(validJwt);
@@ -82,7 +83,7 @@ describe('Login', () => {
   it('should fail input validation with 401', () => {
     const event = unsafeTestEvent({
       'incorrect-field': '<SOME-FAKE-GOOGLE-ID-TOKEN>'
-    }) as unknown as Payload;
+    }) as unknown as ParsedResult<APIGatewayProxyEventV2, Payload>;
     const idTokenVerificationFn = () => Promise.resolve('success@notifycal.com');
     const validJwt = 'some_valid_jwt';
     const jwtBuildFn = () => Promise.resolve(validJwt);
@@ -98,7 +99,7 @@ describe('Login', () => {
   it('should fail to generate JWT with 500', () => {
     const event = testEvent({
       'google-id-token': '<SOME-FAKE-GOOGLE-ID-TOKEN>'
-    }) as unknown as Payload;
+    }) as unknown as ParsedResult<APIGatewayProxyEventV2, Payload>;
     const idTokenVerificationFn = () => Promise.resolve('success@notifycal.com');
     const jwtBuildFn = () => Promise.reject('Boooom!');
 
@@ -113,7 +114,7 @@ describe('Login', () => {
   it('should fail if environment is not set correctly with 500', () => {
     const event = testEvent({
       'google-id-token': '<SOME-FAKE-GOOGLE-ID-TOKEN>'
-    }) as unknown as Payload;
+    }) as unknown as ParsedResult<APIGatewayProxyEventV2, Payload>;
     const idTokenVerificationFn = () => Promise.resolve('success@notifycal.com');
     const jwtBuildFn = () => Promise.resolve('JWT build error');
     const env = {
@@ -131,7 +132,7 @@ describe('Login', () => {
 });
 
 function testit(
-  event: any,
+  event: ParsedResult<APIGatewayProxyEventV2, Payload>,
   idTokenVerificationResult: () => Promise<Email>,
   jwtBuildResult: () => Promise<Jwt>,
   env: LoginConfig = defaultEnv
@@ -142,6 +143,7 @@ function testit(
   return handler(event, c);
 }
 
+/* eslint jest/expect-expect: ["error", { "assertFunctionNames": ["assert"] }] */
 function assert(
   result: APIGatewayProxyStructuredResultV2,
   expectation: APIGatewayProxyStructuredResultV2
@@ -180,8 +182,8 @@ function setEnv(config: LoginConfig) {
   process.env.JWT_EXPIRATION = config.jwt.expiresIn;
   process.env.GOOGLE_CLIENT_ID = config.googleClientId;
   process.env.POWERTOOLS_DEV = 'true';
-  (process.env.USERS_TABLE_NAME = config.userProvider.tableName),
-    (process.env.AWS_REGION = config.userProvider.awsConfig.awsRegion);
+  process.env.USERS_TABLE_NAME = config.userProvider.tableName;
+  process.env.AWS_REGION = config.userProvider.awsConfig.awsRegion;
   process.env.AWS_ENDPOINT_URL = config.userProvider.awsConfig.endpoint;
   process.env.AWS_ACCESS_KEY_ID = config.userProvider.awsConfig.credentials?.accessKeyId;
   process.env.AWS_SECRET_ACCESS_KEY = config.userProvider.awsConfig.credentials?.secretAccessKey;

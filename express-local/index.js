@@ -9,7 +9,7 @@ const isJSONString = (string) => {
   try {
     JSON.parse(string);
     return true;
-  } catch (ex) {
+  } catch {
     return false;
   }
 };
@@ -33,7 +33,7 @@ const initialize = (router) => {
         try {
           const error = JSON.parse({ error: err });
           response.status(500).json(error);
-        } catch (e) {
+        } catch {
           console.log(err);
         }
       });

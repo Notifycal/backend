@@ -1,4 +1,4 @@
-import { from } from 'env-var';
+import { ExtenderTypeOptional, from, IEnv, IOptionalVariable } from 'env-var';
 import { UserProviderConfig } from 'services/users-provider';
 
 export interface LoginConfig {
@@ -36,7 +36,10 @@ export function readLoginConfig(): LoginConfig {
   };
 }
 
-function readAwsCredentials(env: any) {
+function readAwsCredentials(
+  /* eslint-disable-next-line @typescript-eslint/no-empty-object-type */
+  env: IEnv<IOptionalVariable<{}> & ExtenderTypeOptional<{}>, NodeJS.ProcessEnv>
+): { accessKeyId: string; secretAccessKey: string } | undefined {
   const accessKeyId = env.get('AWS_ACCESS_KEY_ID').asString();
   const secretAccessKey = env.get('AWS_SECRET_ACCESS_KEY').asString();
   return accessKeyId && secretAccessKey ? { accessKeyId, secretAccessKey } : undefined;

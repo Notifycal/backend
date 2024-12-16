@@ -11,6 +11,7 @@ import { ParsedResult } from '@aws-lambda-powertools/parser/types';
 import { UserProvider, UserProviderConfig } from 'services/users-provider';
 import { User } from 'model/User';
 import { Jwt } from 'types/model';
+import middy from '@middy/core';
 
 const tokenIdReqFieldName = 'google-id-token';
 const loginRequestEventSchema = z.object({
@@ -21,6 +22,7 @@ export { loginRequestEventSchema, type Payload };
 
 async function lambdaHandler(
   event: ParsedResult<APIGatewayProxyEventV2, Payload>,
+  /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
   ctx: Context
 ): Promise<APIGatewayProxyStructuredResultV2> {
   let config: LoginConfig;
@@ -41,6 +43,15 @@ async function lambdaHandler(
     .catch(authenticationFailureHandler);
 }
 
+export const handler: middy.MiddyfiedHandler<
+  ParsedResult<APIGatewayProxyEventV2, Payload>,
+  APIGatewayProxyStructuredResultV2,
+  Error,
+  Context
+> = apply(lambdaHandler).use(
+  parser({ schema: loginRequestEventSchema, envelope: ApiGatewayV2Envelope, safeParse: true })
+);
+
 function authenticationSuccessHandler(jwt: Jwt): APIGatewayProxyStructuredResultV2 {
   return {
     statusCode: 200,
@@ -52,6 +63,7 @@ function authenticationSuccessHandler(jwt: Jwt): APIGatewayProxyStructuredResult
   };
 }
 
+/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
 function internalErrorHandler(error: any): APIGatewayProxyStructuredResultV2 {
   logger.error(error);
   return {
@@ -60,6 +72,7 @@ function internalErrorHandler(error: any): APIGatewayProxyStructuredResultV2 {
   };
 }
 
+/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
 function authenticationFailureHandler(reason: any): APIGatewayProxyStructuredResultV2 {
   logger.warn(reason);
   return {
@@ -68,17 +81,13 @@ function authenticationFailureHandler(reason: any): APIGatewayProxyStructuredRes
   };
 }
 
-export const handler = apply(lambdaHandler).use(
-  parser({ schema: loginRequestEventSchema, envelope: ApiGatewayV2Envelope, safeParse: true })
-);
-
 function signInOrUpUser(email: string, config: UserProviderConfig): Promise<User> {
   const userProvider = new UserProvider(config);
   return userProvider
     .getUserByEmail(email)
     .then((user) => user)
-    .catch((_) => {
+    .catch(() => {
       const newUser = { UserId: email } as User;
-      return userProvider.putUser(newUser).then((_) => newUser);
+      return userProvider.putUser(newUser).then(() => newUser);
     });
 }

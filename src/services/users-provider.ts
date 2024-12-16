@@ -1,5 +1,6 @@
 import { DynamoDBClient, GetItemCommand, PutItemCommand } from '@aws-sdk/client-dynamodb';
 import { dynamodbClient } from '@clients/dynamodb';
+import { AwsConfig } from 'model/AwsConfig';
 import { User } from 'model/User';
 import { Email } from 'types/model';
 

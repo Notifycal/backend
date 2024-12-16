@@ -9,7 +9,7 @@
     "dev-build": "rm -rf dist && node esbuild.js",
     "dev": "nodemon --ext ts,js,yaml,yml --watch src/** --watch openapi/** --exec 'npm run dev-build && node --env-file=src/resources/config/.env.dev express-local/index.js'",
     "package": "bin/package.sh",
-    "lint": "eslint '**/*.{js,ts,jsx,tsx,cjs,mjs}' --no-error-on-unmatched-pattern",
+    "lint": "npx eslint -c ./eslint.config.cjs",
     "lint:fix": "$npm_execpath run lint -- --fix",
     "prettier": "prettier . --check",
     "prettier:fix": "$npm_execpath run prettier -- --write",

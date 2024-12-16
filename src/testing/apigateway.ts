@@ -2,6 +2,7 @@ import { Context } from 'aws-lambda/handler';
 import { APIGatewayProxyEventV2 } from '@aws-lambda-powertools/parser/types';
 import { Payload } from 'lambdas/api/login';
 
+/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
 export function unsafeTestEvent(body: any): APIGatewayProxyEventV2 {
   return ttestEvent(JSON.stringify(body));
 }
@@ -82,7 +83,10 @@ export const c: Context = {
   logGroupName: 'logGroupName',
   logStreamName: 'logStreamName',
   getRemainingTimeInMillis: () => 1,
+  /* eslint-disable-next-line @typescript-eslint/no-empty-function */
   done: () => {},
+  /* eslint-disable-next-line @typescript-eslint/no-empty-function */
   fail: () => {},
+  /* eslint-disable-next-line @typescript-eslint/no-empty-function */
   succeed: () => {}
 };

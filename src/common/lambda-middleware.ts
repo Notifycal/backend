@@ -1,15 +1,21 @@
-import { APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2, Context } from 'aws-lambda';
+import {
+  APIGatewayProxyEventV2,
+  APIGatewayProxyStructuredResultV2,
+  Context,
+  Handler
+} from 'aws-lambda';
 import { logger, metrics, tracer } from '@powertools';
 import middy from '@middy/core';
 import { captureLambdaHandler } from '@aws-lambda-powertools/tracer/middleware';
 import { injectLambdaContext } from '@aws-lambda-powertools/logger/middleware';
 import { logMetrics } from '@aws-lambda-powertools/metrics/middleware';
 import { ParsedResult } from '@aws-lambda-powertools/parser/types';
+import { Payload } from 'lambdas/api/login';
 
 export function apply(
-  handler: (event: any, ctx: Context) => Promise<APIGatewayProxyStructuredResultV2>
+  handler: Handler
 ): middy.MiddyfiedHandler<
-  APIGatewayProxyEventV2,
+  ParsedResult<APIGatewayProxyEventV2, Payload>,
   APIGatewayProxyStructuredResultV2,
   Error,
   Context
