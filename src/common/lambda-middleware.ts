@@ -10,12 +10,11 @@ import { captureLambdaHandler } from '@aws-lambda-powertools/tracer/middleware';
 import { injectLambdaContext } from '@aws-lambda-powertools/logger/middleware';
 import { logMetrics } from '@aws-lambda-powertools/metrics/middleware';
 import { ParsedResult } from '@aws-lambda-powertools/parser/types';
-import { Payload } from 'lambdas/api/login';
 
-export function apply(
+export function applyMiddleware<T>(
   handler: Handler
 ): middy.MiddyfiedHandler<
-  ParsedResult<APIGatewayProxyEventV2, Payload>,
+  ParsedResult<APIGatewayProxyEventV2, T>,
   APIGatewayProxyStructuredResultV2,
   Error,
   Context

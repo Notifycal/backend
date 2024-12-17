@@ -2,7 +2,7 @@ import { APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2, Context } fr
 import { verifyGoogleToken } from 'services/google-oauth';
 import { LoginConfig, readLoginConfig } from './config';
 import { buildJwt } from 'services/jwt';
-import { apply, handleInputValidation } from 'common/lambda-middleware';
+import { applyMiddleware, handleInputValidation } from 'common/lambda-middleware';
 import { logger } from '@powertools';
 import { parser } from '@aws-lambda-powertools/parser/middleware';
 import { z } from 'zod';
@@ -47,7 +47,7 @@ export const handler: middy.MiddyfiedHandler<
   APIGatewayProxyStructuredResultV2,
   Error,
   Context
-> = apply(lambdaHandler).use(
+> = applyMiddleware<Payload>(lambdaHandler).use(
   parser({ schema: loginRequestEventSchema, envelope: ApiGatewayV2Envelope, safeParse: true })
 );
 
