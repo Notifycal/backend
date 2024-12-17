@@ -5,7 +5,7 @@ import {
   Context
 } from 'aws-lambda';
 import { logger } from '@powertools';
-import { apply } from 'common/lambda-middleware';
+import { applyMiddleware } from 'common/lambda-middleware';
 
 const lambdaHandler: APIGatewayProxyHandler = async (
   event: APIGatewayProxyEvent,
@@ -23,4 +23,4 @@ const lambdaHandler: APIGatewayProxyHandler = async (
   };
 };
 
-export const handler = apply(lambdaHandler);
+export const handler = applyMiddleware(lambdaHandler);
