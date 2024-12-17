@@ -27,7 +27,9 @@ module.exports = [
         version: 'detect'
       }
     }
-  }, {
+  },
+  // GOTCHA: this block needs to be separated so it takes effect
+  {
     ignores: ['dist/**/*', 'eslint.config.cjs', 'tf/**/*']
   }
 ];

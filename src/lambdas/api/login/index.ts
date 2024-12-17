@@ -8,10 +8,9 @@ import { parser } from '@aws-lambda-powertools/parser/middleware';
 import { z } from 'zod';
 import { ApiGatewayV2Envelope } from '@aws-lambda-powertools/parser/envelopes';
 import { ParsedResult } from '@aws-lambda-powertools/parser/types';
-import { UserProvider, UserProviderConfig } from 'services/users-provider';
-import { User } from 'model/User';
 import { Jwt } from 'types/model';
 import middy from '@middy/core';
+import { signInOrUpUser } from 'services/login';
 
 const tokenIdReqFieldName = 'google-id-token';
 const loginRequestEventSchema = z.object({
@@ -32,12 +31,12 @@ async function lambdaHandler(
     return internalErrorHandler(e);
   }
   return handleInputValidation<Payload>(event)
-    .then((event) => verifyGoogleToken(event[tokenIdReqFieldName], config.googleClientId))
-    .then((email) => signInOrUpUser(email, config.userProvider))
-    .then((user) =>
-      buildJwt(user, config.privateKey, config.jwt).then(
-        authenticationSuccessHandler,
-        internalErrorHandler
+    .then((event) =>
+      verifyGoogleToken(event[tokenIdReqFieldName], config.googleClientId).then((email) =>
+        signInOrUpUser(email, config.userProvider)
+          .then((user) => buildJwt(user, config.privateKey, config.jwt))
+          .then(authenticationSuccessHandler)
+          .catch(internalErrorHandler)
       )
     )
     .catch(authenticationFailureHandler);
@@ -64,15 +63,6 @@ function authenticationSuccessHandler(jwt: Jwt): APIGatewayProxyStructuredResult
 }
 
 /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-function internalErrorHandler(error: any): APIGatewayProxyStructuredResultV2 {
-  logger.error(error);
-  return {
-    statusCode: 500,
-    body: 'KO'
-  };
-}
-
-/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
 function authenticationFailureHandler(reason: any): APIGatewayProxyStructuredResultV2 {
   logger.warn(reason);
   return {
@@ -81,13 +71,11 @@ function authenticationFailureHandler(reason: any): APIGatewayProxyStructuredRes
   };
 }
 
-function signInOrUpUser(email: string, config: UserProviderConfig): Promise<User> {
-  const userProvider = new UserProvider(config);
-  return userProvider
-    .getUserByEmail(email)
-    .then((user) => user)
-    .catch(() => {
-      const newUser = { UserId: email } as User;
-      return userProvider.putUser(newUser).then(() => newUser);
-    });
+/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+function internalErrorHandler(error: any): APIGatewayProxyStructuredResultV2 {
+  logger.error(error);
+  return {
+    statusCode: 500,
+    body: 'KO'
+  };
 }
