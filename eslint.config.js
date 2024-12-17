@@ -1,9 +1,9 @@
-const tsParser = require('@typescript-eslint/parser');
-const tsPlugin = require('@typescript-eslint/eslint-plugin');
-const jestPlugin = require('eslint-plugin-jest');
-const prettierPlugin = require('eslint-plugin-prettier');
+import tsParser from '@typescript-eslint/parser';
+import tsPlugin from '@typescript-eslint/eslint-plugin';
+import jestPlugin from 'eslint-plugin-jest';
+import prettierPlugin from 'eslint-plugin-prettier';
 
-module.exports = [
+export default [
   {
     files: ['**/*.ts', '**/*.js'],
     languageOptions: {
@@ -30,6 +30,6 @@ module.exports = [
   },
   // GOTCHA: this block needs to be separated so it takes effect
   {
-    ignores: ['dist/**/*', 'eslint.config.cjs', 'tf/**/*']
+    ignores: ['dist/**/*', 'eslint.config.js', 'tf/**/*']
   }
 ];
