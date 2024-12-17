@@ -11,9 +11,11 @@ export interface UserProviderConfig {
 
 export class UserProvider {
   private _dynamoDbClient: DynamoDBClient;
+  private _tableName: string;
 
   constructor(config: UserProviderConfig) {
     this._dynamoDbClient = dynamodbClient(config.awsConfig);
+    this._tableName = config.tableName;
   }
 
   public getUserByEmail(email: Email): Promise<User> {
@@ -23,11 +25,9 @@ export class UserProvider {
           S: email
         }
       },
-      TableName: 'Users-local'
+      TableName: this._tableName
     });
     return this._dynamoDbClient.send(lookupCmd).then((item) => {
-      console.log(item);
-      console.log(item.Item?.['UserId']['S']);
       if (item.Item?.['UserId']['S'])
         return { email: item.Item?.['UserId']['S'] } as unknown as User;
       else {
@@ -43,11 +43,10 @@ export class UserProvider {
           S: user.UserId
         }
       },
-      TableName: 'Users-local',
+      TableName: this._tableName,
       ReturnConsumedCapacity: 'TOTAL'
     });
-    return this._dynamoDbClient.send(insertCmd).then((result) => {
-      console.log(result);
+    return this._dynamoDbClient.send(insertCmd).then(() => {
       return null;
     });
   }
