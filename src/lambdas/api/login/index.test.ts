@@ -218,7 +218,4 @@ function setEnv(config: LoginConfig) {
   process.env.POWERTOOLS_DEV = 'true';
   process.env.USERS_TABLE_NAME = config.userProvider.tableName;
   process.env.AWS_REGION = config.userProvider.awsConfig.awsRegion;
-  process.env.AWS_ENDPOINT_URL = config.userProvider.awsConfig.endpoint;
-  process.env.AWS_ACCESS_KEY_ID = config.userProvider.awsConfig.credentials?.accessKeyId;
-  process.env.AWS_SECRET_ACCESS_KEY = config.userProvider.awsConfig.credentials?.secretAccessKey;
 }
