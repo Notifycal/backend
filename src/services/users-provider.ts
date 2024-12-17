@@ -1,5 +1,6 @@
-import { DynamoDBClient, GetItemCommand, PutItemCommand } from '@aws-sdk/client-dynamodb';
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { dynamodbClient } from '@clients/dynamodb';
+import { PutCommand, GetCommand } from "@aws-sdk/lib-dynamodb";
 import { AwsConfig } from 'model/AwsConfig';
 import { User } from 'model/User';
 import { Email } from 'types/model';
@@ -19,11 +20,9 @@ export class UserProvider {
   }
 
   public getUserByEmail(email: Email): Promise<User> {
-    const lookupCmd = new GetItemCommand({
+    const lookupCmd = new GetCommand({
       Key: {
-        UserId: {
-          S: email
-        }
+        UserId: email
       },
       TableName: this._tableName
     });
@@ -37,11 +36,9 @@ export class UserProvider {
   }
 
   public putUser(user: User): Promise<null> {
-    const insertCmd = new PutItemCommand({
+    const insertCmd = new PutCommand({
       Item: {
-        UserId: {
-          S: user.UserId
-        }
+        UserId: user.UserId
       },
       TableName: this._tableName,
       ReturnConsumedCapacity: 'TOTAL'
