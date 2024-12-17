@@ -33,7 +33,7 @@ async function lambdaHandler(
   return handleInputValidation<Payload>(event)
     .then((event) =>
       verifyGoogleToken(event[tokenIdReqFieldName], config.googleClientId).then((email) =>
-        signInOrUpUser(email, config.userProvider)
+        signInOrUpUser(email, config.userProvider, config.awsConfig)
           .then((user) => buildJwt(user, config.privateKey, config.jwt))
           .then(authenticationSuccessHandler)
           .catch(internalErrorHandler)

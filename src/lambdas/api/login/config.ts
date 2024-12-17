@@ -1,4 +1,5 @@
 import { ExtenderTypeOptional, from, IEnv, IOptionalVariable } from 'env-var';
+import { AwsConfig } from 'model/AwsConfig';
 import { UserProviderConfig } from 'services/users-provider';
 
 export interface LoginConfig {
@@ -6,6 +7,7 @@ export interface LoginConfig {
   jwt: JwtConfig;
   googleClientId: string;
   userProvider: UserProviderConfig;
+  awsConfig: AwsConfig;
 }
 
 export interface JwtConfig {
@@ -26,12 +28,12 @@ export function readLoginConfig(): LoginConfig {
     },
     googleClientId: env.get('GOOGLE_CLIENT_ID').required().asString(),
     userProvider: {
-      tableName: env.get('USERS_TABLE_NAME').required().asString(),
-      awsConfig: {
-        awsRegion: env.get('AWS_REGION').required().default('eu-west-1').asString(),
-        endpoint: env.get('AWS_ENDPOINT_URL').asString(),
-        credentials: awsCredentials
-      }
+      tableName: env.get('USERS_TABLE_NAME').required().asString()
+    },
+    awsConfig: {
+      awsRegion: env.get('AWS_REGION').required().default('eu-west-1').asString(),
+      endpoint: env.get('AWS_ENDPOINT_URL').asString(),
+      credentials: awsCredentials
     }
   };
 }

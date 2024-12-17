@@ -7,15 +7,14 @@ import { Email } from 'types/model';
 
 export interface UserProviderConfig {
   tableName: string;
-  awsConfig: AwsConfig;
 }
 
 export class UserProvider {
   private _dynamoDbClient: DynamoDBClient;
   private _tableName: string;
 
-  constructor(config: UserProviderConfig) {
-    this._dynamoDbClient = dynamodbClient(config.awsConfig);
+  constructor(config: UserProviderConfig, awsConfig: AwsConfig) {
+    this._dynamoDbClient = dynamodbClient(awsConfig);
     this._tableName = config.tableName;
   }
 

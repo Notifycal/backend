@@ -197,15 +197,10 @@ const defaultEnv: LoginConfig = {
   },
   googleClientId: '658640078137-omuaokg6rcajv50879674moielbpvljl.apps.googleusercontent.com',
   userProvider: {
-    tableName: 'Users-local',
-    awsConfig: {
-      awsRegion: 'eu-west-1',
-      endpoint: 'http://localhost:4566',
-      credentials: {
-        accessKeyId: 'foo',
-        secretAccessKey: 'bar'
-      }
-    }
+    tableName: 'Users-local'
+  },
+  awsConfig: {
+    awsRegion: 'eu-west-1'
   }
 };
 
@@ -217,5 +212,5 @@ function setEnv(config: LoginConfig) {
   process.env.GOOGLE_CLIENT_ID = config.googleClientId;
   process.env.POWERTOOLS_DEV = 'true';
   process.env.USERS_TABLE_NAME = config.userProvider.tableName;
-  process.env.AWS_REGION = config.userProvider.awsConfig.awsRegion;
+  process.env.AWS_REGION = config.awsConfig.awsRegion;
 }
