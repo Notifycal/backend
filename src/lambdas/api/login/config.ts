@@ -5,7 +5,7 @@ import { UserBaseStoreConfig } from '@services/users-provider';
 export interface LoginConfig {
   privateKey: string;
   jwt: JwtConfig;
-  googleClientId: string;
+  googleOAuthClient: GoogleOAuthConfig;
   userProvider: UserBaseStoreConfig;
   awsConfig: AwsConfig;
 }
@@ -14,6 +14,12 @@ export interface JwtConfig {
   algorithm: string;
   issuer: string;
   expiresIn: string;
+}
+
+export interface GoogleOAuthConfig {
+  clientId: string;
+  clientSecret: string;
+  redirectUri: string;
 }
 
 export function readLoginConfig(): LoginConfig {
@@ -26,7 +32,11 @@ export function readLoginConfig(): LoginConfig {
       issuer: env.get('JWT_ISSUER').required().default('notifycal.com').asString(),
       expiresIn: env.get('JWT_EXPIRATION').required().default('5m').asString()
     },
-    googleClientId: env.get('GOOGLE_CLIENT_ID').required().asString(),
+    googleOAuthClient: {
+      clientId: env.get('GOOGLE_OAUTH_CLIENT_ID').required().asString(),
+      clientSecret: env.get('GOOGLE_OAUTH_CLIENT_SECRET').required().asString(),
+      redirectUri: env.get('GOOGLE_OAUTH_CLIENT_REDIRECT_URI').required().asString()
+    },
     userProvider: {
       tableName: env.get('USERS_TABLE_NAME').required().asString()
     },

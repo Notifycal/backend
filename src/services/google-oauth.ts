@@ -1,17 +1,18 @@
 import { OAuth2Client } from 'google-auth-library/build/src/auth/oauth2client';
 import { Email } from '@own-types/model';
+import { GoogleOAuthConfig } from '@lambdas/api/login/config';
 
 export function verifyGoogleIdentity(
   userGoogleCode: string,
-  googleClientId: string
+  config: GoogleOAuthConfig
 ): Promise<Email> {
-  const client = new OAuth2Client(googleClientId);
+  const client = new OAuth2Client(config.clientId, config.clientSecret, config.redirectUri);
   return client.getToken(userGoogleCode).then((tokenResponse) => {
     if (tokenResponse.tokens.id_token) {
       return client
         .verifyIdToken({
           idToken: tokenResponse.tokens.id_token,
-          audience: googleClientId
+          audience: config.clientId
         })
         .then((ticket) => {
           const email = ticket.getPayload()?.['email'];

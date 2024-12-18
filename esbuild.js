@@ -11,9 +11,10 @@ const tsconfig = path.join(__dirname, './tsconfig.json');
 
 const lambdasDir = 'src/lambdas';
 const outDir = 'dist';
+const entryPoints = globSync('src/lambdas/**/index.ts').concat(globSync('src/testing/**.ts'));
 
 await esbuild.build({
-  entryPoints: globSync('src/lambdas/**/index.ts', { ignore: 'node_modules/**' }),
+  entryPoints: entryPoints,
   bundle: true,
   outdir: path.join(__dirname, outDir),
   outbase: lambdasDir,

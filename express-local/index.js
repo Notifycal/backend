@@ -2,6 +2,7 @@ import express from 'express';
 import bodyParser from 'body-parser';
 
 import routes from './routes.js';
+import { unsafeTestEvent } from '../dist/_.._/testing/apigateway.cjs';
 
 const port = process.env.PORT || 8080;
 
@@ -48,28 +49,8 @@ const initialize = (router) => {
   };
 
   const respondParam = (endpoint, method) => (req, res) => {
-    // TODO: only valid while all endpoints are of type APIGatewayProxyEvent.
-    const event = {
-      body: JSON.stringify(req.body || {}),
-      resource: 'someResource',
-      path: 'somePath',
-      httpMethod: 'POST',
-      queryStringParameters: {},
-      multiValueQueryStringParameters: {},
-      requestContext: {
-        accountId: 'someAccountId',
-        apiId: 'someApiId',
-        stage: 'someStage',
-        protocol: 'someProtocol',
-        identity: {},
-        requestId: 'someRequestId',
-        requestTime: 'someRequestTime',
-        requestTimeEpoch: 123456789,
-        resourcePath: 'someResourcePath',
-        httpMethod: 'POST',
-        path: 'somePath2'
-      }
-    };
+    // TODO: only valid while all endpoints are of type APIGatewayProxyEventV2.
+    const event = unsafeTestEvent(req.body || {});
     const responsePromise = routes[endpoint][method](event, req.body);
     respond(responsePromise, res);
   };
@@ -92,7 +73,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
 app.use((req, res, next) => {
-  res.append('Access-Control-Allow-Origin', 'http://localhost:4321');
+  res.append('Access-Control-Allow-Origin', 'http://localhost:5173');
   res.append('Access-Control-Allow-Headers', '*');
   res.append('Access-Control-Allow-Methods', '*');
   next();

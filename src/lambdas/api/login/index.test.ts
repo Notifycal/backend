@@ -35,11 +35,11 @@ describe('Login', () => {
     return testit(event, idTokenVerificationFn, jwtBuildFn, signInOrUpUserFn).then((resp) => {
       assert(resp, {
         statusCode: 200,
-        body: 'OK',
-        headers: {
-          'Set-Authorization': validJwt,
-          'Set-Refresh-Token': 'WIP'
-        }
+        body: JSON.stringify({
+          accessToken: validJwt,
+          tokenType: 'Bearer',
+          refreshToken: 'WIP'
+        })
       });
     });
   });
@@ -60,11 +60,11 @@ describe('Login', () => {
       testit(event, idTokenVerificationFn, jwtBuildFn2, signInOrUpUserFn).then((resp) =>
         assert(resp, {
           statusCode: 200,
-          body: 'OK',
-          headers: {
-            'Set-Authorization': validJwt2,
-            'Set-Refresh-Token': 'WIP'
-          }
+          body: JSON.stringify({
+            accessToken: validJwt2,
+            tokenType: 'Bearer',
+            refreshToken: 'WIP'
+          })
         })
       )
     );
@@ -133,8 +133,10 @@ describe('Login', () => {
     const signInOrUpUserFn = () => Promise.resolve({ UserId: userEmail });
     const env = {
       ...defaultEnv,
-      googleClientId: null as unknown as string
-    };
+      googleOAuthClient: {
+        clientId: undefined as unknown as string
+      }
+    } as LoginConfig;
 
     return testit(event, idTokenVerificationFn, jwtBuildFn, signInOrUpUserFn, env).then((resp) =>
       assert(resp, {
@@ -184,8 +186,6 @@ function assert(
 ): void {
   expect(result.statusCode).toEqual(expectation.statusCode);
   expect(result.body).toEqual(expectation.body);
-  expect(result.headers?.['Set-Authorization']).toEqual(expectation.headers?.['Set-Authorization']);
-  expect(result.headers?.['Set-Refresh-Token']).toEqual(expectation.headers?.['Set-Refresh-Token']);
 }
 
 const defaultEnv: LoginConfig = {
@@ -195,7 +195,11 @@ const defaultEnv: LoginConfig = {
     issuer: 'test@notifycal.com',
     expiresIn: '5m'
   },
-  googleClientId: '658640078137-omuaokg6rcajv50879674moielbpvljl.apps.googleusercontent.com',
+  googleOAuthClient: {
+    clientId: '658640078137-omuaokg6rcajv50879674moielbpvljl.apps.googleusercontent.com',
+    clientSecret: 'some_valid_secret',
+    redirectUri: 'http://localhost:5173'
+  },
   userProvider: {
     tableName: 'Users-local'
   },
@@ -209,7 +213,9 @@ function setEnv(config: LoginConfig) {
   process.env.JWT_ALGORITHM = config.jwt.algorithm;
   process.env.JWT_ISSUER = config.jwt.issuer;
   process.env.JWT_EXPIRATION = config.jwt.expiresIn;
-  process.env.GOOGLE_CLIENT_ID = config.googleClientId;
+  process.env.GOOGLE_OAUTH_CLIENT_ID = config.googleOAuthClient.clientId;
+  process.env.GOOGLE_OAUTH_CLIENT_SECRET = config.googleOAuthClient.clientSecret;
+  process.env.GOOGLE_OAUTH_CLIENT_REDIRECT_URI = config.googleOAuthClient.redirectUri;
   process.env.POWERTOOLS_DEV = 'true';
   process.env.USERS_TABLE_NAME = config.userProvider.tableName;
   process.env.AWS_REGION = config.awsConfig.awsRegion;

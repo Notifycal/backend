@@ -32,7 +32,7 @@ async function lambdaHandler(
   }
   return handleInputValidation<Payload>(event)
     .then((event) =>
-      verifyGoogleIdentity(event[tokenIdReqFieldName], config.googleClientId)
+      verifyGoogleIdentity(event[tokenIdReqFieldName], config.googleOAuthClient)
         .then((email) =>
           signInOrUpUser(email, config.userProvider, config.awsConfig)
             .then((user) => buildJwt(user, config.privateKey, config.jwt))
@@ -56,11 +56,11 @@ export const handler: middy.MiddyfiedHandler<
 function authenticationSuccessHandler(jwt: Jwt): APIGatewayProxyStructuredResultV2 {
   return {
     statusCode: 200,
-    headers: {
-      'Set-Authorization': jwt,
-      'Set-Refresh-Token': 'WIP'
-    },
-    body: 'OK'
+    body: JSON.stringify({
+      accessToken: jwt,
+      tokenType: 'Bearer',
+      refreshToken: 'WIP'
+    })
   };
 }
 
