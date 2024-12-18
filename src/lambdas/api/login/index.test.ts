@@ -24,7 +24,7 @@ describe('Login', () => {
 
   it('should sign up a user', () => {
     const event = testEvent({
-      'google-id-token': '<SOME-FAKE-GOOGLE-ID-TOKEN>'
+      'google-code': '<SOME-FAKE-GOOGLE-ID-TOKEN>'
     }) as unknown as ParsedResult<APIGatewayProxyEventV2, Payload>;
     const userEmail = 'success@notifycal.com';
     const idTokenVerificationFn = () => Promise.resolve(userEmail);
@@ -46,7 +46,7 @@ describe('Login', () => {
 
   it('should sign in a user', () => {
     const event = testEvent({
-      'google-id-token': '<SOME-FAKE-GOOGLE-ID-TOKEN>'
+      'google-code': '<SOME-FAKE-GOOGLE-ID-TOKEN>'
     }) as unknown as ParsedResult<APIGatewayProxyEventV2, Payload>;
     const userEmail = 'success@notifycal.com';
     const idTokenVerificationFn = () => Promise.resolve(userEmail);
@@ -72,7 +72,7 @@ describe('Login', () => {
 
   it('should fail id token verification with 401', () => {
     const event = testEvent({
-      'google-id-token': '<SOME-INCORRECT-GOOGLE-ID-TOKEN>'
+      'google-code': '<SOME-INCORRECT-GOOGLE-ID-TOKEN>'
     }) as unknown as ParsedResult<APIGatewayProxyEventV2, Payload>;
     const userEmail = 'failure@notifycal.com';
     const idTokenVerificationFn = () => Promise.reject(userEmail);
@@ -108,7 +108,7 @@ describe('Login', () => {
 
   it('should fail to generate JWT with 500', () => {
     const event = testEvent({
-      'google-id-token': '<SOME-FAKE-GOOGLE-ID-TOKEN>'
+      'google-code': '<SOME-FAKE-GOOGLE-ID-TOKEN>'
     }) as unknown as ParsedResult<APIGatewayProxyEventV2, Payload>;
     const userEmail = 'success@notifycal.com';
     const idTokenVerificationFn = () => Promise.resolve(userEmail);
@@ -125,7 +125,7 @@ describe('Login', () => {
 
   it('should fail if environment is not set correctly with 500', () => {
     const event = testEvent({
-      'google-id-token': '<SOME-FAKE-GOOGLE-ID-TOKEN>'
+      'google-code': '<SOME-FAKE-GOOGLE-ID-TOKEN>'
     }) as unknown as ParsedResult<APIGatewayProxyEventV2, Payload>;
     const userEmail = 'success@notifycal.com';
     const idTokenVerificationFn = () => Promise.resolve(userEmail);
@@ -146,7 +146,7 @@ describe('Login', () => {
 
   it('should fail if user cannot sign in or up with 500', () => {
     const event = testEvent({
-      'google-id-token': '<SOME-FAKE-GOOGLE-ID-TOKEN>'
+      'google-code': '<SOME-FAKE-GOOGLE-ID-TOKEN>'
     }) as unknown as ParsedResult<APIGatewayProxyEventV2, Payload>;
     const userEmail = 'success@notifycal.com';
     const idTokenVerificationFn = () => Promise.resolve(userEmail);
@@ -171,7 +171,7 @@ function testit(
   env: LoginConfig = defaultEnv
 ): Promise<APIGatewayProxyStructuredResultV2> {
   setEnv(env);
-  jest.spyOn(googleOAuth, 'verifyGoogleToken').mockImplementation(idTokenVerificationResult);
+  jest.spyOn(googleOAuth, 'verifyGoogleIdentity').mockImplementation(idTokenVerificationResult);
   jest.spyOn(jwt, 'buildJwt').mockImplementation(jwtBuildResult);
   jest.spyOn(loginService, 'signInOrUpUser').mockImplementation(signInOrUpUserResult);
   return handler(event, c);

@@ -1,5 +1,5 @@
 import { APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2, Context } from 'aws-lambda';
-import { verifyGoogleToken } from '@services/google-oauth';
+import { verifyGoogleIdentity } from '@services/google-oauth';
 import { LoginConfig, readLoginConfig } from './config';
 import { buildJwt } from '@services/jwt';
 import { applyMiddleware, handleInputValidation } from '@common/lambda-middleware';
@@ -12,7 +12,7 @@ import type { Jwt } from '@own-types/model';
 import middy from '@middy/core';
 import { signInOrUpUser } from '@services/login';
 
-const tokenIdReqFieldName = 'google-id-token';
+const tokenIdReqFieldName = 'google-code';
 const loginRequestEventSchema = z.object({
   [tokenIdReqFieldName]: z.string()
 });
@@ -32,7 +32,7 @@ async function lambdaHandler(
   }
   return handleInputValidation<Payload>(event)
     .then((event) =>
-      verifyGoogleToken(event[tokenIdReqFieldName], config.googleClientId)
+      verifyGoogleIdentity(event[tokenIdReqFieldName], config.googleClientId)
         .then((email) =>
           signInOrUpUser(email, config.userProvider, config.awsConfig)
             .then((user) => buildJwt(user, config.privateKey, config.jwt))
