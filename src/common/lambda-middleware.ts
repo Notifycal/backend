@@ -4,7 +4,7 @@ import {
   Context,
   Handler
 } from 'aws-lambda';
-import { logger, metrics, tracer } from '@powertools';
+import { logger, metrics, tracer } from '@common/powertools';
 import middy from '@middy/core';
 import { captureLambdaHandler } from '@aws-lambda-powertools/tracer/middleware';
 import { injectLambdaContext } from '@aws-lambda-powertools/logger/middleware';

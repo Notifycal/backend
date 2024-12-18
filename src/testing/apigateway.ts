@@ -1,6 +1,6 @@
 import { Context } from 'aws-lambda/handler';
 import { APIGatewayProxyEventV2 } from '@aws-lambda-powertools/parser/types';
-import { Payload } from 'lambdas/api/login';
+import { Payload } from '@lambdas/api/login';
 
 /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
 export function unsafeTestEvent(body: any): APIGatewayProxyEventV2 {

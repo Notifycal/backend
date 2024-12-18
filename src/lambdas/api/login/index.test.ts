@@ -1,14 +1,14 @@
 import { describe, expect, jest } from '@jest/globals';
 import { LoginConfig } from './config';
 import { handler, type Payload } from './index';
-import * as loginService from 'services/login';
-import * as googleOAuth from 'services/google-oauth';
-import * as jwt from 'services/jwt';
-import { Email, Jwt } from 'types/model';
+import * as loginService from '@services/login';
+import * as googleOAuth from '@services/google-oauth';
+import * as jwt from '@services/jwt';
 import { type APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2 } from 'aws-lambda';
-import { c, testEvent, unsafeTestEvent } from 'testing/apigateway';
+import { c, testEvent, unsafeTestEvent } from '@testing/apigateway';
 import type { ParsedResult } from '@aws-lambda-powertools/parser/types';
-import { User } from 'model/User';
+import { User } from '@model/User';
+import { Jwt, Email } from '@own-types/model';
 
 describe('Login', () => {
   const OLD_ENV = process.env;
@@ -88,7 +88,7 @@ describe('Login', () => {
     );
   });
 
-  it('should fail input validation with 401', () => {
+  it('should fail input validation with 400', () => {
     const event = unsafeTestEvent({
       'incorrect-field': '<SOME-FAKE-GOOGLE-ID-TOKEN>'
     }) as unknown as ParsedResult<APIGatewayProxyEventV2, Payload>;
@@ -100,8 +100,8 @@ describe('Login', () => {
 
     return testit(event, idTokenVerificationFn, jwtBuildFn, signInOrUpUserFn).then((resp) =>
       assert(resp, {
-        statusCode: 401,
-        body: 'Unauthorised'
+        statusCode: 400,
+        body: 'Bad Request'
       })
     );
   });

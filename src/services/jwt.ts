@@ -1,7 +1,7 @@
 import jwtBuilder, { SignOptions } from 'jsonwebtoken';
-import { JwtConfig } from 'lambdas/api/login/config';
-import { User } from 'model/User';
-import { Jwt } from 'types/model';
+import { JwtConfig } from '@lambdas/api/login/config';
+import { User } from '@model/User';
+import { Jwt } from '@own-types/model';
 
 export function buildJwt(user: User, privateKey: string, config: JwtConfig): Promise<Jwt> {
   const tokenPayload = {

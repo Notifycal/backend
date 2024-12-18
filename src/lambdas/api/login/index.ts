@@ -1,16 +1,16 @@
 import { APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2, Context } from 'aws-lambda';
-import { verifyGoogleToken } from 'services/google-oauth';
+import { verifyGoogleToken } from '@services/google-oauth';
 import { LoginConfig, readLoginConfig } from './config';
-import { buildJwt } from 'services/jwt';
-import { applyMiddleware, handleInputValidation } from 'common/lambda-middleware';
-import { logger } from '@powertools';
+import { buildJwt } from '@services/jwt';
+import { applyMiddleware, handleInputValidation } from '@common/lambda-middleware';
+import { logger } from '@common/powertools';
 import { parser } from '@aws-lambda-powertools/parser/middleware';
 import { z } from 'zod';
 import { ApiGatewayV2Envelope } from '@aws-lambda-powertools/parser/envelopes';
 import { ParsedResult } from '@aws-lambda-powertools/parser/types';
-import { Jwt } from 'types/model';
+import type { Jwt } from '@own-types/model';
 import middy from '@middy/core';
-import { signInOrUpUser } from 'services/login';
+import { signInOrUpUser } from '@services/login';
 
 const tokenIdReqFieldName = 'google-id-token';
 const loginRequestEventSchema = z.object({
@@ -32,14 +32,16 @@ async function lambdaHandler(
   }
   return handleInputValidation<Payload>(event)
     .then((event) =>
-      verifyGoogleToken(event[tokenIdReqFieldName], config.googleClientId).then((email) =>
-        signInOrUpUser(email, config.userProvider, config.awsConfig)
-          .then((user) => buildJwt(user, config.privateKey, config.jwt))
-          .then(authenticationSuccessHandler)
-          .catch(internalErrorHandler)
-      )
+      verifyGoogleToken(event[tokenIdReqFieldName], config.googleClientId)
+        .then((email) =>
+          signInOrUpUser(email, config.userProvider, config.awsConfig)
+            .then((user) => buildJwt(user, config.privateKey, config.jwt))
+            .then(authenticationSuccessHandler)
+            .catch(internalErrorHandler)
+        )
+        .catch(authenticationFailureHandler)
     )
-    .catch(authenticationFailureHandler);
+    .catch(badRequestHandler);
 }
 
 export const handler: middy.MiddyfiedHandler<
@@ -68,6 +70,15 @@ function authenticationFailureHandler(reason: any): APIGatewayProxyStructuredRes
   return {
     statusCode: 401,
     body: 'Unauthorised'
+  };
+}
+
+/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+function badRequestHandler(reason: any): APIGatewayProxyStructuredResultV2 {
+  logger.warn(reason);
+  return {
+    statusCode: 400,
+    body: 'Bad Request'
   };
 }
 

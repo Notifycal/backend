@@ -1,12 +1,12 @@
 import { ExtenderTypeOptional, from, IEnv, IOptionalVariable } from 'env-var';
-import { AwsConfig } from 'model/AwsConfig';
-import { UserProviderConfig } from 'services/users-provider';
+import { AwsConfig } from '@model/AwsConfig';
+import { UserBaseStoreConfig } from '@services/users-provider';
 
 export interface LoginConfig {
   privateKey: string;
   jwt: JwtConfig;
   googleClientId: string;
-  userProvider: UserProviderConfig;
+  userProvider: UserBaseStoreConfig;
   awsConfig: AwsConfig;
 }
 

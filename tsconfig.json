@@ -7,11 +7,10 @@
     "strict": true,
     "preserveConstEnums": true,
     "noEmit": true,
-    "baseUrl": "src",
+    "baseUrl": "./",
     "typeRoots": ["node_modules/@types"],
     "paths": {
-      "@powertools": ["common/powertools"],
-      "@clients/*": ["clients/*"]
+      "@*": ["./src/*"]
     }
   },
   "include": ["src/**/*"],

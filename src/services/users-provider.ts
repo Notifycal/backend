@@ -1,19 +1,19 @@
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { dynamodbClient } from '@clients/dynamodb';
 import { PutCommand, GetCommand } from '@aws-sdk/lib-dynamodb';
-import { AwsConfig } from 'model/AwsConfig';
-import { User } from 'model/User';
-import { Email } from 'types/model';
+import { AwsConfig } from '@model/AwsConfig';
+import { User } from '@model/User';
+import { Email } from '@own-types/model';
 
-export interface UserProviderConfig {
+export interface UserBaseStoreConfig {
   tableName: string;
 }
 
-export class UserProvider {
+export class UserBaseStore {
   private _dynamoDbClient: DynamoDBClient;
   private _tableName: string;
 
-  constructor(config: UserProviderConfig, awsConfig: AwsConfig) {
+  constructor(config: UserBaseStoreConfig, awsConfig: AwsConfig) {
     this._dynamoDbClient = dynamodbClient(awsConfig);
     this._tableName = config.tableName;
   }
