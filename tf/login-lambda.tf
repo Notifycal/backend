@@ -1,13 +1,13 @@
-module "post_watch_lambda" {
+module "login_lambda" {
   source  = "terraform-aws-modules/lambda/aws"
-  version = "~> 7.2"
+  version = "~> 7.17"
 
-  function_name          = "post-watch-events-${var.environment}"
+  function_name          = "login-${var.environment}"
   publish                = true
   create_package         = false
-  local_existing_package = "${path.root}/../dist/api/post-watch-events.zip"
+  local_existing_package = "${path.root}/../dist/lambdas/api/login.zip"
 
-  runtime     = "nodejs20.x"
+  runtime     = "nodejs22.x"
   timeout     = 30
   memory_size = 128
   handler     = "index.handler"
