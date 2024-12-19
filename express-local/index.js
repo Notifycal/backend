@@ -2,7 +2,7 @@ import express from 'express';
 import bodyParser from 'body-parser';
 
 import routes from './routes.js';
-import { unsafeTestEvent } from '../dist/_.._/testing/apigateway.cjs';
+import { unsafeTestEvent } from '../dist/testing/apigateway.cjs';
 
 const port = process.env.PORT || 8080;
 
