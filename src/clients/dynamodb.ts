@@ -4,7 +4,7 @@ import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
 import { tracer } from '@common/powertools';
 import { AwsConfig, defaultConfig } from '@model/AwsConfig';
 
-export function dynamodbClient(config: AwsConfig = defaultConfig): DynamoDBClient {
+export function dynamodbClient(config: AwsConfig = defaultConfig): DynamoDBDocumentClient {
   return DynamoDBDocumentClient.from(
     tracer.captureAWSv3Client(
       new DynamoDBClient({

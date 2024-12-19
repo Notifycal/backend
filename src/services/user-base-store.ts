@@ -1,6 +1,5 @@
-import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { dynamodbClient } from '@clients/dynamodb';
-import { PutCommand, GetCommand } from '@aws-sdk/lib-dynamodb';
+import { PutCommand, GetCommand, DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
 import { AwsConfig } from '@model/AwsConfig';
 import { User } from '@model/User';
 import { Email } from '@own-types/model';
@@ -10,7 +9,7 @@ export interface UserBaseStoreConfig {
 }
 
 export class UserBaseStore {
-  private _dynamoDbClient: DynamoDBClient;
+  private _dynamoDbClient: DynamoDBDocumentClient;
   private _tableName: string;
 
   constructor(config: UserBaseStoreConfig, awsConfig: AwsConfig) {
@@ -26,9 +25,10 @@ export class UserBaseStore {
       TableName: this._tableName
     });
     return this._dynamoDbClient.send(lookupCmd).then((item) => {
-      if (item.Item?.['UserId']['S'])
-        return { email: item.Item?.['UserId']['S'] } as unknown as User;
-      else {
+      const user = item.Item as User;
+      if (user.UserId) {
+        return user;
+      } else {
         throw new Error(`User with id '${email}' could not be found`);
       }
     });

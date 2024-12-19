@@ -1,5 +1,5 @@
 import { User } from 'src/model/User';
-import { UserBaseStoreConfig, UserBaseStore } from './users-provider';
+import { UserBaseStoreConfig, UserBaseStore } from './user-base-store';
 import { AwsConfig } from 'src/model/AwsConfig';
 
 export function signInOrUpUser(

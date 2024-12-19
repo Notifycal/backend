@@ -1,6 +1,6 @@
 import { ExtenderTypeOptional, from, IEnv, IOptionalVariable } from 'env-var';
 import { AwsConfig } from '@model/AwsConfig';
-import { UserBaseStoreConfig } from '@services/users-provider';
+import { UserBaseStoreConfig } from '@services/user-base-store';
 
 export interface LoginConfig {
   privateKey: string;
