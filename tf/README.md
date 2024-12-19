@@ -10,13 +10,14 @@
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 5.49.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 5.81.0 |
 
 ## Modules
 
 | Name | Source | Version |
 |------|--------|---------|
-| <a name="module_post_watch_lambda"></a> [post\_watch\_lambda](#module\_post\_watch\_lambda) | terraform-aws-modules/lambda/aws | ~> 7.2 |
+| <a name="module_login_lambda"></a> [login\_lambda](#module\_login\_lambda) | terraform-aws-modules/lambda/aws | ~> 7.17 |
+| <a name="module_post_watch_lambda"></a> [post\_watch\_lambda](#module\_post\_watch\_lambda) | terraform-aws-modules/lambda/aws | ~> 7.17 |
 
 ## Resources
 

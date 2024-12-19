@@ -7,7 +7,7 @@ locals {
     aws_region = "eu-west-1"
     lambda_functions = {
       post_watch_events_arn = module.post_watch_lambda.lambda_function_arn
-      login_arn = module.login_lambda.lambda_function_arn
+      login_arn             = module.login_lambda.lambda_function_arn
     }
   })
 }
