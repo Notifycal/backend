@@ -46,6 +46,26 @@ Options discarded (for now):
    3. have something that maps each Lambda to an endpoint and method and... this brings me back to #1.
 3. [LocalStack hot reloading](https://docs.localstack.cloud/user-guide/lambda-tools/hot-reloading/#creating-the-lambda-function-1): This looks cool, but requires us to build the .zip file outside of the lambda module (currently done within) and to push it to a specific bucket (`hot-reload`) and path. I don't want to add any local-related stuff inside the actual modules, so I wonder how we could control this... Push the code to S3 for non-local too? Control it with a variable?
 
+## Local env setup
+
+Most of the needed configuration for local development - lambdas running on express server - live in resources/config/.env.dev. However, there are certain intergrations that need a real secret. For instance:
+
+- google login. Set up the following env var on your workstation in your preferred way. eg: ~/.bashrc:
+
+```bash
+export GOOGLE_OAUTH_CLIENT_SECRET="the value lives in notifycal@gmail.com GCP console. Hint: https://console.cloud.google.com/apis/credentials"
+```
+
+## Bonus
+
+### Create key pair for JWT signing
+
+```
+ssh-keygen -t rsa -b 4096 -m PEM -f jwtRS256.key
+# Don't add passphrase
+openssl rsa -in jwtRS256.key -pubout -outform PEM -out jwtRS256.key.pub
+```
+
 ### TODO
 
 - Tree-shaking to minimize lambda size

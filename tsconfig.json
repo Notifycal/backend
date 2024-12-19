@@ -1,18 +1,16 @@
-// This config is purely for type checking
-// Bundling is done with esbuild
 {
   "compilerOptions": {
-    "module": "Preserve", // This is for dev experience, in reality esbuild uses CommonJS
+    "module": "Preserve",
     "moduleResolution": "Bundler",
+    "esModuleInterop": true,
     "target": "ES2020",
     "strict": true,
     "preserveConstEnums": true,
     "noEmit": true,
-    "baseUrl": "src",
+    "baseUrl": "./",
     "typeRoots": ["node_modules/@types"],
     "paths": {
-      "@powertools": ["common/powertools"],
-      "@clients/*": ["clients/*"]
+      "@*": ["./src/*"]
     }
   },
   "include": ["src/**/*"],

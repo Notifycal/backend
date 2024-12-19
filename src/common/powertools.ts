@@ -26,7 +26,9 @@ const metrics = new Metrics({
     environment: process.env.ENVIRONMENT || 'N/A',
     app_name: 'notifycal-backend',
     runtime: process.env.AWS_EXECUTION_ENV || 'N/A'
-  }
+  },
+  //TODO
+  namespace: 'to_avoid_warnings'
 });
 
 const tracer = new Tracer();

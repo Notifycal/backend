@@ -4,14 +4,11 @@ import {
   APIGatewayProxyResult,
   Context
 } from 'aws-lambda';
+// import { logger } from '@common/powertools';
+import { applyMiddleware } from '@common/lambda-middleware';
+import { logger } from '@common/powertools';
 
-import { logger, metrics, tracer } from '@powertools';
-import middy from '@middy/core';
-import { captureLambdaHandler } from '@aws-lambda-powertools/tracer/middleware';
-import { injectLambdaContext } from '@aws-lambda-powertools/logger/middleware';
-import { logMetrics } from '@aws-lambda-powertools/metrics/middleware';
-
-export const lambdaHandler: APIGatewayProxyHandler = async (
+const lambdaHandler: APIGatewayProxyHandler = async (
   event: APIGatewayProxyEvent,
   ctx: Context
 ): Promise<APIGatewayProxyResult> => {
@@ -27,7 +24,4 @@ export const lambdaHandler: APIGatewayProxyHandler = async (
   };
 };
 
-export const handler = middy(lambdaHandler)
-  .use(captureLambdaHandler(tracer))
-  .use(injectLambdaContext(logger, { logEvent: true }))
-  .use(logMetrics(metrics, { captureColdStartMetric: true }));
+export const handler = applyMiddleware(lambdaHandler);

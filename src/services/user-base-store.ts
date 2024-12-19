@@ -1,0 +1,49 @@
+import { dynamodbClient } from '@clients/dynamodb';
+import { PutCommand, GetCommand, DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
+import { AwsConfig } from '@model/AwsConfig';
+import { User } from '@model/User';
+import { Email } from '@own-types/model';
+
+export interface UserBaseStoreConfig {
+  tableName: string;
+}
+
+export class UserBaseStore {
+  private _dynamoDbClient: DynamoDBDocumentClient;
+  private _tableName: string;
+
+  constructor(config: UserBaseStoreConfig, awsConfig: AwsConfig) {
+    this._dynamoDbClient = dynamodbClient(awsConfig);
+    this._tableName = config.tableName;
+  }
+
+  public getUserByEmail(email: Email): Promise<User> {
+    const lookupCmd = new GetCommand({
+      Key: {
+        UserId: email
+      },
+      TableName: this._tableName
+    });
+    return this._dynamoDbClient.send(lookupCmd).then((item) => {
+      const user = item.Item as User;
+      if (user.UserId) {
+        return user;
+      } else {
+        throw new Error(`User with id '${email}' could not be found`);
+      }
+    });
+  }
+
+  public putUser(user: User): Promise<null> {
+    const insertCmd = new PutCommand({
+      Item: {
+        UserId: user.UserId
+      },
+      TableName: this._tableName,
+      ReturnConsumedCapacity: 'TOTAL'
+    });
+    return this._dynamoDbClient.send(insertCmd).then(() => {
+      return null;
+    });
+  }
+}

@@ -1,5 +1,5 @@
 import { SQSClient } from '@aws-sdk/client-sqs';
-import { tracer } from '@powertools';
+import { tracer } from '@common/powertools';
 
 const sqsClient = tracer.captureAWSv3Client(
   new SQSClient({
