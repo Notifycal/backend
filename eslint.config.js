@@ -22,6 +22,9 @@ export default [
       ...jestPlugin.configs.recommended.rules,
       ...prettierPlugin.configs.recommended.rules
     },
+    env: {
+      'jest/globals': true
+    },
     settings: {
       jest: {
         version: 'detect'

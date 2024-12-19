@@ -1,6 +1,7 @@
 import { createDefaultPreset } from 'ts-jest';
 import type { JestConfigWithTsJest } from 'ts-jest';
 
+const esModules = ["@middy"].join("|")
 const jestConfig: JestConfigWithTsJest = {
   ...createDefaultPreset(),
   testEnvironment: 'node',
@@ -14,6 +15,16 @@ const jestConfig: JestConfigWithTsJest = {
     '^@testing/(.*)$': '<rootDir>/src/testing/$1',
     '^@lambdas/(.*)$': '<rootDir>/src/lambdas/$1'
   },
+  transform: {
+    "^.+\\.ts?$": [
+      "ts-jest",
+      {
+        useESM: true
+      }
+    ]
+  },
+  transformIgnorePatterns: [`node_modules/(?!${esModules})`],
+  extensionsToTreatAsEsm: ['.ts'],
   setupFilesAfterEnv: ['jest-plugin-must-assert']
 };
 
