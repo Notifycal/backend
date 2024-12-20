@@ -4,7 +4,6 @@ import {
   APIGatewayProxyResult,
   Context
 } from 'aws-lambda';
-// import { logger } from '@common/powertools';
 import { baseMiddleware } from '@common/lambda-middleware';
 import { logger } from '@common/powertools';
 
