@@ -101,7 +101,10 @@ describe('Login', () => {
     return testit(event, idTokenVerificationFn, jwtBuildFn, signInOrUpUserFn).then((resp) =>
       assert(resp, {
         statusCode: 400,
-        body: JSON.stringify({ message: 'Bad Request' })
+        body: 'Bad Request',
+        headers: {
+          'Content-Type': 'text/plain'
+        }
       })
     );
   });

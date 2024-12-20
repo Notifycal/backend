@@ -3,7 +3,7 @@ import { buildJwt, decodeAndVerifyJwtSignature } from './jwt';
 import { EncodeJwtConfig } from '@lambdas/api/login/config';
 import { Jwt } from '@own-types/model';
 import { DecodeJwtConfig } from '@model/DecodeJwtConfig';
-import { sleep } from '@testing/utils';
+import { sleep } from '@testing/utils/utils';
 
 const validPrivateKey = `-----BEGIN EC PRIVATE KEY-----
 MHcCAQEEIEF6NI6CascYRtOFXEQrbsbsi7ZzTsKaktkDRZ/PSZ8hoAoGCCqGSM49

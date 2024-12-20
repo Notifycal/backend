@@ -7,10 +7,10 @@ import { JwtPayload, Jwt as StructuredJwt } from 'jsonwebtoken';
 import { JwtClaimChecker } from '@own-types/model';
 import { DecodeJwtConfig } from '@model/DecodeJwtConfig';
 
-export const jwtVerificationMiddleware = (
+export function jwtVerificationMiddleware(
   config: DecodeJwtConfig,
   claimChecker: JwtClaimChecker = checkClaims
-): MiddlewareObj<APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2> => {
+): MiddlewareObj<APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2> {
   const before: middy.MiddlewareFn<APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2> = (
     req
   ) => jwtVerification(req, config, claimChecker);
@@ -19,7 +19,7 @@ export const jwtVerificationMiddleware = (
     before,
     onError
   };
-};
+}
 
 function jwtVerification(
   request: Request<APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2, Error, Context>,

@@ -2,16 +2,15 @@ import { APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2, Context } fr
 import { verifyGoogleIdentity } from '@services/google-oauth';
 import { LoginConfig, readLoginConfig } from './config';
 import { buildJwt } from '@services/jwt';
-import { baseMiddleware, handleInputValidation } from '@common/lambda-middleware';
+import { baseMiddleware } from '@common/lambda-middleware';
 import { logger } from '@common/powertools';
-import { parser } from '@aws-lambda-powertools/parser/middleware';
 import { z } from 'zod';
-import { ApiGatewayV2Envelope } from '@aws-lambda-powertools/parser/envelopes';
 import { ParsedResult } from '@aws-lambda-powertools/parser/types';
 import type { Jwt } from '@own-types/model';
 import middy from '@middy/core';
 import { signInOrUpUser } from '@services/login';
 import { User } from '@model/User';
+import { httpRequestPayloadParserMiddleware } from '@common/parser-http-middleware';
 
 const tokenIdReqFieldName = 'google-code';
 const loginRequestEventSchema = z.object({
@@ -21,7 +20,7 @@ type Payload = z.infer<typeof loginRequestEventSchema>;
 export { loginRequestEventSchema, type Payload };
 
 async function lambdaHandler(
-  event: ParsedResult<APIGatewayProxyEventV2, Payload>,
+  event: Payload,
   /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
   ctx: Context
 ): Promise<APIGatewayProxyStructuredResultV2> {
@@ -31,18 +30,14 @@ async function lambdaHandler(
   } catch (e) {
     return internalErrorHandler(e);
   }
-  return handleInputValidation<Payload>(event)
-    .then((event) =>
-      verifyGoogleIdentity(event[tokenIdReqFieldName], config.googleOAuthClient)
-        .then((email) =>
-          signInOrUpUser(email, config.userProvider, config.awsConfig)
-            .then((user) => buildJwt(jwtPayload(user), user.UserId, config.jwt))
-            .then(authenticationSuccessHandler)
-            .catch(internalErrorHandler)
-        )
-        .catch(authenticationFailureHandler)
+  return verifyGoogleIdentity(event[tokenIdReqFieldName], config.googleOAuthClient)
+    .then((email) =>
+      signInOrUpUser(email, config.userProvider, config.awsConfig)
+        .then((user) => buildJwt(jwtPayload(user), user.UserId, config.jwt))
+        .then(authenticationSuccessHandler)
+        .catch(internalErrorHandler)
     )
-    .catch(badRequestHandler);
+    .catch(authenticationFailureHandler);
 }
 
 export const handler: middy.MiddyfiedHandler<
@@ -51,7 +46,7 @@ export const handler: middy.MiddyfiedHandler<
   Error,
   Context
 > = baseMiddleware()
-  .use(parser({ schema: loginRequestEventSchema, envelope: ApiGatewayV2Envelope, safeParse: true }))
+  .use(httpRequestPayloadParserMiddleware(loginRequestEventSchema))
   .handler(lambdaHandler);
 
 function jwtPayload(user: User): object {
@@ -79,15 +74,6 @@ function authenticationFailureHandler(reason: any): APIGatewayProxyStructuredRes
   return {
     statusCode: 401,
     body: JSON.stringify({ message: 'Unauthorised' })
-  };
-}
-
-/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-function badRequestHandler(reason: any): APIGatewayProxyStructuredResultV2 {
-  logger.warn(reason);
-  return {
-    statusCode: 400,
-    body: JSON.stringify({ message: 'Bad Request' })
   };
 }
 

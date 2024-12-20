@@ -33,14 +33,17 @@ $ tofu apply
 ## Unit testing
 
 Useful commands to run your tests:
+
 ```bash
 npm run test -- -t 'your text'
 ```
+
 in order to run tests matching describe('your text') or it('your text').
 
 ```bash
 npm run test -- --watch
 ```
+
 in order to run tests as changes are made to files.
 
 Further info can be found at: https://jestjs.io/docs/cli
