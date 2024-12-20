@@ -2,7 +2,7 @@ import { APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2, Context } fr
 import { verifyGoogleIdentity } from '@services/google-oauth';
 import { LoginConfig, readLoginConfig } from './config';
 import { buildJwt } from '@services/jwt';
-import { applyMiddleware, handleInputValidation } from '@common/lambda-middleware';
+import { baseMiddleware, handleInputValidation } from '@common/lambda-middleware';
 import { logger } from '@common/powertools';
 import { parser } from '@aws-lambda-powertools/parser/middleware';
 import { z } from 'zod';
@@ -11,6 +11,7 @@ import { ParsedResult } from '@aws-lambda-powertools/parser/types';
 import type { Jwt } from '@own-types/model';
 import middy from '@middy/core';
 import { signInOrUpUser } from '@services/login';
+import { User } from '@model/User';
 
 const tokenIdReqFieldName = 'google-code';
 const loginRequestEventSchema = z.object({
@@ -35,7 +36,7 @@ async function lambdaHandler(
       verifyGoogleIdentity(event[tokenIdReqFieldName], config.googleOAuthClient)
         .then((email) =>
           signInOrUpUser(email, config.userProvider, config.awsConfig)
-            .then((user) => buildJwt(user, config.privateKey, config.jwt))
+            .then((user) => buildJwt(jwtPayload(user), user.UserId, config.jwt))
             .then(authenticationSuccessHandler)
             .catch(internalErrorHandler)
         )
@@ -49,9 +50,17 @@ export const handler: middy.MiddyfiedHandler<
   APIGatewayProxyStructuredResultV2,
   Error,
   Context
-> = applyMiddleware<Payload>(lambdaHandler).use(
-  parser({ schema: loginRequestEventSchema, envelope: ApiGatewayV2Envelope, safeParse: true })
-);
+> = baseMiddleware()
+  .use(parser({ schema: loginRequestEventSchema, envelope: ApiGatewayV2Envelope, safeParse: true }))
+  .handler(lambdaHandler);
+
+function jwtPayload(user: User): object {
+  return {
+    email: user.UserId,
+    role: 'user',
+    permissions: {}
+  };
+}
 
 function authenticationSuccessHandler(jwt: Jwt): APIGatewayProxyStructuredResultV2 {
   return {

@@ -3,16 +3,17 @@ import { AwsConfig } from '@model/AwsConfig';
 import { UserBaseStoreConfig } from '@services/user-base-store';
 
 export interface LoginConfig {
-  privateKey: string;
-  jwt: JwtConfig;
+  jwt: EncodeJwtConfig;
   googleOAuthClient: GoogleOAuthConfig;
   userProvider: UserBaseStoreConfig;
   awsConfig: AwsConfig;
 }
 
-export interface JwtConfig {
+export interface EncodeJwtConfig {
+  privateKey: string;
   algorithm: string;
   issuer: string;
+  audience: string;
   expiresIn: string;
 }
 
@@ -26,10 +27,11 @@ export function readLoginConfig(): LoginConfig {
   const env = from(process.env, {});
   const awsCredentials = readAwsCredentials(env);
   return {
-    privateKey: env.get('JWT_PRIVATE_KEY').required().asString(),
     jwt: {
+      privateKey: env.get('JWT_PRIVATE_KEY').required().asString(),
       algorithm: env.get('JWT_ALGORITHM').required().default('RS256').asString(),
       issuer: env.get('JWT_ISSUER').required().default('notifycal.com').asString(),
+      audience: env.get('JWT_AUDIENCE').required().default('notifycal.com').asString(),
       expiresIn: env.get('JWT_EXPIRATION').required().default('5m').asString()
     },
     googleOAuthClient: {

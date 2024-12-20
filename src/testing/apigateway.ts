@@ -1,17 +1,25 @@
 import { Context } from 'aws-lambda/handler';
 import { APIGatewayProxyEventV2 } from '@aws-lambda-powertools/parser/types';
-import { Payload } from '@lambdas/api/login';
 
-/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-export function unsafeTestEvent(body: any): APIGatewayProxyEventV2 {
-  return ttestEvent(JSON.stringify(body));
+export function unsafeTestEvent(
+  /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+  body: any,
+  headers: Record<string, string> = {}
+): APIGatewayProxyEventV2 {
+  return ttestEvent(JSON.stringify(body), headers);
 }
 
-export function testEvent(body: Payload): APIGatewayProxyEventV2 {
-  return ttestEvent(JSON.stringify(body));
+export function testEvent<T>(
+  body: T,
+  headers: Record<string, string> = {}
+): APIGatewayProxyEventV2 {
+  return ttestEvent(JSON.stringify(body), headers);
 }
 
-export function ttestEvent(body: string): APIGatewayProxyEventV2 {
+export function ttestEvent(
+  body: string,
+  headers: Record<string, string> = {}
+): APIGatewayProxyEventV2 {
   return {
     body: body,
     version: '2.0',
@@ -19,9 +27,7 @@ export function ttestEvent(body: string): APIGatewayProxyEventV2 {
     rawPath: '/my/path',
     rawQueryString: 'parameter1=value1&parameter1=value2&parameter2=value',
     cookies: ['cookie1'],
-    headers: {
-      header1: 'value1'
-    },
+    headers: headers,
     queryStringParameters: {
       parameter1: 'value1,value2'
     },

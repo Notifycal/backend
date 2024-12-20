@@ -11,7 +11,10 @@ const tsconfig = path.join(__dirname, './tsconfig.json');
 
 const lambdasDir = 'src';
 const outDir = 'dist';
-const entryPoints = [...globSync('src/lambdas/**/index.ts'), ...globSync('src/testing/**.ts')];
+const entryPoints = [
+  ...globSync('src/lambdas/**/index.ts'),
+  ...globSync('src/testing/**.ts')
+].filter((path) => !path.endsWith('.test.ts'));
 
 await esbuild.build({
   entryPoints: entryPoints,
