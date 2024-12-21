@@ -83,7 +83,7 @@ describe('Login', () => {
     return testit(event, idTokenVerificationFn, jwtBuildFn, signInOrUpUserFn).then((resp) =>
       assert(resp, {
         statusCode: 401,
-        body: 'Unauthorised'
+        body: JSON.stringify({ message: 'Unauthorised' })
       })
     );
   });
@@ -101,7 +101,7 @@ describe('Login', () => {
     return testit(event, idTokenVerificationFn, jwtBuildFn, signInOrUpUserFn).then((resp) =>
       assert(resp, {
         statusCode: 400,
-        body: 'Bad Request'
+        body: JSON.stringify({ message: 'Bad Request' })
       })
     );
   });
@@ -118,7 +118,7 @@ describe('Login', () => {
     return testit(event, idTokenVerificationFn, jwtBuildFn, signInOrUpUserFn).then((resp) =>
       assert(resp, {
         statusCode: 500,
-        body: 'KO'
+        body: JSON.stringify({ message: 'KO' })
       })
     );
   });
@@ -141,7 +141,7 @@ describe('Login', () => {
     return testit(event, idTokenVerificationFn, jwtBuildFn, signInOrUpUserFn, env).then((resp) =>
       assert(resp, {
         statusCode: 500,
-        body: 'KO'
+        body: JSON.stringify({ message: 'KO' })
       })
     );
   });
@@ -159,7 +159,7 @@ describe('Login', () => {
     return testit(event, idTokenVerificationFn, jwtBuildFn, signInOrUpUserFn).then((resp) => {
       assert(resp, {
         statusCode: 500,
-        body: 'KO'
+        body: JSON.stringify({ message: 'KO' })
       });
     });
   });
