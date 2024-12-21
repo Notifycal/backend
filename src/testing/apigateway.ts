@@ -19,9 +19,10 @@ export function testEvent<T>(
 
 export function testAuthedEvent<T>(
   body: T,
-  headers: Record<string, string> = {}
+  headers: Record<string, string> = {},
+  jwtPayload: object = {}
 ): Promise<APIGatewayProxyEventV2> {
-  return testJwt().then((jwt) =>
+  return testJwt(jwtPayload).then((jwt) =>
     ttestEvent(JSON.stringify(body), { ...headers, Authorization: `Bearer ${jwt}` })
   );
 }

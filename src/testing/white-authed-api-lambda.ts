@@ -1,24 +1,15 @@
 import { APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2, Context } from 'aws-lambda';
-import { baseMiddleware } from '@common/lambda-middleware';
 import { z } from 'zod';
 import middy from '@middy/core';
-import { jwtVerificationMiddleware } from '@common/jwt-verification-middleware';
+import { AuthedEndpointConfig } from '@model/AuthedEndpointConfig';
+import { protectedEndpointMiddleware } from '@common/lambda-middleware';
 import { getDefaultDecodeJwtConfig } from './utils/jwt';
-import { httpRequestPayloadParserMiddleware } from '@common/parser-http-middleware';
-
-const testingReqFieldName = 'one-field';
-const testingRequestEventSchema = z.object({
-  [testingReqFieldName]: z.string()
-});
-type TestingPayload = z.infer<typeof testingRequestEventSchema>;
-export { testingRequestEventSchema, type TestingPayload };
-
-export interface TestingWhiteApiConfig {
-  publicKey: string;
-}
+import { APIGatewayProxyEventV2Schema } from '@aws-lambda-powertools/parser/schemas/api-gatewayv2';
+import { AuthedAndConfigRequestContext } from '@model/ApiGatewayV2ProxyEventAuthed';
+import { JSONStringified } from '@aws-lambda-powertools/parser/helpers';
 
 async function lambdaHandler(
-  event: TestingPayload,
+  event: Event,
   /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
   ctx: Context
 ): Promise<APIGatewayProxyStructuredResultV2> {
@@ -29,15 +20,35 @@ async function lambdaHandler(
   };
 }
 
+const eventSchema = APIGatewayProxyEventV2Schema.extend({
+  body: JSONStringified(
+    z.object({
+      'one-field': z.string()
+    })
+  ),
+  requestContext: z.custom<AuthedAndConfigRequestContext<TestingWhiteApiConfig>>()
+});
+type Event = z.infer<typeof eventSchema>;
+
+export interface TestingWhiteApiConfig extends AuthedEndpointConfig {
+  config1: string;
+}
+
 export const handler: middy.MiddyfiedHandler<
   APIGatewayProxyEventV2,
   APIGatewayProxyStructuredResultV2,
   Error,
   Context
-> = baseMiddleware()
-  .use(jwtVerificationMiddleware(getDefaultDecodeJwtConfig(), claimChecker))
-  .use(httpRequestPayloadParserMiddleware(testingRequestEventSchema))
-  .handler(lambdaHandler);
+> = protectedEndpointMiddleware(testingConfigReader, eventSchema, claimChecker).handler(
+  lambdaHandler
+);
+
+function testingConfigReader(): TestingWhiteApiConfig {
+  return {
+    config1: 'blah',
+    decodeJwtConfig: getDefaultDecodeJwtConfig()
+  };
+}
 
 function claimChecker(): boolean {
   return true;

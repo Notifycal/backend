@@ -1,10 +1,14 @@
-import { APIGatewayProxyEventV2 } from 'aws-lambda';
 import { logger, metrics, tracer } from '@common/powertools';
 import middy from '@middy/core';
 import { captureLambdaHandler } from '@aws-lambda-powertools/tracer/middleware';
 import { injectLambdaContext } from '@aws-lambda-powertools/logger/middleware';
 import { logMetrics } from '@aws-lambda-powertools/metrics/middleware';
-import { ParsedResult } from '@aws-lambda-powertools/parser/types';
+import { configReaderMiddleware } from './config-reader-middleware';
+import { checkClaims, jwtVerificationMiddleware } from './jwt-verification-middleware';
+import { httpRequestPayloadParserMiddleware } from './parser-http-middleware';
+import { ConfigReaderFn, JwtClaimCheckerFn } from '@own-types/model';
+import { ZodSchema } from 'zod';
+import { AuthedEndpointConfig } from '@model/AuthedEndpointConfig';
 
 export function baseMiddleware(): middy.MiddyfiedHandler {
   return middy({ timeoutEarlyInMillis: 0 })
@@ -13,12 +17,22 @@ export function baseMiddleware(): middy.MiddyfiedHandler {
     .use(logMetrics(metrics, { captureColdStartMetric: true }));
 }
 
-export function handleInputValidation<T>(
-  input: ParsedResult<APIGatewayProxyEventV2, T>
-): Promise<T> {
-  if (input.success) {
-    return Promise.resolve<T>(input.data);
-  } else {
-    return Promise.reject(input.error);
-  }
+export function unprotectedEndpointMiddleware<TConfig>(
+  configReader: ConfigReaderFn<TConfig>,
+  eventSchema: ZodSchema
+): middy.MiddyfiedHandler {
+  return baseMiddleware()
+    .use(configReaderMiddleware<TConfig>(configReader))
+    .use(httpRequestPayloadParserMiddleware(eventSchema));
+}
+
+export function protectedEndpointMiddleware<TConfig extends AuthedEndpointConfig>(
+  configReaderFn: ConfigReaderFn<TConfig>,
+  eventSchema: ZodSchema,
+  claimCheckerFn: JwtClaimCheckerFn = checkClaims
+): middy.MiddyfiedHandler {
+  return baseMiddleware()
+    .use(configReaderMiddleware<TConfig>(configReaderFn))
+    .use(jwtVerificationMiddleware(claimCheckerFn))
+    .use(httpRequestPayloadParserMiddleware(eventSchema));
 }

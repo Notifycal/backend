@@ -2,14 +2,14 @@ import { buildJwt } from '@services/jwt';
 import dotenv from 'dotenv';
 import path from 'path';
 import * as fs from 'fs';
-import { EncodeJwtConfig } from '@lambdas/api/login/config';
+import { EncodeJwtConfig } from '@lambdas/api/post-login/model';
 
+// Lazy evaluation all over the place so express doesn't attempt to load what it mustn't
 const loadDevConfig = (() => {
   let devConfig: Record<string, string> | undefined;
 
   return () => {
     if (!devConfig) {
-      console.log('Cargando configuración dev...');
       devConfig = dotenv.parse(
         fs.readFileSync(path.resolve(__dirname, '../../resources/config/.env.dev'), 'utf8')
       );
@@ -18,9 +18,9 @@ const loadDevConfig = (() => {
   };
 })();
 
-// Valores perezosos encapsulados en funciones
 export const getDefaultPayload = () => ({
-  email: 'test@notifycal.com'
+  email: 'test@notifycal.com',
+  role: 'user'
 });
 
 export const getDefaultEncodeJwtConfig = () => {
@@ -40,7 +40,7 @@ export const getDefaultDecodeJwtConfig = () => {
     publicKey: devConfig.JWT_PUBLIC_KEY,
     issuer: devConfig.JWT_ISSUER,
     audience: devConfig.JWT_AUDIENCE,
-    maxAge: devConfig.JWT_EXPIRATION
+    expiresIn: devConfig.JWT_EXPIRATION
   };
 };
 

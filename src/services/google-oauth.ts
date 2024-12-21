@@ -1,6 +1,6 @@
 import { OAuth2Client } from 'google-auth-library/build/src/auth/oauth2client';
 import { Email } from '@own-types/model';
-import { GoogleOAuthConfig } from '@lambdas/api/login/config';
+import { GoogleOAuthConfig } from '@lambdas/api/post-login/model';
 
 export function verifyGoogleIdentity(
   userGoogleCode: string,

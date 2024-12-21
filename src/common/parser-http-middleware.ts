@@ -3,7 +3,6 @@ import middy, { MiddlewareObj } from '@middy/core';
 import httpErrorHandler from '@middy/http-error-handler';
 import { Request } from '@middy/core';
 import { APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2, Context } from 'aws-lambda';
-import { ApiGatewayV2Envelope } from '@aws-lambda-powertools/parser/envelopes';
 import createHttpError from 'http-errors';
 import { ZodSchema } from 'zod';
 
@@ -24,7 +23,7 @@ function httpRequestPayloadParser(
   request: Request<APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2, Error, Context>,
   schema: ZodSchema
 ): Promise<void> {
-  const parserFn = parser({ schema, envelope: ApiGatewayV2Envelope }).before;
+  const parserFn = parser({ schema }).before;
   if (parserFn) {
     try {
       parserFn(request);

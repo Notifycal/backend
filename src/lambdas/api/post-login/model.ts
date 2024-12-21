@@ -1,11 +1,11 @@
-import { ExtenderTypeOptional, from, IEnv, IOptionalVariable } from 'env-var';
 import { AwsConfig } from '@model/AwsConfig';
 import { UserBaseStoreConfig } from '@services/user-base-store';
+import { readAwsConfig, readEnv } from '@services/utils/config';
 
 export interface LoginConfig {
-  jwt: EncodeJwtConfig;
+  encodeJwtConfig: EncodeJwtConfig;
   googleOAuthClient: GoogleOAuthConfig;
-  userProvider: UserBaseStoreConfig;
+  userBaseStore: UserBaseStoreConfig;
   awsConfig: AwsConfig;
 }
 
@@ -24,10 +24,9 @@ export interface GoogleOAuthConfig {
 }
 
 export function readLoginConfig(): LoginConfig {
-  const env = from(process.env, {});
-  const awsCredentials = readAwsCredentials(env);
+  const env = readEnv();
   return {
-    jwt: {
+    encodeJwtConfig: {
       privateKey: env.get('JWT_PRIVATE_KEY').required().asString(),
       algorithm: env.get('JWT_ALGORITHM').required().default('RS256').asString(),
       issuer: env.get('JWT_ISSUER').required().default('notifycal.com').asString(),
@@ -39,22 +38,9 @@ export function readLoginConfig(): LoginConfig {
       clientSecret: env.get('GOOGLE_OAUTH_CLIENT_SECRET').required().asString(),
       redirectUri: env.get('GOOGLE_OAUTH_CLIENT_REDIRECT_URI').required().asString()
     },
-    userProvider: {
+    userBaseStore: {
       tableName: env.get('USERS_TABLE_NAME').required().asString()
     },
-    awsConfig: {
-      awsRegion: env.get('AWS_REGION').required().default('eu-west-1').asString(),
-      endpoint: env.get('AWS_ENDPOINT_URL').asString(),
-      credentials: awsCredentials
-    }
+    awsConfig: readAwsConfig(env)
   };
-}
-
-function readAwsCredentials(
-  /* eslint-disable-next-line @typescript-eslint/no-empty-object-type */
-  env: IEnv<IOptionalVariable<{}> & ExtenderTypeOptional<{}>, NodeJS.ProcessEnv>
-): { accessKeyId: string; secretAccessKey: string } | undefined {
-  const accessKeyId = env.get('AWS_ACCESS_KEY_ID').asString();
-  const secretAccessKey = env.get('AWS_SECRET_ACCESS_KEY').asString();
-  return accessKeyId && secretAccessKey ? { accessKeyId, secretAccessKey } : undefined;
 }

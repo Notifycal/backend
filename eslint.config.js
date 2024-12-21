@@ -20,7 +20,13 @@ export default [
       ...tsPlugin.configs.recommended.rules,
       ...tsPlugin.configs.stylistic.rules,
       ...jestPlugin.configs.recommended.rules,
-      ...prettierPlugin.configs.recommended.rules
+      ...prettierPlugin.configs.recommended.rules,
+      // Mind, there is a jest plugin to fail any test not containing assertions. Jest Linting is not very clever to beware the assertion is embeded in some function.
+      'jest/expect-expect': [
+        "error",
+        { 
+          "assertFunctionNames": ["expect", "assert"] }
+      ],
     },
     settings: {
       jest: {
