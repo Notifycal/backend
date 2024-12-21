@@ -69,7 +69,7 @@ function authenticationFailureHandler(reason: any): APIGatewayProxyStructuredRes
   logger.warn(reason);
   return {
     statusCode: 401,
-    body: 'Unauthorised'
+    body: JSON.stringify({ message: 'Unauthorised' })
   };
 }
 
@@ -78,7 +78,7 @@ function badRequestHandler(reason: any): APIGatewayProxyStructuredResultV2 {
   logger.warn(reason);
   return {
     statusCode: 400,
-    body: 'Bad Request'
+    body: JSON.stringify({ message: 'Bad Request' })
   };
 }
 
@@ -87,6 +87,6 @@ function internalErrorHandler(error: any): APIGatewayProxyStructuredResultV2 {
   logger.error(error);
   return {
     statusCode: 500,
-    body: 'KO'
+    body: JSON.stringify({ message: 'KO' })
   };
 }
