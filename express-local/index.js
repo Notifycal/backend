@@ -1,5 +1,8 @@
 import express from 'express';
 import bodyParser from 'body-parser';
+import cookieParser from 'cookie-parser';
+
+import { parseLambdaCookies } from './cookies.js';
 
 import routes from './routes.js';
 import { unsafeTestEvent } from '../dist/testing/apigateway.cjs';
@@ -15,10 +18,24 @@ const isJSONString = (string) => {
   }
 };
 
+const handleCookies = (response, cookies) => {
+  try {
+    parseLambdaCookies(cookies).map((cookieObject) => {
+      const { name, value, ...expressCookieObject } = cookieObject;
+      response.cookie(name, value, expressCookieObject);
+    });
+  } catch (err) {
+    console.error('There was a problem parsing cookies: ', err);
+  }
+};
+
 const initialize = (router) => {
   const respond = (promise, response) => {
     promise
       .then((data) => {
+        if (data.cookies) {
+          handleCookies(response, data.cookies);
+        }
         // Some responses do not have a body. In this case, the end message must be used to send the response.
         if (data.body) {
           if (isJSONString(data.body)) {
@@ -71,6 +88,8 @@ const app = express();
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
+
+app.use(cookieParser());
 
 app.use((req, res, next) => {
   res.append('Access-Control-Allow-Origin', 'http://localhost:5173');

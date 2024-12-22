@@ -60,7 +60,9 @@ function authenticationSuccessHandler(jwt: Jwt): APIGatewayProxyStructuredResult
       accessToken: jwt,
       tokenType: 'Bearer',
       refreshToken: 'WIP'
-    })
+    }),
+    // This is just an example, need to refine it and make it more secure.
+    cookies: ['refreshToken=myRefreshToken; Max-Age=2592000; SameSite=None']
   };
 }
 
