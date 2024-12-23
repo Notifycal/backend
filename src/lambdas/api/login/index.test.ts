@@ -101,7 +101,10 @@ describe('Login', () => {
     return testit(event, idTokenVerificationFn, jwtBuildFn, signInOrUpUserFn).then((resp) =>
       assert(resp, {
         statusCode: 400,
-        body: JSON.stringify({ message: 'Bad Request' })
+        body: 'Bad Request',
+        headers: {
+          'Content-Type': 'text/plain'
+        }
       })
     );
   });
@@ -184,15 +187,15 @@ function assert(
   result: APIGatewayProxyStructuredResultV2,
   expectation: APIGatewayProxyStructuredResultV2
 ): void {
-  expect(result.statusCode).toEqual(expectation.statusCode);
-  expect(result.body).toEqual(expectation.body);
+  expect(result).toEqual(expectation);
 }
 
 const defaultEnv: LoginConfig = {
-  privateKey: `some_fake_private_key`,
   jwt: {
+    privateKey: `some_fake_private_key`,
     algorithm: 'ES256',
     issuer: 'test@notifycal.com',
+    audience: 'test@notifycal.com',
     expiresIn: '5m'
   },
   googleOAuthClient: {
@@ -209,7 +212,7 @@ const defaultEnv: LoginConfig = {
 };
 
 function setEnv(config: LoginConfig) {
-  process.env.JWT_PRIVATE_KEY = config.privateKey;
+  process.env.JWT_PRIVATE_KEY = config.jwt.privateKey;
   process.env.JWT_ALGORITHM = config.jwt.algorithm;
   process.env.JWT_ISSUER = config.jwt.issuer;
   process.env.JWT_EXPIRATION = config.jwt.expiresIn;
