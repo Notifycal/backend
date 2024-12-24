@@ -15,19 +15,18 @@ async function lambdaHandler(
   const config = event.requestContext.config;
   const userProvider = new UserBaseStore(config.userBaseStore, config.awsConfig);
   const email = event.requestContext.authorizer.email;
-  if (email) {
-    return userProvider.getUserByEmail(email).then((user) => {
+  return userProvider.getUserByEmail(email).then(
+    (user) => {
       return {
         statusCode: 200,
         body: JSON.stringify(user)
       };
-    });
-  } else {
-    return {
-      statusCode: 400,
-      body: 'Bad Request'
-    };
-  }
+    },
+    () => ({
+      statusCode: 404,
+      body: JSON.stringify({ message: 'Not Found' })
+    })
+  );
 }
 
 const eventSchema = APIGatewayProxyEventV2Schema.extend({

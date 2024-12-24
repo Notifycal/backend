@@ -4,13 +4,14 @@ import { c, testAuthedEvent } from '@testing/apigateway';
 import { assert } from '@testing/utils/assertions';
 import { GetUserConfig } from './config';
 import { handler } from '.';
-import { sleep } from '@testing/utils/utils';
 import {
   setEnvAwsConfig,
   setEnvDecodeJwtConfig,
   setEnvUserBaseStoreConfig
 } from '@testing/utils/config';
 import { getDefaultDecodeJwtConfig } from '@testing/utils/jwt';
+import { UserBaseStore } from '@services/user-base-store';
+import { User } from '@model/User';
 
 describe('GET user', () => {
   const OLD_ENV = process.env;
@@ -30,8 +31,9 @@ describe('GET user', () => {
       role: 'user'
     };
     const event = (await testAuthedEvent({}, {}, payload)) as unknown as APIGatewayProxyEventV2;
+    const getUserByEmailFn = () => Promise.resolve({ UserId: payload.email });
 
-    return testit(event).then((resp) => {
+    return testit(event, getUserByEmailFn).then((resp) => {
       assert(resp, {
         statusCode: 200,
         body: JSON.stringify({
@@ -40,14 +42,31 @@ describe('GET user', () => {
       });
     });
   });
+
+  it('fail to return a user with 404 if not present in system', async () => {
+    const payload = {
+      email: 'notfound@gmail.com',
+      role: 'user'
+    };
+    const event = (await testAuthedEvent({}, {}, payload)) as unknown as APIGatewayProxyEventV2;
+    const getUserByEmailFn = () => Promise.reject('Boom!');
+
+    return testit(event, getUserByEmailFn).then((resp) => {
+      assert(resp, {
+        statusCode: 404,
+        body: JSON.stringify({ message: 'Not Found' })
+      });
+    });
+  });
 });
 
 function testit(
   event: APIGatewayProxyEventV2,
+  getUserByEmailResult: () => Promise<User>,
   env: GetUserConfig = defaultEnv
 ): Promise<APIGatewayProxyStructuredResultV2> {
   setEnv(env);
-  sleep(1000);
+  jest.spyOn(UserBaseStore.prototype, 'getUserByEmail').mockImplementation(getUserByEmailResult);
   return handler(event, c);
 }
 
@@ -57,12 +76,7 @@ const defaultEnv = {
     tableName: 'Users-local'
   },
   awsConfig: {
-    awsRegion: 'eu-west-1',
-    endpoint: 'http://localhost:4566',
-    credentials: {
-      accessKeyId: 'foo',
-      secretAccessKey: 'bar'
-    }
+    awsRegion: 'eu-west-1'
   }
 };
 
