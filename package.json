@@ -1,6 +1,6 @@
 {
   "name": "backend",
-  "version": "1.2.0",
+  "version": "0.1.0",
   "description": "",
   "main": "index.js",
   "type": "module",
@@ -13,6 +13,7 @@
     "lint:fix": "$npm_execpath run lint -- --fix",
     "prettier": "prettier . --check",
     "prettier:fix": "$npm_execpath run prettier -- --write",
+    "check": "$npm_execpath run lint && $npm_execpath run prettier && $npm_execpath run test && echo 'Everything ready to go upstream' || echo 'CAUTION: Have another look'",
     "types": "tsc",
     "test": "jest"
   },
