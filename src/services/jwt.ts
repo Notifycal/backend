@@ -1,8 +1,8 @@
 import jwtBuilder, { SignOptions } from 'jsonwebtoken';
-import { EncodeJwtConfig } from '@lambdas/api/login/config';
+import { EncodeJwtConfig } from '@lambdas/api/post-login/config';
 import { Jwt } from '@own-types/model';
 import { Jwt as StructuredJwt } from 'jsonwebtoken';
-import { DecodeJwtConfig } from '@model/DecodeJwtConfig';
+import { DecodeJwtConfig } from '@model/Config';
 
 export function buildJwt(payload: object, subject: string, config: EncodeJwtConfig): Promise<Jwt> {
   try {
@@ -31,7 +31,7 @@ export function decodeAndVerifyJwtSignature(
         complete: true,
         issuer: config.issuer,
         audience: config.audience,
-        maxAge: config.maxAge
+        maxAge: config.expiresIn
       })
     );
   } catch (error) {

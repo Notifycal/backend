@@ -1,6 +1,6 @@
-import { User } from 'src/model/User';
+import { User } from '@model/User';
 import { UserBaseStoreConfig, UserBaseStore } from './user-base-store';
-import { AwsConfig } from 'src/model/AwsConfig';
+import { AwsConfig } from '@model/Config';
 
 export function signInOrUpUser(
   email: string,

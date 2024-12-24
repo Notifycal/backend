@@ -1,8 +1,9 @@
-import { describe, expect, jest } from '@jest/globals';
+import { describe, jest } from '@jest/globals';
 import { type APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2 } from 'aws-lambda';
 import { c, testAuthedEvent, testEvent } from '@testing/apigateway';
 import { handler, TestingWhiteApiConfig } from '@testing/white-authed-api-lambda';
-import { testJwt } from './utils/jwt';
+import { getDefaultDecodeJwtConfig, testJwt } from './utils/jwt';
+import { assert } from './utils/assertions';
 
 describe('White authed API lambda', () => {
   const OLD_ENV = process.env;
@@ -84,18 +85,11 @@ function testit(
   return handler(event, c);
 }
 
-/* eslint jest/expect-expect: ["error", { "assertFunctionNames": ["assert"] }] */
-function assert(
-  result: APIGatewayProxyStructuredResultV2,
-  expectation: APIGatewayProxyStructuredResultV2
-): void {
-  expect(result).toEqual(expectation);
-}
-
 const defaultEnv = {
-  publicKey: `some_fake_public_key`
+  decodeJwtConfig: getDefaultDecodeJwtConfig(),
+  config1: 'blah'
 };
 
 function setEnv(config: TestingWhiteApiConfig) {
-  process.env.JWT_PUBLIC_KEY = config.publicKey;
+  process.env.JWT_PUBLIC_KEY = config.decodeJwtConfig.publicKey;
 }

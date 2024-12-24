@@ -1,9 +1,9 @@
 import { expect } from '@jest/globals';
 import { buildJwt, decodeAndVerifyJwtSignature } from './jwt';
-import { EncodeJwtConfig } from '@lambdas/api/login/config';
+import { EncodeJwtConfig } from '@lambdas/api/post-login/config';
 import { Jwt } from '@own-types/model';
-import { DecodeJwtConfig } from '@model/DecodeJwtConfig';
 import { sleep } from '@testing/utils/utils';
+import { DecodeJwtConfig } from '@model/Config';
 
 const validPrivateKey = `-----BEGIN EC PRIVATE KEY-----
 MHcCAQEEIEF6NI6CascYRtOFXEQrbsbsi7ZzTsKaktkDRZ/PSZ8hoAoGCCqGSM49
@@ -27,7 +27,7 @@ const validEncodeConfig = {
 };
 const validDecodeConfig = {
   publicKey: validPublicKey,
-  maxAge: '5m',
+  expiresIn: '5m',
   issuer: validIssuer,
   audience: validAudience
 };

@@ -50,7 +50,7 @@ const initialize = (router) => {
 
   const respondParam = (endpoint, method) => (req, res) => {
     // TODO: only valid while all endpoints are of type APIGatewayProxyEventV2.
-    const event = unsafeTestEvent(req.body || {});
+    const event = unsafeTestEvent(req.body || {}, req.headers);
     const responsePromise = routes[endpoint][method](event, req.body);
     respond(responsePromise, res);
   };
