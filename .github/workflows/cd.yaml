@@ -187,7 +187,7 @@ jobs:
 
       - id: release-please
         if: github.event_name != 'pull_request'
-        uses: google-github-actions/release-please-action@v4
+        uses: googleapis/release-please-action@v4
         with:
           # Hoping this automatically updates package*.json
           release-type: node
