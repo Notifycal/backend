@@ -1,11 +1,11 @@
 import { APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2, Context } from 'aws-lambda';
 import { z } from 'zod';
 import middy from '@middy/core';
-import { AuthedEndpointConfig } from '@model/AuthedEndpointConfig';
+import { AuthedEndpointConfig } from '@model/Config';
 import { protectedEndpointMiddleware } from '@common/lambda-middleware';
 import { getDefaultDecodeJwtConfig } from './utils/jwt';
 import { APIGatewayProxyEventV2Schema } from '@aws-lambda-powertools/parser/schemas/api-gatewayv2';
-import { AuthedAndConfigRequestContext } from '@model/ApiGatewayV2ProxyEventAuthed';
+import { AuthedAndConfigRequestContext } from '@model/ApiGatewayEvents';
 import { JSONStringified } from '@aws-lambda-powertools/parser/helpers';
 
 async function lambdaHandler(

@@ -1,5 +1,5 @@
 import { describe, jest } from '@jest/globals';
-import { EncodeJwtConfig, GoogleOAuthConfig, LoginConfig } from './model';
+import { EncodeJwtConfig, LoginConfig } from './config';
 import { handler } from './index';
 import * as loginService from '@services/login';
 import * as googleOAuth from '@services/google-oauth';
@@ -221,7 +221,7 @@ function setEnvEncodeJwtConfig(config: EncodeJwtConfig) {
   process.env.JWT_EXPIRATION = config.expiresIn;
 }
 
-function setEnvGoogleOAuthClientConfig(config: GoogleOAuthConfig) {
+function setEnvGoogleOAuthClientConfig(config: googleOAuth.GoogleOAuthConfig) {
   process.env.GOOGLE_OAUTH_CLIENT_ID = config.clientId;
   process.env.GOOGLE_OAUTH_CLIENT_SECRET = config.clientSecret;
   process.env.GOOGLE_OAUTH_CLIENT_REDIRECT_URI = config.redirectUri;

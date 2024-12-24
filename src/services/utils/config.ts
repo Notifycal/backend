@@ -1,5 +1,5 @@
 import { from } from 'env-var';
-import { AwsConfig } from '@model/AwsConfig';
+import { AwsConfig } from '@model/Config';
 import { Environment } from '@own-types/model';
 
 export function readEnv() {

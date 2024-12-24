@@ -1,9 +1,9 @@
 import { expect } from '@jest/globals';
 import { buildJwt, decodeAndVerifyJwtSignature } from './jwt';
-import { EncodeJwtConfig } from '@lambdas/api/post-login/model';
+import { EncodeJwtConfig } from '@lambdas/api/post-login/config';
 import { Jwt } from '@own-types/model';
 import { sleep } from '@testing/utils/utils';
-import { DecodeJwtConfig } from '@model/AuthedEndpointConfig';
+import { DecodeJwtConfig } from '@model/Config';
 
 const validPrivateKey = `-----BEGIN EC PRIVATE KEY-----
 MHcCAQEEIEF6NI6CascYRtOFXEQrbsbsi7ZzTsKaktkDRZ/PSZ8hoAoGCCqGSM49

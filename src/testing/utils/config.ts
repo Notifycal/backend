@@ -1,5 +1,5 @@
-import { DecodeJwtConfig } from '@model/AuthedEndpointConfig';
-import { AwsConfig } from '@model/AwsConfig';
+import { DecodeJwtConfig } from '@model/Config';
+import { AwsConfig } from '@model/Config';
 import { UserBaseStoreConfig } from '@services/user-base-store';
 
 export function setEnvDecodeJwtConfig(config: DecodeJwtConfig) {

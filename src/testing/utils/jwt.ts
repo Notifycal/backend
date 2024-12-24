@@ -2,7 +2,7 @@ import { buildJwt } from '@services/jwt';
 import dotenv from 'dotenv';
 import path from 'path';
 import * as fs from 'fs';
-import { EncodeJwtConfig } from '@lambdas/api/post-login/model';
+import { EncodeJwtConfig } from '@lambdas/api/post-login/config';
 
 // Lazy evaluation all over the place so express doesn't attempt to load what it mustn't
 const loadDevConfig = (() => {

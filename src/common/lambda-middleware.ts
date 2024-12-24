@@ -8,7 +8,7 @@ import { checkClaims, jwtVerificationMiddleware } from './jwt-verification-middl
 import { httpRequestPayloadParserMiddleware } from './parser-http-middleware';
 import { ConfigReaderFn, JwtClaimCheckerFn } from '@own-types/model';
 import { ZodSchema } from 'zod';
-import { AuthedEndpointConfig } from '@model/AuthedEndpointConfig';
+import { AuthedEndpointConfig } from '@model/Config';
 
 export function baseMiddleware(): middy.MiddyfiedHandler {
   return middy({ timeoutEarlyInMillis: 0 })

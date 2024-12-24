@@ -1,4 +1,5 @@
-import { AwsConfig } from '@model/AwsConfig';
+import { AwsConfig } from '@model/Config';
+import { GoogleOAuthConfig } from '@services/google-oauth';
 import { UserBaseStoreConfig } from '@services/user-base-store';
 import { readAwsConfig, readEnv } from '@services/utils/config';
 
@@ -15,12 +16,6 @@ export interface EncodeJwtConfig {
   issuer: string;
   audience: string;
   expiresIn: string;
-}
-
-export interface GoogleOAuthConfig {
-  clientId: string;
-  clientSecret: string;
-  redirectUri: string;
 }
 
 export function readLoginConfig(): LoginConfig {

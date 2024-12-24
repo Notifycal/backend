@@ -1,8 +1,8 @@
 import { APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2, Context } from 'aws-lambda';
 import middy from '@middy/core';
-import { GetUserConfig, readGetUserConfig } from './model';
+import { GetUserConfig, readGetUserConfig } from './config';
 import { UserBaseStore } from '@services/user-base-store';
-import { AuthedAndConfigRequestContext } from '@model/ApiGatewayV2ProxyEventAuthed';
+import { AuthedAndConfigRequestContext } from '@model/ApiGatewayEvents';
 import { protectedEndpointMiddleware } from '@common/lambda-middleware';
 import { APIGatewayProxyEventV2Schema } from '@aws-lambda-powertools/parser/schemas';
 import { z } from 'zod';

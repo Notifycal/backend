@@ -5,6 +5,7 @@ import { Request } from '@middy/core';
 import { APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2, Context } from 'aws-lambda';
 import createHttpError from 'http-errors';
 import { ZodSchema } from 'zod';
+import { logger } from './powertools';
 
 export function httpRequestPayloadParserMiddleware(
   schema: ZodSchema
@@ -12,7 +13,7 @@ export function httpRequestPayloadParserMiddleware(
   const before: middy.MiddlewareFn<APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2> = (
     req
   ) => httpRequestPayloadParser(req, schema);
-  const onError = httpErrorHandler().onError;
+  const onError = httpErrorHandler({ logger: (error) => logger.warn(error) }).onError;
   return {
     before,
     onError

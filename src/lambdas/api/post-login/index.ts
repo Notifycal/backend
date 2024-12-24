@@ -1,6 +1,6 @@
 import { APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2, Context } from 'aws-lambda';
 import { verifyGoogleIdentity } from '@services/google-oauth';
-import { LoginConfig, readLoginConfig } from './model';
+import { LoginConfig, readLoginConfig } from './config';
 import { buildJwt } from '@services/jwt';
 import { unprotectedEndpointMiddleware } from '@common/lambda-middleware';
 import { logger } from '@common/powertools';
@@ -10,7 +10,7 @@ import middy from '@middy/core';
 import { signInOrUpUser } from '@services/login';
 import { User } from '@model/User';
 import { APIGatewayProxyEventV2Schema } from '@aws-lambda-powertools/parser/schemas/api-gatewayv2';
-import { ConfigRequestContext } from '@model/ApiGatewayV2ProxyEventAuthed';
+import { ConfigRequestContext } from '@model/ApiGatewayEvents';
 import { JSONStringified } from '@aws-lambda-powertools/parser/helpers';
 
 async function lambdaHandler(

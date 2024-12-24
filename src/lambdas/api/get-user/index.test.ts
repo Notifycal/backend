@@ -2,7 +2,7 @@ import { describe, jest } from '@jest/globals';
 import { type APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2 } from 'aws-lambda';
 import { c, testAuthedEvent } from '@testing/apigateway';
 import { assert } from '@testing/utils/assertions';
-import { GetUserConfig } from './model';
+import { GetUserConfig } from './config';
 import { handler } from '.';
 import { sleep } from '@testing/utils/utils';
 import {

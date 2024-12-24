@@ -1,4 +1,4 @@
-import { AuthedEventWithConfig } from './../model/ApiGatewayV2ProxyEventAuthed';
+import { AuthedEventWithConfig } from '../model/ApiGatewayEvents';
 import middy, { MiddlewareObj, Request } from '@middy/core';
 import httpErrorHandler from '@middy/http-error-handler';
 import createHttpError from 'http-errors';
@@ -6,7 +6,8 @@ import { APIGatewayProxyStructuredResultV2, Context } from 'aws-lambda';
 import { decodeAndVerifyJwtSignature } from '@services/jwt';
 import { JwtPayload, Jwt as StructuredJwt } from 'jsonwebtoken';
 import { JwtClaimCheckerFn } from '@own-types/model';
-import { AuthedEndpointConfig } from '@model/AuthedEndpointConfig';
+import { AuthedEndpointConfig } from '@model/Config';
+import { logger } from '@common/powertools';
 
 export function jwtVerificationMiddleware<TConfig extends AuthedEndpointConfig>(
   claimChecker: JwtClaimCheckerFn
@@ -15,7 +16,7 @@ export function jwtVerificationMiddleware<TConfig extends AuthedEndpointConfig>(
     AuthedEventWithConfig<TConfig>,
     APIGatewayProxyStructuredResultV2
   > = (req) => jwtVerification(req, claimChecker);
-  const onError = httpErrorHandler().onError;
+  const onError = httpErrorHandler({ logger: (error) => logger.warn(error) }).onError;
   return {
     before,
     onError

@@ -1,8 +1,8 @@
 import jwtBuilder, { SignOptions } from 'jsonwebtoken';
-import { EncodeJwtConfig } from '@lambdas/api/post-login/model';
+import { EncodeJwtConfig } from '@lambdas/api/post-login/config';
 import { Jwt } from '@own-types/model';
 import { Jwt as StructuredJwt } from 'jsonwebtoken';
-import { DecodeJwtConfig } from '@model/AuthedEndpointConfig';
+import { DecodeJwtConfig } from '@model/Config';
 
 export function buildJwt(payload: object, subject: string, config: EncodeJwtConfig): Promise<Jwt> {
   try {
