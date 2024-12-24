@@ -5,7 +5,7 @@ import { injectLambdaContext } from '@aws-lambda-powertools/logger/middleware';
 import { logMetrics } from '@aws-lambda-powertools/metrics/middleware';
 import { configReaderMiddleware } from './config-reader-middleware';
 import { checkClaims, jwtVerificationMiddleware } from './jwt-verification-middleware';
-import { httpRequestPayloadParserMiddleware } from './parser-http-middleware';
+import { httpRequestEventParserMiddleware } from './parser-http-middleware';
 import { ConfigReaderFn, JwtClaimCheckerFn } from '@own-types/model';
 import { ZodSchema } from 'zod';
 import { AuthedEndpointConfig } from '@model/Config';
@@ -23,7 +23,7 @@ export function unprotectedEndpointMiddleware<TConfig>(
 ): middy.MiddyfiedHandler {
   return baseMiddleware()
     .use(configReaderMiddleware<TConfig>(configReader))
-    .use(httpRequestPayloadParserMiddleware(eventSchema));
+    .use(httpRequestEventParserMiddleware(eventSchema));
 }
 
 export function protectedEndpointMiddleware<TConfig extends AuthedEndpointConfig>(
@@ -34,5 +34,5 @@ export function protectedEndpointMiddleware<TConfig extends AuthedEndpointConfig
   return baseMiddleware()
     .use(configReaderMiddleware<TConfig>(configReaderFn))
     .use(jwtVerificationMiddleware(claimCheckerFn))
-    .use(httpRequestPayloadParserMiddleware(eventSchema));
+    .use(httpRequestEventParserMiddleware(eventSchema));
 }

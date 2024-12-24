@@ -7,12 +7,12 @@ import createHttpError from 'http-errors';
 import { ZodSchema } from 'zod';
 import { logger } from './powertools';
 
-export function httpRequestPayloadParserMiddleware(
+export function httpRequestEventParserMiddleware(
   schema: ZodSchema
 ): MiddlewareObj<APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2> {
   const before: middy.MiddlewareFn<APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2> = (
     req
-  ) => httpRequestPayloadParser(req, schema);
+  ) => httpRequestEventParser(req, schema);
   const onError = httpErrorHandler({ logger: (error) => logger.warn(error) }).onError;
   return {
     before,
@@ -20,7 +20,7 @@ export function httpRequestPayloadParserMiddleware(
   };
 }
 
-function httpRequestPayloadParser(
+function httpRequestEventParser(
   request: Request<APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2, Error, Context>,
   schema: ZodSchema
 ): Promise<void> {
