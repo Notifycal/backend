@@ -11,8 +11,7 @@ OUT_DIR=dist
 TF_TOOL="${TF_TOOL:-terragrunt}"
 
 STACK_NAME=$1
-STACK_VERSION="v1.0.0"
-# STACK_VERSION=$2
+STACK_VERSION=$2
 
 # running path is the working dir as this script makes "changes" in the
 # actual TF "execution folder"
