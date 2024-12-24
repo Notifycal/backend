@@ -31,11 +31,11 @@ function jwtVerification<TConfig extends AuthedEndpointConfig>(
     Context
   >,
   claimChecker: JwtClaimCheckerFn
-): Promise<void> {
+): void {
   const headers = request.event.headers ?? {};
   const authorization = headers['Authorization'] || headers['authorization'];
   if (authorization) {
-    return decodeAndVerifyJwtSignature(
+    decodeAndVerifyJwtSignature(
       authorization.replace('Bearer ', ''),
       request.event.requestContext.config.decodeJwtConfig
     ).then(
@@ -45,7 +45,6 @@ function jwtVerification<TConfig extends AuthedEndpointConfig>(
             email: (jwt.payload as JwtPayload)?.['email'],
             role: (jwt.payload as JwtPayload)?.['role']
           };
-          return Promise.resolve();
         } else {
           throw createHttpError(401, 'Unauthorised', {
             type: `Missing permissions to hit the API. Provided info: header = '${JSON.stringify(jwt.header)}' payload = '${JSON.stringify(jwt.payload)}'`

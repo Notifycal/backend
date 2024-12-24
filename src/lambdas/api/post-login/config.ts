@@ -1,7 +1,7 @@
 import { AwsConfig } from '@model/Config';
 import { GoogleOAuthConfig } from '@services/google-oauth';
 import { UserBaseStoreConfig } from '@services/user-base-store';
-import { readAwsConfig, readEnv } from '@services/utils/config';
+import { readAwsConfig, readEnv } from '@services/common/config';
 
 export interface LoginConfig {
   encodeJwtConfig: EncodeJwtConfig;

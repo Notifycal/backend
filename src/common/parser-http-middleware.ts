@@ -23,7 +23,7 @@ export function httpRequestEventParserMiddleware(
 function httpRequestEventParser(
   request: Request<APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2, Error, Context>,
   schema: ZodSchema
-): Promise<void> {
+): void {
   const parserFn = parser({ schema }).before;
   if (parserFn) {
     try {
@@ -34,5 +34,4 @@ function httpRequestEventParser(
       });
     }
   }
-  return Promise.resolve();
 }

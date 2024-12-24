@@ -1,14 +1,14 @@
 import { UserBaseStoreConfig } from '@services/user-base-store';
-import { readAwsConfig, readEnv } from '@services/utils/config';
+import { readAwsConfig, readEnv } from '@services/common/config';
 import { AwsConfig } from '@model/Config';
 import { AuthedEndpointConfig } from '@model/Config';
 
-export interface GetUserConfig extends AuthedEndpointConfig {
+export interface GetUserProfileConfig extends AuthedEndpointConfig {
   userBaseStore: UserBaseStoreConfig;
   awsConfig: AwsConfig;
 }
 
-export function readGetUserConfig(): GetUserConfig {
+export function readGetUserConfig(): GetUserProfileConfig {
   const env = readEnv();
   return {
     decodeJwtConfig: {

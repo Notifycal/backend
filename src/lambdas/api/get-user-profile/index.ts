@@ -1,6 +1,6 @@
 import { APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2, Context } from 'aws-lambda';
 import middy from '@middy/core';
-import { GetUserConfig, readGetUserConfig } from './config';
+import { GetUserProfileConfig, readGetUserConfig } from './config';
 import { UserBaseStore } from '@services/user-base-store';
 import { AuthedAndConfigRequestContext } from '@model/ApiGatewayEvents';
 import { protectedEndpointMiddleware } from '@common/lambda-middleware';
@@ -30,7 +30,7 @@ async function lambdaHandler(
 }
 
 const eventSchema = APIGatewayProxyEventV2Schema.extend({
-  requestContext: z.custom<AuthedAndConfigRequestContext<GetUserConfig>>()
+  requestContext: z.custom<AuthedAndConfigRequestContext<GetUserProfileConfig>>()
 });
 type Event = z.infer<typeof eventSchema>;
 

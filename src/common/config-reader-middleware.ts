@@ -22,7 +22,7 @@ export function configReaderMiddleware<TConfig>(
 function configReader<TConfig>(
   request: Request<EventWithConfig<TConfig>, APIGatewayProxyStructuredResultV2, Error, Context>,
   configReaderFn: () => TConfig
-): Promise<void> {
+): void {
   try {
     const config = configReaderFn();
     request.event.requestContext.config = config;
@@ -33,5 +33,4 @@ function configReader<TConfig>(
       expose: true
     });
   }
-  return Promise.resolve();
 }

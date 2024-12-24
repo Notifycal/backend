@@ -2,7 +2,7 @@ import { describe, jest } from '@jest/globals';
 import { type APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2 } from 'aws-lambda';
 import { c, testAuthedEvent } from '@testing/apigateway';
 import { assert } from '@testing/utils/assertions';
-import { GetUserConfig } from './config';
+import { GetUserProfileConfig } from './config';
 import { handler } from '.';
 import {
   setEnvAwsConfig,
@@ -13,7 +13,7 @@ import { getDefaultDecodeJwtConfig } from '@testing/utils/jwt';
 import { UserBaseStore } from '@services/user-base-store';
 import { User } from '@model/User';
 
-describe('GET user', () => {
+describe('GET user profile', () => {
   const OLD_ENV = process.env;
 
   beforeEach(() => {
@@ -63,7 +63,7 @@ describe('GET user', () => {
 function testit(
   event: APIGatewayProxyEventV2,
   getUserByEmailResult: () => Promise<User>,
-  env: GetUserConfig = defaultEnv
+  env: GetUserProfileConfig = defaultEnv
 ): Promise<APIGatewayProxyStructuredResultV2> {
   setEnv(env);
   jest.spyOn(UserBaseStore.prototype, 'getUserByEmail').mockImplementation(getUserByEmailResult);
@@ -80,7 +80,7 @@ const defaultEnv = {
   }
 };
 
-function setEnv(config: GetUserConfig) {
+function setEnv(config: GetUserProfileConfig) {
   setEnvDecodeJwtConfig(config.decodeJwtConfig);
   setEnvUserBaseStoreConfig(config.userBaseStore);
   setEnvAwsConfig(config.awsConfig);
