@@ -11,7 +11,7 @@ const routes = {
   userProfile: {
     GET: getUserProfile
   },
-  postLogin: {
+  login: {
     POST: postLogin
   }
 };
