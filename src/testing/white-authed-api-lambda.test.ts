@@ -52,9 +52,9 @@ describe('White authed API lambda', () => {
     return testit(event).then((resp) => {
       assert(resp, {
         statusCode: 401,
-        body: 'Unauthorised',
+        body: JSON.stringify({ message: 'Unauthorised' }),
         headers: {
-          'Content-Type': 'text/plain'
+          'Content-Type': 'application/json'
         }
       });
     });
@@ -68,9 +68,9 @@ describe('White authed API lambda', () => {
     return eventPromise.then(testit).then((resp) => {
       assert(resp, {
         statusCode: 400,
-        body: 'Bad Request',
+        body: JSON.stringify({ message: 'Bad Request' }),
         headers: {
-          'Content-Type': 'text/plain'
+          'Content-Type': 'application/json'
         }
       });
     });

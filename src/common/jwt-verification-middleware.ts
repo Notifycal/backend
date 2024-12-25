@@ -46,19 +46,19 @@ function jwtVerification<TConfig extends AuthedEndpointConfig>(
             role: (jwt.payload as JwtPayload)?.['role']
           };
         } else {
-          throw createHttpError(401, 'Unauthorised', {
+          throw createHttpError(401, JSON.stringify({ message: 'Unauthorised' }), {
             type: `Missing permissions to hit the API. Provided info: header = '${JSON.stringify(jwt.header)}' payload = '${JSON.stringify(jwt.payload)}'`
           });
         }
       },
       (err) => {
-        throw createHttpError(401, 'Unauthorised', {
+        throw createHttpError(401, JSON.stringify({ message: 'Unauthorised' }), {
           type: `Invalid Signature. Error: ${JSON.stringify(err)}`
         });
       }
     );
   } else {
-    throw createHttpError(401, 'Unauthorised', {
+    throw createHttpError(401, JSON.stringify({ message: 'Unauthorised' }), {
       type: 'Missing Authorization'
     });
   }

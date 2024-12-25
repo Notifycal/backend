@@ -1,24 +1,34 @@
 ---
 openapi: '3.1.1'
 info:
-  title: 'Notifycal Api'
-  version: 0
+  title: Notifycal API
+  description: Notifycal API
+  contact:
+    name: Notifycal CTO
+    url: https://github.com/notifycal
+    email: notifycal@gmail.com
+  version: '0'
 servers:
-  - url: https://privatearea{environment}.notifycal.com/api/{api_version}
+  - url: https://api{environment}.notifycal.com/api/{api_version}
     variables:
       environment:
+        default: ''
         enum:
-          - ''      # Production
-          - .qa     # QA server
-          - .dev    # Development
+          - '' # Production
+          - .qa # QA server
+          - .dev # Development
       api_version:
+        default: v1
         enum:
           - v1
 paths:
   /login:
     post:
       summary: Login endpoint
-      request:
+      operationId: login
+      tags: ['user']
+      description: Let a user login against environment APIs
+      requestBody:
         content:
           application/json:
             schema:
@@ -30,7 +40,7 @@ paths:
                   type: string
       security: [] # This overrides global definition since this endpoint is unprotected
       responses:
-        200:
+        '200':
           description: 'OK'
           content:
             application/json:
@@ -39,40 +49,22 @@ paths:
                 description: Response payload containing authorization
                 properties:
                   accessToken:
-                    description: jwt to use as an authorization against all APIs 
+                    description: jwt to use as an authorization against all APIs
                     type: string
                   tokenType:
-                    type: enum
+                    type: string
                     enum:
                       - Bearer
                   refreshToken:
-                    type: enum
+                    type: string
                     enum:
                       - WIP
-        400:
-          description: 'Bad Request'
-          content:
-            text/html:
-              schema:
-                type: string
-                enum:
-                  - Bad Request
-        401:
-          description: 'Unauthorized'
-          content:
-            text/html:
-              schema:
-                type: string
-                enum:
-                  - Unauthorized
-        500:
-          description: 'Internal Server Error'
-          content:
-            text/html:
-              schema:
-                type: string
-                enum:
-                  - Internal Server Error
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorised'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
       x-amazon-apigateway-integration:
         uri: 'arn:aws:apigateway:${aws_region}:lambda:path/2015-03-31/functions/${lambda_functions.login_arn}/invocations'
         responses:
@@ -84,11 +76,14 @@ paths:
   /watch_me:
     post:
       summary: Receive GCal watch endpoint data
+      description: Some description
+      operationId: op_X
+      tags: ['user']
       responses:
-        200:
+        '200':
           description: 'OK'
           content: {}
-        500:
+        '500':
           description: 'Internal Server Error'
           content: {}
       x-amazon-apigateway-integration:
@@ -109,3 +104,48 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT # optional, arbitrary value for documentation purposes
+  schemas: {}
+  responses:
+    BadRequest:
+      description: Bad Request response payload
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                enum:
+                  - Bad Request
+            required:
+              - message
+    Unauthorised:
+      description: Unauthorised response payload
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                enum:
+                  - Unauthorised
+            required:
+              - message
+    InternalServerError:
+      description: Internal Server Error response payload
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                enum:
+                  - KO
+            required:
+              - message
+
+tags:
+  - name: user
+    description: user operations

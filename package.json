@@ -9,7 +9,7 @@
     "dev-build": "rm -rf dist && node esbuild.js",
     "dev": "nodemon --ext ts,js,yaml,yml --watch src/** --watch openapi/** --exec 'npm run dev-build && node --env-file=src/resources/config/.env.dev express-local/index.js'",
     "package": "bin/package.sh",
-    "lint": "eslint -c ./eslint.config.js",
+    "lint": "eslint -c ./eslint.config.js && spectral lint openapi/spec.yaml",
     "lint:fix": "$npm_execpath run lint -- --fix",
     "prettier": "prettier . --check",
     "prettier:fix": "$npm_execpath run prettier -- --write",
@@ -37,6 +37,7 @@
   },
   "devDependencies": {
     "@jest/globals": "^29.7.0",
+    "@stoplight/spectral-cli": "^6.14.2",
     "@types/aws-lambda": "^8.10.136",
     "@types/http-errors": "^2.0.4",
     "@types/jest": "^29.5.12",
