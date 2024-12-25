@@ -18,6 +18,8 @@ module "login_lambda" {
 
   maximum_retry_attempts = 0
 
+  tags = merge({}, local.common_tags)
+
   allowed_triggers = {
     AllowAPIGatewayInvoke = {
       principal = "apigateway.amazonaws.com"
@@ -30,5 +32,15 @@ module "login_lambda" {
     }
   }
 
-  environment_variables = merge({}, local.common_lambda_env_vars)
+  environment_variables = merge({
+    JWT_PRIVATE_KEY = data.aws_ssm_parameter.jwt_private_key.value
+    JWT_ALGORITHM = data.aws_ssm_parameter.jwt_algorithm.value
+    JWT_ISSUER = data.aws_ssm_parameter.jwt_issuer.value
+    JWT_AUDIENCE = data.aws_ssm_parameter.jwt_audience.value
+    JWT_EXPIRATION = data.aws_ssm_parameter.jwt_expiration.value
+    GOOGLE_OAUTH_CLIENT_ID = data.aws_ssm_parameter.google_oauth_client_id.value
+    GOOGLE_OAUTH_CLIENT_SECRET = data.aws_ssm_parameter.google_oauth_client_secret.value
+    GOOGLE_OAUTH_CLIENT_REDIRECT_URI = data.aws_ssm_parameter.google_oauth_client_redirect_url.value
+    USERS_TABLE_NAME = aws_dynamodb_table.users.name
+  }, local.common_lambda_env_vars)
 }

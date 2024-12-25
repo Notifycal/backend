@@ -18,6 +18,8 @@ module "post_watch_lambda" {
 
   maximum_retry_attempts = 0
 
+  tags = merge({}, local.common_tags)
+
   allowed_triggers = {
     AllowAPIGatewayInvoke = {
       principal = "apigateway.amazonaws.com"
