@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.2](https://github.com/Notifycal/backend/compare/v0.1.1...v0.1.2) (2024-12-25)
+
+
+### Bug Fixes
+
+* local login endpoint name ([#147](https://github.com/Notifycal/backend/issues/147)) ([afd0d8a](https://github.com/Notifycal/backend/commit/afd0d8a95a46125303e9fbf934db42cf565ebff7))
+
 ## [0.1.1](https://github.com/Notifycal/backend/compare/v0.1.0...v0.1.1) (2024-12-24)
 
 
