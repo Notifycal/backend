@@ -26,7 +26,7 @@ paths:
     post:
       summary: Login endpoint
       operationId: login
-      tags: ['user']
+      tags: [user]
       description: Let a user login against environment APIs
       requestBody:
         content:
@@ -41,7 +41,7 @@ paths:
       security: [] # This overrides global definition since this endpoint is unprotected
       responses:
         '200':
-          description: 'OK'
+          description: OK
           content:
             application/json:
               schema:
@@ -73,12 +73,31 @@ paths:
         passthroughBehavior: 'when_no_match'
         httpMethod: 'POST'
         type: 'aws_proxy'
+  /user-profile:
+    get:
+      summary: User profile
+      operationId: userProfile
+      description: Returns the user profile of the caller
+      tags: [user]
+      responses:
+        '200':
+          description: 'OK'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorised'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
   /watch_me:
     post:
       summary: Receive GCal watch endpoint data
       description: Some description
       operationId: op_X
-      tags: ['user']
+      tags: [user]
       responses:
         '200':
           description: 'OK'
@@ -104,7 +123,16 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT # optional, arbitrary value for documentation purposes
-  schemas: {}
+  schemas:
+    User:
+      schema:
+        type: object
+        properties:
+          UserId:
+            type: string
+            format: email
+        required:
+          - UserId
   responses:
     BadRequest:
       description: Bad Request response payload
@@ -130,6 +158,19 @@ components:
                 type: string
                 enum:
                   - Unauthorised
+            required:
+              - message
+    NotFound:
+      description: NotFound response payload
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                enum:
+                  - Not Found
             required:
               - message
     InternalServerError:

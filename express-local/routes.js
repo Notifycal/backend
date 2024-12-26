@@ -8,7 +8,7 @@ const routes = {
   watchEvent: {
     POST: postWatchEvents
   },
-  userProfile: {
+  'user-profile': {
     GET: getUserProfile
   },
   login: {
