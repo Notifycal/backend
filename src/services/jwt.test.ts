@@ -1,9 +1,9 @@
 import { expect } from '@jest/globals';
-import { buildJwt, decodeAndVerifyJwtSignature } from './jwt';
-import { EncodeJwtConfig } from '@lambdas/api/post-login/config';
+import { buildJwt, decodeAndVerifyJwtSignature, decodeJwt } from './jwt';
 import { Jwt } from '@own-types/model';
 import { sleep } from '@testing/utils/utils';
-import { DecodeJwtConfig } from '@model/Config';
+import { DecodeJwtConfig, EncodeJwtConfig } from '@model/Config';
+import { AccessToken } from '@model/Jwt';
 
 const validPrivateKey = `-----BEGIN EC PRIVATE KEY-----
 MHcCAQEEIEF6NI6CascYRtOFXEQrbsbsi7ZzTsKaktkDRZ/PSZ8hoAoGCCqGSM49
@@ -56,7 +56,7 @@ describe('Jwt builder', () => {
   }
 });
 
-describe('Jwt decoder/verifier', () => {
+describe('Jwt decoder/verifier with signature', () => {
   it('should verify a jwt - it ignores subject claim', () => {
     const result = buildJwt(validPayload, validSubject, validEncodeConfig).then((testJwt) =>
       testit(testJwt, validDecodeConfig)
@@ -126,5 +126,33 @@ describe('Jwt decoder/verifier', () => {
 
   function testit(jwt: Jwt, config: DecodeJwtConfig) {
     return decodeAndVerifyJwtSignature(jwt, config);
+  }
+});
+
+describe('Jwt decoder', () => {
+  it('should decode a jwt', () => {
+    const result = buildJwt(validPayload, validSubject, validEncodeConfig).then((testJwt) =>
+      testit(testJwt)
+    );
+    return expect(result).resolves.toBeTruthy();
+  });
+
+  it('should fail to decode an invalid jwt', () => {
+    const testJwt = 'invalid_jwt';
+
+    const result = testit(testJwt);
+    return expect(result).rejects.toEqual('JWT decoding failed. Operation resulted in null');
+  });
+
+  it('should fail to decode a jwt if payload does not satisfy the schema', () => {
+    const invalidPayload = { ...validPayload, email: 123456, role: 'admin' };
+    const result = buildJwt(invalidPayload, validSubject, validEncodeConfig).then((testJwt) =>
+      testit(testJwt)
+    );
+    return expect(result).rejects.toEqual('JWT decoding failed. Operation resulted in null');
+  });
+
+  function testit(jwt: Jwt) {
+    return decodeJwt<AccessToken>(jwt);
   }
 });

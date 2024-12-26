@@ -8,6 +8,16 @@ export interface DecodeJwtConfig {
   audience: string;
   expiresIn: string;
 }
+export type DecodeRefreshJwtConfig = DecodeJwtConfig;
+
+export interface EncodeJwtConfig {
+  privateKey: string;
+  algorithm: string;
+  issuer: string;
+  audience: string;
+  expiresIn: string;
+}
+export type EncodeRefreshJwtConfig = EncodeJwtConfig;
 
 export interface AwsConfig {
   awsRegion?: string;

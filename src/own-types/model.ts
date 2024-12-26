@@ -3,6 +3,8 @@ import { Jwt as StructuredJwt } from 'jsonwebtoken';
 
 export type Jwt = string;
 export type Email = string;
+export type UserId = Email;
+export type Uuid = string;
 export type ConfigReaderFn<TConfig> = () => TConfig;
 export type JwtClaimCheckerFn = (jwt: StructuredJwt) => boolean;
 /* eslint-disable-next-line @typescript-eslint/no-empty-object-type */

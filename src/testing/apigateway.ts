@@ -1,7 +1,7 @@
 import { Context } from 'aws-lambda/handler';
 import { APIGatewayProxyEventV2 } from '@aws-lambda-powertools/parser/types';
 import { getDefaultEncodeJwtConfig, testJwt } from './utils/jwt';
-import { EncodeJwtConfig } from '@lambdas/api/post-login/config';
+import { EncodeJwtConfig } from '@model/Config';
 
 export function unsafeTestEvent(
   /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
@@ -29,10 +29,7 @@ export function testAuthedEvent<T>(
   );
 }
 
-export function ttestEvent(
-  body: string,
-  headers: Record<string, string> = {}
-): APIGatewayProxyEventV2 {
+function ttestEvent(body: string, headers: Record<string, string> = {}): APIGatewayProxyEventV2 {
   return {
     body: body,
     version: '2.0',

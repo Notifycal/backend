@@ -8,6 +8,7 @@ import { JwtPayload, Jwt as StructuredJwt } from 'jsonwebtoken';
 import { JwtClaimCheckerFn } from '@own-types/model';
 import { AuthedEndpointConfig } from '@model/Config';
 import { logger } from '@common/powertools';
+import { AccessToken } from '@model/Jwt';
 
 export function jwtVerificationMiddleware<TConfig extends AuthedEndpointConfig>(
   claimChecker: JwtClaimCheckerFn
@@ -35,16 +36,13 @@ function jwtVerification<TConfig extends AuthedEndpointConfig>(
   const headers = request.event.headers ?? {};
   const authorization = headers['Authorization'] || headers['authorization'];
   if (authorization) {
-    decodeAndVerifyJwtSignature(
+    decodeAndVerifyJwtSignature<AccessToken>(
       authorization.replace('Bearer ', ''),
       request.event.requestContext.config.decodeJwtConfig
     ).then(
       (jwt) => {
         if (claimChecker(jwt)) {
-          request.event.requestContext.authorizer = {
-            email: (jwt.payload as JwtPayload)?.['email'],
-            role: (jwt.payload as JwtPayload)?.['role']
-          };
+          request.event.requestContext.authorizer = jwt;
         } else {
           throw createHttpError(401, JSON.stringify({ message: 'Unauthorised' }), {
             type: `Missing permissions to hit the API. Provided info: header = '${JSON.stringify(jwt.header)}' payload = '${JSON.stringify(jwt.payload)}'`

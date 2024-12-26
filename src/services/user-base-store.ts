@@ -1,20 +1,14 @@
-import { dynamodbClient } from '@clients/dynamodb';
-import { PutCommand, GetCommand, DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
-import { AwsConfig } from '@model/Config';
+import { PutCommand, GetCommand } from '@aws-sdk/lib-dynamodb';
 import { User } from '@model/User';
 import { Email } from '@own-types/model';
+import { BaseStore, BaseStoreConfig } from './common/base-store';
+import { AwsConfig } from '@model/Config';
 
-export interface UserBaseStoreConfig {
-  tableName: string;
-}
+export type UserBaseStoreConfig = BaseStoreConfig;
 
-export class UserBaseStore {
-  private _dynamoDbClient: DynamoDBDocumentClient;
-  private _tableName: string;
-
+export class UserBaseStore extends BaseStore<UserBaseStoreConfig> {
   constructor(config: UserBaseStoreConfig, awsConfig: AwsConfig) {
-    this._dynamoDbClient = dynamodbClient(awsConfig);
-    this._tableName = config.tableName;
+    super(config, awsConfig);
   }
 
   public getUserByEmail(email: Email): Promise<User> {

@@ -1,5 +1,5 @@
 import { describe, jest } from '@jest/globals';
-import { EncodeJwtConfig, LoginConfig } from './config';
+import { LoginConfig } from './config';
 import { handler } from './index';
 import * as loginService from '@services/login';
 import * as googleOAuth from '@services/google-oauth';
@@ -7,9 +7,10 @@ import * as jwt from '@services/jwt';
 import { type APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2 } from 'aws-lambda';
 import { c, testEvent, unsafeTestEvent } from '@testing/apigateway';
 import { User } from '@model/User';
-import { Jwt, Email } from '@own-types/model';
+import { Email } from '@own-types/model';
 import { assert } from '@testing/utils/assertions';
 import { setEnvAwsConfig, setEnvUserBaseStoreConfig } from '@testing/utils/config';
+import { EncodeJwtConfig, EncodeRefreshJwtConfig } from '@model/Config';
 
 describe('Login', () => {
   const OLD_ENV = process.env;
@@ -23,23 +24,27 @@ describe('Login', () => {
     jest.clearAllMocks();
   });
 
+  const validJwts = {
+    accessToken: 'some_valid_jwt',
+    refreshToken: 'some_valid_jwt'
+  };
+
   it('should sign up a user', () => {
     const event = testEvent({
       'google-code': '<SOME-FAKE-GOOGLE-ID-TOKEN>'
     }) as unknown as APIGatewayProxyEventV2;
     const userEmail = 'success@notifycal.com';
     const idTokenVerificationFn = () => Promise.resolve(userEmail);
-    const validJwt = 'some_valid_jwt';
-    const jwtBuildFn = () => Promise.resolve(validJwt);
+    const jwtBuildFn = () => Promise.resolve(validJwts);
     const signInOrUpUserFn = () => Promise.resolve({ UserId: userEmail });
 
     return testit(event, idTokenVerificationFn, jwtBuildFn, signInOrUpUserFn).then((resp) => {
       assert(resp, {
         statusCode: 200,
         body: JSON.stringify({
-          accessToken: validJwt,
+          accessToken: validJwts.accessToken,
           tokenType: 'Bearer',
-          refreshToken: 'WIP'
+          refreshToken: validJwts.refreshToken
         })
       });
     });
@@ -51,10 +56,12 @@ describe('Login', () => {
     }) as unknown as APIGatewayProxyEventV2;
     const userEmail = 'success@notifycal.com';
     const idTokenVerificationFn = () => Promise.resolve(userEmail);
-    const validJwt1 = 'some_valid_jwt_1';
-    const jwtBuildFn1 = () => Promise.resolve(validJwt1);
-    const validJwt2 = 'some_valid_jwt_2';
-    const jwtBuildFn2 = () => Promise.resolve(validJwt2);
+    const jwtBuildFn1 = () => Promise.resolve(validJwts);
+    const validJwts2 = {
+      accessToken: 'some_valid_jwt2',
+      refreshToken: 'some_valid_jwt2'
+    };
+    const jwtBuildFn2 = () => Promise.resolve(validJwts2);
     const signInOrUpUserFn = () => Promise.resolve({ UserId: userEmail });
 
     return testit(event, idTokenVerificationFn, jwtBuildFn1, signInOrUpUserFn).then(() =>
@@ -62,9 +69,9 @@ describe('Login', () => {
         assert(resp, {
           statusCode: 200,
           body: JSON.stringify({
-            accessToken: validJwt2,
+            accessToken: validJwts2.accessToken,
             tokenType: 'Bearer',
-            refreshToken: 'WIP'
+            refreshToken: validJwts2.refreshToken
           })
         })
       )
@@ -77,8 +84,7 @@ describe('Login', () => {
     }) as unknown as APIGatewayProxyEventV2;
     const userEmail = 'failure@notifycal.com';
     const idTokenVerificationFn = () => Promise.reject(userEmail);
-    const validJwt = 'some_valid_jwt';
-    const jwtBuildFn = () => Promise.resolve(validJwt);
+    const jwtBuildFn = () => Promise.resolve(validJwts);
     const signInOrUpUserFn = () => Promise.resolve({ UserId: userEmail });
 
     return testit(event, idTokenVerificationFn, jwtBuildFn, signInOrUpUserFn).then((resp) =>
@@ -95,8 +101,7 @@ describe('Login', () => {
     }) as unknown as APIGatewayProxyEventV2;
     const userEmail = 'success@notifycal.com';
     const idTokenVerificationFn = () => Promise.resolve(userEmail);
-    const validJwt = 'some_valid_jwt';
-    const jwtBuildFn = () => Promise.resolve(validJwt);
+    const jwtBuildFn = () => Promise.resolve(validJwts);
     const signInOrUpUserFn = () => Promise.resolve({ UserId: userEmail });
 
     return testit(event, idTokenVerificationFn, jwtBuildFn, signInOrUpUserFn).then((resp) =>
@@ -133,7 +138,7 @@ describe('Login', () => {
     }) as unknown as APIGatewayProxyEventV2;
     const userEmail = 'success@notifycal.com';
     const idTokenVerificationFn = () => Promise.resolve(userEmail);
-    const jwtBuildFn = () => Promise.resolve('JWT build error');
+    const jwtBuildFn = () => Promise.resolve(validJwts);
     const signInOrUpUserFn = () => Promise.resolve({ UserId: userEmail });
     const env = {
       ...defaultEnv,
@@ -159,8 +164,7 @@ describe('Login', () => {
     }) as unknown as APIGatewayProxyEventV2;
     const userEmail = 'success@notifycal.com';
     const idTokenVerificationFn = () => Promise.resolve(userEmail);
-    const validJwt = 'some_valid_jwt';
-    const jwtBuildFn = () => Promise.resolve(validJwt);
+    const jwtBuildFn = () => Promise.resolve(validJwts);
     const signInOrUpUserFn = () => Promise.reject('Error to sign in or up a user');
 
     return testit(event, idTokenVerificationFn, jwtBuildFn, signInOrUpUserFn).then((resp) => {
@@ -174,15 +178,15 @@ describe('Login', () => {
 
 function testit(
   event: APIGatewayProxyEventV2,
-  idTokenVerificationResult: () => Promise<Email>,
-  jwtBuildResult: () => Promise<Jwt>,
-  signInOrUpUserResult: () => Promise<User>,
+  idTokenVerificationFn: () => Promise<Email>,
+  jwtBuildsFn: () => Promise<jwt.EncodedJwts>,
+  signInOrUpUserFn: () => Promise<User>,
   env: LoginConfig = defaultEnv
 ): Promise<APIGatewayProxyStructuredResultV2> {
   setEnv(env);
-  jest.spyOn(googleOAuth, 'verifyGoogleIdentity').mockImplementation(idTokenVerificationResult);
-  jest.spyOn(jwt, 'buildJwt').mockImplementation(jwtBuildResult);
-  jest.spyOn(loginService, 'signInOrUpUser').mockImplementation(signInOrUpUserResult);
+  jest.spyOn(googleOAuth, 'verifyGoogleIdentity').mockImplementation(idTokenVerificationFn);
+  jest.spyOn(jwt, 'buildJwts').mockImplementation(jwtBuildsFn);
+  jest.spyOn(loginService, 'signInOrUpUser').mockImplementation(signInOrUpUserFn);
   return handler(event, c);
 }
 
@@ -193,6 +197,13 @@ const defaultEnv: LoginConfig = {
     issuer: 'test@notifycal.com',
     audience: 'test@notifycal.com',
     expiresIn: '5m'
+  },
+  encodeRefreshJwtConfig: {
+    privateKey: `some_other_fake_private_key`,
+    algorithm: 'ES256',
+    issuer: 'test@notifycal.com',
+    audience: 'test@notifycal.com',
+    expiresIn: '7d'
   },
   googleOAuthClient: {
     clientId: '658640078137-omuaokg6rcajv50879674moielbpvljl.apps.googleusercontent.com',
@@ -209,6 +220,7 @@ const defaultEnv: LoginConfig = {
 
 function setEnv(config: LoginConfig) {
   setEnvEncodeJwtConfig(config.encodeJwtConfig);
+  setEnvEncodeRefreshJwtConfig(config.encodeRefreshJwtConfig);
   setEnvGoogleOAuthClientConfig(config.googleOAuthClient);
   setEnvUserBaseStoreConfig(config.userBaseStore);
   setEnvAwsConfig(config.awsConfig);
@@ -218,7 +230,16 @@ function setEnvEncodeJwtConfig(config: EncodeJwtConfig) {
   process.env.JWT_PRIVATE_KEY = config.privateKey;
   process.env.JWT_ALGORITHM = config.algorithm;
   process.env.JWT_ISSUER = config.issuer;
+  process.env.JWT_AUDIENCE = config.audience;
   process.env.JWT_EXPIRATION = config.expiresIn;
+}
+
+function setEnvEncodeRefreshJwtConfig(config: EncodeRefreshJwtConfig) {
+  process.env.REFRESH_JWT_PRIVATE_KEY = config.privateKey;
+  process.env.REFRESH_JWT_ALGORITHM = config.algorithm;
+  process.env.REFRESH_JWT_ISSUER = config.issuer;
+  process.env.REFRESH_JWT_AUDIENCE = config.audience;
+  process.env.REFRESH_JWT_EXPIRATION = config.expiresIn;
 }
 
 function setEnvGoogleOAuthClientConfig(config: googleOAuth.GoogleOAuthConfig) {

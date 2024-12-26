@@ -1,4 +1,5 @@
 import { APIGatewayProxyEventV2WithRequestContext } from 'aws-lambda';
+import { AccessToken } from './Jwt';
 
 // ApiGateway V2 Proxy Events
 export type EventWithConfig<TConfig> = APIGatewayProxyEventV2WithRequestContext<
@@ -13,8 +14,5 @@ export interface ConfigRequestContext<TConfig> {
   config: TConfig;
 }
 export interface AuthedAndConfigRequestContext<TConfig> extends ConfigRequestContext<TConfig> {
-  authorizer: {
-    role: string;
-    email: string;
-  };
+  authorizer: AccessToken;
 }

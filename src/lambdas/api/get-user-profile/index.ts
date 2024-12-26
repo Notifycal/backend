@@ -6,6 +6,7 @@ import { AuthedAndConfigRequestContext } from '@model/ApiGatewayEvents';
 import { protectedEndpointMiddleware } from '@common/lambda-middleware';
 import { APIGatewayProxyEventV2Schema } from '@aws-lambda-powertools/parser/schemas';
 import { z } from 'zod';
+import { notFoundHandler, successHandler } from '@services/common/api-response-handlers';
 
 async function lambdaHandler(
   event: Event,
@@ -14,19 +15,8 @@ async function lambdaHandler(
 ): Promise<APIGatewayProxyStructuredResultV2> {
   const config = event.requestContext.config;
   const userProvider = new UserBaseStore(config.userBaseStore, config.awsConfig);
-  const email = event.requestContext.authorizer.email;
-  return userProvider.getUserByEmail(email).then(
-    (user) => {
-      return {
-        statusCode: 200,
-        body: JSON.stringify(user)
-      };
-    },
-    () => ({
-      statusCode: 404,
-      body: JSON.stringify({ message: 'Not Found' })
-    })
-  );
+  const email = event.requestContext.authorizer.payload.email;
+  return userProvider.getUserByEmail(email).then(successHandler, notFoundHandler);
 }
 
 const eventSchema = APIGatewayProxyEventV2Schema.extend({
