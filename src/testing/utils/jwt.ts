@@ -2,7 +2,9 @@ import { buildJwt } from '@services/jwt';
 import dotenv from 'dotenv';
 import path from 'path';
 import * as fs from 'fs';
-import { EncodeJwtConfig } from '@lambdas/api/post-login/config';
+import { EncodeAccessJwtConfig } from '@model/Config';
+import { accessTokenSchema, OurAccessTokenClaims } from '@model/Jwt';
+import { ZodSchema } from 'zod';
 
 // Lazy evaluation all over the place so express doesn't attempt to load what it mustn't
 const loadDevConfig = (() => {
@@ -18,35 +20,39 @@ const loadDevConfig = (() => {
   };
 })();
 
-export const getDefaultPayload = () => ({
+export const getDefaultAccessTokenPayload: () => OurAccessTokenClaims = () => ({
   email: 'test@notifycal.com',
-  role: 'user'
+  role: 'user',
+  permissions: {}
 });
 
-export const getDefaultEncodeJwtConfig = () => {
+export const getDefaultEncodeAccessJwtConfig = () => {
   const devConfig = loadDevConfig();
   return {
-    privateKey: devConfig.JWT_PRIVATE_KEY,
-    algorithm: devConfig.JWT_ALGORITHM,
-    issuer: devConfig.JWT_ISSUER,
-    audience: devConfig.JWT_AUDIENCE,
-    expiresIn: devConfig.JWT_EXPIRATION
+    privateKey: devConfig.ACCESS_JWT_PRIVATE_KEY,
+    algorithm: devConfig.ACCESS_JWT_ALGORITHM,
+    issuer: devConfig.ACCESS_JWT_ISSUER,
+    audience: devConfig.ACCESS_JWT_AUDIENCE,
+    expiresIn: devConfig.ACCESS_JWT_EXPIRATION
   };
 };
 
-export const getDefaultDecodeJwtConfig = () => {
+export const getDefaultDecodeAccessJwtConfig = () => {
   const devConfig = loadDevConfig();
   return {
-    publicKey: devConfig.JWT_PUBLIC_KEY,
-    issuer: devConfig.JWT_ISSUER,
-    audience: devConfig.JWT_AUDIENCE,
-    expiresIn: devConfig.JWT_EXPIRATION
+    publicKey: devConfig.ACCESS_JWT_PUBLIC_KEY,
+    issuer: devConfig.ACCESS_JWT_ISSUER,
+    audience: devConfig.ACCESS_JWT_AUDIENCE,
+    expiresIn: devConfig.ACCESS_JWT_EXPIRATION
   };
 };
 
 export function testJwt(
-  payload: object = getDefaultPayload(),
-  config: EncodeJwtConfig = getDefaultEncodeJwtConfig()
+  payload: object = getDefaultAccessTokenPayload(),
+  jwtSchema: ZodSchema = accessTokenSchema,
+  config: EncodeAccessJwtConfig = getDefaultEncodeAccessJwtConfig()
 ): Promise<string> {
-  return buildJwt(payload, 'SomeSubjectIdentifyingTheUser', config);
+  return buildJwt(payload, jwtSchema, 'SomeSubjectIdentifyingTheUser', config).then(
+    (jwts) => jwts.encoded
+  );
 }

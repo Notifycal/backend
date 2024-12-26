@@ -1,17 +1,22 @@
 import { APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2, Context } from 'aws-lambda';
 import { verifyGoogleIdentity } from '@services/google-oauth';
 import { LoginConfig, readLoginConfig } from './config';
-import { buildJwt } from '@services/jwt';
 import { unprotectedEndpointMiddleware } from '@common/lambda-middleware';
-import { logger } from '@common/powertools';
 import { z } from 'zod';
-import type { Jwt } from '@own-types/model';
 import middy from '@middy/core';
 import { signInOrUpUser } from '@services/login';
-import { User } from '@model/User';
 import { APIGatewayProxyEventV2Schema } from '@aws-lambda-powertools/parser/schemas/api-gatewayv2';
 import { ConfigRequestContext } from '@model/ApiGatewayEvents';
 import { JSONStringified } from '@aws-lambda-powertools/parser/helpers';
+import { buildJwts, EncodedAndDecodedJwts } from '@services/jwt';
+import {
+  internalErrorHandler,
+  unauthorisedHandler,
+  successHandler
+} from '@services/common/api-response-handlers';
+import { RefreshTokenBaseStore } from '@services/refresh-token-base-store';
+import { EncodeAccessJwtConfig, EncodeRefreshJwtConfig } from '@model/Config';
+import { UserId } from '@own-types/model';
 
 async function lambdaHandler(
   event: Event,
@@ -19,14 +24,22 @@ async function lambdaHandler(
   ctx: Context
 ): Promise<APIGatewayProxyStructuredResultV2> {
   const config = event.requestContext.config;
-  return verifyGoogleIdentity(event.body['google-code'], config.googleOAuthClient)
+  const store = new RefreshTokenBaseStore(config.refreshTokenBaseStoreConfig, config.awsConfig);
+  return verifyGoogleIdentity(event.body['google-code'], config.googleOAuthClientConfig)
     .then((email) =>
-      signInOrUpUser(email, config.userBaseStore, config.awsConfig)
-        .then((user) => buildJwt(jwtPayload(user), user.UserId, config.encodeJwtConfig))
-        .then(authenticationSuccessHandler)
+      signInOrUpUser(email, config.userBaseStoreConfig, config.awsConfig)
+        .then((user) =>
+          buildJwtsAndStoreRefreshJwt(
+            user.UserId,
+            config.encodeAccessJwtConfig,
+            config.encodeRefreshJwtConfig,
+            store
+          )
+        )
+        .then(_successHandler)
         .catch(internalErrorHandler)
     )
-    .catch(authenticationFailureHandler);
+    .catch(unauthorisedHandler);
 }
 
 const eventSchema = APIGatewayProxyEventV2Schema.extend({
@@ -46,39 +59,28 @@ export const handler: middy.MiddyfiedHandler<
   Context
 > = unprotectedEndpointMiddleware(() => readLoginConfig(), eventSchema).handler(lambdaHandler);
 
-function jwtPayload(user: User): object {
-  return {
-    email: user.UserId,
-    role: 'user',
-    permissions: {}
-  };
+export function buildJwtsAndStoreRefreshJwt(
+  userId: UserId,
+  encodeAccessJwtConfig: EncodeAccessJwtConfig,
+  encodeRefreshJwtConfig: EncodeRefreshJwtConfig,
+  store: RefreshTokenBaseStore
+) {
+  return buildJwts(userId, encodeAccessJwtConfig, encodeRefreshJwtConfig).then((jwts) =>
+    store
+      .putToken({
+        UserId: jwts.refreshToken.decoded.payload.sub,
+        RefreshToken: jwts.refreshToken.encoded,
+        RefreshTokenId: jwts.refreshToken.decoded.payload.jti,
+        ExpiresAt: jwts.refreshToken.decoded.payload.exp + 1 // +1 just in case...
+      })
+      .then(() => jwts)
+  );
 }
 
-function authenticationSuccessHandler(jwt: Jwt): APIGatewayProxyStructuredResultV2 {
-  return {
-    statusCode: 200,
-    body: JSON.stringify({
-      accessToken: jwt,
-      tokenType: 'Bearer',
-      refreshToken: 'WIP'
-    })
-  };
-}
-
-/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-function authenticationFailureHandler(reason: any): APIGatewayProxyStructuredResultV2 {
-  logger.warn(reason);
-  return {
-    statusCode: 401,
-    body: JSON.stringify({ message: 'Unauthorised' })
-  };
-}
-
-/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-function internalErrorHandler(error: any): APIGatewayProxyStructuredResultV2 {
-  logger.error(error);
-  return {
-    statusCode: 500,
-    body: JSON.stringify({ message: 'KO' })
-  };
+export function _successHandler(jwts: EncodedAndDecodedJwts): APIGatewayProxyStructuredResultV2 {
+  return successHandler({
+    accessToken: jwts.accessToken.encoded,
+    tokenType: 'Bearer',
+    refreshToken: jwts.refreshToken.encoded
+  });
 }

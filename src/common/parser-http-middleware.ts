@@ -30,7 +30,10 @@ function httpRequestEventParser(
       parserFn(request);
     } catch (error) {
       throw createHttpError(400, JSON.stringify({ message: 'Bad Request' }), {
-        type: `Request payload does not satisfy the schema. Error: ${error}. Schema: ${JSON.stringify(schema)}`
+        type: `Request payload does not satisfy the schema. Error: ${error}. Schema: ${JSON.stringify(schema)}`,
+        headers: {
+          'Content-Type': 'application/json'
+        }
       });
     }
   }

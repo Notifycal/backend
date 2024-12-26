@@ -1,27 +1,15 @@
-import { describe, jest } from '@jest/globals';
+import { describe } from '@jest/globals';
 import { type APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2 } from 'aws-lambda';
 import { c, testAuthedEvent, testEvent } from '@testing/apigateway';
 import { handler, TestingWhiteApiConfig } from '@testing/white-authed-api-lambda';
-import { getDefaultDecodeJwtConfig, testJwt } from './utils/jwt';
+import { getDefaultDecodeAccessJwtConfig, testJwt } from './utils/jwt';
 import { assert } from './utils/assertions';
+import { setEnvDecodeAccessJwtConfig } from './utils/config';
+import { response401, response400 } from '@services/common/api-response-handlers';
 
 describe('White authed API lambda', () => {
-  const OLD_ENV = process.env;
-
-  beforeEach(() => {
-    process.env = { ...OLD_ENV };
-  });
-
-  afterEach(() => {
-    process.env = OLD_ENV;
-    jest.clearAllMocks();
-  });
-
   it('return 200 if jwt passes verification and request payload is valid', async () => {
-    const payload = {
-      whatever: 'foobar'
-    };
-    const jwt = await testJwt(payload);
+    const jwt = await testJwt();
     const event = testEvent(
       {
         'one-field': '<SOME-FAKE-GOOGLE-CODE>'
@@ -50,13 +38,7 @@ describe('White authed API lambda', () => {
     ) as unknown as APIGatewayProxyEventV2;
 
     return testit(event).then((resp) => {
-      assert(resp, {
-        statusCode: 401,
-        body: JSON.stringify({ message: 'Unauthorised' }),
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
+      assert(resp, response401);
     });
   });
 
@@ -66,13 +48,7 @@ describe('White authed API lambda', () => {
     }) as unknown as Promise<APIGatewayProxyEventV2>;
 
     return eventPromise.then(testit).then((resp) => {
-      assert(resp, {
-        statusCode: 400,
-        body: JSON.stringify({ message: 'Bad Request' }),
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
+      assert(resp, response400);
     });
   });
 });
@@ -86,10 +62,10 @@ function testit(
 }
 
 const defaultEnv = {
-  decodeJwtConfig: getDefaultDecodeJwtConfig(),
+  decodeAccessJwtConfig: getDefaultDecodeAccessJwtConfig(),
   config1: 'blah'
 };
 
 function setEnv(config: TestingWhiteApiConfig) {
-  process.env.JWT_PUBLIC_KEY = config.decodeJwtConfig.publicKey;
+  setEnvDecodeAccessJwtConfig(config.decodeAccessJwtConfig);
 }

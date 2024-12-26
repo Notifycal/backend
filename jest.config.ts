@@ -14,7 +14,7 @@ const jestConfig: JestConfigWithTsJest = {
     '^@testing/(.*)$': '<rootDir>/src/testing/$1',
     '^@lambdas/(.*)$': '<rootDir>/src/lambdas/$1'
   },
-  setupFilesAfterEnv: ['jest-plugin-must-assert']
+  setupFilesAfterEnv: ['jest-plugin-must-assert', '<rootDir>/src/testing/setup-tests.ts']
 };
 
 export default jestConfig;

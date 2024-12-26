@@ -1,37 +1,34 @@
-import { dynamodbClient } from '@clients/dynamodb';
-import { PutCommand, GetCommand, DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
-import { AwsConfig } from '@model/Config';
+import { PutCommand, GetCommand } from '@aws-sdk/lib-dynamodb';
 import { User } from '@model/User';
 import { Email } from '@own-types/model';
+import { BaseStore, BaseStoreConfig } from './common/base-store';
+import { AwsConfig } from '@model/Config';
 
-export interface UserBaseStoreConfig {
-  tableName: string;
-}
+export type UserBaseStoreConfig = BaseStoreConfig;
 
-export class UserBaseStore {
-  private _dynamoDbClient: DynamoDBDocumentClient;
-  private _tableName: string;
-
+export class UserBaseStore extends BaseStore<UserBaseStoreConfig> {
   constructor(config: UserBaseStoreConfig, awsConfig: AwsConfig) {
-    this._dynamoDbClient = dynamodbClient(awsConfig);
-    this._tableName = config.tableName;
+    super(config, awsConfig);
   }
 
-  public getUserByEmail(email: Email): Promise<User> {
+  public getUserByEmail(email: Email): Promise<User | undefined> {
     const lookupCmd = new GetCommand({
       Key: {
         UserId: email
       },
       TableName: this._tableName
     });
-    return this._dynamoDbClient.send(lookupCmd).then((item) => {
-      const user = item.Item as User;
-      if (user.UserId) {
-        return user;
-      } else {
-        throw new Error(`User with id '${email}' could not be found`);
-      }
-    });
+    return this._dynamoDbClient.send(lookupCmd).then(
+      (item) => {
+        const user = item.Item;
+        if (user) {
+          return user as User;
+        } else {
+          return user;
+        }
+      },
+      (error) => Promise.reject(`User with id '${email}' could not be found. Error: ${error}`)
+    );
   }
 
   public putUser(user: User): Promise<null> {

@@ -1,13 +1,23 @@
 export interface AuthedEndpointConfig {
-  decodeJwtConfig: DecodeJwtConfig;
+  decodeAccessJwtConfig: DecodeAccessJwtConfig;
 }
 
-export interface DecodeJwtConfig {
+export interface DecodeAccessJwtConfig {
   publicKey: string;
   issuer: string;
   audience: string;
   expiresIn: string;
 }
+export type DecodeRefreshJwtConfig = DecodeAccessJwtConfig;
+
+export interface EncodeAccessJwtConfig {
+  privateKey: string;
+  algorithm: string;
+  issuer: string;
+  audience: string;
+  expiresIn: string;
+}
+export type EncodeRefreshJwtConfig = EncodeAccessJwtConfig;
 
 export interface AwsConfig {
   awsRegion?: string;

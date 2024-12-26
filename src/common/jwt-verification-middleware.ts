@@ -4,10 +4,10 @@ import httpErrorHandler from '@middy/http-error-handler';
 import createHttpError from 'http-errors';
 import { APIGatewayProxyStructuredResultV2, Context } from 'aws-lambda';
 import { decodeAndVerifyJwtSignature } from '@services/jwt';
-import { JwtPayload, Jwt as StructuredJwt } from 'jsonwebtoken';
 import { JwtClaimCheckerFn } from '@own-types/model';
 import { AuthedEndpointConfig } from '@model/Config';
 import { logger } from '@common/powertools';
+import { AccessToken, accessTokenSchema } from '@model/Jwt';
 
 export function jwtVerificationMiddleware<TConfig extends AuthedEndpointConfig>(
   claimChecker: JwtClaimCheckerFn
@@ -37,33 +37,40 @@ function jwtVerification<TConfig extends AuthedEndpointConfig>(
   if (authorization) {
     decodeAndVerifyJwtSignature(
       authorization.replace('Bearer ', ''),
-      request.event.requestContext.config.decodeJwtConfig
+      accessTokenSchema,
+      request.event.requestContext.config.decodeAccessJwtConfig
     ).then(
       (jwt) => {
         if (claimChecker(jwt)) {
-          request.event.requestContext.authorizer = {
-            email: (jwt.payload as JwtPayload)?.['email'],
-            role: (jwt.payload as JwtPayload)?.['role']
-          };
+          request.event.requestContext.authorizer = jwt;
         } else {
           throw createHttpError(401, JSON.stringify({ message: 'Unauthorised' }), {
-            type: `Missing permissions to hit the API. Provided info: header = '${JSON.stringify(jwt.header)}' payload = '${JSON.stringify(jwt.payload)}'`
+            type: `Missing permissions to hit the API. Provided info: header = '${JSON.stringify(jwt.header)}' payload = '${JSON.stringify(jwt.payload)}'`,
+            headers: {
+              'Content-Type': 'application/json'
+            }
           });
         }
       },
       (err) => {
         throw createHttpError(401, JSON.stringify({ message: 'Unauthorised' }), {
-          type: `Invalid Signature. Error: ${JSON.stringify(err)}`
+          type: `Invalid Signature. Error: ${JSON.stringify(err)}`,
+          headers: {
+            'Content-Type': 'application/json'
+          }
         });
       }
     );
   } else {
     throw createHttpError(401, JSON.stringify({ message: 'Unauthorised' }), {
-      type: 'Missing Authorization'
+      type: 'Missing Authorization',
+      headers: {
+        'Content-Type': 'application/json'
+      }
     });
   }
 }
 
-export function checkClaims(jwt: StructuredJwt): boolean {
-  return ((jwt.payload as JwtPayload)['role'] as string) === 'user';
+export function checkClaims(jwt: AccessToken): boolean {
+  return jwt.payload.role === 'user';
 }

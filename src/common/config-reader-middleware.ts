@@ -30,7 +30,10 @@ function configReader<TConfig>(
     throw createHttpError(500, JSON.stringify({ message: 'KO' }), {
       type: `Endpoint config could not be loaded. Error: ${error}`,
       // This flag is necessary so @middy/httpErrorHandler returns what you expect.
-      expose: true
+      expose: true,
+      headers: {
+        'Content-Type': 'application/json'
+      }
     });
   }
 }

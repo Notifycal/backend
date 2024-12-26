@@ -1,9 +1,14 @@
 import { expect } from '@jest/globals';
-import { buildJwt, decodeAndVerifyJwtSignature } from './jwt';
-import { EncodeJwtConfig } from '@lambdas/api/post-login/config';
-import { Jwt } from '@own-types/model';
+import { buildJwt, buildJwts, decodeAndVerifyJwtSignature, decodeJwt } from './jwt';
+import { Jwt, UserId } from '@own-types/model';
 import { sleep } from '@testing/utils/utils';
-import { DecodeJwtConfig } from '@model/Config';
+import {
+  DecodeAccessJwtConfig,
+  EncodeAccessJwtConfig,
+  EncodeRefreshJwtConfig
+} from '@model/Config';
+import { accessTokenSchema } from '@model/Jwt';
+import { ZodSchema } from 'zod';
 
 const validPrivateKey = `-----BEGIN EC PRIVATE KEY-----
 MHcCAQEEIEF6NI6CascYRtOFXEQrbsbsi7ZzTsKaktkDRZ/PSZ8hoAoGCCqGSM49
@@ -32,13 +37,15 @@ const validDecodeConfig = {
   audience: validAudience
 };
 const validSubject = 'testing@notifycal';
-const validPayload = {
-  email: 'test@notifycal.com'
+const validAccessTokenPayload = {
+  email: 'test@notifycal.com',
+  role: 'user',
+  permissions: {}
 };
 
 describe('Jwt builder', () => {
   it('should build a jwt', () => {
-    return expect(testit(validPayload, validEncodeConfig)).resolves.toBeTruthy();
+    return expect(testit(validAccessTokenPayload, validEncodeConfig)).resolves.toBeTruthy();
   });
 
   it('should fail to build a jwt', () => {
@@ -46,21 +53,61 @@ describe('Jwt builder', () => {
       ...validEncodeConfig,
       privateKey: `invalid_es256_private_key`
     };
-    return expect(testit(validPayload, config)).rejects.toEqual(
-      'JWT could not be generated. Error: Error: secretOrPrivateKey must be an asymmetric key when using ES256'
+    return expect(testit(validAccessTokenPayload, config)).rejects.toEqual(
+      'JWT could not be generated. Error: secretOrPrivateKey must be an asymmetric key when using ES256'
     );
   });
 
-  function testit(payload: object, config: EncodeJwtConfig) {
-    return buildJwt(payload, validSubject, config);
+  function testit(payload: object, config: EncodeAccessJwtConfig) {
+    return buildJwt(payload, accessTokenSchema, validSubject, config);
   }
 });
 
-describe('Jwt decoder/verifier', () => {
-  it('should verify a jwt - it ignores subject claim', () => {
-    const result = buildJwt(validPayload, validSubject, validEncodeConfig).then((testJwt) =>
-      testit(testJwt, validDecodeConfig)
+describe('Jwts builder', () => {
+  const validUserId = 'test@notifycal.com';
+  it('should build a jwts', () => {
+    return expect(testit(validUserId, validEncodeConfig, validEncodeConfig)).resolves.toBeTruthy();
+  });
+
+  it('should fail to build access jwt', () => {
+    const invalidEncodeJwtConfig = {
+      ...validEncodeConfig,
+      privateKey: `invalid_es256_private_key`
+    };
+    return expect(testit(validUserId, invalidEncodeJwtConfig, validEncodeConfig)).rejects.toEqual(
+      'Access JWT could not be generated. Error: secretOrPrivateKey must be an asymmetric key when using ES256'
     );
+  });
+
+  it('should fail to build refresh jwt', () => {
+    const invalidEncodeRefreshJwtConfig = {
+      ...validEncodeConfig,
+      privateKey: `invalid_es256_private_key`
+    };
+    return expect(
+      testit(validUserId, validEncodeConfig, invalidEncodeRefreshJwtConfig)
+    ).rejects.toEqual(
+      'Refresh JWT could not be generated. Error: secretOrPrivateKey must be an asymmetric key when using ES256'
+    );
+  });
+
+  function testit(
+    userId: UserId,
+    encodeJwtConfig: EncodeAccessJwtConfig,
+    encodeRefreshJwtConfig: EncodeRefreshJwtConfig
+  ) {
+    return buildJwts(userId, encodeJwtConfig, encodeRefreshJwtConfig);
+  }
+});
+
+describe('Jwt decoder/verifier with signature', () => {
+  it('should verify a jwt - it ignores subject claim', () => {
+    const result = buildJwt(
+      validAccessTokenPayload,
+      accessTokenSchema,
+      validSubject,
+      validEncodeConfig
+    ).then((testJwt) => testit(testJwt.encoded, accessTokenSchema, validDecodeConfig));
     return expect(result).resolves.toBeTruthy();
   });
 
@@ -70,9 +117,12 @@ describe('Jwt decoder/verifier', () => {
       publicKey: `INVALID_PUBLIC_KEY`
     };
 
-    const result = buildJwt(validPayload, validSubject, validEncodeConfig).then((testJwt) =>
-      testit(testJwt, decodeConfig)
-    );
+    const result = buildJwt(
+      validAccessTokenPayload,
+      accessTokenSchema,
+      validSubject,
+      validEncodeConfig
+    ).then((testJwt) => testit(testJwt.encoded, accessTokenSchema, decodeConfig));
     return expect(result).rejects.toEqual(
       'JWT verification failed. Error: JsonWebTokenError: invalid algorithm'
     );
@@ -81,10 +131,27 @@ describe('Jwt decoder/verifier', () => {
   it('should fail to verify a jwt when jwt is invalid', () => {
     const testJwt = 'invalid_jwt';
 
-    const result = testit(testJwt, validDecodeConfig);
+    const result = testit(testJwt, accessTokenSchema, validDecodeConfig);
     return expect(result).rejects.toEqual(
       'JWT verification failed. Error: JsonWebTokenError: jwt malformed'
     );
+  });
+
+  it('should fail to decode a jwt if payload does not satisfy the schema', () => {
+    const invalidPayload = { ...validAccessTokenPayload, email: 123456, role: 'admin' };
+    const result = buildJwt(
+      invalidPayload,
+      accessTokenSchema,
+      validSubject,
+      validEncodeConfig
+    ).then((testJwt) => testit(testJwt.encoded, accessTokenSchema, validDecodeConfig));
+    // eslint-disable-next-line jest/valid-expect
+    const rejection = expect(result).rejects;
+    return Promise.all([
+      rejection.toContain('JWT decoding failed. Error:'),
+      rejection.toContain('Invalid literal value, expected \\\"user\\\"\"'),
+      rejection.toContain('Expected string, received number')
+    ]);
   });
 
   [
@@ -97,9 +164,12 @@ describe('Jwt decoder/verifier', () => {
         [jwtClaimKeyUnderTest]: 'rubbish'
       };
 
-      const result = buildJwt(validPayload, validSubject, encodeConfig).then((testJwt) =>
-        testit(testJwt, validDecodeConfig)
-      );
+      const result = buildJwt(
+        validAccessTokenPayload,
+        accessTokenSchema,
+        validSubject,
+        encodeConfig
+      ).then((testJwt) => testit(testJwt.encoded, accessTokenSchema, validDecodeConfig));
       return expect(result).rejects.toEqual(
         `JWT verification failed. Error: JsonWebTokenError: jwt ${jwtClaimKeyUnderTest} invalid. expected: ${expectedClaimValue}`
       );
@@ -115,16 +185,63 @@ describe('Jwt decoder/verifier', () => {
         maxAge: '1s'
       };
 
-      const result = buildJwt(validPayload, validSubject, encodeConfig)
+      const result = buildJwt(
+        validAccessTokenPayload,
+        accessTokenSchema,
+        validSubject,
+        encodeConfig
+      )
         .then((testJwt) => sleep(2000).then(() => testJwt))
-        .then((testJwt) => testit(testJwt, decodeConfig));
+        .then((testJwt) => testit(testJwt.encoded, accessTokenSchema, decodeConfig));
       return expect(result).rejects.toEqual(
         `JWT verification failed. Error: TokenExpiredError: jwt expired`
       );
     });
   });
 
-  function testit(jwt: Jwt, config: DecodeJwtConfig) {
-    return decodeAndVerifyJwtSignature(jwt, config);
+  function testit(jwt: Jwt, schema: ZodSchema, config: DecodeAccessJwtConfig) {
+    return decodeAndVerifyJwtSignature(jwt, schema, config);
+  }
+});
+
+describe('Jwt decoder without signature check', () => {
+  it('should decode a jwt', () => {
+    const result = buildJwt(
+      validAccessTokenPayload,
+      accessTokenSchema,
+      validSubject,
+      validEncodeConfig
+    ).then((testJwt) => testit(testJwt.encoded, accessTokenSchema));
+    return expect(result).resolves.toBeTruthy();
+  });
+
+  it('should fail to decode an invalid jwt', () => {
+    const testJwt = 'invalid_jwt';
+
+    const result = testit(testJwt, accessTokenSchema);
+    return expect(result).rejects.toEqual(
+      `JWT decoding failed. Most likely, the JWT was not a proper JSON`
+    );
+  });
+
+  it('should fail to decode a jwt if payload does not satisfy the schema', () => {
+    const invalidPayload = { ...validAccessTokenPayload, email: 123456, role: 'admin' };
+    const result = buildJwt(
+      invalidPayload,
+      accessTokenSchema,
+      validSubject,
+      validEncodeConfig
+    ).then((testJwt) => testit(testJwt.encoded, accessTokenSchema));
+    // eslint-disable-next-line jest/valid-expect
+    const rejection = expect(result).rejects;
+    return Promise.all([
+      rejection.toContain('JWT decoding failed. Error:'),
+      rejection.toContain('Invalid literal value, expected \\\"user\\\"\"'),
+      rejection.toContain('Expected string, received number')
+    ]);
+  });
+
+  function testit(jwt: Jwt, schema: ZodSchema) {
+    return decodeJwt(jwt, schema);
   }
 });
