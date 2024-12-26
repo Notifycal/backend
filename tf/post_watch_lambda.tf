@@ -19,7 +19,7 @@ module "post_watch_lambda" {
   maximum_retry_attempts = 0
 
   tags = merge({
-    Api = "POST watch_me"
+    Api = "POST /watch_me"
   }, local.common_tags)
 
   allowed_triggers = {

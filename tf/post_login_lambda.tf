@@ -19,7 +19,7 @@ module "post_login_lambda" {
   maximum_retry_attempts = 0
 
   tags = merge({
-    Api = "POST Login"
+    Api = "POST /login"
   }, local.common_tags)
 
   allowed_triggers = {

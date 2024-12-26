@@ -19,7 +19,7 @@ module "get_user_profile_lambda" {
   maximum_retry_attempts = 0
 
   tags = merge({
-    Api = "GET user profile"
+    Api = "GET /user-profile"
   }, local.common_tags)
 
   allowed_triggers = {
