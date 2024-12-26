@@ -1,11 +1,11 @@
-module "login_lambda" {
+module "post_login_lambda" {
   source  = "terraform-aws-modules/lambda/aws"
   version = "~> 7.17"
 
-  function_name          = "login-${var.environment}"
+  function_name          = "post-login-${var.environment}"
   publish                = true
   create_package         = false
-  local_existing_package = "${path.root}/../dist/lambdas/api/login.zip"
+  local_existing_package = "${path.root}/../dist/lambdas/api/post-login.zip"
 
   runtime     = "nodejs22.x"
   timeout     = 30
@@ -18,7 +18,9 @@ module "login_lambda" {
 
   maximum_retry_attempts = 0
 
-  tags = merge({}, local.common_tags)
+  tags = merge({
+    Api = "POST Login"
+  }, local.common_tags)
 
   allowed_triggers = {
     AllowAPIGatewayInvoke = {

@@ -1,11 +1,11 @@
-module "post_watch_lambda" {
+module "get_user_profile_lambda" {
   source  = "terraform-aws-modules/lambda/aws"
   version = "~> 7.17"
 
-  function_name          = "post-watch-events-${var.environment}"
+  function_name          = "get-user-profile-${var.environment}"
   publish                = true
   create_package         = false
-  local_existing_package = "${path.root}/../dist/lambdas/api/post-watch-events.zip"
+  local_existing_package = "${path.root}/../dist/lambdas/api/get-user-profile.zip"
 
   runtime     = "nodejs22.x"
   timeout     = 30
@@ -18,7 +18,9 @@ module "post_watch_lambda" {
 
   maximum_retry_attempts = 0
 
-  tags = merge({}, local.common_tags)
+  tags = merge({
+    Api = "GET user profile"
+  }, local.common_tags)
 
   allowed_triggers = {
     AllowAPIGatewayInvoke = {
@@ -32,5 +34,7 @@ module "post_watch_lambda" {
     }
   }
 
-  environment_variables = merge({}, local.common_lambda_env_vars)
+  environment_variables = merge({
+    USERS_TABLE_NAME = aws_dynamodb_table.users.name
+  }, local.protected_endpoint_env_vars)
 }
