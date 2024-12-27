@@ -29,7 +29,7 @@ function httpRequestEventParser(
     try {
       parserFn(request);
     } catch (error) {
-      throw createHttpError(400, 'Bad Request', {
+      throw createHttpError(400, JSON.stringify({ message: 'Bad Request' }), {
         type: `Request payload does not satisfy the schema. Error: ${error}. Schema: ${JSON.stringify(schema)}`
       });
     }

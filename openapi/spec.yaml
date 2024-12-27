@@ -1,17 +1,108 @@
 ---
-openapi: '3.0.1'
+openapi: '3.1.1'
 info:
-  title: 'tasks-api'
-  version: ${version}
+  title: Notifycal API
+  description: Notifycal API
+  contact:
+    name: Notifycal CTO
+    url: https://github.com/notifycal
+    email: notifycal@gmail.com
+  version: '0'
+servers:
+  - url: https://api{environment}.notifycal.com/api/{api_version}
+    variables:
+      environment:
+        default: ''
+        enum:
+          - '' # Production
+          - .qa # QA server
+          - .dev # Development
+      api_version:
+        default: v1
+        enum:
+          - v1
 paths:
+  /login:
+    post:
+      summary: Login endpoint
+      operationId: login
+      tags: [user]
+      description: Let a user login against environment APIs
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Request payload containing google code provided by Google to the user on successful oauth logon
+              properties:
+                google-code:
+                  description: code to verify against Google to check that user is who they claim they are
+                  type: string
+      security: [] # This overrides global definition since this endpoint is unprotected
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Response payload containing authorization
+                properties:
+                  accessToken:
+                    description: jwt to use as an authorization against all APIs
+                    type: string
+                  tokenType:
+                    type: string
+                    enum:
+                      - Bearer
+                  refreshToken:
+                    type: string
+                    enum:
+                      - WIP
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorised'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      x-amazon-apigateway-integration:
+        uri: 'arn:aws:apigateway:${aws_region}:lambda:path/2015-03-31/functions/${lambda_functions.login_arn}/invocations'
+        responses:
+          default:
+            statusCode: '200'
+        passthroughBehavior: 'when_no_match'
+        httpMethod: 'POST'
+        type: 'aws_proxy'
+  /user-profile:
+    get:
+      summary: User profile
+      operationId: userProfile
+      description: Returns the user profile of the caller
+      tags: [user]
+      responses:
+        '200':
+          description: 'OK'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorised'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
   /watch_me:
     post:
       summary: Receive GCal watch endpoint data
+      description: Some description
+      operationId: op_X
+      tags: [user]
       responses:
-        200:
+        '200':
           description: 'OK'
           content: {}
-        500:
+        '500':
           description: 'Internal Server Error'
           content: {}
       x-amazon-apigateway-integration:
@@ -22,34 +113,80 @@ paths:
         passthroughBehavior: 'when_no_match'
         httpMethod: 'POST'
         type: 'aws_proxy'
-  /version:
-    # Fake endpoint with no Lambda, just to return the version
-    get:
-      responses:
-        200:
-          description: 'OK'
-          content:
-            application/json:
-              schema:
-                type: string
-      x-amazon-apigateway-integration:
-        responses:
-          default:
-            statusCode: '200'
-            responseTemplates:
-              application/json: '{"version": "${version}"}'
-        requestTemplates:
-          application/json: '{ "statusCode": 200 }'
-        passthroughBehavior: 'when_no_match'
-        type: 'mock'
+
+security:
+  - bearerAuth: []
 
 components:
+  securitySchemes:
+    bearerAuth: # arbitrary name for the security scheme
+      type: http
+      scheme: bearer
+      bearerFormat: JWT # optional, arbitrary value for documentation purposes
   schemas:
-    Task:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        Task:
-          type: string
+    User:
+      schema:
+        type: object
+        properties:
+          UserId:
+            type: string
+            format: email
+        required:
+          - UserId
+  responses:
+    BadRequest:
+      description: Bad Request response payload
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                enum:
+                  - Bad Request
+            required:
+              - message
+    Unauthorised:
+      description: Unauthorised response payload
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                enum:
+                  - Unauthorised
+            required:
+              - message
+    NotFound:
+      description: NotFound response payload
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                enum:
+                  - Not Found
+            required:
+              - message
+    InternalServerError:
+      description: Internal Server Error response payload
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                enum:
+                  - KO
+            required:
+              - message
+
+tags:
+  - name: user
+    description: user operations
