@@ -126,9 +126,34 @@ jobs:
         id: get_tofu_version
         working-directory: tf
 
-      - uses: opentofu/setup-opentofu@v1
+      - name: Cached tofu binary?
+        id: tofu-binary-cache
+        uses: actions/cache@v4
         with:
-          tofu_version: ${{ steps.get_tofu_version.outputs.tofu_version }}
+          path: |
+            /usr/local/bin/tofu
+          key: ${{ runner.os }}-tofu-${{ env.TOFU_VERSION }}
+        env:
+          TOFU_VERSION: ${{ steps.get_tofu_version.outputs.tofu_version }}
+
+      - name: Install OpenTofu
+        # Only if there is no cache
+        if: steps.tofu-binary-cache.outputs.cache-hit != 'true'
+        run: |
+          DOWNLOAD_URL="https://github.com/opentofu/opentofu/releases/download/v${TOFU_VERSION}/tofu_${TOFU_VERSION}_linux_amd64.tar.gz"
+          TEMP_DIR=$(mktemp -d)
+
+          curl -sL "${DOWNLOAD_URL}" -o "${TEMP_DIR}/tofu.tar.gz"
+          tar -zxf "${TEMP_DIR}/tofu.tar.gz" -C "${TEMP_DIR}"
+
+          chmod +x "${TEMP_DIR}/tofu"
+          sudo mv "${TEMP_DIR}/tofu" /usr/local/bin
+
+          rm -rf "${TEMP_DIR}"
+
+          tofu --version
+        env:
+          TOFU_VERSION: ${{ steps.get_tofu_version.outputs.tofu_version }}
 
       - run: tofu fmt
         if: github.event_name == 'pull_request'
