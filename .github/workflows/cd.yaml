@@ -149,7 +149,7 @@ jobs:
           chmod +x "${TEMP_DIR}/tofu"
           sudo mv "${TEMP_DIR}/tofu" /usr/local/bin
 
-          rm -rf "${TEMP_DIR}/tofu"
+          rm -rf "${TEMP_DIR}"
 
           tofu --version
         env:
