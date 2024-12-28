@@ -9,14 +9,10 @@ import { APIGatewayProxyEventV2Schema } from '@aws-lambda-powertools/parser/sche
 import { ConfigRequestContext } from '@model/ApiGatewayEvents';
 import { JSONStringified } from '@aws-lambda-powertools/parser/helpers';
 import { buildJwts, EncodedAndDecodedJwts } from '@services/jwt';
-import {
-  internalErrorHandler,
-  unauthorisedHandler,
-  successHandler
-} from '@services/common/api-response-handlers';
 import { RefreshTokenBaseStore } from '@services/refresh-token-base-store';
 import { EncodeAccessJwtConfig, EncodeRefreshJwtConfig } from '@model/Config';
 import { UserId } from '@own-types/model';
+import { errorHandler, successHandler } from '@services/common/api-response-handlers';
 
 async function lambdaHandler(
   event: Event,
@@ -37,9 +33,9 @@ async function lambdaHandler(
           )
         )
         .then(_successHandler)
-        .catch(internalErrorHandler)
+        .catch(errorHandler(500))
     )
-    .catch(unauthorisedHandler);
+    .catch(errorHandler(401));
 }
 
 const eventSchema = APIGatewayProxyEventV2Schema.extend({
@@ -78,7 +74,7 @@ export function buildJwtsAndStoreRefreshJwt(
 }
 
 export function _successHandler(jwts: EncodedAndDecodedJwts): APIGatewayProxyStructuredResultV2 {
-  return successHandler({
+  return successHandler()({
     accessToken: jwts.accessToken.encoded,
     tokenType: 'Bearer',
     refreshToken: jwts.refreshToken.encoded

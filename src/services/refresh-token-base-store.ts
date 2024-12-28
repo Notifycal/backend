@@ -25,12 +25,12 @@ export class RefreshTokenBaseStore extends BaseStore<RefreshTokenBaseStoreConfig
         if (user) {
           return user as RefreshTokenStoreRecord;
         } else {
-          return user;
+          return undefined;
         }
       },
       (error) =>
         Promise.reject(
-          `There are no tokens stored for user '${userId}' with token id '${jwtId}'. Error: ${error}`
+          `Tokens stored for user '${userId}' with token id '${jwtId}' could not be retrieved. Error: ${error}`
         )
     );
   }

@@ -5,7 +5,7 @@ import { handler, TestingWhiteApiConfig } from '@testing/white-authed-api-lambda
 import { getDefaultDecodeAccessJwtConfig, testJwt } from './utils/jwt';
 import { assert } from './utils/assertions';
 import { setEnvDecodeAccessJwtConfig } from './utils/config';
-import { response401, response400 } from '@services/common/api-response-handlers';
+import { responseError } from '@services/common/api-response-handlers';
 
 describe('White authed API lambda', () => {
   it('return 200 if jwt passes verification and request payload is valid', async () => {
@@ -38,7 +38,7 @@ describe('White authed API lambda', () => {
     ) as unknown as APIGatewayProxyEventV2;
 
     return testit(event).then((resp) => {
-      assert(resp, response401);
+      assert(resp, responseError(401));
     });
   });
 
@@ -48,7 +48,7 @@ describe('White authed API lambda', () => {
     }) as unknown as Promise<APIGatewayProxyEventV2>;
 
     return eventPromise.then(testit).then((resp) => {
-      assert(resp, response400);
+      assert(resp, responseError(400));
     });
   });
 });

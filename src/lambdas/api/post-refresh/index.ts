@@ -9,12 +9,8 @@ import { readRefreshConfig, RefreshConfig } from './config';
 import { decodeAndVerifyJwtSignature } from '@services/jwt';
 import { RefreshTokenBaseStore } from '@services/refresh-token-base-store';
 import { refreshTokenSchema } from '@model/Jwt';
-import {
-  forbiddenHandler,
-  internalErrorHandler,
-  unauthorisedHandler
-} from '@services/common/api-response-handlers';
 import { _successHandler, buildJwtsAndStoreRefreshJwt } from '../post-login';
+import { errorHandler } from '@services/common/api-response-handlers';
 
 async function lambdaHandler(
   event: Event,
@@ -40,16 +36,16 @@ async function lambdaHandler(
               store
             )
               .then(_successHandler)
-              .catch(internalErrorHandler);
+              .catch(errorHandler(500));
           } else {
-            return forbiddenHandler(
+            return errorHandler(403)(
               'The stored refresh token does not match with refresh token provided'
             );
           }
         })
-        .catch(internalErrorHandler);
+        .catch(errorHandler(500));
     })
-    .catch(unauthorisedHandler);
+    .catch(errorHandler(401));
 }
 
 const eventSchema = APIGatewayProxyEventV2Schema.extend({

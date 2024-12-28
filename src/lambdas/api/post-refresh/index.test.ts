@@ -15,13 +15,7 @@ import { RefreshConfig } from './config';
 import { RefreshTokenBaseStore } from '@services/refresh-token-base-store';
 import { RefreshTokenStoreRecord } from '@model/RefreshTokenStoreRecord';
 import { RefreshToken } from '@model/Jwt';
-import {
-  response200,
-  response400,
-  response401,
-  response403,
-  response500
-} from '@services/common/api-response-handlers';
+import { responseError, responseSuccess } from '@services/common/api-response-handlers';
 
 describe('Refresh', () => {
   it('should renew both tokens', () => {
@@ -43,7 +37,7 @@ describe('Refresh', () => {
     ).then((resp) => {
       assert(
         resp,
-        response200({
+        responseSuccess({
           accessToken: validEncodedAndDecodedJwts.accessToken.encoded,
           tokenType: 'Bearer',
           refreshToken: validEncodedAndDecodedJwts.refreshToken.encoded
@@ -68,7 +62,7 @@ describe('Refresh', () => {
       decodeAndVerifyJwtSignatureFn,
       buildJwtsFn
     ).then((resp) => {
-      assert(resp, response400);
+      assert(resp, responseError(400));
     });
   });
   it('fail if refresh token provided cannot be verified with 401', () => {
@@ -88,7 +82,7 @@ describe('Refresh', () => {
       decodeAndVerifyJwtSignatureFn,
       buildJwtsFn
     ).then((resp) => {
-      assert(resp, response401);
+      assert(resp, responseError(401));
     });
   });
   it('fail if refresh token is not longer present in storage with 403', () => {
@@ -108,7 +102,7 @@ describe('Refresh', () => {
       decodeAndVerifyJwtSignatureFn,
       buildJwtsFn
     ).then((resp) => {
-      assert(resp, response403);
+      assert(resp, responseError(403));
     });
   });
   it('fail if refresh token cannot be obtained from storage with 500', () => {
@@ -128,7 +122,7 @@ describe('Refresh', () => {
       decodeAndVerifyJwtSignatureFn,
       buildJwtsFn
     ).then((resp) => {
-      assert(resp, response500);
+      assert(resp, responseError(500));
     });
   });
   it('fail if refresh token provided does not match with refresh token stored with 403', () => {
@@ -149,7 +143,7 @@ describe('Refresh', () => {
       decodeAndVerifyJwtSignatureFn,
       buildJwtsFn
     ).then((resp) => {
-      assert(resp, response403);
+      assert(resp, responseError(403));
     });
   });
   it('fail if new tokens cannot be generated with 500', () => {
@@ -169,7 +163,7 @@ describe('Refresh', () => {
       decodeAndVerifyJwtSignatureFn,
       buildJwtsFn
     ).then((resp) => {
-      assert(resp, response500);
+      assert(resp, responseError(500));
     });
   });
   it('fail if new refresh token cannot be stored with 500', () => {
@@ -189,7 +183,7 @@ describe('Refresh', () => {
       decodeAndVerifyJwtSignatureFn,
       buildJwtsFn
     ).then((resp) => {
-      assert(resp, response500);
+      assert(resp, responseError(500));
     });
   });
 

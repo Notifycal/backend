@@ -24,10 +24,10 @@ export class UserBaseStore extends BaseStore<UserBaseStoreConfig> {
         if (user) {
           return user as User;
         } else {
-          return user;
+          return undefined;
         }
       },
-      (error) => Promise.reject(`User with id '${email}' could not be found. Error: ${error}`)
+      (error) => Promise.reject(`User with id '${email}' could not be retrieved. Error: ${error}`)
     );
   }
 

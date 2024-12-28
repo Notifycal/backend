@@ -12,41 +12,42 @@ export function readEnv() {
   return from(process.env, {});
 }
 
+const readJwtConfig = (
+  env: Environment,
+  prefix: 'ACCESS' | 'REFRESH',
+  expiresInDefault: string
+): Omit<EncodeAccessJwtConfig | EncodeRefreshJwtConfig, 'privateKey'> => ({
+  algorithm: env.get(`${prefix}_JWT_ALGORITHM`).required().default('RS256').asString(),
+  issuer: env.get(`${prefix}_JWT_ISSUER`).required().default('notifycal.com').asString(),
+  audience: env.get(`${prefix}_JWT_AUDIENCE`).required().default('notifycal.com').asString(),
+  expiresIn: env.get(`${prefix}_JWT_EXPIRATION`).required().default(expiresInDefault).asString()
+});
+
 export function readEncodeAccessJwtConfig(env: Environment): EncodeAccessJwtConfig {
   return {
-    privateKey: env.get('ACCESS_JWT_PRIVATE_KEY').required().asString(),
-    algorithm: env.get('ACCESS_JWT_ALGORITHM').required().default('RS256').asString(),
-    issuer: env.get('ACCESS_JWT_ISSUER').required().default('notifycal.com').asString(),
-    audience: env.get('ACCESS_JWT_AUDIENCE').required().default('notifycal.com').asString(),
-    expiresIn: env.get('ACCESS_JWT_EXPIRATION').required().default('5m').asString()
+    privateKey: env.get(`ACCESS_JWT_PRIVATE_KEY`).required().asString(),
+    ...readJwtConfig(env, 'ACCESS', '5m')
   };
 }
 
 export function readEncodeRefreshJwtConfig(env: Environment): EncodeRefreshJwtConfig {
   return {
-    privateKey: env.get('REFRESH_JWT_PRIVATE_KEY').required().asString(),
-    algorithm: env.get('REFRESH_JWT_ALGORITHM').required().default('RS256').asString(),
-    issuer: env.get('REFRESH_JWT_ISSUER').required().default('notifycal.com').asString(),
-    audience: env.get('REFRESH_JWT_AUDIENCE').required().default('notifycal.com').asString(),
-    expiresIn: env.get('REFRESH_JWT_EXPIRATION').required().default('7d').asString()
+    privateKey: env.get(`REFRESH_JWT_PRIVATE_KEY`).required().asString(),
+    ...readJwtConfig(env, 'REFRESH', '7d')
   };
 }
 
 export function readDecodeAccessJwtConfig(env: Environment): DecodeAccessJwtConfig {
   return {
     publicKey: env.get('ACCESS_JWT_PUBLIC_KEY').required().asString(),
-    issuer: env.get('ACCESS_JWT_ISSUER').required().default('notifycal.com').asString(),
-    audience: env.get('ACCESS_JWT_AUDIENCE').required().default('notifycal.com').asString(),
-    expiresIn: env.get('ACCESS_JWT_EXPIRATION').required().default('5m').asString()
+    ...readJwtConfig(env, 'ACCESS', '5m')
   };
 }
 
 export function readDecodeRefreshJwtConfig(env: Environment): DecodeRefreshJwtConfig {
   return {
     publicKey: env.get('REFRESH_JWT_PUBLIC_KEY').required().asString(),
-    issuer: env.get('REFRESH_JWT_ISSUER').required().default('notifycal.com').asString(),
-    audience: env.get('REFRESH_JWT_AUDIENCE').required().default('notifycal.com').asString(),
-    expiresIn: env.get('REFRESH_JWT_EXPIRATION').required().default('7d').asString()
+    ...readJwtConfig(env, 'REFRESH', '7d')
   };
 }
 

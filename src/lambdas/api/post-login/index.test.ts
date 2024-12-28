@@ -17,13 +17,7 @@ import {
   setEnvUserBaseStoreConfig
 } from '@testing/utils/config';
 import { RefreshTokenBaseStore } from '@services/refresh-token-base-store';
-import {
-  response200,
-  response401,
-  response400,
-  response500
-} from '@services/common/api-response-handlers';
-
+import { responseError, responseSuccess } from '@services/common/api-response-handlers';
 describe('Login', () => {
   const validJwts: jwt.EncodedAndDecodedJwts = {
     accessToken: {
@@ -86,7 +80,7 @@ describe('Login', () => {
     ).then((resp) => {
       assert(
         resp,
-        response200({
+        responseSuccess({
           accessToken: validJwts.accessToken.encoded,
           tokenType: 'Bearer',
           refreshToken: validJwts.refreshToken.encoded
@@ -158,7 +152,7 @@ describe('Login', () => {
         (resp) =>
           assert(
             resp,
-            response200({
+            responseSuccess({
               accessToken: validJwts2.accessToken.encoded,
               tokenType: 'Bearer',
               refreshToken: validJwts2.refreshToken.encoded
@@ -184,7 +178,7 @@ describe('Login', () => {
       buildJwtsFn,
       signInOrUpUserFn,
       putRefreshTokenFn
-    ).then((resp) => assert(resp, response401));
+    ).then((resp) => assert(resp, responseError(401)));
   });
 
   it('should fail input validation with 400', () => {
@@ -203,7 +197,7 @@ describe('Login', () => {
       buildJwtsFn,
       signInOrUpUserFn,
       putRefreshTokenFn
-    ).then((resp) => assert(resp, response400));
+    ).then((resp) => assert(resp, responseError(400)));
   });
 
   it('should fail to generate JWT with 500', () => {
@@ -222,7 +216,7 @@ describe('Login', () => {
       buildJwtsFn,
       signInOrUpUserFn,
       putRefreshTokenFn
-    ).then((resp) => assert(resp, response500));
+    ).then((resp) => assert(resp, responseError(500)));
   });
 
   it('should fail if environment is not set correctly with 500', () => {
@@ -244,7 +238,7 @@ describe('Login', () => {
       signInOrUpUserFn,
       putRefreshTokenFn,
       env
-    ).then((resp) => assert(resp, response500));
+    ).then((resp) => assert(resp, responseError(500)));
   });
 
   it('should fail if user cannot sign in or up with 500', () => {
@@ -264,7 +258,7 @@ describe('Login', () => {
       signInOrUpUserFn,
       putRefreshTokenFn
     ).then((resp) => {
-      assert(resp, response500);
+      assert(resp, responseError(500));
     });
   });
 
@@ -285,7 +279,7 @@ describe('Login', () => {
       signInOrUpUserFn,
       putRefreshTokenFn
     ).then((resp) => {
-      assert(resp, response500);
+      assert(resp, responseError(500));
     });
   });
 });

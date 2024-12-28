@@ -13,7 +13,7 @@ import { getDefaultDecodeAccessJwtConfig } from '@testing/utils/jwt';
 import { UserBaseStore } from '@services/user-base-store';
 import { User } from '@model/User';
 import { OurAccessTokenClaims } from '@model/Jwt';
-import { response200, response404, response500 } from '@services/common/api-response-handlers';
+import { responseError, responseSuccess } from '@services/common/api-response-handlers';
 
 describe('GET user profile', () => {
   it('return a user', async () => {
@@ -28,7 +28,7 @@ describe('GET user profile', () => {
     return testit(event, getUserByEmailFn).then((resp) => {
       assert(
         resp,
-        response200({
+        responseSuccess({
           UserId: payload.email
         })
       );
@@ -45,7 +45,7 @@ describe('GET user profile', () => {
     const getUserByEmailFn = () => Promise.resolve(undefined);
 
     return testit(event, getUserByEmailFn).then((resp) => {
-      assert(resp, response404);
+      assert(resp, responseError(404));
     });
   });
 
@@ -59,7 +59,7 @@ describe('GET user profile', () => {
     const getUserByEmailFn = () => Promise.reject('Boom!');
 
     return testit(event, getUserByEmailFn).then((resp) => {
-      assert(resp, response500);
+      assert(resp, responseError(500));
     });
   });
 });

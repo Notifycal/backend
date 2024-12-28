@@ -6,11 +6,7 @@ import { AuthedAndConfigRequestContext } from '@model/ApiGatewayEvents';
 import { protectedEndpointMiddleware } from '@common/lambda-middleware';
 import { APIGatewayProxyEventV2Schema } from '@aws-lambda-powertools/parser/schemas';
 import { z } from 'zod';
-import {
-  internalErrorHandler,
-  notFoundHandler,
-  successHandler
-} from '@services/common/api-response-handlers';
+import { errorHandler, successHandler } from '@services/common/api-response-handlers';
 
 async function lambdaHandler(
   event: Event,
@@ -22,11 +18,11 @@ async function lambdaHandler(
   const email = event.requestContext.authorizer.payload.email;
   return userProvider.getUserByEmail(email).then((userOrNot) => {
     if (userOrNot) {
-      return successHandler(userOrNot);
+      return successHandler()(userOrNot);
     } else {
-      return notFoundHandler('The user could not be found in storage');
+      return errorHandler(404)('The user could not be found in storage');
     }
-  }, internalErrorHandler);
+  }, errorHandler(500));
 }
 
 const eventSchema = APIGatewayProxyEventV2Schema.extend({
