@@ -85,7 +85,6 @@ app.use(timeout('30s'));
 app.use((req, res, next) => {
   if (!req.timedout) {
     next();
-    console.log('Request not timed out?');
   }
 });
 
