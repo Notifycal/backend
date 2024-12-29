@@ -1,6 +1,8 @@
 import express from 'express';
 import bodyParser from 'body-parser';
 
+import timeout from 'connect-timeout';
+
 import routes from './routes.js';
 import { unsafeTestEvent } from '../dist/testing/apigateway.cjs';
 
@@ -77,6 +79,14 @@ app.use((req, res, next) => {
   res.append('Access-Control-Allow-Headers', '*');
   res.append('Access-Control-Allow-Methods', '*');
   next();
+});
+
+app.use(timeout('30s'));
+app.use((req, res, next) => {
+  if (!req.timedout) {
+    next();
+    console.log('Request not timed out?');
+  }
 });
 
 const router = express.Router();
