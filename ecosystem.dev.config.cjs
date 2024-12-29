@@ -5,7 +5,7 @@ module.exports = {
       name: 'express-local-server',
       script: './express-local/index.js',
       node_args: '--env-file=src/resources/config/.env.dev',
-      watch: ['dist/lambdas/**/*'],
+      watch: ['dist/lambdas/**/*']
     },
     {
       name: 'esbuild',
