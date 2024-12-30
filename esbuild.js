@@ -19,7 +19,9 @@ const entryPoints = [
 ].filter((path) => !path.endsWith('.test.ts'));
 console.log(entryPoints);
 
-await esbuild.build({
+const isWatchMode = process.argv.includes('--watch');
+
+const buildOptions = {
   entryPoints: entryPoints,
   bundle: true,
   outdir: path.join(__dirname, outDir),
@@ -31,4 +33,28 @@ await esbuild.build({
   format: 'cjs',
   outExtension: { '.js': '.cjs' },
   tsconfig
-});
+};
+
+if (isWatchMode) {
+  console.log('Starting esbuild in watch mode...');
+  const context = await esbuild.context({
+    ...buildOptions,
+    plugins: [
+      {
+        name: 'rebuild-notify',
+        setup(build) {
+          build.onEnd((result) => {
+            if (result.errors.length > 0) {
+              console.error('Build failed:', result.errors);
+            } else {
+              console.log('Rebuild finished successfully!');
+            }
+          });
+        }
+      }
+    ]
+  });
+  await context.watch();
+} else {
+  await esbuild.build(buildOptions);
+}
