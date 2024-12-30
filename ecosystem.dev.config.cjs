@@ -4,7 +4,7 @@ module.exports = {
     {
       name: 'express-local-server',
       script: './express-local/index.js',
-      node_args: '--env-file=src/resources/config/.env.dev',
+      node_args: '--env-file=src/resources/config/.env.dev --enable-source-maps',
       watch: ['dist/lambdas/**/*']
     },
     {
