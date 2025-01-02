@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.2.0](https://github.com/Notifycal/backend/compare/v0.1.2...v0.2.0) (2025-01-02)
+
+
+### Features
+
+* login and get user profile tf code. Openapi update + linting ([#120](https://github.com/Notifycal/backend/issues/120)) ([73deb99](https://github.com/Notifycal/backend/commit/73deb9969d0427129d1458bfd7c63611b57d8a36))
+* refresh endpoint  ([#151](https://github.com/Notifycal/backend/issues/151)) ([48cfbdc](https://github.com/Notifycal/backend/commit/48cfbdc9ccf5b72fce6469611d79aec9c4b36683))
+
+
+### Bug Fixes
+
+* request payload consistency ([#167](https://github.com/Notifycal/backend/issues/167)) ([760a7bf](https://github.com/Notifycal/backend/commit/760a7bf087f8a8a52518eaa68e5035f784ec5d59))
+
 ## [0.1.2](https://github.com/Notifycal/backend/compare/v0.1.1...v0.1.2) (2024-12-25)
 
 
