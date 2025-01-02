@@ -1,4 +1,4 @@
-import { Jwt, Uuid } from '@own-types/model';
+import type { Jwt, Uuid } from '@own-types/model';
 
 export interface RefreshTokenStoreRecord {
   UserId: Uuid;

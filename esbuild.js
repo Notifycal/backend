@@ -11,12 +11,9 @@ const tsconfig = path.join(__dirname, './tsconfig.json');
 
 const lambdasDir = 'src';
 const outDir = 'dist';
-const entryPoints = [
-  ...globSync('src/lambdas/**/index.ts'),
-  ...globSync('src/testing/**.ts', {
-    ignore: globSync('src/testing/utils/**')
-  })
-].filter((path) => !path.endsWith('.test.ts'));
+const entryPoints = globSync('src/lambdas/**/index.ts')
+  .concat(process.env.NODE_ENV == 'production' ? [] : globSync('src/testing/apigateway.ts'))
+  .filter((path) => !path.endsWith('.test.ts'));
 console.log(entryPoints);
 
 const isWatchMode = process.argv.includes('--watch');

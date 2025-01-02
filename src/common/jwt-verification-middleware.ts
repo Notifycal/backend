@@ -1,23 +1,14 @@
-import { AuthedEventWithConfig } from '../model/ApiGatewayEvents';
-import middy, { MiddlewareObj, Request } from '@middy/core';
-import { APIGatewayProxyStructuredResultV2, Context } from 'aws-lambda';
+import type { AuthedEventWithConfig } from '../model/ApiGatewayEvents';
+import type { MiddlewareObj, Request } from '@middy/core';
+/* eslint-disable-next-line no-duplicate-imports */
+import type middy from '@middy/core';
+import type { APIGatewayProxyStructuredResultV2, Context } from 'aws-lambda';
 import { decodeAndVerifyJwtSignature } from '@services/jwt';
-import { JwtClaimCheckerFn } from '@own-types/model';
-import { AuthedEndpointConfig } from '@model/Config';
-import { AccessToken, accessTokenSchema } from '@model/Jwt';
+import type { JwtClaimCheckerFn } from '@own-types/model';
+import type { AuthedEndpointConfig } from '@model/Config';
+import { type AccessToken, accessTokenSchema } from '@model/Jwt';
 import { errorHandler } from '@services/common/api-response-handlers';
-
-export function jwtVerificationMiddleware<TConfig extends AuthedEndpointConfig>(
-  claimChecker: JwtClaimCheckerFn
-): MiddlewareObj<AuthedEventWithConfig<TConfig>, APIGatewayProxyStructuredResultV2> {
-  const before: middy.MiddlewareFn<
-    AuthedEventWithConfig<TConfig>,
-    APIGatewayProxyStructuredResultV2
-  > = (req) => jwtVerification(req, claimChecker);
-  return {
-    before
-  };
-}
+import { extractErrorMessage } from '@services/common/error-handling';
 
 function jwtVerification<TConfig extends AuthedEndpointConfig>(
   request: Request<
@@ -45,13 +36,25 @@ function jwtVerification<TConfig extends AuthedEndpointConfig>(
           );
         }
       },
-      (err) => {
-        return errorHandler(401)(`Invalid Signature. Error: ${JSON.stringify(err)}`);
+      (err: unknown) => {
+        return errorHandler(401)(`Invalid Signature. Error: ${extractErrorMessage(err)}`);
       }
     );
   } else {
     return Promise.resolve(errorHandler(401)('Missing Authorization'));
   }
+}
+
+export function jwtVerificationMiddleware<TConfig extends AuthedEndpointConfig>(
+  claimChecker: JwtClaimCheckerFn
+): MiddlewareObj<AuthedEventWithConfig<TConfig>, APIGatewayProxyStructuredResultV2> {
+  const before: middy.MiddlewareFn<
+    AuthedEventWithConfig<TConfig>,
+    APIGatewayProxyStructuredResultV2
+  > = (req) => jwtVerification(req, claimChecker);
+  return {
+    before
+  };
 }
 
 export function checkClaims(jwt: AccessToken): boolean {

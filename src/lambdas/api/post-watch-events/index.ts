@@ -1,4 +1,4 @@
-import {
+import type {
   APIGatewayProxyEvent,
   APIGatewayProxyHandler,
   APIGatewayProxyResult,
@@ -7,7 +7,7 @@ import {
 import { baseMiddleware } from '@common/lambda-middleware';
 import { logger } from '@common/powertools';
 
-const lambdaHandler: APIGatewayProxyHandler = async (
+const lambdaHandler: APIGatewayProxyHandler = (
   event: APIGatewayProxyEvent,
   ctx: Context
 ): Promise<APIGatewayProxyResult> => {
@@ -17,10 +17,10 @@ const lambdaHandler: APIGatewayProxyHandler = async (
 
   logger.info('Event Body', { body: event.body });
 
-  return {
+  return Promise.resolve({
     statusCode: 200,
     body: 'OK'
-  };
+  });
 };
 
 export const handler = baseMiddleware().handler(lambdaHandler);

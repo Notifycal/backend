@@ -1,8 +1,8 @@
 import { describe, jest } from '@jest/globals';
-import { type APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2 } from 'aws-lambda';
+import type { APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2 } from 'aws-lambda';
 import { c, testAuthedEvent } from '@testing/apigateway';
 import { assert } from '@testing/utils/assertions';
-import { GetUserProfileConfig } from './config';
+import type { GetUserProfileConfig } from './config';
 import { handler } from '.';
 import {
   setEnvAwsConfig,
@@ -11,8 +11,8 @@ import {
 } from '@testing/utils/config';
 import { getDefaultDecodeAccessJwtConfig } from '@testing/utils/jwt';
 import { UserBaseStore } from '@services/user-base-store';
-import { User } from '@model/User';
-import { OurAccessTokenClaims } from '@model/Jwt';
+import type { User } from '@model/User';
+import type { OurAccessTokenClaims } from '@model/Jwt';
 import { responseError, responseSuccess } from '@services/common/api-response-handlers';
 
 describe('GET user profile', () => {
@@ -56,7 +56,7 @@ describe('GET user profile', () => {
       permissions: {}
     } as OurAccessTokenClaims;
     const event = (await testAuthedEvent({}, {}, payload)) as unknown as APIGatewayProxyEventV2;
-    const getUserByEmailFn = () => Promise.reject('Boom!');
+    const getUserByEmailFn = () => Promise.reject(new Error('Boom!'));
 
     return testit(event, getUserByEmailFn).then((resp) => {
       assert(resp, responseError(500));

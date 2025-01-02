@@ -1,14 +1,14 @@
 import { from } from 'env-var';
-import {
+import type {
   AwsConfig,
   DecodeAccessJwtConfig,
   DecodeRefreshJwtConfig,
   EncodeAccessJwtConfig,
   EncodeRefreshJwtConfig
 } from '@model/Config';
-import { Environment } from '@own-types/model';
+import type { Environment } from '@own-types/model';
 
-export function readEnv() {
+export function readEnv(): Environment {
   return from(process.env, {});
 }
 
@@ -16,7 +16,7 @@ const readJwtConfig = (
   env: Environment,
   prefix: 'ACCESS' | 'REFRESH',
   expiresInDefault: string
-): Omit<EncodeAccessJwtConfig | EncodeRefreshJwtConfig, 'privateKey'> => ({
+): Omit<EncodeAccessJwtConfig, 'privateKey'> => ({
   algorithm: env.get(`${prefix}_JWT_ALGORITHM`).required().default('RS256').asString(),
   issuer: env.get(`${prefix}_JWT_ISSUER`).required().default('notifycal.com').asString(),
   audience: env.get(`${prefix}_JWT_AUDIENCE`).required().default('notifycal.com').asString(),
@@ -51,18 +51,18 @@ export function readDecodeRefreshJwtConfig(env: Environment): DecodeRefreshJwtCo
   };
 }
 
-export function readAwsConfig(env: Environment): AwsConfig {
-  return {
-    awsRegion: env.get('AWS_REGION').required().default('eu-west-1').asString(),
-    endpoint: env.get('AWS_ENDPOINT_URL').asString(),
-    credentials: readAwsCredentials(env)
-  };
-}
-
 function readAwsCredentials(
   env: Environment
 ): { accessKeyId: string; secretAccessKey: string } | undefined {
   const accessKeyId = env.get('AWS_ACCESS_KEY_ID').asString();
   const secretAccessKey = env.get('AWS_SECRET_ACCESS_KEY').asString();
   return accessKeyId && secretAccessKey ? { accessKeyId, secretAccessKey } : undefined;
+}
+
+export function readAwsConfig(env: Environment): AwsConfig {
+  return {
+    awsRegion: env.get('AWS_REGION').required().default('eu-west-1').asString(),
+    endpoint: env.get('AWS_ENDPOINT_URL').asString(),
+    credentials: readAwsCredentials(env)
+  };
 }

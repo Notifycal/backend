@@ -1,7 +1,7 @@
 import { describe, jest } from '@jest/globals';
 import { handler } from './index';
 import * as jwt from '@services/jwt';
-import { type APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2 } from 'aws-lambda';
+import type { APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2 } from 'aws-lambda';
 import { c, testEvent } from '@testing/apigateway';
 import {
   setEnvAwsConfig,
@@ -11,9 +11,9 @@ import {
   setEnvRefreshTokenBaseStoreConfig
 } from '@testing/utils/config';
 import { assert } from '@testing/utils/assertions';
-import { RefreshConfig } from './config';
-import { RefreshTokenStoreRecord } from '@model/RefreshTokenStoreRecord';
-import { RefreshToken } from '@model/Jwt';
+import type { RefreshConfig } from './config';
+import type { RefreshTokenStoreRecord } from '@model/RefreshTokenStoreRecord';
+import type { RefreshToken } from '@model/Jwt';
 import { responseError, responseSuccess } from '@services/common/api-response-handlers';
 import { RefreshTokenBaseStore } from '@services/refresh-token-base-store';
 
@@ -70,7 +70,7 @@ describe('Refresh', () => {
       refreshToken: validRefreshToken
     }) as unknown as APIGatewayProxyEventV2;
 
-    const decodeAndVerifyJwtSignatureFn = () => Promise.reject('Boom!');
+    const decodeAndVerifyJwtSignatureFn = () => Promise.reject(new Error('Boom!'));
     const getRefreshTokenByFn = () => Promise.resolve(validRefreshTokenStoreRecord);
     const buildJwtsFn = () => Promise.resolve(validEncodedAndDecodedJwts);
     const putRefreshTokenFn = () => Promise.resolve(null);
@@ -111,7 +111,7 @@ describe('Refresh', () => {
     }) as unknown as APIGatewayProxyEventV2;
 
     const decodeAndVerifyJwtSignatureFn = () => Promise.resolve(validInitialDecodedRefreshToken);
-    const getRefreshTokenByFn = () => Promise.reject('Boom!');
+    const getRefreshTokenByFn = () => Promise.reject(new Error('Boom!'));
     const buildJwtsFn = () => Promise.resolve(validEncodedAndDecodedJwts);
     const putRefreshTokenFn = () => Promise.resolve(null);
 
@@ -153,7 +153,7 @@ describe('Refresh', () => {
 
     const decodeAndVerifyJwtSignatureFn = () => Promise.resolve(validInitialDecodedRefreshToken);
     const getRefreshTokenByFn = () => Promise.resolve(validRefreshTokenStoreRecord);
-    const buildJwtsFn = () => Promise.reject('Boom!');
+    const buildJwtsFn = () => Promise.reject(new Error('Boom!'));
     const putRefreshTokenFn = () => Promise.resolve(null);
 
     return testit(
@@ -174,7 +174,7 @@ describe('Refresh', () => {
     const decodeAndVerifyJwtSignatureFn = () => Promise.resolve(validInitialDecodedRefreshToken);
     const getRefreshTokenByFn = () => Promise.resolve(validRefreshTokenStoreRecord);
     const buildJwtsFn = () => Promise.resolve(validEncodedAndDecodedJwts);
-    const putRefreshTokenFn = () => Promise.reject('Booom!');
+    const putRefreshTokenFn = () => Promise.reject(new Error('Booom!'));
 
     return testit(
       event,

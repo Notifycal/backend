@@ -1,5 +1,11 @@
 import { OAuth2Client } from 'google-auth-library/build/src/auth/oauth2client';
-import { Email } from '@own-types/model';
+import type { Email } from '@own-types/model';
+
+export interface GoogleOAuthConfig {
+  clientId: string;
+  clientSecret: string;
+  redirectUri: string;
+}
 
 export function verifyGoogleIdentity(
   userGoogleCode: string,
@@ -28,10 +34,4 @@ export function verifyGoogleIdentity(
       throw new Error(msg);
     }
   });
-}
-
-export interface GoogleOAuthConfig {
-  clientId: string;
-  clientSecret: string;
-  redirectUri: string;
 }

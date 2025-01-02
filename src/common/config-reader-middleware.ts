@@ -1,8 +1,24 @@
-import middy, { MiddlewareObj } from '@middy/core';
-import { Request } from '@middy/core';
-import { APIGatewayProxyStructuredResultV2, Context } from 'aws-lambda';
-import { EventWithConfig } from '@model/ApiGatewayEvents';
+import type { MiddlewareObj, Request } from '@middy/core';
+/* eslint-disable-next-line no-duplicate-imports */
+import type middy from '@middy/core';
+import type { APIGatewayProxyStructuredResultV2, Context } from 'aws-lambda';
+import type { EventWithConfig } from '@model/ApiGatewayEvents';
 import { errorHandler } from '@services/common/api-response-handlers';
+import { extractErrorMessage } from '@services/common/error-handling';
+
+function configReader<TConfig>(
+  request: Request<EventWithConfig<TConfig>, APIGatewayProxyStructuredResultV2, Error, Context>,
+  configReaderFn: () => TConfig
+): APIGatewayProxyStructuredResultV2 | void {
+  try {
+    const config = configReaderFn();
+    request.event.requestContext.config = config;
+  } catch (error: unknown) {
+    return errorHandler(500)(
+      `Endpoint config could not be loaded. Error: ${extractErrorMessage(error)}`
+    );
+  }
+}
 
 export function configReaderMiddleware<TConfig>(
   configReaderFn: () => TConfig
@@ -13,16 +29,4 @@ export function configReaderMiddleware<TConfig>(
   return {
     before
   };
-}
-
-function configReader<TConfig>(
-  request: Request<EventWithConfig<TConfig>, APIGatewayProxyStructuredResultV2, Error, Context>,
-  configReaderFn: () => TConfig
-): APIGatewayProxyStructuredResultV2 | void {
-  try {
-    const config = configReaderFn();
-    request.event.requestContext.config = config;
-  } catch (error) {
-    return errorHandler(500)(`Endpoint config could not be loaded. Error: ${error}`);
-  }
 }

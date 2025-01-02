@@ -6,33 +6,48 @@ import { logMetrics } from '@aws-lambda-powertools/metrics/middleware';
 import { configReaderMiddleware } from './config-reader-middleware';
 import { checkClaims, jwtVerificationMiddleware } from './jwt-verification-middleware';
 import { httpRequestEventParserMiddleware } from './parser-http-middleware';
-import { ConfigReaderFn, JwtClaimCheckerFn } from '@own-types/model';
-import { ZodSchema } from 'zod';
-import { AuthedEndpointConfig } from '@model/Config';
+import type { ConfigReaderFn, JwtClaimCheckerFn } from '@own-types/model';
+import type { z } from 'zod';
+import type { AuthedEndpointConfig } from '@model/Config';
+import type { APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2 } from 'aws-lambda';
 
-export function baseMiddleware(): middy.MiddyfiedHandler {
-  return middy({ timeoutEarlyInMillis: 0 })
+export function baseMiddleware(): middy.MiddyfiedHandler<
+  APIGatewayProxyEventV2,
+  APIGatewayProxyStructuredResultV2
+> {
+  return middy<APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2>({
+    timeoutEarlyInMillis: 0
+  })
     .use(captureLambdaHandler(tracer))
     .use(injectLambdaContext(logger, { logEvent: true }))
     .use(logMetrics(metrics, { captureColdStartMetric: true }));
 }
 
-export function unprotectedEndpointMiddleware<TConfig>(
+export function unprotectedEndpointMiddleware<TConfig, T extends z.ZodTypeAny>(
   configReader: ConfigReaderFn<TConfig>,
-  eventSchema: ZodSchema
-): middy.MiddyfiedHandler {
+  eventSchema: T
+): middy.MiddyfiedHandler<APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2> {
   return baseMiddleware()
     .use(configReaderMiddleware<TConfig>(configReader))
-    .use(httpRequestEventParserMiddleware(eventSchema));
+    .use(httpRequestEventParserMiddleware(eventSchema)) as unknown as middy.MiddyfiedHandler<
+    APIGatewayProxyEventV2,
+    APIGatewayProxyStructuredResultV2
+  >;
 }
 
-export function protectedEndpointMiddleware<TConfig extends AuthedEndpointConfig>(
+export function protectedEndpointMiddleware<
+  TConfig extends AuthedEndpointConfig,
+  T extends z.ZodTypeAny
+>(
   configReaderFn: ConfigReaderFn<TConfig>,
-  eventSchema: ZodSchema,
+  eventSchema: T,
   claimCheckerFn: JwtClaimCheckerFn = checkClaims
-): middy.MiddyfiedHandler {
+): middy.MiddyfiedHandler<APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2> {
   return baseMiddleware()
     .use(configReaderMiddleware<TConfig>(configReaderFn))
     .use(jwtVerificationMiddleware(claimCheckerFn))
-    .use(httpRequestEventParserMiddleware(eventSchema));
+    .use(httpRequestEventParserMiddleware(eventSchema)) as unknown as middy.MiddyfiedHandler<
+    APIGatewayProxyEventV2,
+    APIGatewayProxyStructuredResultV2
+  >;
 }

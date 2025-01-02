@@ -1,7 +1,7 @@
 import { describe } from '@jest/globals';
-import { type APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2 } from 'aws-lambda';
+import type { APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2 } from 'aws-lambda';
 import { c, testAuthedEvent, testEvent } from '@testing/apigateway';
-import { handler, TestingWhiteApiConfig } from '@testing/white-authed-api-lambda';
+import { handler, type TestingWhiteApiConfig } from '@testing/white-authed-api-lambda';
 import { getDefaultDecodeAccessJwtConfig, testJwt } from './utils/jwt';
 import { assert } from './utils/assertions';
 import { setEnvDecodeAccessJwtConfig } from './utils/config';
@@ -53,19 +53,19 @@ describe('White authed API lambda', () => {
   });
 });
 
+const defaultEnv = {
+  decodeAccessJwtConfig: getDefaultDecodeAccessJwtConfig(),
+  config1: 'blah'
+};
+
+function setEnv(config: TestingWhiteApiConfig): void {
+  setEnvDecodeAccessJwtConfig(config.decodeAccessJwtConfig);
+}
+
 function testit(
   event: APIGatewayProxyEventV2,
   env: TestingWhiteApiConfig = defaultEnv
 ): Promise<APIGatewayProxyStructuredResultV2> {
   setEnv(env);
   return handler(event, c);
-}
-
-const defaultEnv = {
-  decodeAccessJwtConfig: getDefaultDecodeAccessJwtConfig(),
-  config1: 'blah'
-};
-
-function setEnv(config: TestingWhiteApiConfig) {
-  setEnvDecodeAccessJwtConfig(config.decodeAccessJwtConfig);
 }

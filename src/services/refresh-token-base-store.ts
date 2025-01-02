@@ -1,13 +1,13 @@
 import { PutCommand, GetCommand } from '@aws-sdk/lib-dynamodb';
-import { AwsConfig } from '@model/Config';
-import { UserId, Uuid } from '@own-types/model';
-import { BaseStoreConfig, BaseStore } from './common/base-store';
-import { RefreshTokenStoreRecord } from '@model/RefreshTokenStoreRecord';
+import type { AwsConfig } from '@model/Config';
+import type { UserId, Uuid } from '@own-types/model';
+import { BaseStore, type BaseStoreConfig } from './common/base-store';
+import type { RefreshTokenStoreRecord } from '@model/RefreshTokenStoreRecord';
 
 export type RefreshTokenBaseStoreConfig = BaseStoreConfig;
 
 export class RefreshTokenBaseStore extends BaseStore<RefreshTokenBaseStoreConfig> {
-  constructor(config: RefreshTokenBaseStoreConfig, awsConfig: AwsConfig) {
+  public constructor(config: RefreshTokenBaseStoreConfig, awsConfig: AwsConfig) {
     super(config, awsConfig);
   }
 
@@ -30,7 +30,9 @@ export class RefreshTokenBaseStore extends BaseStore<RefreshTokenBaseStoreConfig
       },
       (error) =>
         Promise.reject(
-          `Tokens stored for user '${userId}' with token id '${jwtId}' could not be retrieved. Error: ${error}`
+          new Error(
+            `Tokens stored for user '${userId}' with token id '${jwtId}' could not be retrieved. Error: ${error}`
+          )
         )
     );
   }

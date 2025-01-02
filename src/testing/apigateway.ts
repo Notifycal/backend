@@ -1,40 +1,13 @@
-import { Context } from 'aws-lambda/handler';
-import { APIGatewayProxyEventV2 } from '@aws-lambda-powertools/parser/types';
+import type { Context } from 'aws-lambda/handler';
+import type { APIGatewayProxyEventV2 } from '@aws-lambda-powertools/parser/types';
 import {
   getDefaultAccessTokenPayload,
   getDefaultEncodeAccessJwtConfig,
   testJwt
 } from './utils/jwt';
-import { EncodeAccessJwtConfig } from '@model/Config';
-import { accessTokenSchema, OurAccessTokenClaims } from '@model/Jwt';
-import { ZodSchema } from 'zod';
-
-export function unsafeTestEvent(
-  /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-  body: any,
-  headers: Record<string, string> = {}
-): APIGatewayProxyEventV2 {
-  return ttestEvent(JSON.stringify(body), headers);
-}
-
-export function testEvent<T>(
-  body: T,
-  headers: Record<string, string> = {}
-): APIGatewayProxyEventV2 {
-  return ttestEvent(JSON.stringify(body), headers);
-}
-
-export function testAuthedEvent<T>(
-  body: T,
-  headers: Record<string, string> = {},
-  jwtPayload: OurAccessTokenClaims = getDefaultAccessTokenPayload(),
-  jwtSchema: ZodSchema = accessTokenSchema,
-  encodeJwtConfig: EncodeAccessJwtConfig = getDefaultEncodeAccessJwtConfig()
-): Promise<APIGatewayProxyEventV2> {
-  return testJwt(jwtPayload, jwtSchema, encodeJwtConfig).then((jwt) =>
-    ttestEvent(JSON.stringify(body), { ...headers, Authorization: `Bearer ${jwt}` })
-  );
-}
+import type { EncodeAccessJwtConfig } from '@model/Config';
+import { type OurAccessTokenClaims, accessTokenSchema } from '@model/Jwt';
+import type { ZodSchema } from 'zod';
 
 function ttestEvent(body: string, headers: Record<string, string> = {}): APIGatewayProxyEventV2 {
   return {
@@ -96,6 +69,33 @@ function ttestEvent(body: string, headers: Record<string, string> = {}): APIGate
   };
 }
 
+export function unsafeTestEvent(
+  /* eslint-disable-next-line @typescript-eslint/no-explicit-any */ /* eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types */
+  body: any,
+  headers: Record<string, string> = {}
+): APIGatewayProxyEventV2 {
+  return ttestEvent(JSON.stringify(body), headers);
+}
+
+export function testEvent<T>(
+  body: T,
+  headers: Record<string, string> = {}
+): APIGatewayProxyEventV2 {
+  return ttestEvent(JSON.stringify(body), headers);
+}
+
+export function testAuthedEvent<T>(
+  body: T,
+  headers: Record<string, string> = {},
+  jwtPayload: OurAccessTokenClaims = getDefaultAccessTokenPayload(),
+  jwtSchema: ZodSchema = accessTokenSchema,
+  encodeJwtConfig: EncodeAccessJwtConfig = getDefaultEncodeAccessJwtConfig()
+): Promise<APIGatewayProxyEventV2> {
+  return testJwt(jwtPayload, jwtSchema, encodeJwtConfig).then((jwt) =>
+    ttestEvent(JSON.stringify(body), { ...headers, Authorization: `Bearer ${jwt}` })
+  );
+}
+
 export const c: Context = {
   callbackWaitsForEmptyEventLoop: false,
   functionName: 'fnName',
@@ -106,10 +106,10 @@ export const c: Context = {
   logGroupName: 'logGroupName',
   logStreamName: 'logStreamName',
   getRemainingTimeInMillis: () => 1,
-  /* eslint-disable-next-line @typescript-eslint/no-empty-function */
+
   done: () => {},
-  /* eslint-disable-next-line @typescript-eslint/no-empty-function */
+
   fail: () => {},
-  /* eslint-disable-next-line @typescript-eslint/no-empty-function */
+
   succeed: () => {}
 };
