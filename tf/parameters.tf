@@ -32,13 +32,13 @@ data "aws_ssm_parameter" "refresh_jwt_expiration" {
 
 // Login
 data "aws_ssm_parameter" "google_oauth_client_id" {
-  name = "/notifycal/${var.environment}/backend/google-oauth-client-id"
+  name = "/notifycal/${var.environment}/providers/google/oauth/client-id"
 }
 data "aws_ssm_parameter" "google_oauth_client_secret" {
-  name = "/notifycal/${var.environment}/backend/google-oauth-client-secret"
+  name = "/notifycal/${var.environment}/providers/google/oauth/client-secret"
 }
 data "aws_ssm_parameter" "google_oauth_client_redirect_url" {
-  name = "/notifycal/${var.environment}/backend/google-oauth-redirect_url"
+  name = "/notifycal/${var.environment}/providers/google/oauth/redirect_url"
 }
 
 // Refresh
