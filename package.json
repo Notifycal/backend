@@ -29,10 +29,8 @@
     "@aws-sdk/client-sqs": "^3.699.0",
     "@aws-sdk/lib-dynamodb": "^3.705.0",
     "@middy/core": "^4.7.0",
-    "@middy/http-error-handler": "^4.7.0",
     "env-var": "^7.5.0",
     "google-auth-library": "^9.15.0",
-    "http-errors": "^2.0.0",
     "jsonwebtoken": "^9.0.2",
     "uuid": "^11.0.3",
     "zod": "^3.24.0"
