@@ -16,7 +16,7 @@ const readJwtConfig = (
   env: Environment,
   prefix: 'ACCESS' | 'REFRESH',
   expiresInDefault: string
-): Omit<EncodeAccessJwtConfig  , 'privateKey'> => ({
+): Omit<EncodeAccessJwtConfig, 'privateKey'> => ({
   algorithm: env.get(`${prefix}_JWT_ALGORITHM`).required().default('RS256').asString(),
   issuer: env.get(`${prefix}_JWT_ISSUER`).required().default('notifycal.com').asString(),
   audience: env.get(`${prefix}_JWT_AUDIENCE`).required().default('notifycal.com').asString(),

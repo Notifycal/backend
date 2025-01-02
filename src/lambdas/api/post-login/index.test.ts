@@ -149,15 +149,16 @@ describe('Login', () => {
       putRefreshTokenFn
     ).then(() =>
       testit(event, idTokenVerificationFn, buildJwtsFn2, signInOrUpUserFn, putRefreshTokenFn).then(
-        (resp) =>
-          { assert(
+        (resp) => {
+          assert(
             resp,
             responseSuccess({
               accessToken: validJwts2.accessToken.encoded,
               tokenType: 'Bearer',
               refreshToken: validJwts2.refreshToken.encoded
             })
-          ); }
+          );
+        }
       )
     );
   });
@@ -167,7 +168,7 @@ describe('Login', () => {
       googleCode: '<SOME-INCORRECT-GOOGLE-ID-TOKEN>'
     }) as unknown as APIGatewayProxyEventV2;
     const userEmail = 'failure@notifycal.com';
-    const idTokenVerificationFn = () => Promise.reject(userEmail);
+    const idTokenVerificationFn = () => Promise.reject(new Error(userEmail));
     const buildJwtsFn = () => Promise.resolve(validJwts);
     const signInOrUpUserFn = () => Promise.resolve({ UserId: userEmail });
     const putRefreshTokenFn = () => Promise.resolve(null);
@@ -178,7 +179,9 @@ describe('Login', () => {
       buildJwtsFn,
       signInOrUpUserFn,
       putRefreshTokenFn
-    ).then((resp) => { assert(resp, responseError(401)); });
+    ).then((resp) => {
+      assert(resp, responseError(401));
+    });
   });
 
   it('should fail input validation with 400', () => {
@@ -197,7 +200,9 @@ describe('Login', () => {
       buildJwtsFn,
       signInOrUpUserFn,
       putRefreshTokenFn
-    ).then((resp) => { assert(resp, responseError(400)); });
+    ).then((resp) => {
+      assert(resp, responseError(400));
+    });
   });
 
   it('should fail to generate JWT with 500', () => {
@@ -206,7 +211,7 @@ describe('Login', () => {
     }) as unknown as APIGatewayProxyEventV2;
     const userEmail = 'success@notifycal.com';
     const idTokenVerificationFn = () => Promise.resolve(userEmail);
-    const buildJwtsFn = () => Promise.reject('Boooom!');
+    const buildJwtsFn = () => Promise.reject(new Error('Boooom!'));
     const signInOrUpUserFn = () => Promise.resolve({ UserId: userEmail });
     const putRefreshTokenFn = () => Promise.resolve(null);
 
@@ -216,7 +221,9 @@ describe('Login', () => {
       buildJwtsFn,
       signInOrUpUserFn,
       putRefreshTokenFn
-    ).then((resp) => { assert(resp, responseError(500)); });
+    ).then((resp) => {
+      assert(resp, responseError(500));
+    });
   });
 
   it('should fail if environment is not set correctly with 500', () => {
@@ -238,7 +245,9 @@ describe('Login', () => {
       signInOrUpUserFn,
       putRefreshTokenFn,
       env
-    ).then((resp) => { assert(resp, responseError(500)); });
+    ).then((resp) => {
+      assert(resp, responseError(500));
+    });
   });
 
   it('should fail if user cannot sign in or up with 500', () => {
@@ -248,7 +257,7 @@ describe('Login', () => {
     const userEmail = 'success@notifycal.com';
     const idTokenVerificationFn = () => Promise.resolve(userEmail);
     const buildJwtsFn = () => Promise.resolve(validJwts);
-    const signInOrUpUserFn = () => Promise.reject('Error to sign in or up a user');
+    const signInOrUpUserFn = () => Promise.reject(new Error('Error to sign in or up a user'));
     const putRefreshTokenFn = () => Promise.resolve(null);
 
     return testit(
@@ -270,7 +279,7 @@ describe('Login', () => {
     const idTokenVerificationFn = () => Promise.resolve(userEmail);
     const buildJwtsFn = () => Promise.resolve(validJwts);
     const signInOrUpUserFn = () => Promise.resolve({ UserId: userEmail });
-    const putRefreshTokenFn = () => Promise.reject('Boom!');
+    const putRefreshTokenFn = () => Promise.reject(new Error('Boom!'));
 
     return testit(
       event,

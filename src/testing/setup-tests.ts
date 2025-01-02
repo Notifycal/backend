@@ -1,3 +1,5 @@
+import { expect } from '@jest/globals';
+import { toRejectWithErrorContainingMessageParts } from './utils/matchers';
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 const OLD_ENV = JSON.parse(JSON.stringify(process.env));
 
@@ -9,4 +11,8 @@ global.beforeEach(() => {
 global.afterEach(() => {
   process.env = OLD_ENV;
   jest.clearAllMocks();
+});
+
+expect.extend({
+  toRejectWithErrorContainingMessageParts: toRejectWithErrorContainingMessageParts
 });

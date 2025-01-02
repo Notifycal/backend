@@ -8,6 +8,7 @@ import type { JwtClaimCheckerFn } from '@own-types/model';
 import type { AuthedEndpointConfig } from '@model/Config';
 import { type AccessToken, accessTokenSchema } from '@model/Jwt';
 import { errorHandler } from '@services/common/api-response-handlers';
+import { extractErrorMessage } from '@services/common/error-handling';
 
 function jwtVerification<TConfig extends AuthedEndpointConfig>(
   request: Request<
@@ -35,8 +36,8 @@ function jwtVerification<TConfig extends AuthedEndpointConfig>(
           );
         }
       },
-      (err) => {
-        return errorHandler(401)(`Invalid Signature. Error: ${JSON.stringify(err)}`);
+      (err: unknown) => {
+        return errorHandler(401)(`Invalid Signature. Error: ${extractErrorMessage(err)}`);
       }
     );
   } else {

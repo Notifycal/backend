@@ -58,4 +58,7 @@ function lambdaHandler(
     .catch(errorHandler(401));
 }
 
-export const handler = unprotectedEndpointMiddleware(() => readRefreshConfig(), eventSchema).handler(lambdaHandler);
+export const handler = unprotectedEndpointMiddleware(
+  () => readRefreshConfig(),
+  eventSchema
+).handler(lambdaHandler);

@@ -118,9 +118,9 @@ const unicornConfig = {
 const jestConfig = {
   name: 'jest',
   plugins: {
-    jest: jestPlugin,
+    jest: jestPlugin
   },
-  files: ["**/*.test.ts", "**/*.spec.ts"],
+  files: ['**/*.test.ts', '**/*.spec.ts'],
   languageOptions: {
     globals: {
       ...jestPlugin.globals
@@ -157,4 +157,3 @@ const eslintConfig = typescriptEslint.config(
 );
 
 export default eslintConfig;
-

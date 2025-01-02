@@ -26,7 +26,8 @@ export function signInOrUpUser(
         return signUpUser(email, userProvider);
       }
     },
-    (error) => Promise.reject(`User with id '${email}' could not sign in. Error: ${error}`)
+    (error) =>
+      Promise.reject(new Error(`User with id '${email}' could not sign in. Error: ${error}`))
   );
 }
 

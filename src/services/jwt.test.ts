@@ -1,5 +1,11 @@
-import { expect } from '@jest/globals';
-import { type EncodedAndDecodedJwt, type EncodedAndDecodedJwts, buildJwt, buildJwts, decodeAndVerifyJwtSignature, decodeJwt } from './jwt';
+import {
+  type EncodedAndDecodedJwt,
+  type EncodedAndDecodedJwts,
+  buildJwt,
+  buildJwts,
+  decodeAndVerifyJwtSignature,
+  decodeJwt
+} from './jwt';
 import type { Jwt, UserId } from '@own-types/model';
 import { sleep } from '@testing/utils/utils';
 import type {
@@ -54,11 +60,16 @@ describe('Jwt builder', () => {
       privateKey: `invalid_es256_private_key`
     };
     return expect(testit(validAccessTokenPayload, config)).rejects.toEqual(
-      'JWT could not be generated. Error: secretOrPrivateKey must be an asymmetric key when using ES256'
+      new Error(
+        'JWT could not be generated. Error: secretOrPrivateKey must be an asymmetric key when using ES256'
+      )
     );
   });
 
-  function testit(payload: object, config: EncodeAccessJwtConfig): Promise<EncodedAndDecodedJwt<AccessToken>> {
+  function testit(
+    payload: object,
+    config: EncodeAccessJwtConfig
+  ): Promise<EncodedAndDecodedJwt<AccessToken>> {
     return buildJwt(payload, accessTokenSchema, validSubject, config);
   }
 });
@@ -75,7 +86,9 @@ describe('Jwts builder', () => {
       privateKey: `invalid_es256_private_key`
     };
     return expect(testit(validUserId, invalidEncodeJwtConfig, validEncodeConfig)).rejects.toEqual(
-      'Access JWT could not be generated. Error: secretOrPrivateKey must be an asymmetric key when using ES256'
+      new Error(
+        'Access JWT could not be generated. Error: secretOrPrivateKey must be an asymmetric key when using ES256'
+      )
     );
   });
 
@@ -87,7 +100,9 @@ describe('Jwts builder', () => {
     return expect(
       testit(validUserId, validEncodeConfig, invalidEncodeRefreshJwtConfig)
     ).rejects.toEqual(
-      'Refresh JWT could not be generated. Error: secretOrPrivateKey must be an asymmetric key when using ES256'
+      new Error(
+        'Refresh JWT could not be generated. Error: secretOrPrivateKey must be an asymmetric key when using ES256'
+      )
     );
   });
 
@@ -124,7 +139,7 @@ describe('Jwt decoder/verifier with signature', () => {
       validEncodeConfig
     ).then((testJwt) => testit(testJwt.encoded, accessTokenSchema, decodeConfig));
     return expect(result).rejects.toEqual(
-      'JWT verification failed. Error: JsonWebTokenError: invalid algorithm'
+      new Error('JWT verification failed. Error: invalid algorithm')
     );
   });
 
@@ -133,7 +148,7 @@ describe('Jwt decoder/verifier with signature', () => {
 
     const result = testit(testJwt, accessTokenSchema, validDecodeConfig);
     return expect(result).rejects.toEqual(
-      'JWT verification failed. Error: JsonWebTokenError: jwt malformed'
+      new Error('JWT verification failed. Error: jwt malformed')
     );
   });
 
@@ -145,13 +160,12 @@ describe('Jwt decoder/verifier with signature', () => {
       validSubject,
       validEncodeConfig
     ).then((testJwt) => testit(testJwt.encoded, accessTokenSchema, validDecodeConfig));
-    // eslint-disable-next-line jest/valid-expect
-    const rejection = expect(result).rejects;
-    return Promise.all([
-      rejection.toContain('JWT decoding failed. Error:'),
-      /* eslint-disable-next-line no-useless-escape */
-      rejection.toContain('Invalid literal value, expected \\\"user\\\"\"'),
-      rejection.toContain('Expected string, received number')
+
+    return expect(result).toRejectWithErrorContainingMessageParts([
+      'JWT decoding failed. Error:',
+      // eslint-disable-next-line no-useless-escape
+      'Invalid literal value, expected \\\"user\\\"\"',
+      'Expected string, received number'
     ]);
   });
 
@@ -172,7 +186,9 @@ describe('Jwt decoder/verifier with signature', () => {
         encodeConfig
       ).then((testJwt) => testit(testJwt.encoded, accessTokenSchema, validDecodeConfig));
       return expect(result).rejects.toEqual(
-        `JWT verification failed. Error: JsonWebTokenError: jwt ${jwtClaimKeyUnderTest} invalid. expected: ${expectedClaimValue}`
+        new Error(
+          `JWT verification failed. Error: jwt ${jwtClaimKeyUnderTest} invalid. expected: ${expectedClaimValue}`
+        )
       );
     });
 
@@ -195,12 +211,16 @@ describe('Jwt decoder/verifier with signature', () => {
         .then((testJwt) => sleep(2000).then(() => testJwt))
         .then((testJwt) => testit(testJwt.encoded, accessTokenSchema, decodeConfig));
       return expect(result).rejects.toEqual(
-        `JWT verification failed. Error: TokenExpiredError: jwt expired`
+        new Error(`JWT verification failed. Error: jwt expired`)
       );
     });
   });
 
-  function testit(jwt: Jwt, schema: ZodSchema, config: DecodeAccessJwtConfig): Promise<AccessToken> {
+  function testit(
+    jwt: Jwt,
+    schema: ZodSchema,
+    config: DecodeAccessJwtConfig
+  ): Promise<AccessToken> {
     return decodeAndVerifyJwtSignature(jwt, schema, config);
   }
 });
@@ -221,7 +241,7 @@ describe('Jwt decoder without signature check', () => {
 
     const result = testit(testJwt, accessTokenSchema);
     return expect(result).rejects.toEqual(
-      `JWT decoding failed. Most likely, the JWT was not a proper JSON`
+      new Error(`JWT decoding failed. Most likely, the JWT was not a proper JSON`)
     );
   });
 
@@ -233,13 +253,12 @@ describe('Jwt decoder without signature check', () => {
       validSubject,
       validEncodeConfig
     ).then((testJwt) => testit(testJwt.encoded, accessTokenSchema));
-    // eslint-disable-next-line jest/valid-expect
-    const rejection = expect(result).rejects;
-    return Promise.all([
-      rejection.toContain('JWT decoding failed. Error:'),
-      /* eslint-disable-next-line no-useless-escape */
-      rejection.toContain('Invalid literal value, expected \\\"user\\\"\"'),
-      rejection.toContain('Expected string, received number')
+
+    return expect(result).toRejectWithErrorContainingMessageParts([
+      'JWT decoding failed. Error:',
+      // eslint-disable-next-line no-useless-escape
+      'Invalid literal value, expected \\\"user\\\"\"',
+      'Expected string, received number'
     ]);
   });
 

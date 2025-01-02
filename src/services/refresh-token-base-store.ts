@@ -30,7 +30,9 @@ export class RefreshTokenBaseStore extends BaseStore<RefreshTokenBaseStoreConfig
       },
       (error) =>
         Promise.reject(
-          `Tokens stored for user '${userId}' with token id '${jwtId}' could not be retrieved. Error: ${error}`
+          new Error(
+            `Tokens stored for user '${userId}' with token id '${jwtId}' could not be retrieved. Error: ${error}`
+          )
         )
     );
   }

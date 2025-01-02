@@ -27,7 +27,8 @@ export class UserBaseStore extends BaseStore<UserBaseStoreConfig> {
           return undefined;
         }
       },
-      (error) => Promise.reject(`User with id '${email}' could not be retrieved. Error: ${error}`)
+      (error) =>
+        Promise.reject(new Error(`User with id '${email}' could not be retrieved. Error: ${error}`))
     );
   }
 

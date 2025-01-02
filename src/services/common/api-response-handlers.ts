@@ -22,7 +22,9 @@ export function responseSuccess(body: object, statusCode = 200): APIGatewayProxy
   };
 }
 
-export function responseError(statusCode: keyof typeof errorMessages): APIGatewayProxyStructuredResultV2 {
+export function responseError(
+  statusCode: keyof typeof errorMessages
+): APIGatewayProxyStructuredResultV2 {
   return {
     statusCode,
     body: JSON.stringify({ message: errorMessages[statusCode] }),

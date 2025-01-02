@@ -70,7 +70,7 @@ describe('Refresh', () => {
       refreshToken: validRefreshToken
     }) as unknown as APIGatewayProxyEventV2;
 
-    const decodeAndVerifyJwtSignatureFn = () => Promise.reject('Boom!');
+    const decodeAndVerifyJwtSignatureFn = () => Promise.reject(new Error('Boom!'));
     const getRefreshTokenByFn = () => Promise.resolve(validRefreshTokenStoreRecord);
     const buildJwtsFn = () => Promise.resolve(validEncodedAndDecodedJwts);
     const putRefreshTokenFn = () => Promise.resolve(null);
@@ -111,7 +111,7 @@ describe('Refresh', () => {
     }) as unknown as APIGatewayProxyEventV2;
 
     const decodeAndVerifyJwtSignatureFn = () => Promise.resolve(validInitialDecodedRefreshToken);
-    const getRefreshTokenByFn = () => Promise.reject('Boom!');
+    const getRefreshTokenByFn = () => Promise.reject(new Error('Boom!'));
     const buildJwtsFn = () => Promise.resolve(validEncodedAndDecodedJwts);
     const putRefreshTokenFn = () => Promise.resolve(null);
 
@@ -153,7 +153,7 @@ describe('Refresh', () => {
 
     const decodeAndVerifyJwtSignatureFn = () => Promise.resolve(validInitialDecodedRefreshToken);
     const getRefreshTokenByFn = () => Promise.resolve(validRefreshTokenStoreRecord);
-    const buildJwtsFn = () => Promise.reject('Boom!');
+    const buildJwtsFn = () => Promise.reject(new Error('Boom!'));
     const putRefreshTokenFn = () => Promise.resolve(null);
 
     return testit(
@@ -174,7 +174,7 @@ describe('Refresh', () => {
     const decodeAndVerifyJwtSignatureFn = () => Promise.resolve(validInitialDecodedRefreshToken);
     const getRefreshTokenByFn = () => Promise.resolve(validRefreshTokenStoreRecord);
     const buildJwtsFn = () => Promise.resolve(validEncodedAndDecodedJwts);
-    const putRefreshTokenFn = () => Promise.reject('Booom!');
+    const putRefreshTokenFn = () => Promise.reject(new Error('Booom!'));
 
     return testit(
       event,

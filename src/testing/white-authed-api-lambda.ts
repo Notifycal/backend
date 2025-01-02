@@ -1,4 +1,8 @@
-import type { APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2, Context } from 'aws-lambda';
+import type {
+  APIGatewayProxyEventV2,
+  APIGatewayProxyStructuredResultV2,
+  Context
+} from 'aws-lambda';
 import { z } from 'zod';
 import type middy from '@middy/core';
 import type { AuthedEndpointConfig } from '@model/Config';
@@ -43,7 +47,6 @@ function testingConfigReader(): TestingWhiteApiConfig {
 function claimChecker(): boolean {
   return true;
 }
-
 
 export const handler: middy.MiddyfiedHandler<
   APIGatewayProxyEventV2,

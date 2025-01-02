@@ -4,6 +4,7 @@ import type middy from '@middy/core';
 import type { APIGatewayProxyStructuredResultV2, Context } from 'aws-lambda';
 import type { EventWithConfig } from '@model/ApiGatewayEvents';
 import { errorHandler } from '@services/common/api-response-handlers';
+import { extractErrorMessage } from '@services/common/error-handling';
 
 function configReader<TConfig>(
   request: Request<EventWithConfig<TConfig>, APIGatewayProxyStructuredResultV2, Error, Context>,
@@ -12,8 +13,10 @@ function configReader<TConfig>(
   try {
     const config = configReaderFn();
     request.event.requestContext.config = config;
-  } catch (error) {
-    return errorHandler(500)(`Endpoint config could not be loaded. Error: ${error}`);
+  } catch (error: unknown) {
+    return errorHandler(500)(
+      `Endpoint config could not be loaded. Error: ${extractErrorMessage(error)}`
+    );
   }
 }
 

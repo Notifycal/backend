@@ -3,7 +3,12 @@ import type { MiddlewareObj, Request } from '@middy/core';
 /* eslint-disable-next-line no-duplicate-imports */
 import type middy from '@middy/core';
 import { errorHandler } from '@services/common/api-response-handlers';
-import type { APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2, Context } from 'aws-lambda';
+import { extractErrorMessage } from '@services/common/error-handling';
+import type {
+  APIGatewayProxyEventV2,
+  APIGatewayProxyStructuredResultV2,
+  Context
+} from 'aws-lambda';
 import type { ZodSchema } from 'zod';
 
 function httpRequestEventParser(
@@ -14,9 +19,9 @@ function httpRequestEventParser(
   if (parserFn) {
     try {
       parserFn(request);
-    } catch (error) {
+    } catch (error: unknown) {
       return errorHandler(400)(
-        `Request payload does not satisfy the schema. Error: ${error}. Schema: ${JSON.stringify(schema)}`
+        `Request payload does not satisfy the schema. Error: ${extractErrorMessage(error)}. Schema: ${JSON.stringify(schema)}`
       );
     }
   }

@@ -106,10 +106,10 @@ export const c: Context = {
   logGroupName: 'logGroupName',
   logStreamName: 'logStreamName',
   getRemainingTimeInMillis: () => 1,
-   
+
   done: () => {},
-   
+
   fail: () => {},
-   
+
   succeed: () => {}
 };

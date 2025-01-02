@@ -11,8 +11,13 @@ import type { z } from 'zod';
 import type { AuthedEndpointConfig } from '@model/Config';
 import type { APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2 } from 'aws-lambda';
 
-export function baseMiddleware(): middy.MiddyfiedHandler<APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2> {
-  return middy<APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2>({ timeoutEarlyInMillis: 0 })
+export function baseMiddleware(): middy.MiddyfiedHandler<
+  APIGatewayProxyEventV2,
+  APIGatewayProxyStructuredResultV2
+> {
+  return middy<APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2>({
+    timeoutEarlyInMillis: 0
+  })
     .use(captureLambdaHandler(tracer))
     .use(injectLambdaContext(logger, { logEvent: true }))
     .use(logMetrics(metrics, { captureColdStartMetric: true }));
@@ -24,10 +29,16 @@ export function unprotectedEndpointMiddleware<TConfig, T extends z.ZodTypeAny>(
 ): middy.MiddyfiedHandler<APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2> {
   return baseMiddleware()
     .use(configReaderMiddleware<TConfig>(configReader))
-    .use(httpRequestEventParserMiddleware(eventSchema)) as unknown as middy.MiddyfiedHandler<APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2>;
+    .use(httpRequestEventParserMiddleware(eventSchema)) as unknown as middy.MiddyfiedHandler<
+    APIGatewayProxyEventV2,
+    APIGatewayProxyStructuredResultV2
+  >;
 }
 
-export function protectedEndpointMiddleware<TConfig extends AuthedEndpointConfig,T extends z.ZodTypeAny>(
+export function protectedEndpointMiddleware<
+  TConfig extends AuthedEndpointConfig,
+  T extends z.ZodTypeAny
+>(
   configReaderFn: ConfigReaderFn<TConfig>,
   eventSchema: T,
   claimCheckerFn: JwtClaimCheckerFn = checkClaims
@@ -35,5 +46,8 @@ export function protectedEndpointMiddleware<TConfig extends AuthedEndpointConfig
   return baseMiddleware()
     .use(configReaderMiddleware<TConfig>(configReaderFn))
     .use(jwtVerificationMiddleware(claimCheckerFn))
-    .use(httpRequestEventParserMiddleware(eventSchema)) as unknown as middy.MiddyfiedHandler<APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2>;
+    .use(httpRequestEventParserMiddleware(eventSchema)) as unknown as middy.MiddyfiedHandler<
+    APIGatewayProxyEventV2,
+    APIGatewayProxyStructuredResultV2
+  >;
 }

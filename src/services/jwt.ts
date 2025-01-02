@@ -8,9 +8,14 @@ import type {
 import { v4 as uuidv4 } from 'uuid';
 import type { z } from 'zod';
 import {
-  type AccessToken, type OurAccessTokenClaims, type OurRefreshTokenClaims, type RefreshToken, accessTokenSchema,
+  type AccessToken,
+  type OurAccessTokenClaims,
+  type OurRefreshTokenClaims,
+  type RefreshToken,
+  accessTokenSchema,
   refreshTokenSchema
 } from '@model/Jwt';
+import { rejectWithErrorMessage } from './common/error-handling';
 
 export function accessJwtPayload(userId: UserId): OurAccessTokenClaims {
   return {
@@ -40,11 +45,10 @@ export function decodeJwt<T extends z.ZodTypeAny>(jwt: Jwt, jwtSchema: T): Promi
       return Promise.resolve(jwtSchema.parse(token) as z.infer<T>);
     } else {
       const msg = `JWT decoding failed. Most likely, the JWT was not a proper JSON`;
-      return Promise.reject(msg);
+      return Promise.reject(new Error(msg));
     }
-  } catch (error) {
-    const msg = `JWT decoding failed. Error: ${error}`;
-    return Promise.reject(msg);
+  } catch (error: unknown) {
+    return rejectWithErrorMessage('JWT decoding failed', error);
   }
 }
 
@@ -52,7 +56,7 @@ export function buildJwt<T extends z.ZodTypeAny>(
   payload: OurAccessTokenClaims | OurRefreshTokenClaims,
   jwtSchema: T,
   subject: string,
-  config: EncodeAccessJwtConfig  
+  config: EncodeAccessJwtConfig
 ): Promise<EncodedAndDecodedJwt<z.infer<T>>> {
   try {
     const encoded = jwtBuilder.sign(payload, config.privateKey, {
@@ -67,9 +71,8 @@ export function buildJwt<T extends z.ZodTypeAny>(
       encoded: encoded,
       decoded: decoded
     }));
-  } catch (error) {
-    const msg = `JWT could not be generated. ${error}`;
-    return Promise.reject(msg);
+  } catch (error: unknown) {
+    return rejectWithErrorMessage('JWT could not be generated', error);
   }
 }
 
@@ -78,8 +81,8 @@ export function buildJwts(
   encodeJwtConfig: EncodeAccessJwtConfig,
   encodeRefreshJwtConfig: EncodeRefreshJwtConfig
 ): Promise<EncodedAndDecodedJwts> {
-  function prependJwtType(type: string): (error: string) => Promise<EncodedAndDecodedJwt<never>> {
-    return (error: string) => Promise.reject(`${type} ${error}`);
+  function prependJwtType(type: string): (error: Error) => Promise<EncodedAndDecodedJwt<never>> {
+    return (error: Error) => Promise.reject(new Error(`${type} ${error.message}`));
   }
 
   return Promise.all([
@@ -108,9 +111,7 @@ export function decodeAndVerifyJwtSignature<T extends z.ZodTypeAny>(
       maxAge: config.expiresIn
     });
     return Promise.resolve(schema.parse(token));
-  } catch (error) {
-    const msg = `JWT verification failed. Error: ${error}`;
-    return Promise.reject(msg);
+  } catch (error: unknown) {
+    return rejectWithErrorMessage('JWT verification failed', error);
   }
 }
-

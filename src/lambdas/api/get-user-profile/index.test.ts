@@ -56,7 +56,7 @@ describe('GET user profile', () => {
       permissions: {}
     } as OurAccessTokenClaims;
     const event = (await testAuthedEvent({}, {}, payload)) as unknown as APIGatewayProxyEventV2;
-    const getUserByEmailFn = () => Promise.reject('Boom!');
+    const getUserByEmailFn = () => Promise.reject(new Error('Boom!'));
 
     return testit(event, getUserByEmailFn).then((resp) => {
       assert(resp, responseError(500));
