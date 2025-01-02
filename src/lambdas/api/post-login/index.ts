@@ -21,7 +21,7 @@ async function lambdaHandler(
 ): Promise<APIGatewayProxyStructuredResultV2> {
   const config = event.requestContext.config;
   const store = new RefreshTokenBaseStore(config.refreshTokenBaseStoreConfig, config.awsConfig);
-  return verifyGoogleIdentity(event.body['google-code'], config.googleOAuthClientConfig)
+  return verifyGoogleIdentity(event.body['googleCode'], config.googleOAuthClientConfig)
     .then((email) =>
       signInOrUpUser(email, config.userBaseStoreConfig, config.awsConfig)
         .then((user) =>
@@ -41,7 +41,7 @@ async function lambdaHandler(
 const eventSchema = APIGatewayProxyEventV2Schema.extend({
   body: JSONStringified(
     z.object({
-      'google-code': z.string()
+      googleCode: z.string()
     })
   ),
   requestContext: z.custom<ConfigRequestContext<LoginConfig>>()

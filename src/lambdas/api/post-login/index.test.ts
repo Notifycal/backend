@@ -63,7 +63,7 @@ describe('Login', () => {
 
   it('should sign up a user', () => {
     const event = testEvent({
-      'google-code': '<SOME-FAKE-GOOGLE-ID-TOKEN>'
+      googleCode: '<SOME-FAKE-GOOGLE-ID-TOKEN>'
     }) as unknown as APIGatewayProxyEventV2;
     const userEmail = 'success@notifycal.com';
     const idTokenVerificationFn = () => Promise.resolve(userEmail);
@@ -91,7 +91,7 @@ describe('Login', () => {
 
   it('should sign in a user', () => {
     const event = testEvent({
-      'google-code': '<SOME-FAKE-GOOGLE-ID-TOKEN>'
+      googleCode: '<SOME-FAKE-GOOGLE-ID-TOKEN>'
     }) as unknown as APIGatewayProxyEventV2;
     const userEmail = 'success@notifycal.com';
     const idTokenVerificationFn = () => Promise.resolve(userEmail);
@@ -164,7 +164,7 @@ describe('Login', () => {
 
   it('should fail id token verification with 401', () => {
     const event = testEvent({
-      'google-code': '<SOME-INCORRECT-GOOGLE-ID-TOKEN>'
+      googleCode: '<SOME-INCORRECT-GOOGLE-ID-TOKEN>'
     }) as unknown as APIGatewayProxyEventV2;
     const userEmail = 'failure@notifycal.com';
     const idTokenVerificationFn = () => Promise.reject(userEmail);
@@ -202,7 +202,7 @@ describe('Login', () => {
 
   it('should fail to generate JWT with 500', () => {
     const event = testEvent({
-      'google-code': '<SOME-FAKE-GOOGLE-ID-TOKEN>'
+      googleCode: '<SOME-FAKE-GOOGLE-ID-TOKEN>'
     }) as unknown as APIGatewayProxyEventV2;
     const userEmail = 'success@notifycal.com';
     const idTokenVerificationFn = () => Promise.resolve(userEmail);
@@ -221,7 +221,7 @@ describe('Login', () => {
 
   it('should fail if environment is not set correctly with 500', () => {
     const event = testEvent({
-      'google-code': '<SOME-FAKE-GOOGLE-ID-TOKEN>'
+      googleCode: '<SOME-FAKE-GOOGLE-ID-TOKEN>'
     }) as unknown as APIGatewayProxyEventV2;
     const userEmail = 'success@notifycal.com';
     const idTokenVerificationFn = () => Promise.resolve(userEmail);
@@ -243,7 +243,7 @@ describe('Login', () => {
 
   it('should fail if user cannot sign in or up with 500', () => {
     const event = testEvent({
-      'google-code': '<SOME-FAKE-GOOGLE-ID-TOKEN>'
+      googleCode: '<SOME-FAKE-GOOGLE-ID-TOKEN>'
     }) as unknown as APIGatewayProxyEventV2;
     const userEmail = 'success@notifycal.com';
     const idTokenVerificationFn = () => Promise.resolve(userEmail);
@@ -264,7 +264,7 @@ describe('Login', () => {
 
   it('should fail if refresh token cannot be stored with 500', () => {
     const event = testEvent({
-      'google-code': '<SOME-FAKE-GOOGLE-ID-TOKEN>'
+      googleCode: '<SOME-FAKE-GOOGLE-ID-TOKEN>'
     }) as unknown as APIGatewayProxyEventV2;
     const userEmail = 'success@notifycal.com';
     const idTokenVerificationFn = () => Promise.resolve(userEmail);

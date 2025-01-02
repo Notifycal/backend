@@ -12,15 +12,15 @@ import {
 } from '@testing/utils/config';
 import { assert } from '@testing/utils/assertions';
 import { RefreshConfig } from './config';
-import { RefreshTokenBaseStore } from '@services/refresh-token-base-store';
 import { RefreshTokenStoreRecord } from '@model/RefreshTokenStoreRecord';
 import { RefreshToken } from '@model/Jwt';
 import { responseError, responseSuccess } from '@services/common/api-response-handlers';
+import { RefreshTokenBaseStore } from '@services/refresh-token-base-store';
 
 describe('Refresh', () => {
   it('should renew both tokens', () => {
     const event = testEvent({
-      'refresh-token': validRefreshToken
+      refreshToken: validRefreshToken
     }) as unknown as APIGatewayProxyEventV2;
 
     const decodeAndVerifyJwtSignatureFn = () => Promise.resolve(validInitialDecodedRefreshToken);
@@ -67,7 +67,7 @@ describe('Refresh', () => {
   });
   it('fail if refresh token provided cannot be verified with 401', () => {
     const event = testEvent({
-      'refresh-token': validRefreshToken
+      refreshToken: validRefreshToken
     }) as unknown as APIGatewayProxyEventV2;
 
     const decodeAndVerifyJwtSignatureFn = () => Promise.reject('Boom!');
@@ -87,7 +87,7 @@ describe('Refresh', () => {
   });
   it('fail if refresh token is not longer present in storage with 403', () => {
     const event = testEvent({
-      'refresh-token': validRefreshToken
+      refreshToken: validRefreshToken
     }) as unknown as APIGatewayProxyEventV2;
 
     const decodeAndVerifyJwtSignatureFn = () => Promise.resolve(validInitialDecodedRefreshToken);
@@ -107,7 +107,7 @@ describe('Refresh', () => {
   });
   it('fail if refresh token cannot be obtained from storage with 500', () => {
     const event = testEvent({
-      'refresh-token': validRefreshToken
+      refreshToken: validRefreshToken
     }) as unknown as APIGatewayProxyEventV2;
 
     const decodeAndVerifyJwtSignatureFn = () => Promise.resolve(validInitialDecodedRefreshToken);
@@ -127,7 +127,7 @@ describe('Refresh', () => {
   });
   it('fail if refresh token provided does not match with refresh token stored with 403', () => {
     const event = testEvent({
-      'refresh-token': validRefreshToken
+      refreshToken: validRefreshToken
     }) as unknown as APIGatewayProxyEventV2;
 
     const decodeAndVerifyJwtSignatureFn = () => Promise.resolve(validInitialDecodedRefreshToken);
@@ -148,7 +148,7 @@ describe('Refresh', () => {
   });
   it('fail if new tokens cannot be generated with 500', () => {
     const event = testEvent({
-      'refresh-token': validRefreshToken
+      refreshToken: validRefreshToken
     }) as unknown as APIGatewayProxyEventV2;
 
     const decodeAndVerifyJwtSignatureFn = () => Promise.resolve(validInitialDecodedRefreshToken);
@@ -168,7 +168,7 @@ describe('Refresh', () => {
   });
   it('fail if new refresh token cannot be stored with 500', () => {
     const event = testEvent({
-      'refresh-token': validRefreshToken
+      refreshToken: validRefreshToken
     }) as unknown as APIGatewayProxyEventV2;
 
     const decodeAndVerifyJwtSignatureFn = () => Promise.resolve(validInitialDecodedRefreshToken);
