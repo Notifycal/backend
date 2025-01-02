@@ -6,63 +6,67 @@ import { GetUserProfileConfig } from './config';
 import { handler } from '.';
 import {
   setEnvAwsConfig,
-  setEnvDecodeJwtConfig,
+  setEnvDecodeAccessJwtConfig,
   setEnvUserBaseStoreConfig
 } from '@testing/utils/config';
-import { getDefaultDecodeJwtConfig } from '@testing/utils/jwt';
+import { getDefaultDecodeAccessJwtConfig } from '@testing/utils/jwt';
 import { UserBaseStore } from '@services/user-base-store';
 import { User } from '@model/User';
+import { OurAccessTokenClaims } from '@model/Jwt';
+import { responseError, responseSuccess } from '@services/common/api-response-handlers';
 
 describe('GET user profile', () => {
-  const OLD_ENV = process.env;
-
-  beforeEach(() => {
-    process.env = { ...OLD_ENV };
-  });
-
-  afterEach(() => {
-    process.env = OLD_ENV;
-    jest.clearAllMocks();
-  });
-
   it('return a user', async () => {
     const payload = {
       email: 'notifycal@gmail.com',
-      role: 'user'
-    };
+      role: 'user',
+      permissions: {}
+    } as OurAccessTokenClaims;
     const event = (await testAuthedEvent({}, {}, payload)) as unknown as APIGatewayProxyEventV2;
     const getUserByEmailFn = () => Promise.resolve({ UserId: payload.email });
 
     return testit(event, getUserByEmailFn).then((resp) => {
-      assert(resp, {
-        statusCode: 200,
-        body: JSON.stringify({
+      assert(
+        resp,
+        responseSuccess({
           UserId: payload.email
         })
-      });
+      );
     });
   });
 
   it('fail to return a user with 404 if not present in system', async () => {
     const payload = {
       email: 'notfound@gmail.com',
-      role: 'user'
-    };
+      role: 'user',
+      permissions: {}
+    } as OurAccessTokenClaims;
+    const event = (await testAuthedEvent({}, {}, payload)) as unknown as APIGatewayProxyEventV2;
+    const getUserByEmailFn = () => Promise.resolve(undefined);
+
+    return testit(event, getUserByEmailFn).then((resp) => {
+      assert(resp, responseError(404));
+    });
+  });
+
+  it('fail a user cannot be obtained from storage with 500', async () => {
+    const payload = {
+      email: 'notfound@gmail.com',
+      role: 'user',
+      permissions: {}
+    } as OurAccessTokenClaims;
     const event = (await testAuthedEvent({}, {}, payload)) as unknown as APIGatewayProxyEventV2;
     const getUserByEmailFn = () => Promise.reject('Boom!');
 
     return testit(event, getUserByEmailFn).then((resp) => {
-      assert(resp, {
-        statusCode: 404,
-        body: JSON.stringify({ message: 'Not Found' })
-      });
+      assert(resp, responseError(500));
     });
   });
 });
 
 function testit(
   event: APIGatewayProxyEventV2,
-  getUserByEmailResult: () => Promise<User>,
+  getUserByEmailResult: () => Promise<User | undefined>,
   env: GetUserProfileConfig = defaultEnv
 ): Promise<APIGatewayProxyStructuredResultV2> {
   setEnv(env);
@@ -71,7 +75,7 @@ function testit(
 }
 
 const defaultEnv = {
-  decodeJwtConfig: getDefaultDecodeJwtConfig(),
+  decodeAccessJwtConfig: getDefaultDecodeAccessJwtConfig(),
   userBaseStore: {
     tableName: 'Users-local'
   },
@@ -81,7 +85,7 @@ const defaultEnv = {
 };
 
 function setEnv(config: GetUserProfileConfig) {
-  setEnvDecodeJwtConfig(config.decodeJwtConfig);
+  setEnvDecodeAccessJwtConfig(config.decodeAccessJwtConfig);
   setEnvUserBaseStoreConfig(config.userBaseStore);
   setEnvAwsConfig(config.awsConfig);
 }

@@ -1,7 +1,13 @@
 import { Context } from 'aws-lambda/handler';
 import { APIGatewayProxyEventV2 } from '@aws-lambda-powertools/parser/types';
-import { getDefaultEncodeJwtConfig, testJwt } from './utils/jwt';
-import { EncodeJwtConfig } from '@lambdas/api/post-login/config';
+import {
+  getDefaultAccessTokenPayload,
+  getDefaultEncodeAccessJwtConfig,
+  testJwt
+} from './utils/jwt';
+import { EncodeAccessJwtConfig } from '@model/Config';
+import { accessTokenSchema, OurAccessTokenClaims } from '@model/Jwt';
+import { ZodSchema } from 'zod';
 
 export function unsafeTestEvent(
   /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
@@ -21,18 +27,16 @@ export function testEvent<T>(
 export function testAuthedEvent<T>(
   body: T,
   headers: Record<string, string> = {},
-  jwtPayload: object = {},
-  encodeJwtConfig: EncodeJwtConfig = getDefaultEncodeJwtConfig()
+  jwtPayload: OurAccessTokenClaims = getDefaultAccessTokenPayload(),
+  jwtSchema: ZodSchema = accessTokenSchema,
+  encodeJwtConfig: EncodeAccessJwtConfig = getDefaultEncodeAccessJwtConfig()
 ): Promise<APIGatewayProxyEventV2> {
-  return testJwt(jwtPayload, encodeJwtConfig).then((jwt) =>
+  return testJwt(jwtPayload, jwtSchema, encodeJwtConfig).then((jwt) =>
     ttestEvent(JSON.stringify(body), { ...headers, Authorization: `Bearer ${jwt}` })
   );
 }
 
-export function ttestEvent(
-  body: string,
-  headers: Record<string, string> = {}
-): APIGatewayProxyEventV2 {
+function ttestEvent(body: string, headers: Record<string, string> = {}): APIGatewayProxyEventV2 {
   return {
     body: body,
     version: '2.0',

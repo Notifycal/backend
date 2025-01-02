@@ -1,16 +1,49 @@
-import { DecodeJwtConfig } from '@model/Config';
+import {
+  DecodeAccessJwtConfig,
+  DecodeRefreshJwtConfig,
+  EncodeAccessJwtConfig,
+  EncodeRefreshJwtConfig
+} from '@model/Config';
 import { AwsConfig } from '@model/Config';
+import { RefreshTokenBaseStoreConfig } from '@services/refresh-token-base-store';
 import { UserBaseStoreConfig } from '@services/user-base-store';
 
-export function setEnvDecodeJwtConfig(config: DecodeJwtConfig) {
-  process.env.JWT_PUBLIC_KEY = config.publicKey;
-  process.env.JWT_AUDIENCE = config.audience;
-  process.env.JWT_ISSUER = config.issuer;
-  process.env.JWT_EXPIRATION = config.expiresIn;
+export function setEnvEncodeAccessJwtConfig(config: EncodeAccessJwtConfig) {
+  process.env.ACCESS_JWT_PRIVATE_KEY = config.privateKey;
+  process.env.ACCESS_JWT_ALGORITHM = config.algorithm;
+  process.env.ACCESS_JWT_ISSUER = config.issuer;
+  process.env.ACCESS_JWT_AUDIENCE = config.audience;
+  process.env.ACCESS_JWT_EXPIRATION = config.expiresIn;
+}
+
+export function setEnvEncodeRefreshJwtConfig(config: EncodeRefreshJwtConfig) {
+  process.env.REFRESH_JWT_PRIVATE_KEY = config.privateKey;
+  process.env.REFRESH_JWT_ALGORITHM = config.algorithm;
+  process.env.REFRESH_JWT_ISSUER = config.issuer;
+  process.env.REFRESH_JWT_AUDIENCE = config.audience;
+  process.env.REFRESH_JWT_EXPIRATION = config.expiresIn;
+}
+
+export function setEnvDecodeAccessJwtConfig(config: DecodeAccessJwtConfig) {
+  process.env.ACCESS_JWT_PUBLIC_KEY = config.publicKey;
+  process.env.ACCESS_JWT_AUDIENCE = config.audience;
+  process.env.ACCESS_JWT_ISSUER = config.issuer;
+  process.env.ACCESS_JWT_EXPIRATION = config.expiresIn;
+}
+
+export function setEnvDecodeRefreshJwtConfig(config: DecodeRefreshJwtConfig) {
+  process.env.REFRESH_JWT_PUBLIC_KEY = config.publicKey;
+  process.env.REFRESH_JWT_AUDIENCE = config.audience;
+  process.env.REFRESH_JWT_ISSUER = config.issuer;
+  process.env.REFRESH_JWT_EXPIRATION = config.expiresIn;
 }
 
 export function setEnvUserBaseStoreConfig(config: UserBaseStoreConfig) {
   process.env.USERS_TABLE_NAME = config.tableName;
+}
+
+export function setEnvRefreshTokenBaseStoreConfig(config: RefreshTokenBaseStoreConfig) {
+  process.env.REFRESH_TOKENS_TABLE_NAME = config.tableName;
 }
 
 export function setEnvAwsConfig(config: AwsConfig) {

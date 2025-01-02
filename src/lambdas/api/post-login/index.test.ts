@@ -1,5 +1,5 @@
 import { describe, jest } from '@jest/globals';
-import { EncodeJwtConfig, LoginConfig } from './config';
+import { LoginConfig } from './config';
 import { handler } from './index';
 import * as loginService from '@services/login';
 import * as googleOAuth from '@services/google-oauth';
@@ -7,21 +7,59 @@ import * as jwt from '@services/jwt';
 import { type APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2 } from 'aws-lambda';
 import { c, testEvent, unsafeTestEvent } from '@testing/apigateway';
 import { User } from '@model/User';
-import { Jwt, Email } from '@own-types/model';
+import { Email } from '@own-types/model';
 import { assert } from '@testing/utils/assertions';
-import { setEnvAwsConfig, setEnvUserBaseStoreConfig } from '@testing/utils/config';
-
+import {
+  setEnvAwsConfig,
+  setEnvEncodeAccessJwtConfig,
+  setEnvEncodeRefreshJwtConfig,
+  setEnvRefreshTokenBaseStoreConfig,
+  setEnvUserBaseStoreConfig
+} from '@testing/utils/config';
+import { RefreshTokenBaseStore } from '@services/refresh-token-base-store';
+import { responseError, responseSuccess } from '@services/common/api-response-handlers';
 describe('Login', () => {
-  const OLD_ENV = process.env;
-
-  beforeEach(() => {
-    process.env = { ...OLD_ENV };
-  });
-
-  afterEach(() => {
-    process.env = OLD_ENV;
-    jest.clearAllMocks();
-  });
+  const validJwts: jwt.EncodedAndDecodedJwts = {
+    accessToken: {
+      encoded: 'some_valid_access_jwt',
+      decoded: {
+        header: {
+          alg: 'ES256',
+          typ: 'JWT'
+        },
+        payload: {
+          email: 'test@notifycal.com',
+          role: 'user',
+          permissions: {},
+          iat: 1735311407,
+          exp: 1735512345,
+          aud: 'local.notifycal.com',
+          iss: 'local.notifycal.com',
+          sub: 'SomeSubjectIdentifyingTheUser',
+          jti: '9999999-d54b-4f70-90e1-59c02d0e7a02'
+        },
+        signature: 'some_signature'
+      }
+    },
+    refreshToken: {
+      encoded: 'some_valid_refresh_jwt',
+      decoded: {
+        header: {
+          alg: 'ES256',
+          typ: 'JWT'
+        },
+        payload: {
+          iat: 1735311407,
+          exp: 1735599999,
+          aud: 'local.notifycal.com',
+          iss: 'local.notifycal.com',
+          sub: 'SomeSubjectIdentifyingTheUser',
+          jti: '8888888-d54b-4f70-90e1-59c02d0e7a02'
+        },
+        signature: 'some_signature'
+      }
+    }
+  };
 
   it('should sign up a user', () => {
     const event = testEvent({
@@ -29,19 +67,25 @@ describe('Login', () => {
     }) as unknown as APIGatewayProxyEventV2;
     const userEmail = 'success@notifycal.com';
     const idTokenVerificationFn = () => Promise.resolve(userEmail);
-    const validJwt = 'some_valid_jwt';
-    const jwtBuildFn = () => Promise.resolve(validJwt);
+    const buildJwtsFn = () => Promise.resolve(validJwts);
     const signInOrUpUserFn = () => Promise.resolve({ UserId: userEmail });
+    const putRefreshTokenFn = () => Promise.resolve(null);
 
-    return testit(event, idTokenVerificationFn, jwtBuildFn, signInOrUpUserFn).then((resp) => {
-      assert(resp, {
-        statusCode: 200,
-        body: JSON.stringify({
-          accessToken: validJwt,
+    return testit(
+      event,
+      idTokenVerificationFn,
+      buildJwtsFn,
+      signInOrUpUserFn,
+      putRefreshTokenFn
+    ).then((resp) => {
+      assert(
+        resp,
+        responseSuccess({
+          accessToken: validJwts.accessToken.encoded,
           tokenType: 'Bearer',
-          refreshToken: 'WIP'
+          refreshToken: validJwts.refreshToken.encoded
         })
-      });
+      );
     });
   });
 
@@ -51,22 +95,69 @@ describe('Login', () => {
     }) as unknown as APIGatewayProxyEventV2;
     const userEmail = 'success@notifycal.com';
     const idTokenVerificationFn = () => Promise.resolve(userEmail);
-    const validJwt1 = 'some_valid_jwt_1';
-    const jwtBuildFn1 = () => Promise.resolve(validJwt1);
-    const validJwt2 = 'some_valid_jwt_2';
-    const jwtBuildFn2 = () => Promise.resolve(validJwt2);
+    const buildJwtsFn1 = () => Promise.resolve(validJwts);
+    const validJwts2: jwt.EncodedAndDecodedJwts = {
+      accessToken: {
+        encoded: 'some_valid_access_jwt2',
+        decoded: {
+          header: {
+            alg: 'ES256',
+            typ: 'JWT'
+          },
+          payload: {
+            email: 'test@notifycal.com',
+            role: 'user',
+            permissions: {},
+            iat: 1735311407,
+            exp: 1735512345,
+            aud: 'local.notifycal.com',
+            iss: 'local.notifycal.com',
+            sub: 'SomeSubjectIdentifyingTheUser',
+            jti: '9999999-d54b-4f70-90e1-59c02d0e7a02'
+          },
+          signature: 'some_signature'
+        }
+      },
+      refreshToken: {
+        encoded: 'some_valid_refresh_jwt2',
+        decoded: {
+          header: {
+            alg: 'ES256',
+            typ: 'JWT'
+          },
+          payload: {
+            iat: 1735311407,
+            exp: 1735599999,
+            aud: 'local.notifycal.com',
+            iss: 'local.notifycal.com',
+            sub: 'SomeSubjectIdentifyingTheUser',
+            jti: '8888888-d54b-4f70-90e1-59c02d0e7a02'
+          },
+          signature: 'some_signature'
+        }
+      }
+    };
+    const buildJwtsFn2 = () => Promise.resolve(validJwts2);
     const signInOrUpUserFn = () => Promise.resolve({ UserId: userEmail });
+    const putRefreshTokenFn = () => Promise.resolve(null);
 
-    return testit(event, idTokenVerificationFn, jwtBuildFn1, signInOrUpUserFn).then(() =>
-      testit(event, idTokenVerificationFn, jwtBuildFn2, signInOrUpUserFn).then((resp) =>
-        assert(resp, {
-          statusCode: 200,
-          body: JSON.stringify({
-            accessToken: validJwt2,
-            tokenType: 'Bearer',
-            refreshToken: 'WIP'
-          })
-        })
+    return testit(
+      event,
+      idTokenVerificationFn,
+      buildJwtsFn1,
+      signInOrUpUserFn,
+      putRefreshTokenFn
+    ).then(() =>
+      testit(event, idTokenVerificationFn, buildJwtsFn2, signInOrUpUserFn, putRefreshTokenFn).then(
+        (resp) =>
+          assert(
+            resp,
+            responseSuccess({
+              accessToken: validJwts2.accessToken.encoded,
+              tokenType: 'Bearer',
+              refreshToken: validJwts2.refreshToken.encoded
+            })
+          )
       )
     );
   });
@@ -77,16 +168,17 @@ describe('Login', () => {
     }) as unknown as APIGatewayProxyEventV2;
     const userEmail = 'failure@notifycal.com';
     const idTokenVerificationFn = () => Promise.reject(userEmail);
-    const validJwt = 'some_valid_jwt';
-    const jwtBuildFn = () => Promise.resolve(validJwt);
+    const buildJwtsFn = () => Promise.resolve(validJwts);
     const signInOrUpUserFn = () => Promise.resolve({ UserId: userEmail });
+    const putRefreshTokenFn = () => Promise.resolve(null);
 
-    return testit(event, idTokenVerificationFn, jwtBuildFn, signInOrUpUserFn).then((resp) =>
-      assert(resp, {
-        statusCode: 401,
-        body: JSON.stringify({ message: 'Unauthorised' })
-      })
-    );
+    return testit(
+      event,
+      idTokenVerificationFn,
+      buildJwtsFn,
+      signInOrUpUserFn,
+      putRefreshTokenFn
+    ).then((resp) => assert(resp, responseError(401)));
   });
 
   it('should fail input validation with 400', () => {
@@ -95,19 +187,17 @@ describe('Login', () => {
     }) as unknown as APIGatewayProxyEventV2;
     const userEmail = 'success@notifycal.com';
     const idTokenVerificationFn = () => Promise.resolve(userEmail);
-    const validJwt = 'some_valid_jwt';
-    const jwtBuildFn = () => Promise.resolve(validJwt);
+    const buildJwtsFn = () => Promise.resolve(validJwts);
     const signInOrUpUserFn = () => Promise.resolve({ UserId: userEmail });
+    const putRefreshTokenFn = () => Promise.resolve(null);
 
-    return testit(event, idTokenVerificationFn, jwtBuildFn, signInOrUpUserFn).then((resp) =>
-      assert(resp, {
-        statusCode: 400,
-        body: JSON.stringify({ message: 'Bad Request' }),
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      })
-    );
+    return testit(
+      event,
+      idTokenVerificationFn,
+      buildJwtsFn,
+      signInOrUpUserFn,
+      putRefreshTokenFn
+    ).then((resp) => assert(resp, responseError(400)));
   });
 
   it('should fail to generate JWT with 500', () => {
@@ -116,15 +206,17 @@ describe('Login', () => {
     }) as unknown as APIGatewayProxyEventV2;
     const userEmail = 'success@notifycal.com';
     const idTokenVerificationFn = () => Promise.resolve(userEmail);
-    const jwtBuildFn = () => Promise.reject('Boooom!');
+    const buildJwtsFn = () => Promise.reject('Boooom!');
     const signInOrUpUserFn = () => Promise.resolve({ UserId: userEmail });
+    const putRefreshTokenFn = () => Promise.resolve(null);
 
-    return testit(event, idTokenVerificationFn, jwtBuildFn, signInOrUpUserFn).then((resp) =>
-      assert(resp, {
-        statusCode: 500,
-        body: JSON.stringify({ message: 'KO' })
-      })
-    );
+    return testit(
+      event,
+      idTokenVerificationFn,
+      buildJwtsFn,
+      signInOrUpUserFn,
+      putRefreshTokenFn
+    ).then((resp) => assert(resp, responseError(500)));
   });
 
   it('should fail if environment is not set correctly with 500', () => {
@@ -133,24 +225,20 @@ describe('Login', () => {
     }) as unknown as APIGatewayProxyEventV2;
     const userEmail = 'success@notifycal.com';
     const idTokenVerificationFn = () => Promise.resolve(userEmail);
-    const jwtBuildFn = () => Promise.resolve('JWT build error');
+    const buildJwtsFn = () => Promise.resolve(validJwts);
     const signInOrUpUserFn = () => Promise.resolve({ UserId: userEmail });
-    const env = {
-      ...defaultEnv,
-      googleOAuthClient: {
-        clientId: undefined as unknown as string
-      }
-    } as LoginConfig;
+    const putRefreshTokenFn = () => Promise.resolve(null);
+    const env = structuredClone(defaultEnv);
+    env.googleOAuthClientConfig.clientId = undefined as unknown as string;
 
-    return testit(event, idTokenVerificationFn, jwtBuildFn, signInOrUpUserFn, env).then((resp) =>
-      assert(resp, {
-        statusCode: 500,
-        body: JSON.stringify({ message: 'KO' }),
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      })
-    );
+    return testit(
+      event,
+      idTokenVerificationFn,
+      buildJwtsFn,
+      signInOrUpUserFn,
+      putRefreshTokenFn,
+      env
+    ).then((resp) => assert(resp, responseError(500)));
   });
 
   it('should fail if user cannot sign in or up with 500', () => {
@@ -159,48 +247,84 @@ describe('Login', () => {
     }) as unknown as APIGatewayProxyEventV2;
     const userEmail = 'success@notifycal.com';
     const idTokenVerificationFn = () => Promise.resolve(userEmail);
-    const validJwt = 'some_valid_jwt';
-    const jwtBuildFn = () => Promise.resolve(validJwt);
+    const buildJwtsFn = () => Promise.resolve(validJwts);
     const signInOrUpUserFn = () => Promise.reject('Error to sign in or up a user');
+    const putRefreshTokenFn = () => Promise.resolve(null);
 
-    return testit(event, idTokenVerificationFn, jwtBuildFn, signInOrUpUserFn).then((resp) => {
-      assert(resp, {
-        statusCode: 500,
-        body: JSON.stringify({ message: 'KO' })
-      });
+    return testit(
+      event,
+      idTokenVerificationFn,
+      buildJwtsFn,
+      signInOrUpUserFn,
+      putRefreshTokenFn
+    ).then((resp) => {
+      assert(resp, responseError(500));
+    });
+  });
+
+  it('should fail if refresh token cannot be stored with 500', () => {
+    const event = testEvent({
+      'google-code': '<SOME-FAKE-GOOGLE-ID-TOKEN>'
+    }) as unknown as APIGatewayProxyEventV2;
+    const userEmail = 'success@notifycal.com';
+    const idTokenVerificationFn = () => Promise.resolve(userEmail);
+    const buildJwtsFn = () => Promise.resolve(validJwts);
+    const signInOrUpUserFn = () => Promise.resolve({ UserId: userEmail });
+    const putRefreshTokenFn = () => Promise.reject('Boom!');
+
+    return testit(
+      event,
+      idTokenVerificationFn,
+      buildJwtsFn,
+      signInOrUpUserFn,
+      putRefreshTokenFn
+    ).then((resp) => {
+      assert(resp, responseError(500));
     });
   });
 });
 
 function testit(
   event: APIGatewayProxyEventV2,
-  idTokenVerificationResult: () => Promise<Email>,
-  jwtBuildResult: () => Promise<Jwt>,
-  signInOrUpUserResult: () => Promise<User>,
+  idTokenVerificationFn: () => Promise<Email>,
+  buildJwtsFn: () => Promise<jwt.EncodedAndDecodedJwts>,
+  signInOrUpUserFn: () => Promise<User>,
+  putRefreshTokenFn: () => Promise<null>,
   env: LoginConfig = defaultEnv
 ): Promise<APIGatewayProxyStructuredResultV2> {
   setEnv(env);
-  jest.spyOn(googleOAuth, 'verifyGoogleIdentity').mockImplementation(idTokenVerificationResult);
-  jest.spyOn(jwt, 'buildJwt').mockImplementation(jwtBuildResult);
-  jest.spyOn(loginService, 'signInOrUpUser').mockImplementation(signInOrUpUserResult);
+  jest.spyOn(googleOAuth, 'verifyGoogleIdentity').mockImplementation(idTokenVerificationFn);
+  jest.spyOn(jwt, 'buildJwts').mockImplementation(buildJwtsFn);
+  jest.spyOn(RefreshTokenBaseStore.prototype, 'putToken').mockImplementation(putRefreshTokenFn);
+  jest.spyOn(loginService, 'signInOrUpUser').mockImplementation(signInOrUpUserFn);
   return handler(event, c);
 }
 
 const defaultEnv: LoginConfig = {
-  encodeJwtConfig: {
+  encodeAccessJwtConfig: {
     privateKey: `some_fake_private_key`,
     algorithm: 'ES256',
     issuer: 'test@notifycal.com',
     audience: 'test@notifycal.com',
     expiresIn: '5m'
   },
-  googleOAuthClient: {
-    clientId: '658640078137-omuaokg6rcajv50879674moielbpvljl.apps.googleusercontent.com',
+  encodeRefreshJwtConfig: {
+    privateKey: `some_other_fake_private_key`,
+    algorithm: 'ES256',
+    issuer: 'test@notifycal.com',
+    audience: 'test@notifycal.com',
+    expiresIn: '7d'
+  },
+  googleOAuthClientConfig: {
+    clientId: 'some_valid_google_app_url',
     clientSecret: 'some_valid_secret',
     redirectUri: 'http://localhost:5173'
   },
-  userBaseStore: {
+  userBaseStoreConfig: {
     tableName: 'Users-local'
+  },
+  refreshTokenBaseStoreConfig: {
+    tableName: 'RefreshTokens-local'
   },
   awsConfig: {
     awsRegion: 'eu-west-1'
@@ -208,17 +332,12 @@ const defaultEnv: LoginConfig = {
 };
 
 function setEnv(config: LoginConfig) {
-  setEnvEncodeJwtConfig(config.encodeJwtConfig);
-  setEnvGoogleOAuthClientConfig(config.googleOAuthClient);
-  setEnvUserBaseStoreConfig(config.userBaseStore);
+  setEnvEncodeAccessJwtConfig(config.encodeAccessJwtConfig);
+  setEnvEncodeRefreshJwtConfig(config.encodeRefreshJwtConfig);
+  setEnvGoogleOAuthClientConfig(config.googleOAuthClientConfig);
+  setEnvUserBaseStoreConfig(config.userBaseStoreConfig);
+  setEnvRefreshTokenBaseStoreConfig(config.refreshTokenBaseStoreConfig);
   setEnvAwsConfig(config.awsConfig);
-}
-
-function setEnvEncodeJwtConfig(config: EncodeJwtConfig) {
-  process.env.JWT_PRIVATE_KEY = config.privateKey;
-  process.env.JWT_ALGORITHM = config.algorithm;
-  process.env.JWT_ISSUER = config.issuer;
-  process.env.JWT_EXPIRATION = config.expiresIn;
 }
 
 function setEnvGoogleOAuthClientConfig(config: googleOAuth.GoogleOAuthConfig) {

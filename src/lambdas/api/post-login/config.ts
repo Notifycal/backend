@@ -1,40 +1,38 @@
-import { AwsConfig } from '@model/Config';
+import { AwsConfig, EncodeAccessJwtConfig, EncodeRefreshJwtConfig } from '@model/Config';
 import { GoogleOAuthConfig } from '@services/google-oauth';
 import { UserBaseStoreConfig } from '@services/user-base-store';
-import { readAwsConfig, readEnv } from '@services/common/config';
+import {
+  readAwsConfig,
+  readEncodeAccessJwtConfig,
+  readEncodeRefreshJwtConfig,
+  readEnv
+} from '@services/common/config';
+import { RefreshTokenBaseStoreConfig } from '@services/refresh-token-base-store';
 
 export interface LoginConfig {
-  encodeJwtConfig: EncodeJwtConfig;
-  googleOAuthClient: GoogleOAuthConfig;
-  userBaseStore: UserBaseStoreConfig;
+  encodeAccessJwtConfig: EncodeAccessJwtConfig;
+  encodeRefreshJwtConfig: EncodeRefreshJwtConfig;
+  googleOAuthClientConfig: GoogleOAuthConfig;
+  userBaseStoreConfig: UserBaseStoreConfig;
+  refreshTokenBaseStoreConfig: RefreshTokenBaseStoreConfig;
   awsConfig: AwsConfig;
-}
-
-export interface EncodeJwtConfig {
-  privateKey: string;
-  algorithm: string;
-  issuer: string;
-  audience: string;
-  expiresIn: string;
 }
 
 export function readLoginConfig(): LoginConfig {
   const env = readEnv();
   return {
-    encodeJwtConfig: {
-      privateKey: env.get('JWT_PRIVATE_KEY').required().asString(),
-      algorithm: env.get('JWT_ALGORITHM').required().default('RS256').asString(),
-      issuer: env.get('JWT_ISSUER').required().default('notifycal.com').asString(),
-      audience: env.get('JWT_AUDIENCE').required().default('notifycal.com').asString(),
-      expiresIn: env.get('JWT_EXPIRATION').required().default('5m').asString()
-    },
-    googleOAuthClient: {
+    encodeAccessJwtConfig: readEncodeAccessJwtConfig(env),
+    encodeRefreshJwtConfig: readEncodeRefreshJwtConfig(env),
+    googleOAuthClientConfig: {
       clientId: env.get('GOOGLE_OAUTH_CLIENT_ID').required().asString(),
       clientSecret: env.get('GOOGLE_OAUTH_CLIENT_SECRET').required().asString(),
       redirectUri: env.get('GOOGLE_OAUTH_CLIENT_REDIRECT_URI').required().asString()
     },
-    userBaseStore: {
+    userBaseStoreConfig: {
       tableName: env.get('USERS_TABLE_NAME').required().asString()
+    },
+    refreshTokenBaseStoreConfig: {
+      tableName: env.get('REFRESH_TOKENS_TABLE_NAME').required().asString()
     },
     awsConfig: readAwsConfig(env)
   };

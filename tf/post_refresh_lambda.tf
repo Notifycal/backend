@@ -1,11 +1,11 @@
-module "post_login_lambda" {
+module "post_refresh_lambda" {
   source  = "terraform-aws-modules/lambda/aws"
   version = "~> 7.17"
 
-  function_name          = "post-login-${var.environment}"
+  function_name          = "post-refresh-${var.environment}"
   publish                = true
   create_package         = false
-  local_existing_package = "${path.root}/../dist/lambdas/api/post-login.zip"
+  local_existing_package = "${path.root}/../dist/lambdas/api/post-refresh.zip"
 
   runtime     = "nodejs22.x"
   timeout     = 30
@@ -19,7 +19,7 @@ module "post_login_lambda" {
   maximum_retry_attempts = 0
 
   tags = merge({
-    Api = "POST /login"
+    Api = "POST /refresh"
   }, local.common_tags)
 
   allowed_triggers = {
@@ -35,9 +35,7 @@ module "post_login_lambda" {
   }
 
   environment_variables = merge({
-    GOOGLE_OAUTH_CLIENT_ID           = data.aws_ssm_parameter.google_oauth_client_id.value
-    GOOGLE_OAUTH_CLIENT_SECRET       = data.aws_ssm_parameter.google_oauth_client_secret.value
-    GOOGLE_OAUTH_CLIENT_REDIRECT_URI = data.aws_ssm_parameter.google_oauth_client_redirect_url.value
-    USERS_TABLE_NAME                 = aws_dynamodb_table.users.name
+    REFRESH_JWT_PUBLIC_KEY    = data.aws_ssm_parameter.refresh_jwt_public_key.value
+    REFRESH_TOKENS_TABLE_NAME = aws_dynamodb_table.users.name
   }, local.login_and_refresh_env_vars, local.common_lambda_env_vars)
 }
