@@ -19,8 +19,9 @@ async function lambdaHandler(
 ): Promise<APIGatewayProxyStructuredResultV2> {
   const config = event.requestContext.config;
   const store = new RefreshTokenBaseStore(config.refreshTokenBaseStoreConfig, config.awsConfig);
+  const refreshToken = event.body['refreshToken'];
   return decodeAndVerifyJwtSignature(
-    event.body['refresh-token'],
+    refreshToken,
     refreshTokenSchema,
     config.decodeRefreshJwtConfig
   )
@@ -28,7 +29,7 @@ async function lambdaHandler(
       return store
         .getTokenBy(jwt.payload.sub, jwt.payload.jti)
         .then((storedToken) => {
-          if (storedToken && storedToken.RefreshToken === event.body['refresh-token']) {
+          if (storedToken && storedToken.RefreshToken === refreshToken) {
             return buildJwtsAndStoreRefreshJwt(
               storedToken.UserId,
               config.encodeAccessJwtConfig,
@@ -51,7 +52,7 @@ async function lambdaHandler(
 const eventSchema = APIGatewayProxyEventV2Schema.extend({
   body: JSONStringified(
     z.object({
-      'refresh-token': z.string()
+      refreshToken: z.string()
     })
   ),
   requestContext: z.custom<ConfigRequestContext<RefreshConfig>>()
