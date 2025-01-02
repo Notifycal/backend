@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 const OLD_ENV = JSON.parse(JSON.stringify(process.env));
 
 global.beforeEach(() => {

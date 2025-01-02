@@ -1,13 +1,13 @@
 import { describe, jest } from '@jest/globals';
-import { LoginConfig } from './config';
+import type { LoginConfig } from './config';
 import { handler } from './index';
 import * as loginService from '@services/login';
 import * as googleOAuth from '@services/google-oauth';
 import * as jwt from '@services/jwt';
-import { type APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2 } from 'aws-lambda';
+import type { APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2 } from 'aws-lambda';
 import { c, testEvent, unsafeTestEvent } from '@testing/apigateway';
-import { User } from '@model/User';
-import { Email } from '@own-types/model';
+import type { User } from '@model/User';
+import type { Email } from '@own-types/model';
 import { assert } from '@testing/utils/assertions';
 import {
   setEnvAwsConfig,
@@ -150,14 +150,14 @@ describe('Login', () => {
     ).then(() =>
       testit(event, idTokenVerificationFn, buildJwtsFn2, signInOrUpUserFn, putRefreshTokenFn).then(
         (resp) =>
-          assert(
+          { assert(
             resp,
             responseSuccess({
               accessToken: validJwts2.accessToken.encoded,
               tokenType: 'Bearer',
               refreshToken: validJwts2.refreshToken.encoded
             })
-          )
+          ); }
       )
     );
   });
@@ -178,7 +178,7 @@ describe('Login', () => {
       buildJwtsFn,
       signInOrUpUserFn,
       putRefreshTokenFn
-    ).then((resp) => assert(resp, responseError(401)));
+    ).then((resp) => { assert(resp, responseError(401)); });
   });
 
   it('should fail input validation with 400', () => {
@@ -197,7 +197,7 @@ describe('Login', () => {
       buildJwtsFn,
       signInOrUpUserFn,
       putRefreshTokenFn
-    ).then((resp) => assert(resp, responseError(400)));
+    ).then((resp) => { assert(resp, responseError(400)); });
   });
 
   it('should fail to generate JWT with 500', () => {
@@ -216,7 +216,7 @@ describe('Login', () => {
       buildJwtsFn,
       signInOrUpUserFn,
       putRefreshTokenFn
-    ).then((resp) => assert(resp, responseError(500)));
+    ).then((resp) => { assert(resp, responseError(500)); });
   });
 
   it('should fail if environment is not set correctly with 500', () => {
@@ -238,7 +238,7 @@ describe('Login', () => {
       signInOrUpUserFn,
       putRefreshTokenFn,
       env
-    ).then((resp) => assert(resp, responseError(500)));
+    ).then((resp) => { assert(resp, responseError(500)); });
   });
 
   it('should fail if user cannot sign in or up with 500', () => {

@@ -1,6 +1,6 @@
-import { LogItemMessage } from '@aws-lambda-powertools/logger/types';
+import type { LogItemMessage } from '@aws-lambda-powertools/logger/types';
 import { logger } from '@common/powertools';
-import { APIGatewayProxyStructuredResultV2 } from 'aws-lambda';
+import type { APIGatewayProxyStructuredResultV2 } from 'aws-lambda';
 
 const headers = {
   'Content-Type': 'application/json'
@@ -13,6 +13,22 @@ const errorMessages: Record<number, string> = {
   404: 'Not Found',
   500: 'KO'
 };
+
+export function responseSuccess(body: object, statusCode = 200): APIGatewayProxyStructuredResultV2 {
+  return {
+    statusCode,
+    body: JSON.stringify(body),
+    headers
+  };
+}
+
+export function responseError(statusCode: keyof typeof errorMessages): APIGatewayProxyStructuredResultV2 {
+  return {
+    statusCode,
+    body: JSON.stringify({ message: errorMessages[statusCode] }),
+    headers
+  };
+}
 
 export const successHandler =
   (statusCode = 200) =>
@@ -30,19 +46,3 @@ export const errorHandler =
     }
     return responseError(statusCode);
   };
-
-export function responseSuccess(body: object, statusCode = 200) {
-  return {
-    statusCode,
-    body: JSON.stringify(body),
-    headers
-  };
-}
-
-export function responseError(statusCode: keyof typeof errorMessages) {
-  return {
-    statusCode,
-    body: JSON.stringify({ message: errorMessages[statusCode] }),
-    headers
-  };
-}

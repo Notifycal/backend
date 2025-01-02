@@ -1,5 +1,5 @@
-import { AccessToken } from '@model/Jwt';
-import { IEnv, IOptionalVariable, ExtenderTypeOptional } from 'env-var';
+import type { AccessToken } from '@model/Jwt';
+import type { IEnv, IOptionalVariable, ExtenderTypeOptional } from 'env-var';
 
 export type Jwt = string;
 export type Email = string;

@@ -1,13 +1,13 @@
 import { PutCommand, GetCommand } from '@aws-sdk/lib-dynamodb';
-import { User } from '@model/User';
-import { Email } from '@own-types/model';
-import { BaseStore, BaseStoreConfig } from './common/base-store';
-import { AwsConfig } from '@model/Config';
+import type { User } from '@model/User';
+import type { Email } from '@own-types/model';
+import { BaseStore, type BaseStoreConfig } from './common/base-store';
+import type { AwsConfig } from '@model/Config';
 
 export type UserBaseStoreConfig = BaseStoreConfig;
 
 export class UserBaseStore extends BaseStore<UserBaseStoreConfig> {
-  constructor(config: UserBaseStoreConfig, awsConfig: AwsConfig) {
+  public constructor(config: UserBaseStoreConfig, awsConfig: AwsConfig) {
     super(config, awsConfig);
   }
 

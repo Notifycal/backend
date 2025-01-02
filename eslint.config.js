@@ -134,7 +134,9 @@ const jestConfig = {
       {
         assertFunctionNames: ['expect', 'assert']
       }
-    ]
+    ],
+    'no-use-before-define': 'off',
+    '@typescript-eslint/explicit-function-return-type': 'off'
   },
   settings: {
     jest: {
@@ -148,7 +150,10 @@ const eslintConfig = typescriptEslint.config(
   typescriptConfig,
   eslintConfigPrettier,
   unicornConfig,
-  jestConfig
+  jestConfig,
+  {
+    ignores: ['dist/**/*', 'eslint.config.js', 'tf/**/*']
+  }
 );
 
 export default eslintConfig;

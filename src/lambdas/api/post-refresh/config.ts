@@ -1,4 +1,4 @@
-import {
+import type {
   AwsConfig,
   DecodeRefreshJwtConfig,
   EncodeAccessJwtConfig,
@@ -11,7 +11,7 @@ import {
   readEncodeRefreshJwtConfig,
   readEnv
 } from '@services/common/config';
-import { RefreshTokenBaseStoreConfig } from '@services/refresh-token-base-store';
+import type { RefreshTokenBaseStoreConfig } from '@services/refresh-token-base-store';
 
 export interface RefreshConfig {
   encodeAccessJwtConfig: EncodeAccessJwtConfig;

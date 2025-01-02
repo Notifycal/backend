@@ -1,14 +1,15 @@
+import type { DecodeAccessJwtConfig } from './../../model/Config';
 import { buildJwt } from '@services/jwt';
 import dotenv from 'dotenv';
 import path from 'path';
 import * as fs from 'fs';
-import { EncodeAccessJwtConfig } from '@model/Config';
-import { accessTokenSchema, OurAccessTokenClaims } from '@model/Jwt';
-import { ZodSchema } from 'zod';
+import type { EncodeAccessJwtConfig } from '@model/Config';
+import { type OurAccessTokenClaims, accessTokenSchema } from '@model/Jwt';
+import type { ZodSchema } from 'zod';
 
 // Lazy evaluation all over the place so express doesn't attempt to load what it mustn't
-const loadDevConfig = (() => {
-  let devConfig: Record<string, string> | undefined;
+const loadDevConfig: () => Record<string, string> = (() => {
+  let devConfig: Record<string, string>;
 
   return () => {
     if (!devConfig) {
@@ -26,7 +27,7 @@ export const getDefaultAccessTokenPayload: () => OurAccessTokenClaims = () => ({
   permissions: {}
 });
 
-export const getDefaultEncodeAccessJwtConfig = () => {
+export const getDefaultEncodeAccessJwtConfig: () => EncodeAccessJwtConfig = () => {
   const devConfig = loadDevConfig();
   return {
     privateKey: devConfig.ACCESS_JWT_PRIVATE_KEY,
@@ -37,7 +38,7 @@ export const getDefaultEncodeAccessJwtConfig = () => {
   };
 };
 
-export const getDefaultDecodeAccessJwtConfig = () => {
+export const getDefaultDecodeAccessJwtConfig: () => DecodeAccessJwtConfig = () => {
   const devConfig = loadDevConfig();
   return {
     publicKey: devConfig.ACCESS_JWT_PUBLIC_KEY,

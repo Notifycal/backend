@@ -1,14 +1,14 @@
 import { expect } from '@jest/globals';
-import { buildJwt, buildJwts, decodeAndVerifyJwtSignature, decodeJwt } from './jwt';
-import { Jwt, UserId } from '@own-types/model';
+import { type EncodedAndDecodedJwt, type EncodedAndDecodedJwts, buildJwt, buildJwts, decodeAndVerifyJwtSignature, decodeJwt } from './jwt';
+import type { Jwt, UserId } from '@own-types/model';
 import { sleep } from '@testing/utils/utils';
-import {
+import type {
   DecodeAccessJwtConfig,
   EncodeAccessJwtConfig,
   EncodeRefreshJwtConfig
 } from '@model/Config';
-import { accessTokenSchema } from '@model/Jwt';
-import { ZodSchema } from 'zod';
+import { type AccessToken, accessTokenSchema } from '@model/Jwt';
+import type { ZodSchema } from 'zod';
 
 const validPrivateKey = `-----BEGIN EC PRIVATE KEY-----
 MHcCAQEEIEF6NI6CascYRtOFXEQrbsbsi7ZzTsKaktkDRZ/PSZ8hoAoGCCqGSM49
@@ -58,7 +58,7 @@ describe('Jwt builder', () => {
     );
   });
 
-  function testit(payload: object, config: EncodeAccessJwtConfig) {
+  function testit(payload: object, config: EncodeAccessJwtConfig): Promise<EncodedAndDecodedJwt<AccessToken>> {
     return buildJwt(payload, accessTokenSchema, validSubject, config);
   }
 });
@@ -95,7 +95,7 @@ describe('Jwts builder', () => {
     userId: UserId,
     encodeJwtConfig: EncodeAccessJwtConfig,
     encodeRefreshJwtConfig: EncodeRefreshJwtConfig
-  ) {
+  ): Promise<EncodedAndDecodedJwts> {
     return buildJwts(userId, encodeJwtConfig, encodeRefreshJwtConfig);
   }
 });
@@ -149,6 +149,7 @@ describe('Jwt decoder/verifier with signature', () => {
     const rejection = expect(result).rejects;
     return Promise.all([
       rejection.toContain('JWT decoding failed. Error:'),
+      /* eslint-disable-next-line no-useless-escape */
       rejection.toContain('Invalid literal value, expected \\\"user\\\"\"'),
       rejection.toContain('Expected string, received number')
     ]);
@@ -199,7 +200,7 @@ describe('Jwt decoder/verifier with signature', () => {
     });
   });
 
-  function testit(jwt: Jwt, schema: ZodSchema, config: DecodeAccessJwtConfig) {
+  function testit(jwt: Jwt, schema: ZodSchema, config: DecodeAccessJwtConfig): Promise<AccessToken> {
     return decodeAndVerifyJwtSignature(jwt, schema, config);
   }
 });
@@ -236,12 +237,13 @@ describe('Jwt decoder without signature check', () => {
     const rejection = expect(result).rejects;
     return Promise.all([
       rejection.toContain('JWT decoding failed. Error:'),
+      /* eslint-disable-next-line no-useless-escape */
       rejection.toContain('Invalid literal value, expected \\\"user\\\"\"'),
       rejection.toContain('Expected string, received number')
     ]);
   });
 
-  function testit(jwt: Jwt, schema: ZodSchema) {
+  function testit(jwt: Jwt, schema: ZodSchema): Promise<AccessToken> {
     return decodeJwt(jwt, schema);
   }
 });

@@ -1,7 +1,7 @@
 import { describe, jest } from '@jest/globals';
 import { handler } from './index';
 import * as jwt from '@services/jwt';
-import { type APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2 } from 'aws-lambda';
+import type { APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2 } from 'aws-lambda';
 import { c, testEvent } from '@testing/apigateway';
 import {
   setEnvAwsConfig,
@@ -11,9 +11,9 @@ import {
   setEnvRefreshTokenBaseStoreConfig
 } from '@testing/utils/config';
 import { assert } from '@testing/utils/assertions';
-import { RefreshConfig } from './config';
-import { RefreshTokenStoreRecord } from '@model/RefreshTokenStoreRecord';
-import { RefreshToken } from '@model/Jwt';
+import type { RefreshConfig } from './config';
+import type { RefreshTokenStoreRecord } from '@model/RefreshTokenStoreRecord';
+import type { RefreshToken } from '@model/Jwt';
 import { responseError, responseSuccess } from '@services/common/api-response-handlers';
 import { RefreshTokenBaseStore } from '@services/refresh-token-base-store';
 

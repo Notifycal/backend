@@ -1,13 +1,13 @@
-import { AwsConfig, EncodeAccessJwtConfig, EncodeRefreshJwtConfig } from '@model/Config';
-import { GoogleOAuthConfig } from '@services/google-oauth';
-import { UserBaseStoreConfig } from '@services/user-base-store';
+import type { AwsConfig, EncodeAccessJwtConfig, EncodeRefreshJwtConfig } from '@model/Config';
+import type { GoogleOAuthConfig } from '@services/google-oauth';
+import type { UserBaseStoreConfig } from '@services/user-base-store';
 import {
   readAwsConfig,
   readEncodeAccessJwtConfig,
   readEncodeRefreshJwtConfig,
   readEnv
 } from '@services/common/config';
-import { RefreshTokenBaseStoreConfig } from '@services/refresh-token-base-store';
+import type { RefreshTokenBaseStoreConfig } from '@services/refresh-token-base-store';
 
 export interface LoginConfig {
   encodeAccessJwtConfig: EncodeAccessJwtConfig;
