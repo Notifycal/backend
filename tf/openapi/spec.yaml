@@ -152,14 +152,13 @@ components:
       bearerFormat: JWT # optional, arbitrary value for documentation purposes
   schemas:
     User:
-      schema:
-        type: object
-        properties:
-          UserId:
-            type: string
-            format: email
-        required:
-          - UserId
+      type: object
+      properties:
+        UserId:
+          type: string
+          format: email
+      required:
+        - UserId
   responses:
     AuthOK:
       description: OK
