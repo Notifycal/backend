@@ -9,13 +9,13 @@ import { httpRequestEventParserMiddleware } from './parser-http-middleware';
 import type { ConfigReaderFn, JwtClaimCheckerFn } from '@own-types/model';
 import type { z } from 'zod';
 import type { AuthedEndpointConfig } from '@model/Config';
-import type { APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2 } from 'aws-lambda';
+import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 
 export function baseMiddleware(): middy.MiddyfiedHandler<
-  APIGatewayProxyEventV2,
-  APIGatewayProxyStructuredResultV2
+  APIGatewayProxyEvent,
+  APIGatewayProxyResult
 > {
-  return middy<APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2>({
+  return middy<APIGatewayProxyEvent, APIGatewayProxyResult>({
     timeoutEarlyInMillis: 0
   })
     .use(captureLambdaHandler(tracer))
@@ -26,12 +26,12 @@ export function baseMiddleware(): middy.MiddyfiedHandler<
 export function unprotectedEndpointMiddleware<TConfig, T extends z.ZodTypeAny>(
   configReader: ConfigReaderFn<TConfig>,
   eventSchema: T
-): middy.MiddyfiedHandler<APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2> {
+): middy.MiddyfiedHandler<APIGatewayProxyEvent, APIGatewayProxyResult> {
   return baseMiddleware()
     .use(configReaderMiddleware<TConfig>(configReader))
     .use(httpRequestEventParserMiddleware(eventSchema)) as unknown as middy.MiddyfiedHandler<
-    APIGatewayProxyEventV2,
-    APIGatewayProxyStructuredResultV2
+    APIGatewayProxyEvent,
+    APIGatewayProxyResult
   >;
 }
 
@@ -42,12 +42,12 @@ export function protectedEndpointMiddleware<
   configReaderFn: ConfigReaderFn<TConfig>,
   eventSchema: T,
   claimCheckerFn: JwtClaimCheckerFn = checkClaims
-): middy.MiddyfiedHandler<APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2> {
+): middy.MiddyfiedHandler<APIGatewayProxyEvent, APIGatewayProxyResult> {
   return baseMiddleware()
     .use(configReaderMiddleware<TConfig>(configReaderFn))
     .use(jwtVerificationMiddleware(claimCheckerFn))
     .use(httpRequestEventParserMiddleware(eventSchema)) as unknown as middy.MiddyfiedHandler<
-    APIGatewayProxyEventV2,
-    APIGatewayProxyStructuredResultV2
+    APIGatewayProxyEvent,
+    APIGatewayProxyResult
   >;
 }

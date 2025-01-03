@@ -1,6 +1,6 @@
 import type { LogItemMessage } from '@aws-lambda-powertools/logger/types';
 import { logger } from '@common/powertools';
-import type { APIGatewayProxyStructuredResultV2 } from 'aws-lambda';
+import type { APIGatewayProxyResult } from 'aws-lambda';
 
 const headers = {
   'Content-Type': 'application/json'
@@ -14,7 +14,7 @@ const errorMessages: Record<number, string> = {
   500: 'KO'
 };
 
-export function responseSuccess(body: object, statusCode = 200): APIGatewayProxyStructuredResultV2 {
+export function responseSuccess(body: object, statusCode = 200): APIGatewayProxyResult {
   return {
     statusCode,
     body: JSON.stringify(body),
@@ -22,9 +22,7 @@ export function responseSuccess(body: object, statusCode = 200): APIGatewayProxy
   };
 }
 
-export function responseError(
-  statusCode: keyof typeof errorMessages
-): APIGatewayProxyStructuredResultV2 {
+export function responseError(statusCode: keyof typeof errorMessages): APIGatewayProxyResult {
   return {
     statusCode,
     body: JSON.stringify({ message: errorMessages[statusCode] }),
@@ -34,13 +32,13 @@ export function responseError(
 
 export const successHandler =
   (statusCode = 200) =>
-  (body: object): APIGatewayProxyStructuredResultV2 => {
+  (body: object): APIGatewayProxyResult => {
     return responseSuccess(body, statusCode);
   };
 
 export const errorHandler =
   (statusCode: keyof typeof errorMessages) =>
-  (reason: LogItemMessage): APIGatewayProxyStructuredResultV2 => {
+  (reason: LogItemMessage): APIGatewayProxyResult => {
     if (statusCode < 500) {
       logger.warn(reason);
     } else {

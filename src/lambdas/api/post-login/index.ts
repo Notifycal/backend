@@ -1,31 +1,29 @@
-import type { APIGatewayProxyStructuredResultV2, Context } from 'aws-lambda';
+import type { APIGatewayProxyResult, Context } from 'aws-lambda';
 import { verifyGoogleIdentity } from '@services/google-oauth';
 import { type LoginConfig, readLoginConfig } from './config';
 import { unprotectedEndpointMiddleware } from '@common/lambda-middleware';
 import { z } from 'zod';
 import { _successHandler, buildJwtsAndStoreRefreshJwt, signInOrUpUser } from '@services/login';
-import { APIGatewayProxyEventV2Schema } from '@aws-lambda-powertools/parser/schemas/api-gatewayv2';
-import type { ConfigRequestContext } from '@model/ApiGatewayEvents';
 import { JSONStringified } from '@aws-lambda-powertools/parser/helpers';
 import { RefreshTokenBaseStore } from '@services/refresh-token-base-store';
 import { errorHandler } from '@services/common/api-response-handlers';
+import { eventSchema } from '@model/ApiGatewayEvents';
 
-const eventSchema = APIGatewayProxyEventV2Schema.extend({
+const schema = eventSchema<LoginConfig>().extend({
   body: JSONStringified(
     z.object({
       googleCode: z.string()
     })
-  ),
-  requestContext: z.custom<ConfigRequestContext<LoginConfig>>()
+  )
 });
-type Event = z.infer<typeof eventSchema>;
+type Event = z.infer<typeof schema>;
 
 function lambdaHandler(
   event: Event,
   /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
   ctx: Context
-): Promise<APIGatewayProxyStructuredResultV2> {
-  const config = event.requestContext.config;
+): Promise<APIGatewayProxyResult> {
+  const config = event.endpointConfig;
   const store = new RefreshTokenBaseStore(config.refreshTokenBaseStoreConfig, config.awsConfig);
   return verifyGoogleIdentity(event.body['googleCode'], config.googleOAuthClientConfig)
     .then((email) =>
@@ -44,6 +42,6 @@ function lambdaHandler(
     .catch(errorHandler(401));
 }
 
-export const handler = unprotectedEndpointMiddleware(() => readLoginConfig(), eventSchema).handler(
+export const handler = unprotectedEndpointMiddleware(() => readLoginConfig(), schema).handler(
   lambdaHandler
 );

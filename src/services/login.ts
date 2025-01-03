@@ -2,7 +2,7 @@ import type { User } from '@model/User';
 import { UserBaseStore, type UserBaseStoreConfig } from './user-base-store';
 import type { AwsConfig, EncodeAccessJwtConfig, EncodeRefreshJwtConfig } from '@model/Config';
 import type { UserId } from '@own-types/model';
-import type { APIGatewayProxyStructuredResultV2 } from 'aws-lambda';
+import type { APIGatewayProxyResult } from 'aws-lambda';
 import { successHandler } from './common/api-response-handlers';
 import { type EncodedAndDecodedJwts, buildJwts } from './jwt';
 import type { RefreshTokenBaseStore } from './refresh-token-base-store';
@@ -49,7 +49,7 @@ export function buildJwtsAndStoreRefreshJwt(
   );
 }
 
-export function _successHandler(jwts: EncodedAndDecodedJwts): APIGatewayProxyStructuredResultV2 {
+export function _successHandler(jwts: EncodedAndDecodedJwts): APIGatewayProxyResult {
   return successHandler()({
     accessToken: jwts.accessToken.encoded,
     tokenType: 'Bearer',

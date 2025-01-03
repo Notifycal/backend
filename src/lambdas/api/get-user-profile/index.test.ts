@@ -1,5 +1,5 @@
 import { describe, jest } from '@jest/globals';
-import type { APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2 } from 'aws-lambda';
+import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { c, testAuthedEvent } from '@testing/apigateway';
 import { assert } from '@testing/utils/assertions';
 import type { GetUserProfileConfig } from './config';
@@ -22,7 +22,7 @@ describe('GET user profile', () => {
       role: 'user',
       permissions: {}
     } as OurAccessTokenClaims;
-    const event = (await testAuthedEvent({}, {}, payload)) as unknown as APIGatewayProxyEventV2;
+    const event = (await testAuthedEvent({}, {}, payload)) as unknown as APIGatewayProxyEvent;
     const getUserByEmailFn = () => Promise.resolve({ UserId: payload.email });
 
     return testit(event, getUserByEmailFn).then((resp) => {
@@ -41,7 +41,7 @@ describe('GET user profile', () => {
       role: 'user',
       permissions: {}
     } as OurAccessTokenClaims;
-    const event = (await testAuthedEvent({}, {}, payload)) as unknown as APIGatewayProxyEventV2;
+    const event = (await testAuthedEvent({}, {}, payload)) as unknown as APIGatewayProxyEvent;
     const getUserByEmailFn = () => Promise.resolve(undefined);
 
     return testit(event, getUserByEmailFn).then((resp) => {
@@ -55,7 +55,7 @@ describe('GET user profile', () => {
       role: 'user',
       permissions: {}
     } as OurAccessTokenClaims;
-    const event = (await testAuthedEvent({}, {}, payload)) as unknown as APIGatewayProxyEventV2;
+    const event = (await testAuthedEvent({}, {}, payload)) as unknown as APIGatewayProxyEvent;
     const getUserByEmailFn = () => Promise.reject(new Error('Boom!'));
 
     return testit(event, getUserByEmailFn).then((resp) => {
@@ -65,10 +65,10 @@ describe('GET user profile', () => {
 });
 
 function testit(
-  event: APIGatewayProxyEventV2,
+  event: APIGatewayProxyEvent,
   getUserByEmailResult: () => Promise<User | undefined>,
   env: GetUserProfileConfig = defaultEnv
-): Promise<APIGatewayProxyStructuredResultV2> {
+): Promise<APIGatewayProxyResult> {
   setEnv(env);
   jest.spyOn(UserBaseStore.prototype, 'getUserByEmail').mockImplementation(getUserByEmailResult);
   return handler(event, c);

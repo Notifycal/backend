@@ -1,5 +1,5 @@
 import { describe } from '@jest/globals';
-import type { APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2 } from 'aws-lambda';
+import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { c, testAuthedEvent, testEvent } from '@testing/apigateway';
 import { handler, type TestingWhiteApiConfig } from '@testing/white-authed-api-lambda';
 import { getDefaultDecodeAccessJwtConfig, testJwt } from './utils/jwt';
@@ -17,7 +17,7 @@ describe('White authed API lambda', () => {
       {
         Authorization: `Bearer ${jwt}`
       }
-    ) as unknown as APIGatewayProxyEventV2;
+    ) as unknown as APIGatewayProxyEvent;
 
     return testit(event).then((resp) => {
       assert(resp, {
@@ -35,7 +35,7 @@ describe('White authed API lambda', () => {
       {
         NO_AUTH: 'this is shit'
       }
-    ) as unknown as APIGatewayProxyEventV2;
+    ) as unknown as APIGatewayProxyEvent;
 
     return testit(event).then((resp) => {
       assert(resp, responseError(401));
@@ -45,7 +45,7 @@ describe('White authed API lambda', () => {
   it('return 400 if request payload is invalid', () => {
     const eventPromise = testAuthedEvent({
       'incorrect-field': '<SOME-FAKE-GOOGLE-CODE>'
-    }) as unknown as Promise<APIGatewayProxyEventV2>;
+    }) as unknown as Promise<APIGatewayProxyEvent>;
 
     return eventPromise.then(testit).then((resp) => {
       assert(resp, responseError(400));
@@ -63,9 +63,9 @@ function setEnv(config: TestingWhiteApiConfig): void {
 }
 
 function testit(
-  event: APIGatewayProxyEventV2,
+  event: APIGatewayProxyEvent,
   env: TestingWhiteApiConfig = defaultEnv
-): Promise<APIGatewayProxyStructuredResultV2> {
+): Promise<APIGatewayProxyResult> {
   setEnv(env);
   return handler(event, c);
 }

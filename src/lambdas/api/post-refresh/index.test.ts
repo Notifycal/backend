@@ -1,7 +1,7 @@
 import { describe, jest } from '@jest/globals';
 import { handler } from './index';
 import * as jwt from '@services/jwt';
-import type { APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2 } from 'aws-lambda';
+import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { c, testEvent } from '@testing/apigateway';
 import {
   setEnvAwsConfig,
@@ -21,7 +21,7 @@ describe('Refresh', () => {
   it('should renew both tokens', () => {
     const event = testEvent({
       refreshToken: validRefreshToken
-    }) as unknown as APIGatewayProxyEventV2;
+    }) as unknown as APIGatewayProxyEvent;
 
     const decodeAndVerifyJwtSignatureFn = () => Promise.resolve(validInitialDecodedRefreshToken);
     const getRefreshTokenByFn = () => Promise.resolve(validRefreshTokenStoreRecord);
@@ -48,7 +48,7 @@ describe('Refresh', () => {
   it('fail if request payload is invalid with 400', () => {
     const event = testEvent({
       'unexpected-field': validRefreshToken
-    }) as unknown as APIGatewayProxyEventV2;
+    }) as unknown as APIGatewayProxyEvent;
 
     const decodeAndVerifyJwtSignatureFn = () => Promise.resolve(validInitialDecodedRefreshToken);
     const getRefreshTokenByFn = () => Promise.resolve(validRefreshTokenStoreRecord);
@@ -68,7 +68,7 @@ describe('Refresh', () => {
   it('fail if refresh token provided cannot be verified with 401', () => {
     const event = testEvent({
       refreshToken: validRefreshToken
-    }) as unknown as APIGatewayProxyEventV2;
+    }) as unknown as APIGatewayProxyEvent;
 
     const decodeAndVerifyJwtSignatureFn = () => Promise.reject(new Error('Boom!'));
     const getRefreshTokenByFn = () => Promise.resolve(validRefreshTokenStoreRecord);
@@ -88,7 +88,7 @@ describe('Refresh', () => {
   it('fail if refresh token is not longer present in storage with 403', () => {
     const event = testEvent({
       refreshToken: validRefreshToken
-    }) as unknown as APIGatewayProxyEventV2;
+    }) as unknown as APIGatewayProxyEvent;
 
     const decodeAndVerifyJwtSignatureFn = () => Promise.resolve(validInitialDecodedRefreshToken);
     const getRefreshTokenByFn = () => Promise.resolve(undefined);
@@ -108,7 +108,7 @@ describe('Refresh', () => {
   it('fail if refresh token cannot be obtained from storage with 500', () => {
     const event = testEvent({
       refreshToken: validRefreshToken
-    }) as unknown as APIGatewayProxyEventV2;
+    }) as unknown as APIGatewayProxyEvent;
 
     const decodeAndVerifyJwtSignatureFn = () => Promise.resolve(validInitialDecodedRefreshToken);
     const getRefreshTokenByFn = () => Promise.reject(new Error('Boom!'));
@@ -128,7 +128,7 @@ describe('Refresh', () => {
   it('fail if refresh token provided does not match with refresh token stored with 403', () => {
     const event = testEvent({
       refreshToken: validRefreshToken
-    }) as unknown as APIGatewayProxyEventV2;
+    }) as unknown as APIGatewayProxyEvent;
 
     const decodeAndVerifyJwtSignatureFn = () => Promise.resolve(validInitialDecodedRefreshToken);
     const getRefreshTokenByFn = () =>
@@ -149,7 +149,7 @@ describe('Refresh', () => {
   it('fail if new tokens cannot be generated with 500', () => {
     const event = testEvent({
       refreshToken: validRefreshToken
-    }) as unknown as APIGatewayProxyEventV2;
+    }) as unknown as APIGatewayProxyEvent;
 
     const decodeAndVerifyJwtSignatureFn = () => Promise.resolve(validInitialDecodedRefreshToken);
     const getRefreshTokenByFn = () => Promise.resolve(validRefreshTokenStoreRecord);
@@ -169,7 +169,7 @@ describe('Refresh', () => {
   it('fail if new refresh token cannot be stored with 500', () => {
     const event = testEvent({
       refreshToken: validRefreshToken
-    }) as unknown as APIGatewayProxyEventV2;
+    }) as unknown as APIGatewayProxyEvent;
 
     const decodeAndVerifyJwtSignatureFn = () => Promise.resolve(validInitialDecodedRefreshToken);
     const getRefreshTokenByFn = () => Promise.resolve(validRefreshTokenStoreRecord);
@@ -188,13 +188,13 @@ describe('Refresh', () => {
   });
 
   function testit(
-    event: APIGatewayProxyEventV2,
+    event: APIGatewayProxyEvent,
     getRefreshTokenByFn: () => Promise<RefreshTokenStoreRecord | undefined>,
     putRefreshTokenFn: () => Promise<null>,
     decodeAndVerifyJwtSignatureFn: () => Promise<RefreshToken>,
     buildJwtsFn: () => Promise<jwt.EncodedAndDecodedJwts>,
     env: RefreshConfig = defaultEnv
-  ): Promise<APIGatewayProxyStructuredResultV2> {
+  ): Promise<APIGatewayProxyResult> {
     setEnv(env);
     jest
       .spyOn(RefreshTokenBaseStore.prototype, 'getTokenBy')

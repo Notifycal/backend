@@ -4,17 +4,13 @@ import type { MiddlewareObj, Request } from '@middy/core';
 import type middy from '@middy/core';
 import { errorHandler } from '@services/common/api-response-handlers';
 import { extractErrorMessage } from '@services/common/error-handling';
-import type {
-  APIGatewayProxyEventV2,
-  APIGatewayProxyStructuredResultV2,
-  Context
-} from 'aws-lambda';
+import type { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from 'aws-lambda';
 import type { ZodSchema } from 'zod';
 
 function httpRequestEventParser(
-  request: Request<APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2, Error, Context>,
+  request: Request<APIGatewayProxyEvent, APIGatewayProxyResult, Error, Context>,
   schema: ZodSchema
-): APIGatewayProxyStructuredResultV2 | void {
+): APIGatewayProxyResult | void {
   const parserFn = parser({ schema }).before;
   if (parserFn) {
     try {
@@ -29,9 +25,9 @@ function httpRequestEventParser(
 
 export function httpRequestEventParserMiddleware(
   schema: ZodSchema
-): MiddlewareObj<APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2> {
-  const before: middy.MiddlewareFn<APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2> = (
-    req: Request<APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2, Error, Context>
+): MiddlewareObj<APIGatewayProxyEvent, APIGatewayProxyResult> {
+  const before: middy.MiddlewareFn<APIGatewayProxyEvent, APIGatewayProxyResult> = (
+    req: Request<APIGatewayProxyEvent, APIGatewayProxyResult, Error, Context>
   ) => httpRequestEventParser(req, schema);
   return {
     before
