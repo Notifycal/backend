@@ -14,7 +14,7 @@ locals {
   })
 }
 
-resource "aws_api_gateway_rest_api" "auth_service" {
+resource "aws_api_gateway_rest_api" "rest_api" {
   name = "backend-api-${var.environment}"
 
   # OpenAPI spec file
@@ -26,16 +26,27 @@ resource "aws_api_gateway_rest_api" "auth_service" {
 }
 
 resource "aws_api_gateway_deployment" "api_deployment" {
-  rest_api_id = aws_api_gateway_rest_api.auth_service.id
-  stage_name  = var.api_stage_name
+  rest_api_id = aws_api_gateway_rest_api.rest_api.id
+  triggers = {
+    # As in the example: https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/api_gateway_deployment#openapi-specification
+    redeployment = sha1(jsonencode(aws_api_gateway_rest_api.rest_api.body))
+  }
+  lifecycle {
+    create_before_destroy = true
+  }
+}
 
+resource "aws_api_gateway_stage" "stage" {
+  deployment_id = aws_api_gateway_deployment.api_deployment.id
+  rest_api_id   = aws_api_gateway_rest_api.rest_api.id
+  stage_name    = var.api_stage_name
   # Need this to force a deployment on a change to the file as tf
   # doesn't always seem to pick it up
-  stage_description = md5(local.rendered_openapi_spec)
+  description = md5(local.rendered_openapi_spec)
 }
 
 resource "aws_api_gateway_method_settings" "method_settings" {
-  rest_api_id = aws_api_gateway_rest_api.auth_service.id
+  rest_api_id = aws_api_gateway_rest_api.rest_api.id
   stage_name  = aws_api_gateway_deployment.api_deployment.stage_name
 
   # this means it's enabled for all paths

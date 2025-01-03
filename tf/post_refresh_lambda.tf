@@ -28,7 +28,7 @@ module "post_refresh_lambda" {
       source_arn = format("arn:aws:execute-api:%s:%s:%s/%s/*/*",
         var.aws_region,
         local.aws_account_id,
-        aws_api_gateway_rest_api.auth_service.id,
+        aws_api_gateway_rest_api.rest_api.id,
         var.api_stage_name
       )
     }
