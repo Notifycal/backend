@@ -11,13 +11,19 @@ import type { Email } from '@own-types/model';
 import { assert } from '@testing/utils/assertions';
 import {
   setEnvAwsConfig,
+  setEnvBaseConfig,
   setEnvEncodeAccessJwtConfig,
   setEnvEncodeRefreshJwtConfig,
   setEnvRefreshTokenBaseStoreConfig,
   setEnvUserBaseStoreConfig
 } from '@testing/utils/config';
 import { RefreshTokenBaseStore } from '@services/refresh-token-base-store';
-import { responseError, responseSuccess } from '@services/common/api-response-handlers';
+import {
+  responseError,
+  responseErrorNoCorsHeaders,
+  responseSuccess
+} from '@testing/utils/api-response-handlers';
+
 describe('Login', () => {
   const validJwts: jwt.EncodedAndDecodedJwts = {
     accessToken: {
@@ -246,7 +252,7 @@ describe('Login', () => {
       putRefreshTokenFn,
       env
     ).then((resp) => {
-      assert(resp, responseError(500));
+      assert(resp, responseErrorNoCorsHeaders(500));
     });
   });
 
@@ -335,6 +341,9 @@ const defaultEnv: LoginConfig = {
   refreshTokenBaseStoreConfig: {
     tableName: 'RefreshTokens-local'
   },
+  baseConfig: {
+    frontendDomain: 'http://localhost'
+  },
   awsConfig: {
     awsRegion: 'eu-west-1'
   }
@@ -346,6 +355,7 @@ function setEnv(config: LoginConfig) {
   setEnvGoogleOAuthClientConfig(config.googleOAuthClientConfig);
   setEnvUserBaseStoreConfig(config.userBaseStoreConfig);
   setEnvRefreshTokenBaseStoreConfig(config.refreshTokenBaseStoreConfig);
+  setEnvBaseConfig(config.baseConfig);
   setEnvAwsConfig(config.awsConfig);
 }
 

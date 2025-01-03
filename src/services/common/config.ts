@@ -1,6 +1,7 @@
 import { from } from 'env-var';
 import type {
   AwsConfig,
+  BaseEndpointConfig,
   DecodeAccessJwtConfig,
   DecodeRefreshJwtConfig,
   EncodeAccessJwtConfig,
@@ -22,6 +23,14 @@ const readJwtConfig = (
   audience: env.get(`${prefix}_JWT_AUDIENCE`).required().default('notifycal.com').asString(),
   expiresIn: env.get(`${prefix}_JWT_EXPIRATION`).required().default(expiresInDefault).asString()
 });
+
+export function readBaseConfig(env: Environment): BaseEndpointConfig {
+  return {
+    baseConfig: {
+      frontendDomain: env.get(`FRONTEND_DOMAIN`).required().asString()
+    }
+  };
+}
 
 export function readEncodeAccessJwtConfig(env: Environment): EncodeAccessJwtConfig {
   return {

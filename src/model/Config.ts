@@ -7,7 +7,14 @@ export interface DecodeAccessJwtConfig {
 
 export type DecodeRefreshJwtConfig = DecodeAccessJwtConfig;
 
-export interface AuthedEndpointConfig {
+export interface BaseConfig {
+  frontendDomain: string;
+}
+export interface BaseEndpointConfig {
+  baseConfig: BaseConfig;
+}
+
+export interface AuthedEndpointConfig extends BaseEndpointConfig {
   decodeAccessJwtConfig: DecodeAccessJwtConfig;
 }
 

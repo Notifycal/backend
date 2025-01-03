@@ -6,6 +6,7 @@ import { protectedEndpointMiddleware } from '@common/lambda-middleware';
 import { getDefaultDecodeAccessJwtConfig } from './utils/jwt';
 import { JSONStringified } from '@aws-lambda-powertools/parser/helpers';
 import { authedEventSchema } from '@model/ApiGatewayEvents';
+import { responseSuccess } from '@services/common/api-response-handlers';
 
 export interface TestingWhiteApiConfig extends AuthedEndpointConfig {
   config1: string;
@@ -25,16 +26,16 @@ function lambdaHandler(
   ctx: Context
 ): APIGatewayProxyResult {
   console.log(event);
-  return {
-    statusCode: 200,
-    body: 'OK'
-  };
+  return responseSuccess({ result: 'OK' });
 }
 
 function testingConfigReader(): TestingWhiteApiConfig {
   return {
     config1: 'blah',
-    decodeAccessJwtConfig: getDefaultDecodeAccessJwtConfig()
+    decodeAccessJwtConfig: getDefaultDecodeAccessJwtConfig(),
+    baseConfig: {
+      frontendDomain: 'http://localhost'
+    }
   };
 }
 

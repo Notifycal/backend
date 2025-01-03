@@ -29,3 +29,7 @@ interface APIGatewayProxyEventWithRequestContext<TEndpointConfig>
 export type EventWithConfig<TConfig> = APIGatewayProxyEventWithRequestContext<TConfig>;
 
 export type AuthedEventWithConfig<TConfig> = APIGatewayProxyEventWithRequestContext<TConfig>;
+
+export interface ResponseHeaders {
+  [header: string]: boolean | number | string;
+}

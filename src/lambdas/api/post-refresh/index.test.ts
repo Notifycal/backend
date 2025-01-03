@@ -5,6 +5,7 @@ import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { c, testEvent } from '@testing/apigateway';
 import {
   setEnvAwsConfig,
+  setEnvBaseConfig,
   setEnvDecodeRefreshJwtConfig,
   setEnvEncodeAccessJwtConfig,
   setEnvEncodeRefreshJwtConfig,
@@ -14,7 +15,7 @@ import { assert } from '@testing/utils/assertions';
 import type { RefreshConfig } from './config';
 import type { RefreshTokenStoreRecord } from '@model/RefreshTokenStoreRecord';
 import type { RefreshToken } from '@model/Jwt';
-import { responseError, responseSuccess } from '@services/common/api-response-handlers';
+import { responseError, responseSuccess } from '@testing/utils/api-response-handlers';
 import { RefreshTokenBaseStore } from '@services/refresh-token-base-store';
 
 describe('Refresh', () => {
@@ -231,6 +232,9 @@ describe('Refresh', () => {
     refreshTokenBaseStoreConfig: {
       tableName: 'Users-local'
     },
+    baseConfig: {
+      frontendDomain: 'http://localhost'
+    },
     awsConfig: {
       awsRegion: 'eu-west-1'
     }
@@ -241,6 +245,7 @@ describe('Refresh', () => {
     setEnvEncodeRefreshJwtConfig(config.encodeRefreshJwtConfig);
     setEnvDecodeRefreshJwtConfig(config.decodeRefreshJwtConfig);
     setEnvRefreshTokenBaseStoreConfig(config.refreshTokenBaseStoreConfig);
+    setEnvBaseConfig(config.baseConfig);
     setEnvAwsConfig(config.awsConfig);
   }
 });

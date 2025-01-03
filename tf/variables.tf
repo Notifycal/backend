@@ -15,3 +15,8 @@ variable "openapi_spec_file" {
 variable "environment" {
   type = string
 }
+
+variable "frontend_domain" {
+  type = string
+  description = "Allowed domain specified in response headers by API gateway lambdas(TLDR: CORS)"
+}

@@ -3,7 +3,8 @@ import type {
   DecodeRefreshJwtConfig,
   EncodeAccessJwtConfig,
   EncodeRefreshJwtConfig,
-  AwsConfig
+  AwsConfig,
+  BaseConfig
 } from '@model/Config';
 import type { RefreshTokenBaseStoreConfig } from '@services/refresh-token-base-store';
 import type { UserBaseStoreConfig } from '@services/user-base-store';
@@ -44,6 +45,10 @@ export function setEnvUserBaseStoreConfig(config: UserBaseStoreConfig): void {
 
 export function setEnvRefreshTokenBaseStoreConfig(config: RefreshTokenBaseStoreConfig): void {
   process.env.REFRESH_TOKENS_TABLE_NAME = config.tableName;
+}
+
+export function setEnvBaseConfig(config: BaseConfig): void {
+  process.env.FRONTEND_DOMAIN = config.frontendDomain;
 }
 
 export function setEnvAwsConfig(config: AwsConfig): void {

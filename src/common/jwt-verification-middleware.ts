@@ -7,7 +7,7 @@ import { decodeAndVerifyJwtSignature } from '@services/jwt';
 import type { JwtClaimCheckerFn } from '@own-types/model';
 import type { AuthedEndpointConfig } from '@model/Config';
 import { type AccessToken, accessTokenSchema } from '@model/Jwt';
-import { errorHandler } from '@services/common/api-response-handlers';
+import { errorHandler, headers as _headers } from '@services/common/api-response-handlers';
 import { extractErrorMessage } from '@services/common/error-handling';
 
 function jwtVerification<TConfig extends AuthedEndpointConfig>(
@@ -19,7 +19,9 @@ function jwtVerification<TConfig extends AuthedEndpointConfig>(
   const requestContext = request.event.requestContext;
   const config = request.event.endpointConfig;
   if (!authorization) {
-    return Promise.resolve(errorHandler(401)('Missing Authorization'));
+    return Promise.resolve(
+      errorHandler(401, _headers(config.baseConfig.frontendDomain))('Missing Authorization')
+    );
   }
   const token = authorization.replace('Bearer ', '');
   return decodeAndVerifyJwtSignature(token, accessTokenSchema, config.decodeAccessJwtConfig).then(
@@ -30,7 +32,10 @@ function jwtVerification<TConfig extends AuthedEndpointConfig>(
           authorizer: jwt
         };
       } else {
-        return errorHandler(401)(
+        return errorHandler(
+          401,
+          _headers(config.baseConfig.frontendDomain)
+        )(
           `Missing permissions to hit the API. Provided info: header = '${JSON.stringify(
             jwt.header
           )}' payload = '${JSON.stringify(jwt.payload)}'`
@@ -38,7 +43,10 @@ function jwtVerification<TConfig extends AuthedEndpointConfig>(
       }
     },
     (err: unknown) => {
-      return errorHandler(401)(`Invalid Signature. Error: ${extractErrorMessage(err)}`);
+      return errorHandler(
+        401,
+        _headers(config.baseConfig.frontendDomain)
+      )(`Invalid Signature. Error: ${extractErrorMessage(err)}`);
     }
   );
 }

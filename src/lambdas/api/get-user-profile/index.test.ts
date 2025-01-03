@@ -1,11 +1,12 @@
 import { describe, jest } from '@jest/globals';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import { c, testAuthedEvent } from '@testing/apigateway';
+import { c, testAuthedEvent, testEvent } from '@testing/apigateway';
 import { assert } from '@testing/utils/assertions';
 import type { GetUserProfileConfig } from './config';
 import { handler } from '.';
 import {
   setEnvAwsConfig,
+  setEnvBaseConfig,
   setEnvDecodeAccessJwtConfig,
   setEnvUserBaseStoreConfig
 } from '@testing/utils/config';
@@ -13,7 +14,7 @@ import { getDefaultDecodeAccessJwtConfig } from '@testing/utils/jwt';
 import { UserBaseStore } from '@services/user-base-store';
 import type { User } from '@model/User';
 import type { OurAccessTokenClaims } from '@model/Jwt';
-import { responseError, responseSuccess } from '@services/common/api-response-handlers';
+import { responseError, responseSuccess } from '@testing/utils/api-response-handlers';
 
 describe('GET user profile', () => {
   it('return a user', async () => {
@@ -32,6 +33,15 @@ describe('GET user profile', () => {
           UserId: payload.email
         })
       );
+    });
+  });
+
+  it('fail to return a user with 401 if no authorization present', async () => {
+    const event = testEvent({}, {}) as unknown as APIGatewayProxyEvent;
+    const getUserByEmailFn = () => Promise.resolve({ UserId: 'not_used' });
+
+    return testit(event, getUserByEmailFn).then((resp) => {
+      assert(resp, responseError(401));
     });
   });
 
@@ -79,6 +89,9 @@ const defaultEnv = {
   userBaseStore: {
     tableName: 'Users-local'
   },
+  baseConfig: {
+    frontendDomain: 'http://localhost'
+  },
   awsConfig: {
     awsRegion: 'eu-west-1'
   }
@@ -87,5 +100,6 @@ const defaultEnv = {
 function setEnv(config: GetUserProfileConfig) {
   setEnvDecodeAccessJwtConfig(config.decodeAccessJwtConfig);
   setEnvUserBaseStoreConfig(config.userBaseStore);
+  setEnvBaseConfig(config.baseConfig);
   setEnvAwsConfig(config.awsConfig);
 }
