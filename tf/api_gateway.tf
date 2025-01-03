@@ -47,7 +47,7 @@ resource "aws_api_gateway_stage" "stage" {
 
 resource "aws_api_gateway_method_settings" "method_settings" {
   rest_api_id = aws_api_gateway_rest_api.rest_api.id
-  stage_name  = aws_api_gateway_deployment.api_deployment.stage_name
+  stage_name  = aws_api_gateway_stage.stage.stage_name
 
   # this means it's enabled for all paths
   method_path = "*/*"
