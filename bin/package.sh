@@ -2,7 +2,7 @@
 
 source_folder="dist"
 target_folder="$(mktemp -d /tmp/dist.XXXXX)"
-openapi_spec="openapi/spec.yaml"
+openapi_spec="tf/openapi/spec.yaml"
 
 # lambdas live in `dist/api/*` and `dist/*`. Need to search for `index.cjs`
 # Create a zip file per lambda
