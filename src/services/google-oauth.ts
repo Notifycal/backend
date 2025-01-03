@@ -1,5 +1,5 @@
-import { OAuth2Client } from 'google-auth-library/build/src/auth/oauth2client';
 import type { Email } from '@own-types/model';
+import { OAuth2Client } from 'google-auth-library';
 
 export interface GoogleOAuthConfig {
   clientId: string;
