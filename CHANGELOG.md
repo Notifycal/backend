@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/Notifycal/backend/compare/v0.2.0...v0.2.1) (2025-01-03)
+
+
+### Bug Fixes
+
+* google oauth parameters are shared between multiple stacks ([#169](https://github.com/Notifycal/backend/issues/169)) ([b7538b3](https://github.com/Notifycal/backend/commit/b7538b36c15693ff345ae7ea4f7cdd686cc11828))
+
 ## [0.2.0](https://github.com/Notifycal/backend/compare/v0.1.2...v0.2.0) (2025-01-02)
 
 
