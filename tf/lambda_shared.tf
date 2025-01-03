@@ -1,8 +1,8 @@
 locals {
   common_lambda_env_vars = {
     # This is required for sourcemaps to work
-    NODE_OPTIONS = "--enable-source-maps"
-    ENVIRONMENT  = var.environment
+    NODE_OPTIONS    = "--enable-source-maps"
+    ENVIRONMENT     = var.environment
     FRONTEND_DOMAIN = var.frontend_domain
   }
   decode_access_jwt_env_vars = {
