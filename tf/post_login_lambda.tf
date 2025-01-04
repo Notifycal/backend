@@ -39,5 +39,6 @@ module "post_login_lambda" {
     GOOGLE_OAUTH_CLIENT_SECRET       = data.aws_ssm_parameter.google_oauth_client_secret.value
     GOOGLE_OAUTH_CLIENT_REDIRECT_URI = data.aws_ssm_parameter.google_oauth_client_redirect_url.value
     USERS_TABLE_NAME                 = aws_dynamodb_table.users.name
+    REFRESH_TOKENS_TABLE_NAME        = aws_dynamodb_table.refresh_tokens.name
   }, local.login_and_refresh_env_vars, local.common_lambda_env_vars)
 }
