@@ -21,6 +21,12 @@ servers:
         default: v1
         enum:
           - v1
+
+x-amazon-apigateway-request-validators:
+  validate-body:
+    validateRequestParameters: true
+    validateRequestBody: true
+
 paths:
   /login:
     post:
