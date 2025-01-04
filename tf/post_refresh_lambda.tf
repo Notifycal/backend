@@ -36,6 +36,6 @@ module "post_refresh_lambda" {
 
   environment_variables = merge({
     REFRESH_JWT_PUBLIC_KEY    = data.aws_ssm_parameter.refresh_jwt_public_key.value
-    REFRESH_TOKENS_TABLE_NAME = aws_dynamodb_table.users.name
+    REFRESH_TOKENS_TABLE_NAME = aws_dynamodb_table.refresh_tokens.name
   }, local.login_and_refresh_env_vars, local.common_lambda_env_vars)
 }

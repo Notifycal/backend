@@ -8,7 +8,7 @@ info:
     url: https://github.com/notifycal
     email: notifycal@gmail.com
   version: '0'
-servers:
+servers:      # API GW Ignores this (surpriiiise!)
   - url: https://api{environment}.notifycal.com/api/{api_version}
     variables:
       environment:
@@ -24,8 +24,8 @@ servers:
 
 x-amazon-apigateway-gateway-responses:
   DEFAULT_4XX:
-    responseParameters: &cors-headers
-      gatewayresponse.header.Access-Control-Allow-Origin: "'https://api$${stageVariables.environment}.notifycal.com'"
+    responseParameters:
+      gatewayresponse.header.Access-Control-Allow-Origin: "'${cors_origin}'"
       gatewayresponse.header.Access-Control-Allow-Methods: "'GET,POST,OPTIONS,PUT,DELETE,PATCH'"
       gatewayresponse.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
     responseTemplates:
@@ -33,39 +33,17 @@ x-amazon-apigateway-gateway-responses:
     statusCode: 400
 
   DEFAULT_5XX:
-    responseParameters: *cors-headers
+    responseParameters:
+      gatewayresponse.header.Access-Control-Allow-Origin: "'${cors_origin}'"
+      gatewayresponse.header.Access-Control-Allow-Methods: "'GET,POST,OPTIONS,PUT,DELETE,PATCH'"
+      gatewayresponse.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
     responseTemplates:
       application/json: '{"message":"Server Error"}'
     statusCode: 500
 
-cors-preflight: &cors-preflight
-  options:
-    summary: CORS Preflight
-    responses:
-      '200':
-        description: CORS preflight response
-        headers:
-          Access-Control-Allow-Origin:
-            description: CORS Allowed Origin
-            schema:
-              type: string
-          Access-Control-Allow-Methods:
-            description: CORS Allowed Methods
-            schema:
-              type: string
-          Access-Control-Allow-Headers:
-            description: CORS Allowed Headers
-            schema:
-              type: string
-          Access-Control-Max-Age:
-            description: Cache duration in seconds for CORS preflight response
-            schema:
-              type: integer
-              example: 86400
 
 paths:
-  /login:
-    <<: *cors-preflight
+  /api/v1/login:
     post:
       summary: Login endpoint
       operationId: login
@@ -94,85 +72,104 @@ paths:
       x-amazon-apigateway-integration:
         uri: 'arn:aws:apigateway:${aws_region}:lambda:path/2015-03-31/functions/${lambda_functions.post_login_arn}/invocations'
         responses:
+          400:
+            statusCode: '400'
+          500:
+            statusCode: '500'
           default:
             statusCode: '200'
-            responseParameters: *cors-headers
         passthroughBehavior: 'when_no_match'
         httpMethod: 'POST'
         type: 'aws_proxy'
-
-  /refresh:
-    <<: *cors-preflight
-    post:
-      summary: Refresh endpoint
-      operationId: refresh
-      tags: [user, auth]
-      description: Let a user regenerate authentication against environment APIs using a refresh token
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              description: Request payload containing refresh token
-              properties:
-                refreshToken:
-                  description: token provided by system APIs to refresh authorization
-                  type: string
-      security: [] # This overrides global definition since this endpoint is unprotected
+    options:
+      summary: CORS Preflight
       responses:
         '200':
-          $ref: '#/components/responses/AuthOK'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorised'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-      x-amazon-apigateway-integration:
-        uri: 'arn:aws:apigateway:${aws_region}:lambda:path/2015-03-31/functions/${lambda_functions.post_refresh_arn}/invocations'
-        responses:
-          default:
-            statusCode: '200'
-            responseParameters: *cors-headers
-        passthroughBehavior: 'when_no_match'
-        httpMethod: 'POST'
-        type: 'aws_proxy'
-
-  /user-profile:
-    <<: *cors-preflight
-    get:
-      summary: User profile
-      operationId: userProfile
-      description: Returns the user profile of the caller
-      tags: [user]
-      responses:
-        '200':
-          description: 'OK'
-          content:
-            application/json:
+          description: CORS preflight response
+          headers:
+            Access-Control-Allow-Origin:
+              description: CORS Allowed Origin
               schema:
-                $ref: '#/components/schemas/User'
-        '401':
-          $ref: '#/components/responses/Unauthorised'
-        '404':
-          $ref: '#/components/responses/NotFound'
+                type: string
+            Access-Control-Allow-Methods:
+              description: CORS Allowed Methods
+              schema:
+                type: string
+            Access-Control-Allow-Headers:
+              description: CORS Allowed Headers
+              schema:
+                type: string
+            Access-Control-Max-Age:
+              description: Cache duration in seconds for CORS preflight response
+              schema:
+                type: integer
+                example: 86400
+        '400':
+          description: CORS preflight response
+          headers:
+            Access-Control-Allow-Origin:
+              description: CORS Allowed Origin
+              schema:
+                type: string
+            Access-Control-Allow-Methods:
+              description: CORS Allowed Methods
+              schema:
+                type: string
+            Access-Control-Allow-Headers:
+              description: CORS Allowed Headers
+              schema:
+                type: string
+            Access-Control-Max-Age:
+              description: Cache duration in seconds for CORS preflight response
+              schema:
+                type: integer
+                example: 86400
         '500':
-          $ref: '#/components/responses/InternalServerError'
+          description: CORS preflight response
+          headers:
+            Access-Control-Allow-Origin:
+              description: CORS Allowed Origin
+              schema:
+                type: string
+            Access-Control-Allow-Methods:
+              description: CORS Allowed Methods
+              schema:
+                type: string
+            Access-Control-Allow-Headers:
+              description: CORS Allowed Headers
+              schema:
+                type: string
+            Access-Control-Max-Age:
+              description: Cache duration in seconds for CORS preflight response
+              schema:
+                type: integer
+                example: 86400
       x-amazon-apigateway-integration:
-        uri: 'arn:aws:apigateway:${aws_region}:lambda:path/2015-03-31/functions/${lambda_functions.get_user_profile_arn}/invocations'
         responses:
+          400:
+            statusCode: '400'
+            responseParameters:
+              method.response.header.Access-Control-Allow-Origin: "'${cors_origin}'"
+              method.response.header.Access-Control-Allow-Methods: "'GET,POST,OPTIONS,PUT,DELETE,PATCH'"
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+          500:
+            statusCode: '500'
+            responseParameters:
+              method.response.header.Access-Control-Allow-Origin: "'${cors_origin}'"
+              method.response.header.Access-Control-Allow-Methods: "'GET,POST,OPTIONS,PUT,DELETE,PATCH'"
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
           default:
             statusCode: '200'
-            responseParameters: *cors-headers
+            responseParameters:
+              method.response.header.Access-Control-Allow-Origin: "'${cors_origin}'"
+              method.response.header.Access-Control-Allow-Methods: "'GET,POST,OPTIONS,PUT,DELETE,PATCH'"
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+        passthroughBehavior: "when_no_match"
+        requestTemplates:
+          application/json: "{\"statusCode\": 200}"
+        type: mock
 
 components:
-  securitySchemes:
-    bearerAuth: # arbitrary name for the security scheme
-      type: http
-      scheme: bearer
-      bearerFormat: JWT # optional, arbitrary value for documentation purposes
   schemas:
     User:
       type: object
