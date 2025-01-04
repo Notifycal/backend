@@ -20,6 +20,8 @@ resource "aws_api_gateway_rest_api" "rest_api" {
   # OpenAPI spec file
   body = local.rendered_openapi_spec
 
+  fail_on_warnings = "true"
+
   endpoint_configuration {
     types = ["REGIONAL"]
   }

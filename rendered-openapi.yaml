@@ -1,0 +1,271 @@
+---
+openapi: '3.0.1'
+info:
+  title: Notifycal API
+  description: Notifycal API
+  contact:
+    name: Notifycal CTO
+    url: https://github.com/notifycal
+    email: notifycal@gmail.com
+  version: '0'
+servers:
+  - url: https://api{environment}.notifycal.com/api/{api_version}
+    variables:
+      environment:
+        default: ''
+        enum:
+          - '' # Production
+          - .qa # QA server
+          - .dev # Development
+      api_version:
+        default: v1
+        enum:
+          - v1
+
+x-amazon-apigateway-gateway-responses:
+  DEFAULT_4XX:
+    responseParameters:
+      gatewayresponse.header.Access-Control-Allow-Origin: "'https://api${stageVariables.environment}.notifycal.com'"
+      gatewayresponse.header.Access-Control-Allow-Methods: "'GET,POST,OPTIONS,PUT,DELETE,PATCH'"
+      gatewayresponse.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+    responseTemplates:
+      application/json: '{"message":"Client Error"}'
+    statusCode: 400
+
+  DEFAULT_5XX:
+    responseParameters:
+      gatewayresponse.header.Access-Control-Allow-Origin: "'https://api${stageVariables.environment}.notifycal.com'"
+      gatewayresponse.header.Access-Control-Allow-Methods: "'GET,POST,OPTIONS,PUT,DELETE,PATCH'"
+      gatewayresponse.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+    responseTemplates:
+      application/json: '{"message":"Server Error"}'
+    statusCode: 500
+
+
+paths:
+  /login:
+    post:
+      summary: Login endpoint
+      operationId: login
+      tags: [user, auth]
+      description: Let a user login against environment APIs
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Request payload containing google code provided by Google to the user on successful oauth logon
+              properties:
+                googleCode:
+                  description: code to verify against Google to check that user is who they claim they are
+                  type: string
+      security: [] # This overrides global definition since this endpoint is unprotected
+      responses:
+        '200':
+          $ref: '#/components/responses/AuthOK'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorised'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      x-amazon-apigateway-integration:
+        uri: 'arn:aws:apigateway:eu-west-1:lambda:path/2015-03-31/functions/arn:aws:lambda:eu-west-1:381492094204:function:post-login-dev/invocations'
+        responses:
+          400:
+            statusCode: '400'
+          500:
+            statusCode: '500'
+          default:
+            statusCode: '200'
+        passthroughBehavior: 'when_no_match'
+        httpMethod: 'POST'
+        type: 'aws_proxy'
+    options:
+      summary: CORS Preflight
+      responses:
+        '200':
+          description: CORS preflight response
+          headers:
+            Access-Control-Allow-Origin:
+              description: CORS Allowed Origin
+              schema:
+                type: string
+            Access-Control-Allow-Methods:
+              description: CORS Allowed Methods
+              schema:
+                type: string
+            Access-Control-Allow-Headers:
+              description: CORS Allowed Headers
+              schema:
+                type: string
+            Access-Control-Max-Age:
+              description: Cache duration in seconds for CORS preflight response
+              schema:
+                type: integer
+                example: 86400
+        '400':
+          description: CORS preflight response
+          headers:
+            Access-Control-Allow-Origin:
+              description: CORS Allowed Origin
+              schema:
+                type: string
+            Access-Control-Allow-Methods:
+              description: CORS Allowed Methods
+              schema:
+                type: string
+            Access-Control-Allow-Headers:
+              description: CORS Allowed Headers
+              schema:
+                type: string
+            Access-Control-Max-Age:
+              description: Cache duration in seconds for CORS preflight response
+              schema:
+                type: integer
+                example: 86400
+        '500':
+          description: CORS preflight response
+          headers:
+            Access-Control-Allow-Origin:
+              description: CORS Allowed Origin
+              schema:
+                type: string
+            Access-Control-Allow-Methods:
+              description: CORS Allowed Methods
+              schema:
+                type: string
+            Access-Control-Allow-Headers:
+              description: CORS Allowed Headers
+              schema:
+                type: string
+            Access-Control-Max-Age:
+              description: Cache duration in seconds for CORS preflight response
+              schema:
+                type: integer
+                example: 86400
+      x-amazon-apigateway-integration:
+        responses:
+          400:
+            statusCode: '400'
+            responseParameters:
+              method.response.header.Access-Control-Allow-Origin: "'https://api${stageVariables.environment}.notifycal.com'"
+              method.response.header.Access-Control-Allow-Methods: "'GET,POST,OPTIONS,PUT,DELETE,PATCH'"
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+          500:
+            statusCode: '500'
+            responseParameters:
+              method.response.header.Access-Control-Allow-Origin: "'https://api${stageVariables.environment}.notifycal.com'"
+              method.response.header.Access-Control-Allow-Methods: "'GET,POST,OPTIONS,PUT,DELETE,PATCH'"
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+          default:
+            statusCode: '200'
+            responseParameters:
+              method.response.header.Access-Control-Allow-Origin: "'https://api${stageVariables.environment}.notifycal.com'"
+              method.response.header.Access-Control-Allow-Methods: "'GET,POST,OPTIONS,PUT,DELETE,PATCH'"
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+        passthroughBehavior: "when_no_match"
+        requestTemplates:
+          application/json: "{\"statusCode\": 200}"
+        type: "mock"
+
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        UserId:
+          type: string
+          format: email
+      required:
+        - UserId
+  responses:
+    AuthOK:
+      description: OK
+      content:
+        application/json:
+          schema:
+            type: object
+            description: Response payload containing authorization
+            properties:
+              accessToken:
+                description: jwt to use as an authorization against all system APIs
+                type: string
+              tokenType:
+                type: string
+                enum:
+                  - Bearer
+              refreshToken:
+                description: jwt to refresh authorization for system APIs
+                type: string
+    BadRequest:
+      description: Bad Request response payload
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                enum:
+                  - Bad Request
+            required:
+              - message
+    Unauthorised:
+      description: Unauthorised response payload
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                enum:
+                  - Unauthorised
+            required:
+              - message
+    Forbidden:
+      description: Forbidden response payload
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                enum:
+                  - Forbidden
+            required:
+              - message
+    NotFound:
+      description: NotFound response payload
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                enum:
+                  - Not Found
+            required:
+              - message
+    InternalServerError:
+      description: Internal Server Error response payload
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                enum:
+                  - KO
+            required:
+              - message
+
+tags:
+  - name: user
+    description: user operations
+  - name: auth
+    description: authentication operations
