@@ -70,104 +70,71 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
       x-amazon-apigateway-integration:
-        uri: 'arn:aws:apigateway:${aws_region}:lambda:path/2015-03-31/functions/${lambda_functions.post_login_arn}/invocations'
-        responses:
-          400:
-            statusCode: '400'
-          500:
-            statusCode: '500'
-          default:
-            statusCode: '200'
-        passthroughBehavior: 'when_no_match'
-        httpMethod: 'POST'
         type: 'aws_proxy'
+        httpMethod: 'POST'
+        uri: 'arn:aws:apigateway:${aws_region}:lambda:path/2015-03-31/functions/${lambda_functions.post_login_arn}/invocations'
+        passthroughBehavior: 'when_no_match'
     options:
       summary: CORS Preflight
       responses:
+        # TODO extract to components/responses
         '200':
-          description: CORS preflight response
+          description: CORS Allowed
           headers:
             Access-Control-Allow-Origin:
-              description: CORS Allowed Origin
               schema:
                 type: string
             Access-Control-Allow-Methods:
-              description: CORS Allowed Methods
               schema:
                 type: string
             Access-Control-Allow-Headers:
-              description: CORS Allowed Headers
               schema:
                 type: string
             Access-Control-Max-Age:
-              description: Cache duration in seconds for CORS preflight response
               schema:
                 type: integer
                 example: 86400
         '400':
-          description: CORS preflight response
-          headers:
-            Access-Control-Allow-Origin:
-              description: CORS Allowed Origin
-              schema:
-                type: string
-            Access-Control-Allow-Methods:
-              description: CORS Allowed Methods
-              schema:
-                type: string
-            Access-Control-Allow-Headers:
-              description: CORS Allowed Headers
-              schema:
-                type: string
-            Access-Control-Max-Age:
-              description: Cache duration in seconds for CORS preflight response
-              schema:
-                type: integer
-                example: 86400
-        '500':
-          description: CORS preflight response
-          headers:
-            Access-Control-Allow-Origin:
-              description: CORS Allowed Origin
-              schema:
-                type: string
-            Access-Control-Allow-Methods:
-              description: CORS Allowed Methods
-              schema:
-                type: string
-            Access-Control-Allow-Headers:
-              description: CORS Allowed Headers
-              schema:
-                type: string
-            Access-Control-Max-Age:
-              description: Cache duration in seconds for CORS preflight response
-              schema:
-                type: integer
-                example: 86400
+          description: 'Bad request - Missing or invalid headers'
+        '403':
+          description: 'Forbidden - Origin not allowed'
       x-amazon-apigateway-integration:
+        type: mock
+        passthroughBehavior: never    # APIGW doesn't process the request beyond returning a response from below.
+        requestTemplates:
+          # Origin validation in API GW
+          application/json: |
+            #set($origin = $input.params("Origin"))
+            #if($origin && $origin == "${cors_origin}")
+              {
+                "statusCode": 200
+              }
+            #elseif(!$origin)
+              {
+                "statusCode": 400
+              }
+            #else
+              {
+                "statusCode": 403
+              }
+            #end
         responses:
-          400:
-            statusCode: '400'
-            responseParameters:
-              method.response.header.Access-Control-Allow-Origin: "'${cors_origin}'"
-              method.response.header.Access-Control-Allow-Methods: "'GET,POST,OPTIONS,PUT,DELETE,PATCH'"
-              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
-          500:
-            statusCode: '500'
-            responseParameters:
-              method.response.header.Access-Control-Allow-Origin: "'${cors_origin}'"
-              method.response.header.Access-Control-Allow-Methods: "'GET,POST,OPTIONS,PUT,DELETE,PATCH'"
-              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
           default:
             statusCode: '200'
             responseParameters:
               method.response.header.Access-Control-Allow-Origin: "'${cors_origin}'"
-              method.response.header.Access-Control-Allow-Methods: "'GET,POST,OPTIONS,PUT,DELETE,PATCH'"
-              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
-        passthroughBehavior: "when_no_match"
-        requestTemplates:
-          application/json: "{\"statusCode\": 200}"
-        type: mock
+              method.response.header.Access-Control-Allow-Methods: "'GET,POST,OPTIONS,PUT,DELETE,PATCH'"    # TODO: Review methods
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"  # TODO: Review headers
+              method.response.header.Access-Control-Max-Age: "'400'"
+              # TODO: Add max age
+          '400':
+            statusCode: '400'
+            responseParameters:
+              method.response.header.Access-Control-Allow-Origin: "'null'"
+          '403':
+            statusCode: '403'
+            responseParameters:
+              method.response.header.Access-Control-Allow-Origin: "'null'"
 
 components:
   schemas:
