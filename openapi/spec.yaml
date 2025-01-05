@@ -62,9 +62,9 @@ paths:
         '400': { $ref: '#/components/responses/BadRequest' }
         '401': { $ref: '#/components/responses/Unauthorised' }
         '500': { $ref: '#/components/responses/InternalServerError' }
-      x-amazon-apigateway-integration:  &AWS_LAMBDA_PROXY
+      x-amazon-apigateway-integration: &AWS_LAMBDA_PROXY
         type: 'aws_proxy'
-        httpMethod: 'POST'  # Always POST
+        httpMethod: 'POST' # Always POST
         uri: 'arn:aws:apigateway:${aws_region}:lambda:path/2015-03-31/functions/${lambda_functions.post_login_arn}/invocations'
     options: &CORS_OPTIONS
       summary: CORS Preflight
@@ -131,7 +131,7 @@ paths:
         '401': { $ref: '#/components/responses/Unauthorised' }
         '403': { $ref: '#/components/responses/Forbidden' }
         '500': { $ref: '#/components/responses/InternalServerError' }
-      x-amazon-apigateway-integration: 
+      x-amazon-apigateway-integration:
         <<: *AWS_LAMBDA_PROXY
         uri: 'arn:aws:apigateway:${aws_region}:lambda:path/2015-03-31/functions/${lambda_functions.post_refresh_arn}/invocations'
     options: *CORS_OPTIONS
@@ -184,7 +184,7 @@ components:
       required:
         - message
       additionalProperties: false
-    
+
   responses:
     AuthOK:
       description: OK

@@ -5,23 +5,22 @@ extends:
   - 'spectral-aws-apigateway-ruleset'
 
 overrides:
-
   - files:
       - 'tf/openapi/spec.yaml'
     rules:
       # Disabling these rules for OPTIONS methods
       operation-description:
-        given: "$.paths[*].options"
+        given: '$.paths[*].options'
         then:
           function: truthy
         severity: off
       operation-tags:
-        given: "$.paths[*].options"
+        given: '$.paths[*].options'
         then:
           function: truthy
         severity: off
       operation-operationId:
-        given: "$.paths[*].options"
+        given: '$.paths[*].options'
         then:
           function: truthy
         severity: off
