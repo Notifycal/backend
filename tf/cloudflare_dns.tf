@@ -6,8 +6,8 @@ data "cloudflare_zone" "main" {
 resource "cloudflare_record" "main" {
   zone_id = data.cloudflare_zone.main.id
 
-  name = var.domain_prefix
-  content  = aws_api_gateway_domain_name.custom_domain.regional_domain_name
+  name    = var.domain_prefix
+  content = aws_api_gateway_domain_name.custom_domain.regional_domain_name
   type    = "CNAME"
   proxied = false
 }
