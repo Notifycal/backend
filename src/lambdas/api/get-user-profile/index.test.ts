@@ -90,7 +90,7 @@ const defaultEnv = {
     tableName: 'Users-local'
   },
   baseConfig: {
-    frontendDomain: 'http://localhost'
+    frontendDomain: 'http://localhost:5173'
   },
   awsConfig: {
     awsRegion: 'eu-west-1'

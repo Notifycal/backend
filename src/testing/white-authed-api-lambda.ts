@@ -34,7 +34,7 @@ function testingConfigReader(): TestingWhiteApiConfig {
     config1: 'blah',
     decodeAccessJwtConfig: getDefaultDecodeAccessJwtConfig(),
     baseConfig: {
-      frontendDomain: 'http://localhost'
+      frontendDomain: 'http://localhost:5173'
     }
   };
 }
