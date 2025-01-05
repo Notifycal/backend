@@ -8,7 +8,8 @@ info:
     url: https://github.com/notifycal
     email: notifycal@gmail.com
   version: '0'
-servers:      # API GW Ignores this (surpriiiise!)
+# API GW Ignores this (surpriiiise!)
+servers:
   - url: https://api{environment}.notifycal.com/api/{api_version}
     variables:
       environment:
@@ -40,7 +41,6 @@ x-amazon-apigateway-gateway-responses:
     responseTemplates:
       application/json: '{"message":"Server Error"}'
     statusCode: 500
-
 
 paths:
   /api/v1/login:
@@ -100,7 +100,7 @@ paths:
           description: 'Forbidden - Origin not allowed'
       x-amazon-apigateway-integration:
         type: mock
-        passthroughBehavior: never    # APIGW doesn't process the request beyond returning a response from below.
+        passthroughBehavior: never # APIGW doesn't process the request beyond returning a response from below.
         requestTemplates:
           # Origin validation in API GW
           application/json: |
@@ -123,8 +123,8 @@ paths:
             statusCode: '200'
             responseParameters:
               method.response.header.Access-Control-Allow-Origin: "'${cors_origin}'"
-              method.response.header.Access-Control-Allow-Methods: "'GET,POST,OPTIONS,PUT,DELETE,PATCH'"    # TODO: Review methods
-              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"  # TODO: Review headers
+              method.response.header.Access-Control-Allow-Methods: "'GET,POST,OPTIONS,PUT,DELETE,PATCH'" # TODO: Review methods
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'" # TODO: Review headers
               method.response.header.Access-Control-Max-Age: "'400'"
               # TODO: Add max age
           '400':
@@ -194,7 +194,7 @@ paths:
           description: 'Forbidden - Origin not allowed'
       x-amazon-apigateway-integration:
         type: mock
-        passthroughBehavior: never    # APIGW doesn't process the request beyond returning a response from below.
+        passthroughBehavior: never # APIGW doesn't process the request beyond returning a response from below.
         requestTemplates:
           # Origin validation in API GW
           application/json: |
@@ -217,8 +217,8 @@ paths:
             statusCode: '200'
             responseParameters:
               method.response.header.Access-Control-Allow-Origin: "'${cors_origin}'"
-              method.response.header.Access-Control-Allow-Methods: "'GET,POST,OPTIONS,PUT,DELETE,PATCH'"    # TODO: Review methods
-              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"  # TODO: Review headers
+              method.response.header.Access-Control-Allow-Methods: "'GET,POST,OPTIONS,PUT,DELETE,PATCH'" # TODO: Review methods
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'" # TODO: Review headers
               method.response.header.Access-Control-Max-Age: "'400'"
               # TODO: Add max age
           '400':
@@ -279,7 +279,7 @@ paths:
           description: 'Forbidden - Origin not allowed'
       x-amazon-apigateway-integration:
         type: mock
-        passthroughBehavior: never    # APIGW doesn't process the request beyond returning a response from below.
+        passthroughBehavior: never # APIGW doesn't process the request beyond returning a response from below.
         requestTemplates:
           # Origin validation in API GW
           application/json: |
@@ -302,8 +302,8 @@ paths:
             statusCode: '200'
             responseParameters:
               method.response.header.Access-Control-Allow-Origin: "'${cors_origin}'"
-              method.response.header.Access-Control-Allow-Methods: "'GET,POST,OPTIONS,PUT,DELETE,PATCH'"    # TODO: Review methods
-              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"  # TODO: Review headers
+              method.response.header.Access-Control-Allow-Methods: "'GET,POST,OPTIONS,PUT,DELETE,PATCH'" # TODO: Review methods
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'" # TODO: Review headers
               method.response.header.Access-Control-Max-Age: "'400'"
               # TODO: Add max age
           '400':
