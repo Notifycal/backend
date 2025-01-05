@@ -4,7 +4,7 @@ locals {
   aws_account_id = data.aws_caller_identity.current.account_id
   rendered_openapi_spec = templatefile("${path.root}/../dist/${var.openapi_spec_file}", {
     version     = "v0.0.1"
-    aws_region  = "eu-west-1"
+    aws_region  = var.aws_region
     cors_origin = var.frontend_domain
     lambda_functions = {
       post_watch_events_arn = module.post_watch_lambda.lambda_function_arn
