@@ -4,7 +4,7 @@ import type { APIGatewayProxyResult } from 'aws-lambda';
 export function responseSuccess(
   body: object,
   statusCode = 200,
-  allowedOrigin: string = 'http://localhost'
+  allowedOrigin: string = 'http://localhost:5173'
 ): APIGatewayProxyResult {
   return {
     statusCode,
@@ -15,7 +15,7 @@ export function responseSuccess(
 
 export function responseError(
   statusCode: keyof typeof errorMessages,
-  allowedOrigin: string = 'http://localhost'
+  allowedOrigin: string = 'http://localhost:5173'
 ): APIGatewayProxyResult {
   return {
     statusCode,
