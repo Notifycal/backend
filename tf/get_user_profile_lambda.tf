@@ -1,3 +1,17 @@
+data "aws_iam_policy_document" "get_user_profile_iam_policydoc" {
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "dynamodb:GetItem",
+    ]
+
+    resources = [
+      aws_dynamodb_table.users.arn
+    ]
+  }
+}
+
 module "get_user_profile_lambda" {
   source  = "terraform-aws-modules/lambda/aws"
   version = "~> 7.17"
@@ -34,7 +48,11 @@ module "get_user_profile_lambda" {
     }
   }
 
+  attach_policy_json = true
+  policy_json        = data.aws_iam_policy_document.get_user_profile_iam_policydoc.json
+
   environment_variables = merge({
     USERS_TABLE_NAME = aws_dynamodb_table.users.name
+    ACCESS_JWT_PUBLIC_KEY = data.aws_ssm_parameter.access_jwt_public_key.value
   }, local.protected_endpoint_env_vars)
 }
