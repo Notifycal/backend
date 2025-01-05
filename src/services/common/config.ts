@@ -1,4 +1,6 @@
+import { defaultProvider } from '@aws-sdk/credential-provider-node';
 import { from } from 'env-var';
+
 import type {
   AwsConfig,
   BaseEndpointConfig,
@@ -60,18 +62,12 @@ export function readDecodeRefreshJwtConfig(env: Environment): DecodeRefreshJwtCo
   };
 }
 
-function readAwsCredentials(
-  env: Environment
-): { accessKeyId: string; secretAccessKey: string } | undefined {
-  const accessKeyId = env.get('AWS_ACCESS_KEY_ID').asString();
-  const secretAccessKey = env.get('AWS_SECRET_ACCESS_KEY').asString();
-  return accessKeyId && secretAccessKey ? { accessKeyId, secretAccessKey } : undefined;
-}
+export async function readAwsConfig(env: Environment): Promise<AwsConfig> {
+  const credentials = await defaultProvider()();
 
-export function readAwsConfig(env: Environment): AwsConfig {
   return {
-    awsRegion: env.get('AWS_REGION').required().default('eu-west-1').asString(),
+    awsRegion: env.get('AWS_REGION').required().asString(),
     endpoint: env.get('AWS_ENDPOINT_URL').asString(),
-    // credentials: readAwsCredentials(env)     // THIS doesn't work
+    credentials
   };
 }
