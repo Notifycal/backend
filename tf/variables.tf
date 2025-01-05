@@ -20,3 +20,12 @@ variable "frontend_domain" {
   type        = string
   description = "Allowed domain specified in response headers by API gateway lambdas(TLDR: CORS)"
 }
+
+variable "base_domain" {
+  type = string
+}
+
+variable "domain_prefix" {
+  type    = string
+  default = "api"
+}

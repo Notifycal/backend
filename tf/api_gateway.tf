@@ -3,8 +3,8 @@ data "aws_caller_identity" "current" {}
 locals {
   aws_account_id = data.aws_caller_identity.current.account_id
   rendered_openapi_spec = templatefile("${abspath(path.module)}/openapi/${var.openapi_spec_file}", {
-    version    = "v0.0.1"
-    aws_region = "eu-west-1"
+    version     = "v0.0.1"
+    aws_region  = "eu-west-1"
     cors_origin = var.frontend_domain
     lambda_functions = {
       post_watch_events_arn = module.post_watch_lambda.lambda_function_arn
@@ -62,3 +62,17 @@ resource "aws_api_gateway_method_settings" "method_settings" {
   }
 }
 
+data "aws_acm_certificate" "ssl_cert" {
+  domain      = "*.${var.base_domain}"
+  types       = ["AMAZON_ISSUED"]
+  most_recent = true
+}
+
+resource "aws_api_gateway_domain_name" "custom_domain" {
+  domain_name              = "${var.domain_prefix}.${var.base_domain}"
+  regional_certificate_arn = data.aws_acm_certificate.ssl_cert.arn
+
+  endpoint_configuration {
+    types = ["REGIONAL"]
+  }
+}
