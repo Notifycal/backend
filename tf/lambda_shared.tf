@@ -23,4 +23,10 @@ locals {
   }, local.decode_access_jwt_env_vars)
 
   common_tags = {}
+
+  # Timeout for API Lambdas. API Gateway will timeout after 30s in any case
+  api_lambdas_timeout           = 30
+  lambdas_publish               = true
+  lambdas_create_package        = false
+  lambdas_attach_tracing_policy = true
 }

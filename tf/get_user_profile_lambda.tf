@@ -17,24 +17,41 @@ module "get_user_profile_lambda" {
   version = "~> 7.17"
 
   function_name          = "get-user-profile-${var.environment}"
-  publish                = true
-  create_package         = false
+  publish                = local.lambdas_publish
+  create_package         = local.lambdas_create_package
   local_existing_package = "${path.root}/../dist/lambdas/api/get-user-profile.zip"
 
-  runtime     = "nodejs22.x"
-  timeout     = 30
+  runtime     = var.lambdas_runtime
+  timeout     = local.api_lambdas_timeout
   memory_size = 256
-  handler     = "index.handler"
+  handler     = var.lambdas_handler_name
 
-  logging_log_format    = "JSON"
-  attach_tracing_policy = true
-  tracing_mode          = "Active"
+  logging_log_format    = var.lambdas_logging_log_format
+  attach_tracing_policy = local.lambdas_attach_tracing_policy
+  tracing_mode          = var.lambdas_tracing_mode
 
   maximum_retry_attempts = 0
 
   tags = merge({
     Api = "GET /user-profile"
   }, local.common_tags)
+
+  attach_policy_json = true
+  policy_json        = data.aws_iam_policy_document.get_user_profile_iam_policydoc.json
+
+  environment_variables = merge({
+    USERS_TABLE_NAME      = aws_dynamodb_table.users.name
+    ACCESS_JWT_PUBLIC_KEY = data.aws_ssm_parameter.access_jwt_public_key.value
+  }, local.protected_endpoint_env_vars)
+}
+
+module "get_user_profile_lambda_alias" {
+  source  = "terraform-aws-modules/lambda/aws//modules/alias"
+  version = "~> 7.17"
+
+  function_name    = module.get_user_profile_lambda.lambda_function_name
+  function_version = module.get_user_profile_lambda.lambda_function_version
+  name             = var.lambdas_live_alias_name
 
   allowed_triggers = {
     AllowAPIGatewayInvoke = {
@@ -47,12 +64,4 @@ module "get_user_profile_lambda" {
       )
     }
   }
-
-  attach_policy_json = true
-  policy_json        = data.aws_iam_policy_document.get_user_profile_iam_policydoc.json
-
-  environment_variables = merge({
-    USERS_TABLE_NAME      = aws_dynamodb_table.users.name
-    ACCESS_JWT_PUBLIC_KEY = data.aws_ssm_parameter.access_jwt_public_key.value
-  }, local.protected_endpoint_env_vars)
 }

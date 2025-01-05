@@ -7,7 +7,7 @@ info:
     name: Notifycal CTO
     url: https://github.com/notifycal
     email: notifycal@gmail.com
-  version: '0'
+  version: ${version}
 # API GW Ignores this (surpriiiise!)
 servers:
   - url: https://api{environment}.notifycal.com/api/{api_version}
