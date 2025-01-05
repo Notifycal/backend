@@ -35,7 +35,7 @@ module "post_login_lambda" {
 
   runtime     = "nodejs22.x"
   timeout     = 30
-  memory_size = 128
+  memory_size = 256
   handler     = "index.handler"
 
   logging_log_format    = "JSON"
