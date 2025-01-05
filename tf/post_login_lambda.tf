@@ -1,3 +1,29 @@
+data "aws_iam_policy_document" "post_login_iam_policydoc" {
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "dynamodb:GetItem",
+      "dynamodb:PutItem",
+    ]
+
+    resources = [
+      aws_dynamodb_table.users.arn
+    ]
+  }
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "dynamodb:PutItem",
+    ]
+
+    resources = [
+      aws_dynamodb_table.refresh_tokens.arn
+    ]
+  }
+}
+
 module "post_login_lambda" {
   source  = "terraform-aws-modules/lambda/aws"
   version = "~> 7.17"
@@ -31,6 +57,21 @@ module "post_login_lambda" {
         aws_api_gateway_rest_api.rest_api.id,
         var.api_stage_name
       )
+    }
+  }
+
+  attach_policy_json = true
+  policy_json        = data.aws_iam_policy_document.post_login_iam_policydoc.json
+  assume_role_policy_statements = {
+    main = {
+      effect  = "Allow"
+      actions = ["sts:AssumeRole"]
+      principals = {
+        lambda_service = {
+          type        = "Service"
+          identifiers = ["lambda.amazonaws.com"]
+        }
+      }
     }
   }
 
