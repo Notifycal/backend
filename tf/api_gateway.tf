@@ -3,7 +3,7 @@ data "aws_caller_identity" "current" {}
 locals {
   aws_account_id = data.aws_caller_identity.current.account_id
   rendered_openapi_spec = templatefile("${path.root}/../dist/${var.openapi_spec_file}", {
-    version     = var.version
+    version     = var.app_version
     aws_region  = var.aws_region
     cors_origin = var.frontend_domain
     lambda_functions = {

@@ -1,4 +1,4 @@
-variable "version" {
+variable "app_version" {
   type    = string
   default = "v0.0.1"
 }
