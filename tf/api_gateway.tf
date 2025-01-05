@@ -3,13 +3,13 @@ data "aws_caller_identity" "current" {}
 locals {
   aws_account_id = data.aws_caller_identity.current.account_id
   rendered_openapi_spec = templatefile("${path.root}/../dist/${var.openapi_spec_file}", {
-    version     = "v0.0.1"
-    aws_region  = "eu-west-1"
+    version     = var.version
+    aws_region  = var.aws_region
     cors_origin = var.frontend_domain
     lambda_functions = {
-      post_login_arn        = module.post_login_lambda_alias.lambda_alias_arn
-      post_refresh_arn      = module.post_refresh_lambda_alias.lambda_alias_arn
-      get_user_profile_arn  = module.get_user_profile_lambda_alias.lambda_alias_arn
+      post_login_arn       = module.post_login_lambda_alias.lambda_alias_arn
+      post_refresh_arn     = module.post_refresh_lambda_alias.lambda_alias_arn
+      get_user_profile_arn = module.get_user_profile_lambda_alias.lambda_alias_arn
     }
   })
 }

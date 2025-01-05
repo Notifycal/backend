@@ -1,3 +1,8 @@
+variable "version" {
+  type    = string
+  default = "v0.0.1"
+}
+
 variable "aws_region" {
   type = string
 }
