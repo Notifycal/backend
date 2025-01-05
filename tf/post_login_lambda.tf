@@ -48,6 +48,26 @@ module "post_login_lambda" {
     Api = "POST /login"
   }, local.common_tags)
 
+  attach_policy_json = true
+  policy_json        = data.aws_iam_policy_document.post_login_iam_policydoc.json
+
+  environment_variables = merge({
+    GOOGLE_OAUTH_CLIENT_ID           = data.aws_ssm_parameter.google_oauth_client_id.value
+    GOOGLE_OAUTH_CLIENT_SECRET       = data.aws_ssm_parameter.google_oauth_client_secret.value
+    GOOGLE_OAUTH_CLIENT_REDIRECT_URI = data.aws_ssm_parameter.google_oauth_client_redirect_url.value
+    USERS_TABLE_NAME                 = aws_dynamodb_table.users.name
+    REFRESH_TOKENS_TABLE_NAME        = aws_dynamodb_table.refresh_tokens.name
+  }, local.login_and_refresh_env_vars, local.common_lambda_env_vars)
+}
+
+module "post_login_lambda_alias" {
+  source  = "terraform-aws-modules/lambda/aws//modules/alias"
+  version = "~> 7.17"
+
+  function_name    = module.post_login_lambda.lambda_function_name
+  function_version = module.post_login_lambda.lambda_function_version
+  name             = var.lambdas_live_alias_name
+
   allowed_triggers = {
     AllowAPIGatewayInvoke = {
       principal = "apigateway.amazonaws.com"
@@ -59,15 +79,4 @@ module "post_login_lambda" {
       )
     }
   }
-
-  attach_policy_json = true
-  policy_json        = data.aws_iam_policy_document.post_login_iam_policydoc.json
-
-  environment_variables = merge({
-    GOOGLE_OAUTH_CLIENT_ID           = data.aws_ssm_parameter.google_oauth_client_id.value
-    GOOGLE_OAUTH_CLIENT_SECRET       = data.aws_ssm_parameter.google_oauth_client_secret.value
-    GOOGLE_OAUTH_CLIENT_REDIRECT_URI = data.aws_ssm_parameter.google_oauth_client_redirect_url.value
-    USERS_TABLE_NAME                 = aws_dynamodb_table.users.name
-    REFRESH_TOKENS_TABLE_NAME        = aws_dynamodb_table.refresh_tokens.name
-  }, local.login_and_refresh_env_vars, local.common_lambda_env_vars)
 }

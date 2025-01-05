@@ -36,6 +36,23 @@ module "get_user_profile_lambda" {
     Api = "GET /user-profile"
   }, local.common_tags)
 
+  attach_policy_json = true
+  policy_json        = data.aws_iam_policy_document.get_user_profile_iam_policydoc.json
+
+  environment_variables = merge({
+    USERS_TABLE_NAME      = aws_dynamodb_table.users.name
+    ACCESS_JWT_PUBLIC_KEY = data.aws_ssm_parameter.access_jwt_public_key.value
+  }, local.protected_endpoint_env_vars)
+}
+
+module "get_user_profile_lambda_alias" {
+  source  = "terraform-aws-modules/lambda/aws//modules/alias"
+  version = "~> 7.17"
+
+  function_name    = module.get_user_profile_lambda.lambda_function_name
+  function_version = module.get_user_profile_lambda.lambda_function_version
+  name             = var.lambdas_live_alias_name
+
   allowed_triggers = {
     AllowAPIGatewayInvoke = {
       principal = "apigateway.amazonaws.com"
@@ -47,12 +64,4 @@ module "get_user_profile_lambda" {
       )
     }
   }
-
-  attach_policy_json = true
-  policy_json        = data.aws_iam_policy_document.get_user_profile_iam_policydoc.json
-
-  environment_variables = merge({
-    USERS_TABLE_NAME      = aws_dynamodb_table.users.name
-    ACCESS_JWT_PUBLIC_KEY = data.aws_ssm_parameter.access_jwt_public_key.value
-  }, local.protected_endpoint_env_vars)
 }

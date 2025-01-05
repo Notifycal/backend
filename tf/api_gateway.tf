@@ -7,10 +7,9 @@ locals {
     aws_region  = "eu-west-1"
     cors_origin = var.frontend_domain
     lambda_functions = {
-      post_watch_events_arn = module.post_watch_lambda.lambda_function_arn
-      post_login_arn        = module.post_login_lambda.lambda_function_arn
-      post_refresh_arn      = module.post_refresh_lambda.lambda_function_arn
-      get_user_profile_arn  = module.get_user_profile_lambda.lambda_function_arn
+      post_login_arn        = module.post_login_lambda_alias.lambda_alias_arn
+      post_refresh_arn      = module.post_refresh_lambda_alias.lambda_alias_arn
+      get_user_profile_arn  = module.get_user_profile_lambda_alias.lambda_alias_arn
     }
   })
 }

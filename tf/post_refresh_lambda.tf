@@ -37,6 +37,23 @@ module "post_refresh_lambda" {
     Api = "POST /refresh"
   }, local.common_tags)
 
+  attach_policy_json = true
+  policy_json        = data.aws_iam_policy_document.post_refresh_iam_policydoc.json
+
+  environment_variables = merge({
+    REFRESH_JWT_PUBLIC_KEY    = data.aws_ssm_parameter.refresh_jwt_public_key.value
+    REFRESH_TOKENS_TABLE_NAME = aws_dynamodb_table.refresh_tokens.name
+  }, local.login_and_refresh_env_vars, local.common_lambda_env_vars)
+}
+
+module "post_refresh_lambda_alias" {
+  source  = "terraform-aws-modules/lambda/aws//modules/alias"
+  version = "~> 7.17"
+
+  function_name    = module.post_refresh_lambda.lambda_function_name
+  function_version = module.post_refresh_lambda.lambda_function_version
+  name             = var.lambdas_live_alias_name
+
   allowed_triggers = {
     AllowAPIGatewayInvoke = {
       principal = "apigateway.amazonaws.com"
@@ -48,12 +65,4 @@ module "post_refresh_lambda" {
       )
     }
   }
-
-  attach_policy_json = true
-  policy_json        = data.aws_iam_policy_document.post_refresh_iam_policydoc.json
-
-  environment_variables = merge({
-    REFRESH_JWT_PUBLIC_KEY    = data.aws_ssm_parameter.refresh_jwt_public_key.value
-    REFRESH_TOKENS_TABLE_NAME = aws_dynamodb_table.refresh_tokens.name
-  }, local.login_and_refresh_env_vars, local.common_lambda_env_vars)
 }
