@@ -17,18 +17,18 @@ module "get_user_profile_lambda" {
   version = "~> 7.17"
 
   function_name          = "get-user-profile-${var.environment}"
-  publish                = true
-  create_package         = false
+  publish                = local.lambdas_publish
+  create_package         = local.lambdas_create_package
   local_existing_package = "${path.root}/../dist/lambdas/api/get-user-profile.zip"
 
-  runtime     = "nodejs22.x"
-  timeout     = 30
+  runtime     = var.lambdas_runtime
+  timeout     = local.api_lambdas_timeout
   memory_size = 256
-  handler     = "index.handler"
+  handler     = var.lambdas_handler_name
 
-  logging_log_format    = "JSON"
-  attach_tracing_policy = true
-  tracing_mode          = "Active"
+  logging_log_format    = var.lambdas_logging_log_format
+  attach_tracing_policy = local.lambdas_attach_tracing_policy
+  tracing_mode          = var.lambdas_tracing_mode
 
   maximum_retry_attempts = 0
 

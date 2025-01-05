@@ -29,3 +29,28 @@ variable "domain_prefix" {
   type    = string
   default = "api"
 }
+
+variable "lambdas_live_alias_name" {
+  type    = string
+  default = "live"
+}
+
+variable "lambdas_logging_log_format" {
+  type    = string
+  default = "JSON"
+}
+
+variable "lambdas_tracing_mode" {
+  type    = string
+  default = "Active"
+}
+
+variable "lambdas_runtime" {
+  type    = string
+  default = "nodejs22.x"
+}
+
+variable "lambdas_handler_name" {
+  type    = string
+  default = "index.handler"
+}
