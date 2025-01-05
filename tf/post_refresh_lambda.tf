@@ -1,3 +1,18 @@
+data "aws_iam_policy_document" "post_refresh_iam_policydoc" {
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "dynamodb:GetItem",
+      "dynamodb:PutItem",
+    ]
+
+    resources = [
+      aws_dynamodb_table.refresh_tokens.arn
+    ]
+  }
+}
+
 module "post_refresh_lambda" {
   source  = "terraform-aws-modules/lambda/aws"
   version = "~> 7.17"
@@ -9,7 +24,7 @@ module "post_refresh_lambda" {
 
   runtime     = "nodejs22.x"
   timeout     = 30
-  memory_size = 128
+  memory_size = 256
   handler     = "index.handler"
 
   logging_log_format    = "JSON"
@@ -33,6 +48,9 @@ module "post_refresh_lambda" {
       )
     }
   }
+
+  attach_policy_json = true
+  policy_json        = data.aws_iam_policy_document.post_refresh_iam_policydoc.json
 
   environment_variables = merge({
     REFRESH_JWT_PUBLIC_KEY    = data.aws_ssm_parameter.refresh_jwt_public_key.value

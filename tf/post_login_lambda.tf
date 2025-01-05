@@ -62,18 +62,6 @@ module "post_login_lambda" {
 
   attach_policy_json = true
   policy_json        = data.aws_iam_policy_document.post_login_iam_policydoc.json
-  assume_role_policy_statements = {
-    main = {
-      effect  = "Allow"
-      actions = ["sts:AssumeRole"]
-      principals = {
-        lambda_service = {
-          type        = "Service"
-          identifiers = ["lambda.amazonaws.com"]
-        }
-      }
-    }
-  }
 
   environment_variables = merge({
     GOOGLE_OAUTH_CLIENT_ID           = data.aws_ssm_parameter.google_oauth_client_id.value

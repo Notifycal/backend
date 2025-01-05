@@ -135,6 +135,100 @@ paths:
             statusCode: '403'
             responseParameters:
               method.response.header.Access-Control-Allow-Origin: "'null'"
+  /api/v1/refresh:
+    post:
+      summary: Refresh endpoint
+      operationId: refresh
+      tags: [user, auth]
+      description: Let a user regenerate authentication against environment APIs using a refresh token
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Request payload containing refresh token
+              properties:
+                refreshToken:
+                  description: token provided by system APIs to refresh authorization
+                  type: string
+      security: [] # This overrides global definition since this endpoint is unprotected
+      responses:
+        '200':
+          $ref: '#/components/responses/AuthOK'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorised'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      x-amazon-apigateway-integration:
+        type: 'aws_proxy'
+        httpMethod: 'POST'
+        uri: 'arn:aws:apigateway:${aws_region}:lambda:path/2015-03-31/functions/${lambda_functions.post_refresh_arn}/invocations'
+        passthroughBehavior: 'when_no_match'
+    options:
+      summary: CORS Preflight
+      responses:
+        # TODO extract to components/responses
+        '200':
+          description: CORS Allowed
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+            Access-Control-Allow-Methods:
+              schema:
+                type: string
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
+            Access-Control-Max-Age:
+              schema:
+                type: integer
+                example: 86400
+        '400':
+          description: 'Bad request - Missing or invalid headers'
+        '403':
+          description: 'Forbidden - Origin not allowed'
+      x-amazon-apigateway-integration:
+        type: mock
+        passthroughBehavior: never    # APIGW doesn't process the request beyond returning a response from below.
+        requestTemplates:
+          # Origin validation in API GW
+          application/json: |
+            #set($origin = $input.params("Origin"))
+            #if($origin && $origin == "${cors_origin}")
+              {
+                "statusCode": 200
+              }
+            #elseif(!$origin)
+              {
+                "statusCode": 400
+              }
+            #else
+              {
+                "statusCode": 403
+              }
+            #end
+        responses:
+          default:
+            statusCode: '200'
+            responseParameters:
+              method.response.header.Access-Control-Allow-Origin: "'${cors_origin}'"
+              method.response.header.Access-Control-Allow-Methods: "'GET,POST,OPTIONS,PUT,DELETE,PATCH'"    # TODO: Review methods
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"  # TODO: Review headers
+              method.response.header.Access-Control-Max-Age: "'400'"
+              # TODO: Add max age
+          '400':
+            statusCode: '400'
+            responseParameters:
+              method.response.header.Access-Control-Allow-Origin: "'null'"
+          '403':
+            statusCode: '403'
+            responseParameters:
+              method.response.header.Access-Control-Allow-Origin: "'null'"
 
 components:
   schemas:
