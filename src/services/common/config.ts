@@ -72,6 +72,6 @@ export function readAwsConfig(env: Environment): AwsConfig {
   return {
     awsRegion: env.get('AWS_REGION').required().default('eu-west-1').asString(),
     endpoint: env.get('AWS_ENDPOINT_URL').asString(),
-    credentials: readAwsCredentials(env)
+    // credentials: readAwsCredentials(env)     // THIS doesn't work
   };
 }

@@ -1,1 +1,5 @@
-extends: ['spectral:oas', 'spectral:asyncapi', 'spectral:arazzo']
+# https://github.com/andylockran/spectral-aws-apigateway-ruleset?tab=readme-ov-file ??
+extends: 
+  - 'spectral:oas'
+  - 'spectral:asyncapi'
+  - 'spectral:arazzo'
