@@ -1,6 +1,6 @@
 import type { User } from '@model/User';
 import { UserBaseStore, type UserBaseStoreConfig } from './user-base-store';
-import type { AwsConfig, EncodeAccessJwtConfig, EncodeRefreshJwtConfig } from '@model/Config';
+import type { EncodeAccessJwtConfig, EncodeRefreshJwtConfig } from '@model/Config';
 import type { UserId } from '@own-types/model';
 import type { APIGatewayProxyResult } from 'aws-lambda';
 import { successHandler } from './common/api-response-handlers';
@@ -12,12 +12,8 @@ function signUpUser(email: string, userProvider: UserBaseStore): Promise<User> {
   return userProvider.putUser(newUser).then(() => newUser);
 }
 
-export function signInOrUpUser(
-  email: string,
-  config: UserBaseStoreConfig,
-  awsConfig: AwsConfig
-): Promise<User> {
-  const userProvider = new UserBaseStore(config, awsConfig);
+export function signInOrUpUser(email: string, config: UserBaseStoreConfig): Promise<User> {
+  const userProvider = new UserBaseStore(config);
   return userProvider.getUserByEmail(email).then(
     (userOrNot) => {
       if (userOrNot) {

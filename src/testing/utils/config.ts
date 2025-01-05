@@ -3,7 +3,6 @@ import type {
   DecodeRefreshJwtConfig,
   EncodeAccessJwtConfig,
   EncodeRefreshJwtConfig,
-  AwsConfig,
   BaseConfig
 } from '@model/Config';
 import type { RefreshTokenBaseStoreConfig } from '@services/refresh-token-base-store';
@@ -49,11 +48,4 @@ export function setEnvRefreshTokenBaseStoreConfig(config: RefreshTokenBaseStoreC
 
 export function setEnvBaseConfig(config: BaseConfig): void {
   process.env.FRONTEND_DOMAIN = config.frontendDomain;
-}
-
-export function setEnvAwsConfig(config: AwsConfig): void {
-  process.env.AWS_REGION = config.awsRegion;
-  process.env.AWS_ENDPOINT_URL = config.endpoint;
-  process.env.AWS_ACCESS_KEY_ID = config.credentials?.accessKeyId;
-  process.env.AWS_SECRET_ACCESS_KEY = config.credentials?.secretAccessKey;
 }

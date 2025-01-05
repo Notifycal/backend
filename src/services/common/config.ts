@@ -1,7 +1,6 @@
 import { from } from 'env-var';
 
 import type {
-  AwsConfig,
   BaseEndpointConfig,
   DecodeAccessJwtConfig,
   DecodeRefreshJwtConfig,
@@ -58,12 +57,5 @@ export function readDecodeRefreshJwtConfig(env: Environment): DecodeRefreshJwtCo
   return {
     publicKey: env.get('REFRESH_JWT_PUBLIC_KEY').required().asString(),
     ...readJwtConfig(env, 'REFRESH', '7d')
-  };
-}
-
-export function readAwsConfig(env: Environment): AwsConfig {
-  return {
-    awsRegion: env.get('AWS_REGION').required().asString(),
-    endpoint: env.get('AWS_ENDPOINT_URL').asString(),
   };
 }

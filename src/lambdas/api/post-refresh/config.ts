@@ -1,12 +1,10 @@
 import type {
-  AwsConfig,
   BaseEndpointConfig,
   DecodeRefreshJwtConfig,
   EncodeAccessJwtConfig,
   EncodeRefreshJwtConfig
 } from '@model/Config';
 import {
-  readAwsConfig,
   readBaseConfig,
   readDecodeRefreshJwtConfig,
   readEncodeAccessJwtConfig,
@@ -20,7 +18,6 @@ export interface RefreshConfig extends BaseEndpointConfig {
   encodeRefreshJwtConfig: EncodeRefreshJwtConfig;
   decodeRefreshJwtConfig: DecodeRefreshJwtConfig;
   refreshTokenBaseStoreConfig: RefreshTokenBaseStoreConfig;
-  awsConfig: AwsConfig;
 }
 
 export function readRefreshConfig(): RefreshConfig {
@@ -32,7 +29,6 @@ export function readRefreshConfig(): RefreshConfig {
     refreshTokenBaseStoreConfig: {
       tableName: env.get('REFRESH_TOKENS_TABLE_NAME').required().asString()
     },
-    baseConfig: readBaseConfig(env).baseConfig,
-    awsConfig: readAwsConfig(env)
+    baseConfig: readBaseConfig(env).baseConfig
   };
 }
