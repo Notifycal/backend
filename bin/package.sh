@@ -2,7 +2,7 @@
 
 source_folder="dist"
 target_folder="$(mktemp -d /tmp/dist.XXXXX)"
-openapi_spec="tf/openapi/spec.yaml"
+openapi_spec="dist/spec.rendered.yaml"
 
 # lambdas live in `dist/api/*` and `dist/*`. Need to search for `index.cjs`
 # Create a zip file per lambda
@@ -26,7 +26,7 @@ find ${source_folder} -type f -name 'index.cjs' | while read -r file; do
 done
 
 # copy openapi spec to the target folder
-cp "${openapi_spec}" "${target_folder}"
+cp "${openapi_spec}" "${target_folder}/spec.yaml"
 
 # Now create a zip with all these zips + the OpenAPI YAML spec
 echo "${target_folder}"
