@@ -2,36 +2,38 @@ import { parser } from '@aws-lambda-powertools/parser/middleware';
 import type { MiddlewareObj, Request } from '@middy/core';
 /* eslint-disable-next-line no-duplicate-imports */
 import type middy from '@middy/core';
-import { errorHandler } from '@services/common/api-response-handlers';
+import type { EventWithConfig } from '@model/ApiGatewayEvents';
+import type { BaseEndpointConfig } from '@model/Config';
+import { errorHandler, headers } from '@services/common/api-response-handlers';
 import { extractErrorMessage } from '@services/common/error-handling';
-import type {
-  APIGatewayProxyEventV2,
-  APIGatewayProxyStructuredResultV2,
-  Context
-} from 'aws-lambda';
+import type { APIGatewayProxyResult, Context } from 'aws-lambda';
 import type { ZodSchema } from 'zod';
 
-function httpRequestEventParser(
-  request: Request<APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2, Error, Context>,
+function httpRequestEventParser<TConfig extends BaseEndpointConfig>(
+  request: Request<EventWithConfig<TConfig>, APIGatewayProxyResult, Error, Context>,
   schema: ZodSchema
-): APIGatewayProxyStructuredResultV2 | void {
+): APIGatewayProxyResult | void {
+  console.warn('Se ejecuta este?');
   const parserFn = parser({ schema }).before;
   if (parserFn) {
     try {
       parserFn(request);
     } catch (error: unknown) {
-      return errorHandler(400)(
+      return errorHandler(
+        400,
+        headers(request.event.endpointConfig.baseConfig.frontendDomain)
+      )(
         `Request payload does not satisfy the schema. Error: ${extractErrorMessage(error)}. Schema: ${JSON.stringify(schema)}`
       );
     }
   }
 }
 
-export function httpRequestEventParserMiddleware(
+export function httpRequestEventParserMiddleware<TConfig extends BaseEndpointConfig>(
   schema: ZodSchema
-): MiddlewareObj<APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2> {
-  const before: middy.MiddlewareFn<APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2> = (
-    req: Request<APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2, Error, Context>
+): MiddlewareObj<EventWithConfig<TConfig>, APIGatewayProxyResult> {
+  const before: middy.MiddlewareFn<EventWithConfig<TConfig>, APIGatewayProxyResult> = (
+    req: Request<EventWithConfig<TConfig>, APIGatewayProxyResult, Error, Context>
   ) => httpRequestEventParser(req, schema);
   return {
     before

@@ -1,5 +1,5 @@
 ---
-openapi: '3.1.1'
+openapi: '3.0.1'
 info:
   title: Notifycal API
   description: Notifycal API
@@ -21,8 +21,51 @@ servers:
         default: v1
         enum:
           - v1
+
+x-amazon-apigateway-gateway-responses:
+  DEFAULT_4XX:
+    responseParameters: &cors-headers
+      gatewayresponse.header.Access-Control-Allow-Origin: "'https://api${stageVariables.environment}.notifycal.com'"
+      gatewayresponse.header.Access-Control-Allow-Methods: "'GET,POST,OPTIONS,PUT,DELETE,PATCH'"
+      gatewayresponse.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+    responseTemplates:
+      application/json: '{"message":"Client Error"}'
+    statusCode: 400
+
+  DEFAULT_5XX:
+    responseParameters: *cors-headers
+    responseTemplates:
+      application/json: '{"message":"Server Error"}'
+    statusCode: 500
+
+cors-preflight: &cors-preflight
+  options:
+    summary: CORS Preflight
+    responses:
+      '200':
+        description: CORS preflight response
+        headers:
+          Access-Control-Allow-Origin:
+            description: CORS Allowed Origin
+            schema:
+              type: string
+          Access-Control-Allow-Methods:
+            description: CORS Allowed Methods
+            schema:
+              type: string
+          Access-Control-Allow-Headers:
+            description: CORS Allowed Headers
+            schema:
+              type: string
+          Access-Control-Max-Age:
+            description: Cache duration in seconds for CORS preflight response
+            schema:
+              type: integer
+              example: 86400
+
 paths:
   /login:
+    <<: *cors-preflight
     post:
       summary: Login endpoint
       operationId: login
@@ -53,10 +96,13 @@ paths:
         responses:
           default:
             statusCode: '200'
+            responseParameters: *cors-headers
         passthroughBehavior: 'when_no_match'
         httpMethod: 'POST'
         type: 'aws_proxy'
+
   /refresh:
+    <<: *cors-preflight
     post:
       summary: Refresh endpoint
       operationId: refresh
@@ -89,10 +135,13 @@ paths:
         responses:
           default:
             statusCode: '200'
+            responseParameters: *cors-headers
         passthroughBehavior: 'when_no_match'
         httpMethod: 'POST'
         type: 'aws_proxy'
+
   /user-profile:
+    <<: *cors-preflight
     get:
       summary: User profile
       operationId: userProfile
@@ -116,33 +165,7 @@ paths:
         responses:
           default:
             statusCode: '200'
-        passthroughBehavior: 'when_no_match'
-        httpMethod: 'POST'
-        type: 'aws_proxy'
-  /watch_me:
-    post:
-      summary: Receive GCal watch endpoint data
-      description: Some description
-      operationId: op_X
-      tags: [user]
-      responses:
-        '200':
-          description: 'OK'
-          content: {}
-        '500':
-          description: 'Internal Server Error'
-          content: {}
-      x-amazon-apigateway-integration:
-        uri: 'arn:aws:apigateway:${aws_region}:lambda:path/2015-03-31/functions/${lambda_functions.post_watch_events_arn}/invocations'
-        responses:
-          default:
-            statusCode: '200'
-        passthroughBehavior: 'when_no_match'
-        httpMethod: 'POST'
-        type: 'aws_proxy'
-
-security:
-  - bearerAuth: []
+            responseParameters: *cors-headers
 
 components:
   securitySchemes:
@@ -152,14 +175,13 @@ components:
       bearerFormat: JWT # optional, arbitrary value for documentation purposes
   schemas:
     User:
-      schema:
-        type: object
-        properties:
-          UserId:
-            type: string
-            format: email
-        required:
-          - UserId
+      type: object
+      properties:
+        UserId:
+          type: string
+          format: email
+      required:
+        - UserId
   responses:
     AuthOK:
       description: OK

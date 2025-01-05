@@ -1,23 +1,20 @@
-import type { APIGatewayProxyStructuredResultV2, Context } from 'aws-lambda';
+import type { APIGatewayProxyResult, Context } from 'aws-lambda';
 import { type GetUserProfileConfig, readGetUserConfig } from './config';
 import { UserBaseStore } from '@services/user-base-store';
-import type { AuthedAndConfigRequestContext } from '@model/ApiGatewayEvents';
+import { authedEventSchema } from '@model/ApiGatewayEvents';
 import { protectedEndpointMiddleware } from '@common/lambda-middleware';
-import { APIGatewayProxyEventV2Schema } from '@aws-lambda-powertools/parser/schemas';
-import { z } from 'zod';
+import type { z } from 'zod';
 import { errorHandler, successHandler } from '@services/common/api-response-handlers';
 
-const eventSchema = APIGatewayProxyEventV2Schema.extend({
-  requestContext: z.custom<AuthedAndConfigRequestContext<GetUserProfileConfig>>()
-});
+const eventSchema = authedEventSchema<GetUserProfileConfig>();
 type Event = z.infer<typeof eventSchema>;
 
 function lambdaHandler(
   event: Event,
   /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
   ctx: Context
-): Promise<APIGatewayProxyStructuredResultV2> {
-  const config = event.requestContext.config;
+): Promise<APIGatewayProxyResult> {
+  const config = event.endpointConfig;
   const userProvider = new UserBaseStore(config.userBaseStore, config.awsConfig);
   const email = event.requestContext.authorizer.payload.email;
   return userProvider.getUserByEmail(email).then((userOrNot) => {

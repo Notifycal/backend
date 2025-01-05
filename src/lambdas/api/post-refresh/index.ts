@@ -1,8 +1,7 @@
-import type { APIGatewayProxyStructuredResultV2, Context } from 'aws-lambda';
+import type { APIGatewayProxyResult, Context } from 'aws-lambda';
 import { unprotectedEndpointMiddleware } from '@common/lambda-middleware';
 import { z } from 'zod';
-import { APIGatewayProxyEventV2Schema } from '@aws-lambda-powertools/parser/schemas/api-gatewayv2';
-import type { ConfigRequestContext } from '@model/ApiGatewayEvents';
+import { eventSchema } from '@model/ApiGatewayEvents';
 import { JSONStringified } from '@aws-lambda-powertools/parser/helpers';
 import { type RefreshConfig, readRefreshConfig } from './config';
 import { decodeAndVerifyJwtSignature } from '@services/jwt';
@@ -11,22 +10,21 @@ import { refreshTokenSchema } from '@model/Jwt';
 import { errorHandler } from '@services/common/api-response-handlers';
 import { buildJwtsAndStoreRefreshJwt, _successHandler } from '@services/login';
 
-const eventSchema = APIGatewayProxyEventV2Schema.extend({
+const schema = eventSchema<RefreshConfig>().extend({
   body: JSONStringified(
     z.object({
       refreshToken: z.string()
     })
-  ),
-  requestContext: z.custom<ConfigRequestContext<RefreshConfig>>()
+  )
 });
-type Event = z.infer<typeof eventSchema>;
+type Event = z.infer<typeof schema>;
 
 function lambdaHandler(
   event: Event,
   /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
   ctx: Context
-): Promise<APIGatewayProxyStructuredResultV2> {
-  const config = event.requestContext.config;
+): Promise<APIGatewayProxyResult> {
+  const config = event.endpointConfig;
   const store = new RefreshTokenBaseStore(config.refreshTokenBaseStoreConfig, config.awsConfig);
   const refreshToken = event.body['refreshToken'];
   return decodeAndVerifyJwtSignature(
@@ -58,7 +56,6 @@ function lambdaHandler(
     .catch(errorHandler(401));
 }
 
-export const handler = unprotectedEndpointMiddleware(
-  () => readRefreshConfig(),
-  eventSchema
-).handler(lambdaHandler);
+export const handler = unprotectedEndpointMiddleware(() => readRefreshConfig(), schema).handler(
+  lambdaHandler
+);

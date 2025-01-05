@@ -1,18 +1,35 @@
-import type { APIGatewayProxyEventV2WithRequestContext } from 'aws-lambda';
+import type { APIGatewayProxyEventBase } from 'aws-lambda';
 import type { AccessToken } from './Jwt';
+import { APIGatewayProxyEventSchema } from '@aws-lambda-powertools/parser/schemas';
+import { z } from 'zod';
 
-// Request Contexts
-export interface ConfigRequestContext<TConfig> {
-  config: TConfig;
-}
-export interface AuthedAndConfigRequestContext<TConfig> extends ConfigRequestContext<TConfig> {
-  authorizer: AccessToken;
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type, @typescript-eslint/explicit-module-boundary-types
+export function eventSchema<TEndpointConfig>() {
+  return APIGatewayProxyEventSchema.extend({
+    endpointConfig: z.custom<TEndpointConfig>()
+  });
 }
 
-// ApiGateway V2 Proxy Events
-export type EventWithConfig<TConfig> = APIGatewayProxyEventV2WithRequestContext<
-  ConfigRequestContext<TConfig>
->;
-export type AuthedEventWithConfig<TConfig> = APIGatewayProxyEventV2WithRequestContext<
-  AuthedAndConfigRequestContext<TConfig>
->;
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type, @typescript-eslint/explicit-module-boundary-types
+export function authedEventSchema<TEndpointConfig>() {
+  const schema = eventSchema<TEndpointConfig>();
+  return schema.extend({
+    requestContext: z.object({
+      authorizer: z.custom<AccessToken>()
+    })
+  });
+}
+
+interface APIGatewayProxyEventWithRequestContext<TEndpointConfig>
+  extends APIGatewayProxyEventBase<AccessToken> {
+  endpointConfig: TEndpointConfig;
+}
+
+// ApiGateway Proxy Events
+export type EventWithConfig<TConfig> = APIGatewayProxyEventWithRequestContext<TConfig>;
+
+export type AuthedEventWithConfig<TConfig> = APIGatewayProxyEventWithRequestContext<TConfig>;
+
+export interface ResponseHeaders {
+  [header: string]: boolean | number | string;
+}
