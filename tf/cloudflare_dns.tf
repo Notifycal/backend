@@ -7,8 +7,7 @@ resource "cloudflare_record" "main" {
   zone_id = data.cloudflare_zone.main.id
 
   name = var.domain_prefix
-  # Dropping HTTPS and stage for DNS CNAME
-  content = regex("https://([^/]+)", aws_api_gateway_deployment.api_deployment.invoke_url)[0]
+  content  = aws_api_gateway_domain_name.custom_domain.regional_domain_name
   type    = "CNAME"
   proxied = false
 }

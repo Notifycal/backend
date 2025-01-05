@@ -26,6 +26,9 @@ resource "aws_api_gateway_rest_api" "rest_api" {
   endpoint_configuration {
     types = ["REGIONAL"]
   }
+
+  # Don't serve requests through the default API GW url (we're using a custom domain)
+  disable_execute_api_endpoint = true
 }
 
 resource "aws_api_gateway_deployment" "api_deployment" {
@@ -75,4 +78,11 @@ resource "aws_api_gateway_domain_name" "custom_domain" {
   endpoint_configuration {
     types = ["REGIONAL"]
   }
+}
+
+# Required to associate the custom domain with the API
+resource "aws_api_gateway_base_path_mapping" "mapping" {
+  api_id      = aws_api_gateway_rest_api.rest_api.id
+  stage_name  = aws_api_gateway_stage.stage.stage_name
+  domain_name = aws_api_gateway_domain_name.custom_domain.domain_name
 }

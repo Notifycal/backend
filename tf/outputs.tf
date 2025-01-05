@@ -4,5 +4,9 @@ output "rendered_openapi_spec" {
 }
 
 locals {
-  _service_registration_url = aws_api_gateway_deployment.api_deployment.invoke_url
+  _service_registration_url = format(
+    "https://%s.%s",
+    var.domain_prefix,
+    var.base_domain
+  )
 }
