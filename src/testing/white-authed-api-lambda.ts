@@ -29,14 +29,14 @@ function lambdaHandler(
   return responseSuccess({ result: 'OK' });
 }
 
-function testingConfigReader(): TestingWhiteApiConfig {
-  return {
+function testingConfigReader(): Promise<TestingWhiteApiConfig> {
+  return Promise.resolve({
     config1: 'blah',
     decodeAccessJwtConfig: getDefaultDecodeAccessJwtConfig(),
     baseConfig: {
       frontendDomain: 'http://localhost:5173'
     }
-  };
+  });
 }
 
 function claimChecker(): boolean {

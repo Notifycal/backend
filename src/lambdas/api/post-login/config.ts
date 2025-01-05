@@ -24,8 +24,9 @@ export interface LoginConfig extends BaseEndpointConfig {
   awsConfig: AwsConfig;
 }
 
-export function readLoginConfig(): LoginConfig {
+export async function readLoginConfig(): Promise<LoginConfig> {
   const env = readEnv();
+  const awsConfig = await readAwsConfig(env);
   return {
     encodeAccessJwtConfig: readEncodeAccessJwtConfig(env),
     encodeRefreshJwtConfig: readEncodeRefreshJwtConfig(env),
@@ -41,6 +42,6 @@ export function readLoginConfig(): LoginConfig {
       tableName: env.get('REFRESH_TOKENS_TABLE_NAME').required().asString()
     },
     baseConfig: readBaseConfig(env).baseConfig,
-    awsConfig: readAwsConfig(env)
+    awsConfig: awsConfig
   };
 }

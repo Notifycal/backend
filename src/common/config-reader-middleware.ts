@@ -6,22 +6,21 @@ import type { EventWithConfig } from '@model/ApiGatewayEvents';
 import { errorHandler } from '@services/common/api-response-handlers';
 import { extractErrorMessage } from '@services/common/error-handling';
 
-function configReader<TConfig>(
+async function configReader<TConfig>(
   request: Request<EventWithConfig<TConfig>, APIGatewayProxyResult, Error, Context>,
-  configReaderFn: () => TConfig
-): APIGatewayProxyResult | void {
-  try {
-    const config = configReaderFn();
-    request.event.endpointConfig = config;
-  } catch (error: unknown) {
-    return errorHandler(500)(
-      `Endpoint config could not be loaded. Error: ${extractErrorMessage(error)}`
-    );
-  }
+  configReaderFn: () => Promise<TConfig>
+): Promise<APIGatewayProxyResult | void> {
+  await configReaderFn().then(
+    (config) => {
+      request.event.endpointConfig = config;
+    },
+    (error: unknown) =>
+      errorHandler(500)(`Endpoint config could not be loaded. Error: ${extractErrorMessage(error)}`)
+  );
 }
 
 export function configReaderMiddleware<TConfig>(
-  configReaderFn: () => TConfig
+  configReaderFn: () => Promise<TConfig>
 ): MiddlewareObj<EventWithConfig<TConfig>, APIGatewayProxyResult> {
   const before: middy.MiddlewareFn<EventWithConfig<TConfig>, APIGatewayProxyResult> = (req) =>
     configReader(req, configReaderFn);

@@ -12,14 +12,15 @@ export interface GetUserProfileConfig extends AuthedEndpointConfig {
   awsConfig: AwsConfig;
 }
 
-export function readGetUserConfig(): GetUserProfileConfig {
+export async function readGetUserConfig(): Promise<GetUserProfileConfig> {
   const env = readEnv();
+  const awsConfig = await readAwsConfig(env);
   return {
     decodeAccessJwtConfig: readDecodeAccessJwtConfig(env),
     userBaseStore: {
       tableName: env.get('USERS_TABLE_NAME').required().asString()
     },
     baseConfig: readBaseConfig(env).baseConfig,
-    awsConfig: readAwsConfig(env)
+    awsConfig: awsConfig
   };
 }

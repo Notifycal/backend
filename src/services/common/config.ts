@@ -62,12 +62,10 @@ export function readDecodeRefreshJwtConfig(env: Environment): DecodeRefreshJwtCo
   };
 }
 
-export async function readAwsConfig(env: Environment): Promise<AwsConfig> {
-  const credentials = await defaultProvider()();
-
-  return {
+export function readAwsConfig(env: Environment): Promise<AwsConfig> {
+  return defaultProvider()().then((credentials) => ({
     awsRegion: env.get('AWS_REGION').required().asString(),
     endpoint: env.get('AWS_ENDPOINT_URL').asString(),
-    credentials
-  };
+    ...credentials
+  }));
 }

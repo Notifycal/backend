@@ -23,8 +23,9 @@ export interface RefreshConfig extends BaseEndpointConfig {
   awsConfig: AwsConfig;
 }
 
-export function readRefreshConfig(): RefreshConfig {
+export async function readRefreshConfig(): Promise<RefreshConfig> {
   const env = readEnv();
+  const awsConfig = await readAwsConfig(env);
   return {
     encodeAccessJwtConfig: readEncodeAccessJwtConfig(env),
     encodeRefreshJwtConfig: readEncodeRefreshJwtConfig(env),
@@ -33,6 +34,6 @@ export function readRefreshConfig(): RefreshConfig {
       tableName: env.get('REFRESH_TOKENS_TABLE_NAME').required().asString()
     },
     baseConfig: readBaseConfig(env).baseConfig,
-    awsConfig: readAwsConfig(env)
+    awsConfig: awsConfig
   };
 }
