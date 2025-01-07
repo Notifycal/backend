@@ -1,5 +1,5 @@
 variable "app_version" {
-  type    = string
+  type = string
 }
 
 variable "aws_region" {
