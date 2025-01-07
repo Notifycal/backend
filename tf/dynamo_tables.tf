@@ -9,6 +9,8 @@ resource "aws_dynamodb_table" "users" {
     name = "UserId"
     type = "S"
   }
+
+  deletion_protection_enabled = true
 }
 
 resource "aws_dynamodb_table" "refresh_tokens" {
@@ -31,4 +33,6 @@ resource "aws_dynamodb_table" "refresh_tokens" {
     name = "RefreshTokenId"
     type = "S"
   }
+
+  deletion_protection_enabled = true
 }
