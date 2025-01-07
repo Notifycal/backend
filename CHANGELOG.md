@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.3.0](https://github.com/Notifycal/backend/compare/v0.2.2...v0.3.0) (2025-01-07)
+
+
+### Features
+
+* login ban and sign in and up timestamps ([#186](https://github.com/Notifycal/backend/issues/186)) ([7c9dd14](https://github.com/Notifycal/backend/commit/7c9dd14112461bf3223da67bc26d51edeb87dd95))
+
+
+### Bug Fixes
+
+* define base_domain at stack level as it will not change that often ([#188](https://github.com/Notifycal/backend/issues/188)) ([6dffc2c](https://github.com/Notifycal/backend/commit/6dffc2ca60ab3ae4d92ba7bbc8550432cdaf46b5))
+
 ## [0.2.2](https://github.com/Notifycal/backend/compare/v0.2.1...v0.2.2) (2025-01-07)
 
 
