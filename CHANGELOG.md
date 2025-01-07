@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.2.2](https://github.com/Notifycal/backend/compare/v0.2.1...v0.2.2) (2025-01-07)
+
+
+### Bug Fixes
+
+* api gateway stuff ([#173](https://github.com/Notifycal/backend/issues/173)) [skip ci] ([cf2ff87](https://github.com/Notifycal/backend/commit/cf2ff873fc1d25ad374c5014d291506d14f8e71f))
+* lambda integration with the Real World (tm) ([#174](https://github.com/Notifycal/backend/issues/174)) ([c3b9ee5](https://github.com/Notifycal/backend/commit/c3b9ee514f53de45d79c22a4fdebb8548d23bb69))
+* use right table for refresh tokens ([#176](https://github.com/Notifycal/backend/issues/176)) ([72f52ef](https://github.com/Notifycal/backend/commit/72f52ef3ea07bad599d0dcaffa61038133eb5d1a))
+
 ## [0.2.1](https://github.com/Notifycal/backend/compare/v0.2.0...v0.2.1) (2025-01-03)
 
 
