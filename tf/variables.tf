@@ -27,7 +27,8 @@ variable "frontend_domain" {
 }
 
 variable "base_domain" {
-  type = string
+  type    = string
+  default = "notifycal.com"
 }
 
 variable "domain_prefix" {
