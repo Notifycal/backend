@@ -25,7 +25,7 @@ function lambdaHandler(
   ctx: Context
 ): Promise<APIGatewayProxyResult> {
   const config = event.endpointConfig;
-  const store = new RefreshTokenBaseStore(config.refreshTokenBaseStoreConfig, config.awsConfig);
+  const store = new RefreshTokenBaseStore(config.refreshTokenBaseStoreConfig);
   const refreshToken = event.body['refreshToken'];
   return decodeAndVerifyJwtSignature(
     refreshToken,

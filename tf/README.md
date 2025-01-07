@@ -5,33 +5,44 @@
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.5 |
 | <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 5.0 |
+| <a name="requirement_cloudflare"></a> [cloudflare](#requirement\_cloudflare) | ~> 4.0 |
 
 ## Providers
 
 | Name | Version |
 |------|---------|
 | <a name="provider_aws"></a> [aws](#provider\_aws) | 5.82.2 |
+| <a name="provider_cloudflare"></a> [cloudflare](#provider\_cloudflare) | 4.49.1 |
 
 ## Modules
 
 | Name | Source | Version |
 |------|--------|---------|
 | <a name="module_get_user_profile_lambda"></a> [get\_user\_profile\_lambda](#module\_get\_user\_profile\_lambda) | terraform-aws-modules/lambda/aws | ~> 7.17 |
+| <a name="module_get_user_profile_lambda_alias"></a> [get\_user\_profile\_lambda\_alias](#module\_get\_user\_profile\_lambda\_alias) | terraform-aws-modules/lambda/aws//modules/alias | ~> 7.17 |
 | <a name="module_post_login_lambda"></a> [post\_login\_lambda](#module\_post\_login\_lambda) | terraform-aws-modules/lambda/aws | ~> 7.17 |
+| <a name="module_post_login_lambda_alias"></a> [post\_login\_lambda\_alias](#module\_post\_login\_lambda\_alias) | terraform-aws-modules/lambda/aws//modules/alias | ~> 7.17 |
 | <a name="module_post_refresh_lambda"></a> [post\_refresh\_lambda](#module\_post\_refresh\_lambda) | terraform-aws-modules/lambda/aws | ~> 7.17 |
-| <a name="module_post_watch_lambda"></a> [post\_watch\_lambda](#module\_post\_watch\_lambda) | terraform-aws-modules/lambda/aws | ~> 7.17 |
+| <a name="module_post_refresh_lambda_alias"></a> [post\_refresh\_lambda\_alias](#module\_post\_refresh\_lambda\_alias) | terraform-aws-modules/lambda/aws//modules/alias | ~> 7.17 |
 
 ## Resources
 
 | Name | Type |
 |------|------|
+| [aws_api_gateway_base_path_mapping.mapping](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/api_gateway_base_path_mapping) | resource |
 | [aws_api_gateway_deployment.api_deployment](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/api_gateway_deployment) | resource |
+| [aws_api_gateway_domain_name.custom_domain](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/api_gateway_domain_name) | resource |
 | [aws_api_gateway_method_settings.method_settings](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/api_gateway_method_settings) | resource |
 | [aws_api_gateway_rest_api.rest_api](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/api_gateway_rest_api) | resource |
 | [aws_api_gateway_stage.stage](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/api_gateway_stage) | resource |
 | [aws_dynamodb_table.refresh_tokens](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/dynamodb_table) | resource |
 | [aws_dynamodb_table.users](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/dynamodb_table) | resource |
+| [cloudflare_record.main](https://registry.terraform.io/providers/cloudflare/cloudflare/latest/docs/resources/record) | resource |
+| [aws_acm_certificate.ssl_cert](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/acm_certificate) | data source |
 | [aws_caller_identity.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/caller_identity) | data source |
+| [aws_iam_policy_document.get_user_profile_iam_policydoc](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
+| [aws_iam_policy_document.post_login_iam_policydoc](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
+| [aws_iam_policy_document.post_refresh_iam_policydoc](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
 | [aws_ssm_parameter.access_jwt_algorithm](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
 | [aws_ssm_parameter.access_jwt_audience](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
 | [aws_ssm_parameter.access_jwt_expiration](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
@@ -47,15 +58,24 @@
 | [aws_ssm_parameter.refresh_jwt_issuer](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
 | [aws_ssm_parameter.refresh_jwt_private_key](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
 | [aws_ssm_parameter.refresh_jwt_public_key](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
+| [cloudflare_zone.main](https://registry.terraform.io/providers/cloudflare/cloudflare/latest/docs/data-sources/zone) | data source |
 
 ## Inputs
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | <a name="input_api_stage_name"></a> [api\_stage\_name](#input\_api\_stage\_name) | n/a | `string` | n/a | yes |
+| <a name="input_app_version"></a> [app\_version](#input\_app\_version) | n/a | `string` | `"v0.0.1"` | no |
 | <a name="input_aws_region"></a> [aws\_region](#input\_aws\_region) | n/a | `string` | n/a | yes |
+| <a name="input_base_domain"></a> [base\_domain](#input\_base\_domain) | n/a | `string` | n/a | yes |
+| <a name="input_domain_prefix"></a> [domain\_prefix](#input\_domain\_prefix) | n/a | `string` | `"api"` | no |
 | <a name="input_environment"></a> [environment](#input\_environment) | n/a | `string` | n/a | yes |
 | <a name="input_frontend_domain"></a> [frontend\_domain](#input\_frontend\_domain) | Allowed domain specified in response headers by API gateway lambdas(TLDR: CORS) | `string` | n/a | yes |
+| <a name="input_lambdas_handler_name"></a> [lambdas\_handler\_name](#input\_lambdas\_handler\_name) | n/a | `string` | `"index.handler"` | no |
+| <a name="input_lambdas_live_alias_name"></a> [lambdas\_live\_alias\_name](#input\_lambdas\_live\_alias\_name) | n/a | `string` | `"live"` | no |
+| <a name="input_lambdas_logging_log_format"></a> [lambdas\_logging\_log\_format](#input\_lambdas\_logging\_log\_format) | n/a | `string` | `"JSON"` | no |
+| <a name="input_lambdas_runtime"></a> [lambdas\_runtime](#input\_lambdas\_runtime) | n/a | `string` | `"nodejs22.x"` | no |
+| <a name="input_lambdas_tracing_mode"></a> [lambdas\_tracing\_mode](#input\_lambdas\_tracing\_mode) | n/a | `string` | `"Active"` | no |
 | <a name="input_openapi_spec_file"></a> [openapi\_spec\_file](#input\_openapi\_spec\_file) | Name of the OpenAPI spec file for this API | `string` | `"spec.yaml"` | no |
 
 ## Outputs

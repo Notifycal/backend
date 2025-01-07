@@ -6,6 +6,11 @@ import { z } from 'zod';
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, @typescript-eslint/explicit-module-boundary-types
 export function eventSchema<TEndpointConfig>() {
   return APIGatewayProxyEventSchema.extend({
+    version: z.string().optional(),
+    routeKey: z.string().optional(),
+    rawPath: z.string().optional(),
+    rawQueryString: z.string().optional(),
+    queryStringParameters: z.record(z.string()).nullable().optional(),
     endpointConfig: z.custom<TEndpointConfig>()
   });
 }

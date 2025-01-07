@@ -5,7 +5,6 @@ import { assert } from '@testing/utils/assertions';
 import type { GetUserProfileConfig } from './config';
 import { handler } from '.';
 import {
-  setEnvAwsConfig,
   setEnvBaseConfig,
   setEnvDecodeAccessJwtConfig,
   setEnvUserBaseStoreConfig
@@ -90,10 +89,7 @@ const defaultEnv = {
     tableName: 'Users-local'
   },
   baseConfig: {
-    frontendDomain: 'http://localhost'
-  },
-  awsConfig: {
-    awsRegion: 'eu-west-1'
+    frontendDomain: 'http://localhost:5173'
   }
 };
 
@@ -101,5 +97,4 @@ function setEnv(config: GetUserProfileConfig) {
   setEnvDecodeAccessJwtConfig(config.decodeAccessJwtConfig);
   setEnvUserBaseStoreConfig(config.userBaseStore);
   setEnvBaseConfig(config.baseConfig);
-  setEnvAwsConfig(config.awsConfig);
 }

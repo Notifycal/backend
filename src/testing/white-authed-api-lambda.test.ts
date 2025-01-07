@@ -54,7 +54,7 @@ const defaultEnv = {
   decodeAccessJwtConfig: getDefaultDecodeAccessJwtConfig(),
   config1: 'blah',
   baseConfig: {
-    frontendDomain: 'http://localhost'
+    frontendDomain: 'http://localhost:5173'
   }
 };
 

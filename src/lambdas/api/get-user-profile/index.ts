@@ -15,7 +15,7 @@ function lambdaHandler(
   ctx: Context
 ): Promise<APIGatewayProxyResult> {
   const config = event.endpointConfig;
-  const userProvider = new UserBaseStore(config.userBaseStore, config.awsConfig);
+  const userProvider = new UserBaseStore(config.userBaseStore);
   const email = event.requestContext.authorizer.payload.email;
   return userProvider.getUserByEmail(email).then((userOrNot) => {
     if (userOrNot) {

@@ -1,3 +1,8 @@
+variable "app_version" {
+  type    = string
+  default = "v0.0.1"
+}
+
 variable "aws_region" {
   type = string
 }
@@ -19,4 +24,38 @@ variable "environment" {
 variable "frontend_domain" {
   type        = string
   description = "Allowed domain specified in response headers by API gateway lambdas(TLDR: CORS)"
+}
+
+variable "base_domain" {
+  type = string
+}
+
+variable "domain_prefix" {
+  type    = string
+  default = "api"
+}
+
+variable "lambdas_live_alias_name" {
+  type    = string
+  default = "live"
+}
+
+variable "lambdas_logging_log_format" {
+  type    = string
+  default = "JSON"
+}
+
+variable "lambdas_tracing_mode" {
+  type    = string
+  default = "Active"
+}
+
+variable "lambdas_runtime" {
+  type    = string
+  default = "nodejs22.x"
+}
+
+variable "lambdas_handler_name" {
+  type    = string
+  default = "index.handler"
 }

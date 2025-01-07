@@ -13,7 +13,6 @@ function httpRequestEventParser<TConfig extends BaseEndpointConfig>(
   request: Request<EventWithConfig<TConfig>, APIGatewayProxyResult, Error, Context>,
   schema: ZodSchema
 ): APIGatewayProxyResult | void {
-  console.warn('Se ejecuta este?');
   const parserFn = parser({ schema }).before;
   if (parserFn) {
     try {

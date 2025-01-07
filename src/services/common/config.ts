@@ -1,6 +1,6 @@
 import { from } from 'env-var';
+
 import type {
-  AwsConfig,
   BaseEndpointConfig,
   DecodeAccessJwtConfig,
   DecodeRefreshJwtConfig,
@@ -57,21 +57,5 @@ export function readDecodeRefreshJwtConfig(env: Environment): DecodeRefreshJwtCo
   return {
     publicKey: env.get('REFRESH_JWT_PUBLIC_KEY').required().asString(),
     ...readJwtConfig(env, 'REFRESH', '7d')
-  };
-}
-
-function readAwsCredentials(
-  env: Environment
-): { accessKeyId: string; secretAccessKey: string } | undefined {
-  const accessKeyId = env.get('AWS_ACCESS_KEY_ID').asString();
-  const secretAccessKey = env.get('AWS_SECRET_ACCESS_KEY').asString();
-  return accessKeyId && secretAccessKey ? { accessKeyId, secretAccessKey } : undefined;
-}
-
-export function readAwsConfig(env: Environment): AwsConfig {
-  return {
-    awsRegion: env.get('AWS_REGION').required().default('eu-west-1').asString(),
-    endpoint: env.get('AWS_ENDPOINT_URL').asString(),
-    credentials: readAwsCredentials(env)
   };
 }
