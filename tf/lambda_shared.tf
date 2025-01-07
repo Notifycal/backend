@@ -4,6 +4,7 @@ locals {
     NODE_OPTIONS    = "--enable-source-maps"
     ENVIRONMENT     = var.environment
     FRONTEND_DOMAIN = var.frontend_domain
+    APP_VERSION     = var.app_version
   }
   decode_access_jwt_env_vars = {
     ACCESS_JWT_PRIVATE_KEY = data.aws_ssm_parameter.access_jwt_private_key.value
