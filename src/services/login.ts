@@ -9,11 +9,11 @@ import type { RefreshTokenBaseStore } from './refresh-token-base-store';
 
 function signUpUser(email: string, userProvider: UserBaseStore): Promise<User> {
   const now = Date.now();
-  const newUser = {
+  const newUser: User = {
     UserId: email,
     LastSignInAt: now,
     SignedUpAt: now,
-    Banned: false
+    Status: 'live'
   };
   return userProvider.putUser(newUser).then(() => newUser);
 }
@@ -23,7 +23,7 @@ export function signInOrUpUser(email: string, config: UserBaseStoreConfig): Prom
   return userProvider.getUserByEmail(email).then(
     (userOrNot) => {
       if (userOrNot) {
-        if (!userOrNot.Banned) {
+        if (userOrNot.Status !== 'banned') {
           const updatedUser = {
             ...userOrNot,
             LastSignInAt: Date.now()

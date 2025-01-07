@@ -22,7 +22,7 @@ export class UserBaseStore extends BaseStore<UserBaseStoreConfig> {
         const user = item.Item;
         if (user) {
           const u = user as User;
-          return u.Banned ? undefined : u;
+          return u.Status !== 'banned' ? u : undefined;
         } else {
           return undefined;
         }

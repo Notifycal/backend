@@ -6,6 +6,6 @@ export function validUser(userId: UserId): User {
     UserId: userId,
     LastSignInAt: 1736254413865,
     SignedUpAt: 1736254413865,
-    Banned: false
+    Status: 'live'
   };
 }
