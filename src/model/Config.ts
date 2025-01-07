@@ -26,13 +26,3 @@ export interface EncodeAccessJwtConfig {
   expiresIn: string;
 }
 export type EncodeRefreshJwtConfig = EncodeAccessJwtConfig;
-
-export interface AwsConfig {
-  awsRegion?: string;
-  endpoint?: string;
-  credentials?: { accessKeyId: string; secretAccessKey: string };
-}
-
-export const defaultConfig = {
-  awsRegion: 'eu-west-1'
-};

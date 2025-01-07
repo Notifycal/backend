@@ -1,5 +1,4 @@
 import type {
-  AwsConfig,
   BaseEndpointConfig,
   EncodeAccessJwtConfig,
   EncodeRefreshJwtConfig
@@ -7,7 +6,6 @@ import type {
 import type { GoogleOAuthConfig } from '@services/google-oauth';
 import type { UserBaseStoreConfig } from '@services/user-base-store';
 import {
-  readAwsConfig,
   readBaseConfig,
   readEncodeAccessJwtConfig,
   readEncodeRefreshJwtConfig,
@@ -21,7 +19,6 @@ export interface LoginConfig extends BaseEndpointConfig {
   googleOAuthClientConfig: GoogleOAuthConfig;
   userBaseStoreConfig: UserBaseStoreConfig;
   refreshTokenBaseStoreConfig: RefreshTokenBaseStoreConfig;
-  awsConfig: AwsConfig;
 }
 
 export function readLoginConfig(): LoginConfig {
@@ -40,7 +37,6 @@ export function readLoginConfig(): LoginConfig {
     refreshTokenBaseStoreConfig: {
       tableName: env.get('REFRESH_TOKENS_TABLE_NAME').required().asString()
     },
-    baseConfig: readBaseConfig(env).baseConfig,
-    awsConfig: readAwsConfig(env)
+    baseConfig: readBaseConfig(env).baseConfig
   };
 }

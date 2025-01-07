@@ -1,8 +1,6 @@
-import { defaultProvider } from '@aws-sdk/credential-provider-node';
 import { from } from 'env-var';
 
 import type {
-  AwsConfig,
   BaseEndpointConfig,
   DecodeAccessJwtConfig,
   DecodeRefreshJwtConfig,
@@ -59,15 +57,5 @@ export function readDecodeRefreshJwtConfig(env: Environment): DecodeRefreshJwtCo
   return {
     publicKey: env.get('REFRESH_JWT_PUBLIC_KEY').required().asString(),
     ...readJwtConfig(env, 'REFRESH', '7d')
-  };
-}
-
-export async function readAwsConfig(env: Environment): Promise<AwsConfig> {
-  const credentials = await defaultProvider()();
-
-  return {
-    awsRegion: env.get('AWS_REGION').required().asString(),
-    endpoint: env.get('AWS_ENDPOINT_URL').asString(),
-    credentials
   };
 }

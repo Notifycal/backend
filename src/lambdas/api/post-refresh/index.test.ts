@@ -4,7 +4,6 @@ import * as jwt from '@services/jwt';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { c, testEvent } from '@testing/apigateway';
 import {
-  setEnvAwsConfig,
   setEnvBaseConfig,
   setEnvDecodeRefreshJwtConfig,
   setEnvEncodeAccessJwtConfig,
@@ -234,9 +233,6 @@ describe('Refresh', () => {
     },
     baseConfig: {
       frontendDomain: 'http://localhost:5173'
-    },
-    awsConfig: {
-      awsRegion: 'eu-west-1'
     }
   };
 
@@ -246,7 +242,6 @@ describe('Refresh', () => {
     setEnvDecodeRefreshJwtConfig(config.decodeRefreshJwtConfig);
     setEnvRefreshTokenBaseStoreConfig(config.refreshTokenBaseStoreConfig);
     setEnvBaseConfig(config.baseConfig);
-    setEnvAwsConfig(config.awsConfig);
   }
 });
 

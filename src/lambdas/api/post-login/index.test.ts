@@ -10,7 +10,6 @@ import type { User } from '@model/User';
 import type { Email } from '@own-types/model';
 import { assert } from '@testing/utils/assertions';
 import {
-  setEnvAwsConfig,
   setEnvBaseConfig,
   setEnvEncodeAccessJwtConfig,
   setEnvEncodeRefreshJwtConfig,
@@ -343,9 +342,6 @@ const defaultEnv: LoginConfig = {
   },
   baseConfig: {
     frontendDomain: 'http://localhost:5173'
-  },
-  awsConfig: {
-    awsRegion: 'eu-west-1'
   }
 };
 
@@ -356,7 +352,6 @@ function setEnv(config: LoginConfig) {
   setEnvUserBaseStoreConfig(config.userBaseStoreConfig);
   setEnvRefreshTokenBaseStoreConfig(config.refreshTokenBaseStoreConfig);
   setEnvBaseConfig(config.baseConfig);
-  setEnvAwsConfig(config.awsConfig);
 }
 
 function setEnvGoogleOAuthClientConfig(config: googleOAuth.GoogleOAuthConfig) {
