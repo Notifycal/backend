@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/Notifycal/backend/compare/v0.3.0...v0.4.0) (2025-01-07)
+
+
+### Features
+
+* include app_version from release-please when releasing ([#190](https://github.com/Notifycal/backend/issues/190)) ([afe3b4b](https://github.com/Notifycal/backend/commit/afe3b4b43cff2b148377d4ca7e0fbafd460bd13f))
+
 ## [0.3.0](https://github.com/Notifycal/backend/compare/v0.2.2...v0.3.0) (2025-01-07)
 
 
