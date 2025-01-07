@@ -8,7 +8,13 @@ import { type EncodedAndDecodedJwts, buildJwts } from './jwt';
 import type { RefreshTokenBaseStore } from './refresh-token-base-store';
 
 function signUpUser(email: string, userProvider: UserBaseStore): Promise<User> {
-  const newUser = { UserId: email } as User;
+  const now = Date.now();
+  const newUser: User = {
+    UserId: email,
+    LastSignInAt: now,
+    SignedUpAt: now,
+    Status: 'live'
+  };
   return userProvider.putUser(newUser).then(() => newUser);
 }
 
@@ -17,7 +23,17 @@ export function signInOrUpUser(email: string, config: UserBaseStoreConfig): Prom
   return userProvider.getUserByEmail(email).then(
     (userOrNot) => {
       if (userOrNot) {
-        return userOrNot;
+        if (userOrNot.Status !== 'banned') {
+          const updatedUser = {
+            ...userOrNot,
+            LastSignInAt: Date.now()
+          };
+          return userProvider.putUser(updatedUser).then(() => updatedUser);
+        } else {
+          return Promise.reject(
+            new Error(`User with id '${email}' is banned and login is prohibited`)
+          );
+        }
       } else {
         return signUpUser(email, userProvider);
       }

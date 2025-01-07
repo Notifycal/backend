@@ -14,6 +14,7 @@ import { UserBaseStore } from '@services/user-base-store';
 import type { User } from '@model/User';
 import type { OurAccessTokenClaims } from '@model/Jwt';
 import { responseError, responseSuccess } from '@testing/utils/api-response-handlers';
+import { validUser } from '@testing/utils/model';
 
 describe('GET user profile', () => {
   it('return a user', async () => {
@@ -23,21 +24,16 @@ describe('GET user profile', () => {
       permissions: {}
     } as OurAccessTokenClaims;
     const event = (await testAuthedEvent({}, {}, payload)) as unknown as APIGatewayProxyEvent;
-    const getUserByEmailFn = () => Promise.resolve({ UserId: payload.email });
+    const getUserByEmailFn = () => Promise.resolve(validUser(payload.email));
 
     return testit(event, getUserByEmailFn).then((resp) => {
-      assert(
-        resp,
-        responseSuccess({
-          UserId: payload.email
-        })
-      );
+      assert(resp, responseSuccess(validUser(payload.email)));
     });
   });
 
   it('fail to return a user with 401 if no authorization present', async () => {
     const event = testEvent({}, {}) as unknown as APIGatewayProxyEvent;
-    const getUserByEmailFn = () => Promise.resolve({ UserId: 'not_used' });
+    const getUserByEmailFn = () => Promise.resolve(validUser('not_used'));
 
     return testit(event, getUserByEmailFn).then((resp) => {
       assert(resp, responseError(401));

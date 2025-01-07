@@ -22,6 +22,7 @@ import {
   responseErrorNoCorsHeaders,
   responseSuccess
 } from '@testing/utils/api-response-handlers';
+import { validUser } from '@testing/utils/model';
 
 describe('Login', () => {
   const validJwts: jwt.EncodedAndDecodedJwts = {
@@ -73,7 +74,7 @@ describe('Login', () => {
     const userEmail = 'success@notifycal.com';
     const idTokenVerificationFn = () => Promise.resolve(userEmail);
     const buildJwtsFn = () => Promise.resolve(validJwts);
-    const signInOrUpUserFn = () => Promise.resolve({ UserId: userEmail });
+    const signInOrUpUserFn = () => Promise.resolve(validUser(userEmail));
     const putRefreshTokenFn = () => Promise.resolve(null);
 
     return testit(
@@ -143,7 +144,7 @@ describe('Login', () => {
       }
     };
     const buildJwtsFn2 = () => Promise.resolve(validJwts2);
-    const signInOrUpUserFn = () => Promise.resolve({ UserId: userEmail });
+    const signInOrUpUserFn = () => Promise.resolve(validUser(userEmail));
     const putRefreshTokenFn = () => Promise.resolve(null);
 
     return testit(
@@ -175,7 +176,7 @@ describe('Login', () => {
     const userEmail = 'failure@notifycal.com';
     const idTokenVerificationFn = () => Promise.reject(new Error(userEmail));
     const buildJwtsFn = () => Promise.resolve(validJwts);
-    const signInOrUpUserFn = () => Promise.resolve({ UserId: userEmail });
+    const signInOrUpUserFn = () => Promise.resolve(validUser(userEmail));
     const putRefreshTokenFn = () => Promise.resolve(null);
 
     return testit(
@@ -196,7 +197,7 @@ describe('Login', () => {
     const userEmail = 'success@notifycal.com';
     const idTokenVerificationFn = () => Promise.resolve(userEmail);
     const buildJwtsFn = () => Promise.resolve(validJwts);
-    const signInOrUpUserFn = () => Promise.resolve({ UserId: userEmail });
+    const signInOrUpUserFn = () => Promise.resolve(validUser(userEmail));
     const putRefreshTokenFn = () => Promise.resolve(null);
 
     return testit(
@@ -217,7 +218,7 @@ describe('Login', () => {
     const userEmail = 'success@notifycal.com';
     const idTokenVerificationFn = () => Promise.resolve(userEmail);
     const buildJwtsFn = () => Promise.reject(new Error('Boooom!'));
-    const signInOrUpUserFn = () => Promise.resolve({ UserId: userEmail });
+    const signInOrUpUserFn = () => Promise.resolve(validUser(userEmail));
     const putRefreshTokenFn = () => Promise.resolve(null);
 
     return testit(
@@ -238,7 +239,7 @@ describe('Login', () => {
     const userEmail = 'success@notifycal.com';
     const idTokenVerificationFn = () => Promise.resolve(userEmail);
     const buildJwtsFn = () => Promise.resolve(validJwts);
-    const signInOrUpUserFn = () => Promise.resolve({ UserId: userEmail });
+    const signInOrUpUserFn = () => Promise.resolve(validUser(userEmail));
     const putRefreshTokenFn = () => Promise.resolve(null);
     const env = structuredClone(defaultEnv);
     env.googleOAuthClientConfig.clientId = undefined as unknown as string;
@@ -283,7 +284,7 @@ describe('Login', () => {
     const userEmail = 'success@notifycal.com';
     const idTokenVerificationFn = () => Promise.resolve(userEmail);
     const buildJwtsFn = () => Promise.resolve(validJwts);
-    const signInOrUpUserFn = () => Promise.resolve({ UserId: userEmail });
+    const signInOrUpUserFn = () => Promise.resolve(validUser(userEmail));
     const putRefreshTokenFn = () => Promise.reject(new Error('Boom!'));
 
     return testit(
