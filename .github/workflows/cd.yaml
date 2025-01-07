@@ -214,8 +214,7 @@ jobs:
         if: github.event_name != 'pull_request'
         uses: googleapis/release-please-action@v4
         with:
-          # Hoping this automatically updates package*.json
-          release-type: node
+          config-file: release-please-config.json
 
       - name: Upload node artifact to release
         if: ${{ steps.release-please.outputs.release_created }}
