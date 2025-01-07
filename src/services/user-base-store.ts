@@ -21,7 +21,8 @@ export class UserBaseStore extends BaseStore<UserBaseStoreConfig> {
       (item) => {
         const user = item.Item;
         if (user) {
-          return user as User;
+          const u = user as User;
+          return u.Banned ? undefined : u;
         } else {
           return undefined;
         }
@@ -33,9 +34,7 @@ export class UserBaseStore extends BaseStore<UserBaseStoreConfig> {
 
   public putUser(user: User): Promise<null> {
     const insertCmd = new PutCommand({
-      Item: {
-        UserId: user.UserId
-      },
+      Item: user,
       TableName: this._tableName,
       ReturnConsumedCapacity: 'TOTAL'
     });
