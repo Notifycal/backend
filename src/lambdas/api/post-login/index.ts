@@ -10,11 +10,6 @@ import { errorHandler } from '@services/common/api-response-handlers';
 import { eventSchema } from '@model/ApiGatewayEvents';
 
 const schema = eventSchema<LoginConfig>().extend({
-  version: z.string().optional(),
-  routeKey: z.string().optional(),
-  rawPath: z.string().optional(),
-  rawQueryString: z.string().optional(),
-  queryStringParameters: z.record(z.string()).nullable().optional(),
   body: JSONStringified(
     z.object({
       googleCode: z.string()

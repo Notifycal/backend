@@ -11,11 +11,6 @@ import { errorHandler } from '@services/common/api-response-handlers';
 import { buildJwtsAndStoreRefreshJwt, _successHandler } from '@services/login';
 
 const schema = eventSchema<RefreshConfig>().extend({
-  version: z.string().optional(),
-  routeKey: z.string().optional(),
-  rawPath: z.string().optional(),
-  rawQueryString: z.string().optional(),
-  queryStringParameters: z.record(z.string()).nullable().optional(),
   body: JSONStringified(
     z.object({
       refreshToken: z.string()
