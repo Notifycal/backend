@@ -61,7 +61,7 @@ variable "lambdas_handler_name" {
 }
 
 variable "api_gateway_custom_domain_enabled" {
-  type    = bool
-  default = true
+  type        = bool
+  default     = true
   description = "Controls the creation of a custom domain for API Gateway and the domain it is accessible from"
 }
