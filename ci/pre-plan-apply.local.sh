@@ -5,10 +5,6 @@ if [[ "$DEBUG" == true ]]; then
 fi
 
 _GH_ORG="Notifycal"
-OUT_DIR=dist
-
-# Default TF_TOOL is terragrunt
-TF_TOOL="${TF_TOOL:-terragrunt}"
 
 STACK_NAME=$1
 STACK_VERSION=$2
