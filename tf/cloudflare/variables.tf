@@ -3,8 +3,8 @@ variable "dns_zone" {
 }
 
 variable "cname_record" {
-  type    = object({
-    name = string
+  type = object({
+    name  = string
     value = string
   })
 }
