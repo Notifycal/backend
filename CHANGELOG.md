@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.5.0](https://github.com/Notifycal/backend/compare/v0.4.0...v0.5.0) (2025-01-08)
+
+
+### Features
+
+* enable local development by hiding cloudflare resources and ena… ([#196](https://github.com/Notifycal/backend/issues/196)) ([16459b0](https://github.com/Notifycal/backend/commit/16459b0ccfae42b5a029a8ae3c26d1d73f681443))
+
+
+### Bug Fixes
+
+* enable deletion protection for dynamo tables ([#193](https://github.com/Notifycal/backend/issues/193)) ([13a6cce](https://github.com/Notifycal/backend/commit/13a6cce9551380053209339d4216e1c3c3827779))
+
 ## [0.4.0](https://github.com/Notifycal/backend/compare/v0.3.0...v0.4.0) (2025-01-07)
 
 
