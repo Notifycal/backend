@@ -155,7 +155,7 @@ jobs:
         env:
           TOFU_VERSION: ${{ steps.get_tofu_version.outputs.tofu_version }}
 
-      - run: tofu fmt
+      - run: tofu fmt -recursive
         if: github.event_name == 'pull_request'
         working-directory: tf
 

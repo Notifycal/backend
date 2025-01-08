@@ -59,3 +59,13 @@ variable "lambdas_handler_name" {
   type    = string
   default = "index.handler"
 }
+
+variable "cloudflare_enabled" {
+  type    = bool
+  default = true
+}
+
+variable "api_gateway_custom_domain_enabled" {
+  type    = bool
+  default = true
+}
