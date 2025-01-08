@@ -14,7 +14,8 @@ This is meant to include all backend related stuff for now.
 - Structured JSON logging format
 
 ## Requirements
- - [yq](https://github.com/mikefarah/yq?tab=readme-ov-file#install)
+
+- [yq](https://github.com/mikefarah/yq?tab=readme-ov-file#install)
 
 ## How to run
 
