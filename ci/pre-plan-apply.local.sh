@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+
+if [[ "$DEBUG" == true ]]; then
+  set -ex
+fi
+
+_GH_ORG="Notifycal"
+OUT_DIR=dist
+
+# Default TF_TOOL is terragrunt
+TF_TOOL="${TF_TOOL:-terragrunt}"
+
+STACK_NAME=$1
+STACK_VERSION=$2
+
+# running path is the working dir as this script makes "changes" in the
+# actual TF "execution folder"
+RUNNING_PATH="$(pwd)"
+
+echo
+echo "Running $0..."
+echo "==================================="
+echo "STACK NAME: ${STACK_NAME}"
+echo "STACK_VERSION: ${STACK_VERSION}"    # Assumes STACK_NAME == repository name
+echo "PATH: $RUNNING_PATH"
+echo "==================================="
+echo
+
+echo "Creating adhoc build..."
+pushd "${RUNNING_PATH}" > /dev/null
+npm run build && npm run package && pushd dist && unzip build.zip && popd
+popd > /dev/null
+
+exit 0;
