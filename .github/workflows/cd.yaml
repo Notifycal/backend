@@ -122,7 +122,7 @@ jobs:
         run: git config --global url."https://foo:${{ steps.gh-app-auth.outputs.token }}@github.com".insteadOf ssh://git@github.com
 
       - name: Get tofu version from .opentofu-version
-        run: echo "tofu_version=$(cat .opentofu-version)" >> $GITHUB_OUTPUT
+        run: echo "tofu_version=$(cat .opentofu-version)" >> "$GITHUB_OUTPUT"
         id: get_tofu_version
         working-directory: tf
 
