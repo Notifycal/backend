@@ -63,28 +63,3 @@ resource "aws_api_gateway_method_settings" "method_settings" {
     logging_level      = "INFO"
   }
 }
-
-data "aws_acm_certificate" "ssl_cert" {
-  count       = var.api_gateway_custom_domain_enabled ? 1 : 0
-  domain      = "*.${var.base_domain}"
-  types       = ["AMAZON_ISSUED"]
-  most_recent = true
-}
-
-resource "aws_api_gateway_domain_name" "custom_domain" {
-  count                    = var.api_gateway_custom_domain_enabled ? 1 : 0
-  domain_name              = "${var.domain_prefix}.${var.base_domain}"
-  regional_certificate_arn = data.aws_acm_certificate.ssl_cert[0].arn
-
-  endpoint_configuration {
-    types = ["REGIONAL"]
-  }
-}
-
-# Required to associate the custom domain with the API
-resource "aws_api_gateway_base_path_mapping" "mapping" {
-  count       = var.api_gateway_custom_domain_enabled ? 1 : 0
-  api_id      = aws_api_gateway_rest_api.rest_api.id
-  stage_name  = aws_api_gateway_stage.stage.stage_name
-  domain_name = aws_api_gateway_domain_name.custom_domain[0].domain_name
-}

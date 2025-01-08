@@ -60,12 +60,8 @@ variable "lambdas_handler_name" {
   default = "index.handler"
 }
 
-variable "cloudflare_enabled" {
-  type    = bool
-  default = true
-}
-
 variable "api_gateway_custom_domain_enabled" {
   type    = bool
   default = true
+  description = "Controls the creation of a custom domain for API Gateway and the domain it is accessible from"
 }
