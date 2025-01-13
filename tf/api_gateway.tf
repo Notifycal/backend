@@ -29,7 +29,7 @@ resource "aws_api_gateway_rest_api" "rest_api" {
   # Don't serve requests through the default API GW url (we're using a custom domain)
   disable_execute_api_endpoint = var.api_gateway_custom_domain_enabled
   tags = var.api_gateway_custom_domain_enabled ? {} : {
-    "_custom_id_": "my-api" // This is used to stabilize APIGW id when APIGW is deployed on Localstack
+    "_custom_id_" : "my-api" // This is used to stabilize APIGW id when APIGW is deployed on Localstack
   }
 }
 
