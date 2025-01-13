@@ -1,5 +1,3 @@
-import { from } from 'env-var';
-
 import type {
   BaseEndpointConfig,
   DecodeAccessJwtConfig,
@@ -9,8 +7,10 @@ import type {
 } from '@model/Config';
 import type { Environment } from '@own-types/model';
 
+const { default: env } = await import('env-var');
+
 export function readEnv(): Environment {
-  return from(process.env, {});
+  return env.from(process.env, {});
 }
 
 const readJwtConfig = (

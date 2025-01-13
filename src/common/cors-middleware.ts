@@ -12,7 +12,8 @@ function configureMiddleware<TConfig extends AuthedEndpointConfig>(
   const options = {
     headers: 'GET,POST,OPTIONS,PUT,DELETE,PATCH',
     methods: 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token',
-    origin: frontendDomain
+    origin: frontendDomain,
+    vary: 'Origin'
   };
   return httpCors(options);
 }

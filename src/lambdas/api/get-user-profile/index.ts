@@ -7,7 +7,7 @@ import type { z } from 'zod';
 import { errorHandler, successHandler } from '@services/common/api-response-handlers';
 
 const eventSchema = authedEventSchema<GetUserProfileConfig>();
-type Event = z.infer<typeof eventSchema>;
+export type Event = z.infer<typeof eventSchema>;
 
 function lambdaHandler(
   event: Event,
@@ -26,6 +26,7 @@ function lambdaHandler(
   }, errorHandler(500));
 }
 
-export const handler = protectedEndpointMiddleware(() => readGetUserConfig(), eventSchema).handler(
-  lambdaHandler
-);
+export const handler = protectedEndpointMiddleware(
+  () => readGetUserConfig(),
+  eventSchema
+).handler<Event>(lambdaHandler);

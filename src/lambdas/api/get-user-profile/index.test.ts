@@ -3,18 +3,17 @@ import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { c, testAuthedEvent, testEvent } from '@testing/apigateway';
 import { assert } from '@testing/utils/assertions';
 import type { GetUserProfileConfig } from './config';
-import { handler } from '.';
 import {
   setEnvBaseConfig,
   setEnvDecodeAccessJwtConfig,
   setEnvUserBaseStoreConfig
 } from '@testing/utils/config';
 import { getDefaultDecodeAccessJwtConfig } from '@testing/utils/jwt';
-import { UserBaseStore } from '@services/user-base-store';
 import type { User } from '@model/User';
 import type { OurAccessTokenClaims } from '@model/Jwt';
 import { responseError, responseSuccess } from '@testing/utils/api-response-handlers';
 import { validUser } from '@testing/utils/model';
+import type { Event } from './index';
 
 describe('GET user profile', () => {
   it('return a user', async () => {
@@ -69,14 +68,23 @@ describe('GET user profile', () => {
   });
 });
 
-function testit(
+async function testit(
   event: APIGatewayProxyEvent,
-  getUserByEmailResult: () => Promise<User | undefined>,
+  getUserByEmailFn: () => Promise<User | undefined>,
   env: GetUserProfileConfig = defaultEnv
 ): Promise<APIGatewayProxyResult> {
   setEnv(env);
-  jest.spyOn(UserBaseStore.prototype, 'getUserByEmail').mockImplementation(getUserByEmailResult);
-  return handler(event, c);
+  jest.unstable_mockModule('@services/user-base-store', () => {
+    return {
+      UserBaseStore: jest.fn().mockImplementation(() => {
+        return {
+          getUserByEmail: getUserByEmailFn
+        };
+      })
+    };
+  });
+  const { handler } = await import('./index');
+  return handler(event as unknown as Event, c);
 }
 
 const defaultEnv = {

@@ -6,7 +6,10 @@ import * as fs from 'fs';
 import type { EncodeAccessJwtConfig } from '@model/Config';
 import { type OurAccessTokenClaims, accessTokenSchema } from '@model/Jwt';
 import type { ZodSchema } from 'zod';
+import { fileURLToPath } from 'url';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 // Lazy evaluation all over the place so express doesn't attempt to load what it mustn't
 const loadDevConfig: () => Record<string, string> = (() => {
   let devConfig: Record<string, string>;

@@ -16,7 +16,7 @@ const schema = eventSchema<LoginConfig>().extend({
     })
   )
 });
-type Event = z.infer<typeof schema>;
+export type Event = z.infer<typeof schema>;
 
 function lambdaHandler(
   event: Event,
@@ -42,6 +42,7 @@ function lambdaHandler(
     .catch(errorHandler(401));
 }
 
-export const handler = unprotectedEndpointMiddleware(() => readLoginConfig(), schema).handler(
-  lambdaHandler
-);
+export const handler = unprotectedEndpointMiddleware(
+  () => readLoginConfig(),
+  schema
+).handler<Event>(lambdaHandler);
