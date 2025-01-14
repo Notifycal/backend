@@ -1,8 +1,8 @@
 export async function toRejectWithErrorContainingMessageParts(
-  this: jest.MatcherContext,
+  this: vi.MatcherContext,
   received: Promise<unknown>,
   expectedParts: Array<string>
-): Promise<jest.CustomMatcherResult> {
+): Promise<vi.CustomMatcherResult> {
   return received
     .then(() => {
       return {

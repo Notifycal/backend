@@ -1,4 +1,3 @@
-import { describe, jest } from '@jest/globals';
 import type { Event } from './index';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { c, testEvent } from '@testing/apigateway';
@@ -161,20 +160,20 @@ describe('Refresh', () => {
     env: RefreshConfig = defaultEnv
   ): Promise<APIGatewayProxyResult> {
     setEnv(env);
-    jest.unstable_mockModule('@services/jwt', () => ({
+    vi.unstable_mockModule('@services/jwt', () => ({
       decodeAndVerifyJwtSignature: decodeAndVerifyJwtSignatureFn
     }));
-    jest.unstable_mockModule('@services/refresh-token-base-store', () => {
+    vi.unstable_mockModule('@services/refresh-token-base-store', () => {
       return {
-        RefreshTokenBaseStore: jest.fn().mockImplementation(() => {
+        RefreshTokenBaseStore: vi.fn().mockImplementation(() => {
           return {
             getTokenBy: getRefreshTokenByFn
           };
         })
       };
     });
-    jest.unstable_mockModule('@services/login', () => ({
-      signInOrUpUser: jest.fn(),
+    vi.unstable_mockModule('@services/login', () => ({
+      signInOrUpUser: vi.fn(),
       buildJwtsAndStoreRefreshJwt: buildJwtsAndStoreRefreshJwtFn,
       _successHandler: _successHandler
     }));

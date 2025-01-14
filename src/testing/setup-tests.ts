@@ -4,8 +4,8 @@ import { toRejectWithErrorContainingMessageParts } from './utils/matchers';
 const OLD_ENV = JSON.parse(JSON.stringify(process.env));
 
 export function resetTestingContext(): void {
-  jest.clearAllMocks();
-  jest.resetModules();
+  vi.clearAllMocks();
+  vi.resetModules();
   process.env = OLD_ENV;
 }
 

@@ -1,5 +1,4 @@
 import type { Event } from './white-authed-api-lambda';
-import { describe } from '@jest/globals';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { c, testAuthedEvent, testEvent } from '@testing/apigateway';
 import type { TestingWhiteApiConfig } from '@testing/white-authed-api-lambda';

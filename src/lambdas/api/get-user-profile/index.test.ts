@@ -1,4 +1,3 @@
-import { describe, jest } from '@jest/globals';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { c, testAuthedEvent, testEvent } from '@testing/apigateway';
 import { assert } from '@testing/utils/assertions';
@@ -74,9 +73,9 @@ async function testit(
   env: GetUserProfileConfig = defaultEnv
 ): Promise<APIGatewayProxyResult> {
   setEnv(env);
-  jest.unstable_mockModule('@services/user-base-store', () => {
+  vi.unstable_mockModule('@services/user-base-store', () => {
     return {
-      UserBaseStore: jest.fn().mockImplementation(() => {
+      UserBaseStore: vi.fn().mockImplementation(() => {
         return {
           getUserByEmail: getUserByEmailFn
         };

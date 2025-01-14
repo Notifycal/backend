@@ -1,4 +1,3 @@
-import { describe, jest } from '@jest/globals';
 import type { LoginConfig } from './config';
 import type { Event } from './index';
 import type { GoogleOAuthConfig } from '@services/google-oauth';
@@ -271,10 +270,10 @@ async function testit(
   env: LoginConfig = defaultEnv
 ): Promise<APIGatewayProxyResult> {
   setEnv(env);
-  jest.unstable_mockModule('@services/google-oauth', () => ({
+  vi.unstable_mockModule('@services/google-oauth', () => ({
     verifyGoogleIdentity: verifyGoogleIdentityFn
   }));
-  jest.unstable_mockModule('@services/login', () => ({
+  vi.unstable_mockModule('@services/login', () => ({
     signInOrUpUser: signInOrUpUserFn,
     buildJwtsAndStoreRefreshJwt: buildJwtsAndStoreRefreshJwtFn,
     _successHandler: _successHandler
