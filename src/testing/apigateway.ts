@@ -12,69 +12,93 @@ import type { ZodSchema } from 'zod';
 function ttestEvent(body: string, headers: Record<string, string> = {}): APIGatewayProxyEvent {
   return {
     body: body,
-    resource: '/my/path',
-    path: '/my/path',
-    httpMethod: 'GET',
-    headers: headers,
+    isBase64Encoded: false,
+    resource: '/api/v1/login',
+    path: '/api/v1/login',
+    httpMethod: 'POST',
+    headers: {
+      accept: 'application/json, text/plain, */*',
+      'accept-encoding': 'gzip, deflate, br, zstd',
+      'accept-language': 'en-GB,en-US;q=0.9,en;q=0.8',
+      'content-type': 'application/json',
+      Host: 'a4dry64voi.execute-api.eu-west-1.amazonaws.com',
+      origin: 'http://localhost:5173',
+      priority: 'u=1, i',
+      referer: 'http://localhost:5173/',
+      'sec-ch-ua': '"Google Chrome";v="131", "Chromium";v="131", "Not_A Brand";v="24"',
+      'sec-ch-ua-mobile': '?0',
+      'sec-ch-ua-platform': '"macOS"',
+      'sec-fetch-dest': 'empty',
+      'sec-fetch-mode': 'cors',
+      'sec-fetch-site': 'cross-site',
+      'User-Agent':
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+      'X-Amzn-Trace-Id': 'Root=1-67798012-1dd3f9916121fc131d25283e',
+      'X-Forwarded-For': '83.39.36.161',
+      'X-Forwarded-Port': '443',
+      'X-Forwarded-Proto': 'https',
+      ...headers
+    },
     multiValueHeaders: {
-      header1: ['value1'],
-      header2: ['value1', 'value2']
+      accept: ['application/json, text/plain, */*'],
+      'accept-encoding': ['gzip, deflate, br, zstd'],
+      'accept-language': ['en-GB,en-US;q=0.9,en;q=0.8'],
+      'content-type': ['application/json'],
+      Host: ['a4dry64voi.execute-api.eu-west-1.amazonaws.com'],
+      origin: ['http://localhost:5173'],
+      priority: ['u=1, i'],
+      referer: ['http://localhost:5173/'],
+      'sec-ch-ua': ['"Google Chrome";v="131", "Chromium";v="131", "Not_A Brand";v="24"'],
+      'sec-ch-ua-mobile': ['?0'],
+      'sec-ch-ua-platform': ['"macOS"'],
+      'sec-fetch-dest': ['empty'],
+      'sec-fetch-mode': ['cors'],
+      'sec-fetch-site': ['cross-site'],
+      'User-Agent': [
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36'
+      ],
+      'X-Amzn-Trace-Id': ['Root=1-67798012-1dd3f9916121fc131d25283e'],
+      'X-Forwarded-For': ['83.39.36.161'],
+      'X-Forwarded-Port': ['443'],
+      'X-Forwarded-Proto': ['https']
     },
-    queryStringParameters: {
-      parameter1: 'value1',
-      parameter2: 'value'
-    },
-    multiValueQueryStringParameters: {
-      parameter1: ['value1', 'value2'],
-      parameter2: ['value']
-    },
-    requestContext: {
-      accountId: '123456789012',
-      apiId: 'id',
-      authorizer: {
-        claims: {},
-        scopes: []
-      },
-      domainName: 'id.execute-api.us-east-1.amazonaws.com',
-      domainPrefix: 'id',
-      extendedRequestId: 'request-id',
-      httpMethod: 'GET',
-      identity: {
-        accessKey: null,
-        accountId: null,
-        caller: null,
-        cognitoAuthenticationProvider: null,
-        cognitoAuthenticationType: null,
-        cognitoIdentityId: null,
-        cognitoIdentityPoolId: null,
-        principalOrgId: null,
-        sourceIp: '192.0.2.1',
-        user: null,
-        userAgent: 'user-agent',
-        userArn: null,
-        clientCert: {
-          clientCertPem: 'CERT_CONTENT',
-          subjectDN: 'www.example.com',
-          issuerDN: 'Example issuer',
-          serialNumber: 'a1:a1:a1:a1:a1:a1:a1:a1:a1:a1:a1:a1:a1:a1:a1:a1',
-          validity: {
-            notBefore: 'May 28 12:30:02 2019 GMT',
-            notAfter: 'Aug 5 09:36:04 2021 GMT'
-          }
-        }
-      },
-      path: '/my/path',
-      protocol: 'HTTP/1.1',
-      requestId: 'id=',
-      requestTime: '04/Mar/2020:19:15:17 +0000',
-      requestTimeEpoch: 1583349317135,
-      resourceId: null,
-      resourcePath: '/my/path',
-      stage: '$default'
-    },
+    queryStringParameters: null,
+    multiValueQueryStringParameters: null,
     pathParameters: null,
     stageVariables: null,
-    isBase64Encoded: false
+    requestContext: {
+      resourceId: 'fdr0ov',
+      resourcePath: '/api/v1/login',
+      operationName: 'login',
+      httpMethod: 'POST',
+      extendedRequestId: 'D4Dy8GjNDoEEXbw=',
+      requestTime: '04/Jan/2025:18:38:10 +0000',
+      path: '/dev/api/v1/login',
+      accountId: '381492094204',
+      protocol: 'HTTP/1.1',
+      stage: 'dev',
+      domainPrefix: 'a4dry64voi',
+      requestTimeEpoch: 1736015890429,
+      requestId: '99d29563-af60-4691-96d3-d0e2d697e510',
+      identity: {
+        cognitoIdentityPoolId: null,
+        accountId: null,
+        cognitoIdentityId: null,
+        caller: null,
+        sourceIp: '83.39.36.161',
+        principalOrgId: null,
+        accessKey: null,
+        cognitoAuthenticationType: null,
+        cognitoAuthenticationProvider: null,
+        userArn: null,
+        userAgent:
+          'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+        user: null
+      },
+      domainName: 'a4dry64voi.execute-api.eu-west-1.amazonaws.com',
+      deploymentId: 'uzozvo',
+      apiId: 'a4dry64voi'
+    }
   };
 }
 
