@@ -1,6 +1,5 @@
-import type { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from 'aws-lambda';
+import type { APIGatewayProxyResult, Context } from 'aws-lambda';
 import { z } from 'zod';
-import type middy from '@middy/core';
 import type { AuthedEndpointConfig } from '@model/Config';
 import { protectedEndpointMiddleware } from '@common/lambda-middleware';
 import { getDefaultDecodeAccessJwtConfig } from './utils/jwt';
@@ -18,7 +17,7 @@ const eventSchema = authedEventSchema<TestingWhiteApiConfig>().extend({
     })
   )
 });
-type Event = z.infer<typeof eventSchema>;
+export type Event = z.infer<typeof eventSchema>;
 
 function lambdaHandler(
   event: Event,
@@ -43,11 +42,8 @@ function claimChecker(): boolean {
   return true;
 }
 
-export const handler: middy.MiddyfiedHandler<
-  APIGatewayProxyEvent,
-  APIGatewayProxyResult,
-  Error,
-  Context
-> = protectedEndpointMiddleware(testingConfigReader, eventSchema, claimChecker).handler(
-  lambdaHandler
-);
+export const handler = protectedEndpointMiddleware(
+  testingConfigReader,
+  eventSchema,
+  claimChecker
+).handler<Event>(lambdaHandler);

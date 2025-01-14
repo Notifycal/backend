@@ -1,6 +1,6 @@
-import type { UserBaseStoreConfig } from '@services/user-base-store';
 import { readBaseConfig, readDecodeAccessJwtConfig, readEnv } from '@services/common/config';
 import type { AuthedEndpointConfig } from '@model/Config';
+import type { UserBaseStoreConfig } from '@services/user-base-store';
 
 export interface GetUserProfileConfig extends AuthedEndpointConfig {
   userBaseStore: UserBaseStoreConfig;

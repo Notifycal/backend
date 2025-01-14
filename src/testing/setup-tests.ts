@@ -1,17 +1,17 @@
-import { expect } from '@jest/globals';
+import { vi, beforeAll, beforeEach, afterAll, expect } from 'vitest';
 import { toRejectWithErrorContainingMessageParts } from './utils/matchers';
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 const OLD_ENV = JSON.parse(JSON.stringify(process.env));
 
-global.beforeEach(() => {
-  jest.resetModules();
-  process.env = { ...OLD_ENV };
-});
-
-global.afterEach(() => {
+export function resetTestingContext(): void {
+  vi.clearAllMocks();
+  vi.resetModules();
   process.env = OLD_ENV;
-  jest.clearAllMocks();
-});
+}
+
+beforeAll(resetTestingContext);
+beforeEach(resetTestingContext);
+afterAll(resetTestingContext);
 
 expect.extend({
   toRejectWithErrorContainingMessageParts: toRejectWithErrorContainingMessageParts

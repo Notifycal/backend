@@ -1,6 +1,4 @@
-import { describe, jest } from '@jest/globals';
-import { handler } from './index';
-import * as jwt from '@services/jwt';
+import { handler, type Event } from './index';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { c, testEvent } from '@testing/apigateway';
 import {
@@ -15,9 +13,12 @@ import type { RefreshConfig } from './config';
 import type { RefreshTokenStoreRecord } from '@model/RefreshTokenStoreRecord';
 import type { RefreshToken } from '@model/Jwt';
 import { responseError, responseSuccess } from '@testing/utils/api-response-handlers';
+import { decodeAndVerifyJwtSignature, type EncodedAndDecodedJwts } from '@services/jwt';
+import { buildJwtsAndStoreRefreshJwt } from '@services/login';
 import { RefreshTokenBaseStore } from '@services/refresh-token-base-store';
+import { describe, it, vi } from 'vitest';
 
-describe('Refresh', () => {
+describe('POST Refresh', () => {
   it('should renew both tokens', () => {
     const event = testEvent({
       refreshToken: validRefreshToken
@@ -25,15 +26,13 @@ describe('Refresh', () => {
 
     const decodeAndVerifyJwtSignatureFn = () => Promise.resolve(validInitialDecodedRefreshToken);
     const getRefreshTokenByFn = () => Promise.resolve(validRefreshTokenStoreRecord);
-    const buildJwtsFn = () => Promise.resolve(validEncodedAndDecodedJwts);
-    const putRefreshTokenFn = () => Promise.resolve(null);
+    const buildJwtsAndStoreRefreshJwtFn = () => Promise.resolve(validEncodedAndDecodedJwts);
 
     return testit(
       event,
-      getRefreshTokenByFn,
-      putRefreshTokenFn,
       decodeAndVerifyJwtSignatureFn,
-      buildJwtsFn
+      getRefreshTokenByFn,
+      buildJwtsAndStoreRefreshJwtFn
     ).then((resp) => {
       assert(
         resp,
@@ -45,6 +44,7 @@ describe('Refresh', () => {
       );
     });
   });
+
   it('fail if request payload is invalid with 400', () => {
     const event = testEvent({
       'unexpected-field': validRefreshToken
@@ -52,19 +52,18 @@ describe('Refresh', () => {
 
     const decodeAndVerifyJwtSignatureFn = () => Promise.resolve(validInitialDecodedRefreshToken);
     const getRefreshTokenByFn = () => Promise.resolve(validRefreshTokenStoreRecord);
-    const buildJwtsFn = () => Promise.resolve(validEncodedAndDecodedJwts);
-    const putRefreshTokenFn = () => Promise.resolve(null);
+    const buildJwtsAndStoreRefreshJwtFn = () => Promise.resolve(validEncodedAndDecodedJwts);
 
     return testit(
       event,
-      getRefreshTokenByFn,
-      putRefreshTokenFn,
       decodeAndVerifyJwtSignatureFn,
-      buildJwtsFn
+      getRefreshTokenByFn,
+      buildJwtsAndStoreRefreshJwtFn
     ).then((resp) => {
       assert(resp, responseError(400));
     });
   });
+
   it('fail if refresh token provided cannot be verified with 401', () => {
     const event = testEvent({
       refreshToken: validRefreshToken
@@ -72,19 +71,18 @@ describe('Refresh', () => {
 
     const decodeAndVerifyJwtSignatureFn = () => Promise.reject(new Error('Boom!'));
     const getRefreshTokenByFn = () => Promise.resolve(validRefreshTokenStoreRecord);
-    const buildJwtsFn = () => Promise.resolve(validEncodedAndDecodedJwts);
-    const putRefreshTokenFn = () => Promise.resolve(null);
+    const buildJwtsAndStoreRefreshJwtFn = () => Promise.resolve(validEncodedAndDecodedJwts);
 
     return testit(
       event,
-      getRefreshTokenByFn,
-      putRefreshTokenFn,
       decodeAndVerifyJwtSignatureFn,
-      buildJwtsFn
+      getRefreshTokenByFn,
+      buildJwtsAndStoreRefreshJwtFn
     ).then((resp) => {
       assert(resp, responseError(401));
     });
   });
+
   it('fail if refresh token is not longer present in storage with 403', () => {
     const event = testEvent({
       refreshToken: validRefreshToken
@@ -92,19 +90,18 @@ describe('Refresh', () => {
 
     const decodeAndVerifyJwtSignatureFn = () => Promise.resolve(validInitialDecodedRefreshToken);
     const getRefreshTokenByFn = () => Promise.resolve(undefined);
-    const buildJwtsFn = () => Promise.resolve(validEncodedAndDecodedJwts);
-    const putRefreshTokenFn = () => Promise.resolve(null);
+    const buildJwtsAndStoreRefreshJwtFn = () => Promise.resolve(validEncodedAndDecodedJwts);
 
     return testit(
       event,
-      getRefreshTokenByFn,
-      putRefreshTokenFn,
       decodeAndVerifyJwtSignatureFn,
-      buildJwtsFn
+      getRefreshTokenByFn,
+      buildJwtsAndStoreRefreshJwtFn
     ).then((resp) => {
       assert(resp, responseError(403));
     });
   });
+
   it('fail if refresh token cannot be obtained from storage with 500', () => {
     const event = testEvent({
       refreshToken: validRefreshToken
@@ -112,19 +109,18 @@ describe('Refresh', () => {
 
     const decodeAndVerifyJwtSignatureFn = () => Promise.resolve(validInitialDecodedRefreshToken);
     const getRefreshTokenByFn = () => Promise.reject(new Error('Boom!'));
-    const buildJwtsFn = () => Promise.resolve(validEncodedAndDecodedJwts);
-    const putRefreshTokenFn = () => Promise.resolve(null);
+    const buildJwtsAndStoreRefreshJwtFn = () => Promise.resolve(validEncodedAndDecodedJwts);
 
     return testit(
       event,
-      getRefreshTokenByFn,
-      putRefreshTokenFn,
       decodeAndVerifyJwtSignatureFn,
-      buildJwtsFn
+      getRefreshTokenByFn,
+      buildJwtsAndStoreRefreshJwtFn
     ).then((resp) => {
       assert(resp, responseError(500));
     });
   });
+
   it('fail if refresh token provided does not match with refresh token stored with 403', () => {
     const event = testEvent({
       refreshToken: validRefreshToken
@@ -133,78 +129,69 @@ describe('Refresh', () => {
     const decodeAndVerifyJwtSignatureFn = () => Promise.resolve(validInitialDecodedRefreshToken);
     const getRefreshTokenByFn = () =>
       Promise.resolve({ ...validRefreshTokenStoreRecord, RefreshToken: 'this one does not match' });
-    const buildJwtsFn = () => Promise.resolve(validEncodedAndDecodedJwts);
-    const putRefreshTokenFn = () => Promise.resolve(null);
+    const buildJwtsAndStoreRefreshJwtFn = () => Promise.resolve(validEncodedAndDecodedJwts);
 
     return testit(
       event,
-      getRefreshTokenByFn,
-      putRefreshTokenFn,
       decodeAndVerifyJwtSignatureFn,
-      buildJwtsFn
+      getRefreshTokenByFn,
+      buildJwtsAndStoreRefreshJwtFn
     ).then((resp) => {
       assert(resp, responseError(403));
     });
   });
-  it('fail if new tokens cannot be generated with 500', () => {
+
+  it('fail if new tokens cannot be generated or stored with 500', () => {
     const event = testEvent({
       refreshToken: validRefreshToken
     }) as unknown as APIGatewayProxyEvent;
 
     const decodeAndVerifyJwtSignatureFn = () => Promise.resolve(validInitialDecodedRefreshToken);
     const getRefreshTokenByFn = () => Promise.resolve(validRefreshTokenStoreRecord);
-    const buildJwtsFn = () => Promise.reject(new Error('Boom!'));
-    const putRefreshTokenFn = () => Promise.resolve(null);
+    const buildJwtsAndStoreRefreshJwtFn = () => Promise.reject(new Error('Boom!'));
 
     return testit(
       event,
-      getRefreshTokenByFn,
-      putRefreshTokenFn,
       decodeAndVerifyJwtSignatureFn,
-      buildJwtsFn
-    ).then((resp) => {
-      assert(resp, responseError(500));
-    });
-  });
-  it('fail if new refresh token cannot be stored with 500', () => {
-    const event = testEvent({
-      refreshToken: validRefreshToken
-    }) as unknown as APIGatewayProxyEvent;
-
-    const decodeAndVerifyJwtSignatureFn = () => Promise.resolve(validInitialDecodedRefreshToken);
-    const getRefreshTokenByFn = () => Promise.resolve(validRefreshTokenStoreRecord);
-    const buildJwtsFn = () => Promise.resolve(validEncodedAndDecodedJwts);
-    const putRefreshTokenFn = () => Promise.reject(new Error('Booom!'));
-
-    return testit(
-      event,
       getRefreshTokenByFn,
-      putRefreshTokenFn,
-      decodeAndVerifyJwtSignatureFn,
-      buildJwtsFn
+      buildJwtsAndStoreRefreshJwtFn
     ).then((resp) => {
       assert(resp, responseError(500));
     });
   });
 
-  function testit(
+  async function testit(
     event: APIGatewayProxyEvent,
-    getRefreshTokenByFn: () => Promise<RefreshTokenStoreRecord | undefined>,
-    putRefreshTokenFn: () => Promise<null>,
     decodeAndVerifyJwtSignatureFn: () => Promise<RefreshToken>,
-    buildJwtsFn: () => Promise<jwt.EncodedAndDecodedJwts>,
+    getRefreshTokenByFn: () => Promise<RefreshTokenStoreRecord | undefined>,
+    buildJwtsAndStoreRefreshJwtFn: () => Promise<EncodedAndDecodedJwts>,
     env: RefreshConfig = defaultEnv
   ): Promise<APIGatewayProxyResult> {
     setEnv(env);
-    jest
-      .spyOn(RefreshTokenBaseStore.prototype, 'getTokenBy')
-      .mockImplementation(getRefreshTokenByFn);
-    jest.spyOn(RefreshTokenBaseStore.prototype, 'putToken').mockImplementation(putRefreshTokenFn);
-    jest
-      .spyOn(jwt, 'decodeAndVerifyJwtSignature')
-      .mockImplementation(decodeAndVerifyJwtSignatureFn);
-    jest.spyOn(jwt, 'buildJwts').mockImplementation(buildJwtsFn);
-    return handler(event, c);
+    vi.mock('@services/jwt', () => ({
+      decodeAndVerifyJwtSignature: vi.fn()
+    }));
+    vi.mocked(decodeAndVerifyJwtSignature).mockImplementation(decodeAndVerifyJwtSignatureFn);
+    vi.mock('@services/refresh-token-base-store', () => {
+      const RefreshTokenBaseStore = vi.fn();
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      RefreshTokenBaseStore.prototype.getTokenBy = vi.fn();
+      return {
+        RefreshTokenBaseStore
+      };
+    });
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    vi.mocked(RefreshTokenBaseStore.prototype.getTokenBy).mockImplementation(getRefreshTokenByFn);
+    vi.mock('@services/login', async () => {
+      const realImport = await vi.importActual('@services/login');
+      return {
+        signInOrUpUser: vi.fn(),
+        buildJwtsAndStoreRefreshJwt: vi.fn(),
+        _successHandler: realImport._successHandler
+      };
+    });
+    vi.mocked(buildJwtsAndStoreRefreshJwt).mockImplementation(buildJwtsAndStoreRefreshJwtFn);
+    return handler(event as unknown as Event, c);
   }
 
   const defaultEnv: RefreshConfig = {
@@ -269,7 +256,7 @@ const validRefreshTokenStoreRecord = {
   ExpiresAt: 123456789
 };
 
-const validEncodedAndDecodedJwts: jwt.EncodedAndDecodedJwts = {
+const validEncodedAndDecodedJwts: EncodedAndDecodedJwts = {
   accessToken: {
     encoded: 'some_valid_access_token',
     decoded: {

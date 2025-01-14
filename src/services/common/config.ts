@@ -1,5 +1,3 @@
-import { from } from 'env-var';
-
 import type {
   BaseEndpointConfig,
   DecodeAccessJwtConfig,
@@ -8,6 +6,7 @@ import type {
   EncodeRefreshJwtConfig
 } from '@model/Config';
 import type { Environment } from '@own-types/model';
+import { from } from 'env-var';
 
 export function readEnv(): Environment {
   return from(process.env, {});

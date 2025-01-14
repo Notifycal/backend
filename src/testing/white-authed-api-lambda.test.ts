@@ -1,11 +1,12 @@
-import { describe } from '@jest/globals';
+import { handler, type Event } from './white-authed-api-lambda';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { c, testAuthedEvent, testEvent } from '@testing/apigateway';
-import { handler, type TestingWhiteApiConfig } from '@testing/white-authed-api-lambda';
+import type { TestingWhiteApiConfig } from '@testing/white-authed-api-lambda';
 import { getDefaultDecodeAccessJwtConfig, testJwt } from './utils/jwt';
 import { assert } from './utils/assertions';
 import { setEnvBaseConfig, setEnvDecodeAccessJwtConfig } from './utils/config';
 import { responseError, responseSuccess } from '@testing/utils/api-response-handlers';
+import { describe, it } from 'vitest';
 
 describe('White authed API lambda', () => {
   it('return 200 if jwt passes verification and request payload is valid', async () => {
@@ -63,10 +64,10 @@ function setEnv(config: TestingWhiteApiConfig): void {
   setEnvDecodeAccessJwtConfig(config.decodeAccessJwtConfig);
 }
 
-function testit(
+async function testit(
   event: APIGatewayProxyEvent,
   env: TestingWhiteApiConfig = defaultEnv
 ): Promise<APIGatewayProxyResult> {
   setEnv(env);
-  return handler(event, c);
+  return handler(event as unknown as Event, c);
 }

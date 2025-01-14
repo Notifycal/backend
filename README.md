@@ -50,7 +50,7 @@ npm run test -- --watch
 
 in order to run tests as changes are made to files.
 
-Further info can be found at: https://jestjs.io/docs/cli
+Further info can be found at: https://vitest.dev/guide/cli.html#command-line-interface
 
 ## Watch mode
 

@@ -1,22 +1,22 @@
-import { describe, jest } from '@jest/globals';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { c, testAuthedEvent, testEvent } from '@testing/apigateway';
 import { assert } from '@testing/utils/assertions';
 import type { GetUserProfileConfig } from './config';
-import { handler } from '.';
 import {
   setEnvBaseConfig,
   setEnvDecodeAccessJwtConfig,
   setEnvUserBaseStoreConfig
 } from '@testing/utils/config';
 import { getDefaultDecodeAccessJwtConfig } from '@testing/utils/jwt';
-import { UserBaseStore } from '@services/user-base-store';
 import type { User } from '@model/User';
 import type { OurAccessTokenClaims } from '@model/Jwt';
 import { responseError, responseSuccess } from '@testing/utils/api-response-handlers';
 import { validUser } from '@testing/utils/model';
+import { handler, type Event } from './index';
+import { UserBaseStore } from '@services/user-base-store';
+import { describe, it, vi } from 'vitest';
 
-describe('GET user profile', () => {
+describe('GET User profile', () => {
   it('return a user', async () => {
     const payload = {
       email: 'notifycal@gmail.com',
@@ -69,14 +69,23 @@ describe('GET user profile', () => {
   });
 });
 
-function testit(
+async function testit(
   event: APIGatewayProxyEvent,
-  getUserByEmailResult: () => Promise<User | undefined>,
+  getUserByEmailFn: () => Promise<User | undefined>,
   env: GetUserProfileConfig = defaultEnv
 ): Promise<APIGatewayProxyResult> {
   setEnv(env);
-  jest.spyOn(UserBaseStore.prototype, 'getUserByEmail').mockImplementation(getUserByEmailResult);
-  return handler(event, c);
+  vi.mock('@services/user-base-store', () => {
+    const UserBaseStore = vi.fn();
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    UserBaseStore.prototype.getUserByEmail = vi.fn();
+    return {
+      UserBaseStore
+    };
+  });
+  // eslint-disable-next-line @typescript-eslint/unbound-method
+  vi.mocked(UserBaseStore.prototype.getUserByEmail).mockImplementation(getUserByEmailFn);
+  return handler(event as unknown as Event, c);
 }
 
 const defaultEnv = {
