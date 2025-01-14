@@ -3,7 +3,8 @@ import tsconfigPaths from 'vite-tsconfig-paths';
 
 export default defineConfig({
   test: {
-    // ... Specify options here.
+    globals: true,
+    environment: 'node'
   },
   plugins: [tsconfigPaths()],
 })
