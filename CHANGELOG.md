@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.1](https://github.com/Notifycal/backend/compare/v0.5.0...v0.5.1) (2025-01-14)
+
+
+### Bug Fixes
+
+* local development on localstack ([#217](https://github.com/Notifycal/backend/issues/217)) ([c0c924c](https://github.com/Notifycal/backend/commit/c0c924c170a6f5548bdee84d681537cc96757b48))
+
 ## [0.5.0](https://github.com/Notifycal/backend/compare/v0.4.0...v0.5.0) (2025-01-08)
 
 
