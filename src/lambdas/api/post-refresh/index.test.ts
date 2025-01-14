@@ -1,5 +1,4 @@
-import { describe, jest } from '@jest/globals';
-import type { Event } from './index';
+import { handler, type Event } from './index';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { c, testEvent } from '@testing/apigateway';
 import {
@@ -14,10 +13,12 @@ import type { RefreshConfig } from './config';
 import type { RefreshTokenStoreRecord } from '@model/RefreshTokenStoreRecord';
 import type { RefreshToken } from '@model/Jwt';
 import { responseError, responseSuccess } from '@testing/utils/api-response-handlers';
-import type { EncodedAndDecodedJwts } from '@services/jwt';
-import { _successHandler } from '@services/login';
+import { decodeAndVerifyJwtSignature, type EncodedAndDecodedJwts } from '@services/jwt';
+import { buildJwtsAndStoreRefreshJwt } from '@services/login';
+import { RefreshTokenBaseStore } from '@services/refresh-token-base-store';
+import { describe, it, vi } from 'vitest';
 
-describe('Refresh', () => {
+describe('POST Refresh', () => {
   it('should renew both tokens', () => {
     const event = testEvent({
       refreshToken: validRefreshToken
@@ -43,6 +44,7 @@ describe('Refresh', () => {
       );
     });
   });
+
   it('fail if request payload is invalid with 400', () => {
     const event = testEvent({
       'unexpected-field': validRefreshToken
@@ -61,6 +63,7 @@ describe('Refresh', () => {
       assert(resp, responseError(400));
     });
   });
+
   it('fail if refresh token provided cannot be verified with 401', () => {
     const event = testEvent({
       refreshToken: validRefreshToken
@@ -79,6 +82,7 @@ describe('Refresh', () => {
       assert(resp, responseError(401));
     });
   });
+
   it('fail if refresh token is not longer present in storage with 403', () => {
     const event = testEvent({
       refreshToken: validRefreshToken
@@ -97,6 +101,7 @@ describe('Refresh', () => {
       assert(resp, responseError(403));
     });
   });
+
   it('fail if refresh token cannot be obtained from storage with 500', () => {
     const event = testEvent({
       refreshToken: validRefreshToken
@@ -115,6 +120,7 @@ describe('Refresh', () => {
       assert(resp, responseError(500));
     });
   });
+
   it('fail if refresh token provided does not match with refresh token stored with 403', () => {
     const event = testEvent({
       refreshToken: validRefreshToken
@@ -134,6 +140,7 @@ describe('Refresh', () => {
       assert(resp, responseError(403));
     });
   });
+
   it('fail if new tokens cannot be generated or stored with 500', () => {
     const event = testEvent({
       refreshToken: validRefreshToken
@@ -161,24 +168,29 @@ describe('Refresh', () => {
     env: RefreshConfig = defaultEnv
   ): Promise<APIGatewayProxyResult> {
     setEnv(env);
-    jest.unstable_mockModule('@services/jwt', () => ({
-      decodeAndVerifyJwtSignature: decodeAndVerifyJwtSignatureFn
+    vi.mock('@services/jwt', () => ({
+      decodeAndVerifyJwtSignature: vi.fn()
     }));
-    jest.unstable_mockModule('@services/refresh-token-base-store', () => {
+    vi.mocked(decodeAndVerifyJwtSignature).mockImplementation(decodeAndVerifyJwtSignatureFn);
+    vi.mock('@services/refresh-token-base-store', () => {
+      const RefreshTokenBaseStore = vi.fn();
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      RefreshTokenBaseStore.prototype.getTokenBy = vi.fn();
       return {
-        RefreshTokenBaseStore: jest.fn().mockImplementation(() => {
-          return {
-            getTokenBy: getRefreshTokenByFn
-          };
-        })
+        RefreshTokenBaseStore
       };
     });
-    jest.unstable_mockModule('@services/login', () => ({
-      signInOrUpUser: jest.fn(),
-      buildJwtsAndStoreRefreshJwt: buildJwtsAndStoreRefreshJwtFn,
-      _successHandler: _successHandler
-    }));
-    const { handler } = await import('./index');
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    vi.mocked(RefreshTokenBaseStore.prototype.getTokenBy).mockImplementation(getRefreshTokenByFn);
+    vi.mock('@services/login', async () => {
+      const realImport = await vi.importActual('@services/login');
+      return {
+        signInOrUpUser: vi.fn(),
+        buildJwtsAndStoreRefreshJwt: vi.fn(),
+        _successHandler: realImport._successHandler
+      };
+    });
+    vi.mocked(buildJwtsAndStoreRefreshJwt).mockImplementation(buildJwtsAndStoreRefreshJwtFn);
     return handler(event as unknown as Event, c);
   }
 

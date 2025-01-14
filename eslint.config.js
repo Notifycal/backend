@@ -10,7 +10,7 @@ import typescriptEslint from 'typescript-eslint';
 
 import eslintPluginImport from 'eslint-plugin-import';
 import eslintPluginUnicorn from 'eslint-plugin-unicorn';
-import jestPlugin from 'eslint-plugin-jest';
+import vitestPlugin from '@vitest/eslint-plugin';
 import eslintConfigPrettier from 'eslint-config-prettier';
 
 const patchedImportPlugin = fixupPluginRules(eslintPluginImport);
@@ -115,32 +115,36 @@ const unicornConfig = {
   }
 };
 
-const jestConfig = {
-  name: 'jest',
+const vitestConfig = {
+  name: 'vitest',
   plugins: {
-    jest: jestPlugin
+    vitest: vitestPlugin
   },
   files: ['**/*.test.ts', '**/*.spec.ts'],
   languageOptions: {
     globals: {
-      ...jestPlugin.globals
+      ...vitestPlugin.environments.env.globals
     }
   },
   rules: {
-    ...jestPlugin.configs.recommended.rules,
-    // Mind, there is a jest plugin to fail any test not containing assertions. Jest Linting is not clever enough to beware the assertion is embeded in some function.
-    'jest/expect-expect': [
+    ...vitestPlugin.configs.all.rules,
+    // Mind, there is a vitest plugin to fail any test not containing assertions. Vitest Linting is not clever enough to beware the assertion is embeded in some function.
+    'vitest/expect-expect': [
       'error',
       {
         assertFunctionNames: ['expect', 'assert']
       }
     ],
     'no-use-before-define': 'off',
-    '@typescript-eslint/explicit-function-return-type': 'off'
+    '@typescript-eslint/explicit-function-return-type': 'off',
+    'vitest/prefer-expect-assertions': 'off',
+    'vitest/no-test-return-statement': 'off',
+    'vitest/prefer-spy-on': 'off',
+    'vitest/prefer-lowercase-title': 'off'
   },
   settings: {
-    jest: {
-      version: 'detect'
+    vitest: {
+      typecheck: true
     }
   }
 };
@@ -150,9 +154,9 @@ const eslintConfig = typescriptEslint.config(
   typescriptConfig,
   eslintConfigPrettier,
   unicornConfig,
-  jestConfig,
+  vitestConfig,
   {
-    ignores: ['dist/**/*', 'eslint.config.js', 'tf/**/*']
+    ignores: ['dist/**/*', 'eslint.config.js', 'tf/**/*', 'coverage/**/*']
   }
 );
 

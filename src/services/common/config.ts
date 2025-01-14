@@ -6,11 +6,10 @@ import type {
   EncodeRefreshJwtConfig
 } from '@model/Config';
 import type { Environment } from '@own-types/model';
-
-const { default: env } = await import('env-var');
+import { from } from 'env-var';
 
 export function readEnv(): Environment {
-  return env.from(process.env, {});
+  return from(process.env, {});
 }
 
 const readJwtConfig = (
