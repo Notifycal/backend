@@ -15,6 +15,7 @@ import type {
 } from '@model/Config';
 import { type AccessToken, accessTokenSchema } from '@model/Jwt';
 import type { ZodSchema } from 'zod';
+import { describe, it, expect } from 'vitest';
 
 const validPrivateKey = `-----BEGIN EC PRIVATE KEY-----
 MHcCAQEEIEF6NI6CascYRtOFXEQrbsbsi7ZzTsKaktkDRZ/PSZ8hoAoGCCqGSM49
@@ -59,7 +60,7 @@ describe('Jwt builder', () => {
       ...validEncodeConfig,
       privateKey: `invalid_es256_private_key`
     };
-    return expect(testit(validAccessTokenPayload, config)).rejects.toEqual(
+    return expect(testit(validAccessTokenPayload, config)).rejects.toStrictEqual(
       new Error(
         'JWT could not be generated. Error: secretOrPrivateKey must be an asymmetric key when using ES256'
       )
@@ -76,6 +77,7 @@ describe('Jwt builder', () => {
 
 describe('Jwts builder', () => {
   const validUserId = 'test@notifycal.com';
+
   it('should build a jwts', () => {
     return expect(testit(validUserId, validEncodeConfig, validEncodeConfig)).resolves.toBeTruthy();
   });
@@ -85,7 +87,9 @@ describe('Jwts builder', () => {
       ...validEncodeConfig,
       privateKey: `invalid_es256_private_key`
     };
-    return expect(testit(validUserId, invalidEncodeJwtConfig, validEncodeConfig)).rejects.toEqual(
+    return expect(
+      testit(validUserId, invalidEncodeJwtConfig, validEncodeConfig)
+    ).rejects.toStrictEqual(
       new Error(
         'Access JWT could not be generated. Error: secretOrPrivateKey must be an asymmetric key when using ES256'
       )
@@ -99,7 +103,7 @@ describe('Jwts builder', () => {
     };
     return expect(
       testit(validUserId, validEncodeConfig, invalidEncodeRefreshJwtConfig)
-    ).rejects.toEqual(
+    ).rejects.toStrictEqual(
       new Error(
         'Refresh JWT could not be generated. Error: secretOrPrivateKey must be an asymmetric key when using ES256'
       )
@@ -138,7 +142,7 @@ describe('Jwt decoder/verifier with signature', () => {
       validSubject,
       validEncodeConfig
     ).then((testJwt) => testit(testJwt.encoded, accessTokenSchema, decodeConfig));
-    return expect(result).rejects.toEqual(
+    return expect(result).rejects.toStrictEqual(
       new Error('JWT verification failed. Error: invalid algorithm')
     );
   });
@@ -147,7 +151,7 @@ describe('Jwt decoder/verifier with signature', () => {
     const testJwt = 'invalid_jwt';
 
     const result = testit(testJwt, accessTokenSchema, validDecodeConfig);
-    return expect(result).rejects.toEqual(
+    return expect(result).rejects.toStrictEqual(
       new Error('JWT verification failed. Error: jwt malformed')
     );
   });
@@ -169,6 +173,7 @@ describe('Jwt decoder/verifier with signature', () => {
     ]);
   });
 
+  // eslint-disable-next-line vitest/require-hook
   [
     ['issuer', validIssuer],
     ['audience', validAudience]
@@ -185,7 +190,7 @@ describe('Jwt decoder/verifier with signature', () => {
         validSubject,
         encodeConfig
       ).then((testJwt) => testit(testJwt.encoded, accessTokenSchema, validDecodeConfig));
-      return expect(result).rejects.toEqual(
+      return expect(result).rejects.toStrictEqual(
         new Error(
           `JWT verification failed. Error: jwt ${jwtClaimKeyUnderTest} invalid. expected: ${expectedClaimValue}`
         )
@@ -210,7 +215,7 @@ describe('Jwt decoder/verifier with signature', () => {
       )
         .then((testJwt) => sleep(2000).then(() => testJwt))
         .then((testJwt) => testit(testJwt.encoded, accessTokenSchema, decodeConfig));
-      return expect(result).rejects.toEqual(
+      return expect(result).rejects.toStrictEqual(
         new Error(`JWT verification failed. Error: jwt expired`)
       );
     });
@@ -240,7 +245,7 @@ describe('Jwt decoder without signature check', () => {
     const testJwt = 'invalid_jwt';
 
     const result = testit(testJwt, accessTokenSchema);
-    return expect(result).rejects.toEqual(
+    return expect(result).rejects.toStrictEqual(
       new Error(`JWT decoding failed. Most likely, the JWT was not a proper JSON`)
     );
   });

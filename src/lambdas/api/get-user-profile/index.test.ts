@@ -12,9 +12,11 @@ import type { User } from '@model/User';
 import type { OurAccessTokenClaims } from '@model/Jwt';
 import { responseError, responseSuccess } from '@testing/utils/api-response-handlers';
 import { validUser } from '@testing/utils/model';
-import type { Event } from './index';
+import { handler, type Event } from './index';
+import { UserBaseStore } from '@services/user-base-store';
+import { describe, it, vi } from 'vitest';
 
-describe('GET user profile', () => {
+describe('GET User profile', () => {
   it('return a user', async () => {
     const payload = {
       email: 'notifycal@gmail.com',
@@ -73,16 +75,16 @@ async function testit(
   env: GetUserProfileConfig = defaultEnv
 ): Promise<APIGatewayProxyResult> {
   setEnv(env);
-  vi.unstable_mockModule('@services/user-base-store', () => {
+  vi.mock('@services/user-base-store', () => {
+    const UserBaseStore = vi.fn();
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    UserBaseStore.prototype.getUserByEmail = vi.fn();
     return {
-      UserBaseStore: vi.fn().mockImplementation(() => {
-        return {
-          getUserByEmail: getUserByEmailFn
-        };
-      })
+      UserBaseStore
     };
   });
-  const { handler } = await import('./index');
+  // eslint-disable-next-line @typescript-eslint/unbound-method
+  vi.mocked(UserBaseStore.prototype.getUserByEmail).mockImplementation(getUserByEmailFn);
   return handler(event as unknown as Event, c);
 }
 

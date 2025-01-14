@@ -1,6 +1,6 @@
 import type { LoginConfig } from './config';
-import type { Event } from './index';
-import type { GoogleOAuthConfig } from '@services/google-oauth';
+import { handler, type Event } from './index';
+import { verifyGoogleIdentity, type GoogleOAuthConfig } from '@services/google-oauth';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { c, testEvent, unsafeTestEvent } from '@testing/apigateway';
 import type { User } from '@model/User';
@@ -20,10 +20,11 @@ import {
 } from '@testing/utils/api-response-handlers';
 import { validUser } from '@testing/utils/model';
 import type { EncodedAndDecodedJwts } from '@services/jwt';
-import { _successHandler } from '@services/login';
+import { buildJwtsAndStoreRefreshJwt, signInOrUpUser } from '@services/login';
 import { resetTestingContext } from '@testing/setup-tests';
+import { describe, it, vi } from 'vitest';
 
-describe('Login', () => {
+describe('POST Login', () => {
   const validJwts: EncodedAndDecodedJwts = {
     accessToken: {
       encoded: 'some_valid_access_jwt',
@@ -270,15 +271,20 @@ async function testit(
   env: LoginConfig = defaultEnv
 ): Promise<APIGatewayProxyResult> {
   setEnv(env);
-  vi.unstable_mockModule('@services/google-oauth', () => ({
-    verifyGoogleIdentity: verifyGoogleIdentityFn
+  vi.mock('@services/google-oauth', () => ({
+    verifyGoogleIdentity: vi.fn()
   }));
-  vi.unstable_mockModule('@services/login', () => ({
-    signInOrUpUser: signInOrUpUserFn,
-    buildJwtsAndStoreRefreshJwt: buildJwtsAndStoreRefreshJwtFn,
-    _successHandler: _successHandler
-  }));
-  const { handler } = await import('./index');
+  vi.mocked(verifyGoogleIdentity).mockImplementation(verifyGoogleIdentityFn);
+  vi.mock('@services/login', async () => {
+    const realImport = await vi.importActual('@services/login');
+    return {
+      signInOrUpUser: vi.fn(),
+      buildJwtsAndStoreRefreshJwt: vi.fn(),
+      _successHandler: realImport._successHandler
+    };
+  });
+  vi.mocked(signInOrUpUser).mockImplementation(signInOrUpUserFn);
+  vi.mocked(buildJwtsAndStoreRefreshJwt).mockImplementation(buildJwtsAndStoreRefreshJwtFn);
   return handler(event as unknown as Event, c);
 }
 
