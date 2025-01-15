@@ -39,7 +39,7 @@ describe('GET User profile', () => {
 
   it('fail to return a user with 401 if no authorization present', async () => {
     const event = testEvent({}, {}) as unknown as APIGatewayProxyEvent;
-    const getUserByEmailFn = () => Promise.resolve(validUser('not_used' as UserId));
+    const getUserByEmailFn = () => Promise.resolve(validUser(validAccessToken.userId));
 
     return testit(event, getUserByEmailFn).then((resp) => {
       assert(resp, responseError(401));
