@@ -26,8 +26,8 @@ function lambdaHandler(
   const config = event.endpointConfig;
   const store = new RefreshTokenBaseStore(config.refreshTokenBaseStoreConfig);
   return verifyGoogleIdentity(event.body['googleCode'], config.googleOAuthClientConfig)
-    .then((email) =>
-      signInOrUpUser(email, config.userBaseStoreConfig)
+    .then((googleIdentity) =>
+      signInOrUpUser(googleIdentity, config.userBaseStoreConfig)
         .then((user) =>
           buildJwtsAndStoreRefreshJwt(
             user.UserId,

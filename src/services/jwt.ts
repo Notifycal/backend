@@ -19,7 +19,7 @@ import { rejectWithErrorMessage } from './common/error-handling';
 
 export function accessJwtPayload(userId: UserId): OurAccessTokenClaims {
   return {
-    email: userId,
+    userId: userId,
     role: 'user',
     permissions: {}
   };
@@ -55,7 +55,7 @@ export function decodeJwt<T extends z.ZodTypeAny>(jwt: Jwt, jwtSchema: T): Promi
 export function buildJwt<T extends z.ZodTypeAny>(
   payload: OurAccessTokenClaims | OurRefreshTokenClaims,
   jwtSchema: T,
-  subject: string,
+  subject: UserId,
   config: EncodeAccessJwtConfig
 ): Promise<EncodedAndDecodedJwt<z.infer<T>>> {
   try {
@@ -66,7 +66,7 @@ export function buildJwt<T extends z.ZodTypeAny>(
       audience: config.audience,
       subject: subject,
       expiresIn: config.expiresIn
-    } as SignOptions);
+    } as SignOptions) as Jwt;
     return decodeJwt(encoded, jwtSchema).then((decoded) => ({
       encoded: encoded,
       decoded: decoded

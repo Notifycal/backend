@@ -6,7 +6,7 @@ import {
   decodeAndVerifyJwtSignature,
   decodeJwt
 } from './jwt';
-import type { Jwt, UserId } from '@own-types/model';
+import type { Jwt, UserId, Uuid } from '@own-types/model';
 import { sleep } from '@testing/utils/utils';
 import type {
   DecodeAccessJwtConfig,
@@ -43,9 +43,9 @@ const validDecodeConfig = {
   issuer: validIssuer,
   audience: validAudience
 };
-const validSubject = 'testing@notifycal';
+const validSubject = '09b6b481-3fa1-4ed4-b3c1-5a9467acc7ef' as Uuid;
 const validAccessTokenPayload = {
-  email: 'test@notifycal.com',
+  userId: validSubject,
   role: 'user',
   permissions: {}
 };
@@ -76,7 +76,7 @@ describe('Jwt builder', () => {
 });
 
 describe('Jwts builder', () => {
-  const validUserId = 'test@notifycal.com';
+  const validUserId = '12a46f95-91dc-4708-bcab-087afafb89de' as Uuid;
 
   it('should build a jwts', () => {
     return expect(testit(validUserId, validEncodeConfig, validEncodeConfig)).resolves.toBeTruthy();
@@ -148,7 +148,7 @@ describe('Jwt decoder/verifier with signature', () => {
   });
 
   it('should fail to verify a jwt when jwt is invalid', () => {
-    const testJwt = 'invalid_jwt';
+    const testJwt = 'invalid_jwt' as Jwt;
 
     const result = testit(testJwt, accessTokenSchema, validDecodeConfig);
     return expect(result).rejects.toStrictEqual(
@@ -157,7 +157,7 @@ describe('Jwt decoder/verifier with signature', () => {
   });
 
   it('should fail to decode a jwt if payload does not satisfy the schema', () => {
-    const invalidPayload = { ...validAccessTokenPayload, email: 123456, role: 'admin' };
+    const invalidPayload = { ...validAccessTokenPayload, userId: 'not an uuid', role: 'admin' };
     const result = buildJwt(
       invalidPayload,
       accessTokenSchema,
@@ -169,7 +169,7 @@ describe('Jwt decoder/verifier with signature', () => {
       'JWT decoding failed. Error:',
       // eslint-disable-next-line no-useless-escape
       'Invalid literal value, expected \\\"user\\\"\"',
-      'Expected string, received number'
+      'Invalid uuid'
     ]);
   });
 
@@ -242,7 +242,7 @@ describe('Jwt decoder without signature check', () => {
   });
 
   it('should fail to decode an invalid jwt', () => {
-    const testJwt = 'invalid_jwt';
+    const testJwt = 'invalid_jwt' as Jwt;
 
     const result = testit(testJwt, accessTokenSchema);
     return expect(result).rejects.toStrictEqual(
@@ -263,7 +263,7 @@ describe('Jwt decoder without signature check', () => {
       'JWT decoding failed. Error:',
       // eslint-disable-next-line no-useless-escape
       'Invalid literal value, expected \\\"user\\\"\"',
-      'Expected string, received number'
+      'admin'
     ]);
   });
 

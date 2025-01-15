@@ -1,10 +1,14 @@
-import type { Email } from '@own-types/model';
+import type { Email, UnixTimestamp, UserId } from '@own-types/model';
+import type { idp } from './Identity';
 
-export type UserStatus = 'banned' | 'live';
+export type UserStatus = 'banned' | 'onboarding' | 'live';
 
 export interface User {
-  UserId: Email;
-  LastSignInAt: number;
-  SignedUpAt: number;
+  UserId: UserId;
+  Email: Email;
+  Idp: keyof typeof idp;
+  IdpId: string;
+  LastSignInAt: UnixTimestamp;
+  SignedUpAt: UnixTimestamp;
   Status: UserStatus;
 }

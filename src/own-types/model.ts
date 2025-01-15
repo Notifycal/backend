@@ -1,10 +1,16 @@
 import type { AccessToken } from '@model/Jwt';
 import type { IEnv, IOptionalVariable, ExtenderTypeOptional } from 'env-var';
 
-export type Jwt = string;
-export type Email = string;
-export type UserId = Email;
-export type Uuid = string;
+// This is useful to make the type be typesafe, funnily enough.
+// So that one cannot mistakenly pass Email instead of UserId when both are of type string
+type Brand<T, B> = T & { __brand: B };
+
+export type Jwt = Brand<string, 'Jwt'>;
+export type Email = Brand<string, 'Email'>;
+export type Uuid = Brand<string, 'Uuid'>;
+export type UserId = Brand<string, 'UserId'> | Uuid;
+export type UnixTimestamp = Brand<number, 'UnixTimestamp'>;
+
 export type ConfigReaderFn<TConfig> = () => TConfig;
 export type JwtClaimCheckerFn = (jwt: AccessToken) => boolean;
 /* eslint-disable-next-line @typescript-eslint/no-empty-object-type */

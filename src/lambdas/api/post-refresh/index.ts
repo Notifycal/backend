@@ -9,11 +9,12 @@ import { RefreshTokenBaseStore } from '@services/refresh-token-base-store';
 import { refreshTokenSchema } from '@model/Jwt';
 import { errorHandler } from '@services/common/api-response-handlers';
 import { buildJwtsAndStoreRefreshJwt, _successHandler } from '@services/login';
+import type { Jwt } from '@own-types/model';
 
 const schema = eventSchema<RefreshConfig>().extend({
   body: JSONStringified(
     z.object({
-      refreshToken: z.string()
+      refreshToken: z.string().transform((v) => v as Jwt)
     })
   )
 });

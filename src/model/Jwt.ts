@@ -1,18 +1,25 @@
+import type { UnixTimestamp, Uuid } from './../own-types/model';
+import type { UserId } from '@own-types/model';
 import { z } from 'zod';
 
 export const jwtHeaderSchema = z.object({
   alg: z.string(),
-  typ: z.optional(z.string()),
-  kid: z.optional(z.string())
+  typ: z.string().optional(),
+  kid: z.string().optional()
 });
+
+const unsafeUuidSchema = z.string().uuid();
+const userIdSchema = unsafeUuidSchema.transform((v) => v as UserId);
+const uuidSchema = unsafeUuidSchema.transform((v) => v as Uuid);
+const unixTimestampSchema = z.number().transform((v) => v as UnixTimestamp);
 
 const tokenPayloadBaseSchema = z.object({
   iss: z.string(),
-  sub: z.string(),
+  sub: userIdSchema,
   aud: z.string(),
-  exp: z.number(),
-  iat: z.number(),
-  jti: z.string()
+  exp: unixTimestampSchema,
+  iat: unixTimestampSchema,
+  jti: uuidSchema
 });
 const tokenSchemaBase = z.object({
   header: jwtHeaderSchema,
@@ -20,7 +27,7 @@ const tokenSchemaBase = z.object({
 });
 
 export const ourAccessTokenClaimsSchema = z.object({
-  email: z.string().email(),
+  userId: userIdSchema,
   role: z.literal('user'),
   permissions: z.object({})
 });
