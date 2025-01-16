@@ -15,11 +15,18 @@ import { validUser } from '@testing/utils/model';
 import { handler, type Event } from './index';
 import { UserBaseStore } from '@services/user-base-store';
 import { describe, it, vi } from 'vitest';
-import type { UserId } from '@own-types/model';
+import type { Email, IdpId, UserId } from '@own-types/model';
+import { idp } from '@model/Identity';
 
 describe('GET User profile', () => {
-  const validAccessToken: OurAccessTokenClaims = {
+  const validIdentity = {
     userId: 'cfaa8471-f4cc-44da-bc22-ddc4b735a847' as UserId,
+    email: 'test@notifycal.com' as Email,
+    idp: idp.google,
+    idpId: '246534735745767767' as IdpId
+  };
+  const validAccessToken: OurAccessTokenClaims = {
+    ...validIdentity,
     role: 'user',
     permissions: {}
   };

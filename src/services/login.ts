@@ -1,7 +1,7 @@
 import type { User } from '@model/User';
 import { UserBaseStore, type UserBaseStoreConfig } from './user-base-store';
 import type { EncodeAccessJwtConfig, EncodeRefreshJwtConfig } from '@model/Config';
-import type { UnixTimestamp, UserId } from '@own-types/model';
+import type { UnixTimestamp } from '@own-types/model';
 import type { APIGatewayProxyResult } from 'aws-lambda';
 import { successHandler } from './common/api-response-handlers';
 import { type EncodedAndDecodedJwts, buildJwts } from './jwt';
@@ -11,7 +11,7 @@ import type { Identity } from '@model/Identity';
 function signUpUser(identity: Identity, userProvider: UserBaseStore): Promise<User> {
   const now = Date.now() as UnixTimestamp;
   const newUser: User = {
-    UserId: identity.id,
+    UserId: identity.userId,
     Email: identity.email,
     Idp: identity.idp,
     IdpId: identity.idpId,
@@ -27,7 +27,7 @@ export function signInOrUpUser<TIdentity extends Identity>(
   config: UserBaseStoreConfig
 ): Promise<User> {
   const userProvider = new UserBaseStore(config);
-  return userProvider.getUserById(identity.id).then(
+  return userProvider.getUserById(identity.userId).then(
     (userOrNot) => {
       if (userOrNot) {
         if (userOrNot.Status !== 'banned') {
@@ -38,7 +38,7 @@ export function signInOrUpUser<TIdentity extends Identity>(
           return userProvider.putUser(updatedUser).then(() => updatedUser);
         } else {
           return Promise.reject(
-            new Error(`User with id '${identity.id}' is banned and login is prohibited`)
+            new Error(`User with id '${identity.userId}' is banned and login is prohibited`)
           );
         }
       } else {
@@ -46,17 +46,19 @@ export function signInOrUpUser<TIdentity extends Identity>(
       }
     },
     (error) =>
-      Promise.reject(new Error(`User with id '${identity.id}' could not sign in. Error: ${error}`))
+      Promise.reject(
+        new Error(`User with id '${identity.userId}' could not sign in. Error: ${error}`)
+      )
   );
 }
 
 export function buildJwtsAndStoreRefreshJwt(
-  userId: UserId,
+  identity: Identity,
   encodeAccessJwtConfig: EncodeAccessJwtConfig,
   encodeRefreshJwtConfig: EncodeRefreshJwtConfig,
   store: RefreshTokenBaseStore
 ): Promise<EncodedAndDecodedJwts> {
-  return buildJwts(userId, encodeAccessJwtConfig, encodeRefreshJwtConfig).then((jwts) =>
+  return buildJwts(identity, encodeAccessJwtConfig, encodeRefreshJwtConfig).then((jwts) =>
     store
       .putToken({
         UserId: jwts.refreshToken.decoded.payload.sub,

@@ -23,17 +23,17 @@ import { buildJwtsAndStoreRefreshJwt, signInOrUpUser } from '@services/login';
 import { resetTestingContext } from '@testing/setup-tests';
 import { describe, it, vi } from 'vitest';
 import { idp, type Identity } from '@model/Identity';
-import type { Email, Jwt, UnixTimestamp, Uuid } from '@own-types/model';
+import type { Email, IdpId, Jwt, UnixTimestamp, Uuid } from '@own-types/model';
 import { validJwts } from '@testing/utils/jwt';
 
 describe('POST Login', () => {
   const userEmail = 'test@notifycal.com' as Email;
   const validUserId = validJwts.accessToken.decoded.payload.userId;
   const validIdentity: Identity = {
-    id: validJwts.accessToken.decoded.payload.userId,
+    userId: validJwts.accessToken.decoded.payload.userId,
     email: userEmail,
     idp: idp.google,
-    idpId: '12a46f95-91dc-4708-bcab-087afafb89de'
+    idpId: '12a46f95-91dc-4708-bcab-087afafb89de' as IdpId
   };
 
   it('should sign up a user', () => {
@@ -41,7 +41,7 @@ describe('POST Login', () => {
       googleCode: '<SOME-FAKE-GOOGLE-ID-TOKEN>'
     }) as unknown as APIGatewayProxyEvent;
     const verifyGoogleIdentityFn = () => Promise.resolve(validIdentity);
-    const signInOrUpUserFn = () => Promise.resolve(validUser(validIdentity.id));
+    const signInOrUpUserFn = () => Promise.resolve(validUser(validIdentity.userId));
     const buildJwtsFn = () => Promise.resolve(validJwts);
 
     return testit(event, verifyGoogleIdentityFn, signInOrUpUserFn, buildJwtsFn).then((resp) => {
@@ -71,7 +71,7 @@ describe('POST Login', () => {
             typ: 'JWT'
           },
           payload: {
-            userId: validUserId,
+            ...validIdentity,
             role: 'user',
             permissions: {},
             iat: 1735311407 as UnixTimestamp,

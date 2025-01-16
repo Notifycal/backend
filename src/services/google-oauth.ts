@@ -1,7 +1,7 @@
 import { OAuth2Client } from 'google-auth-library';
 import { idGenerator } from './id-generator';
 import { idp, type Identity } from '@model/Identity';
-import type { Email } from '@own-types/model';
+import type { Email, IdpId } from '@own-types/model';
 
 export interface GoogleOAuthConfig {
   clientId: string;
@@ -26,10 +26,10 @@ export function verifyGoogleIdentity(
           const email = ticket.getPayload()?.['email'];
           if (id && email) {
             return {
-              id: idGenerator(id, idp.google),
+              userId: idGenerator(id, idp.google),
               email: email as Email,
               idp: idp.google,
-              idpId: id
+              idpId: id as IdpId
             };
           } else {
             const msg = `Id and/or Email could not be extracted out of Google token id. Extracted id: '${id}' and email: '${email}'`;

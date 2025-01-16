@@ -1,14 +1,23 @@
-import type { Email, UnixTimestamp, UserId } from '@own-types/model';
-import type { idp } from './Identity';
+import type { UnixTimestamp } from '@own-types/model';
+import type { Identity } from './Identity';
 
 export type UserStatus = 'banned' | 'onboarding' | 'live';
 
-export interface User {
-  UserId: UserId;
-  Email: Email;
-  Idp: keyof typeof idp;
-  IdpId: string;
+type CapitalizeKeys<T> = {
+  [K in keyof T as Capitalize<K & string>]: T[K];
+};
+
+export interface User extends CapitalizeKeys<Identity> {
   LastSignInAt: UnixTimestamp;
   SignedUpAt: UnixTimestamp;
   Status: UserStatus;
+}
+
+export function extractIdentity(user: User): Identity {
+  return {
+    userId: user.UserId,
+    email: user.Email,
+    idp: user.Idp,
+    idpId: user.IdpId
+  };
 }

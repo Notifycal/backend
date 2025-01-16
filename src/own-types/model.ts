@@ -3,12 +3,13 @@ import type { IEnv, IOptionalVariable, ExtenderTypeOptional } from 'env-var';
 
 // This is useful to make the type typesafe, funnily enough.
 // So that one cannot mistakenly pass in an Email instead of a UserId when both are of type string
-type Brand<T, B> = T & { __brand: B };
+export type Brand<T, B> = T & { __brand: B };
 
 export type Jwt = Brand<string, 'Jwt'>;
 export type Email = Brand<string, 'Email'>;
 export type Uuid = Brand<string, 'Uuid'>;
 export type UserId = Brand<string, 'UserId'> | Uuid;
+export type IdpId = Brand<string, 'IdpId'>;
 export type UnixTimestamp = Brand<number, 'UnixTimestamp'>;
 
 export type ConfigReaderFn<TConfig> = () => TConfig;

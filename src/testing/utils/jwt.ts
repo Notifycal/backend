@@ -5,7 +5,8 @@ import * as fs from 'fs';
 import type { EncodeAccessJwtConfig, DecodeAccessJwtConfig } from '@model/Config';
 import { type OurAccessTokenClaims, accessTokenSchema } from '@model/Jwt';
 import type { ZodSchema } from 'zod';
-import type { Jwt, UnixTimestamp, Uuid } from '@own-types/model';
+import type { Email, IdpId, Jwt, UnixTimestamp, Uuid } from '@own-types/model';
+import { idp } from '@model/Identity';
 // Lazy evaluation all over the place so express doesn't attempt to load what it mustn't
 const loadDevConfig: () => Record<string, string> = (() => {
   let devConfig: Record<string, string>;
@@ -21,8 +22,15 @@ const loadDevConfig: () => Record<string, string> = (() => {
 })();
 
 const userId = '09b6b481-3fa1-4ed4-b3c1-5a9467acc7ef' as Uuid;
-export const getDefaultAccessTokenPayload: () => OurAccessTokenClaims = () => ({
+const email = 'test@notifycal@gmail.com' as Email;
+const identity = {
   userId: userId,
+  email: email,
+  idp: idp.google,
+  idpId: '46345747457457' as IdpId
+};
+export const getDefaultAccessTokenPayload: () => OurAccessTokenClaims = () => ({
+  ...identity,
   role: 'user',
   permissions: {}
 });
@@ -56,7 +64,6 @@ export function testJwt(
   return buildJwt(payload, jwtSchema, userId, config).then((jwts) => jwts.encoded);
 }
 
-const validUserId = '1199999-d54b-4f70-90e1-59c02d0e7222' as Uuid;
 const validRefreshToken = 'some_valid_refresh_token' as Jwt;
 export const validJwts: EncodedAndDecodedJwts = {
   accessToken: {
@@ -67,14 +74,14 @@ export const validJwts: EncodedAndDecodedJwts = {
         typ: 'JWT'
       },
       payload: {
-        userId: validUserId,
+        ...identity,
         role: 'user',
         permissions: {},
         iat: 1735311407 as UnixTimestamp,
         exp: 1735512345 as UnixTimestamp,
         aud: 'local.notifycal.com',
         iss: 'local.notifycal.com',
-        sub: validUserId,
+        sub: identity.userId,
         jti: '9999999-d54b-4f70-90e1-59c02d0e7a02' as Uuid
       },
       signature: 'some_signature'
@@ -92,7 +99,7 @@ export const validJwts: EncodedAndDecodedJwts = {
         exp: 1735599999 as UnixTimestamp,
         aud: 'local.notifycal.com',
         iss: 'local.notifycal.com',
-        sub: validUserId,
+        sub: identity.userId,
         jti: '8888888-d54b-4f70-90e1-59c02d0e7a02' as Uuid
       },
       signature: 'some_signature'

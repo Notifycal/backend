@@ -6,7 +6,7 @@ import {
   decodeAndVerifyJwtSignature,
   decodeJwt
 } from './jwt';
-import type { Jwt, UserId, Uuid } from '@own-types/model';
+import type { Email, IdpId, Jwt, Uuid } from '@own-types/model';
 import { sleep } from '@testing/utils/utils';
 import type {
   DecodeAccessJwtConfig,
@@ -16,6 +16,7 @@ import type {
 import { type AccessToken, accessTokenSchema } from '@model/Jwt';
 import type { ZodSchema } from 'zod';
 import { describe, it, expect } from 'vitest';
+import { Identity, idp } from '@model/Identity';
 
 const validPrivateKey = `-----BEGIN EC PRIVATE KEY-----
 MHcCAQEEIEF6NI6CascYRtOFXEQrbsbsi7ZzTsKaktkDRZ/PSZ8hoAoGCCqGSM49
@@ -76,10 +77,17 @@ describe('Jwt builder', () => {
 });
 
 describe('Jwts builder', () => {
-  const validUserId = '12a46f95-91dc-4708-bcab-087afafb89de' as Uuid;
+  const userId = '09b6b481-3fa1-4ed4-b3c1-5a9467acc7ef' as Uuid;
+  const email = 'test@notifycal@gmail.com' as Email;
+  const identity = {
+    userId: userId,
+    email: email,
+    idp: idp.google,
+    idpId: '46345747457457' as IdpId
+  };
 
   it('should build a jwts', () => {
-    return expect(testit(validUserId, validEncodeConfig, validEncodeConfig)).resolves.toBeTruthy();
+    return expect(testit(identity, validEncodeConfig, validEncodeConfig)).resolves.toBeTruthy();
   });
 
   it('should fail to build access jwt', () => {
@@ -88,7 +96,7 @@ describe('Jwts builder', () => {
       privateKey: `invalid_es256_private_key`
     };
     return expect(
-      testit(validUserId, invalidEncodeJwtConfig, validEncodeConfig)
+      testit(identity, invalidEncodeJwtConfig, validEncodeConfig)
     ).rejects.toStrictEqual(
       new Error(
         'Access JWT could not be generated. Error: secretOrPrivateKey must be an asymmetric key when using ES256'
@@ -102,7 +110,7 @@ describe('Jwts builder', () => {
       privateKey: `invalid_es256_private_key`
     };
     return expect(
-      testit(validUserId, validEncodeConfig, invalidEncodeRefreshJwtConfig)
+      testit(identity, validEncodeConfig, invalidEncodeRefreshJwtConfig)
     ).rejects.toStrictEqual(
       new Error(
         'Refresh JWT could not be generated. Error: secretOrPrivateKey must be an asymmetric key when using ES256'
@@ -111,11 +119,11 @@ describe('Jwts builder', () => {
   });
 
   function testit(
-    userId: UserId,
+    identity: Identity,
     encodeJwtConfig: EncodeAccessJwtConfig,
     encodeRefreshJwtConfig: EncodeRefreshJwtConfig
   ): Promise<EncodedAndDecodedJwts> {
-    return buildJwts(userId, encodeJwtConfig, encodeRefreshJwtConfig);
+    return buildJwts(identity, encodeJwtConfig, encodeRefreshJwtConfig);
   }
 });
 
