@@ -1,9 +1,9 @@
-import type { idp } from '@model/Identity';
+import { idp } from '@model/Identity';
 import type { Uuid } from '@own-types/model';
 import { createHash } from 'crypto';
-import { stringify } from 'uuid';
+import { stringify, v5 } from 'uuid';
 
-function idGen(id: string): Uuid {
+function stringToUuid(id: string): Uuid {
   const hash = createHash('sha256').update(id).digest();
   const uuidBytes = new Uint8Array(16);
   hash.subarray(0, 16).forEach((byte, index) => {
@@ -17,5 +17,5 @@ function idGen(id: string): Uuid {
 }
 
 export function idGenerator(id: string, idpName: keyof typeof idp): Uuid {
-  return idGen(`$${id}-${idpName}`);
+  return v5(id, stringToUuid(idpName)) as Uuid;
 }
