@@ -1,7 +1,8 @@
 import type { UserId, Email } from '@own-types/model';
 
-export const idp: Record<string, string> = {
-  Google: 'Google'
+export type Idp = 'google';
+export const idp: Record<Idp, Idp> = {
+  google: 'google'
 };
 
 export interface Identity {
@@ -12,5 +13,5 @@ export interface Identity {
 }
 
 export interface GoogleIdentity extends Identity {
-  idp: typeof idp.Google;
+  idp: typeof idp.google;
 }

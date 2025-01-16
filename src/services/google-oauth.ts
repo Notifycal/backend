@@ -26,9 +26,9 @@ export function verifyGoogleIdentity(
           const email = ticket.getPayload()?.['email'];
           if (id && email) {
             return {
-              id: idGenerator(id, idp.Google),
+              id: idGenerator(id, idp.google),
               email: email as Email,
-              idp: 'Google',
+              idp: idp.google,
               idpId: id
             };
           } else {

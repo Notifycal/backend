@@ -6,7 +6,7 @@ export function validUser(userId: UserId): User {
   return {
     UserId: userId,
     Email: 'test@notifycal.com' as Email,
-    Idp: idp.Google,
+    Idp: idp.google,
     IdpId: 'c22ea42f-4028-468b-ac46-9d570b525081',
     LastSignInAt: 1736254413865 as UnixTimestamp,
     SignedUpAt: 1736254413865 as UnixTimestamp,

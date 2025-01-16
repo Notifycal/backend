@@ -1,4 +1,4 @@
-import { idp } from '@model/Identity';
+import type { idp } from '@model/Identity';
 import type { Uuid } from '@own-types/model';
 import { createHash } from 'crypto';
 import { stringify, v5 } from 'uuid';

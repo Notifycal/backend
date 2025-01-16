@@ -32,7 +32,7 @@ describe('POST Login', () => {
   const validIdentity: Identity = {
     id: validJwts.accessToken.decoded.payload.userId,
     email: userEmail,
-    idp: idp.Google,
+    idp: idp.google,
     idpId: '12a46f95-91dc-4708-bcab-087afafb89de'
   };
 
