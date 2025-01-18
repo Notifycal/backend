@@ -16,7 +16,7 @@ import {
   refreshTokenSchema
 } from '@model/Jwt';
 import { rejectWithErrorMessage } from './common/error-handling';
-import { Identity } from '@model/Identity';
+import type { Identity } from '@model/Identity';
 
 export function accessJwtPayload(identity: Identity): OurAccessTokenClaims {
   return {
@@ -42,6 +42,7 @@ export function decodeJwt<T extends z.ZodTypeAny>(jwt: Jwt, jwtSchema: T): Promi
       complete: true
     });
     if (token) {
+      console.log(token);
       // https://zod.dev/?id=inferring-the-inferred-type
       return Promise.resolve(jwtSchema.parse(token) as z.infer<T>);
     } else {

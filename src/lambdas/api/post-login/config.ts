@@ -9,7 +9,8 @@ import {
   readBaseConfig,
   readEncodeAccessJwtConfig,
   readEncodeRefreshJwtConfig,
-  readEnv
+  readEnv,
+  readUserStoreConfig
 } from '@services/common/config';
 import type { RefreshTokenBaseStoreConfig } from '@services/refresh-token-base-store';
 
@@ -31,9 +32,7 @@ export function readLoginConfig(): LoginConfig {
       clientSecret: env.get('GOOGLE_OAUTH_CLIENT_SECRET').required().asString(),
       redirectUri: env.get('GOOGLE_OAUTH_CLIENT_REDIRECT_URI').required().asString()
     },
-    userBaseStoreConfig: {
-      tableName: env.get('USERS_TABLE_NAME').required().asString()
-    },
+    userBaseStoreConfig: readUserStoreConfig(env),
     refreshTokenBaseStoreConfig: {
       tableName: env.get('REFRESH_TOKENS_TABLE_NAME').required().asString()
     },

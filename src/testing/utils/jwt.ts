@@ -6,7 +6,7 @@ import type { EncodeAccessJwtConfig, DecodeAccessJwtConfig } from '@model/Config
 import { type OurAccessTokenClaims, accessTokenSchema } from '@model/Jwt';
 import type { ZodSchema } from 'zod';
 import type { Email, IdpId, Jwt, UnixTimestamp, Uuid } from '@own-types/model';
-import { idp } from '@model/Identity';
+import { idp, type Identity } from '@model/Identity';
 // Lazy evaluation all over the place so express doesn't attempt to load what it mustn't
 const loadDevConfig: () => Record<string, string> = (() => {
   let devConfig: Record<string, string>;
@@ -22,8 +22,8 @@ const loadDevConfig: () => Record<string, string> = (() => {
 })();
 
 const userId = '09b6b481-3fa1-4ed4-b3c1-5a9467acc7ef' as Uuid;
-const email = 'test@notifycal@gmail.com' as Email;
-const identity = {
+const email = 'test@notifycal.com' as Email;
+const identity: Identity = {
   userId: userId,
   email: email,
   idp: idp.google,

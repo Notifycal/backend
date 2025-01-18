@@ -9,15 +9,19 @@ import {
   readDecodeRefreshJwtConfig,
   readEncodeAccessJwtConfig,
   readEncodeRefreshJwtConfig,
-  readEnv
+  readEnv,
+  readRefreshTokenStoreConfig,
+  readUserStoreConfig
 } from '@services/common/config';
 import type { RefreshTokenBaseStoreConfig } from '@services/refresh-token-base-store';
+import type { UserBaseStoreConfig } from '@services/user-base-store';
 
 export interface RefreshConfig extends BaseEndpointConfig {
   encodeAccessJwtConfig: EncodeAccessJwtConfig;
   encodeRefreshJwtConfig: EncodeRefreshJwtConfig;
   decodeRefreshJwtConfig: DecodeRefreshJwtConfig;
   refreshTokenBaseStoreConfig: RefreshTokenBaseStoreConfig;
+  userBaseStoreConfig: UserBaseStoreConfig;
 }
 
 export function readRefreshConfig(): RefreshConfig {
@@ -26,9 +30,8 @@ export function readRefreshConfig(): RefreshConfig {
     encodeAccessJwtConfig: readEncodeAccessJwtConfig(env),
     encodeRefreshJwtConfig: readEncodeRefreshJwtConfig(env),
     decodeRefreshJwtConfig: readDecodeRefreshJwtConfig(env),
-    refreshTokenBaseStoreConfig: {
-      tableName: env.get('REFRESH_TOKENS_TABLE_NAME').required().asString()
-    },
+    refreshTokenBaseStoreConfig: readRefreshTokenStoreConfig(env),
+    userBaseStoreConfig: readUserStoreConfig(env),
     baseConfig: readBaseConfig(env).baseConfig
   };
 }

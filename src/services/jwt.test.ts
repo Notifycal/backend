@@ -16,7 +16,7 @@ import type {
 import { type AccessToken, accessTokenSchema } from '@model/Jwt';
 import type { ZodSchema } from 'zod';
 import { describe, it, expect } from 'vitest';
-import { Identity, idp } from '@model/Identity';
+import { type Identity, idp } from '@model/Identity';
 
 const validPrivateKey = `-----BEGIN EC PRIVATE KEY-----
 MHcCAQEEIEF6NI6CascYRtOFXEQrbsbsi7ZzTsKaktkDRZ/PSZ8hoAoGCCqGSM49
@@ -45,8 +45,12 @@ const validDecodeConfig = {
   audience: validAudience
 };
 const validSubject = '09b6b481-3fa1-4ed4-b3c1-5a9467acc7ef' as Uuid;
+const validEmail = 'test@notifycal.com' as Email;
 const validAccessTokenPayload = {
   userId: validSubject,
+  email: validEmail,
+  idp: idp.google,
+  idpId: '3625462456246' as IdpId,
   role: 'user',
   permissions: {}
 };
@@ -78,7 +82,7 @@ describe('Jwt builder', () => {
 
 describe('Jwts builder', () => {
   const userId = '09b6b481-3fa1-4ed4-b3c1-5a9467acc7ef' as Uuid;
-  const email = 'test@notifycal@gmail.com' as Email;
+  const email = 'test@notifycal.com' as Email;
   const identity = {
     userId: userId,
     email: email,

@@ -6,7 +6,8 @@ import {
   setEnvDecodeRefreshJwtConfig,
   setEnvEncodeAccessJwtConfig,
   setEnvEncodeRefreshJwtConfig,
-  setEnvRefreshTokenBaseStoreConfig
+  setEnvRefreshTokenBaseStoreConfig,
+  setEnvUserBaseStoreConfig
 } from '@testing/utils/config';
 import { assert } from '@testing/utils/assertions';
 import type { RefreshConfig } from './config';
@@ -19,6 +20,9 @@ import { RefreshTokenBaseStore } from '@services/refresh-token-base-store';
 import { describe, it, vi } from 'vitest';
 import type { Jwt, UnixTimestamp, Uuid } from '@own-types/model';
 import { validJwts } from '@testing/utils/jwt';
+import { UserBaseStore } from '@services/user-base-store';
+import type { User } from '@model/User';
+import { validUser } from '@testing/utils/model';
 
 describe('POST Refresh', () => {
   it('should renew both tokens', () => {
@@ -27,12 +31,14 @@ describe('POST Refresh', () => {
     }) as unknown as APIGatewayProxyEvent;
 
     const decodeAndVerifyJwtSignatureFn = () => Promise.resolve(validInitialDecodedRefreshToken);
+    const getUserByEmailFn = () => Promise.resolve(validUser(validRefreshTokenStoreRecord.UserId));
     const getRefreshTokenByFn = () => Promise.resolve(validRefreshTokenStoreRecord);
     const buildJwtsAndStoreRefreshJwtFn = () => Promise.resolve(validJwts);
 
     return testit(
       event,
       decodeAndVerifyJwtSignatureFn,
+      getUserByEmailFn,
       getRefreshTokenByFn,
       buildJwtsAndStoreRefreshJwtFn
     ).then((resp) => {
@@ -53,12 +59,14 @@ describe('POST Refresh', () => {
     }) as unknown as APIGatewayProxyEvent;
 
     const decodeAndVerifyJwtSignatureFn = () => Promise.resolve(validInitialDecodedRefreshToken);
+    const getUserByEmailFn = () => Promise.resolve(validUser(validRefreshTokenStoreRecord.UserId));
     const getRefreshTokenByFn = () => Promise.resolve(validRefreshTokenStoreRecord);
     const buildJwtsAndStoreRefreshJwtFn = () => Promise.resolve(validJwts);
 
     return testit(
       event,
       decodeAndVerifyJwtSignatureFn,
+      getUserByEmailFn,
       getRefreshTokenByFn,
       buildJwtsAndStoreRefreshJwtFn
     ).then((resp) => {
@@ -72,12 +80,14 @@ describe('POST Refresh', () => {
     }) as unknown as APIGatewayProxyEvent;
 
     const decodeAndVerifyJwtSignatureFn = () => Promise.reject(new Error('Boom!'));
+    const getUserByEmailFn = () => Promise.resolve(validUser(validRefreshTokenStoreRecord.UserId));
     const getRefreshTokenByFn = () => Promise.resolve(validRefreshTokenStoreRecord);
     const buildJwtsAndStoreRefreshJwtFn = () => Promise.resolve(validJwts);
 
     return testit(
       event,
       decodeAndVerifyJwtSignatureFn,
+      getUserByEmailFn,
       getRefreshTokenByFn,
       buildJwtsAndStoreRefreshJwtFn
     ).then((resp) => {
@@ -91,16 +101,60 @@ describe('POST Refresh', () => {
     }) as unknown as APIGatewayProxyEvent;
 
     const decodeAndVerifyJwtSignatureFn = () => Promise.resolve(validInitialDecodedRefreshToken);
+    const getUserByEmailFn = () => Promise.resolve(validUser(validRefreshTokenStoreRecord.UserId));
     const getRefreshTokenByFn = () => Promise.resolve(undefined);
     const buildJwtsAndStoreRefreshJwtFn = () => Promise.resolve(validJwts);
 
     return testit(
       event,
       decodeAndVerifyJwtSignatureFn,
+      getUserByEmailFn,
       getRefreshTokenByFn,
       buildJwtsAndStoreRefreshJwtFn
     ).then((resp) => {
       assert(resp, responseError(403));
+    });
+  });
+
+  it('fail if user could not be found in storage with 403', () => {
+    const event = testEvent({
+      refreshToken: validRefreshToken
+    }) as unknown as APIGatewayProxyEvent;
+
+    const decodeAndVerifyJwtSignatureFn = () => Promise.resolve(validInitialDecodedRefreshToken);
+    const getUserByEmailFn = () => Promise.resolve(undefined);
+    const getRefreshTokenByFn = () => Promise.resolve(undefined);
+    const buildJwtsAndStoreRefreshJwtFn = () => Promise.resolve(validJwts);
+
+    return testit(
+      event,
+      decodeAndVerifyJwtSignatureFn,
+      getUserByEmailFn,
+      getRefreshTokenByFn,
+      buildJwtsAndStoreRefreshJwtFn
+    ).then((resp) => {
+      assert(resp, responseError(403));
+    });
+  });
+
+  it('fail if user retrieval errors with 500', () => {
+    const event = testEvent({
+      refreshToken: validRefreshToken
+    }) as unknown as APIGatewayProxyEvent;
+
+    const decodeAndVerifyJwtSignatureFn = () => Promise.resolve(validInitialDecodedRefreshToken);
+    const getUserByEmailFn = () => Promise.reject(new Error('Booomm!'));
+    const getRefreshTokenByFn = () => Promise.resolve(undefined);
+    const buildJwtsAndStoreRefreshJwtFn = () => Promise.resolve(validJwts);
+
+    return testit(
+      event,
+      decodeAndVerifyJwtSignatureFn,
+      getUserByEmailFn,
+      getRefreshTokenByFn,
+      buildJwtsAndStoreRefreshJwtFn
+    ).then((resp) => {
+      assert(resp, responseError(500));
     });
   });
 
@@ -110,12 +164,14 @@ describe('POST Refresh', () => {
     }) as unknown as APIGatewayProxyEvent;
 
     const decodeAndVerifyJwtSignatureFn = () => Promise.resolve(validInitialDecodedRefreshToken);
+    const getUserByEmailFn = () => Promise.resolve(validUser(validRefreshTokenStoreRecord.UserId));
     const getRefreshTokenByFn = () => Promise.reject(new Error('Boom!'));
     const buildJwtsAndStoreRefreshJwtFn = () => Promise.resolve(validJwts);
 
     return testit(
       event,
       decodeAndVerifyJwtSignatureFn,
+      getUserByEmailFn,
       getRefreshTokenByFn,
       buildJwtsAndStoreRefreshJwtFn
     ).then((resp) => {
@@ -129,6 +185,7 @@ describe('POST Refresh', () => {
     }) as unknown as APIGatewayProxyEvent;
 
     const decodeAndVerifyJwtSignatureFn = () => Promise.resolve(validInitialDecodedRefreshToken);
+    const getUserByEmailFn = () => Promise.resolve(validUser(validRefreshTokenStoreRecord.UserId));
     const getRefreshTokenByFn = () =>
       Promise.resolve({
         ...validRefreshTokenStoreRecord,
@@ -139,6 +196,7 @@ describe('POST Refresh', () => {
     return testit(
       event,
       decodeAndVerifyJwtSignatureFn,
+      getUserByEmailFn,
       getRefreshTokenByFn,
       buildJwtsAndStoreRefreshJwtFn
     ).then((resp) => {
@@ -152,12 +210,14 @@ describe('POST Refresh', () => {
     }) as unknown as APIGatewayProxyEvent;
 
     const decodeAndVerifyJwtSignatureFn = () => Promise.resolve(validInitialDecodedRefreshToken);
+    const getUserByEmailFn = () => Promise.resolve(validUser(validRefreshTokenStoreRecord.UserId));
     const getRefreshTokenByFn = () => Promise.resolve(validRefreshTokenStoreRecord);
     const buildJwtsAndStoreRefreshJwtFn = () => Promise.reject(new Error('Boom!'));
 
     return testit(
       event,
       decodeAndVerifyJwtSignatureFn,
+      getUserByEmailFn,
       getRefreshTokenByFn,
       buildJwtsAndStoreRefreshJwtFn
     ).then((resp) => {
@@ -168,6 +228,7 @@ describe('POST Refresh', () => {
   async function testit(
     event: APIGatewayProxyEvent,
     decodeAndVerifyJwtSignatureFn: () => Promise<RefreshToken>,
+    getUserByIdFn: () => Promise<User | undefined>,
     getRefreshTokenByFn: () => Promise<RefreshTokenStoreRecord | undefined>,
     buildJwtsAndStoreRefreshJwtFn: () => Promise<EncodedAndDecodedJwts>,
     env: RefreshConfig = defaultEnv
@@ -186,6 +247,15 @@ describe('POST Refresh', () => {
     });
     // eslint-disable-next-line @typescript-eslint/unbound-method
     vi.mocked(RefreshTokenBaseStore.prototype.getTokenBy).mockImplementation(getRefreshTokenByFn);
+    vi.mock('@services/user-base-store', () => {
+      const UserBaseStore = vi.fn();
+      (UserBaseStore.prototype as UserBaseStore).getUserById = vi.fn();
+      return {
+        UserBaseStore
+      };
+    });
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    vi.mocked(UserBaseStore.prototype.getUserById).mockImplementation(getUserByIdFn);
     vi.mock('@services/login', async () => {
       const realImport = await vi.importActual('@services/login');
       return {
@@ -220,6 +290,9 @@ describe('POST Refresh', () => {
       expiresIn: '7d'
     },
     refreshTokenBaseStoreConfig: {
+      tableName: 'RefreshTokens-local'
+    },
+    userBaseStoreConfig: {
       tableName: 'Users-local'
     },
     baseConfig: {
@@ -232,6 +305,7 @@ describe('POST Refresh', () => {
     setEnvEncodeRefreshJwtConfig(config.encodeRefreshJwtConfig);
     setEnvDecodeRefreshJwtConfig(config.decodeRefreshJwtConfig);
     setEnvRefreshTokenBaseStoreConfig(config.refreshTokenBaseStoreConfig);
+    setEnvUserBaseStoreConfig(config.userBaseStoreConfig);
     setEnvBaseConfig(config.baseConfig);
   }
 });

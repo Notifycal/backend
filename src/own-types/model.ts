@@ -1,9 +1,12 @@
 import type { AccessToken } from '@model/Jwt';
 import type { IEnv, IOptionalVariable, ExtenderTypeOptional } from 'env-var';
+import type { z } from 'zod';
 
 // This is useful to make the type typesafe, funnily enough.
 // So that one cannot mistakenly pass in an Email instead of a UserId when both are of type string
-export type Brand<T, B> = T & { __brand: B };
+// export type Brand<T, B> = T & { __brand: B };
+
+export type Brand<T, BRAND extends string | number | symbol> = T & z.BRAND<BRAND>;
 
 export type Jwt = Brand<string, 'Jwt'>;
 export type Email = Brand<string, 'Email'>;
