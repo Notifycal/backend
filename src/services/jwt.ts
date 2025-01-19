@@ -42,7 +42,6 @@ export function decodeJwt<T extends z.ZodTypeAny>(jwt: Jwt, jwtSchema: T): Promi
       complete: true
     });
     if (token) {
-      console.log(token);
       // https://zod.dev/?id=inferring-the-inferred-type
       return Promise.resolve(jwtSchema.parse(token) as z.infer<T>);
     } else {
