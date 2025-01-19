@@ -3,7 +3,7 @@ import type { Uuid } from '@own-types/model';
 import { createHash } from 'crypto';
 import { stringify, v5 } from 'uuid';
 
-function stringToUuid(id: string): Uuid {
+export function hashString(id: string): Uuid {
   const hash = createHash('sha256').update(id).digest();
   const uuidBytes = new Uint8Array(16);
   hash.subarray(0, 16).forEach((byte, index) => {
@@ -17,5 +17,5 @@ function stringToUuid(id: string): Uuid {
 }
 
 export function idGenerator(id: string, idpName: IdpName): Uuid {
-  return v5(id, stringToUuid(idpName)) as Uuid;
+  return v5(id, hashString(idpName)) as Uuid;
 }
