@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.2](https://github.com/Notifycal/backend/compare/v0.5.1...v0.5.2) (2025-01-19)
+
+
+### Bug Fixes
+
+* decouple user id from email.  ([#224](https://github.com/Notifycal/backend/issues/224)) ([328dc2b](https://github.com/Notifycal/backend/commit/328dc2b0d99a030f5c17d9918ffe29a68c90d791))
+
 ## [0.5.1](https://github.com/Notifycal/backend/compare/v0.5.0...v0.5.1) (2025-01-14)
 
 
