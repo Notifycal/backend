@@ -4,7 +4,6 @@ import { verifyGoogleIdentity, type GoogleOAuthConfig } from '@services/google-o
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { c, testEvent, unsafeTestEvent } from '@testing/apigateway';
 import type { User } from '@model/User';
-import type { Email } from '@own-types/model';
 import { assert } from '@testing/utils/assertions';
 import {
   setEnvBaseConfig,
@@ -23,57 +22,26 @@ import type { EncodedAndDecodedJwts } from '@services/jwt';
 import { buildJwtsAndStoreRefreshJwt, signInOrUpUser } from '@services/login';
 import { resetTestingContext } from '@testing/setup-tests';
 import { describe, it, vi } from 'vitest';
+import type { Identity } from '@model/Identity';
+import type { Email, IdpId, Jwt, UnixTimestamp, Uuid } from '@own-types/model';
+import { validJwts } from '@testing/utils/jwt';
 
 describe('POST Login', () => {
-  const validJwts: EncodedAndDecodedJwts = {
-    accessToken: {
-      encoded: 'some_valid_access_jwt',
-      decoded: {
-        header: {
-          alg: 'ES256',
-          typ: 'JWT'
-        },
-        payload: {
-          email: 'test@notifycal.com',
-          role: 'user',
-          permissions: {},
-          iat: 1735311407,
-          exp: 1735512345,
-          aud: 'local.notifycal.com',
-          iss: 'local.notifycal.com',
-          sub: 'SomeSubjectIdentifyingTheUser',
-          jti: '9999999-d54b-4f70-90e1-59c02d0e7a02'
-        },
-        signature: 'some_signature'
-      }
-    },
-    refreshToken: {
-      encoded: 'some_valid_refresh_jwt',
-      decoded: {
-        header: {
-          alg: 'ES256',
-          typ: 'JWT'
-        },
-        payload: {
-          iat: 1735311407,
-          exp: 1735599999,
-          aud: 'local.notifycal.com',
-          iss: 'local.notifycal.com',
-          sub: 'SomeSubjectIdentifyingTheUser',
-          jti: '8888888-d54b-4f70-90e1-59c02d0e7a02'
-        },
-        signature: 'some_signature'
-      }
-    }
+  const userEmail = 'test@notifycal.com' as Email;
+  const validUserId = validJwts.accessToken.decoded.payload.userId;
+  const validIdentity: Identity = {
+    userId: validJwts.accessToken.decoded.payload.userId,
+    email: userEmail,
+    idp: 'google.com',
+    idpId: '12a46f95-91dc-4708-bcab-087afafb89de' as IdpId
   };
 
   it('should sign up a user', () => {
     const event = testEvent({
       googleCode: '<SOME-FAKE-GOOGLE-ID-TOKEN>'
     }) as unknown as APIGatewayProxyEvent;
-    const userEmail = 'success@notifycal.com';
-    const verifyGoogleIdentityFn = () => Promise.resolve(userEmail);
-    const signInOrUpUserFn = () => Promise.resolve(validUser(userEmail));
+    const verifyGoogleIdentityFn = () => Promise.resolve(validIdentity);
+    const signInOrUpUserFn = () => Promise.resolve(validUser(validIdentity.userId));
     const buildJwtsFn = () => Promise.resolve(validJwts);
 
     return testit(event, verifyGoogleIdentityFn, signInOrUpUserFn, buildJwtsFn).then((resp) => {
@@ -92,52 +60,51 @@ describe('POST Login', () => {
     const event = testEvent({
       googleCode: '<SOME-FAKE-GOOGLE-ID-TOKEN>'
     }) as unknown as APIGatewayProxyEvent;
-    const userEmail = 'success@notifycal.com';
-    const verifyGoogleIdentityFn = () => Promise.resolve(userEmail);
+    const verifyGoogleIdentityFn = () => Promise.resolve(validIdentity);
     const buildJwtsAndStoreRefreshJwtFn1 = () => Promise.resolve(validJwts);
     const validJwts2: EncodedAndDecodedJwts = {
       accessToken: {
-        encoded: 'some_valid_access_jwt2',
+        encoded: 'some_valid_access_jwt2' as Jwt,
         decoded: {
           header: {
             alg: 'ES256',
             typ: 'JWT'
           },
           payload: {
-            email: 'test@notifycal.com',
+            ...validIdentity,
             role: 'user',
             permissions: {},
-            iat: 1735311407,
-            exp: 1735512345,
+            iat: 1735311407 as UnixTimestamp,
+            exp: 1735512345 as UnixTimestamp,
             aud: 'local.notifycal.com',
             iss: 'local.notifycal.com',
-            sub: 'SomeSubjectIdentifyingTheUser',
-            jti: '9999999-d54b-4f70-90e1-59c02d0e7a02'
+            sub: validUserId,
+            jti: '9999999-d54b-4f70-90e1-59c02d0e7a02' as Uuid
           },
           signature: 'some_signature'
         }
       },
       refreshToken: {
-        encoded: 'some_valid_refresh_jwt2',
+        encoded: 'some_valid_refresh_jwt2' as Jwt,
         decoded: {
           header: {
             alg: 'ES256',
             typ: 'JWT'
           },
           payload: {
-            iat: 1735311407,
-            exp: 1735599999,
+            iat: 1735311407 as UnixTimestamp,
+            exp: 1735599999 as UnixTimestamp,
             aud: 'local.notifycal.com',
             iss: 'local.notifycal.com',
-            sub: 'SomeSubjectIdentifyingTheUser',
-            jti: '8888888-d54b-4f70-90e1-59c02d0e7a02'
+            sub: validUserId,
+            jti: '8888888-d54b-4f70-90e1-59c02d0e7a02' as Uuid
           },
           signature: 'some_signature'
         }
       }
     };
     const buildJwtsAndStoreRefreshJwtFn2 = () => Promise.resolve(validJwts2);
-    const signInOrUpUserFn = () => Promise.resolve(validUser(userEmail));
+    const signInOrUpUserFn = () => Promise.resolve(validUser(validUserId));
 
     return testit(
       event,
@@ -168,9 +135,8 @@ describe('POST Login', () => {
     const event = testEvent({
       googleCode: '<SOME-INCORRECT-GOOGLE-ID-TOKEN>'
     }) as unknown as APIGatewayProxyEvent;
-    const userEmail = 'failure@notifycal.com';
-    const verifyGoogleIdentityFn = () => Promise.reject(new Error(userEmail));
-    const signInOrUpUserFn = () => Promise.resolve(validUser(userEmail));
+    const verifyGoogleIdentityFn = () => Promise.reject(new Error('The identity was not valid'));
+    const signInOrUpUserFn = () => Promise.resolve(validUser(validUserId));
     const buildJwtsAndStoreRefreshJwtFn = () => Promise.resolve(validJwts);
 
     return testit(
@@ -187,9 +153,8 @@ describe('POST Login', () => {
     const event = unsafeTestEvent({
       'incorrect-field': '<SOME-FAKE-GOOGLE-ID-TOKEN>'
     }) as unknown as APIGatewayProxyEvent;
-    const userEmail = 'success@notifycal.com';
-    const verifyGoogleIdentityFn = () => Promise.resolve(userEmail);
-    const signInOrUpUserFn = () => Promise.resolve(validUser(userEmail));
+    const verifyGoogleIdentityFn = () => Promise.resolve(validIdentity);
+    const signInOrUpUserFn = () => Promise.resolve(validUser(validUserId));
     const buildJwtsAndStoreRefreshJwtFn = () => Promise.resolve(validJwts);
 
     return testit(
@@ -206,9 +171,8 @@ describe('POST Login', () => {
     const event = testEvent({
       googleCode: '<SOME-FAKE-GOOGLE-ID-TOKEN>'
     }) as unknown as APIGatewayProxyEvent;
-    const userEmail = 'success@notifycal.com';
-    const verifyGoogleIdentityFn = () => Promise.resolve(userEmail);
-    const signInOrUpUserFn = () => Promise.resolve(validUser(userEmail));
+    const verifyGoogleIdentityFn = () => Promise.resolve(validIdentity);
+    const signInOrUpUserFn = () => Promise.resolve(validUser(validUserId));
     const buildJwtsAndStoreRefreshJwtFn = () => Promise.reject(new Error('Boooom!'));
 
     return testit(
@@ -225,9 +189,8 @@ describe('POST Login', () => {
     const event = testEvent({
       googleCode: '<SOME-FAKE-GOOGLE-ID-TOKEN>'
     }) as unknown as APIGatewayProxyEvent;
-    const userEmail = 'success@notifycal.com';
-    const verifyGoogleIdentityFn = () => Promise.resolve(userEmail);
-    const signInOrUpUserFn = () => Promise.resolve(validUser(userEmail));
+    const verifyGoogleIdentityFn = () => Promise.resolve(validIdentity);
+    const signInOrUpUserFn = () => Promise.resolve(validUser(validUserId));
     const buildJwtsAndStoreRefreshJwtFn = () => Promise.resolve(validJwts);
     const env = structuredClone(defaultEnv);
     env.googleOAuthClientConfig.clientId = undefined as unknown as string;
@@ -247,8 +210,7 @@ describe('POST Login', () => {
     const event = testEvent({
       googleCode: '<SOME-FAKE-GOOGLE-ID-TOKEN>'
     }) as unknown as APIGatewayProxyEvent;
-    const userEmail = 'success@notifycal.com';
-    const verifyGoogleIdentityFn = () => Promise.resolve(userEmail);
+    const verifyGoogleIdentityFn = () => Promise.resolve(validIdentity);
     const signInOrUpUserFn = () => Promise.reject(new Error('Error to sign in or up a user'));
     const buildJwtsAndStoreRefreshJwtFn = () => Promise.resolve(validJwts);
 
@@ -265,7 +227,7 @@ describe('POST Login', () => {
 
 async function testit(
   event: APIGatewayProxyEvent,
-  verifyGoogleIdentityFn: () => Promise<Email>,
+  verifyGoogleIdentityFn: () => Promise<Identity>,
   signInOrUpUserFn: () => Promise<User>,
   buildJwtsAndStoreRefreshJwtFn: () => Promise<EncodedAndDecodedJwts>,
   env: LoginConfig = defaultEnv

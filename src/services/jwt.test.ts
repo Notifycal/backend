@@ -6,7 +6,7 @@ import {
   decodeAndVerifyJwtSignature,
   decodeJwt
 } from './jwt';
-import type { Jwt, UserId } from '@own-types/model';
+import type { Email, IdpId, Jwt, Uuid } from '@own-types/model';
 import { sleep } from '@testing/utils/utils';
 import type {
   DecodeAccessJwtConfig,
@@ -16,6 +16,7 @@ import type {
 import { type AccessToken, accessTokenSchema } from '@model/Jwt';
 import type { ZodSchema } from 'zod';
 import { describe, it, expect } from 'vitest';
+import type { Identity, IdpName } from '@model/Identity';
 
 const validPrivateKey = `-----BEGIN EC PRIVATE KEY-----
 MHcCAQEEIEF6NI6CascYRtOFXEQrbsbsi7ZzTsKaktkDRZ/PSZ8hoAoGCCqGSM49
@@ -43,9 +44,13 @@ const validDecodeConfig = {
   issuer: validIssuer,
   audience: validAudience
 };
-const validSubject = 'testing@notifycal';
+const validSubject = '09b6b481-3fa1-4ed4-b3c1-5a9467acc7ef' as Uuid;
+const validEmail = 'test@notifycal.com' as Email;
 const validAccessTokenPayload = {
-  email: 'test@notifycal.com',
+  userId: validSubject,
+  email: validEmail,
+  idp: 'google.com',
+  idpId: '3625462456246' as IdpId,
   role: 'user',
   permissions: {}
 };
@@ -76,10 +81,17 @@ describe('Jwt builder', () => {
 });
 
 describe('Jwts builder', () => {
-  const validUserId = 'test@notifycal.com';
+  const userId = '09b6b481-3fa1-4ed4-b3c1-5a9467acc7ef' as Uuid;
+  const email = 'test@notifycal.com' as Email;
+  const identity = {
+    userId: userId,
+    email: email,
+    idp: 'google.com' as IdpName,
+    idpId: '46345747457457' as IdpId
+  };
 
   it('should build a jwts', () => {
-    return expect(testit(validUserId, validEncodeConfig, validEncodeConfig)).resolves.toBeTruthy();
+    return expect(testit(identity, validEncodeConfig, validEncodeConfig)).resolves.toBeTruthy();
   });
 
   it('should fail to build access jwt', () => {
@@ -88,7 +100,7 @@ describe('Jwts builder', () => {
       privateKey: `invalid_es256_private_key`
     };
     return expect(
-      testit(validUserId, invalidEncodeJwtConfig, validEncodeConfig)
+      testit(identity, invalidEncodeJwtConfig, validEncodeConfig)
     ).rejects.toStrictEqual(
       new Error(
         'Access JWT could not be generated. Error: secretOrPrivateKey must be an asymmetric key when using ES256'
@@ -102,7 +114,7 @@ describe('Jwts builder', () => {
       privateKey: `invalid_es256_private_key`
     };
     return expect(
-      testit(validUserId, validEncodeConfig, invalidEncodeRefreshJwtConfig)
+      testit(identity, validEncodeConfig, invalidEncodeRefreshJwtConfig)
     ).rejects.toStrictEqual(
       new Error(
         'Refresh JWT could not be generated. Error: secretOrPrivateKey must be an asymmetric key when using ES256'
@@ -111,11 +123,11 @@ describe('Jwts builder', () => {
   });
 
   function testit(
-    userId: UserId,
+    identity: Identity,
     encodeJwtConfig: EncodeAccessJwtConfig,
     encodeRefreshJwtConfig: EncodeRefreshJwtConfig
   ): Promise<EncodedAndDecodedJwts> {
-    return buildJwts(userId, encodeJwtConfig, encodeRefreshJwtConfig);
+    return buildJwts(identity, encodeJwtConfig, encodeRefreshJwtConfig);
   }
 });
 
@@ -148,7 +160,7 @@ describe('Jwt decoder/verifier with signature', () => {
   });
 
   it('should fail to verify a jwt when jwt is invalid', () => {
-    const testJwt = 'invalid_jwt';
+    const testJwt = 'invalid_jwt' as Jwt;
 
     const result = testit(testJwt, accessTokenSchema, validDecodeConfig);
     return expect(result).rejects.toStrictEqual(
@@ -157,7 +169,7 @@ describe('Jwt decoder/verifier with signature', () => {
   });
 
   it('should fail to decode a jwt if payload does not satisfy the schema', () => {
-    const invalidPayload = { ...validAccessTokenPayload, email: 123456, role: 'admin' };
+    const invalidPayload = { ...validAccessTokenPayload, userId: 'not an uuid', role: 'admin' };
     const result = buildJwt(
       invalidPayload,
       accessTokenSchema,
@@ -169,7 +181,7 @@ describe('Jwt decoder/verifier with signature', () => {
       'JWT decoding failed. Error:',
       // eslint-disable-next-line no-useless-escape
       'Invalid literal value, expected \\\"user\\\"\"',
-      'Expected string, received number'
+      'Invalid uuid'
     ]);
   });
 
@@ -242,7 +254,7 @@ describe('Jwt decoder without signature check', () => {
   });
 
   it('should fail to decode an invalid jwt', () => {
-    const testJwt = 'invalid_jwt';
+    const testJwt = 'invalid_jwt' as Jwt;
 
     const result = testit(testJwt, accessTokenSchema);
     return expect(result).rejects.toStrictEqual(
@@ -263,7 +275,7 @@ describe('Jwt decoder without signature check', () => {
       'JWT decoding failed. Error:',
       // eslint-disable-next-line no-useless-escape
       'Invalid literal value, expected \\\"user\\\"\"',
-      'Expected string, received number'
+      'admin'
     ]);
   });
 

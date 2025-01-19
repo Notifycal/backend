@@ -6,7 +6,8 @@ import {
   setEnvDecodeRefreshJwtConfig,
   setEnvEncodeAccessJwtConfig,
   setEnvEncodeRefreshJwtConfig,
-  setEnvRefreshTokenBaseStoreConfig
+  setEnvRefreshTokenBaseStoreConfig,
+  setEnvUserBaseStoreConfig
 } from '@testing/utils/config';
 import { assert } from '@testing/utils/assertions';
 import type { RefreshConfig } from './config';
@@ -17,6 +18,11 @@ import { decodeAndVerifyJwtSignature, type EncodedAndDecodedJwts } from '@servic
 import { buildJwtsAndStoreRefreshJwt } from '@services/login';
 import { RefreshTokenBaseStore } from '@services/refresh-token-base-store';
 import { describe, it, vi } from 'vitest';
+import type { Jwt, UnixTimestamp, Uuid } from '@own-types/model';
+import { validJwts } from '@testing/utils/jwt';
+import { UserBaseStore } from '@services/user-base-store';
+import type { User } from '@model/User';
+import { validUser } from '@testing/utils/model';
 
 describe('POST Refresh', () => {
   it('should renew both tokens', () => {
@@ -25,21 +31,23 @@ describe('POST Refresh', () => {
     }) as unknown as APIGatewayProxyEvent;
 
     const decodeAndVerifyJwtSignatureFn = () => Promise.resolve(validInitialDecodedRefreshToken);
+    const getUserByEmailFn = () => Promise.resolve(validUser(validRefreshTokenStoreRecord.UserId));
     const getRefreshTokenByFn = () => Promise.resolve(validRefreshTokenStoreRecord);
-    const buildJwtsAndStoreRefreshJwtFn = () => Promise.resolve(validEncodedAndDecodedJwts);
+    const buildJwtsAndStoreRefreshJwtFn = () => Promise.resolve(validJwts);
 
     return testit(
       event,
       decodeAndVerifyJwtSignatureFn,
+      getUserByEmailFn,
       getRefreshTokenByFn,
       buildJwtsAndStoreRefreshJwtFn
     ).then((resp) => {
       assert(
         resp,
         responseSuccess({
-          accessToken: validEncodedAndDecodedJwts.accessToken.encoded,
+          accessToken: validJwts.accessToken.encoded,
           tokenType: 'Bearer',
-          refreshToken: validEncodedAndDecodedJwts.refreshToken.encoded
+          refreshToken: validJwts.refreshToken.encoded
         })
       );
     });
@@ -51,12 +59,14 @@ describe('POST Refresh', () => {
     }) as unknown as APIGatewayProxyEvent;
 
     const decodeAndVerifyJwtSignatureFn = () => Promise.resolve(validInitialDecodedRefreshToken);
+    const getUserByEmailFn = () => Promise.resolve(validUser(validRefreshTokenStoreRecord.UserId));
     const getRefreshTokenByFn = () => Promise.resolve(validRefreshTokenStoreRecord);
-    const buildJwtsAndStoreRefreshJwtFn = () => Promise.resolve(validEncodedAndDecodedJwts);
+    const buildJwtsAndStoreRefreshJwtFn = () => Promise.resolve(validJwts);
 
     return testit(
       event,
       decodeAndVerifyJwtSignatureFn,
+      getUserByEmailFn,
       getRefreshTokenByFn,
       buildJwtsAndStoreRefreshJwtFn
     ).then((resp) => {
@@ -70,12 +80,14 @@ describe('POST Refresh', () => {
     }) as unknown as APIGatewayProxyEvent;
 
     const decodeAndVerifyJwtSignatureFn = () => Promise.reject(new Error('Boom!'));
+    const getUserByEmailFn = () => Promise.resolve(validUser(validRefreshTokenStoreRecord.UserId));
     const getRefreshTokenByFn = () => Promise.resolve(validRefreshTokenStoreRecord);
-    const buildJwtsAndStoreRefreshJwtFn = () => Promise.resolve(validEncodedAndDecodedJwts);
+    const buildJwtsAndStoreRefreshJwtFn = () => Promise.resolve(validJwts);
 
     return testit(
       event,
       decodeAndVerifyJwtSignatureFn,
+      getUserByEmailFn,
       getRefreshTokenByFn,
       buildJwtsAndStoreRefreshJwtFn
     ).then((resp) => {
@@ -89,16 +101,60 @@ describe('POST Refresh', () => {
     }) as unknown as APIGatewayProxyEvent;
 
     const decodeAndVerifyJwtSignatureFn = () => Promise.resolve(validInitialDecodedRefreshToken);
+    const getUserByEmailFn = () => Promise.resolve(validUser(validRefreshTokenStoreRecord.UserId));
     const getRefreshTokenByFn = () => Promise.resolve(undefined);
-    const buildJwtsAndStoreRefreshJwtFn = () => Promise.resolve(validEncodedAndDecodedJwts);
+    const buildJwtsAndStoreRefreshJwtFn = () => Promise.resolve(validJwts);
 
     return testit(
       event,
       decodeAndVerifyJwtSignatureFn,
+      getUserByEmailFn,
       getRefreshTokenByFn,
       buildJwtsAndStoreRefreshJwtFn
     ).then((resp) => {
       assert(resp, responseError(403));
+    });
+  });
+
+  it('fail if user could not be found in storage with 403', () => {
+    const event = testEvent({
+      refreshToken: validRefreshToken
+    }) as unknown as APIGatewayProxyEvent;
+
+    const decodeAndVerifyJwtSignatureFn = () => Promise.resolve(validInitialDecodedRefreshToken);
+    const getUserByEmailFn = () => Promise.resolve(undefined);
+    const getRefreshTokenByFn = () => Promise.resolve(undefined);
+    const buildJwtsAndStoreRefreshJwtFn = () => Promise.resolve(validJwts);
+
+    return testit(
+      event,
+      decodeAndVerifyJwtSignatureFn,
+      getUserByEmailFn,
+      getRefreshTokenByFn,
+      buildJwtsAndStoreRefreshJwtFn
+    ).then((resp) => {
+      assert(resp, responseError(403));
+    });
+  });
+
+  it('fail if user retrieval errors with 500', () => {
+    const event = testEvent({
+      refreshToken: validRefreshToken
+    }) as unknown as APIGatewayProxyEvent;
+
+    const decodeAndVerifyJwtSignatureFn = () => Promise.resolve(validInitialDecodedRefreshToken);
+    const getUserByEmailFn = () => Promise.reject(new Error('Booomm!'));
+    const getRefreshTokenByFn = () => Promise.resolve(undefined);
+    const buildJwtsAndStoreRefreshJwtFn = () => Promise.resolve(validJwts);
+
+    return testit(
+      event,
+      decodeAndVerifyJwtSignatureFn,
+      getUserByEmailFn,
+      getRefreshTokenByFn,
+      buildJwtsAndStoreRefreshJwtFn
+    ).then((resp) => {
+      assert(resp, responseError(500));
     });
   });
 
@@ -108,12 +164,14 @@ describe('POST Refresh', () => {
     }) as unknown as APIGatewayProxyEvent;
 
     const decodeAndVerifyJwtSignatureFn = () => Promise.resolve(validInitialDecodedRefreshToken);
+    const getUserByEmailFn = () => Promise.resolve(validUser(validRefreshTokenStoreRecord.UserId));
     const getRefreshTokenByFn = () => Promise.reject(new Error('Boom!'));
-    const buildJwtsAndStoreRefreshJwtFn = () => Promise.resolve(validEncodedAndDecodedJwts);
+    const buildJwtsAndStoreRefreshJwtFn = () => Promise.resolve(validJwts);
 
     return testit(
       event,
       decodeAndVerifyJwtSignatureFn,
+      getUserByEmailFn,
       getRefreshTokenByFn,
       buildJwtsAndStoreRefreshJwtFn
     ).then((resp) => {
@@ -127,13 +185,18 @@ describe('POST Refresh', () => {
     }) as unknown as APIGatewayProxyEvent;
 
     const decodeAndVerifyJwtSignatureFn = () => Promise.resolve(validInitialDecodedRefreshToken);
+    const getUserByEmailFn = () => Promise.resolve(validUser(validRefreshTokenStoreRecord.UserId));
     const getRefreshTokenByFn = () =>
-      Promise.resolve({ ...validRefreshTokenStoreRecord, RefreshToken: 'this one does not match' });
-    const buildJwtsAndStoreRefreshJwtFn = () => Promise.resolve(validEncodedAndDecodedJwts);
+      Promise.resolve({
+        ...validRefreshTokenStoreRecord,
+        RefreshToken: 'this one does not match' as Jwt
+      });
+    const buildJwtsAndStoreRefreshJwtFn = () => Promise.resolve(validJwts);
 
     return testit(
       event,
       decodeAndVerifyJwtSignatureFn,
+      getUserByEmailFn,
       getRefreshTokenByFn,
       buildJwtsAndStoreRefreshJwtFn
     ).then((resp) => {
@@ -147,12 +210,14 @@ describe('POST Refresh', () => {
     }) as unknown as APIGatewayProxyEvent;
 
     const decodeAndVerifyJwtSignatureFn = () => Promise.resolve(validInitialDecodedRefreshToken);
+    const getUserByEmailFn = () => Promise.resolve(validUser(validRefreshTokenStoreRecord.UserId));
     const getRefreshTokenByFn = () => Promise.resolve(validRefreshTokenStoreRecord);
     const buildJwtsAndStoreRefreshJwtFn = () => Promise.reject(new Error('Boom!'));
 
     return testit(
       event,
       decodeAndVerifyJwtSignatureFn,
+      getUserByEmailFn,
       getRefreshTokenByFn,
       buildJwtsAndStoreRefreshJwtFn
     ).then((resp) => {
@@ -163,6 +228,7 @@ describe('POST Refresh', () => {
   async function testit(
     event: APIGatewayProxyEvent,
     decodeAndVerifyJwtSignatureFn: () => Promise<RefreshToken>,
+    getUserByIdFn: () => Promise<User | undefined>,
     getRefreshTokenByFn: () => Promise<RefreshTokenStoreRecord | undefined>,
     buildJwtsAndStoreRefreshJwtFn: () => Promise<EncodedAndDecodedJwts>,
     env: RefreshConfig = defaultEnv
@@ -174,14 +240,22 @@ describe('POST Refresh', () => {
     vi.mocked(decodeAndVerifyJwtSignature).mockImplementation(decodeAndVerifyJwtSignatureFn);
     vi.mock('@services/refresh-token-base-store', () => {
       const RefreshTokenBaseStore = vi.fn();
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      RefreshTokenBaseStore.prototype.getTokenBy = vi.fn();
+      (RefreshTokenBaseStore.prototype as RefreshTokenBaseStore).getTokenBy = vi.fn();
       return {
         RefreshTokenBaseStore
       };
     });
     // eslint-disable-next-line @typescript-eslint/unbound-method
     vi.mocked(RefreshTokenBaseStore.prototype.getTokenBy).mockImplementation(getRefreshTokenByFn);
+    vi.mock('@services/user-base-store', () => {
+      const UserBaseStore = vi.fn();
+      (UserBaseStore.prototype as UserBaseStore).getUserById = vi.fn();
+      return {
+        UserBaseStore
+      };
+    });
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    vi.mocked(UserBaseStore.prototype.getUserById).mockImplementation(getUserByIdFn);
     vi.mock('@services/login', async () => {
       const realImport = await vi.importActual('@services/login');
       return {
@@ -216,6 +290,9 @@ describe('POST Refresh', () => {
       expiresIn: '7d'
     },
     refreshTokenBaseStoreConfig: {
+      tableName: 'RefreshTokens-local'
+    },
+    userBaseStoreConfig: {
       tableName: 'Users-local'
     },
     baseConfig: {
@@ -228,72 +305,32 @@ describe('POST Refresh', () => {
     setEnvEncodeRefreshJwtConfig(config.encodeRefreshJwtConfig);
     setEnvDecodeRefreshJwtConfig(config.decodeRefreshJwtConfig);
     setEnvRefreshTokenBaseStoreConfig(config.refreshTokenBaseStoreConfig);
+    setEnvUserBaseStoreConfig(config.userBaseStoreConfig);
     setEnvBaseConfig(config.baseConfig);
   }
 });
 
+const validUserId = '1199999-d54b-4f70-90e1-59c02d0e7222' as Uuid;
+const validRefreshToken = 'some_valid_refresh_token' as Jwt;
 const validInitialDecodedRefreshToken = {
   header: {
     alg: 'ES256',
     typ: 'JWT'
   },
   payload: {
-    iat: 1735311407,
-    exp: 1735599999,
+    iat: 1735311407 as UnixTimestamp,
+    exp: 1735599999 as UnixTimestamp,
     aud: 'local.notifycal.com',
     iss: 'local.notifycal.com',
-    sub: 'SomeSubjectIdentifyingTheUser',
-    jti: '9999999-d54b-4f70-90e1-59c02d0e7a02'
+    sub: validUserId,
+    jti: '9999999-d54b-4f70-90e1-59c02d0e7a02' as Uuid
   },
   signature: 'some_signature'
 };
-const userEmail = 'success@notifycal.com';
-const validRefreshToken = 'some_valid_refresh_token';
-const validRefreshTokenStoreRecord = {
-  UserId: userEmail,
-  RefreshToken: validRefreshToken,
-  RefreshTokenId: 'some_refresh_token_id',
-  ExpiresAt: 123456789
-};
 
-const validEncodedAndDecodedJwts: EncodedAndDecodedJwts = {
-  accessToken: {
-    encoded: 'some_valid_access_token',
-    decoded: {
-      header: {
-        alg: 'ES256',
-        typ: 'JWT'
-      },
-      payload: {
-        email: 'test@notifycal.com',
-        role: 'user',
-        permissions: {},
-        iat: 1735311407,
-        exp: 1735512345,
-        aud: 'local.notifycal.com',
-        iss: 'local.notifycal.com',
-        sub: 'SomeSubjectIdentifyingTheUser',
-        jti: '9999999-d54b-4f70-90e1-59c02d0e7a02'
-      },
-      signature: 'some_signature'
-    }
-  },
-  refreshToken: {
-    encoded: validRefreshToken,
-    decoded: {
-      header: {
-        alg: 'ES256',
-        typ: 'JWT'
-      },
-      payload: {
-        iat: 1735311407,
-        exp: 1735599999,
-        aud: 'local.notifycal.com',
-        iss: 'local.notifycal.com',
-        sub: 'SomeSubjectIdentifyingTheUser',
-        jti: '8888888-d54b-4f70-90e1-59c02d0e7a02'
-      },
-      signature: 'some_signature'
-    }
-  }
+const validRefreshTokenStoreRecord = {
+  UserId: validUserId,
+  RefreshToken: validRefreshToken,
+  RefreshTokenId: '6559999-d54b-4f70-90e1-59c02d0e7a02' as Uuid,
+  ExpiresAt: 123456789 as UnixTimestamp
 };

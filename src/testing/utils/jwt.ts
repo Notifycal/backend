@@ -1,11 +1,12 @@
-import type { DecodeAccessJwtConfig } from './../../model/Config';
-import { buildJwt } from '@services/jwt';
+import { buildJwt, type EncodedAndDecodedJwts } from '@services/jwt';
 import dotenv from 'dotenv';
 import path from 'path';
 import * as fs from 'fs';
-import type { EncodeAccessJwtConfig } from '@model/Config';
+import type { EncodeAccessJwtConfig, DecodeAccessJwtConfig } from '@model/Config';
 import { type OurAccessTokenClaims, accessTokenSchema } from '@model/Jwt';
 import type { ZodSchema } from 'zod';
+import type { Email, IdpId, Jwt, UnixTimestamp, Uuid } from '@own-types/model';
+import type { Identity } from '@model/Identity';
 // Lazy evaluation all over the place so express doesn't attempt to load what it mustn't
 const loadDevConfig: () => Record<string, string> = (() => {
   let devConfig: Record<string, string>;
@@ -20,8 +21,16 @@ const loadDevConfig: () => Record<string, string> = (() => {
   };
 })();
 
+const userId = '09b6b481-3fa1-4ed4-b3c1-5a9467acc7ef' as Uuid;
+const email = 'test@notifycal.com' as Email;
+const identity: Identity = {
+  userId: userId,
+  email: email,
+  idp: 'google.com',
+  idpId: '46345747457457' as IdpId
+};
 export const getDefaultAccessTokenPayload: () => OurAccessTokenClaims = () => ({
-  email: 'test@notifycal.com',
+  ...identity,
   role: 'user',
   permissions: {}
 });
@@ -52,7 +61,48 @@ export function testJwt(
   jwtSchema: ZodSchema = accessTokenSchema,
   config: EncodeAccessJwtConfig = getDefaultEncodeAccessJwtConfig()
 ): Promise<string> {
-  return buildJwt(payload, jwtSchema, 'SomeSubjectIdentifyingTheUser', config).then(
-    (jwts) => jwts.encoded
-  );
+  return buildJwt(payload, jwtSchema, userId, config).then((jwts) => jwts.encoded);
 }
+
+const validRefreshToken = 'some_valid_refresh_token' as Jwt;
+export const validJwts: EncodedAndDecodedJwts = {
+  accessToken: {
+    encoded: 'some_valid_access_token' as Jwt,
+    decoded: {
+      header: {
+        alg: 'ES256',
+        typ: 'JWT'
+      },
+      payload: {
+        ...identity,
+        role: 'user',
+        permissions: {},
+        iat: 1735311407 as UnixTimestamp,
+        exp: 1735512345 as UnixTimestamp,
+        aud: 'local.notifycal.com',
+        iss: 'local.notifycal.com',
+        sub: identity.userId,
+        jti: '9999999-d54b-4f70-90e1-59c02d0e7a02' as Uuid
+      },
+      signature: 'some_signature'
+    }
+  },
+  refreshToken: {
+    encoded: validRefreshToken,
+    decoded: {
+      header: {
+        alg: 'ES256',
+        typ: 'JWT'
+      },
+      payload: {
+        iat: 1735311407 as UnixTimestamp,
+        exp: 1735599999 as UnixTimestamp,
+        aud: 'local.notifycal.com',
+        iss: 'local.notifycal.com',
+        sub: identity.userId,
+        jti: '8888888-d54b-4f70-90e1-59c02d0e7a02' as Uuid
+      },
+      signature: 'some_signature'
+    }
+  }
+};

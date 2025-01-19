@@ -1,7 +1,7 @@
 import { PutCommand, GetCommand } from '@aws-sdk/lib-dynamodb';
 import type { User } from '@model/User';
-import type { Email } from '@own-types/model';
 import { BaseStore, type BaseStoreConfig } from './common/base-store';
+import type { UserId } from '@own-types/model';
 
 export type UserBaseStoreConfig = BaseStoreConfig;
 
@@ -10,10 +10,10 @@ export class UserBaseStore extends BaseStore<UserBaseStoreConfig> {
     super(config);
   }
 
-  public getUserByEmail(email: Email): Promise<User | undefined> {
+  public getUserById(id: UserId): Promise<User | undefined> {
     const lookupCmd = new GetCommand({
       Key: {
-        UserId: email
+        UserId: id
       },
       TableName: this._tableName
     });
@@ -28,7 +28,7 @@ export class UserBaseStore extends BaseStore<UserBaseStoreConfig> {
         }
       },
       (error) =>
-        Promise.reject(new Error(`User with id '${email}' could not be retrieved. Error: ${error}`))
+        Promise.reject(new Error(`User with id '${id}' could not be retrieved. Error: ${error}`))
     );
   }
 

@@ -4,7 +4,7 @@ import type { MiddlewareObj, Request } from '@middy/core';
 import type middy from '@middy/core';
 import type { APIGatewayProxyResult, Context } from 'aws-lambda';
 import { decodeAndVerifyJwtSignature } from '@services/jwt';
-import type { JwtClaimCheckerFn } from '@own-types/model';
+import type { Jwt, JwtClaimCheckerFn } from '@own-types/model';
 import type { AuthedEndpointConfig } from '@model/Config';
 import { type AccessToken, accessTokenSchema } from '@model/Jwt';
 import { errorHandler, headers as _headers } from '@services/common/api-response-handlers';
@@ -23,7 +23,7 @@ function jwtVerification<TConfig extends AuthedEndpointConfig>(
       errorHandler(401, _headers(config.baseConfig.frontendDomain))('Missing Authorization')
     );
   }
-  const token = authorization.replace('Bearer ', '');
+  const token = authorization.trim().replace('Bearer ', '') as Jwt;
   return decodeAndVerifyJwtSignature(token, accessTokenSchema, config.decodeAccessJwtConfig).then(
     (jwt) => {
       if (claimChecker(jwt)) {

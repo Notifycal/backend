@@ -1,8 +1,8 @@
-import type { Jwt, Uuid } from '@own-types/model';
+import type { Jwt, UnixTimestamp, UserId, Uuid } from '@own-types/model';
 
 export interface RefreshTokenStoreRecord {
-  UserId: Uuid;
-  RefreshTokenId: string;
+  UserId: UserId;
+  RefreshTokenId: Uuid;
   RefreshToken: Jwt;
-  ExpiresAt: number;
+  ExpiresAt: UnixTimestamp;
 }

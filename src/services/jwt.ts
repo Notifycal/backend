@@ -16,10 +16,11 @@ import {
   refreshTokenSchema
 } from '@model/Jwt';
 import { rejectWithErrorMessage } from './common/error-handling';
+import type { Identity } from '@model/Identity';
 
-export function accessJwtPayload(userId: UserId): OurAccessTokenClaims {
+export function accessJwtPayload(identity: Identity): OurAccessTokenClaims {
   return {
-    email: userId,
+    ...identity,
     role: 'user',
     permissions: {}
   };
@@ -55,7 +56,7 @@ export function decodeJwt<T extends z.ZodTypeAny>(jwt: Jwt, jwtSchema: T): Promi
 export function buildJwt<T extends z.ZodTypeAny>(
   payload: OurAccessTokenClaims | OurRefreshTokenClaims,
   jwtSchema: T,
-  subject: string,
+  subject: UserId,
   config: EncodeAccessJwtConfig
 ): Promise<EncodedAndDecodedJwt<z.infer<T>>> {
   try {
@@ -66,7 +67,7 @@ export function buildJwt<T extends z.ZodTypeAny>(
       audience: config.audience,
       subject: subject,
       expiresIn: config.expiresIn
-    } as SignOptions);
+    } as SignOptions) as Jwt;
     return decodeJwt(encoded, jwtSchema).then((decoded) => ({
       encoded: encoded,
       decoded: decoded
@@ -77,7 +78,7 @@ export function buildJwt<T extends z.ZodTypeAny>(
 }
 
 export function buildJwts(
-  userId: UserId,
+  identity: Identity,
   encodeJwtConfig: EncodeAccessJwtConfig,
   encodeRefreshJwtConfig: EncodeRefreshJwtConfig
 ): Promise<EncodedAndDecodedJwts> {
@@ -86,10 +87,10 @@ export function buildJwts(
   }
 
   return Promise.all([
-    buildJwt(accessJwtPayload(userId), accessTokenSchema, userId, encodeJwtConfig).catch(
+    buildJwt(accessJwtPayload(identity), accessTokenSchema, identity.userId, encodeJwtConfig).catch(
       prependJwtType('Access')
     ),
-    buildJwt({}, refreshTokenSchema, userId, encodeRefreshJwtConfig).catch(
+    buildJwt({}, refreshTokenSchema, identity.userId, encodeRefreshJwtConfig).catch(
       prependJwtType('Refresh')
     )
   ]).then((jwts) => ({

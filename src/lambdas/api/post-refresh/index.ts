@@ -9,11 +9,14 @@ import { RefreshTokenBaseStore } from '@services/refresh-token-base-store';
 import { refreshTokenSchema } from '@model/Jwt';
 import { errorHandler } from '@services/common/api-response-handlers';
 import { buildJwtsAndStoreRefreshJwt, _successHandler } from '@services/login';
+import type { Jwt } from '@own-types/model';
+import { UserBaseStore } from '@services/user-base-store';
+import { extractIdentity } from '@model/User';
 
 const schema = eventSchema<RefreshConfig>().extend({
   body: JSONStringified(
     z.object({
-      refreshToken: z.string()
+      refreshToken: z.string().transform((v) => v as Jwt)
     })
   )
 });
@@ -25,7 +28,8 @@ function lambdaHandler(
   ctx: Context
 ): Promise<APIGatewayProxyResult> {
   const config = event.endpointConfig;
-  const store = new RefreshTokenBaseStore(config.refreshTokenBaseStoreConfig);
+  const refreshTokenStore = new RefreshTokenBaseStore(config.refreshTokenBaseStoreConfig);
+  const userStore = new UserBaseStore(config.userBaseStoreConfig);
   const refreshToken = event.body['refreshToken'];
   return decodeAndVerifyJwtSignature(
     refreshToken,
@@ -33,21 +37,24 @@ function lambdaHandler(
     config.decodeRefreshJwtConfig
   )
     .then((jwt) => {
-      return store
-        .getTokenBy(jwt.payload.sub, jwt.payload.jti)
-        .then((storedToken) => {
-          if (storedToken && storedToken.RefreshToken === refreshToken) {
+      const userId = jwt.payload.sub;
+      return Promise.all([
+        refreshTokenStore.getTokenBy(userId, jwt.payload.jti),
+        userStore.getUserById(userId)
+      ])
+        .then(([storedToken, user]) => {
+          if (storedToken && storedToken.RefreshToken === refreshToken && user) {
             return buildJwtsAndStoreRefreshJwt(
-              storedToken.UserId,
+              extractIdentity(user),
               config.encodeAccessJwtConfig,
               config.encodeRefreshJwtConfig,
-              store
+              refreshTokenStore
             )
               .then(_successHandler)
               .catch(errorHandler(500));
           } else {
             return errorHandler(403)(
-              'The stored refresh token does not match with refresh token provided'
+              'Either user and/or refresh token is in persistance or stored refresh token does not match with refresh token provided'
             );
           }
         })

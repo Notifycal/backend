@@ -1,5 +1,7 @@
-import type { Email } from '@own-types/model';
 import { OAuth2Client } from 'google-auth-library';
+import { idGenerator } from './id-generator';
+import type { Identity, IdpName } from '@model/Identity';
+import type { Email, IdpId } from '@own-types/model';
 
 export interface GoogleOAuthConfig {
   clientId: string;
@@ -10,7 +12,7 @@ export interface GoogleOAuthConfig {
 export function verifyGoogleIdentity(
   userGoogleCode: string,
   config: GoogleOAuthConfig
-): Promise<Email> {
+): Promise<Identity> {
   const client = new OAuth2Client(config.clientId, config.clientSecret, config.redirectUri);
   return client.getToken(userGoogleCode).then((tokenResponse) => {
     if (tokenResponse.tokens.id_token) {
@@ -20,11 +22,18 @@ export function verifyGoogleIdentity(
           audience: config.clientId
         })
         .then((ticket) => {
+          const id = ticket.getUserId();
           const email = ticket.getPayload()?.['email'];
-          if (email) {
-            return email;
+          if (id && email) {
+            const idpName: IdpName = 'google.com';
+            return {
+              userId: idGenerator(id, idpName),
+              email: email as Email,
+              idp: idpName,
+              idpId: id as IdpId
+            };
           } else {
-            const msg = 'Email could not be extracted out of Google token id';
+            const msg = `Id and/or Email could not be extracted out of Google token id. Extracted id: '${id}' and email: '${email}'`;
             throw new Error(msg);
           }
         });

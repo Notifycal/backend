@@ -6,6 +6,8 @@ import type {
   EncodeRefreshJwtConfig
 } from '@model/Config';
 import type { Environment } from '@own-types/model';
+import type { RefreshTokenBaseStoreConfig } from '@services/refresh-token-base-store';
+import type { UserBaseStoreConfig } from '@services/user-base-store';
 import { from } from 'env-var';
 
 export function readEnv(): Environment {
@@ -56,5 +58,17 @@ export function readDecodeRefreshJwtConfig(env: Environment): DecodeRefreshJwtCo
   return {
     publicKey: env.get('REFRESH_JWT_PUBLIC_KEY').required().asString(),
     ...readJwtConfig(env, 'REFRESH', '7d')
+  };
+}
+
+export function readUserStoreConfig(env: Environment): UserBaseStoreConfig {
+  return {
+    tableName: env.get('USERS_TABLE_NAME').required().asString()
+  };
+}
+
+export function readRefreshTokenStoreConfig(env: Environment): RefreshTokenBaseStoreConfig {
+  return {
+    tableName: env.get('REFRESH_TOKENS_TABLE_NAME').required().asString()
   };
 }

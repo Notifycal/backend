@@ -8,6 +8,7 @@ import { JSONStringified } from '@aws-lambda-powertools/parser/helpers';
 import { RefreshTokenBaseStore } from '@services/refresh-token-base-store';
 import { errorHandler } from '@services/common/api-response-handlers';
 import { eventSchema } from '@model/ApiGatewayEvents';
+import { extractIdentity } from '@model/User';
 
 const schema = eventSchema<LoginConfig>().extend({
   body: JSONStringified(
@@ -26,11 +27,11 @@ function lambdaHandler(
   const config = event.endpointConfig;
   const store = new RefreshTokenBaseStore(config.refreshTokenBaseStoreConfig);
   return verifyGoogleIdentity(event.body['googleCode'], config.googleOAuthClientConfig)
-    .then((email) =>
-      signInOrUpUser(email, config.userBaseStoreConfig)
+    .then((googleIdentity) =>
+      signInOrUpUser(googleIdentity, config.userBaseStoreConfig)
         .then((user) =>
           buildJwtsAndStoreRefreshJwt(
-            user.UserId,
+            extractIdentity(user),
             config.encodeAccessJwtConfig,
             config.encodeRefreshJwtConfig,
             store
