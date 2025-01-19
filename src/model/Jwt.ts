@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { idp } from './Identity';
+import type { IdpName } from './Identity';
 
 export const jwtHeaderSchema = z.object({
   alg: z.string(),
@@ -26,6 +26,10 @@ const tokenSchemaBase = z.object({
   header: jwtHeaderSchema,
   signature: z.string()
 });
+
+export const idp: Record<IdpName, IdpName> = {
+  'google.com': 'google.com'
+};
 
 const identitySchema = z.object({
   userId: userIdSchema,

@@ -22,7 +22,7 @@ import type { EncodedAndDecodedJwts } from '@services/jwt';
 import { buildJwtsAndStoreRefreshJwt, signInOrUpUser } from '@services/login';
 import { resetTestingContext } from '@testing/setup-tests';
 import { describe, it, vi } from 'vitest';
-import { idp, type Identity } from '@model/Identity';
+import type { Identity } from '@model/Identity';
 import type { Email, IdpId, Jwt, UnixTimestamp, Uuid } from '@own-types/model';
 import { validJwts } from '@testing/utils/jwt';
 
@@ -32,7 +32,7 @@ describe('POST Login', () => {
   const validIdentity: Identity = {
     userId: validJwts.accessToken.decoded.payload.userId,
     email: userEmail,
-    idp: idp.google,
+    idp: 'google.com',
     idpId: '12a46f95-91dc-4708-bcab-087afafb89de' as IdpId
   };
 

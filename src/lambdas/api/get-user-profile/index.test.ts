@@ -16,13 +16,13 @@ import { handler, type Event } from './index';
 import { UserBaseStore } from '@services/user-base-store';
 import { describe, it, vi } from 'vitest';
 import type { Email, IdpId, UserId } from '@own-types/model';
-import { idp } from '@model/Identity';
+import type { IdpName } from '@model/Identity';
 
 describe('GET User profile', () => {
   const validIdentity = {
     userId: 'cfaa8471-f4cc-44da-bc22-ddc4b735a847' as UserId,
     email: 'test@notifycal.com' as Email,
-    idp: idp.google,
+    idp: 'google.com' as IdpName,
     idpId: '246534735745767767' as IdpId
   };
   const validAccessToken: OurAccessTokenClaims = {

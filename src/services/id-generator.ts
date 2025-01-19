@@ -1,4 +1,4 @@
-import type { idp } from '@model/Identity';
+import type { IdpName } from '@model/Identity';
 import type { Uuid } from '@own-types/model';
 import { createHash } from 'crypto';
 import { stringify, v5 } from 'uuid';
@@ -16,6 +16,6 @@ function stringToUuid(id: string): Uuid {
   return stringify(uuidBytes) as Uuid;
 }
 
-export function idGenerator(id: string, idpName: keyof typeof idp): Uuid {
+export function idGenerator(id: string, idpName: IdpName): Uuid {
   return v5(id, stringToUuid(idpName)) as Uuid;
 }

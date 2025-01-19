@@ -1,10 +1,10 @@
 import { describe, it, expect } from 'vitest';
 import { validate as validateUuid } from 'uuid';
 import { idGenerator } from './id-generator';
-import { type Idp, idp } from '@model/Identity';
+import type { IdpName } from '@model/Identity';
 
 describe('Id generator', () => {
-  const idpName = idp.google;
+  const idpName = 'google.com';
 
   it('should generate a valid UUID v4 for a given input string', () => {
     const input = 'test-input';
@@ -34,7 +34,7 @@ describe('Id generator', () => {
     const input1 = 'input-one';
     const input2 = 'input-two';
     const id1 = idGenerator(input1, idpName);
-    const id2 = idGenerator(input2, 'ADifferentIdP' as Idp);
+    const id2 = idGenerator(input2, 'ADifferentIdP' as IdpName);
 
     expect(id1).not.toStrictEqual(id2);
   });

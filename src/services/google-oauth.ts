@@ -1,6 +1,6 @@
 import { OAuth2Client } from 'google-auth-library';
 import { idGenerator } from './id-generator';
-import { idp, type Identity } from '@model/Identity';
+import type { Identity, IdpName } from '@model/Identity';
 import type { Email, IdpId } from '@own-types/model';
 
 export interface GoogleOAuthConfig {
@@ -25,10 +25,11 @@ export function verifyGoogleIdentity(
           const id = ticket.getUserId();
           const email = ticket.getPayload()?.['email'];
           if (id && email) {
+            const idpName: IdpName = 'google.com';
             return {
-              userId: idGenerator(id, idp.google),
+              userId: idGenerator(id, idpName),
               email: email as Email,
-              idp: idp.google,
+              idp: idpName,
               idpId: id as IdpId
             };
           } else {
