@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.3](https://github.com/Notifycal/backend/compare/v0.5.2...v0.5.3) (2025-01-19)
+
+
+### Bug Fixes
+
+* google email verified check. Test coverage ([#228](https://github.com/Notifycal/backend/issues/228)) ([430c65b](https://github.com/Notifycal/backend/commit/430c65bc71dde9fcfd0d7ea872885832c61e98e0))
+
 ## [0.5.2](https://github.com/Notifycal/backend/compare/v0.5.1...v0.5.2) (2025-01-19)
 
 
