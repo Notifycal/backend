@@ -12,5 +12,3 @@ export interface Identity<IdpName> extends BaseIdentity {
   idp: IdpName;
   idpId: IdpId;
 }
-
-export type GoogleIdentity = Identity<'google.com'>;

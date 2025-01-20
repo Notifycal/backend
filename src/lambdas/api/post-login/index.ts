@@ -30,8 +30,8 @@ function lambdaHandler(
   const store = new RefreshTokenBaseStore(config.refreshTokenBaseStoreConfig);
   // eslint-disable-next-line no-use-before-define
   return verifyIdentity(event, idpQueryPath, config)
-    .then(([googleIdentity, googleAuthorization]) =>
-      signInOrUpUser(googleIdentity, googleAuthorization, config.userBaseStoreConfig)
+    .then(([identity, idpAuthorization]) =>
+      signInOrUpUser(identity, idpAuthorization, config.userBaseStoreConfig)
         .then((user) =>
           buildJwtsAndStoreRefreshJwt(
             extractIdentity(user),
