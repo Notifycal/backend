@@ -51,7 +51,7 @@
     "@typescript-eslint/parser": "^8.20.0",
     "@vitest/coverage-v8": "^2.1.8",
     "@vitest/eslint-plugin": "^1.1.25",
-    "@vitest/ui": "^2.1.8",
+    "@vitest/ui": "^3.0.2",
     "body-parser": "^1.20.3",
     "connect-timeout": "^1.9.0",
     "dotenv": "^16.4.7",
