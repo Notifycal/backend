@@ -11,7 +11,6 @@ import type { z } from 'zod';
 import type { AuthedEndpointConfig } from '@model/Config';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { corsMiddleware } from './cors-middleware';
-import type { EventSchemaFn } from '@model/ApiGatewayEvents';
 
 export function baseMiddleware(): middy.MiddyfiedHandler<
   APIGatewayProxyEvent,
@@ -27,12 +26,12 @@ export function baseMiddleware(): middy.MiddyfiedHandler<
 
 export function unprotectedEndpointMiddleware<TConfig, T extends z.ZodTypeAny>(
   configReader: ConfigReaderFn<TConfig>,
-  eventSchemaFn: EventSchemaFn<T>
+  eventSchema: T
 ): middy.MiddyfiedHandler<APIGatewayProxyEvent, APIGatewayProxyResult> {
   return baseMiddleware()
     .use(configReaderMiddleware<TConfig>(configReader))
     .use(corsMiddleware())
-    .use(httpRequestEventParserMiddleware(eventSchemaFn)) as unknown as middy.MiddyfiedHandler<
+    .use(httpRequestEventParserMiddleware(eventSchema)) as unknown as middy.MiddyfiedHandler<
     APIGatewayProxyEvent,
     APIGatewayProxyResult
   >;
@@ -40,10 +39,10 @@ export function unprotectedEndpointMiddleware<TConfig, T extends z.ZodTypeAny>(
 
 export function protectedEndpointMiddleware<
   TConfig extends AuthedEndpointConfig,
-  TSchema extends z.ZodTypeAny
+  T extends z.ZodTypeAny
 >(
   configReaderFn: ConfigReaderFn<TConfig>,
-  eventSchema: EventSchemaFn<TSchema>,
+  eventSchema: T,
   claimCheckerFn: JwtClaimCheckerFn = checkClaims
 ): middy.MiddyfiedHandler<APIGatewayProxyEvent, APIGatewayProxyResult> {
   return baseMiddleware()

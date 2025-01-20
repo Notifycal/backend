@@ -2,18 +2,17 @@ import { parser } from '@aws-lambda-powertools/parser/middleware';
 import type { MiddlewareObj, Request } from '@middy/core';
 /* eslint-disable-next-line no-duplicate-imports */
 import type middy from '@middy/core';
-import type { EventSchemaFn, EventWithConfig } from '@model/ApiGatewayEvents';
+import type { EventWithConfig } from '@model/ApiGatewayEvents';
 import type { BaseEndpointConfig } from '@model/Config';
 import { errorHandler, headers } from '@services/common/api-response-handlers';
 import { extractErrorMessage } from '@services/common/error-handling';
 import type { APIGatewayProxyResult, Context } from 'aws-lambda';
-import type { z } from 'zod';
+import type { ZodSchema } from 'zod';
 
-function httpRequestEventParser<TConfig extends BaseEndpointConfig, TSchema extends z.ZodTypeAny>(
+function httpRequestEventParser<TConfig extends BaseEndpointConfig>(
   request: Request<EventWithConfig<TConfig>, APIGatewayProxyResult, Error, Context>,
-  schemaFn: EventSchemaFn<TSchema>
+  schema: ZodSchema
 ): APIGatewayProxyResult | void {
-  const schema = schemaFn(request.event);
   const parserFn = parser({ schema }).before;
   if (parserFn) {
     try {
@@ -29,10 +28,9 @@ function httpRequestEventParser<TConfig extends BaseEndpointConfig, TSchema exte
   }
 }
 
-export function httpRequestEventParserMiddleware<
-  TConfig extends BaseEndpointConfig,
-  TSchema extends z.ZodTypeAny
->(schema: EventSchemaFn<TSchema>): MiddlewareObj<EventWithConfig<TConfig>, APIGatewayProxyResult> {
+export function httpRequestEventParserMiddleware<TConfig extends BaseEndpointConfig>(
+  schema: ZodSchema
+): MiddlewareObj<EventWithConfig<TConfig>, APIGatewayProxyResult> {
   const before: middy.MiddlewareFn<EventWithConfig<TConfig>, APIGatewayProxyResult> = (
     req: Request<EventWithConfig<TConfig>, APIGatewayProxyResult, Error, Context>
   ) => httpRequestEventParser(req, schema);
