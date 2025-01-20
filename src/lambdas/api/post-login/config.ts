@@ -3,7 +3,7 @@ import type {
   EncodeAccessJwtConfig,
   EncodeRefreshJwtConfig
 } from '@model/Config';
-import type { GoogleOAuthConfig } from '@services/google-oauth';
+import type { GoogleOAuthConfig } from '@services/google/google-oauth';
 import type { UserBaseStoreConfig } from '@services/user-base-store';
 import {
   readBaseConfig,

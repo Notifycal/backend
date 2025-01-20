@@ -21,8 +21,9 @@ import { describe, it, vi } from 'vitest';
 import type { Jwt, UnixTimestamp, Uuid } from '@own-types/model';
 import { validJwts } from '@testing/utils/jwt';
 import { UserBaseStore } from '@services/user-base-store';
-import type { User } from '@model/User';
 import { validUser } from '@testing/utils/model';
+import type { IdpName } from '@model/Identity';
+import type { UserStoreRecord } from '@model/UserStoreRecord';
 
 describe('POST Refresh', () => {
   it('should renew both tokens', () => {
@@ -228,7 +229,7 @@ describe('POST Refresh', () => {
   async function testit(
     event: APIGatewayProxyEvent,
     decodeAndVerifyJwtSignatureFn: () => Promise<RefreshToken>,
-    getUserByIdFn: () => Promise<User | undefined>,
+    getUserByIdFn: () => Promise<UserStoreRecord<IdpName> | undefined>,
     getRefreshTokenByFn: () => Promise<RefreshTokenStoreRecord | undefined>,
     buildJwtsAndStoreRefreshJwtFn: () => Promise<EncodedAndDecodedJwts>,
     env: RefreshConfig = defaultEnv
@@ -249,7 +250,7 @@ describe('POST Refresh', () => {
     vi.mocked(RefreshTokenBaseStore.prototype.getTokenBy).mockImplementation(getRefreshTokenByFn);
     vi.mock('@services/user-base-store', () => {
       const UserBaseStore = vi.fn();
-      (UserBaseStore.prototype as UserBaseStore).getUserById = vi.fn();
+      (UserBaseStore.prototype as UserBaseStore<IdpName>).getUserById = vi.fn();
       return {
         UserBaseStore
       };

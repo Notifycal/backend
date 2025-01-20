@@ -1,9 +1,9 @@
 import type { LoginConfig } from './config';
 import { handler, type Event } from './index';
-import { verifyGoogleIdentity, type GoogleOAuthConfig } from '@services/google-oauth';
+import { verifyGoogleIdentity, type GoogleOAuthConfig } from '@services/google/google-oauth';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { c, testEvent, unsafeTestEvent } from '@testing/apigateway';
-import type { User } from '@model/User';
+import type { UserStoreRecord } from '@model/UserStoreRecord';
 import { assert } from '@testing/utils/assertions';
 import {
   setEnvBaseConfig,
@@ -22,25 +22,32 @@ import type { EncodedAndDecodedJwts } from '@services/jwt';
 import { buildJwtsAndStoreRefreshJwt, signInOrUpUser } from '@services/login';
 import { resetTestingContext } from '@testing/setup-tests';
 import { describe, it, vi } from 'vitest';
-import type { Identity } from '@model/Identity';
+import type { Identity, IdpName } from '@model/Identity';
 import type { Email, IdpId, Jwt, UnixTimestamp, Uuid } from '@own-types/model';
 import { validJwts } from '@testing/utils/jwt';
+import type { AuthorizationForIdp } from '@model/IdpAuthorization';
 
 describe('POST Login', () => {
   const userEmail = 'test@notifycal.com' as Email;
   const validUserId = validJwts.accessToken.decoded.payload.userId;
-  const validIdentity: Identity = {
+  const validIdentity: Identity<'google.com'> = {
     userId: validJwts.accessToken.decoded.payload.userId,
     email: userEmail,
     idp: 'google.com',
     idpId: '12a46f95-91dc-4708-bcab-087afafb89de' as IdpId
   };
+  const validAuthorization: AuthorizationForIdp<'google.com'> = {
+    refreshToken: 'some_google_refressssh_token'
+  };
+  const validVerifyGoogleIdentityFn = (): Promise<
+    [Identity<'google.com'>, AuthorizationForIdp<'google.com'>]
+  > => Promise.resolve([validIdentity, validAuthorization]);
 
   it('should sign up a user', () => {
     const event = testEvent({
       googleCode: '<SOME-FAKE-GOOGLE-ID-TOKEN>'
     }) as unknown as APIGatewayProxyEvent;
-    const verifyGoogleIdentityFn = () => Promise.resolve(validIdentity);
+    const verifyGoogleIdentityFn = validVerifyGoogleIdentityFn;
     const signInOrUpUserFn = () => Promise.resolve(validUser(validIdentity.userId));
     const buildJwtsFn = () => Promise.resolve(validJwts);
 
@@ -60,7 +67,7 @@ describe('POST Login', () => {
     const event = testEvent({
       googleCode: '<SOME-FAKE-GOOGLE-ID-TOKEN>'
     }) as unknown as APIGatewayProxyEvent;
-    const verifyGoogleIdentityFn = () => Promise.resolve(validIdentity);
+    const verifyGoogleIdentityFn = validVerifyGoogleIdentityFn;
     const buildJwtsAndStoreRefreshJwtFn1 = () => Promise.resolve(validJwts);
     const validJwts2: EncodedAndDecodedJwts = {
       accessToken: {
@@ -153,7 +160,7 @@ describe('POST Login', () => {
     const event = unsafeTestEvent({
       'incorrect-field': '<SOME-FAKE-GOOGLE-ID-TOKEN>'
     }) as unknown as APIGatewayProxyEvent;
-    const verifyGoogleIdentityFn = () => Promise.resolve(validIdentity);
+    const verifyGoogleIdentityFn = validVerifyGoogleIdentityFn;
     const signInOrUpUserFn = () => Promise.resolve(validUser(validUserId));
     const buildJwtsAndStoreRefreshJwtFn = () => Promise.resolve(validJwts);
 
@@ -171,7 +178,7 @@ describe('POST Login', () => {
     const event = testEvent({
       googleCode: '<SOME-FAKE-GOOGLE-ID-TOKEN>'
     }) as unknown as APIGatewayProxyEvent;
-    const verifyGoogleIdentityFn = () => Promise.resolve(validIdentity);
+    const verifyGoogleIdentityFn = validVerifyGoogleIdentityFn;
     const signInOrUpUserFn = () => Promise.resolve(validUser(validUserId));
     const buildJwtsAndStoreRefreshJwtFn = () => Promise.reject(new Error('Boooom!'));
 
@@ -189,7 +196,7 @@ describe('POST Login', () => {
     const event = testEvent({
       googleCode: '<SOME-FAKE-GOOGLE-ID-TOKEN>'
     }) as unknown as APIGatewayProxyEvent;
-    const verifyGoogleIdentityFn = () => Promise.resolve(validIdentity);
+    const verifyGoogleIdentityFn = validVerifyGoogleIdentityFn;
     const signInOrUpUserFn = () => Promise.resolve(validUser(validUserId));
     const buildJwtsAndStoreRefreshJwtFn = () => Promise.resolve(validJwts);
     const env = structuredClone(defaultEnv);
@@ -210,7 +217,7 @@ describe('POST Login', () => {
     const event = testEvent({
       googleCode: '<SOME-FAKE-GOOGLE-ID-TOKEN>'
     }) as unknown as APIGatewayProxyEvent;
-    const verifyGoogleIdentityFn = () => Promise.resolve(validIdentity);
+    const verifyGoogleIdentityFn = validVerifyGoogleIdentityFn;
     const signInOrUpUserFn = () => Promise.reject(new Error('Error to sign in or up a user'));
     const buildJwtsAndStoreRefreshJwtFn = () => Promise.resolve(validJwts);
 
@@ -225,15 +232,15 @@ describe('POST Login', () => {
   });
 });
 
-async function testit(
+async function testit<T extends IdpName>(
   event: APIGatewayProxyEvent,
-  verifyGoogleIdentityFn: () => Promise<Identity>,
-  signInOrUpUserFn: () => Promise<User>,
+  verifyGoogleIdentityFn: () => Promise<[Identity<T>, AuthorizationForIdp<T>]>,
+  signInOrUpUserFn: () => Promise<UserStoreRecord<T>>,
   buildJwtsAndStoreRefreshJwtFn: () => Promise<EncodedAndDecodedJwts>,
   env: LoginConfig = defaultEnv
 ): Promise<APIGatewayProxyResult> {
   setEnv(env);
-  vi.mock('@services/google-oauth', () => ({
+  vi.mock('@services/google/google-oauth', () => ({
     verifyGoogleIdentity: vi.fn()
   }));
   vi.mocked(verifyGoogleIdentity).mockImplementation(verifyGoogleIdentityFn);

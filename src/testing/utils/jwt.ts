@@ -23,7 +23,7 @@ const loadDevConfig: () => Record<string, string> = (() => {
 
 const userId = '09b6b481-3fa1-4ed4-b3c1-5a9467acc7ef' as Uuid;
 const email = 'test@notifycal.com' as Email;
-const identity: Identity = {
+const identity: Identity<'google.com'> = {
   userId: userId,
   email: email,
   idp: 'google.com',

@@ -1,4 +1,4 @@
-import type { User } from '@model/User';
+import type { UserStoreRecord } from '@model/UserStoreRecord';
 import { UserBaseStore, type UserBaseStoreConfig } from './user-base-store';
 import type { EncodeAccessJwtConfig, EncodeRefreshJwtConfig } from '@model/Config';
 import type { UnixTimestamp } from '@own-types/model';
@@ -6,27 +6,34 @@ import type { APIGatewayProxyResult } from 'aws-lambda';
 import { successHandler } from './common/api-response-handlers';
 import { type EncodedAndDecodedJwts, buildJwts } from './jwt';
 import type { RefreshTokenBaseStore } from './refresh-token-base-store';
-import type { Identity } from '@model/Identity';
+import type { Identity, IdpName } from '@model/Identity';
+import type { AuthorizationForIdp } from '@model/IdpAuthorization';
 
-function signUpUser(identity: Identity, userProvider: UserBaseStore): Promise<User> {
+function signUpUser<TIdpName extends IdpName>(
+  identity: Identity<TIdpName>,
+  authorization: AuthorizationForIdp<TIdpName>,
+  userProvider: UserBaseStore<TIdpName>
+): Promise<UserStoreRecord<TIdpName>> {
   const now = Date.now() as UnixTimestamp;
-  const newUser: User = {
+  const newUser: UserStoreRecord<TIdpName> = {
     UserId: identity.userId,
     Email: identity.email,
     Idp: identity.idp,
     IdpId: identity.idpId,
     LastSignInAt: now,
     SignedUpAt: now,
-    Status: 'onboarding'
+    Status: 'onboarding',
+    Auth: authorization
   };
   return userProvider.putUser(newUser).then(() => newUser);
 }
 
-export function signInOrUpUser<TIdentity extends Identity>(
-  identity: TIdentity,
+export function signInOrUpUser<TIdpName extends IdpName>(
+  identity: Identity<TIdpName>,
+  authorization: AuthorizationForIdp<TIdpName>,
   config: UserBaseStoreConfig
-): Promise<User> {
-  const userProvider = new UserBaseStore(config);
+): Promise<UserStoreRecord<IdpName>> {
+  const userProvider = new UserBaseStore<IdpName>(config);
   return userProvider.getUserById(identity.userId).then(
     (userOrNot) => {
       if (userOrNot) {
@@ -42,7 +49,7 @@ export function signInOrUpUser<TIdentity extends Identity>(
           );
         }
       } else {
-        return signUpUser(identity, userProvider);
+        return signUpUser(identity, authorization, userProvider);
       }
     },
     (error) =>
@@ -52,8 +59,8 @@ export function signInOrUpUser<TIdentity extends Identity>(
   );
 }
 
-export function buildJwtsAndStoreRefreshJwt(
-  identity: Identity,
+export function buildJwtsAndStoreRefreshJwt<TIdpName extends IdpName>(
+  identity: Identity<TIdpName>,
   encodeAccessJwtConfig: EncodeAccessJwtConfig,
   encodeRefreshJwtConfig: EncodeRefreshJwtConfig,
   store: RefreshTokenBaseStore
