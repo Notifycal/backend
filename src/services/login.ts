@@ -22,10 +22,9 @@ function signUpUser<TIdpName extends IdpName>(
     IdpId: identity.idpId,
     LastSignInAt: now,
     SignedUpAt: now,
-    Status: 'onboarding',
-    Auth: authorization
+    Status: 'onboarding'
   };
-  return userProvider.putUser(newUser).then(() => newUser);
+  return userProvider.putUser(newUser, authorization).then(() => newUser);
 }
 
 export function signInOrUpUser<TIdpName extends IdpName>(
@@ -42,7 +41,7 @@ export function signInOrUpUser<TIdpName extends IdpName>(
             ...userOrNot,
             LastSignInAt: Date.now() as UnixTimestamp
           };
-          return userProvider.putUser(updatedUser).then(() => updatedUser);
+          return userProvider.putUser(updatedUser, authorization).then(() => updatedUser);
         } else {
           return Promise.reject(
             new Error(`User with id '${identity.userId}' is banned and login is prohibited`)

@@ -16,10 +16,10 @@
     "prettier:fix": "$npm_execpath run prettier -- --write",
     "check": "$npm_execpath run types && $npm_execpath run lint && $npm_execpath run prettier && $npm_execpath run test && echo 'Everything ready to go upstream' || echo 'CAUTION: Have another look'",
     "types": "tsc",
-    "test": "vitest --watch=false",
-    "test:watch": "vitest",
-    "test:ui": "vitest --ui",
-    "test:coverage": "vitest run --coverage"
+    "test": "$npm_execpath run types && vitest --watch=false",
+    "test:watch": "$npm_execpath run types vitest",
+    "test:ui": "$npm_execpath run types vitest --ui",
+    "test:coverage": "$npm_execpath run types vitest run --coverage"
   },
   "author": "",
   "license": "ISC",

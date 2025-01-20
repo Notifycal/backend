@@ -27,7 +27,6 @@ export function verifyGoogleIdentity<TIdpName extends 'google.com'>(
         `Google refresh token was not present in token obtained from Google using user's google code`
       );
     }
-    console.warn(tokenResponse.tokens.refresh_token);
     return client
       .verifyIdToken({
         idToken: tokenResponse.tokens.id_token,

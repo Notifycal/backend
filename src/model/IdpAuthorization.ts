@@ -6,8 +6,8 @@ export type AuthorizationForIdp<TIdpName> = TIdpName extends 'google.com'
   ? UserGoogleAuthorization
   : // : TIdpName extends 'idpName2' // this is how you would implement it the second time
     //   ? IdpName2Authorization
-    never;
+    unknown;
 
 export interface UserIdpAuthorization<TIdpName> {
-  auth: AuthorizationForIdp<TIdpName>;
+  idpAuthorization: AuthorizationForIdp<TIdpName>;
 }

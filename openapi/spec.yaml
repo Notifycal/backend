@@ -173,11 +173,39 @@ components:
       properties:
         UserId:
           type: string
-          format: email
+          format: uuid
+        Email:
+          type: string
+          format: uuid
+        Idp:
+          type: string
+        IdpId:
+          type: string
+        LastSignInAt:
+          schema: { $ref: '#/components/schemas/UnixTimestamp' }
+        SignedUpAt:
+          schema: { $ref: '#/components/schemas/UnixTimestamp' }
+        Status:
+          type: string
+          enum:
+            - live
+            - onboarding
+            - banned
       required:
         - UserId
+        - Email
+        - Idp
+        - IdpId
+        - LastSignInAt
+        - SignUpAt
+        - Status
       # Additionalproperties are allowed by default in OpenAPI. To enforce maximum strictness use additionalProperties: false to block all arbitrary data.
       additionalProperties: false
+
+    UnixTimestamp:
+      type: number
+      format: int64
+      description: Unix timestamp in seconds
 
     ErrorResponse:
       type: object
@@ -205,7 +233,7 @@ components:
             description: Response payload containing authorization
             properties:
               accessToken:
-                description: jwt to use as an authorization against all system APIs
+                description: jwt to use as an authorization against all system APIs. It contains the following claims userId, email, idp and idpId
                 type: string
               tokenType:
                 type: string
