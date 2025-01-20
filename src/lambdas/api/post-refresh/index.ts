@@ -65,5 +65,5 @@ function lambdaHandler(
 
 export const handler = unprotectedEndpointMiddleware(
   () => readRefreshConfig(),
-  schema
+  () => schema
 ).handler<Event>(lambdaHandler);
