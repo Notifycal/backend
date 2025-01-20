@@ -44,6 +44,6 @@ function claimChecker(): boolean {
 
 export const handler = protectedEndpointMiddleware(
   testingConfigReader,
-  () => eventSchema,
+  eventSchema,
   claimChecker
 ).handler<Event>(lambdaHandler);

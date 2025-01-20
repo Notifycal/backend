@@ -1,4 +1,4 @@
-import type { APIGatewayProxyEvent, APIGatewayProxyEventBase } from 'aws-lambda';
+import type { APIGatewayProxyEventBase } from 'aws-lambda';
 import type { AccessToken } from './Jwt';
 import { APIGatewayProxyEventSchema } from '@aws-lambda-powertools/parser/schemas';
 import { z } from 'zod';
@@ -38,5 +38,3 @@ export type AuthedEventWithConfig<TConfig> = APIGatewayProxyEventWithRequestCont
 export interface ResponseHeaders {
   [header: string]: boolean | number | string;
 }
-
-export type EventSchemaFn<TSchema extends z.ZodTypeAny> = (event: APIGatewayProxyEvent) => TSchema;
