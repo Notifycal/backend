@@ -45,5 +45,5 @@ function lambdaHandler(
 
 export const handler = unprotectedEndpointMiddleware(
   () => readLoginConfig(),
-  schema
+  () => schema
 ).handler<Event>(lambdaHandler);

@@ -28,5 +28,5 @@ function lambdaHandler(
 
 export const handler = protectedEndpointMiddleware(
   () => readGetUserConfig(),
-  eventSchema
+  () => eventSchema
 ).handler<Event>(lambdaHandler);
