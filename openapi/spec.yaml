@@ -46,6 +46,16 @@ paths:
       operationId: login
       tags: [user, auth]
       description: Let a user login against environment APIs
+      parameters:
+        - name: idp
+          in: query
+          description: The Idp verification mechanism to be used
+          required: true
+          schema:
+            type: string
+            default: google.com
+            enum:
+              - google.com
       requestBody:
         content:
           application/json:

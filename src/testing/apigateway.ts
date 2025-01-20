@@ -9,7 +9,11 @@ import type { EncodeAccessJwtConfig } from '@model/Config';
 import { type OurAccessTokenClaims, accessTokenSchema } from '@model/Jwt';
 import type { ZodSchema } from 'zod';
 
-function ttestEvent(body: string, headers: Record<string, string> = {}): APIGatewayProxyEvent {
+function ttestEvent(
+  body: string,
+  headers: Record<string, string> = {},
+  queryStringParameters: Record<string, string> = {}
+): APIGatewayProxyEvent {
   return {
     body: body,
     isBase64Encoded: false,
@@ -62,7 +66,7 @@ function ttestEvent(body: string, headers: Record<string, string> = {}): APIGate
       'X-Forwarded-Port': ['443'],
       'X-Forwarded-Proto': ['https']
     },
-    queryStringParameters: null,
+    queryStringParameters: queryStringParameters,
     multiValueQueryStringParameters: null,
     pathParameters: null,
     stageVariables: null,
@@ -105,13 +109,18 @@ function ttestEvent(body: string, headers: Record<string, string> = {}): APIGate
 export function unsafeTestEvent(
   /* eslint-disable-next-line @typescript-eslint/no-explicit-any */ /* eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types */
   body: any,
-  headers: Record<string, string> = {}
+  headers: Record<string, string> = {},
+  queryStringParameters: Record<string, string> = {}
 ): APIGatewayProxyEvent {
-  return ttestEvent(JSON.stringify(body), headers);
+  return ttestEvent(JSON.stringify(body), headers, queryStringParameters);
 }
 
-export function testEvent<T>(body: T, headers: Record<string, string> = {}): APIGatewayProxyEvent {
-  return ttestEvent(JSON.stringify(body), headers);
+export function testEvent<T>(
+  body: T,
+  headers: Record<string, string> = {},
+  queryStringParameters: Record<string, string> = {}
+): APIGatewayProxyEvent {
+  return ttestEvent(JSON.stringify(body), headers, queryStringParameters);
 }
 
 export function testAuthedEvent<T>(

@@ -42,11 +42,18 @@ describe('POST Login', () => {
   const validVerifyGoogleIdentityFn = (): Promise<
     [Identity<'google.com'>, AuthorizationForIdp<'google.com'>]
   > => Promise.resolve([validIdentity, validAuthorization]);
+  const validQueryParams = {
+    idp: 'google.com'
+  };
 
   it('should sign up a user', () => {
-    const event = testEvent({
-      googleCode: '<SOME-FAKE-GOOGLE-ID-TOKEN>'
-    }) as unknown as APIGatewayProxyEvent;
+    const event = testEvent(
+      {
+        googleCode: '<SOME-FAKE-GOOGLE-ID-TOKEN>'
+      },
+      {},
+      validQueryParams
+    ) as unknown as APIGatewayProxyEvent;
     const verifyGoogleIdentityFn = validVerifyGoogleIdentityFn;
     const signInOrUpUserFn = () => Promise.resolve(validUser(validIdentity.userId));
     const buildJwtsFn = () => Promise.resolve(validJwts);
@@ -64,9 +71,13 @@ describe('POST Login', () => {
   });
 
   it('should sign in a user', () => {
-    const event = testEvent({
-      googleCode: '<SOME-FAKE-GOOGLE-ID-TOKEN>'
-    }) as unknown as APIGatewayProxyEvent;
+    const event = testEvent(
+      {
+        googleCode: '<SOME-FAKE-GOOGLE-ID-TOKEN>'
+      },
+      {},
+      validQueryParams
+    ) as unknown as APIGatewayProxyEvent;
     const verifyGoogleIdentityFn = validVerifyGoogleIdentityFn;
     const buildJwtsAndStoreRefreshJwtFn1 = () => Promise.resolve(validJwts);
     const validJwts2: EncodedAndDecodedJwts = {
@@ -139,9 +150,13 @@ describe('POST Login', () => {
   });
 
   it('should fail if google identity verification fails with 401', () => {
-    const event = testEvent({
-      googleCode: '<SOME-INCORRECT-GOOGLE-ID-TOKEN>'
-    }) as unknown as APIGatewayProxyEvent;
+    const event = testEvent(
+      {
+        googleCode: '<SOME-INCORRECT-GOOGLE-ID-TOKEN>'
+      },
+      {},
+      validQueryParams
+    ) as unknown as APIGatewayProxyEvent;
     const verifyGoogleIdentityFn = () => Promise.reject(new Error('The identity was not valid'));
     const signInOrUpUserFn = () => Promise.resolve(validUser(validUserId));
     const buildJwtsAndStoreRefreshJwtFn = () => Promise.resolve(validJwts);
@@ -157,9 +172,13 @@ describe('POST Login', () => {
   });
 
   it('should fail input validation with 400', () => {
-    const event = unsafeTestEvent({
-      'incorrect-field': '<SOME-FAKE-GOOGLE-ID-TOKEN>'
-    }) as unknown as APIGatewayProxyEvent;
+    const event = unsafeTestEvent(
+      {
+        'incorrect-field': '<SOME-FAKE-GOOGLE-ID-TOKEN>'
+      },
+      {},
+      validQueryParams
+    ) as unknown as APIGatewayProxyEvent;
     const verifyGoogleIdentityFn = validVerifyGoogleIdentityFn;
     const signInOrUpUserFn = () => Promise.resolve(validUser(validUserId));
     const buildJwtsAndStoreRefreshJwtFn = () => Promise.resolve(validJwts);
@@ -175,9 +194,13 @@ describe('POST Login', () => {
   });
 
   it('should fail to generate JWT or store it with 500', () => {
-    const event = testEvent({
-      googleCode: '<SOME-FAKE-GOOGLE-ID-TOKEN>'
-    }) as unknown as APIGatewayProxyEvent;
+    const event = testEvent(
+      {
+        googleCode: '<SOME-FAKE-GOOGLE-ID-TOKEN>'
+      },
+      {},
+      validQueryParams
+    ) as unknown as APIGatewayProxyEvent;
     const verifyGoogleIdentityFn = validVerifyGoogleIdentityFn;
     const signInOrUpUserFn = () => Promise.resolve(validUser(validUserId));
     const buildJwtsAndStoreRefreshJwtFn = () => Promise.reject(new Error('Boooom!'));
@@ -193,9 +216,13 @@ describe('POST Login', () => {
   });
 
   it('should fail if environment is not set correctly with 500', () => {
-    const event = testEvent({
-      googleCode: '<SOME-FAKE-GOOGLE-ID-TOKEN>'
-    }) as unknown as APIGatewayProxyEvent;
+    const event = testEvent(
+      {
+        googleCode: '<SOME-FAKE-GOOGLE-ID-TOKEN>'
+      },
+      {},
+      validQueryParams
+    ) as unknown as APIGatewayProxyEvent;
     const verifyGoogleIdentityFn = validVerifyGoogleIdentityFn;
     const signInOrUpUserFn = () => Promise.resolve(validUser(validUserId));
     const buildJwtsAndStoreRefreshJwtFn = () => Promise.resolve(validJwts);
@@ -214,9 +241,13 @@ describe('POST Login', () => {
   });
 
   it('should fail if user cannot sign in or up with 500', () => {
-    const event = testEvent({
-      googleCode: '<SOME-FAKE-GOOGLE-ID-TOKEN>'
-    }) as unknown as APIGatewayProxyEvent;
+    const event = testEvent(
+      {
+        googleCode: '<SOME-FAKE-GOOGLE-ID-TOKEN>'
+      },
+      {},
+      validQueryParams
+    ) as unknown as APIGatewayProxyEvent;
     const verifyGoogleIdentityFn = validVerifyGoogleIdentityFn;
     const signInOrUpUserFn = () => Promise.reject(new Error('Error to sign in or up a user'));
     const buildJwtsAndStoreRefreshJwtFn = () => Promise.resolve(validJwts);
@@ -228,6 +259,52 @@ describe('POST Login', () => {
       buildJwtsAndStoreRefreshJwtFn
     ).then((resp) => {
       assert(resp, responseError(500));
+    });
+  });
+
+  it('should fail if query param idp does not match an implemented one with 401', () => {
+    const event = testEvent(
+      {
+        googleCode: '<SOME-FAKE-GOOGLE-ID-TOKEN>'
+      },
+      {},
+      {
+        idp: 'other-idp.es'
+      }
+    ) as unknown as APIGatewayProxyEvent;
+    const verifyGoogleIdentityFn = validVerifyGoogleIdentityFn;
+    const signInOrUpUserFn = () => Promise.resolve(validUser(validUserId));
+    const buildJwtsAndStoreRefreshJwtFn = () => Promise.resolve(validJwts);
+
+    return testit(
+      event,
+      verifyGoogleIdentityFn,
+      signInOrUpUserFn,
+      buildJwtsAndStoreRefreshJwtFn
+    ).then((resp) => {
+      assert(resp, responseError(401));
+    });
+  });
+
+  it('should fail if idp query param is missing with 401', () => {
+    const event = testEvent(
+      {
+        googleCode: '<SOME-FAKE-GOOGLE-ID-TOKEN>'
+      },
+      {},
+      {}
+    ) as unknown as APIGatewayProxyEvent;
+    const verifyGoogleIdentityFn = validVerifyGoogleIdentityFn;
+    const signInOrUpUserFn = () => Promise.resolve(validUser(validUserId));
+    const buildJwtsAndStoreRefreshJwtFn = () => Promise.resolve(validJwts);
+
+    return testit(
+      event,
+      verifyGoogleIdentityFn,
+      signInOrUpUserFn,
+      buildJwtsAndStoreRefreshJwtFn
+    ).then((resp) => {
+      assert(resp, responseError(401));
     });
   });
 });

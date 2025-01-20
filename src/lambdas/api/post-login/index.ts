@@ -9,13 +9,14 @@ import { RefreshTokenBaseStore } from '@services/refresh-token-base-store';
 import { errorHandler } from '@services/common/api-response-handlers';
 import { eventSchema } from '@model/ApiGatewayEvents';
 import { extractIdentity } from '@model/UserStoreRecord';
+import type { Identity, IdpName } from '@model/Identity';
+import type { AuthorizationForIdp } from '@model/IdpAuthorization';
 
+export const bodySchema = z.object({
+  googleCode: z.string()
+});
 const schema = eventSchema<LoginConfig>().extend({
-  body: JSONStringified(
-    z.object({
-      googleCode: z.string()
-    })
-  )
+  body: JSONStringified(bodySchema)
 });
 export type Event = z.infer<typeof schema>;
 
@@ -25,8 +26,10 @@ function lambdaHandler(
   ctx: Context
 ): Promise<APIGatewayProxyResult> {
   const config = event.endpointConfig;
+  const idpQueryPath = event.queryStringParameters?.['idp'];
   const store = new RefreshTokenBaseStore(config.refreshTokenBaseStoreConfig);
-  return verifyGoogleIdentity(event.body['googleCode'], config.googleOAuthClientConfig)
+  // eslint-disable-next-line no-use-before-define
+  return verifyIdentity(event, idpQueryPath, config)
     .then(([googleIdentity, googleAuthorization]) =>
       signInOrUpUser(googleIdentity, googleAuthorization, config.userBaseStoreConfig)
         .then((user) =>
@@ -41,6 +44,19 @@ function lambdaHandler(
         .catch(errorHandler(500))
     )
     .catch(errorHandler(401));
+}
+
+function verifyIdentity(
+  event: Event,
+  idpQueryParameter: string | undefined,
+  config: LoginConfig
+): Promise<[Identity<IdpName>, AuthorizationForIdp<IdpName>]> {
+  if (idpQueryParameter && idpQueryParameter === 'google.com') {
+    return verifyGoogleIdentity(event.body.googleCode, config.googleOAuthClientConfig);
+  }
+  return Promise.reject(
+    new Error(`Idp identity verification not implemented. Query parameter: ${idpQueryParameter}`)
+  );
 }
 
 export const handler = unprotectedEndpointMiddleware(
