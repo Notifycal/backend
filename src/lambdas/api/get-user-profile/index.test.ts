@@ -8,7 +8,7 @@ import {
   setEnvUserBaseStoreConfig
 } from '@testing/utils/config';
 import { getDefaultDecodeAccessJwtConfig } from '@testing/utils/jwt';
-import type { User } from '@model/User';
+import type { UserStoreRecord } from '@model/UserStoreRecord';
 import type { OurAccessTokenClaims } from '@model/Jwt';
 import { responseError, responseSuccess } from '@testing/utils/api-response-handlers';
 import { validUser } from '@testing/utils/model';
@@ -82,13 +82,13 @@ describe('GET User profile', () => {
 
 async function testit(
   event: APIGatewayProxyEvent,
-  getUserByIdFn: () => Promise<User | undefined>,
+  getUserByIdFn: () => Promise<UserStoreRecord<IdpName> | undefined>,
   env: GetUserProfileConfig = defaultEnv
 ): Promise<APIGatewayProxyResult> {
   setEnv(env);
   vi.mock('@services/user-base-store', () => {
     const UserBaseStore = vi.fn();
-    (UserBaseStore.prototype as UserBaseStore).getUserById = vi.fn();
+    (UserBaseStore.prototype as UserBaseStore<IdpName>).getUserById = vi.fn();
     return {
       UserBaseStore
     };

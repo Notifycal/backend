@@ -123,7 +123,7 @@ describe('Jwts builder', () => {
   });
 
   function testit(
-    identity: Identity,
+    identity: Identity<IdpName>,
     encodeJwtConfig: EncodeAccessJwtConfig,
     encodeRefreshJwtConfig: EncodeRefreshJwtConfig
   ): Promise<EncodedAndDecodedJwts> {

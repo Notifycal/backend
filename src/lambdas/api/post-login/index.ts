@@ -1,5 +1,5 @@
 import type { APIGatewayProxyResult, Context } from 'aws-lambda';
-import { verifyGoogleIdentity } from '@services/google-oauth';
+import { verifyGoogleIdentity } from '@services/google/google-oauth';
 import { type LoginConfig, readLoginConfig } from './config';
 import { unprotectedEndpointMiddleware } from '@common/lambda-middleware';
 import { z } from 'zod';
@@ -8,7 +8,7 @@ import { JSONStringified } from '@aws-lambda-powertools/parser/helpers';
 import { RefreshTokenBaseStore } from '@services/refresh-token-base-store';
 import { errorHandler } from '@services/common/api-response-handlers';
 import { eventSchema } from '@model/ApiGatewayEvents';
-import { extractIdentity } from '@model/User';
+import { extractIdentity } from '@model/UserStoreRecord';
 
 const schema = eventSchema<LoginConfig>().extend({
   body: JSONStringified(
@@ -27,8 +27,8 @@ function lambdaHandler(
   const config = event.endpointConfig;
   const store = new RefreshTokenBaseStore(config.refreshTokenBaseStoreConfig);
   return verifyGoogleIdentity(event.body['googleCode'], config.googleOAuthClientConfig)
-    .then((googleIdentity) =>
-      signInOrUpUser(googleIdentity, config.userBaseStoreConfig)
+    .then(([googleIdentity, googleAuthorization]) =>
+      signInOrUpUser(googleIdentity, googleAuthorization, config.userBaseStoreConfig)
         .then((user) =>
           buildJwtsAndStoreRefreshJwt(
             extractIdentity(user),

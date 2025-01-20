@@ -1,16 +1,17 @@
 import { PutCommand, GetCommand } from '@aws-sdk/lib-dynamodb';
-import type { User } from '@model/User';
+import type { UserStoreRecord } from '@model/UserStoreRecord';
 import { BaseStore, type BaseStoreConfig } from './common/base-store';
 import type { UserId } from '@own-types/model';
+import type { IdpName } from '@model/Identity';
 
 export type UserBaseStoreConfig = BaseStoreConfig;
 
-export class UserBaseStore extends BaseStore<UserBaseStoreConfig> {
+export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseStoreConfig> {
   public constructor(config: UserBaseStoreConfig) {
     super(config);
   }
 
-  public getUserById(id: UserId): Promise<User | undefined> {
+  public getUserById(id: UserId): Promise<UserStoreRecord<TIdpName> | undefined> {
     const lookupCmd = new GetCommand({
       Key: {
         UserId: id
@@ -21,7 +22,7 @@ export class UserBaseStore extends BaseStore<UserBaseStoreConfig> {
       (item) => {
         const user = item.Item;
         if (user) {
-          const u = user as User;
+          const u = user as UserStoreRecord<TIdpName>;
           return u.Status !== 'banned' ? u : undefined;
         } else {
           return undefined;
@@ -32,7 +33,7 @@ export class UserBaseStore extends BaseStore<UserBaseStoreConfig> {
     );
   }
 
-  public putUser(user: User): Promise<null> {
+  public putUser(user: UserStoreRecord<IdpName>): Promise<null> {
     const insertCmd = new PutCommand({
       Item: user,
       TableName: this._tableName,

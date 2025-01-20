@@ -16,9 +16,11 @@ import {
   refreshTokenSchema
 } from '@model/Jwt';
 import { rejectWithErrorMessage } from './common/error-handling';
-import type { Identity } from '@model/Identity';
+import type { Identity, IdpName } from '@model/Identity';
 
-export function accessJwtPayload(identity: Identity): OurAccessTokenClaims {
+export function accessJwtPayload<TIdpName extends IdpName>(
+  identity: Identity<TIdpName>
+): OurAccessTokenClaims {
   return {
     ...identity,
     role: 'user',
@@ -77,8 +79,8 @@ export function buildJwt<T extends z.ZodTypeAny>(
   }
 }
 
-export function buildJwts(
-  identity: Identity,
+export function buildJwts<TIdpName extends IdpName>(
+  identity: Identity<TIdpName>,
   encodeJwtConfig: EncodeAccessJwtConfig,
   encodeRefreshJwtConfig: EncodeRefreshJwtConfig
 ): Promise<EncodedAndDecodedJwts> {
