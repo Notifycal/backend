@@ -1,6 +1,6 @@
+import type { Identity } from './../../model/Identity';
 import { OAuth2Client } from 'google-auth-library';
 import { idGenerator } from '../id-generator';
-import type { Identity, IdpName } from '@model/Identity';
 import type { Email, IdpId } from '@own-types/model';
 import type { AuthorizationForIdp } from '@model/IdpAuthorization';
 import { throwError } from '@services/common/error-handling';
@@ -11,7 +11,7 @@ export interface GoogleOAuthConfig {
   redirectUri: string;
 }
 
-export function verifyGoogleIdentity(
+export function verifyGoogleIdentity<TIdpName extends 'google.com'>(
   userGoogleCode: string,
   config: GoogleOAuthConfig
 ): Promise<[Identity<'google.com'>, AuthorizationForIdp<'google.com'>]> {
@@ -51,18 +51,16 @@ export function verifyGoogleIdentity(
             `Email could not be extracted out of Google token id. Extracted id: '${id}' and email: '${email}'`
           );
         }
-        const idpName: IdpName = 'google.com';
-        return [
-          {
-            userId: idGenerator(id, idpName),
-            email: email as Email,
-            idp: idpName,
-            idpId: id as IdpId
-          },
-          {
-            refreshToken: tokenResponse.tokens.refresh_token as string
-          }
-        ];
+        const identity: Identity<'google.com'> = {
+          userId: idGenerator(id, 'google.com'),
+          email: email as Email,
+          idp: 'google.com' as TIdpName,
+          idpId: id as IdpId
+        };
+        const authorization: AuthorizationForIdp<'google.com'> = {
+          refreshToken: tokenResponse.tokens.refresh_token as string
+        };
+        return [identity, authorization];
       });
   });
 }

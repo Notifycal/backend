@@ -4,7 +4,7 @@ import bodyParser from 'body-parser';
 import timeout from 'connect-timeout';
 
 import routes from './routes.js';
-import { unsafeTestEvent } from '../dist/testing/apigateway.cjs';
+import { unsafeTestEvent, c as testingContext } from '../dist/testing/apigateway.cjs';
 
 const port = process.env.PORT || 8080;
 
@@ -52,8 +52,8 @@ const initialize = (router) => {
 
   const respondParam = (endpoint, method) => (req, res) => {
     // TODO: only valid while all endpoints are of type APIGatewayProxyEvent.
-    const event = unsafeTestEvent(req.body || {}, req.headers);
-    const responsePromise = routes[endpoint][method](event, req.body);
+    const event = unsafeTestEvent(req.body || {}, req.headers, req.query);
+    const responsePromise = routes[endpoint][method](event, testingContext);
     respond(responsePromise, res);
   };
 
