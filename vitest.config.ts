@@ -10,7 +10,7 @@ export default mergeConfig(
       environment: 'node',
       setupFiles: ['src/testing/setup-tests.ts'],
       coverage: {
-        enabled: true,
+        enabled: false,
         include: ['src/*'],
         exclude: ['testing/*'],
         extension: ['.ts']

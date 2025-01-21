@@ -1,0 +1,94 @@
+{
+  "config": {
+    "url": "https://www.googleapis.com/calendar/v3/calendars/bbf37e0c3b2dbf6fa2a2ada2e2c96c775e4e6987fb8a3bbcbc2f23f84bd3620b%40group.calendar.google.com/events",
+    "method": "GET",
+    "apiVersion": "",
+    "userAgentDirectives": [
+      { "product": "google-api-nodejs-client", "version": "7.2.0", "comment": "gzip" }
+    ],
+    "headers": {
+      "x-goog-api-client": "gdcl/7.2.0 gl-node/22.12.0",
+      "Accept-Encoding": "gzip",
+      "User-Agent": "google-api-nodejs-client/7.2.0 (gzip)",
+      "Authorization": "Bearer <OMITTED>"
+    },
+    "params": {},
+    "retry": true,
+    "responseType": "unknown"
+  },
+  "data": {
+    "kind": "calendar#events",
+    "etag": "\"p3389fcsuvi38m0o\"",
+    "summary": "TestingSergio",
+    "description": "",
+    "updated": "2025-01-21T13:58:00.066Z",
+    "timeZone": "Europe/Madrid",
+    "accessRole": "reader",
+    "defaultReminders": [],
+    "nextSyncToken": "CNCXs578hosDENCXs578hosDGAEg__rJ1QIo__rJ1QI=",
+    "items": [
+      {
+        "kind": "calendar#event",
+        "etag": "\"3474935732398000\"",
+        "id": "075c3bk0bidv6p9q3pfletf4oh",
+        "status": "confirmed",
+        "htmlLink": "https://www.google.com/calendar/event?eid=MDc1YzNiazBiaWR2NnA5cTNwZmxldGY0b2ggYmJmMzdlMGMzYjJkYmY2ZmEyYTJhZGEyZTJjOTZjNzc1ZTRlNjk4N2ZiOGEzYmJjYmMyZjIzZjg0YmQzNjIwYkBn",
+        "created": "2025-01-21T13:57:46.000Z",
+        "updated": "2025-01-21T13:57:46.199Z",
+        "summary": "Testingggggg",
+        "creator": { "email": "notifycal@gmail.com" },
+        "organizer": {
+          "email": "bbf37e0c3b2dbf6fa2a2ada2e2c96c775e4e6987fb8a3bbcbc2f23f84bd3620b@group.calendar.google.com",
+          "displayName": "TestingSergio",
+          "self": true
+        },
+        "start": { "dateTime": "2025-01-21T15:30:00+01:00", "timeZone": "Europe/Madrid" },
+        "end": { "dateTime": "2025-01-21T16:30:00+01:00", "timeZone": "Europe/Madrid" },
+        "iCalUID": "075c3bk0bidv6p9q3pfletf4oh@google.com",
+        "sequence": 0,
+        "attendees": [
+          { "email": "notifycal@gmail.com", "responseStatus": "needsAction" },
+          { "email": "sergio.anger@gmail.com", "responseStatus": "needsAction" }
+        ],
+        "hangoutLink": "https://meet.google.com/kaj-chgy-jjn",
+        "conferenceData": {
+          "entryPoints": [
+            {
+              "entryPointType": "video",
+              "uri": "https://meet.google.com/kaj-chgy-jjn",
+              "label": "meet.google.com/kaj-chgy-jjn"
+            }
+          ],
+          "conferenceSolution": {
+            "key": { "type": "hangoutsMeet" },
+            "name": "Google Meet",
+            "iconUri": "https://fonts.gstatic.com/s/i/productlogos/meet_2020q4/v6/web-512dp/logo_meet_2020q4_color_2x_web_512dp.png"
+          },
+          "conferenceId": "kaj-chgy-jjn"
+        },
+        "reminders": { "useDefault": true },
+        "eventType": "default"
+      }
+    ]
+  },
+  "headers": {
+    "alt-svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
+    "cache-control": "private, max-age=0, must-revalidate, no-transform",
+    "content-encoding": "gzip",
+    "content-type": "application/json; charset=UTF-8",
+    "date": "Tue, 21 Jan 2025 13:58:01 GMT",
+    "expires": "Tue, 21 Jan 2025 13:58:01 GMT",
+    "server": "ESF",
+    "transfer-encoding": "chunked",
+    "vary": "Origin, X-Origin, Referer",
+    "x-content-type-options": "nosniff",
+    "x-frame-options": "SAMEORIGIN",
+    "x-l2-request-path": "l2-managed-14",
+    "x-xss-protection": "0"
+  },
+  "status": 200,
+  "statusText": "OK",
+  "request": {
+    "responseURL": "https://www.googleapis.com/calendar/v3/calendars/bbf37e0c3b2dbf6fa2a2ada2e2c96c775e4e6987fb8a3bbcbc2f23f84bd3620b%40group.calendar.google.com/events"
+  }
+}

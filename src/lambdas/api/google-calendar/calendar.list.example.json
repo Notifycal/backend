@@ -1,0 +1,127 @@
+{
+  "config": {
+    "url": "https://www.googleapis.com/calendar/v3/users/me/calendarList",
+    "method": "GET",
+    "apiVersion": "",
+    "userAgentDirectives": [
+      { "product": "google-api-nodejs-client", "version": "7.2.0", "comment": "gzip" }
+    ],
+    "headers": {
+      "x-goog-api-client": "gdcl/7.2.0 gl-node/22.12.0",
+      "Accept-Encoding": "gzip",
+      "User-Agent": "google-api-nodejs-client/7.2.0 (gzip)",
+      "Authorization": "Bearer <OMITTED>"
+    },
+    "params": {},
+    "retry": true,
+    "responseType": "unknown"
+  },
+  "data": {
+    "kind": "calendar#calendarList",
+    "etag": "\"p32c9p7cnh63om0o\"",
+    "nextSyncToken": "CJicnZeJh4sDEhNub3RpZnljYWxAZ21haWwuY29t",
+    "items": [
+      {
+        "kind": "calendar#calendarListEntry",
+        "etag": "\"1710898052988000\"",
+        "id": "en.spain#holiday@group.v.calendar.google.com",
+        "summary": "Holidays in Spain",
+        "description": "Holidays and Observances in Spain",
+        "timeZone": "Europe/Madrid",
+        "colorId": "8",
+        "backgroundColor": "#16a765",
+        "foregroundColor": "#000000",
+        "selected": true,
+        "accessRole": "reader",
+        "defaultReminders": [],
+        "conferenceProperties": { "allowedConferenceSolutionTypes": ["hangoutsMeet"] }
+      },
+      {
+        "kind": "calendar#calendarListEntry",
+        "etag": "\"1711067575327000\"",
+        "id": "notifycal@gmail.com",
+        "summary": "notifycal@gmail.com",
+        "timeZone": "Europe/Madrid",
+        "colorId": "14",
+        "backgroundColor": "#9fe1e7",
+        "foregroundColor": "#000000",
+        "selected": true,
+        "accessRole": "owner",
+        "defaultReminders": [
+          { "method": "popup", "minutes": 10 },
+          { "method": "popup", "minutes": 600 }
+        ],
+        "notificationSettings": {
+          "notifications": [
+            { "type": "eventCreation", "method": "email" },
+            { "type": "eventChange", "method": "email" },
+            { "type": "eventCancellation", "method": "email" },
+            { "type": "eventResponse", "method": "email" }
+          ]
+        },
+        "primary": true,
+        "conferenceProperties": { "allowedConferenceSolutionTypes": ["hangoutsMeet"] }
+      },
+      {
+        "kind": "calendar#calendarListEntry",
+        "etag": "\"1737456504477000\"",
+        "id": "5bfd87155186d6818613db6f5f42c560e126d3fc21a249f9ca61807d6aa81e86@group.calendar.google.com",
+        "summary": "Testing SA invite",
+        "timeZone": "Europe/Madrid",
+        "colorId": "17",
+        "backgroundColor": "#9a9cff",
+        "foregroundColor": "#000000",
+        "selected": true,
+        "accessRole": "owner",
+        "defaultReminders": [],
+        "conferenceProperties": { "allowedConferenceSolutionTypes": ["hangoutsMeet"] }
+      },
+      {
+        "kind": "calendar#calendarListEntry",
+        "etag": "\"1737456941278000\"",
+        "id": "b522f10b11034db056d97087b918ec004c98c553c26b958f6200fbaedd806a87@group.calendar.google.com",
+        "summary": "TestingCal",
+        "timeZone": "Europe/Madrid",
+        "colorId": "1",
+        "backgroundColor": "#ac725e",
+        "foregroundColor": "#000000",
+        "selected": true,
+        "accessRole": "owner",
+        "defaultReminders": [],
+        "conferenceProperties": { "allowedConferenceSolutionTypes": ["hangoutsMeet"] }
+      },
+      {
+        "kind": "calendar#calendarListEntry",
+        "etag": "\"1737471354687000\"",
+        "id": "bbf37e0c3b2dbf6fa2a2ada2e2c96c775e4e6987fb8a3bbcbc2f23f84bd3620b@group.calendar.google.com",
+        "summary": "TestingSergio",
+        "timeZone": "Europe/Madrid",
+        "colorId": "6",
+        "backgroundColor": "#ffad46",
+        "foregroundColor": "#000000",
+        "selected": true,
+        "accessRole": "owner",
+        "defaultReminders": [],
+        "conferenceProperties": { "allowedConferenceSolutionTypes": ["hangoutsMeet"] }
+      }
+    ]
+  },
+  "headers": {
+    "alt-svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
+    "cache-control": "private, max-age=0, must-revalidate, no-transform",
+    "content-encoding": "gzip",
+    "content-type": "application/json; charset=UTF-8",
+    "date": "Tue, 21 Jan 2025 15:21:18 GMT",
+    "expires": "Tue, 21 Jan 2025 15:21:18 GMT",
+    "server": "ESF",
+    "transfer-encoding": "chunked",
+    "vary": "Origin, X-Origin, Referer",
+    "x-content-type-options": "nosniff",
+    "x-frame-options": "SAMEORIGIN",
+    "x-l2-request-path": "l2-managed-14",
+    "x-xss-protection": "0"
+  },
+  "status": 200,
+  "statusText": "OK",
+  "request": { "responseURL": "https://www.googleapis.com/calendar/v3/users/me/calendarList" }
+}
