@@ -1,0 +1,141 @@
+{
+  "config": {
+    "url": "https://people.googleapis.com/v1/people/me/connections?personFields=addresses%2CageRanges%2Cbiographies%2Cbirthdays%2CcalendarUrls%2CclientData%2CcoverPhotos%2CemailAddresses%2Cevents%2CexternalIds%2Cgenders%2CimClients%2Cinterests%2Clocales%2Clocations%2Cmemberships%2Cmetadata%2CmiscKeywords%2Cnames%2Cnicknames%2Coccupations%2Corganizations%2CphoneNumbers%2Cphotos%2Crelations%2CsipAddresses%2Cskills%2Curls%2CuserDefined",
+    "method": "GET",
+    "apiVersion": "",
+    "userAgentDirectives": [
+      { "product": "google-api-nodejs-client", "version": "7.2.0", "comment": "gzip" }
+    ],
+    "headers": {
+      "x-goog-api-client": "gdcl/7.2.0 gl-node/22.12.0",
+      "Accept-Encoding": "gzip",
+      "User-Agent": "google-api-nodejs-client/7.2.0 (gzip)",
+      "Authorization": "Bearer <OMITTED>"
+    },
+    "params": {
+      "personFields": "addresses,ageRanges,biographies,birthdays,calendarUrls,clientData,coverPhotos,emailAddresses,events,externalIds,genders,imClients,interests,locales,locations,memberships,metadata,miscKeywords,names,nicknames,occupations,organizations,phoneNumbers,photos,relations,sipAddresses,skills,urls,userDefined"
+    },
+    "retry": true,
+    "responseType": "unknown"
+  },
+  "data": {
+    "connections": [
+      {
+        "resourceName": "people/c4368069930942949225",
+        "etag": "%EiMBAgMFBgcICQoLDA0ODxATFBUWGSEiIyQlJicuNDU3PT4/QBoEAQIFByIMenZ1QVJUaGZ1Mnc9",
+        "metadata": {
+          "sources": [
+            {
+              "type": "CONTACT",
+              "id": "3c9e80758beb6769",
+              "etag": "#zvuARThfu2w=",
+              "updateTime": "2025-01-21T13:56:56.807507Z"
+            },
+            {
+              "type": "PROFILE",
+              "id": "100191779588610271871",
+              "etag": "#FGnnVi7qMmg=",
+              "profileMetadata": { "objectType": "PERSON", "userTypes": ["GOOGLE_USER"] },
+              "updateTime": "2025-01-20T00:57:27.538023Z"
+            }
+          ],
+          "objectType": "PERSON"
+        },
+        "names": [
+          {
+            "metadata": {
+              "primary": true,
+              "source": { "type": "CONTACT", "id": "3c9e80758beb6769" },
+              "sourcePrimary": true
+            },
+            "displayName": "Sergio M",
+            "givenName": "Sergio M",
+            "displayNameLastFirst": "Sergio M",
+            "unstructuredName": "Sergio M"
+          }
+        ],
+        "coverPhotos": [
+          {
+            "metadata": {
+              "primary": true,
+              "source": { "type": "PROFILE", "id": "100191779588610271871" }
+            },
+            "url": "https://lh3.googleusercontent.com/c5dqxl-2uHZ82ah9p7yxrVF1ZssrJNSV_15Nu0TUZwzCWqmtoLxCUJgEzLGtxsrJ6-v6R6rKU_-FYm881TTiMCJ_=s1600",
+            "default": true
+          }
+        ],
+        "photos": [
+          {
+            "metadata": {
+              "primary": true,
+              "source": { "type": "CONTACT", "id": "3c9e80758beb6769" }
+            },
+            "url": "https://lh3.googleusercontent.com/cm/AGPWSu_7ZivosbayzRQ9K-h50O6D753viepy0j948nLBG-knSJoaTxfv78MiZs-wkCI1GOWXGw=s100",
+            "default": true
+          },
+          {
+            "metadata": { "source": { "type": "PROFILE", "id": "100191779588610271871" } },
+            "url": "https://lh3.googleusercontent.com/a-/ALV-UjVwoRKrnc4L87gAYUOqP4T1BKhLSuApV99lJmkqXG4lDg283w=s100",
+            "default": true
+          }
+        ],
+        "emailAddresses": [
+          {
+            "metadata": {
+              "primary": true,
+              "source": { "type": "CONTACT", "id": "3c9e80758beb6769" }
+            },
+            "value": "sergio.anger@gmail.com"
+          }
+        ],
+        "phoneNumbers": [
+          {
+            "metadata": {
+              "primary": true,
+              "source": { "type": "CONTACT", "id": "3c9e80758beb6769" }
+            },
+            "value": "666 88 89 99",
+            "canonicalForm": "+34666888999"
+          }
+        ],
+        "organizations": [
+          {
+            "metadata": {
+              "primary": true,
+              "source": { "type": "CONTACT", "id": "3c9e80758beb6769" }
+            },
+            "name": "Notifycal"
+          }
+        ],
+        "memberships": [
+          {
+            "metadata": { "source": { "type": "CONTACT", "id": "3c9e80758beb6769" } },
+            "contactGroupMembership": {
+              "contactGroupId": "myContacts",
+              "contactGroupResourceName": "contactGroups/myContacts"
+            }
+          }
+        ]
+      }
+    ],
+    "totalPeople": 1,
+    "totalItems": 1
+  },
+  "headers": {
+    "alt-svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
+    "content-encoding": "gzip",
+    "content-type": "application/json; charset=UTF-8",
+    "date": "Tue, 21 Jan 2025 17:04:35 GMT",
+    "server": "ESF",
+    "transfer-encoding": "chunked",
+    "vary": "Origin, X-Origin, Referer",
+    "x-content-type-options": "nosniff",
+    "x-frame-options": "SAMEORIGIN",
+    "x-xss-protection": "0"
+  },
+  "status": 200,
+  "statusText": "OK",
+  "request": {
+    "responseURL": "https://people.googleapis.com/v1/people/me/connections?personFields=addresses%2CageRanges%2Cbiographies%2Cbirthdays%2CcalendarUrls%2CclientData%2CcoverPhotos%2CemailAddresses%2Cevents%2CexternalIds%2Cgenders%2CimClients%2Cinterests%2Clocales%2Clocations%2Cmemberships%2Cmetadata%2CmiscKeywords%2Cnames%2Cnicknames%2Coccupations%2Corganizations%2CphoneNumbers%2Cphotos%2Crelations%2CsipAddresses%2Cskills%2Curls%2CuserDefined"
+  }
+}

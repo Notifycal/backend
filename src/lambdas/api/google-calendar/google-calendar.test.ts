@@ -2,6 +2,7 @@ import {
   authWithRefreshToken,
   authWithServiceAccount,
   getCalendarEvents,
+  getContact,
   getGoogleCalendars,
   shareCalendar
 } from '@services/google/google-calendar';
@@ -12,7 +13,7 @@ const REFRESH_TOKEN =
   '<OMITTED>'; //notifycal@gmail.com refreshtoken
 const SERVICE_ACCOUNT_EMAIL = 'testing@notifycal.iam.gserviceaccount.com';
 
-describe('gcalendar', () => {
+describe('gcalendar/gcontacts', () => {
   it('gcalendar ok1', async () => {
     const x = await getGoogleCalendars(authWithRefreshToken(REFRESH_TOKEN));
 
@@ -26,6 +27,14 @@ describe('gcalendar', () => {
     await shareCalendar(auth, calendarId, SERVICE_ACCOUNT_EMAIL);
     const saAuth = authWithServiceAccount(SERVICE_ACCOUNT_PATH);
     const x = await getCalendarEvents(saAuth, calendarId);
+
+    expect(x).toStrictEqual(x);
+  });
+
+  it('gcontacts ok3', async () => {
+    const auth = authWithRefreshToken(REFRESH_TOKEN);
+    // const auth = authWithServiceAccount(SERVICE_ACCOUNT_PATH);
+    const x = await getContact('not used', auth);
 
     expect(x).toStrictEqual(x);
   });

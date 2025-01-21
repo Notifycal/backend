@@ -1,5 +1,5 @@
 /* eslint-disable camelcase */
-import { google, type calendar_v3 } from 'googleapis';
+import { google, type calendar_v3, type people_v1 } from 'googleapis';
 import { type GoogleAuth, OAuth2Client } from 'google-auth-library';
 import type { JSONClient } from 'google-auth-library/build/src/auth/googleauth';
 import { throwError } from '@services/common/error-handling';
@@ -17,7 +17,10 @@ export function authWithRefreshToken(refreshToken: string): OAuth2Client {
 export function authWithServiceAccount(serviceAccountFile: string): GoogleAuth<JSONClient> {
   return new google.auth.GoogleAuth({
     keyFile: serviceAccountFile,
-    scopes: ['https://www.googleapis.com/auth/calendar']
+    scopes: [
+      'https://www.googleapis.com/auth/calendar',
+      'https://www.googleapis.com/auth/directory.readonly'
+    ]
   });
 }
 
@@ -54,7 +57,7 @@ export function getCalendarEvents(
     });
 }
 
-export async function shareCalendar(
+export function shareCalendar(
   auth: OAuth2Client,
   calendarId: string,
   sharingEmail: string
@@ -82,4 +85,63 @@ export async function shareCalendar(
     .catch((error) => {
       throwError(`PUT Calendar ${calendarId} ACL Rule for user ${sharingEmail}. Error: ${error}`);
     });
+}
+
+export function getContact(
+  email: string,
+  auth: OAuth2Client | GoogleAuth<JSONClient>
+): Promise<unknown> {
+  const peopleService = google.people({ version: 'v1', auth });
+
+  const PERSON_FIELDS: Array<string> = [
+    'addresses',
+    'ageRanges',
+    'biographies',
+    'birthdays',
+    'calendarUrls',
+    'clientData',
+    'coverPhotos',
+    'emailAddresses',
+    'events',
+    'externalIds',
+    'genders',
+    'imClients',
+    'interests',
+    'locales',
+    'locations',
+    'memberships',
+    'metadata',
+    'miscKeywords',
+    'names',
+    'nicknames',
+    'occupations',
+    'organizations',
+    'phoneNumbers',
+    'photos',
+    'relations',
+    'sipAddresses',
+    'skills',
+    'urls',
+    'userDefined'
+  ];
+
+  const personListRequest: people_v1.Params$Resource$People$Connections$List = {
+    personFields: PERSON_FIELDS.join(','),
+    resourceName: 'people/me'
+  };
+  return peopleService.people.connections
+    .list(personListRequest)
+    .then((response) => {
+      console.log(`GET People List response: ${JSON.stringify(response)}`);
+      const peopleList = response.data.connections;
+      return peopleList;
+    })
+    .catch((error) => {
+      throwError(`GET People List. Error: ${error}`);
+    });
+  // const personRequest: people_v1.Params$Resource$People$Get = {
+  //   personFields: PERSON_FIELDS.join(', '),
+  //   resourceName: email
+  // };
+  // return peopleService.people.get(personRequest);
 }
