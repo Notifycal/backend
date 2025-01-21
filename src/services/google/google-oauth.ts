@@ -1,6 +1,6 @@
-import type { Identity } from './../../model/Identity';
+import type { Identity } from '@model/Identity';
 import { OAuth2Client } from 'google-auth-library';
-import { idGenerator } from '../id-generator';
+import { idGenerator } from '@services/id-generator';
 import type { Email, IdpId } from '@own-types/model';
 import type { AuthorizationForIdp } from '@model/IdpAuthorization';
 import { throwError } from '@services/common/error-handling';
