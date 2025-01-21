@@ -11,7 +11,7 @@ type UserIdentity<TIdpName> = CapitalizeKeys<Identity<TIdpName>>;
 export interface UserStoreRecord<TIdpName> extends UserIdentity<TIdpName> {
   LastSignInAt: UnixTimestamp;
   SignedUpAt: UnixTimestamp;
-  Status: UserStatus;
+  UserStatus: UserStatus;
 }
 export function extractIdentity<TIdpName extends IdpName>(
   user: UserStoreRecord<TIdpName>

@@ -22,7 +22,7 @@ function signUpUser<TIdpName extends IdpName>(
     IdpId: identity.idpId,
     LastSignInAt: now,
     SignedUpAt: now,
-    Status: 'onboarding'
+    UserStatus: 'onboarding'
   };
   return userProvider.putUser(newUser, authorization).then(() => newUser);
 }
@@ -36,7 +36,7 @@ export function signInOrUpUser<TIdpName extends IdpName>(
   return userProvider.getUserById(identity.userId).then(
     (userOrNot) => {
       if (userOrNot) {
-        if (userOrNot.Status !== 'banned') {
+        if (userOrNot.UserStatus !== 'banned') {
           const updatedUser = {
             ...userOrNot,
             LastSignInAt: Date.now() as UnixTimestamp

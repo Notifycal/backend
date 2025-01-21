@@ -20,7 +20,7 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
       'IdpId',
       'LastSignInAt',
       'SignedUpAt',
-      'Status'
+      'UserStatus'
     ];
     const queryCmd = new QueryCommand({
       TableName: this._tableName,
@@ -36,7 +36,7 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
         const user = result.Items?.[0];
         if (user) {
           const u = user as UserStoreRecord<TIdpName>;
-          return u.Status !== 'banned' ? u : undefined;
+          return u.UserStatus !== 'banned' ? u : undefined;
         }
         return undefined;
       },
@@ -50,7 +50,7 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
     authorization: AuthorizationForIdp<TIdpName>
   ): Promise<null> {
     const insertCmd = new PutCommand({
-      Item: { ...user, ...authorization },
+      Item: { ...user, IdpAuth: authorization },
       TableName: this._tableName,
       ReturnConsumedCapacity: 'TOTAL'
     });
