@@ -12,3 +12,8 @@ export interface Identity<IdpName> extends BaseIdentity {
   idp: IdpName;
   idpId: IdpId;
 }
+
+export function isValidIdpName(value: string | undefined): value is IdpName {
+  const validIdpNames: Array<IdpName> = ['google.com'];
+  return validIdpNames.includes(value as IdpName);
+}

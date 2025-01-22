@@ -1,6 +1,6 @@
 import type { LoginConfig } from './config';
 import { handler, type Event } from './index';
-import { verifyGoogleIdentity, type GoogleOAuthConfig } from '@services/google/google-oauth';
+import { verifyGoogleIdentity, type GoogleOAuthConfig } from '@services/google/oauth';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { c, testEvent, unsafeTestEvent } from '@testing/apigateway';
 import type { UserStoreRecord } from '@model/UserStoreRecord';
@@ -317,7 +317,7 @@ async function testit<T extends IdpName>(
   env: LoginConfig = defaultEnv
 ): Promise<APIGatewayProxyResult> {
   setEnv(env);
-  vi.mock('@services/google/google-oauth', () => ({
+  vi.mock('@services/google/oauth', () => ({
     verifyGoogleIdentity: vi.fn()
   }));
   vi.mocked(verifyGoogleIdentity).mockImplementation(verifyGoogleIdentityFn);

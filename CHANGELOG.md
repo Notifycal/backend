@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.0](https://github.com/Notifycal/backend/compare/v0.5.3...v0.6.0) (2025-01-22)
+
+
+### Features
+
+* store idp authorization on logon ([#237](https://github.com/Notifycal/backend/issues/237)) ([0517e14](https://github.com/Notifycal/backend/commit/0517e1472f51065c64d2f7d1e5beca98278b5bf4))
+
 ## [0.5.3](https://github.com/Notifycal/backend/compare/v0.5.2...v0.5.3) (2025-01-19)
 
 
