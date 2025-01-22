@@ -35,11 +35,6 @@ export function verifyGoogleIdentity<TIdpName extends 'google.com'>(
       .then((ticket) => {
         const id = ticket.getUserId();
         const email = ticket.getPayload()?.['email'];
-        if (!ticket.getPayload()?.email_verified || !ticket.getPayload()?.email_verified) {
-          throwError(
-            `Google user with id: '${id}' and email: '${email}' isn't verified at google. We cannot let them in.`
-          );
-        }
         if (!id) {
           throwError(
             `Id could not be extracted out of Google token id. Extracted id: '${id}' and email: '${email}'`
@@ -48,6 +43,11 @@ export function verifyGoogleIdentity<TIdpName extends 'google.com'>(
         if (!email) {
           throwError(
             `Email could not be extracted out of Google token id. Extracted id: '${id}' and email: '${email}'`
+          );
+        }
+        if (!ticket.getPayload()?.email_verified) {
+          throwError(
+            `Google user with id: '${id}' and email: '${email}' isn't verified at google. We cannot let them in.`
           );
         }
         const identity: Identity<'google.com'> = {

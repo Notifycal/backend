@@ -1,5 +1,5 @@
 import type { APIGatewayProxyResult, Context } from 'aws-lambda';
-import { verifyGoogleIdentity } from '@services/google/google-oauth';
+import { verifyGoogleIdentity } from '@services/google/oauth';
 import { type LoginConfig, readLoginConfig } from './config';
 import { unprotectedEndpointMiddleware } from '@common/lambda-middleware';
 import { z } from 'zod';
@@ -9,7 +9,7 @@ import { RefreshTokenBaseStore } from '@services/refresh-token-base-store';
 import { errorHandler } from '@services/common/api-response-handlers';
 import { eventSchema } from '@model/ApiGatewayEvents';
 import { extractIdentity } from '@model/UserStoreRecord';
-import type { Identity, IdpName } from '@model/Identity';
+import { isValidIdpName, type Identity, type IdpName } from '@model/Identity';
 import type { AuthorizationForIdp } from '@model/IdpAuthorization';
 
 export const bodySchema = z.object({
@@ -20,6 +20,19 @@ const schema = eventSchema<LoginConfig>().extend({
 });
 export type Event = z.infer<typeof schema>;
 
+function verifyIdentity(
+  event: Event,
+  idpQueryParameter: string | undefined,
+  config: LoginConfig
+): Promise<[Identity<IdpName>, AuthorizationForIdp<IdpName>]> {
+  if (isValidIdpName(idpQueryParameter) && idpQueryParameter === 'google.com') {
+    return verifyGoogleIdentity(event.body.googleCode, config.googleOAuthClientConfig);
+  }
+  return Promise.reject(
+    new Error(`Idp identity verification not implemented. Query parameter: ${idpQueryParameter}`)
+  );
+}
+
 function lambdaHandler(
   event: Event,
   /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
@@ -28,7 +41,6 @@ function lambdaHandler(
   const config = event.endpointConfig;
   const idpQueryPath = event.queryStringParameters?.['idp'];
   const store = new RefreshTokenBaseStore(config.refreshTokenBaseStoreConfig);
-  // eslint-disable-next-line no-use-before-define
   return verifyIdentity(event, idpQueryPath, config)
     .then(([identity, idpAuthorization]) =>
       signInOrUpUser(identity, idpAuthorization, config.userBaseStoreConfig)
@@ -44,19 +56,6 @@ function lambdaHandler(
         .catch(errorHandler(500))
     )
     .catch(errorHandler(401));
-}
-
-function verifyIdentity(
-  event: Event,
-  idpQueryParameter: string | undefined,
-  config: LoginConfig
-): Promise<[Identity<IdpName>, AuthorizationForIdp<IdpName>]> {
-  if (idpQueryParameter && idpQueryParameter === 'google.com') {
-    return verifyGoogleIdentity(event.body.googleCode, config.googleOAuthClientConfig);
-  }
-  return Promise.reject(
-    new Error(`Idp identity verification not implemented. Query parameter: ${idpQueryParameter}`)
-  );
 }
 
 export const handler = unprotectedEndpointMiddleware(

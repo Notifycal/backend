@@ -1,5 +1,5 @@
 /* eslint-disable camelcase */
-import { verifyGoogleIdentity } from './google-oauth';
+import { verifyGoogleIdentity } from './oauth';
 import {
   type LoginTicket,
   type TokenPayload,
