@@ -11,7 +11,7 @@ import { errorHandler } from '@services/common/api-response-handlers';
 import { buildJwtsAndStoreRefreshJwt, _successHandler } from '@services/login';
 import type { Jwt } from '@own-types/model';
 import { UserBaseStore } from '@services/user-base-store';
-import { extractIdentity } from '@model/User';
+import { extractIdentity } from '@model/UserStoreRecord';
 
 const schema = eventSchema<RefreshConfig>().extend({
   body: JSONStringified(

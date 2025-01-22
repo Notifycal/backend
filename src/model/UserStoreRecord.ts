@@ -1,5 +1,5 @@
 import type { UnixTimestamp } from '@own-types/model';
-import type { Identity } from './Identity';
+import type { Identity, IdpName } from './Identity';
 
 export type UserStatus = 'banned' | 'onboarding' | 'live';
 
@@ -7,13 +7,15 @@ type CapitalizeKeys<T> = {
   [K in keyof T as Capitalize<K & string>]: T[K];
 };
 
-export interface User extends CapitalizeKeys<Identity> {
+type UserIdentity<TIdpName> = CapitalizeKeys<Identity<TIdpName>>;
+export interface UserStoreRecord<TIdpName> extends UserIdentity<TIdpName> {
   LastSignInAt: UnixTimestamp;
   SignedUpAt: UnixTimestamp;
-  Status: UserStatus;
+  UserStatus: UserStatus;
 }
-
-export function extractIdentity(user: User): Identity {
+export function extractIdentity<TIdpName extends IdpName>(
+  user: UserStoreRecord<TIdpName>
+): Identity<TIdpName> {
   return {
     userId: user.UserId,
     email: user.Email,

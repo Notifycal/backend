@@ -1,3 +1,5 @@
+import { logger } from '@common/powertools';
+
 export function extractErrorMessage(error: unknown): string {
   if (error instanceof Error) {
     return error.message;
@@ -11,4 +13,13 @@ export function extractErrorMessage(error: unknown): string {
 export function rejectWithErrorMessage(baseMsg: string, error: unknown): Promise<never> {
   const message = extractErrorMessage(error);
   return Promise.reject(new Error(`${baseMsg}. Error: ${message}`));
+}
+
+export function throwError(msg: string, severity?: 'warning' | 'error'): never {
+  if (severity && severity === 'warning') {
+    logger.warn(msg);
+  } else {
+    logger.error(msg);
+  }
+  throw new Error(msg.toString());
 }

@@ -1,11 +1,17 @@
 /* eslint-disable camelcase */
-import { verifyGoogleIdentity } from './google-oauth';
-import { type LoginTicket, type TokenPayload, OAuth2Client } from 'google-auth-library';
+import { verifyGoogleIdentity } from './oauth';
+import {
+  type LoginTicket,
+  type TokenPayload,
+  type Credentials,
+  OAuth2Client
+} from 'google-auth-library';
 import { describe, expect, it, vi } from 'vitest';
 import type { GetTokenResponse } from 'google-auth-library/build/src/auth/oauth2client';
 import type { Identity } from '@model/Identity';
-import { idGenerator } from './id-generator';
+import { idGenerator } from '../id-generator';
 import type { Uuid } from '@own-types/model';
+import type { AuthorizationForIdp } from '@model/IdpAuthorization';
 
 const validConfig = {
   clientId: 'valid-client-id',
@@ -18,7 +24,14 @@ const validIdToken = 'valid-id-token';
 const validUserId = 'e46d71fd-4e76-5925-8a80-da1e3358d4c2' as Uuid;
 const validEmail = 'user@example.com';
 
-const validGetTokenResponse: GetTokenResponse = { tokens: { id_token: validIdToken }, res: null };
+const validGetTokenResponseTokens: Credentials = {
+  id_token: validIdToken,
+  refresh_token: 'valid_refresh_token'
+};
+const validGetTokenResponse: GetTokenResponse = {
+  tokens: validGetTokenResponseTokens,
+  res: null
+};
 const validLoginTokenPayload: TokenPayload = {
   email: validEmail,
   email_verified: true,
@@ -41,20 +54,47 @@ describe('verifyGoogleIdentity', () => {
 
     const result = await testIt(getTokenFn, verifyIdTokenFn);
 
-    expect(result).toStrictEqual({
-      userId: validUserId,
-      email: validEmail,
-      idp: 'google.com',
-      idpId: validUserId
-    });
+    expect(result).toStrictEqual([
+      {
+        userId: validUserId,
+        email: validEmail,
+        idp: 'google.com',
+        idpId: validUserId
+      },
+      {
+        refreshToken: validGetTokenResponse.tokens.refresh_token
+      }
+    ]);
   });
 
   it('should throw an error if the id_token is missing in the response', async () => {
-    const getTokenFn = () => Promise.resolve({ tokens: {}, res: null });
+    const getTokenFn = () =>
+      Promise.resolve({
+        ...validGetTokenResponse,
+        tokens: {
+          id_token: undefined
+        }
+      });
     const verifyIdTokenFn = () => Promise.resolve(validVerifyIdTokenResponse);
 
     await expect(testIt(getTokenFn, verifyIdTokenFn)).rejects.toThrow(
-      'Google token id was not present in token obtained from Google using user google,s code'
+      `Google token id was not present in token obtained from Google using user's google code`
+    );
+  });
+
+  it('should throw an error if the refresh_token is missing in the response', async () => {
+    const getTokenFn = () =>
+      Promise.resolve({
+        ...validGetTokenResponse,
+        tokens: {
+          id_token: 'valid id token',
+          refresh_token: undefined
+        }
+      });
+    const verifyIdTokenFn = () => Promise.resolve(validVerifyIdTokenResponse);
+
+    await expect(testIt(getTokenFn, verifyIdTokenFn)).rejects.toThrow(
+      `Google refresh token was not present in token obtained from Google using user's google code`
     );
   });
 
@@ -74,11 +114,24 @@ describe('verifyGoogleIdentity', () => {
     );
   });
 
-  it('should throw an error if id or email is missing in the token payload', async () => {
+  it('should throw an error if id is missing in the token payload', async () => {
     const getTokenFn = () => Promise.resolve(validGetTokenResponse);
     const verifyIdTokenFn = () =>
       Promise.resolve({
         getUserId: () => null,
+        getPayload: () => validLoginTokenPayload
+      });
+
+    await expect(testIt(getTokenFn, verifyIdTokenFn)).rejects.toThrow(
+      `Id could not be extracted out of Google token id. Extracted id: 'null' and email: '${validLoginTokenPayload.email}'`
+    );
+  });
+
+  it('should throw an error if email is missing in the token payload', async () => {
+    const getTokenFn = () => Promise.resolve(validGetTokenResponse);
+    const verifyIdTokenFn = () =>
+      Promise.resolve({
+        getUserId: () => validUserId,
         getPayload: () => ({
           ...validLoginTokenPayload,
           email: undefined
@@ -86,7 +139,7 @@ describe('verifyGoogleIdentity', () => {
       });
 
     await expect(testIt(getTokenFn, verifyIdTokenFn)).rejects.toThrow(
-      `Id and/or Email could not be extracted out of Google token id. Extracted id: 'null' and email: 'undefined'`
+      `Email could not be extracted out of Google token id. Extracted id: '${validUserId}' and email: 'undefined'`
     );
   });
 
@@ -109,7 +162,7 @@ function testIt(
   getTokenFn: () => Promise<GetTokenResponse>,
   verifyIdTokenFn: () => Promise<Omit<Omit<LoginTicket, 'getEnvelope'>, 'getAttributes'>>,
   mockIdGenerated: Uuid = validUserId
-): Promise<Identity> {
+): Promise<[Identity<'google.com'>, AuthorizationForIdp<'google.com'>]> {
   vi.mock('google-auth-library', () => ({
     OAuth2Client: vi.fn()
   }));
