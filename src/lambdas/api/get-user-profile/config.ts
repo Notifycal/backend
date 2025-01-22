@@ -1,21 +1,13 @@
-import {
-  readBaseConfig,
-  readDecodeAccessJwtConfig,
-  readEnv,
-  readUserStoreConfig
-} from '@services/common/config';
+import { readAuthedEndpointConfig, readEnv, readUserStoreConfig } from '@services/common/config';
 import type { AuthedEndpointConfig } from '@model/Config';
-import type { UserBaseStoreConfig } from '@services/user-base-store';
+import type { UserBaseStoreEndpointConfig } from '@services/user-base-store';
 
-export interface GetUserProfileConfig extends AuthedEndpointConfig {
-  userBaseStore: UserBaseStoreConfig;
-}
+export type GetUserProfileConfig = AuthedEndpointConfig & UserBaseStoreEndpointConfig;
 
 export function readGetUserConfig(): GetUserProfileConfig {
   const env = readEnv();
   return {
-    decodeAccessJwtConfig: readDecodeAccessJwtConfig(env),
-    userBaseStore: readUserStoreConfig(env),
-    baseConfig: readBaseConfig(env).baseConfig
+    ...readAuthedEndpointConfig(env),
+    ...readUserStoreConfig(env)
   };
 }

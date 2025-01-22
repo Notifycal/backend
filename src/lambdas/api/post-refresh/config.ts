@@ -7,31 +7,28 @@ import type {
 import {
   readBaseConfig,
   readDecodeRefreshJwtConfig,
-  readEncodeAccessJwtConfig,
-  readEncodeRefreshJwtConfig,
+  readEncodeJwtsConfig,
   readEnv,
   readRefreshTokenStoreConfig,
   readUserStoreConfig
 } from '@services/common/config';
 import type { RefreshTokenBaseStoreConfig } from '@services/refresh-token-base-store';
-import type { UserBaseStoreConfig } from '@services/user-base-store';
-
-export interface RefreshConfig extends BaseEndpointConfig {
+import type { UserBaseStoreEndpointConfig } from '@services/user-base-store';
+export interface BaseRefreshConfig {
   encodeAccessJwtConfig: EncodeAccessJwtConfig;
   encodeRefreshJwtConfig: EncodeRefreshJwtConfig;
   decodeRefreshJwtConfig: DecodeRefreshJwtConfig;
   refreshTokenBaseStoreConfig: RefreshTokenBaseStoreConfig;
-  userBaseStoreConfig: UserBaseStoreConfig;
 }
+export type RefreshConfig = BaseRefreshConfig & BaseEndpointConfig & UserBaseStoreEndpointConfig;
 
 export function readRefreshConfig(): RefreshConfig {
   const env = readEnv();
   return {
-    encodeAccessJwtConfig: readEncodeAccessJwtConfig(env),
-    encodeRefreshJwtConfig: readEncodeRefreshJwtConfig(env),
+    ...readEncodeJwtsConfig(env),
     decodeRefreshJwtConfig: readDecodeRefreshJwtConfig(env),
-    refreshTokenBaseStoreConfig: readRefreshTokenStoreConfig(env),
-    userBaseStoreConfig: readUserStoreConfig(env),
-    baseConfig: readBaseConfig(env).baseConfig
+    ...readRefreshTokenStoreConfig(env),
+    ...readUserStoreConfig(env),
+    ...readBaseConfig(env)
   };
 }

@@ -11,6 +11,7 @@ import { eventSchema } from '@model/ApiGatewayEvents';
 import { extractIdentity } from '@model/UserStoreRecord';
 import { isValidIdpName, type Identity, type IdpName } from '@model/Identity';
 import type { AuthorizationForIdp } from '@model/IdpAuthorization';
+import type { IdpConfigs } from '@model/Config';
 
 export const bodySchema = z.object({
   googleCode: z.string()
@@ -23,10 +24,10 @@ export type Event = z.infer<typeof schema>;
 function verifyIdentity(
   event: Event,
   idpQueryParameter: string | undefined,
-  config: LoginConfig
+  config: IdpConfigs
 ): Promise<[Identity<IdpName>, AuthorizationForIdp<IdpName>]> {
   if (isValidIdpName(idpQueryParameter) && idpQueryParameter === 'google.com') {
-    return verifyGoogleIdentity(event.body.googleCode, config.googleOAuthClientConfig);
+    return verifyGoogleIdentity(event.body.googleCode, config['google.com']);
   }
   return Promise.reject(
     new Error(`Idp identity verification not implemented. Query parameter: ${idpQueryParameter}`)
@@ -41,7 +42,7 @@ function lambdaHandler(
   const config = event.endpointConfig;
   const idpQueryPath = event.queryStringParameters?.['idp'];
   const store = new RefreshTokenBaseStore(config.refreshTokenBaseStoreConfig);
-  return verifyIdentity(event, idpQueryPath, config)
+  return verifyIdentity(event, idpQueryPath, config.idpConfigs)
     .then(([identity, idpAuthorization]) =>
       signInOrUpUser(identity, idpAuthorization, config.userBaseStoreConfig)
         .then((user) =>

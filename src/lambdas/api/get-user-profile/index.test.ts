@@ -100,7 +100,7 @@ async function testit(
 
 const defaultEnv = {
   decodeAccessJwtConfig: getDefaultDecodeAccessJwtConfig(),
-  userBaseStore: {
+  userBaseStoreConfig: {
     tableName: 'Users-local'
   },
   baseConfig: {
@@ -108,8 +108,8 @@ const defaultEnv = {
   }
 };
 
-function setEnv(config: GetUserProfileConfig) {
+function setEnv(config: GetUserProfileConfig): void {
   setEnvDecodeAccessJwtConfig(config.decodeAccessJwtConfig);
-  setEnvUserBaseStoreConfig(config.userBaseStore);
+  setEnvUserBaseStoreConfig(config.userBaseStoreConfig);
   setEnvBaseConfig(config.baseConfig);
 }

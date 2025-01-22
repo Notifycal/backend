@@ -1,14 +1,16 @@
 import type { LoginConfig } from './config';
 import { handler, type Event } from './index';
-import { verifyGoogleIdentity, type GoogleOAuthConfig } from '@services/google/oauth';
+import { verifyGoogleIdentity } from '@services/google/oauth';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { c, testEvent, unsafeTestEvent } from '@testing/apigateway';
 import type { UserStoreRecord } from '@model/UserStoreRecord';
 import { assert } from '@testing/utils/assertions';
 import {
+  fakeIdpConfigs,
   setEnvBaseConfig,
   setEnvEncodeAccessJwtConfig,
   setEnvEncodeRefreshJwtConfig,
+  setEnvIdpConfigs,
   setEnvRefreshTokenBaseStoreConfig,
   setEnvUserBaseStoreConfig
 } from '@testing/utils/config';
@@ -227,7 +229,7 @@ describe('POST Login', () => {
     const signInOrUpUserFn = () => Promise.resolve(validUser(validUserId));
     const buildJwtsAndStoreRefreshJwtFn = () => Promise.resolve(validJwts);
     const env = structuredClone(defaultEnv);
-    env.googleOAuthClientConfig.clientId = undefined as unknown as string;
+    env.idpConfigs['google.com'].clientId = undefined as unknown as string;
 
     return testit(
       event,
@@ -349,11 +351,7 @@ const defaultEnv: LoginConfig = {
     audience: 'test@notifycal.com',
     expiresIn: '7d'
   },
-  googleOAuthClientConfig: {
-    clientId: 'some_valid_google_app_url',
-    clientSecret: 'some_valid_secret',
-    redirectUri: 'http://localhost:5173'
-  },
+  idpConfigs: fakeIdpConfigs,
   userBaseStoreConfig: {
     tableName: 'Users-local'
   },
@@ -368,14 +366,8 @@ const defaultEnv: LoginConfig = {
 function setEnv(config: LoginConfig) {
   setEnvEncodeAccessJwtConfig(config.encodeAccessJwtConfig);
   setEnvEncodeRefreshJwtConfig(config.encodeRefreshJwtConfig);
-  setEnvGoogleOAuthClientConfig(config.googleOAuthClientConfig);
+  setEnvIdpConfigs(config.idpConfigs);
   setEnvUserBaseStoreConfig(config.userBaseStoreConfig);
   setEnvRefreshTokenBaseStoreConfig(config.refreshTokenBaseStoreConfig);
   setEnvBaseConfig(config.baseConfig);
-}
-
-function setEnvGoogleOAuthClientConfig(config: GoogleOAuthConfig) {
-  process.env.GOOGLE_OAUTH_CLIENT_ID = config.clientId;
-  process.env.GOOGLE_OAUTH_CLIENT_SECRET = config.clientSecret;
-  process.env.GOOGLE_OAUTH_CLIENT_REDIRECT_URI = config.redirectUri;
 }

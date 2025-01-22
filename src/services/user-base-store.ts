@@ -6,6 +6,7 @@ import type { IdpName } from '@model/Identity';
 import type { AuthorizationForIdp } from '@model/IdpAuthorization';
 
 export type UserBaseStoreConfig = BaseStoreConfig;
+export type UserBaseStoreEndpointConfig = { userBaseStoreConfig: UserBaseStoreConfig };
 
 export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseStoreConfig> {
   public constructor(config: UserBaseStoreConfig) {

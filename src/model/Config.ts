@@ -1,3 +1,5 @@
+import type { IdpName } from './Identity';
+
 export interface DecodeAccessJwtConfig {
   publicKey: string;
   issuer: string;
@@ -14,9 +16,11 @@ export interface BaseEndpointConfig {
   baseConfig: BaseConfig;
 }
 
-export interface AuthedEndpointConfig extends BaseEndpointConfig {
+export interface DecodeAccessJwtEndpointConfig {
   decodeAccessJwtConfig: DecodeAccessJwtConfig;
 }
+
+export type AuthedEndpointConfig = BaseEndpointConfig & DecodeAccessJwtEndpointConfig;
 
 export interface EncodeAccessJwtConfig {
   privateKey: string;
@@ -26,3 +30,27 @@ export interface EncodeAccessJwtConfig {
   expiresIn: string;
 }
 export type EncodeRefreshJwtConfig = EncodeAccessJwtConfig;
+
+export interface EncodeJwtsEndpointConfig {
+  encodeAccessJwtConfig: EncodeAccessJwtConfig;
+  encodeRefreshJwtConfig: EncodeRefreshJwtConfig;
+}
+
+export interface GoogleOAuthConfig {
+  clientId: string;
+  clientSecret: string;
+  redirectUri: string;
+}
+export type IdpConfigMap = {
+  'google.com': GoogleOAuthConfig;
+};
+
+export type IdpConfig<TIdp extends IdpName> = IdpConfigMap[TIdp];
+
+export type IdpConfigs = {
+  [TIdp in IdpName]: IdpConfig<TIdp>;
+};
+
+export interface IdpEndpointConfig {
+  idpConfigs: IdpConfigs;
+}

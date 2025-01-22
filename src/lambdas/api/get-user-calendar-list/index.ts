@@ -1,12 +1,12 @@
 import type { APIGatewayProxyResult, Context } from 'aws-lambda';
-import { type GetUserProfileConfig, readGetUserConfig } from './config';
-import { UserBaseStore } from '@services/user-base-store';
+import { type GetUserCalendarListConfig, readGetUserCalendarListConfig } from './config';
 import { authedEventSchema } from '@model/ApiGatewayEvents';
 import { protectedEndpointMiddleware } from '@common/lambda-middleware';
 import type { z } from 'zod';
 import { errorHandler, successHandler } from '@services/common/api-response-handlers';
+import { calendarList } from '@services/calendar';
 
-const eventSchema = authedEventSchema<GetUserProfileConfig>();
+const eventSchema = authedEventSchema<GetUserCalendarListConfig>();
 export type Event = z.infer<typeof eventSchema>;
 
 function lambdaHandler(
@@ -15,18 +15,14 @@ function lambdaHandler(
   ctx: Context
 ): Promise<APIGatewayProxyResult> {
   const config = event.endpointConfig;
-  const userProvider = new UserBaseStore(config.userBaseStoreConfig);
-  const userId = event.requestContext.authorizer.payload.userId;
-  return userProvider.getUserById(userId).then((userOrNot) => {
-    if (userOrNot) {
-      return successHandler()(userOrNot);
-    } else {
-      return errorHandler(404)('The user could not be found in storage');
-    }
-  }, errorHandler(500));
+  const idp = event.requestContext.authorizer.payload.idp;
+  return calendarList(idp, config.idpConfigs).then(
+    (calendars) => successHandler()(calendars),
+    errorHandler(500)
+  );
 }
 
 export const handler = protectedEndpointMiddleware(
-  () => readGetUserConfig(),
+  () => readGetUserCalendarListConfig(),
   eventSchema
 ).handler<Event>(lambdaHandler);

@@ -4,12 +4,7 @@ import { idGenerator } from '@services/id-generator';
 import type { Email, IdpId } from '@own-types/model';
 import type { AuthorizationForIdp } from '@model/IdpAuthorization';
 import { throwError } from '@services/common/error-handling';
-
-export interface GoogleOAuthConfig {
-  clientId: string;
-  clientSecret: string;
-  redirectUri: string;
-}
+import type { GoogleOAuthConfig } from '@model/Config';
 
 export function verifyGoogleIdentity<TIdpName extends 'google.com'>(
   userGoogleCode: string,

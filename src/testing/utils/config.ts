@@ -3,10 +3,20 @@ import type {
   DecodeRefreshJwtConfig,
   EncodeAccessJwtConfig,
   EncodeRefreshJwtConfig,
-  BaseConfig
+  BaseConfig,
+  IdpConfigs
 } from '@model/Config';
 import type { RefreshTokenBaseStoreConfig } from '@services/refresh-token-base-store';
 import type { UserBaseStoreConfig } from '@services/user-base-store';
+import { match } from 'ts-pattern';
+
+export const fakeIdpConfigs: IdpConfigs = {
+  'google.com': {
+    clientId: 'some_valid_google_app_url',
+    clientSecret: 'some_valid_secret',
+    redirectUri: 'http://localhost:5173'
+  }
+};
 
 export function setEnvEncodeAccessJwtConfig(config: EncodeAccessJwtConfig): void {
   process.env.ACCESS_JWT_PRIVATE_KEY = config.privateKey;
@@ -48,4 +58,18 @@ export function setEnvRefreshTokenBaseStoreConfig(config: RefreshTokenBaseStoreC
 
 export function setEnvBaseConfig(config: BaseConfig): void {
   process.env.FRONTEND_DOMAIN = config.frontendDomain;
+}
+
+export function setEnvIdpConfigs(configs: IdpConfigs): void {
+  Object.keys(configs).forEach((idp) => {
+    match(idp)
+      .with('google.com', (idp) => {
+        process.env.GOOGLE_OAUTH_CLIENT_ID = configs[idp].clientId;
+        process.env.GOOGLE_OAUTH_CLIENT_SECRET = configs[idp].clientSecret;
+        process.env.GOOGLE_OAUTH_CLIENT_REDIRECT_URI = configs[idp].redirectUri;
+      })
+      .otherwise((v) => {
+        throw new Error(`Environment could not be set for all Idps. Missing idp: ${v}`);
+      });
+  });
 }

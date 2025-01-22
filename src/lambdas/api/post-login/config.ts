@@ -1,41 +1,36 @@
 import type {
   BaseEndpointConfig,
   EncodeAccessJwtConfig,
-  EncodeRefreshJwtConfig
+  EncodeRefreshJwtConfig,
+  IdpEndpointConfig
 } from '@model/Config';
-import type { GoogleOAuthConfig } from '@services/google/oauth';
 import type { UserBaseStoreConfig } from '@services/user-base-store';
 import {
   readBaseConfig,
-  readEncodeAccessJwtConfig,
-  readEncodeRefreshJwtConfig,
+  readEncodeJwtsConfig,
   readEnv,
+  readIdpConfigs,
+  readRefreshTokenStoreConfig,
   readUserStoreConfig
 } from '@services/common/config';
 import type { RefreshTokenBaseStoreConfig } from '@services/refresh-token-base-store';
 
-export interface LoginConfig extends BaseEndpointConfig {
+interface BaseLoginConfig {
   encodeAccessJwtConfig: EncodeAccessJwtConfig;
   encodeRefreshJwtConfig: EncodeRefreshJwtConfig;
-  googleOAuthClientConfig: GoogleOAuthConfig;
   userBaseStoreConfig: UserBaseStoreConfig;
   refreshTokenBaseStoreConfig: RefreshTokenBaseStoreConfig;
 }
 
+export type LoginConfig = BaseLoginConfig & BaseEndpointConfig & IdpEndpointConfig;
+
 export function readLoginConfig(): LoginConfig {
   const env = readEnv();
   return {
-    encodeAccessJwtConfig: readEncodeAccessJwtConfig(env),
-    encodeRefreshJwtConfig: readEncodeRefreshJwtConfig(env),
-    googleOAuthClientConfig: {
-      clientId: env.get('GOOGLE_OAUTH_CLIENT_ID').required().asString(),
-      clientSecret: env.get('GOOGLE_OAUTH_CLIENT_SECRET').required().asString(),
-      redirectUri: env.get('GOOGLE_OAUTH_CLIENT_REDIRECT_URI').required().asString()
-    },
-    userBaseStoreConfig: readUserStoreConfig(env),
-    refreshTokenBaseStoreConfig: {
-      tableName: env.get('REFRESH_TOKENS_TABLE_NAME').required().asString()
-    },
-    baseConfig: readBaseConfig(env).baseConfig
+    ...readEncodeJwtsConfig(env),
+    ...readIdpConfigs(env),
+    ...readUserStoreConfig(env),
+    ...readRefreshTokenStoreConfig(env),
+    ...readBaseConfig(env)
   };
 }

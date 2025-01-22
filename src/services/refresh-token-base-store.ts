@@ -4,6 +4,9 @@ import { BaseStore, type BaseStoreConfig } from './common/base-store';
 import type { RefreshTokenStoreRecord } from '@model/RefreshTokenStoreRecord';
 
 export type RefreshTokenBaseStoreConfig = BaseStoreConfig;
+export type RefreshTokenBaseStoreConfigEndpointConfig = {
+  refreshTokenBaseStoreConfig: RefreshTokenBaseStoreConfig;
+};
 
 export class RefreshTokenBaseStore extends BaseStore<RefreshTokenBaseStoreConfig> {
   public constructor(config: RefreshTokenBaseStoreConfig) {
