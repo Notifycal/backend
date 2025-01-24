@@ -41,7 +41,7 @@ module "get_user_profile_lambda" {
 
   environment_variables = merge({
     USERS_TABLE_NAME      = aws_dynamodb_table.users.name
-    ACCESS_JWT_PUBLIC_KEY = data.aws_ssm_parameter.access_jwt_public_key.value
+    ACCESS_JWT_PUBLIC_KEY = tls_private_key.jwt_access_key.public_key_pem
   }, local.protected_endpoint_env_vars)
 }
 

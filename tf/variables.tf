@@ -65,3 +65,24 @@ variable "api_gateway_custom_domain_enabled" {
   default     = true
   description = "Controls the creation of a custom domain for API Gateway and the domain it is accessible from"
 }
+
+variable "jwt_config" {
+  type = object({
+    access = object({
+      algorithm  = optional(string, "ES256")
+      audience   = optional(string, "notifycal.com")
+      expiration = optional(string, "5m")
+      issuer     = optional(string, "notifycal.com")
+    })
+    refresh = object({
+      algorithm  = optional(string, "ES256")
+      audience   = optional(string, "notifycal.com")
+      expiration = optional(string, "7d")
+      issuer     = optional(string, "notifycal.com")
+    })
+  })
+  default = {
+    access  = {}
+    refresh = {}
+  }
+}

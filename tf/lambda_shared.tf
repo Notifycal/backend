@@ -7,20 +7,20 @@ locals {
     APP_VERSION     = var.app_version
   }
   decode_access_jwt_env_vars = {
-    ACCESS_JWT_PRIVATE_KEY = data.aws_ssm_parameter.access_jwt_private_key.value
-    ACCESS_JWT_ALGORITHM   = data.aws_ssm_parameter.access_jwt_algorithm.value
-    ACCESS_JWT_ISSUER      = data.aws_ssm_parameter.access_jwt_issuer.value
-    ACCESS_JWT_AUDIENCE    = data.aws_ssm_parameter.access_jwt_audience.value
-    ACCESS_JWT_EXPIRATION  = data.aws_ssm_parameter.access_jwt_expiration.value
+    ACCESS_JWT_PRIVATE_KEY = tls_private_key.jwt_access_key.private_key_pem
+    ACCESS_JWT_ALGORITHM   = var.jwt_config.access.algorithm
+    ACCESS_JWT_ISSUER      = var.jwt_config.access.issuer
+    ACCESS_JWT_AUDIENCE    = var.jwt_config.access.audience
+    ACCESS_JWT_EXPIRATION  = var.jwt_config.access.expiration
   }
   protected_endpoint_env_vars = merge(local.decode_access_jwt_env_vars, local.common_lambda_env_vars)
 
   login_and_refresh_env_vars = merge({
-    REFRESH_JWT_PRIVATE_KEY = data.aws_ssm_parameter.refresh_jwt_private_key.value
-    REFRESH_JWT_ALGORITHM   = data.aws_ssm_parameter.refresh_jwt_algorithm.value
-    REFRESH_JWT_ISSUER      = data.aws_ssm_parameter.refresh_jwt_issuer.value
-    REFRESH_JWT_AUDIENCE    = data.aws_ssm_parameter.refresh_jwt_audience.value
-    REFRESH_JWT_EXPIRATION  = data.aws_ssm_parameter.refresh_jwt_expiration.value
+    REFRESH_JWT_PRIVATE_KEY = tls_private_key.jwt_refresh_key.private_key_pem
+    REFRESH_JWT_ALGORITHM   = var.jwt_config.refresh.algorithm
+    REFRESH_JWT_ISSUER      = var.jwt_config.refresh.issuer
+    REFRESH_JWT_AUDIENCE    = var.jwt_config.refresh.audience
+    REFRESH_JWT_EXPIRATION  = var.jwt_config.refresh.expiration
   }, local.decode_access_jwt_env_vars)
 
   common_tags = {}
