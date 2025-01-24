@@ -1,7 +1,7 @@
 resource "tls_private_key" "jwt_access_key" {
   # NOTE: ES256 is the same as ECDSA P256
-  algorithm   = "ECDSA"
-  ecdsa_curve = "P256"
+  algorithm   = startswith(var.jwt_config.refresh.algorithm, "ES") ? "ECDSA" : null
+  ecdsa_curve = endswith(var.jwt_config.access.algorithm, "256") ? "P256" : null
 
   lifecycle {
     prevent_destroy = true
@@ -9,8 +9,8 @@ resource "tls_private_key" "jwt_access_key" {
 }
 
 resource "tls_private_key" "jwt_refresh_key" {
-  algorithm   = "ECDSA"
-  ecdsa_curve = "P256"
+  algorithm   = startswith(var.jwt_config.refresh.algorithm, "ES") ? "ECDSA" : null
+  ecdsa_curve = endswith(var.jwt_config.access.algorithm, "256") ? "P256" : null
 
   lifecycle {
     prevent_destroy = true
