@@ -1,4 +1,4 @@
-interface UserGoogleAuthorization {
+export interface UserGoogleAuthorization {
   refreshToken: string;
 }
 
@@ -8,6 +8,6 @@ export type AuthorizationForIdp<TIdpName> = TIdpName extends 'google.com'
     //   ? IdpName2Authorization
     unknown;
 
-export interface UserIdpAuthorization<TIdpName> {
-  idpAuthorization: AuthorizationForIdp<TIdpName>;
+export interface UserIdpAuthorizationStoreRecord<TIdpName> {
+  IdpAuthorization: AuthorizationForIdp<TIdpName>;
 }

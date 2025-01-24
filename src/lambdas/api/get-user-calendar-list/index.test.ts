@@ -93,6 +93,9 @@ async function testit(
 
 const defaultEnv = {
   decodeAccessJwtConfig: getDefaultDecodeAccessJwtConfig(),
+  userBaseStoreConfig: {
+    tableName: 'Users-local'
+  },
   idpConfigs: fakeIdpConfigs,
   baseConfig: {
     frontendDomain: 'http://localhost:5173'

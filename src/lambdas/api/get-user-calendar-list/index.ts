@@ -15,8 +15,9 @@ function lambdaHandler(
   ctx: Context
 ): Promise<APIGatewayProxyResult> {
   const config = event.endpointConfig;
+  const userId = event.requestContext.authorizer.payload.userId;
   const idp = event.requestContext.authorizer.payload.idp;
-  return calendarList(idp, config.idpConfigs).then(
+  return calendarList(userId, idp, config.idpConfigs, config.userBaseStoreConfig).then(
     (calendars) => successHandler()(calendars),
     errorHandler(500)
   );
