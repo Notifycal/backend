@@ -48,13 +48,3 @@ resource "aws_ssm_parameter" "jwt_refresh_key" {
     prevent_destroy = true
   }
 }
-
-
-# output "private_key" {
-#   value     = nonsensitive(tls_private_key.jwt_key.private_key_pem)
-#   # sensitive = true
-# }
-
-# output "public_key" {
-#   value = tls_private_key.jwt_key.public_key_pem
-# }
