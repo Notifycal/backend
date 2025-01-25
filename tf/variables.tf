@@ -68,11 +68,11 @@ variable "api_gateway_custom_domain_enabled" {
 
 variable "google_oauth_config" {
   type = object({
-    client_id = string
+    client_id     = string
     client_secret = string
-    redirect_url = string
+    redirect_url  = string
   })
-  sensitive   = true
+  sensitive = true
 }
 
 variable "jwt_config" {
