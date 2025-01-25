@@ -66,6 +66,15 @@ variable "api_gateway_custom_domain_enabled" {
   description = "Controls the creation of a custom domain for API Gateway and the domain it is accessible from"
 }
 
+variable "google_oauth_config" {
+  type = object({
+    client_id = string
+    client_secret = string
+    redirect_url = string
+  })
+  sensitive   = true
+}
+
 variable "jwt_config" {
   type = object({
     access = object({
