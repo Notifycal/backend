@@ -21,7 +21,9 @@ updates:
       - npm-github-registry
 
   - package-ecosystem: 'terraform'
-    directory: '/tf'
+    directories:
+      - '/tf'
+      - '/tf/**'
     schedule:
       interval: 'weekly'
     registries:
@@ -35,5 +37,6 @@ registries:
 
   notifycal-github:
     type: git
-    url: 'https://github.com/Notifycal'
-    token: ${{secrets.DEPENDABOT_PAT}}
+    url: 'https://github.com'
+    username: x-access-token
+    password: ${{secrets.DEPENDABOT_PAT}}
