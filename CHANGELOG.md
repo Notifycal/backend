@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.1](https://github.com/Notifycal/backend/compare/v0.7.0...v0.7.1) (2025-01-27)
+
+
+### Bug Fixes
+
+* since Users table no longer performs GetItem but it queries the table, permissions have to be tweaked ([#254](https://github.com/Notifycal/backend/issues/254)) ([c95ae21](https://github.com/Notifycal/backend/commit/c95ae215067239d44f1b742441252881124334c4))
+
 ## [0.7.0](https://github.com/Notifycal/backend/compare/v0.6.0...v0.7.0) (2025-01-27)
 
 
