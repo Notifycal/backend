@@ -23,7 +23,7 @@ resource "aws_ssm_parameter" "jwt_access_key" {
     "public-key"  = tls_private_key.jwt_access_key.public_key_pem
   }
 
-  name  = "/notifycal/dev/backend/access-jwt-${each.key}"
+  name  = "/notifycal/${var.environment}/backend/access-jwt-${each.key}"
   value = each.value
 
   type = each.key == "private-key" ? "SecureString" : "String"
@@ -39,7 +39,7 @@ resource "aws_ssm_parameter" "jwt_refresh_key" {
     "public-key"  = tls_private_key.jwt_refresh_key.public_key_pem
   }
 
-  name  = "/notifycal/dev/backend/refresh-jwt-${each.key}"
+  name  = "/notifycal/${var.environment}/backend/refresh-jwt-${each.key}"
   value = each.value
 
   type = each.key == "private-key" ? "SecureString" : "String"
