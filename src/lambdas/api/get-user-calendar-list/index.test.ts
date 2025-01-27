@@ -1,22 +1,23 @@
-import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
+import type { Calendar } from '@model/Calendar';
+import type { IdpName } from '@model/Identity';
+import type { OurAccessTokenClaims } from '@model/Jwt';
+import type { CalendarId, CalendarName, Email, IdpId, UserId } from '@own-types/model';
+import { calendarList } from '@services/calendar';
 import { c, testAuthedEvent } from '@testing/apigateway';
+import { responseError, responseSuccess } from '@testing/utils/api-response-handlers';
 import { assert } from '@testing/utils/assertions';
-import type { GetUserCalendarListConfig } from './config';
 import {
   fakeIdpConfigs,
   setEnvBaseConfig,
   setEnvDecodeAccessJwtConfig,
-  setEnvIdpConfigs
+  setEnvIdpConfigs,
+  setEnvUserBaseStoreConfig
 } from '@testing/utils/config';
 import { getDefaultDecodeAccessJwtConfig } from '@testing/utils/jwt';
-import type { OurAccessTokenClaims } from '@model/Jwt';
-import { responseSuccess, responseError } from '@testing/utils/api-response-handlers';
-import { handler, type Event } from './index';
+import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { describe, it, vi } from 'vitest';
-import type { CalendarId, CalendarName, Email, IdpId, UserId } from '@own-types/model';
-import type { IdpName } from '@model/Identity';
-import { calendarList } from '@services/calendar';
-import type { Calendar } from '@model/Calendar';
+import type { GetUserCalendarListConfig } from './config';
+import { handler, type Event } from './index';
 
 describe('GET Calendar list', () => {
   const validIdentity = {
@@ -105,5 +106,6 @@ const defaultEnv = {
 function setEnv(config: GetUserCalendarListConfig) {
   setEnvDecodeAccessJwtConfig(config.decodeAccessJwtConfig);
   setEnvIdpConfigs(config.idpConfigs);
+  setEnvUserBaseStoreConfig(config.userBaseStoreConfig);
   setEnvBaseConfig(config.baseConfig);
 }

@@ -1,22 +1,22 @@
-import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
+import type { IdpName } from '@model/Identity';
+import type { OurAccessTokenClaims } from '@model/Jwt';
+import type { UserStoreRecord } from '@model/UserStoreRecord';
+import type { Email, IdpId, UserId } from '@own-types/model';
+import { UserBaseStore } from '@services/user-base-store';
 import { c, testAuthedEvent, testEvent } from '@testing/apigateway';
+import { responseError, responseSuccess } from '@testing/utils/api-response-handlers';
 import { assert } from '@testing/utils/assertions';
-import type { GetUserProfileConfig } from './config';
 import {
   setEnvBaseConfig,
   setEnvDecodeAccessJwtConfig,
   setEnvUserBaseStoreConfig
 } from '@testing/utils/config';
 import { getDefaultDecodeAccessJwtConfig } from '@testing/utils/jwt';
-import type { UserStoreRecord } from '@model/UserStoreRecord';
-import type { OurAccessTokenClaims } from '@model/Jwt';
-import { responseError, responseSuccess } from '@testing/utils/api-response-handlers';
 import { validUser } from '@testing/utils/model';
-import { handler, type Event } from './index';
-import { UserBaseStore } from '@services/user-base-store';
+import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { describe, it, vi } from 'vitest';
-import type { Email, IdpId, UserId } from '@own-types/model';
-import type { IdpName } from '@model/Identity';
+import type { GetUserProfileConfig } from './config';
+import { handler, type Event } from './index';
 
 describe('GET User profile', () => {
   const validIdentity = {
@@ -87,14 +87,23 @@ async function testit(
 ): Promise<APIGatewayProxyResult> {
   setEnv(env);
   vi.mock('@services/user-base-store', () => {
-    const UserBaseStore = vi.fn();
-    (UserBaseStore.prototype as UserBaseStore<IdpName>).getUserById = vi.fn();
-    return {
-      UserBaseStore
-    };
+    const UserBaseStoreMock = vi.fn();
+    Object.defineProperty(UserBaseStoreMock, 'withConfig', {
+      value: vi.fn(() => ({
+        getUserById: vi.fn(),
+        getIdpAuthorization: vi.fn(),
+        putUser: vi.fn()
+      }))
+    });
+    return { UserBaseStore: UserBaseStoreMock };
   });
+  const userBaseStoreMock = {
+    getUserById: vi.fn().mockImplementation(getUserByIdFn)
+  };
   // eslint-disable-next-line @typescript-eslint/unbound-method
-  vi.mocked(UserBaseStore.prototype.getUserById).mockImplementation(getUserByIdFn);
+  vi.mocked(UserBaseStore.withConfig).mockReturnValue(
+    userBaseStoreMock as unknown as UserBaseStore<IdpName>
+  );
   return handler(event as unknown as Event, c);
 }
 

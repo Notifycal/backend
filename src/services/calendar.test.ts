@@ -1,13 +1,13 @@
-import { UserBaseStore, type UserBaseStoreConfig } from './user-base-store';
 import type { Calendar } from '@model/Calendar';
-import type { IdpName } from '@model/Identity';
-import { describe, it, expect, vi } from 'vitest';
-import { calendarList } from './calendar';
-import { GoogleCalendar } from './google/calendar';
 import type { IdpConfigs } from '@model/Config';
+import type { IdpName } from '@model/Identity';
+import type { AuthorizationForIdp, UserGoogleAuthorization } from '@model/IdpAuthorization';
 import type { CalendarId, CalendarName, UserId } from '@own-types/model';
 import { v4 as uuid } from 'uuid';
-import type { AuthorizationForIdp, UserGoogleAuthorization } from '@model/IdpAuthorization';
+import { describe, expect, it, vi } from 'vitest';
+import { calendarList } from './calendar';
+import { GoogleCalendar } from './google/calendar';
+import { UserBaseStore, type UserBaseStoreConfig } from './user-base-store';
 
 const validUserId: UserId = uuid() as UserId;
 const validIdpConfigs = {
@@ -115,12 +115,12 @@ describe('Calendar Service', () => {
       });
       return { UserBaseStore: UserBaseStoreMock };
     });
-    const mockInstance = {
+    const userBaseStoreMock = {
       getIdpAuthorization: vi.fn().mockImplementation(getIdpAuthorizationFn)
     };
     // eslint-disable-next-line @typescript-eslint/unbound-method
     vi.mocked(UserBaseStore.withConfig).mockReturnValue(
-      mockInstance as unknown as UserBaseStore<IdpName>
+      userBaseStoreMock as unknown as UserBaseStore<IdpName>
     );
 
     vi.mock('@services/google/calendar', () => {

@@ -3,17 +3,15 @@ import { calendarSchema, type Calendar } from '@model/Calendar';
 import type { GoogleOAuthConfig } from '@model/Config';
 import type { CalendarId, CalendarName } from '@own-types/model';
 import { throwError } from '@services/common/error-handling';
-import { OAuth2Client } from 'google-auth-library';
 import { google, type calendar_v3 } from 'googleapis';
 import { z } from 'zod';
 import { BaseGoogle } from './base-service';
 
 export class GoogleCalendar extends BaseGoogle {
   public static withRefreshToken(config: GoogleOAuthConfig, refreshToken: string): GoogleCalendar {
-    const client = new OAuth2Client(config.clientId, config.clientSecret, config.redirectUri);
-
-    client.setCredentials({ refresh_token: refreshToken });
-    return new this(client);
+    const instance = new this(config);
+    instance._client.setCredentials({ refresh_token: refreshToken });
+    return instance;
   }
 
   public calendarList(): Promise<Array<Calendar>> {
@@ -47,7 +45,7 @@ export class GoogleCalendar extends BaseGoogle {
   // CalendarEntryList Docs: https://developers.google.com/calendar/api/v3/reference/calendarList#resource
   private _calendarList(): Promise<Array<calendar_v3.Schema$CalendarListEntry>> {
     const baseMsg = 'GET Calendar List';
-    const calendar = google.calendar({ version: 'v3', auth: this._auth });
+    const calendar = google.calendar({ version: 'v3', auth: this._client });
     return calendar.calendarList
       .list()
       .then((response) => {
