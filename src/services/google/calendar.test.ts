@@ -61,7 +61,8 @@ describe('GoogleCalendar Service', () => {
 
     const result = testit(calendarListFn);
 
-    return expect(result).rejects.toThrow(`Failed to parse Google Calendar List items with error. Error: [
+    return expect(result).rejects
+      .toThrow(`Failed to parse Google Calendar List items with error. Error: [
   {
     "code": "invalid_type",
     "expected": "string",
