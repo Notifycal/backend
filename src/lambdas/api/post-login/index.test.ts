@@ -319,15 +319,7 @@ async function testit<T extends IdpName>(
   env: LoginConfig = defaultEnv
 ): Promise<APIGatewayProxyResult> {
   setEnv(env);
-  vi.mock('@services/google/oauth', () => {
-    const GoogleOAuthMock = vi.fn();
-    Object.defineProperty(GoogleOAuthMock, 'withConfig', {
-      value: vi.fn(() => ({
-        verifyIdentity: vi.fn()
-      }))
-    });
-    return { GoogleOAuth: GoogleOAuthMock };
-  });
+  vi.mock('@services/google/oauth');
   const mockInstance = {
     verifyIdentity: vi.fn().mockImplementation(verifyGoogleIdentityFn)
   };

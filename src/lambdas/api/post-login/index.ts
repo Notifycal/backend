@@ -6,11 +6,11 @@ import { isValidIdpName, type Identity, type IdpName } from '@model/Identity';
 import type { AuthorizationForIdp } from '@model/IdpAuthorization';
 import { extractIdentity } from '@model/UserStoreRecord';
 import { errorHandler } from '@services/common/api-response-handlers';
+import { GoogleOAuth } from '@services/google/oauth';
 import { _successHandler, buildJwtsAndStoreRefreshJwt, signInOrUpUser } from '@services/login';
 import { RefreshTokenBaseStore } from '@services/refresh-token-base-store';
 import type { APIGatewayProxyResult, Context } from 'aws-lambda';
 import { z } from 'zod';
-import { GoogleOAuth } from './../../../services/google/oauth';
 import { readLoginConfig, type LoginConfig } from './config';
 
 export const bodySchema = z.object({

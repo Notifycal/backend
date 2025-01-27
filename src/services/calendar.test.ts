@@ -104,17 +104,7 @@ describe('Calendar Service', () => {
     googleCalendarListFn: () => Promise<Array<Calendar>>,
     userBaseStoreConfig: UserBaseStoreConfig = validUserBaseStoreConfig
   ): Promise<Array<Calendar>> {
-    vi.mock('@services/user-base-store', () => {
-      const UserBaseStoreMock = vi.fn();
-      Object.defineProperty(UserBaseStoreMock, 'withConfig', {
-        value: vi.fn(() => ({
-          getUserById: vi.fn(),
-          getIdpAuthorization: vi.fn(),
-          putUser: vi.fn()
-        }))
-      });
-      return { UserBaseStore: UserBaseStoreMock };
-    });
+    vi.mock('@services/user-base-store');
     const userBaseStoreMock = {
       getIdpAuthorization: vi.fn().mockImplementation(getIdpAuthorizationFn)
     };
@@ -123,15 +113,7 @@ describe('Calendar Service', () => {
       userBaseStoreMock as unknown as UserBaseStore<IdpName>
     );
 
-    vi.mock('@services/google/calendar', () => {
-      const GoogleCalendarMock = vi.fn();
-      Object.defineProperty(GoogleCalendarMock, 'withRefreshToken', {
-        value: vi.fn(() => ({
-          calendarList: vi.fn()
-        }))
-      });
-      return { GoogleCalendar: GoogleCalendarMock };
-    });
+    vi.mock('@services/google/calendar');
     const mockInstance2 = {
       calendarList: vi.fn().mockImplementation(googleCalendarListFn)
     };

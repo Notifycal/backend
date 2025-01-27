@@ -85,9 +85,7 @@ async function testit(
   env: GetUserCalendarListConfig = defaultEnv
 ): Promise<APIGatewayProxyResult> {
   setEnv(env);
-  vi.mock('@services/calendar', () => ({
-    calendarList: vi.fn()
-  }));
+  vi.mock('@services/calendar');
   vi.mocked(calendarList).mockImplementation(calendarListFn);
   return handler(event as unknown as Event, c);
 }

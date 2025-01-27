@@ -86,17 +86,7 @@ async function testit(
   env: GetUserProfileConfig = defaultEnv
 ): Promise<APIGatewayProxyResult> {
   setEnv(env);
-  vi.mock('@services/user-base-store', () => {
-    const UserBaseStoreMock = vi.fn();
-    Object.defineProperty(UserBaseStoreMock, 'withConfig', {
-      value: vi.fn(() => ({
-        getUserById: vi.fn(),
-        getIdpAuthorization: vi.fn(),
-        putUser: vi.fn()
-      }))
-    });
-    return { UserBaseStore: UserBaseStoreMock };
-  });
+  vi.mock('@services/user-base-store');
   const userBaseStoreMock = {
     getUserById: vi.fn().mockImplementation(getUserByIdFn)
   };

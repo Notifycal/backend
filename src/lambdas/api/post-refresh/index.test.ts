@@ -235,30 +235,12 @@ describe('POST Refresh', () => {
     env: RefreshConfig = defaultEnv
   ): Promise<APIGatewayProxyResult> {
     setEnv(env);
-    vi.mock('@services/jwt', () => ({
-      decodeAndVerifyJwtSignature: vi.fn()
-    }));
+    vi.mock('@services/jwt');
     vi.mocked(decodeAndVerifyJwtSignature).mockImplementation(decodeAndVerifyJwtSignatureFn);
-    vi.mock('@services/refresh-token-base-store', () => {
-      const RefreshTokenBaseStore = vi.fn();
-      (RefreshTokenBaseStore.prototype as RefreshTokenBaseStore).getTokenBy = vi.fn();
-      return {
-        RefreshTokenBaseStore
-      };
-    });
+    vi.mock('@services/refresh-token-base-store');
     // eslint-disable-next-line @typescript-eslint/unbound-method
     vi.mocked(RefreshTokenBaseStore.prototype.getTokenBy).mockImplementation(getRefreshTokenByFn);
-    vi.mock('@services/user-base-store', () => {
-      const UserBaseStoreMock = vi.fn();
-      Object.defineProperty(UserBaseStoreMock, 'withConfig', {
-        value: vi.fn(() => ({
-          getUserById: vi.fn(),
-          getIdpAuthorization: vi.fn(),
-          putUser: vi.fn()
-        }))
-      });
-      return { UserBaseStore: UserBaseStoreMock };
-    });
+    vi.mock('@services/user-base-store');
     const userBaseStoreMock = {
       getUserById: vi.fn().mockImplementation(getUserByIdFn)
     };

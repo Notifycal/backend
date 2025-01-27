@@ -89,7 +89,8 @@ describe('GoogleCalendar Service', () => {
   function testit(
     calendarListFn: () => Promise<GaxiosResponse<calendar_v3.Schema$CalendarList>>
   ): Promise<Array<Calendar>> {
-    vi.spyOn(google, 'calendar').mockReturnValue({
+    vi.mock('googleapis');
+    vi.mocked(google.calendar).mockReturnValue({
       calendarList: {
         list: vi.fn().mockImplementation(calendarListFn),
         context: {} as APIRequestContext,
@@ -153,7 +154,6 @@ describe('GoogleCalendar Service', () => {
         watch: vi.fn()
       }
     });
-
     const config = { clientId: 'id', clientSecret: 'secret', redirectUri: 'uri' };
     return GoogleCalendar.withRefreshToken(config, '').calendarList();
   }
