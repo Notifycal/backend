@@ -52,9 +52,9 @@ module "post_login_lambda" {
   policy_json        = data.aws_iam_policy_document.post_login_iam_policydoc.json
 
   environment_variables = merge({
-    GOOGLE_OAUTH_CLIENT_ID           = data.aws_ssm_parameter.google_oauth_client_id.value
-    GOOGLE_OAUTH_CLIENT_SECRET       = data.aws_ssm_parameter.google_oauth_client_secret.value
-    GOOGLE_OAUTH_CLIENT_REDIRECT_URI = data.aws_ssm_parameter.google_oauth_client_redirect_url.value
+    GOOGLE_OAUTH_CLIENT_ID           = var.google_oauth_config.client_id
+    GOOGLE_OAUTH_CLIENT_SECRET       = var.google_oauth_config.client_secret
+    GOOGLE_OAUTH_CLIENT_REDIRECT_URI = var.google_oauth_config.redirect_url
     USERS_TABLE_NAME                 = aws_dynamodb_table.users.name
     REFRESH_TOKENS_TABLE_NAME        = aws_dynamodb_table.refresh_tokens.name
   }, local.login_and_refresh_env_vars, local.common_lambda_env_vars)
