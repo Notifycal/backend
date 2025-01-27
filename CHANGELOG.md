@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.0](https://github.com/Notifycal/backend/compare/v0.6.0...v0.7.0) (2025-01-27)
+
+
+### Features
+
+* generate own keys for JWT access and refresh token ([#241](https://github.com/Notifycal/backend/issues/241)) ([0b9b3ef](https://github.com/Notifycal/backend/commit/0b9b3ef882766e8a87b1ffba23258ff17d6bf626))
+
 ## [0.6.0](https://github.com/Notifycal/backend/compare/v0.5.3...v0.6.0) (2025-01-22)
 
 
