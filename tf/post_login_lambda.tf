@@ -3,7 +3,7 @@ data "aws_iam_policy_document" "post_login_iam_policydoc" {
     effect = "Allow"
 
     actions = [
-      "dynamodb:GetItem",
+      "dynamodb:Query",
       "dynamodb:PutItem",
     ]
 
