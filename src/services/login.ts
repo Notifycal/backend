@@ -32,7 +32,7 @@ export function signInOrUpUser<TIdpName extends IdpName>(
   authorization: AuthorizationForIdp<TIdpName>,
   config: UserBaseStoreConfig
 ): Promise<UserStoreRecord<IdpName>> {
-  const userProvider = new UserBaseStore<IdpName>(config);
+  const userProvider = UserBaseStore.withConfig(config);
   return userProvider.getUserById(identity.userId).then(
     (userOrNot) => {
       if (userOrNot) {

@@ -14,6 +14,8 @@ export type Uuid = Brand<string, 'Uuid'>;
 export type UserId = Brand<string, 'UserId'> | Uuid;
 export type IdpId = Brand<string, 'IdpId'>;
 export type UnixTimestamp = Brand<number, 'UnixTimestamp'>;
+export type CalendarId = Brand<string, 'CalendarId'>;
+export type CalendarName = Brand<string, 'CalendarName'>;
 
 export type ConfigReaderFn<TConfig> = () => TConfig;
 export type JwtClaimCheckerFn = (jwt: AccessToken) => boolean;

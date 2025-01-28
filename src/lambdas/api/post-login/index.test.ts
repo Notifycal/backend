@@ -1,31 +1,33 @@
-import type { LoginConfig } from './config';
-import { handler, type Event } from './index';
-import { verifyGoogleIdentity, type GoogleOAuthConfig } from '@services/google/oauth';
-import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import { c, testEvent, unsafeTestEvent } from '@testing/apigateway';
+import type { Identity, IdpName } from '@model/Identity';
+import type { AuthorizationForIdp } from '@model/IdpAuthorization';
 import type { UserStoreRecord } from '@model/UserStoreRecord';
-import { assert } from '@testing/utils/assertions';
-import {
-  setEnvBaseConfig,
-  setEnvEncodeAccessJwtConfig,
-  setEnvEncodeRefreshJwtConfig,
-  setEnvRefreshTokenBaseStoreConfig,
-  setEnvUserBaseStoreConfig
-} from '@testing/utils/config';
+import type { Email, IdpId, Jwt, UnixTimestamp, Uuid } from '@own-types/model';
+import { GoogleOAuth } from '@services/google/oauth';
+import type { EncodedAndDecodedJwts } from '@services/jwt';
+import { buildJwtsAndStoreRefreshJwt, signInOrUpUser } from '@services/login';
+import { c, testEvent, unsafeTestEvent } from '@testing/apigateway';
+import { resetTestingContext } from '@testing/setup-tests';
 import {
   responseError,
   responseErrorNoCorsHeaders,
   responseSuccess
 } from '@testing/utils/api-response-handlers';
-import { validUser } from '@testing/utils/model';
-import type { EncodedAndDecodedJwts } from '@services/jwt';
-import { buildJwtsAndStoreRefreshJwt, signInOrUpUser } from '@services/login';
-import { resetTestingContext } from '@testing/setup-tests';
-import { describe, it, vi } from 'vitest';
-import type { Identity, IdpName } from '@model/Identity';
-import type { Email, IdpId, Jwt, UnixTimestamp, Uuid } from '@own-types/model';
+import { assert } from '@testing/utils/assertions';
+import {
+  fakeIdpConfigs,
+  setEnvBaseConfig,
+  setEnvEncodeAccessJwtConfig,
+  setEnvEncodeRefreshJwtConfig,
+  setEnvIdpConfigs,
+  setEnvRefreshTokenBaseStoreConfig,
+  setEnvUserBaseStoreConfig
+} from '@testing/utils/config';
 import { validJwts } from '@testing/utils/jwt';
-import type { AuthorizationForIdp } from '@model/IdpAuthorization';
+import { validUser } from '@testing/utils/model';
+import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
+import { describe, it, vi } from 'vitest';
+import type { LoginConfig } from './config';
+import { handler, type Event } from './index';
 
 describe('POST Login', () => {
   const userEmail = 'test@notifycal.com' as Email;
@@ -227,7 +229,7 @@ describe('POST Login', () => {
     const signInOrUpUserFn = () => Promise.resolve(validUser(validUserId));
     const buildJwtsAndStoreRefreshJwtFn = () => Promise.resolve(validJwts);
     const env = structuredClone(defaultEnv);
-    env.googleOAuthClientConfig.clientId = undefined as unknown as string;
+    env.idpConfigs['google.com'].clientId = undefined as unknown as string;
 
     return testit(
       event,
@@ -317,10 +319,13 @@ async function testit<T extends IdpName>(
   env: LoginConfig = defaultEnv
 ): Promise<APIGatewayProxyResult> {
   setEnv(env);
-  vi.mock('@services/google/oauth', () => ({
-    verifyGoogleIdentity: vi.fn()
-  }));
-  vi.mocked(verifyGoogleIdentity).mockImplementation(verifyGoogleIdentityFn);
+  vi.mock('@services/google/oauth');
+  const mockInstance = {
+    verifyIdentity: vi.fn().mockImplementation(verifyGoogleIdentityFn)
+  };
+  // eslint-disable-next-line @typescript-eslint/unbound-method
+  vi.mocked(GoogleOAuth.withConfig).mockReturnValue(mockInstance as unknown as GoogleOAuth);
+
   vi.mock('@services/login', async () => {
     const realImport = await vi.importActual('@services/login');
     return {
@@ -349,11 +354,7 @@ const defaultEnv: LoginConfig = {
     audience: 'test@notifycal.com',
     expiresIn: '7d'
   },
-  googleOAuthClientConfig: {
-    clientId: 'some_valid_google_app_url',
-    clientSecret: 'some_valid_secret',
-    redirectUri: 'http://localhost:5173'
-  },
+  idpConfigs: fakeIdpConfigs,
   userBaseStoreConfig: {
     tableName: 'Users-local'
   },
@@ -368,14 +369,8 @@ const defaultEnv: LoginConfig = {
 function setEnv(config: LoginConfig) {
   setEnvEncodeAccessJwtConfig(config.encodeAccessJwtConfig);
   setEnvEncodeRefreshJwtConfig(config.encodeRefreshJwtConfig);
-  setEnvGoogleOAuthClientConfig(config.googleOAuthClientConfig);
+  setEnvIdpConfigs(config.idpConfigs);
   setEnvUserBaseStoreConfig(config.userBaseStoreConfig);
   setEnvRefreshTokenBaseStoreConfig(config.refreshTokenBaseStoreConfig);
   setEnvBaseConfig(config.baseConfig);
-}
-
-function setEnvGoogleOAuthClientConfig(config: GoogleOAuthConfig) {
-  process.env.GOOGLE_OAUTH_CLIENT_ID = config.clientId;
-  process.env.GOOGLE_OAUTH_CLIENT_SECRET = config.clientSecret;
-  process.env.GOOGLE_OAUTH_CLIENT_REDIRECT_URI = config.redirectUri;
 }

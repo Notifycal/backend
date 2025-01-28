@@ -40,9 +40,7 @@ module "get_user_profile_lambda" {
   policy_json        = data.aws_iam_policy_document.get_user_profile_iam_policydoc.json
 
   environment_variables = merge({
-    USERS_TABLE_NAME      = aws_dynamodb_table.users.name
-    ACCESS_JWT_PUBLIC_KEY = tls_private_key.jwt_access_key.public_key_pem
-  }, local.protected_endpoint_env_vars)
+  }, local.protected_endpoint_env_vars, local.users_persistance_env_vars)
 }
 
 module "get_user_profile_lambda_alias" {

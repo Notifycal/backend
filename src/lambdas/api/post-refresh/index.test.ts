@@ -1,6 +1,15 @@
-import { handler, type Event } from './index';
-import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
+import type { IdpName } from '@model/Identity';
+import type { RefreshToken } from '@model/Jwt';
+import type { RefreshTokenStoreRecord } from '@model/RefreshTokenStoreRecord';
+import type { UserStoreRecord } from '@model/UserStoreRecord';
+import type { Jwt, UnixTimestamp, Uuid } from '@own-types/model';
+import { decodeAndVerifyJwtSignature, type EncodedAndDecodedJwts } from '@services/jwt';
+import { buildJwtsAndStoreRefreshJwt } from '@services/login';
+import { RefreshTokenBaseStore } from '@services/refresh-token-base-store';
+import { UserBaseStore } from '@services/user-base-store';
 import { c, testEvent } from '@testing/apigateway';
+import { responseError, responseSuccess } from '@testing/utils/api-response-handlers';
+import { assert } from '@testing/utils/assertions';
 import {
   setEnvBaseConfig,
   setEnvDecodeRefreshJwtConfig,
@@ -9,21 +18,12 @@ import {
   setEnvRefreshTokenBaseStoreConfig,
   setEnvUserBaseStoreConfig
 } from '@testing/utils/config';
-import { assert } from '@testing/utils/assertions';
-import type { RefreshConfig } from './config';
-import type { RefreshTokenStoreRecord } from '@model/RefreshTokenStoreRecord';
-import type { RefreshToken } from '@model/Jwt';
-import { responseError, responseSuccess } from '@testing/utils/api-response-handlers';
-import { decodeAndVerifyJwtSignature, type EncodedAndDecodedJwts } from '@services/jwt';
-import { buildJwtsAndStoreRefreshJwt } from '@services/login';
-import { RefreshTokenBaseStore } from '@services/refresh-token-base-store';
-import { describe, it, vi } from 'vitest';
-import type { Jwt, UnixTimestamp, Uuid } from '@own-types/model';
 import { validJwts } from '@testing/utils/jwt';
-import { UserBaseStore } from '@services/user-base-store';
 import { validUser } from '@testing/utils/model';
-import type { IdpName } from '@model/Identity';
-import type { UserStoreRecord } from '@model/UserStoreRecord';
+import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
+import { describe, it, vi } from 'vitest';
+import type { RefreshConfig } from './config';
+import { handler, type Event } from './index';
 
 describe('POST Refresh', () => {
   it('should renew both tokens', () => {
@@ -235,28 +235,19 @@ describe('POST Refresh', () => {
     env: RefreshConfig = defaultEnv
   ): Promise<APIGatewayProxyResult> {
     setEnv(env);
-    vi.mock('@services/jwt', () => ({
-      decodeAndVerifyJwtSignature: vi.fn()
-    }));
+    vi.mock('@services/jwt');
     vi.mocked(decodeAndVerifyJwtSignature).mockImplementation(decodeAndVerifyJwtSignatureFn);
-    vi.mock('@services/refresh-token-base-store', () => {
-      const RefreshTokenBaseStore = vi.fn();
-      (RefreshTokenBaseStore.prototype as RefreshTokenBaseStore).getTokenBy = vi.fn();
-      return {
-        RefreshTokenBaseStore
-      };
-    });
+    vi.mock('@services/refresh-token-base-store');
     // eslint-disable-next-line @typescript-eslint/unbound-method
     vi.mocked(RefreshTokenBaseStore.prototype.getTokenBy).mockImplementation(getRefreshTokenByFn);
-    vi.mock('@services/user-base-store', () => {
-      const UserBaseStore = vi.fn();
-      (UserBaseStore.prototype as UserBaseStore<IdpName>).getUserById = vi.fn();
-      return {
-        UserBaseStore
-      };
-    });
+    vi.mock('@services/user-base-store');
+    const userBaseStoreMock = {
+      getUserById: vi.fn().mockImplementation(getUserByIdFn)
+    };
     // eslint-disable-next-line @typescript-eslint/unbound-method
-    vi.mocked(UserBaseStore.prototype.getUserById).mockImplementation(getUserByIdFn);
+    vi.mocked(UserBaseStore.withConfig).mockReturnValue(
+      userBaseStoreMock as unknown as UserBaseStore<IdpName>
+    );
     vi.mock('@services/login', async () => {
       const realImport = await vi.importActual('@services/login');
       return {

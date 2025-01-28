@@ -1,11 +1,11 @@
+import { JSONStringified } from '@aws-lambda-powertools/parser/helpers';
+import { protectedEndpointMiddleware } from '@common/lambda-middleware';
+import { authedEventSchema } from '@model/ApiGatewayEvents';
+import type { AuthedEndpointConfig } from '@model/Config';
+import { responseSuccess } from '@services/common/api-response-handlers';
 import type { APIGatewayProxyResult, Context } from 'aws-lambda';
 import { z } from 'zod';
-import type { AuthedEndpointConfig } from '@model/Config';
-import { protectedEndpointMiddleware } from '@common/lambda-middleware';
 import { getDefaultDecodeAccessJwtConfig } from './utils/jwt';
-import { JSONStringified } from '@aws-lambda-powertools/parser/helpers';
-import { authedEventSchema } from '@model/ApiGatewayEvents';
-import { responseSuccess } from '@services/common/api-response-handlers';
 
 export interface TestingWhiteApiConfig extends AuthedEndpointConfig {
   config1: string;
@@ -25,7 +25,7 @@ function lambdaHandler(
   ctx: Context
 ): APIGatewayProxyResult {
   console.log(event);
-  return responseSuccess({ result: 'OK' });
+  return responseSuccess({ result: { afield: 'OK' } });
 }
 
 function testingConfigReader(): TestingWhiteApiConfig {

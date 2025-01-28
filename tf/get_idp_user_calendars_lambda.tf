@@ -1,37 +1,11 @@
-data "aws_iam_policy_document" "post_login_iam_policydoc" {
-  statement {
-    effect = "Allow"
-
-    actions = [
-      "dynamodb:Query",
-      "dynamodb:PutItem",
-    ]
-
-    resources = [
-      aws_dynamodb_table.users.arn
-    ]
-  }
-  statement {
-    effect = "Allow"
-
-    actions = [
-      "dynamodb:PutItem",
-    ]
-
-    resources = [
-      aws_dynamodb_table.refresh_tokens.arn
-    ]
-  }
-}
-
-module "post_login_lambda" {
+module "get_idp_user_calendars_lambda" {
   source  = "terraform-aws-modules/lambda/aws"
   version = "~> 7.17"
 
-  function_name          = "post-login-${var.environment}"
+  function_name          = "get-idp-user-calendars-${var.environment}"
   publish                = local.lambdas_publish
   create_package         = local.lambdas_create_package
-  local_existing_package = "${path.root}/../dist/lambdas/api/post-login.zip"
+  local_existing_package = "${path.root}/../dist/lambdas/api/idp/get-user-calendars.zip"
 
   runtime     = var.lambdas_runtime
   timeout     = local.api_lambdas_timeout
@@ -45,22 +19,19 @@ module "post_login_lambda" {
   maximum_retry_attempts = 0
 
   tags = merge({
-    Api = "POST /login"
+    Api = "GET /idp/user-calendars"
   }, local.common_tags)
 
-  attach_policy_json = true
-  policy_json        = data.aws_iam_policy_document.post_login_iam_policydoc.json
-
   environment_variables = merge({
-  }, local.login_and_refresh_env_vars, local.idps_configs, local.common_lambda_env_vars)
+  }, local.protected_endpoint_env_vars, local.idps_configs, local.users_persistance_env_vars)
 }
 
-module "post_login_lambda_alias" {
+module "get_idp_user_calendars_lambda_alias" {
   source  = "terraform-aws-modules/lambda/aws//modules/alias"
   version = "~> 7.17"
 
-  function_name    = module.post_login_lambda.lambda_function_name
-  function_version = module.post_login_lambda.lambda_function_version
+  function_name    = module.get_idp_user_calendars_lambda.lambda_function_name
+  function_version = module.get_idp_user_calendars_lambda.lambda_function_version
   name             = var.lambdas_live_alias_name
 
   allowed_triggers = {

@@ -1,17 +1,17 @@
+import { GoogleOAuth } from './oauth';
 /* eslint-disable camelcase */
-import { verifyGoogleIdentity } from './oauth';
-import {
-  type LoginTicket,
-  type TokenPayload,
-  type Credentials,
-  OAuth2Client
-} from 'google-auth-library';
-import { describe, expect, it, vi } from 'vitest';
-import type { GetTokenResponse } from 'google-auth-library/build/src/auth/oauth2client';
 import type { Identity } from '@model/Identity';
-import { idGenerator } from '../id-generator';
-import type { Uuid } from '@own-types/model';
 import type { AuthorizationForIdp } from '@model/IdpAuthorization';
+import type { Uuid } from '@own-types/model';
+import {
+  type Credentials,
+  type LoginTicket,
+  OAuth2Client,
+  type TokenPayload
+} from 'google-auth-library';
+import type { GetTokenResponse } from 'google-auth-library/build/src/auth/oauth2client';
+import { describe, expect, it, vi } from 'vitest';
+import { idGenerator } from '../id-generator';
 
 const validConfig = {
   clientId: 'valid-client-id',
@@ -47,7 +47,7 @@ const validVerifyIdTokenResponse: LoginTicketWithoutUnusedValues = {
   getPayload: () => validLoginTokenPayload
 };
 
-describe('verifyGoogleIdentity', () => {
+describe('GoogleOAuth Service verifyIdentity', () => {
   it('should return a valid Identity when Google credentials are valid', async () => {
     const getTokenFn = () => Promise.resolve(validGetTokenResponse);
     const verifyIdTokenFn = () => Promise.resolve(validVerifyIdTokenResponse);
@@ -163,18 +163,13 @@ function testIt(
   verifyIdTokenFn: () => Promise<Omit<Omit<LoginTicket, 'getEnvelope'>, 'getAttributes'>>,
   mockIdGenerated: Uuid = validUserId
 ): Promise<[Identity<'google.com'>, AuthorizationForIdp<'google.com'>]> {
-  vi.mock('google-auth-library', () => ({
-    OAuth2Client: vi.fn()
-  }));
+  vi.mock('google-auth-library');
   const mockGetToken = vi.fn().mockImplementation(getTokenFn);
   const mockVerifyIdToken = vi.fn().mockImplementation(verifyIdTokenFn);
   OAuth2Client.prototype.getToken = mockGetToken;
   OAuth2Client.prototype.verifyIdToken = mockVerifyIdToken;
 
-  vi.mock('@services/id-generator', () => ({
-    idGenerator: vi.fn()
-  }));
+  vi.mock('@services/id-generator');
   vi.mocked(idGenerator).mockReturnValue(mockIdGenerated);
-
-  return verifyGoogleIdentity(validGoogleCode, validConfig);
+  return GoogleOAuth.withConfig(validConfig).verifyIdentity(validGoogleCode);
 }

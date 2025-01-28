@@ -1,14 +1,14 @@
-import type { AuthedEventWithConfig } from '../model/ApiGatewayEvents';
 import type { MiddlewareObj, Request } from '@middy/core';
 /* eslint-disable-next-line no-duplicate-imports */
 import type middy from '@middy/core';
-import type { APIGatewayProxyResult, Context } from 'aws-lambda';
-import { decodeAndVerifyJwtSignature } from '@services/jwt';
-import type { Jwt, JwtClaimCheckerFn } from '@own-types/model';
+import type { AuthedEventWithConfig } from '@model/ApiGatewayEvents';
 import type { AuthedEndpointConfig } from '@model/Config';
 import { type AccessToken, accessTokenSchema } from '@model/Jwt';
-import { errorHandler, headers as _headers } from '@services/common/api-response-handlers';
+import type { Jwt, JwtClaimCheckerFn } from '@own-types/model';
+import { headers as _headers, errorHandler } from '@services/common/api-response-handlers';
 import { extractErrorMessage } from '@services/common/error-handling';
+import { decodeAndVerifyJwtSignature } from '@services/jwt';
+import type { APIGatewayProxyResult, Context } from 'aws-lambda';
 
 function jwtVerification<TConfig extends AuthedEndpointConfig>(
   request: Request<AuthedEventWithConfig<TConfig>, APIGatewayProxyResult, Error, Context>,

@@ -68,7 +68,7 @@ paths:
                   type: string
       security: [] # This overrides global definition since this endpoint is unprotected
       responses:
-        '200': { $ref: '#/components/responses/AuthOK' }
+        '200': { $ref: '#/components/responses/AuthenticationOK' }
         '400': { $ref: '#/components/responses/BadRequest' }
         '401': { $ref: '#/components/responses/Unauthorised' }
         '500': { $ref: '#/components/responses/InternalServerError' }
@@ -136,7 +136,7 @@ paths:
                   type: string
       security: [] # This overrides global definition since this endpoint is unprotected
       responses:
-        '200': { $ref: '#/components/responses/AuthOK' }
+        '200': { $ref: '#/components/responses/AuthenticationOK' }
         '400': { $ref: '#/components/responses/BadRequest' }
         '401': { $ref: '#/components/responses/Unauthorised' }
         '403': { $ref: '#/components/responses/Forbidden' }
@@ -157,13 +157,42 @@ paths:
           description: 'OK'
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/User' }
+              schema:
+                type: object
+                properties:
+                  result: { $ref: '#/components/responses/User' }
+                required: [result]
+                additionalProperties: false
         '401': { $ref: '#/components/responses/Unauthorised' }
         '404': { $ref: '#/components/responses/NotFound' }
         '500': { $ref: '#/components/responses/InternalServerError' }
       x-amazon-apigateway-integration:
         <<: *AWS_LAMBDA_PROXY
         uri: 'arn:aws:apigateway:${aws_region}:lambda:path/2015-03-31/functions/${lambda_functions.get_user_profile_arn}/invocations'
+    options: *CORS_OPTIONS
+
+  /api/v1/idp/user-calendars:
+    get:
+      summary: User calendar list from Idp
+      operationId: userCalendarListFromIdp
+      description: Returns the user calendar list of the caller from idp
+      tags: [user, idp-proxy]
+      responses:
+        '200':
+          description: 'OK'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: { $ref: '#/components/responses/CalendarList' }
+                required: [result]
+                additionalProperties: false
+        '401': { $ref: '#/components/responses/Unauthorised' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+      x-amazon-apigateway-integration:
+        <<: *AWS_LAMBDA_PROXY
+        uri: 'arn:aws:apigateway:${aws_region}:lambda:path/2015-03-31/functions/${lambda_functions.get_idp_user_calendars_arn}/invocations'
     options: *CORS_OPTIONS
 
 components:
@@ -202,6 +231,21 @@ components:
       # Additionalproperties are allowed by default in OpenAPI. To enforce maximum strictness use additionalProperties: false to block all arbitrary data.
       additionalProperties: false
 
+    CalendarList:
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            type: string
+          name:
+            type: string
+          required:
+            - id
+            - name
+          # Additionalproperties are allowed by default in OpenAPI. To enforce maximum strictness use additionalProperties: false to block all arbitrary data.
+          additionalProperties: false
+
     UnixTimestamp:
       type: number
       format: int64
@@ -224,7 +268,7 @@ components:
       additionalProperties: false
 
   responses:
-    AuthOK:
+    AuthenticationOK:
       description: OK
       content:
         application/json:
@@ -297,5 +341,7 @@ components:
 tags:
   - name: user
     description: user operations
+  - name: idp-proxy
+    description: idp proxy operations
   - name: auth
     description: authentication operations

@@ -1,6 +1,6 @@
 import type { LogItemMessage } from '@aws-lambda-powertools/logger/types';
 import { logger } from '@common/powertools';
-import type { ResponseHeaders } from '@model/ApiGatewayEvents';
+import type { ErrorResponseBody, ResponseHeaders, SuccessResponseBody } from '@model/Api';
 import type { APIGatewayProxyResult } from 'aws-lambda';
 
 export function baseHeaders(): ResponseHeaders {
@@ -29,7 +29,7 @@ export const errorMessages: Record<number, string> = {
 };
 
 export function responseSuccess(
-  body: object,
+  body: SuccessResponseBody,
   statusCode = 200,
   headers: ResponseHeaders = baseHeaders()
 ): APIGatewayProxyResult {
@@ -44,16 +44,17 @@ export function responseError(
   statusCode: keyof typeof errorMessages,
   headers: ResponseHeaders = baseHeaders()
 ): APIGatewayProxyResult {
+  const payload: ErrorResponseBody = { message: errorMessages[statusCode] };
   return {
     statusCode,
-    body: JSON.stringify({ message: errorMessages[statusCode] }),
+    body: JSON.stringify(payload),
     headers
   };
 }
 
 export const successHandler =
   (statusCode = 200) =>
-  (body: object): APIGatewayProxyResult => {
+  (body: SuccessResponseBody): APIGatewayProxyResult => {
     return responseSuccess(body, statusCode);
   };
 
