@@ -1,12 +1,12 @@
-import type { APIGatewayProxyResult, Context } from 'aws-lambda';
-import { type GetUserCalendarListConfig, readGetUserCalendarListConfig } from './config';
-import { authedEventSchema } from '@model/ApiGatewayEvents';
 import { protectedEndpointMiddleware } from '@common/lambda-middleware';
-import type { z } from 'zod';
-import { errorHandler, successHandler } from '@services/common/api-response-handlers';
+import { authedEventSchema } from '@model/ApiGatewayEvents';
 import { calendarList } from '@services/calendar';
+import { errorHandler, successHandler } from '@services/common/api-response-handlers';
+import type { APIGatewayProxyResult, Context } from 'aws-lambda';
+import type { z } from 'zod';
+import { type GetUserCalendarsConfig, readGetUserCalendarListConfig } from './config';
 
-const eventSchema = authedEventSchema<GetUserCalendarListConfig>();
+const eventSchema = authedEventSchema<GetUserCalendarsConfig>();
 export type Event = z.infer<typeof eventSchema>;
 
 function lambdaHandler(

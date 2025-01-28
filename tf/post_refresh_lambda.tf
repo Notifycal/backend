@@ -40,9 +40,7 @@ module "post_refresh_lambda" {
   attach_policy_json = true
   policy_json        = data.aws_iam_policy_document.post_refresh_iam_policydoc.json
 
-  environment_variables = merge({
-    REFRESH_JWT_PUBLIC_KEY    = tls_private_key.jwt_refresh_key.public_key_pem
-    REFRESH_TOKENS_TABLE_NAME = aws_dynamodb_table.refresh_tokens.name
+  environment_variables = merge({ 
   }, local.login_and_refresh_env_vars, local.common_lambda_env_vars)
 }
 

@@ -16,10 +16,10 @@ import {
 import { getDefaultDecodeAccessJwtConfig } from '@testing/utils/jwt';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { describe, it, vi } from 'vitest';
-import type { GetUserCalendarListConfig } from './config';
+import type { GetUserCalendarsConfig } from './config';
 import { handler, type Event } from './index';
 
-describe('GET Calendar list', () => {
+describe('GET User calendars', () => {
   const validIdentity = {
     userId: 'cfaa8471-f4cc-44da-bc22-ddc4b735a847' as UserId,
     email: 'test@notifycal.com' as Email,
@@ -82,7 +82,7 @@ describe('GET Calendar list', () => {
 async function testit(
   event: APIGatewayProxyEvent,
   calendarListFn: () => Promise<Array<Calendar>>,
-  env: GetUserCalendarListConfig = defaultEnv
+  env: GetUserCalendarsConfig = defaultEnv
 ): Promise<APIGatewayProxyResult> {
   setEnv(env);
   vi.mock('@services/calendar');
@@ -101,7 +101,7 @@ const defaultEnv = {
   }
 };
 
-function setEnv(config: GetUserCalendarListConfig) {
+function setEnv(config: GetUserCalendarsConfig) {
   setEnvDecodeAccessJwtConfig(config.decodeAccessJwtConfig);
   setEnvIdpConfigs(config.idpConfigs);
   setEnvUserBaseStoreConfig(config.userBaseStoreConfig);

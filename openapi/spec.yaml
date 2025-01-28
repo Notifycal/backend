@@ -165,6 +165,25 @@ paths:
         <<: *AWS_LAMBDA_PROXY
         uri: 'arn:aws:apigateway:${aws_region}:lambda:path/2015-03-31/functions/${lambda_functions.get_user_profile_arn}/invocations'
     options: *CORS_OPTIONS
+  
+  /api/v1/user-calendars:
+    get:
+      summary: User calendar list from Idp
+      operationId: userCalendarListFromIdp
+      description: Returns the user calendar list of the caller from idp
+      tags: [user, idp-proxy]
+      responses:
+        '200':
+          description: 'OK'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CalendarList' }
+        '401': { $ref: '#/components/responses/Unauthorised' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+      x-amazon-apigateway-integration:
+        <<: *AWS_LAMBDA_PROXY
+        uri: 'arn:aws:apigateway:${aws_region}:lambda:path/2015-03-31/functions/${lambda_functions.get_user_calendars_arn}/invocations'
+    options: *CORS_OPTIONS
 
 components:
   schemas:
@@ -201,6 +220,21 @@ components:
         - UserStatus
       # Additionalproperties are allowed by default in OpenAPI. To enforce maximum strictness use additionalProperties: false to block all arbitrary data.
       additionalProperties: false
+
+    CalendarList:
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            type: string
+          name:
+            type: string
+          required:
+            - id
+            - name
+          # Additionalproperties are allowed by default in OpenAPI. To enforce maximum strictness use additionalProperties: false to block all arbitrary data.
+          additionalProperties: false
 
     UnixTimestamp:
       type: number
@@ -297,5 +331,7 @@ components:
 tags:
   - name: user
     description: user operations
+  - name: idp-proxy
+    description: idp proxy operations
   - name: auth
     description: authentication operations
