@@ -1,11 +1,11 @@
 import {
-  type QueryCommandInput,
+  GetCommand,
   PutCommand,
   QueryCommand,
-  type PutCommandInput,
   type DynamoDBDocumentClient,
-  GetCommand,
-  type GetCommandInput
+  type GetCommandInput,
+  type PutCommandInput,
+  type QueryCommandInput
 } from '@aws-sdk/lib-dynamodb';
 import { dynamodbClient } from '@clients/dynamodb';
 
@@ -32,10 +32,10 @@ export abstract class BaseStore<TConfig extends BaseStoreConfig> {
           ...cmdInput
         })
       )
-      .then((item) => {
-        const user = item.Item;
-        if (user) {
-          return user as T;
+      .then((result) => {
+        const item = result.Item;
+        if (item) {
+          return item as T;
         } else {
           return undefined;
         }
@@ -53,9 +53,9 @@ export abstract class BaseStore<TConfig extends BaseStoreConfig> {
         })
       )
       .then((result) => {
-        const r = result.Items?.[0];
-        if (r) {
-          return r as T;
+        const item = result.Items?.[0];
+        if (item) {
+          return item as T;
         }
         return undefined;
       });

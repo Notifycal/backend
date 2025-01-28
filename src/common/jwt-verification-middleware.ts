@@ -1,7 +1,7 @@
 import type { MiddlewareObj, Request } from '@middy/core';
-import type { AuthedEventWithConfig } from '../model/ApiGatewayEvents';
 /* eslint-disable-next-line no-duplicate-imports */
 import type middy from '@middy/core';
+import type { AuthedEventWithConfig } from '@model/ApiGatewayEvents';
 import type { AuthedEndpointConfig } from '@model/Config';
 import { type AccessToken, accessTokenSchema } from '@model/Jwt';
 import type { Jwt, JwtClaimCheckerFn } from '@own-types/model';
