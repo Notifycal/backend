@@ -1,16 +1,16 @@
-import { logger, metrics, tracer } from '@common/powertools';
-import middy from '@middy/core';
-import { captureLambdaHandler } from '@aws-lambda-powertools/tracer/middleware';
 import { injectLambdaContext } from '@aws-lambda-powertools/logger/middleware';
 import { logMetrics } from '@aws-lambda-powertools/metrics/middleware';
+import { captureLambdaHandler } from '@aws-lambda-powertools/tracer/middleware';
+import { logger, metrics, tracer } from '@common/powertools';
+import middy from '@middy/core';
+import type { AuthedEndpointConfig } from '@model/Config';
+import type { ConfigReaderFn, JwtClaimCheckerFn } from '@own-types/model';
+import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
+import type { z } from 'zod';
 import { configReaderMiddleware } from './config-reader-middleware';
+import { corsMiddleware } from './cors-middleware';
 import { checkClaims, jwtVerificationMiddleware } from './jwt-verification-middleware';
 import { httpRequestEventParserMiddleware } from './parser-http-middleware';
-import type { ConfigReaderFn, JwtClaimCheckerFn } from '@own-types/model';
-import type { z } from 'zod';
-import type { AuthedEndpointConfig } from '@model/Config';
-import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import { corsMiddleware } from './cors-middleware';
 
 export function baseMiddleware(): middy.MiddyfiedHandler<
   APIGatewayProxyEvent,

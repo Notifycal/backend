@@ -1,11 +1,11 @@
-import { throwError } from '@services/common/error-handling';
 import type { Calendar } from '@model/Calendar';
+import type { GoogleOAuthConfig, IdpConfigs } from '@model/Config';
 import type { IdpName } from '@model/Identity';
+import type { UserId } from '@own-types/model';
+import { throwError } from '@services/common/error-handling';
 import { match } from 'ts-pattern';
 import { GoogleCalendar } from './google/calendar';
-import type { GoogleOAuthConfig, IdpConfigs } from '@model/Config';
 import { type UserBaseStoreConfig, UserBaseStore } from './user-base-store';
-import type { UserId } from '@own-types/model';
 
 function googleCalendarList(
   userId: UserId,

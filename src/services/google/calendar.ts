@@ -9,9 +9,7 @@ import { BaseGoogle } from './base-service';
 
 export class GoogleCalendar extends BaseGoogle {
   public static withRefreshToken(config: GoogleOAuthConfig, refreshToken: string): GoogleCalendar {
-    const instance = new this(config);
-    instance._client.setCredentials({ refresh_token: refreshToken });
-    return instance;
+    return new this(config, refreshToken);
   }
 
   public calendarList(): Promise<Array<Calendar>> {

@@ -1,8 +1,8 @@
-import type { UserStoreRecord } from '@model/UserStoreRecord';
-import { BaseStore, type BaseStoreConfig } from './common/base-store';
-import type { UserId } from '@own-types/model';
 import type { IdpName } from '@model/Identity';
 import type { AuthorizationForIdp, UserIdpAuthorizationStoreRecord } from '@model/IdpAuthorization';
+import type { UserStoreRecord } from '@model/UserStoreRecord';
+import type { UserId } from '@own-types/model';
+import { BaseStore, type BaseStoreConfig } from './common/base-store';
 
 export type UserBaseStoreConfig = BaseStoreConfig;
 export type UserBaseStoreEndpointConfig = { userBaseStoreConfig: UserBaseStoreConfig };
@@ -61,11 +61,13 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
       ProjectionExpression: projections.join(', ')
     };
 
-    return this.queryCommandRunner<AuthorizationForIdp<TIdpName>>(queryCmd).catch((error) =>
-      Promise.reject(
-        new Error(`Idp authorization for user id '${id}' could not be retrieved. Error: ${error}`)
-      )
-    );
+    return this.queryCommandRunner<UserIdpAuthorizationStoreRecord<TIdpName>>(queryCmd)
+      .then((record) => record?.IdpAuthorization)
+      .catch((error) =>
+        Promise.reject(
+          new Error(`Idp authorization for user id '${id}' could not be retrieved. Error: ${error}`)
+        )
+      );
   }
 
   public putUser(
@@ -73,7 +75,7 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
     authorization: AuthorizationForIdp<TIdpName>
   ): Promise<null> {
     return this.putCommandRunner({
-      Item: { ...user, IdpAuth: authorization }
+      Item: { ...user, IdpAuthorization: authorization }
     });
   }
 }
