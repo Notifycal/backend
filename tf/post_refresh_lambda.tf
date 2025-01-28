@@ -40,7 +40,7 @@ module "post_refresh_lambda" {
   attach_policy_json = true
   policy_json        = data.aws_iam_policy_document.post_refresh_iam_policydoc.json
 
-  environment_variables = merge({ 
+  environment_variables = merge({
   }, local.login_and_refresh_env_vars, local.common_lambda_env_vars)
 }
 
