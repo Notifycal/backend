@@ -1,12 +1,12 @@
-import { handler, type Event } from './white-authed-api-lambda';
-import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { c, testAuthedEvent, testEvent } from '@testing/apigateway';
+import { responseError, responseSuccess } from '@testing/utils/api-response-handlers';
 import type { TestingWhiteApiConfig } from '@testing/white-authed-api-lambda';
-import { getDefaultDecodeAccessJwtConfig, testJwt } from './utils/jwt';
+import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
+import { describe, it } from 'vitest';
 import { assert } from './utils/assertions';
 import { setEnvBaseConfig, setEnvDecodeAccessJwtConfig } from './utils/config';
-import { responseError, responseSuccess } from '@testing/utils/api-response-handlers';
-import { describe, it } from 'vitest';
+import { getDefaultDecodeAccessJwtConfig, testJwt } from './utils/jwt';
+import { handler, type Event } from './white-authed-api-lambda';
 
 describe('White authed API lambda', () => {
   it('return 200 if jwt passes verification and request payload is valid', async () => {
@@ -21,7 +21,7 @@ describe('White authed API lambda', () => {
     ) as unknown as APIGatewayProxyEvent;
 
     return testit(event).then((resp) => {
-      assert(resp, responseSuccess({ result: 'OK' }, 200));
+      assert(resp, responseSuccess({ result: { afield: 'OK' } }, 200));
     });
   });
 

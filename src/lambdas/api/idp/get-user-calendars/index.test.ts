@@ -47,7 +47,7 @@ describe('GET User calendars', () => {
     const calendarListFn = () => Promise.resolve(validCalendarList);
 
     return testit(event, calendarListFn).then((resp) => {
-      assert(resp, responseSuccess(validCalendarList));
+      assert(resp, responseSuccess({ result: validCalendarList }));
     });
   });
 
@@ -61,7 +61,7 @@ describe('GET User calendars', () => {
     const calendarListFn = () => Promise.resolve(validCalendarList);
 
     return testit(event, calendarListFn).then((resp) => {
-      assert(resp, responseSuccess(validCalendarList));
+      assert(resp, responseSuccess({ result: validCalendarList }));
     });
   });
 

@@ -40,7 +40,7 @@ describe('GET User profile', () => {
     const getUserByEmailFn = () => Promise.resolve(validUser(validAccessToken.userId));
 
     return testit(event, getUserByEmailFn).then((resp) => {
-      assert(resp, responseSuccess(validUser(validAccessToken.userId)));
+      assert(resp, responseSuccess({ result: validUser(validAccessToken.userId) }));
     });
   });
 

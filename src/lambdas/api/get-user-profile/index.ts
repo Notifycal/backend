@@ -1,10 +1,10 @@
-import type { APIGatewayProxyResult, Context } from 'aws-lambda';
-import { type GetUserProfileConfig, readGetUserConfig } from './config';
-import { UserBaseStore } from '@services/user-base-store';
-import { authedEventSchema } from '@model/ApiGatewayEvents';
 import { protectedEndpointMiddleware } from '@common/lambda-middleware';
-import type { z } from 'zod';
+import { authedEventSchema } from '@model/ApiGatewayEvents';
 import { errorHandler, successHandler } from '@services/common/api-response-handlers';
+import { UserBaseStore } from '@services/user-base-store';
+import type { APIGatewayProxyResult, Context } from 'aws-lambda';
+import type { z } from 'zod';
+import { type GetUserProfileConfig, readGetUserConfig } from './config';
 
 const eventSchema = authedEventSchema<GetUserProfileConfig>();
 export type Event = z.infer<typeof eventSchema>;
@@ -19,7 +19,7 @@ function lambdaHandler(
   const userId = event.requestContext.authorizer.payload.userId;
   return userProvider.getUserById(userId).then((userOrNot) => {
     if (userOrNot) {
-      return successHandler()(userOrNot);
+      return successHandler()({ result: userOrNot });
     } else {
       return errorHandler(404)('The user could not be found in storage');
     }
