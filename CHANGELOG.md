@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.0](https://github.com/Notifycal/backend/compare/v0.7.1...v0.8.0) (2025-01-28)
+
+
+### Features
+
+* idp agnositic user-calendar endpoint. With google impl ([#240](https://github.com/Notifycal/backend/issues/240)) ([e96edda](https://github.com/Notifycal/backend/commit/e96eddaf0dfc6e81fe497eaa575ca8bc1937c51d))
+
 ## [0.7.1](https://github.com/Notifycal/backend/compare/v0.7.0...v0.7.1) (2025-01-27)
 
 
