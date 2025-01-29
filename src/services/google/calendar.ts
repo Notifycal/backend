@@ -26,7 +26,6 @@ export class GoogleCalendar extends BaseGoogle {
   private toCalendarArray(
     list: Array<calendar_v3.Schema$CalendarListEntry>
   ): Promise<Array<Calendar>> {
-    // TODO: Test this in anger
     const transformedList = list.map((i) => this.toCalendarEntry(i));
     const parsingResult = z.array(calendarSchema).safeParse(transformedList);
     if (parsingResult.success) {
@@ -47,7 +46,11 @@ export class GoogleCalendar extends BaseGoogle {
     return calendar.calendarList
       .list()
       .then((response) => {
-        return response.data.items || [];
+        if (response.status >= 200 && response.status <= 299) {
+          return response.data.items || [];
+        } else {
+          throwError(`${baseMsg}. Error in response: ${JSON.stringify(response)}`);
+        }
       })
       .catch((error) => {
         throwError(`${baseMsg}. ${error}`);
