@@ -1,8 +1,7 @@
 import type { EncodeAccessJwtConfig, EncodeRefreshJwtConfig } from '@model/Config';
-import type { Identity, IdpName } from '@model/Identity';
 import type { AuthorizationForIdp } from '@model/IdpAuthorization';
 import type { UserStoreRecord } from '@model/store/UserStoreRecord';
-import type { UnixTimestamp } from '@own-types/model';
+import type { Identity, IdpName, UnixTimestamp } from '@notifycal/shared/types';
 import type { APIGatewayProxyResult } from 'aws-lambda';
 import { successHandler } from './common/api-response-handlers';
 import { type EncodedAndDecodedJwts, buildJwts } from './jwt';

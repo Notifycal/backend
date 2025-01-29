@@ -1,8 +1,4 @@
-import type { BusinessAddress, BusinessName, UnixTimestamp } from '@own-types/model';
-import type { Calendar } from '../Calendar';
-import type { Identity, IdpName } from '../Identity';
-
-export type UserStatus = 'banned' | 'onboarding' | 'live';
+import type { Identity, IdpName, UnixTimestamp, UserStatus } from '@notifycal/shared/types';
 
 type CapitalizeKeys<T> = {
   [K in keyof T as Capitalize<K & string>]: T[K];
@@ -23,10 +19,4 @@ export function extractIdentity<TIdpName extends IdpName>(
     idp: user.Idp,
     idpId: user.IdpId
   };
-}
-
-export interface ReminderConfig {
-  calendars: Array<Calendar>;
-  businessName: BusinessName;
-  businessAddress: BusinessAddress;
 }

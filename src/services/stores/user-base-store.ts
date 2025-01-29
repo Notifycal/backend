@@ -1,8 +1,7 @@
-import type { IdpName } from '@model/Identity';
 import type { AuthorizationForIdp } from '@model/IdpAuthorization';
 import type { UserIdpAuthorizationStoreRecord } from '@model/store/UserIdpAuthorizationStoreRecord';
-import type { ReminderConfig, UserStatus, UserStoreRecord } from '@model/store/UserStoreRecord';
-import type { UserId } from '@own-types/model';
+import type { UserStoreRecord } from '@model/store/UserStoreRecord';
+import type { IdpName, ReminderConfig, UserId, UserStatus } from '@notifycal/shared/types';
 import { BaseStore, type BaseStoreConfig } from '../common/base-store';
 
 export type UserBaseStoreConfig = BaseStoreConfig;

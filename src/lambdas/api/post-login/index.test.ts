@@ -1,7 +1,14 @@
-import type { Identity, IdpName } from '@model/Identity';
 import type { AuthorizationForIdp } from '@model/IdpAuthorization';
 import type { UserStoreRecord } from '@model/store/UserStoreRecord';
-import type { Email, IdpId, Jwt, UnixTimestamp, Uuid } from '@own-types/model';
+import type {
+  Email,
+  Identity,
+  IdpId,
+  IdpName,
+  Jwt,
+  UnixTimestamp,
+  Uuid
+} from '@notifycal/shared/types';
 import { GoogleOAuth } from '@services/google/oauth';
 import type { EncodedAndDecodedJwts } from '@services/jwt';
 import { buildJwtsAndStoreRefreshJwt, signInOrUpUser } from '@services/login';

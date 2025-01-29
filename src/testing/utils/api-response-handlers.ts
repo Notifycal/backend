@@ -2,7 +2,7 @@ import type {
   AuthenticationResponse,
   ErrorResponseBody,
   SuccessResponseBody
-} from '@model/api/Api';
+} from '@notifycal/shared/types';
 import { baseHeaders, errorMessages, headers } from '@services/common/api-response-handlers';
 import type { APIGatewayProxyResult } from 'aws-lambda';
 

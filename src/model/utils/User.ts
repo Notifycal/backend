@@ -1,11 +1,5 @@
-import type { IdpName } from '@model/Identity';
 import { type UserStoreRecord, extractIdentity } from '@model/store/UserStoreRecord';
-
-type UncapitalizeKeys<T> = {
-  [K in keyof T as Uncapitalize<K & string>]: T[K];
-};
-
-export type User<TIdpName extends IdpName> = UncapitalizeKeys<UserStoreRecord<TIdpName>>;
+import type { IdpName, User } from '@notifycal/shared/types';
 
 export function extractUser<TIdpName extends IdpName>(
   userRecord: UserStoreRecord<TIdpName>

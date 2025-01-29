@@ -1,7 +1,13 @@
-import type { Calendar } from '@model/Calendar';
-import type { IdpName } from '@model/Identity';
 import type { OurAccessTokenClaims } from '@model/Jwt';
-import type { CalendarId, CalendarName, Email, IdpId, UserId } from '@own-types/model';
+import type {
+  Calendar,
+  CalendarId,
+  CalendarName,
+  Email,
+  IdpId,
+  IdpName,
+  UserId
+} from '@notifycal/shared/types';
 import { calendarList } from '@services/calendar';
 import { c, testAuthedEvent } from '@testing/apigateway';
 import { responseError, responseSuccess } from '@testing/utils/api-response-handlers';

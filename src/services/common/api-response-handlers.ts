@@ -1,6 +1,10 @@
 import type { LogItemMessage } from '@aws-lambda-powertools/logger/types';
 import { logger } from '@common/powertools';
-import type { ErrorResponseBody, ResponseHeaders, SuccessResponseBody } from '@model/api/Api';
+import type {
+  ErrorResponseBody,
+  ResponseHeaders,
+  SuccessResponseBody
+} from '@notifycal/shared/types';
 import type { APIGatewayProxyResult } from 'aws-lambda';
 
 export function baseHeaders(): ResponseHeaders {

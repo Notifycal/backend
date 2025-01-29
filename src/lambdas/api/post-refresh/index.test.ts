@@ -1,8 +1,7 @@
-import type { IdpName } from '@model/Identity';
 import type { RefreshToken } from '@model/Jwt';
 import type { RefreshTokenStoreRecord } from '@model/store/RefreshTokenStoreRecord';
 import type { UserStoreRecord } from '@model/store/UserStoreRecord';
-import type { Jwt, UnixTimestamp, Uuid } from '@own-types/model';
+import type { IdpName, Jwt, UnixTimestamp, Uuid } from '@notifycal/shared/types';
 import { decodeAndVerifyJwtSignature, type EncodedAndDecodedJwts } from '@services/jwt';
 import { buildJwtsAndStoreRefreshJwt } from '@services/login';
 import { RefreshTokenBaseStore } from '@services/stores/refresh-token-base-store';
