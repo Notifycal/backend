@@ -1,4 +1,4 @@
-import type { IdpName } from './Identity';
+import type { IdpName } from '@notifycal/shared/types';
 
 export interface DecodeAccessJwtConfig {
   publicKey: string;

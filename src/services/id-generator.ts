@@ -1,5 +1,4 @@
-import type { IdpName } from '@model/Identity';
-import type { Uuid } from '@own-types/model';
+import type { IdpName, Uuid } from '@notifycal/shared/types';
 import { createHash } from 'crypto';
 import { stringify, v5 } from 'uuid';
 

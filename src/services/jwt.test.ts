@@ -1,3 +1,13 @@
+import type {
+  DecodeAccessJwtConfig,
+  EncodeAccessJwtConfig,
+  EncodeRefreshJwtConfig
+} from '@model/Config';
+import { type AccessToken, accessTokenSchema } from '@model/Jwt';
+import type { Email, Identity, IdpId, IdpName, Jwt, Uuid } from '@notifycal/shared/types';
+import { sleep } from '@testing/utils/utils';
+import { describe, expect, it } from 'vitest';
+import type { ZodSchema } from 'zod';
 import {
   type EncodedAndDecodedJwt,
   type EncodedAndDecodedJwts,
@@ -6,17 +16,6 @@ import {
   decodeAndVerifyJwtSignature,
   decodeJwt
 } from './jwt';
-import type { Email, IdpId, Jwt, Uuid } from '@own-types/model';
-import { sleep } from '@testing/utils/utils';
-import type {
-  DecodeAccessJwtConfig,
-  EncodeAccessJwtConfig,
-  EncodeRefreshJwtConfig
-} from '@model/Config';
-import { type AccessToken, accessTokenSchema } from '@model/Jwt';
-import type { ZodSchema } from 'zod';
-import { describe, it, expect } from 'vitest';
-import type { Identity, IdpName } from '@model/Identity';
 
 const validPrivateKey = `-----BEGIN EC PRIVATE KEY-----
 MHcCAQEEIEF6NI6CascYRtOFXEQrbsbsi7ZzTsKaktkDRZ/PSZ8hoAoGCCqGSM49

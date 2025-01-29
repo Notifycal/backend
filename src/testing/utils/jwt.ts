@@ -1,12 +1,11 @@
+import type { DecodeAccessJwtConfig, EncodeAccessJwtConfig } from '@model/Config';
+import { accessTokenSchema, type OurAccessTokenClaims } from '@model/Jwt';
+import type { Email, Identity, IdpId, Jwt, UnixTimestamp, Uuid } from '@notifycal/shared/types';
 import { buildJwt, type EncodedAndDecodedJwts } from '@services/jwt';
 import dotenv from 'dotenv';
-import path from 'path';
 import * as fs from 'fs';
-import type { EncodeAccessJwtConfig, DecodeAccessJwtConfig } from '@model/Config';
-import { type OurAccessTokenClaims, accessTokenSchema } from '@model/Jwt';
+import path from 'path';
 import type { ZodSchema } from 'zod';
-import type { Email, IdpId, Jwt, UnixTimestamp, Uuid } from '@own-types/model';
-import type { Identity } from '@model/Identity';
 // Lazy evaluation all over the place so express doesn't attempt to load what it mustn't
 const loadDevConfig: () => Record<string, string> = (() => {
   let devConfig: Record<string, string>;

@@ -1,14 +1,15 @@
-import type { IdpName } from '@model/Identity';
 import type { OurAccessTokenClaims } from '@model/Jwt';
-import type { UserStatus } from '@model/store/UserStoreRecord';
 import type {
+  BusinessAddress,
   BusinessName,
   CalendarId,
   CalendarName,
   Email,
   IdpId,
+  IdpName,
+  ReminderConfig,
   UserId
-} from '@own-types/model';
+} from '@notifycal/shared/types';
 import { UserBaseStore } from '@services/stores/user-base-store';
 import { c, testAuthedEvent, testEvent } from '@testing/apigateway';
 import { responseError, responseSuccess } from '@testing/utils/api-response-handlers';
@@ -21,9 +22,8 @@ import {
 import { getDefaultDecodeAccessJwtConfig } from '@testing/utils/jwt';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { describe, it, vi } from 'vitest';
-import type { BusinessAddress } from './../../../own-types/model';
 import type { PatchUserProfileConfig } from './config';
-import { handler, type BodyPayload, type Event } from './index';
+import { handler, type Event } from './index';
 
 describe('PATCH User profile', () => {
   const validIdentity = {
@@ -37,7 +37,7 @@ describe('PATCH User profile', () => {
     role: 'user',
     permissions: {}
   };
-  const validBody: BodyPayload = {
+  const validBody: ReminderConfig = {
     businessName: 'someBusinessName' as BusinessName,
     businessAddress: 'someBusinessAddress' as BusinessAddress,
     calendars: [
@@ -63,11 +63,10 @@ describe('PATCH User profile', () => {
 
   it('fail to patch a user with 400 if payload is invalid', async () => {
     const invalidBody = {
-      userStatus: 'otherStatus' as UserStatus,
       businessName: '' as BusinessName,
       businessAddress: '' as BusinessAddress,
       calendars: []
-    } as BodyPayload;
+    } as ReminderConfig;
     const event = (await testAuthedEvent(
       invalidBody,
       {},

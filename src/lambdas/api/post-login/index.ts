@@ -2,9 +2,9 @@ import { JSONStringified } from '@aws-lambda-powertools/parser/helpers';
 import { unprotectedEndpointMiddleware } from '@common/lambda-middleware';
 import { eventSchema } from '@model/api/ApiGatewayEvents';
 import type { IdpConfigs } from '@model/Config';
-import { isValidIdpName, type Identity, type IdpName } from '@model/Identity';
 import type { AuthorizationForIdp } from '@model/IdpAuthorization';
 import { extractIdentity } from '@model/store/UserStoreRecord';
+import type { Identity, IdpName } from '@notifycal/shared/types';
 import { errorHandler } from '@services/common/api-response-handlers';
 import { GoogleOAuth } from '@services/google/oauth';
 import { _successHandler, buildJwtsAndStoreRefreshJwt, signInOrUpUser } from '@services/login';
@@ -20,6 +20,11 @@ const schema = eventSchema<LoginConfig>().extend({
   body: JSONStringified(bodySchema)
 });
 export type Event = z.infer<typeof schema>;
+
+function isValidIdpName(value: string | undefined): value is IdpName {
+  const validIdpNames: Array<IdpName> = ['google.com'];
+  return validIdpNames.includes(value as IdpName);
+}
 
 function verifyIdentity(
   event: Event,

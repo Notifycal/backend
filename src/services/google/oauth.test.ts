@@ -1,8 +1,6 @@
-import { GoogleOAuth } from './oauth';
 /* eslint-disable camelcase */
-import type { Identity } from '@model/Identity';
 import type { AuthorizationForIdp } from '@model/IdpAuthorization';
-import type { Uuid } from '@own-types/model';
+import type { Identity, Uuid } from '@notifycal/shared/types';
 import {
   type Credentials,
   type LoginTicket,
@@ -12,6 +10,7 @@ import {
 import type { GetTokenResponse } from 'google-auth-library/build/src/auth/oauth2client';
 import { describe, expect, it, vi } from 'vitest';
 import { idGenerator } from '../id-generator';
+import { GoogleOAuth } from './oauth';
 
 const validConfig = {
   clientId: 'valid-client-id',
