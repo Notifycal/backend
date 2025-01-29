@@ -29,7 +29,7 @@ export const errorMessages: Record<number, string> = {
 };
 
 export function responseSuccess(
-  body: SuccessResponseBody,
+  body?: SuccessResponseBody,
   statusCode = 200,
   headers: ResponseHeaders = baseHeaders()
 ): APIGatewayProxyResult {
@@ -54,7 +54,7 @@ export function responseError(
 
 export const successHandler =
   (statusCode = 200) =>
-  (body: SuccessResponseBody): APIGatewayProxyResult => {
+  (body?: SuccessResponseBody): APIGatewayProxyResult => {
     return responseSuccess(body, statusCode);
   };
 
