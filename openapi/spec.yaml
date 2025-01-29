@@ -230,34 +230,34 @@ components:
     User:
       type: object
       properties:
-        UserId:
+        userId:
           type: string
           format: uuid
-        Email:
+        email:
           type: string
           format: uuid
-        Idp:
+        idp:
           type: string
-        IdpId:
+        idpId:
           type: string
-        LastSignInAt:
+        lastSignInAt:
           schema: { $ref: '#/components/schemas/UnixTimestamp' }
-        SignedUpAt:
+        signedUpAt:
           schema: { $ref: '#/components/schemas/UnixTimestamp' }
-        UserStatus:
+        userStatus:
           type: string
           enum:
             - live
             - onboarding
             - banned
       required:
-        - UserId
-        - Email
-        - Idp
-        - IdpId
-        - LastSignInAt
-        - SignUpAt
-        - UserStatus
+        - userId
+        - email
+        - idp
+        - idpId
+        - lastSignInAt
+        - signUpAt
+        - userStatus
       # Additionalproperties are allowed by default in OpenAPI. To enforce maximum strictness use additionalProperties: false to block all arbitrary data.
       additionalProperties: false
 

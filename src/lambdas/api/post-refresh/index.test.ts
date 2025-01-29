@@ -19,7 +19,7 @@ import {
   setEnvUserBaseStoreConfig
 } from '@testing/utils/config';
 import { validJwts } from '@testing/utils/jwt';
-import { validUser } from '@testing/utils/model';
+import { validUserStoreRecord } from '@testing/utils/model';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { describe, it, vi } from 'vitest';
 import type { RefreshConfig } from './config';
@@ -32,7 +32,8 @@ describe('POST Refresh', () => {
     }) as unknown as APIGatewayProxyEvent;
 
     const decodeAndVerifyJwtSignatureFn = () => Promise.resolve(validInitialDecodedRefreshToken);
-    const getUserByEmailFn = () => Promise.resolve(validUser(validRefreshTokenStoreRecord.UserId));
+    const getUserByEmailFn = () =>
+      Promise.resolve(validUserStoreRecord(validRefreshTokenStoreRecord.UserId));
     const getRefreshTokenByFn = () => Promise.resolve(validRefreshTokenStoreRecord);
     const buildJwtsAndStoreRefreshJwtFn = () => Promise.resolve(validJwts);
 
@@ -60,7 +61,8 @@ describe('POST Refresh', () => {
     }) as unknown as APIGatewayProxyEvent;
 
     const decodeAndVerifyJwtSignatureFn = () => Promise.resolve(validInitialDecodedRefreshToken);
-    const getUserByEmailFn = () => Promise.resolve(validUser(validRefreshTokenStoreRecord.UserId));
+    const getUserByEmailFn = () =>
+      Promise.resolve(validUserStoreRecord(validRefreshTokenStoreRecord.UserId));
     const getRefreshTokenByFn = () => Promise.resolve(validRefreshTokenStoreRecord);
     const buildJwtsAndStoreRefreshJwtFn = () => Promise.resolve(validJwts);
 
@@ -81,7 +83,8 @@ describe('POST Refresh', () => {
     }) as unknown as APIGatewayProxyEvent;
 
     const decodeAndVerifyJwtSignatureFn = () => Promise.reject(new Error('Boom!'));
-    const getUserByEmailFn = () => Promise.resolve(validUser(validRefreshTokenStoreRecord.UserId));
+    const getUserByEmailFn = () =>
+      Promise.resolve(validUserStoreRecord(validRefreshTokenStoreRecord.UserId));
     const getRefreshTokenByFn = () => Promise.resolve(validRefreshTokenStoreRecord);
     const buildJwtsAndStoreRefreshJwtFn = () => Promise.resolve(validJwts);
 
@@ -102,7 +105,8 @@ describe('POST Refresh', () => {
     }) as unknown as APIGatewayProxyEvent;
 
     const decodeAndVerifyJwtSignatureFn = () => Promise.resolve(validInitialDecodedRefreshToken);
-    const getUserByEmailFn = () => Promise.resolve(validUser(validRefreshTokenStoreRecord.UserId));
+    const getUserByEmailFn = () =>
+      Promise.resolve(validUserStoreRecord(validRefreshTokenStoreRecord.UserId));
     const getRefreshTokenByFn = () => Promise.resolve(undefined);
     const buildJwtsAndStoreRefreshJwtFn = () => Promise.resolve(validJwts);
 
@@ -165,7 +169,8 @@ describe('POST Refresh', () => {
     }) as unknown as APIGatewayProxyEvent;
 
     const decodeAndVerifyJwtSignatureFn = () => Promise.resolve(validInitialDecodedRefreshToken);
-    const getUserByEmailFn = () => Promise.resolve(validUser(validRefreshTokenStoreRecord.UserId));
+    const getUserByEmailFn = () =>
+      Promise.resolve(validUserStoreRecord(validRefreshTokenStoreRecord.UserId));
     const getRefreshTokenByFn = () => Promise.reject(new Error('Boom!'));
     const buildJwtsAndStoreRefreshJwtFn = () => Promise.resolve(validJwts);
 
@@ -186,7 +191,8 @@ describe('POST Refresh', () => {
     }) as unknown as APIGatewayProxyEvent;
 
     const decodeAndVerifyJwtSignatureFn = () => Promise.resolve(validInitialDecodedRefreshToken);
-    const getUserByEmailFn = () => Promise.resolve(validUser(validRefreshTokenStoreRecord.UserId));
+    const getUserByEmailFn = () =>
+      Promise.resolve(validUserStoreRecord(validRefreshTokenStoreRecord.UserId));
     const getRefreshTokenByFn = () =>
       Promise.resolve({
         ...validRefreshTokenStoreRecord,
@@ -211,7 +217,8 @@ describe('POST Refresh', () => {
     }) as unknown as APIGatewayProxyEvent;
 
     const decodeAndVerifyJwtSignatureFn = () => Promise.resolve(validInitialDecodedRefreshToken);
-    const getUserByEmailFn = () => Promise.resolve(validUser(validRefreshTokenStoreRecord.UserId));
+    const getUserByEmailFn = () =>
+      Promise.resolve(validUserStoreRecord(validRefreshTokenStoreRecord.UserId));
     const getRefreshTokenByFn = () => Promise.resolve(validRefreshTokenStoreRecord);
     const buildJwtsAndStoreRefreshJwtFn = () => Promise.reject(new Error('Boom!'));
 

@@ -12,7 +12,7 @@ import {
   setEnvUserBaseStoreConfig
 } from '@testing/utils/config';
 import { getDefaultDecodeAccessJwtConfig } from '@testing/utils/jwt';
-import { validUser } from '@testing/utils/model';
+import { validUser, validUserStoreRecord } from '@testing/utils/model';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { describe, it, vi } from 'vitest';
 import type { GetUserProfileConfig } from './config';
@@ -37,7 +37,7 @@ describe('GET User profile', () => {
       {},
       validAccessToken
     )) as unknown as APIGatewayProxyEvent;
-    const getUserByEmailFn = () => Promise.resolve(validUser(validAccessToken.userId));
+    const getUserByEmailFn = () => Promise.resolve(validUserStoreRecord(validAccessToken.userId));
 
     return testit(event, getUserByEmailFn).then((resp) => {
       assert(resp, responseSuccess({ result: validUser(validAccessToken.userId) }));
@@ -46,7 +46,7 @@ describe('GET User profile', () => {
 
   it('fail to return a user with 401 if no authorization present', async () => {
     const event = testEvent({}, {}) as unknown as APIGatewayProxyEvent;
-    const getUserByEmailFn = () => Promise.resolve(validUser(validAccessToken.userId));
+    const getUserByEmailFn = () => Promise.resolve(validUserStoreRecord(validAccessToken.userId));
 
     return testit(event, getUserByEmailFn).then((resp) => {
       assert(resp, responseError(401));
