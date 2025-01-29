@@ -91,8 +91,7 @@ export abstract class BaseStore<TConfig extends BaseStoreConfig> {
       ReturnValues: 'ALL_NEW',
       ...cmd
     });
-    return this._dynamoDbClient.send(command).then((item) => {
-      console.warn(`these are the returned values ${JSON.stringify(item)}`);
+    return this._dynamoDbClient.send(command).then(() => {
       return null;
     });
   }
