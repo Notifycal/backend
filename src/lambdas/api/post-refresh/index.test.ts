@@ -1,12 +1,12 @@
 import type { IdpName } from '@model/Identity';
 import type { RefreshToken } from '@model/Jwt';
-import type { RefreshTokenStoreRecord } from '@model/RefreshTokenStoreRecord';
-import type { UserStoreRecord } from '@model/UserStoreRecord';
+import type { RefreshTokenStoreRecord } from '@model/store/RefreshTokenStoreRecord';
+import type { UserStoreRecord } from '@model/store/UserStoreRecord';
 import type { Jwt, UnixTimestamp, Uuid } from '@own-types/model';
 import { decodeAndVerifyJwtSignature, type EncodedAndDecodedJwts } from '@services/jwt';
 import { buildJwtsAndStoreRefreshJwt } from '@services/login';
-import { RefreshTokenBaseStore } from '@services/refresh-token-base-store';
-import { UserBaseStore } from '@services/user-base-store';
+import { RefreshTokenBaseStore } from '@services/stores/refresh-token-base-store';
+import { UserBaseStore } from '@services/stores/user-base-store';
 import { c, testEvent } from '@testing/apigateway';
 import { responseError, responseSuccess } from '@testing/utils/api-response-handlers';
 import { assert } from '@testing/utils/assertions';
@@ -237,10 +237,10 @@ describe('POST Refresh', () => {
     setEnv(env);
     vi.mock('@services/jwt');
     vi.mocked(decodeAndVerifyJwtSignature).mockImplementation(decodeAndVerifyJwtSignatureFn);
-    vi.mock('@services/refresh-token-base-store');
+    vi.mock('@services/stores/refresh-token-base-store');
     // eslint-disable-next-line @typescript-eslint/unbound-method
     vi.mocked(RefreshTokenBaseStore.prototype.getTokenBy).mockImplementation(getRefreshTokenByFn);
-    vi.mock('@services/user-base-store');
+    vi.mock('@services/stores/user-base-store');
     const userBaseStoreMock = {
       getUserById: vi.fn().mockImplementation(getUserByIdFn)
     };

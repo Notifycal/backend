@@ -1,14 +1,14 @@
 import { JSONStringified } from '@aws-lambda-powertools/parser/helpers';
 import { unprotectedEndpointMiddleware } from '@common/lambda-middleware';
-import { eventSchema } from '@model/ApiGatewayEvents';
+import { eventSchema } from '@model/api/ApiGatewayEvents';
 import type { IdpConfigs } from '@model/Config';
 import { isValidIdpName, type Identity, type IdpName } from '@model/Identity';
 import type { AuthorizationForIdp } from '@model/IdpAuthorization';
-import { extractIdentity } from '@model/UserStoreRecord';
+import { extractIdentity } from '@model/store/UserStoreRecord';
 import { errorHandler } from '@services/common/api-response-handlers';
 import { GoogleOAuth } from '@services/google/oauth';
 import { _successHandler, buildJwtsAndStoreRefreshJwt, signInOrUpUser } from '@services/login';
-import { RefreshTokenBaseStore } from '@services/refresh-token-base-store';
+import { RefreshTokenBaseStore } from '@services/stores/refresh-token-base-store';
 import type { APIGatewayProxyResult, Context } from 'aws-lambda';
 import { z } from 'zod';
 import { readLoginConfig, type LoginConfig } from './config';

@@ -1,13 +1,13 @@
-import type { UserStoreRecord } from '@model/UserStoreRecord';
-import { UserBaseStore, type UserBaseStoreConfig } from './user-base-store';
 import type { EncodeAccessJwtConfig, EncodeRefreshJwtConfig } from '@model/Config';
+import type { Identity, IdpName } from '@model/Identity';
+import type { AuthorizationForIdp } from '@model/IdpAuthorization';
+import type { UserStoreRecord } from '@model/store/UserStoreRecord';
 import type { UnixTimestamp } from '@own-types/model';
 import type { APIGatewayProxyResult } from 'aws-lambda';
 import { successHandler } from './common/api-response-handlers';
 import { type EncodedAndDecodedJwts, buildJwts } from './jwt';
-import type { RefreshTokenBaseStore } from './refresh-token-base-store';
-import type { Identity, IdpName } from '@model/Identity';
-import type { AuthorizationForIdp } from '@model/IdpAuthorization';
+import type { RefreshTokenBaseStore } from './stores/refresh-token-base-store';
+import { UserBaseStore, type UserBaseStoreConfig } from './stores/user-base-store';
 
 function signUpUser<TIdpName extends IdpName>(
   identity: Identity<TIdpName>,

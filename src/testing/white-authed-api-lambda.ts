@@ -1,6 +1,6 @@
 import { JSONStringified } from '@aws-lambda-powertools/parser/helpers';
 import { protectedEndpointMiddleware } from '@common/lambda-middleware';
-import { authedEventSchema } from '@model/ApiGatewayEvents';
+import { authedEventSchema } from '@model/api/ApiGatewayEvents';
 import type { AuthedEndpointConfig } from '@model/Config';
 import { responseSuccess } from '@services/common/api-response-handlers';
 import type { APIGatewayProxyResult, Context } from 'aws-lambda';

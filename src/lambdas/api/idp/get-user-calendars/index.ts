@@ -1,5 +1,5 @@
 import { protectedEndpointMiddleware } from '@common/lambda-middleware';
-import { authedEventSchema } from '@model/ApiGatewayEvents';
+import { authedEventSchema } from '@model/api/ApiGatewayEvents';
 import { calendarList } from '@services/calendar';
 import { errorHandler, successHandler } from '@services/common/api-response-handlers';
 import type { APIGatewayProxyResult, Context } from 'aws-lambda';

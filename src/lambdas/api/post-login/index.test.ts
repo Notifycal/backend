@@ -1,6 +1,6 @@
 import type { Identity, IdpName } from '@model/Identity';
 import type { AuthorizationForIdp } from '@model/IdpAuthorization';
-import type { UserStoreRecord } from '@model/UserStoreRecord';
+import type { UserStoreRecord } from '@model/store/UserStoreRecord';
 import type { Email, IdpId, Jwt, UnixTimestamp, Uuid } from '@own-types/model';
 import { GoogleOAuth } from '@services/google/oauth';
 import type { EncodedAndDecodedJwts } from '@services/jwt';

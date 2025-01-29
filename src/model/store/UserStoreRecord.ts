@@ -1,6 +1,6 @@
 import type { BusinessAddress, BusinessName, UnixTimestamp } from '@own-types/model';
-import type { Calendar } from './Calendar';
-import type { Identity, IdpName } from './Identity';
+import type { Calendar } from '../Calendar';
+import type { Identity, IdpName } from '../Identity';
 
 export type UserStatus = 'banned' | 'onboarding' | 'live';
 

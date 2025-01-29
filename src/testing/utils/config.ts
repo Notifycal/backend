@@ -1,13 +1,13 @@
 import type {
+  BaseConfig,
   DecodeAccessJwtConfig,
   DecodeRefreshJwtConfig,
   EncodeAccessJwtConfig,
   EncodeRefreshJwtConfig,
-  BaseConfig,
   IdpConfigs
 } from '@model/Config';
-import type { RefreshTokenBaseStoreConfig } from '@services/refresh-token-base-store';
-import type { UserBaseStoreConfig } from '@services/user-base-store';
+import type { RefreshTokenBaseStoreConfig } from '@services/stores/refresh-token-base-store';
+import type { UserBaseStoreConfig } from '@services/stores/user-base-store';
 import { match } from 'ts-pattern';
 
 export const fakeIdpConfigs: IdpConfigs = {

@@ -1,7 +1,7 @@
 import { protectedEndpointMiddleware } from '@common/lambda-middleware';
-import { authedEventSchema } from '@model/ApiGatewayEvents';
+import { authedEventSchema } from '@model/api/ApiGatewayEvents';
 import { errorHandler, successHandler } from '@services/common/api-response-handlers';
-import { UserBaseStore } from '@services/user-base-store';
+import { UserBaseStore } from '@services/stores/user-base-store';
 import type { APIGatewayProxyResult, Context } from 'aws-lambda';
 import type { z } from 'zod';
 import { type GetUserProfileConfig, readGetUserConfig } from './config';

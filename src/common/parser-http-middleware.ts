@@ -2,7 +2,7 @@ import { parser } from '@aws-lambda-powertools/parser/middleware';
 import type { MiddlewareObj, Request } from '@middy/core';
 /* eslint-disable-next-line no-duplicate-imports */
 import type middy from '@middy/core';
-import type { EventWithConfig } from '@model/ApiGatewayEvents';
+import type { EventWithConfig } from '@model/api/ApiGatewayEvents';
 import type { BaseEndpointConfig } from '@model/Config';
 import { errorHandler, headers } from '@services/common/api-response-handlers';
 import { extractErrorMessage } from '@services/common/error-handling';

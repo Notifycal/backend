@@ -1,4 +1,4 @@
-import type { UserStoreRecord } from '@model/UserStoreRecord';
+import type { UserStoreRecord } from '@model/store/UserStoreRecord';
 import type { Email, IdpId, UnixTimestamp, UserId } from '@own-types/model';
 
 export function validUser(userId: UserId): UserStoreRecord<'google.com'> {

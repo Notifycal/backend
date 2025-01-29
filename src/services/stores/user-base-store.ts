@@ -1,8 +1,9 @@
 import type { IdpName } from '@model/Identity';
-import type { AuthorizationForIdp, UserIdpAuthorizationStoreRecord } from '@model/IdpAuthorization';
-import type { ReminderConfig, UserStatus, UserStoreRecord } from '@model/UserStoreRecord';
+import type { AuthorizationForIdp } from '@model/IdpAuthorization';
+import type { UserIdpAuthorizationStoreRecord } from '@model/store/UserIdpAuthorizationStoreRecord';
+import type { ReminderConfig, UserStatus, UserStoreRecord } from '@model/store/UserStoreRecord';
 import type { UserId } from '@own-types/model';
-import { BaseStore, type BaseStoreConfig } from './common/base-store';
+import { BaseStore, type BaseStoreConfig } from '../common/base-store';
 
 export type UserBaseStoreConfig = BaseStoreConfig;
 export type UserBaseStoreEndpointConfig = { userBaseStoreConfig: UserBaseStoreConfig };
