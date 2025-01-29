@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.0](https://github.com/Notifycal/backend/compare/v0.8.0...v0.9.0) (2025-01-29)
+
+
+### Features
+
+* patch user profile endpoint ([#263](https://github.com/Notifycal/backend/issues/263)) ([1089a59](https://github.com/Notifycal/backend/commit/1089a59a0f4df1734fafac68116bfad01cc41e0e))
+
 ## [0.8.0](https://github.com/Notifycal/backend/compare/v0.7.1...v0.8.0) (2025-01-28)
 
 
