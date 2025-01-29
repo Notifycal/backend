@@ -10,6 +10,7 @@ locals {
       post_login_arn             = module.post_login_lambda_alias.lambda_alias_arn
       post_refresh_arn           = module.post_refresh_lambda_alias.lambda_alias_arn
       get_user_profile_arn       = module.get_user_profile_lambda_alias.lambda_alias_arn
+      patch_user_profile_arn     = module.patch_user_profile_lambda_alias.lambda_alias_arn
       get_idp_user_calendars_arn = module.get_idp_user_calendars_lambda_alias.lambda_alias_arn
     }
   })

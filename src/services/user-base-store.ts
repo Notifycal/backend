@@ -1,6 +1,6 @@
 import type { IdpName } from '@model/Identity';
 import type { AuthorizationForIdp, UserIdpAuthorizationStoreRecord } from '@model/IdpAuthorization';
-import type { UserStoreRecord } from '@model/UserStoreRecord';
+import type { ReminderConfig, UserStatus, UserStoreRecord } from '@model/UserStoreRecord';
 import type { UserId } from '@own-types/model';
 import { BaseStore, type BaseStoreConfig } from './common/base-store';
 
@@ -76,6 +76,19 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
   ): Promise<null> {
     return this.putCommandRunner({
       Item: { ...user, IdpAuthorization: authorization }
+    });
+  }
+
+  public updateUser(id: UserId, status: UserStatus, config: ReminderConfig): Promise<null> {
+    return this.updateCommandRunner({
+      Key: {
+        UserId: id
+      },
+      ExpressionAttributeValues: {
+        ':userStatus': status,
+        ':config': config
+      },
+      UpdateExpression: 'set UserStatus = :userStatus, Config = :config'
     });
   }
 }

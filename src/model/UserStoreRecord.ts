@@ -1,4 +1,5 @@
-import type { UnixTimestamp } from '@own-types/model';
+import type { BusinessAddress, BusinessName, UnixTimestamp } from '@own-types/model';
+import type { Calendar } from './Calendar';
 import type { Identity, IdpName } from './Identity';
 
 export type UserStatus = 'banned' | 'onboarding' | 'live';
@@ -22,4 +23,10 @@ export function extractIdentity<TIdpName extends IdpName>(
     idp: user.Idp,
     idpId: user.IdpId
   };
+}
+
+export interface ReminderConfig {
+  calendars: Array<Calendar>;
+  businessName: BusinessName;
+  businessAddress: BusinessAddress;
 }

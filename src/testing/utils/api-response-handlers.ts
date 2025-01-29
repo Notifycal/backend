@@ -3,7 +3,7 @@ import { baseHeaders, errorMessages, headers } from '@services/common/api-respon
 import type { APIGatewayProxyResult } from 'aws-lambda';
 
 export function responseSuccess(
-  body: SuccessResponseBody | AuthenticationResponse,
+  body?: SuccessResponseBody | AuthenticationResponse,
   statusCode = 200,
   allowedOrigin: string = 'http://localhost:5173'
 ): APIGatewayProxyResult {
