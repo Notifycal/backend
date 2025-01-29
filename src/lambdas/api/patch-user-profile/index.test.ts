@@ -38,7 +38,6 @@ describe('PATCH User profile', () => {
     permissions: {}
   };
   const validBody: BodyPayload = {
-    userStatus: 'live',
     businessName: 'someBusinessName' as BusinessName,
     businessAddress: 'someBusinessAddress' as BusinessAddress,
     calendars: [

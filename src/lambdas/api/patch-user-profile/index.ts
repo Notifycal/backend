@@ -9,7 +9,6 @@ import { z } from 'zod';
 import { type PatchUserProfileConfig, readPatchUserConfig } from './config';
 
 export const bodySchema = z.object({
-  userStatus: z.literal('live'),
   calendars: z.array(calendarSchema).min(1),
   businessName: z.string().min(1).brand('BusinessName'),
   businessAddress: z.string().min(1).brand('BusinessAddress')
@@ -35,7 +34,7 @@ function lambdaHandler(
     calendars: body.calendars
   };
   return userProvider
-    .updateUser(userId, body.userStatus, reminderConfig)
+    .updateUser(userId, 'live', reminderConfig)
     .then(() => successHandler(204)(), errorHandler(500));
 }
 
