@@ -1,4 +1,8 @@
-import type { AuthenticationResponse, ErrorResponseBody, SuccessResponseBody } from '@model/Api';
+import type {
+  AuthenticationResponse,
+  ErrorResponseBody,
+  SuccessResponseBody
+} from '@model/api/Api';
 import { baseHeaders, errorMessages, headers } from '@services/common/api-response-handlers';
 import type { APIGatewayProxyResult } from 'aws-lambda';
 

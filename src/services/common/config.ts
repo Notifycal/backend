@@ -10,8 +10,8 @@ import type {
   IdpEndpointConfig
 } from '@model/Config';
 import type { Environment } from '@own-types/model';
-import type { RefreshTokenBaseStoreConfigEndpointConfig } from '@services/refresh-token-base-store';
-import type { UserBaseStoreEndpointConfig } from '@services/user-base-store';
+import type { RefreshTokenBaseStoreConfigEndpointConfig } from '@services/stores/refresh-token-base-store';
+import type { UserBaseStoreEndpointConfig } from '@services/stores/user-base-store';
 import { from } from 'env-var';
 
 export function readEnv(): Environment {

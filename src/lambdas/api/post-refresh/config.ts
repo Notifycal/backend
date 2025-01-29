@@ -12,8 +12,8 @@ import {
   readRefreshTokenStoreConfig,
   readUserStoreConfig
 } from '@services/common/config';
-import type { RefreshTokenBaseStoreConfig } from '@services/refresh-token-base-store';
-import type { UserBaseStoreEndpointConfig } from '@services/user-base-store';
+import type { RefreshTokenBaseStoreConfig } from '@services/stores/refresh-token-base-store';
+import type { UserBaseStoreEndpointConfig } from '@services/stores/user-base-store';
 export interface BaseRefreshConfig {
   encodeAccessJwtConfig: EncodeAccessJwtConfig;
   encodeRefreshJwtConfig: EncodeRefreshJwtConfig;

@@ -1,6 +1,6 @@
 import type { Identity, IdpName } from '@model/Identity';
 import type { AuthorizationForIdp } from '@model/IdpAuthorization';
-import type { UserStoreRecord } from '@model/UserStoreRecord';
+import type { UserStoreRecord } from '@model/store/UserStoreRecord';
 import type { Email, IdpId, Jwt, UnixTimestamp, Uuid } from '@own-types/model';
 import { GoogleOAuth } from '@services/google/oauth';
 import type { EncodedAndDecodedJwts } from '@services/jwt';
@@ -23,7 +23,7 @@ import {
   setEnvUserBaseStoreConfig
 } from '@testing/utils/config';
 import { validJwts } from '@testing/utils/jwt';
-import { validUser } from '@testing/utils/model';
+import { validUserStoreRecord } from '@testing/utils/model';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { describe, it, vi } from 'vitest';
 import type { LoginConfig } from './config';
@@ -57,7 +57,7 @@ describe('POST Login', () => {
       validQueryParams
     ) as unknown as APIGatewayProxyEvent;
     const verifyGoogleIdentityFn = validVerifyGoogleIdentityFn;
-    const signInOrUpUserFn = () => Promise.resolve(validUser(validIdentity.userId));
+    const signInOrUpUserFn = () => Promise.resolve(validUserStoreRecord(validIdentity.userId));
     const buildJwtsFn = () => Promise.resolve(validJwts);
 
     return testit(event, verifyGoogleIdentityFn, signInOrUpUserFn, buildJwtsFn).then((resp) => {
@@ -124,7 +124,7 @@ describe('POST Login', () => {
       }
     };
     const buildJwtsAndStoreRefreshJwtFn2 = () => Promise.resolve(validJwts2);
-    const signInOrUpUserFn = () => Promise.resolve(validUser(validUserId));
+    const signInOrUpUserFn = () => Promise.resolve(validUserStoreRecord(validUserId));
 
     return testit(
       event,
@@ -160,7 +160,7 @@ describe('POST Login', () => {
       validQueryParams
     ) as unknown as APIGatewayProxyEvent;
     const verifyGoogleIdentityFn = () => Promise.reject(new Error('The identity was not valid'));
-    const signInOrUpUserFn = () => Promise.resolve(validUser(validUserId));
+    const signInOrUpUserFn = () => Promise.resolve(validUserStoreRecord(validUserId));
     const buildJwtsAndStoreRefreshJwtFn = () => Promise.resolve(validJwts);
 
     return testit(
@@ -182,7 +182,7 @@ describe('POST Login', () => {
       validQueryParams
     ) as unknown as APIGatewayProxyEvent;
     const verifyGoogleIdentityFn = validVerifyGoogleIdentityFn;
-    const signInOrUpUserFn = () => Promise.resolve(validUser(validUserId));
+    const signInOrUpUserFn = () => Promise.resolve(validUserStoreRecord(validUserId));
     const buildJwtsAndStoreRefreshJwtFn = () => Promise.resolve(validJwts);
 
     return testit(
@@ -204,7 +204,7 @@ describe('POST Login', () => {
       validQueryParams
     ) as unknown as APIGatewayProxyEvent;
     const verifyGoogleIdentityFn = validVerifyGoogleIdentityFn;
-    const signInOrUpUserFn = () => Promise.resolve(validUser(validUserId));
+    const signInOrUpUserFn = () => Promise.resolve(validUserStoreRecord(validUserId));
     const buildJwtsAndStoreRefreshJwtFn = () => Promise.reject(new Error('Boooom!'));
 
     return testit(
@@ -226,7 +226,7 @@ describe('POST Login', () => {
       validQueryParams
     ) as unknown as APIGatewayProxyEvent;
     const verifyGoogleIdentityFn = validVerifyGoogleIdentityFn;
-    const signInOrUpUserFn = () => Promise.resolve(validUser(validUserId));
+    const signInOrUpUserFn = () => Promise.resolve(validUserStoreRecord(validUserId));
     const buildJwtsAndStoreRefreshJwtFn = () => Promise.resolve(validJwts);
     const env = structuredClone(defaultEnv);
     env.idpConfigs['google.com'].clientId = undefined as unknown as string;
@@ -275,7 +275,7 @@ describe('POST Login', () => {
       }
     ) as unknown as APIGatewayProxyEvent;
     const verifyGoogleIdentityFn = validVerifyGoogleIdentityFn;
-    const signInOrUpUserFn = () => Promise.resolve(validUser(validUserId));
+    const signInOrUpUserFn = () => Promise.resolve(validUserStoreRecord(validUserId));
     const buildJwtsAndStoreRefreshJwtFn = () => Promise.resolve(validJwts);
 
     return testit(
@@ -297,7 +297,7 @@ describe('POST Login', () => {
       {}
     ) as unknown as APIGatewayProxyEvent;
     const verifyGoogleIdentityFn = validVerifyGoogleIdentityFn;
-    const signInOrUpUserFn = () => Promise.resolve(validUser(validUserId));
+    const signInOrUpUserFn = () => Promise.resolve(validUserStoreRecord(validUserId));
     const buildJwtsAndStoreRefreshJwtFn = () => Promise.resolve(validJwts);
 
     return testit(

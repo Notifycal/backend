@@ -1,6 +1,6 @@
-import { readAuthedEndpointConfig, readEnv, readUserStoreConfig } from '@services/common/config';
 import type { AuthedEndpointConfig } from '@model/Config';
-import type { UserBaseStoreEndpointConfig } from '@services/user-base-store';
+import { readAuthedEndpointConfig, readEnv, readUserStoreConfig } from '@services/common/config';
+import type { UserBaseStoreEndpointConfig } from '@services/stores/user-base-store';
 
 export type GetUserProfileConfig = AuthedEndpointConfig & UserBaseStoreEndpointConfig;
 

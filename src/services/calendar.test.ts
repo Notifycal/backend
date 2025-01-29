@@ -7,7 +7,7 @@ import { v4 as uuid } from 'uuid';
 import { describe, expect, it, vi } from 'vitest';
 import { calendarList } from './calendar';
 import { GoogleCalendar } from './google/calendar';
-import { UserBaseStore, type UserBaseStoreConfig } from './user-base-store';
+import { UserBaseStore, type UserBaseStoreConfig } from './stores/user-base-store';
 
 const validUserId: UserId = uuid() as UserId;
 const validIdpConfigs = {
@@ -104,7 +104,7 @@ describe('Calendar Service', () => {
     googleCalendarListFn: () => Promise<Array<Calendar>>,
     userBaseStoreConfig: UserBaseStoreConfig = validUserBaseStoreConfig
   ): Promise<Array<Calendar>> {
-    vi.mock('@services/user-base-store');
+    vi.mock('@services/stores/user-base-store');
     const userBaseStoreMock = {
       getIdpAuthorization: vi.fn().mockImplementation(getIdpAuthorizationFn)
     };

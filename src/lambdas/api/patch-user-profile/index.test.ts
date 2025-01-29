@@ -1,6 +1,6 @@
 import type { IdpName } from '@model/Identity';
 import type { OurAccessTokenClaims } from '@model/Jwt';
-import type { UserStatus } from '@model/UserStoreRecord';
+import type { UserStatus } from '@model/store/UserStoreRecord';
 import type {
   BusinessName,
   CalendarId,
@@ -9,7 +9,7 @@ import type {
   IdpId,
   UserId
 } from '@own-types/model';
-import { UserBaseStore } from '@services/user-base-store';
+import { UserBaseStore } from '@services/stores/user-base-store';
 import { c, testAuthedEvent, testEvent } from '@testing/apigateway';
 import { responseError, responseSuccess } from '@testing/utils/api-response-handlers';
 import { assert } from '@testing/utils/assertions';
@@ -109,7 +109,7 @@ async function testit(
   env: PatchUserProfileConfig = defaultEnv
 ): Promise<APIGatewayProxyResult> {
   setEnv(env);
-  vi.mock('@services/user-base-store');
+  vi.mock('@services/stores/user-base-store');
   const userBaseStoreMock = {
     updateUser: vi.fn().mockImplementation(updateUserFn)
   };

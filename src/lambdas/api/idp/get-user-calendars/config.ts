@@ -6,7 +6,7 @@ import {
   readIdpConfigs,
   readUserStoreConfig
 } from '@services/common/config';
-import type { UserBaseStoreEndpointConfig } from '@services/user-base-store';
+import type { UserBaseStoreEndpointConfig } from '@services/stores/user-base-store';
 
 export type GetUserCalendarsConfig = AuthedEndpointConfig &
   IdpEndpointConfig &

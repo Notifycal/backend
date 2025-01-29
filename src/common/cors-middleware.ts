@@ -1,9 +1,9 @@
-import type { AuthedEventWithConfig } from '../model/ApiGatewayEvents';
 import type { MiddlewareObj, Request } from '@middy/core';
+import type { AuthedEventWithConfig } from '../model/api/ApiGatewayEvents';
 
-import type { APIGatewayProxyResult, Context } from 'aws-lambda';
-import type { AuthedEndpointConfig } from '@model/Config';
 import httpCors from '@middy/http-cors';
+import type { AuthedEndpointConfig } from '@model/Config';
+import type { APIGatewayProxyResult, Context } from 'aws-lambda';
 
 function configureMiddleware<TConfig extends AuthedEndpointConfig>(
   request: Request<AuthedEventWithConfig<TConfig>, APIGatewayProxyResult, Error, Context>

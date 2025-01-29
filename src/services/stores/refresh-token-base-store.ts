@@ -1,6 +1,6 @@
+import type { RefreshTokenStoreRecord } from '@model/store/RefreshTokenStoreRecord';
 import type { UserId, Uuid } from '@own-types/model';
-import { BaseStore, type BaseStoreConfig } from './common/base-store';
-import type { RefreshTokenStoreRecord } from '@model/RefreshTokenStoreRecord';
+import { BaseStore, type BaseStoreConfig } from '../common/base-store';
 
 export type RefreshTokenBaseStoreConfig = BaseStoreConfig;
 export type RefreshTokenBaseStoreConfigEndpointConfig = {

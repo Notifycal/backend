@@ -4,7 +4,6 @@ import type {
   EncodeRefreshJwtConfig,
   IdpEndpointConfig
 } from '@model/Config';
-import type { UserBaseStoreConfig } from '@services/user-base-store';
 import {
   readBaseConfig,
   readEncodeJwtsConfig,
@@ -13,7 +12,8 @@ import {
   readRefreshTokenStoreConfig,
   readUserStoreConfig
 } from '@services/common/config';
-import type { RefreshTokenBaseStoreConfig } from '@services/refresh-token-base-store';
+import type { RefreshTokenBaseStoreConfig } from '@services/stores/refresh-token-base-store';
+import type { UserBaseStoreConfig } from '@services/stores/user-base-store';
 
 interface BaseLoginConfig {
   encodeAccessJwtConfig: EncodeAccessJwtConfig;

@@ -1,17 +1,17 @@
-import type { APIGatewayProxyResult, Context } from 'aws-lambda';
-import { unprotectedEndpointMiddleware } from '@common/lambda-middleware';
-import { z } from 'zod';
-import { eventSchema } from '@model/ApiGatewayEvents';
 import { JSONStringified } from '@aws-lambda-powertools/parser/helpers';
-import { type RefreshConfig, readRefreshConfig } from './config';
-import { decodeAndVerifyJwtSignature } from '@services/jwt';
-import { RefreshTokenBaseStore } from '@services/refresh-token-base-store';
+import { unprotectedEndpointMiddleware } from '@common/lambda-middleware';
+import { eventSchema } from '@model/api/ApiGatewayEvents';
 import { refreshTokenSchema } from '@model/Jwt';
-import { errorHandler } from '@services/common/api-response-handlers';
-import { buildJwtsAndStoreRefreshJwt, _successHandler } from '@services/login';
+import { extractIdentity } from '@model/store/UserStoreRecord';
 import type { Jwt } from '@own-types/model';
-import { UserBaseStore } from '@services/user-base-store';
-import { extractIdentity } from '@model/UserStoreRecord';
+import { errorHandler } from '@services/common/api-response-handlers';
+import { decodeAndVerifyJwtSignature } from '@services/jwt';
+import { _successHandler, buildJwtsAndStoreRefreshJwt } from '@services/login';
+import { RefreshTokenBaseStore } from '@services/stores/refresh-token-base-store';
+import { UserBaseStore } from '@services/stores/user-base-store';
+import type { APIGatewayProxyResult, Context } from 'aws-lambda';
+import { z } from 'zod';
+import { type RefreshConfig, readRefreshConfig } from './config';
 
 const schema = eventSchema<RefreshConfig>().extend({
   body: JSONStringified(

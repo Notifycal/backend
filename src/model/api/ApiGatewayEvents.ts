@@ -1,7 +1,7 @@
-import type { APIGatewayProxyEventBase } from 'aws-lambda';
-import type { AccessToken } from './Jwt';
 import { APIGatewayProxyEventSchema } from '@aws-lambda-powertools/parser/schemas';
+import type { APIGatewayProxyEventBase } from 'aws-lambda';
 import { z } from 'zod';
+import type { AccessToken } from '../Jwt';
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, @typescript-eslint/explicit-module-boundary-types
 export function eventSchema<TEndpointConfig>() {

@@ -1,10 +1,10 @@
 import type { MiddlewareObj, Request } from '@middy/core';
 /* eslint-disable-next-line no-duplicate-imports */
 import type middy from '@middy/core';
-import type { APIGatewayProxyResult, Context } from 'aws-lambda';
-import type { EventWithConfig } from '@model/ApiGatewayEvents';
+import type { EventWithConfig } from '@model/api/ApiGatewayEvents';
 import { errorHandler } from '@services/common/api-response-handlers';
 import { extractErrorMessage } from '@services/common/error-handling';
+import type { APIGatewayProxyResult, Context } from 'aws-lambda';
 
 function configReader<TConfig>(
   request: Request<EventWithConfig<TConfig>, APIGatewayProxyResult, Error, Context>,

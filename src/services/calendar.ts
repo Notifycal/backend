@@ -5,7 +5,7 @@ import type { UserId } from '@own-types/model';
 import { throwError } from '@services/common/error-handling';
 import { match } from 'ts-pattern';
 import { GoogleCalendar } from './google/calendar';
-import { type UserBaseStoreConfig, UserBaseStore } from './user-base-store';
+import { type UserBaseStoreConfig, UserBaseStore } from './stores/user-base-store';
 
 function googleCalendarList(
   userId: UserId,

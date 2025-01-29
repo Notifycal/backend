@@ -1,6 +1,6 @@
 import type { AuthedEndpointConfig } from '@model/Config';
 import { readAuthedEndpointConfig, readEnv, readUserStoreConfig } from '@services/common/config';
-import type { UserBaseStoreEndpointConfig } from '@services/user-base-store';
+import type { UserBaseStoreEndpointConfig } from '@services/stores/user-base-store';
 
 export type PatchUserProfileConfig = AuthedEndpointConfig & UserBaseStoreEndpointConfig;
 
