@@ -164,11 +164,13 @@ function testIt(
   mockIdGenerated: Uuid = validUserId
 ): Promise<[Identity<'google.com'>, AuthorizationForIdp<'google.com'>]> {
   vi.mock('google-auth-library');
-  const mockGetToken = vi.fn().mockImplementation(getTokenFn);
-  const mockVerifyIdToken = vi.fn().mockImplementation(verifyIdTokenFn);
-  OAuth2Client.prototype.getToken = mockGetToken;
-  OAuth2Client.prototype.verifyIdToken = mockVerifyIdToken;
-
+  vi.mocked(OAuth2Client).mockReturnValue({
+    verifyIdToken: vi.fn().mockImplementation(verifyIdTokenFn),
+    getToken: vi.fn().mockImplementation(getTokenFn),
+    get gaxios() {
+      return null;
+    }
+  } as unknown as OAuth2Client);
   vi.mock('@services/id-generator');
   vi.mocked(idGenerator).mockReturnValue(mockIdGenerated);
   return GoogleOAuth.withConfig(validConfig).verifyIdentity(validGoogleCode);

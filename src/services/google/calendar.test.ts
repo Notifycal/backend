@@ -3,7 +3,6 @@ import type { Calendar } from '@model/Calendar';
 import type { CalendarId, CalendarName } from '@own-types/model';
 import { google, type calendar_v3 } from 'googleapis';
 import type { GaxiosResponse } from 'googleapis-common';
-import type { APIRequestContext } from 'googleapis/build/src/apis/abusiveexperiencereport';
 import { describe, expect, it, vi } from 'vitest';
 import { GoogleCalendar } from './calendar';
 
@@ -92,68 +91,9 @@ describe('GoogleCalendar Service', () => {
     vi.mock('googleapis');
     vi.mocked(google.calendar).mockReturnValue({
       calendarList: {
-        list: vi.fn().mockImplementation(calendarListFn),
-        context: {} as APIRequestContext,
-        delete: vi.fn(),
-        get: vi.fn(),
-        insert: vi.fn(),
-        patch: vi.fn(),
-        update: vi.fn(),
-        watch: vi.fn()
-      },
-      context: {} as APIRequestContext,
-      acl: {
-        context: {} as APIRequestContext,
-        list: vi.fn(),
-        delete: vi.fn(),
-        get: vi.fn(),
-        insert: vi.fn(),
-        patch: vi.fn(),
-        update: vi.fn(),
-        watch: vi.fn()
-      },
-      calendars: {
-        context: {} as APIRequestContext,
-        delete: vi.fn(),
-        get: vi.fn(),
-        insert: vi.fn(),
-        patch: vi.fn(),
-        update: vi.fn(),
-        clear: vi.fn()
-      },
-      channels: {
-        context: {} as APIRequestContext,
-        stop: vi.fn()
-      },
-      colors: {
-        context: {} as APIRequestContext,
-        get: vi.fn()
-      },
-      events: {
-        context: {} as APIRequestContext,
-        list: vi.fn(),
-        delete: vi.fn(),
-        get: vi.fn(),
-        insert: vi.fn(),
-        patch: vi.fn(),
-        update: vi.fn(),
-        watch: vi.fn(),
-        import: vi.fn(),
-        instances: vi.fn(),
-        move: vi.fn(),
-        quickAdd: vi.fn()
-      },
-      freebusy: {
-        context: {} as APIRequestContext,
-        query: vi.fn()
-      },
-      settings: {
-        context: {} as APIRequestContext,
-        list: vi.fn(),
-        get: vi.fn(),
-        watch: vi.fn()
+        list: vi.fn().mockImplementation(calendarListFn)
       }
-    });
+    } as unknown as calendar_v3.Calendar);
     const config = { clientId: 'id', clientSecret: 'secret', redirectUri: 'uri' };
     return GoogleCalendar.withRefreshToken(config, '').calendarList();
   }
