@@ -1,4 +1,4 @@
-import type { Identity, IdpName, UnixTimestamp, UserStatus } from '@notifycal/shared/types';
+import type { Identity, IdpName, UnixTimestamp, User, UserStatus } from '@notifycal/shared/types';
 
 type CapitalizeKeys<T> = {
   [K in keyof T as Capitalize<K & string>]: T[K];
@@ -18,5 +18,16 @@ export function extractIdentity<TIdpName extends IdpName>(
     email: user.Email,
     idp: user.Idp,
     idpId: user.IdpId
+  };
+}
+
+export function extractUser<TIdpName extends IdpName>(
+  userRecord: UserStoreRecord<TIdpName>
+): User<TIdpName> {
+  return {
+    ...extractIdentity(userRecord),
+    lastSignInAt: userRecord.LastSignInAt,
+    signedUpAt: userRecord.SignedUpAt,
+    userStatus: userRecord.UserStatus
   };
 }
