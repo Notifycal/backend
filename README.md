@@ -53,15 +53,19 @@ in order to run tests as changes are made to files.
 Further info can be found at: https://vitest.dev/guide/cli.html#command-line-interface
 
 It is highly recommended Typescript compiler runs before executing the tests because test failures could waste your time. In order to do that you could:
+
 ```bash
 npm run types && npm run test
 ```
+
 or alternatively sourcing a shell function in your workstation like:
+
 ```bash
 npmts() {
   npm run types && npm "$@"
 }
 ```
+
 Usage: `npmts run test`
 
 ## Watch mode
