@@ -3,7 +3,6 @@ import { unprotectedEndpointMiddleware } from '@common/lambda-middleware';
 import { eventSchema } from '@model/api/ApiGatewayEvents';
 import { refreshTokenSchema } from '@model/Jwt';
 import { extractIdentity } from '@model/store/UserStoreRecord';
-import type { Jwt } from '@own-types/model';
 import { errorHandler } from '@services/common/api-response-handlers';
 import { decodeAndVerifyJwtSignature } from '@services/jwt';
 import { _successHandler, buildJwtsAndStoreRefreshJwt } from '@services/login';
@@ -16,7 +15,7 @@ import { type RefreshConfig, readRefreshConfig } from './config';
 const schema = eventSchema<RefreshConfig>().extend({
   body: JSONStringified(
     z.object({
-      refreshToken: z.string().transform((v) => v as Jwt)
+      refreshToken: z.string().brand('Jwt')
     })
   )
 });

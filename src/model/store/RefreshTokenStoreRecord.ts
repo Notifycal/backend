@@ -1,4 +1,4 @@
-import type { Jwt, UnixTimestamp, UserId, Uuid } from '@own-types/model';
+import type { Jwt, UnixTimestamp, UserId, Uuid } from '@notifycal/shared/types';
 
 export interface RefreshTokenStoreRecord {
   UserId: UserId;

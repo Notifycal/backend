@@ -1,12 +1,8 @@
-import jwtBuilder, { type SignOptions } from 'jsonwebtoken';
-import type { Jwt, UserId } from '@own-types/model';
 import type {
   DecodeAccessJwtConfig,
   EncodeAccessJwtConfig,
   EncodeRefreshJwtConfig
 } from '@model/Config';
-import { v4 as uuidv4 } from 'uuid';
-import type { z } from 'zod';
 import {
   type AccessToken,
   type OurAccessTokenClaims,
@@ -15,8 +11,11 @@ import {
   accessTokenSchema,
   refreshTokenSchema
 } from '@model/Jwt';
+import type { Identity, IdpName, Jwt, UserId } from '@notifycal/shared/types';
+import jwtBuilder, { type SignOptions } from 'jsonwebtoken';
+import { v4 as uuidv4 } from 'uuid';
+import type { z } from 'zod';
 import { rejectWithErrorMessage } from './common/error-handling';
-import type { Identity, IdpName } from '@model/Identity';
 
 export function accessJwtPayload<TIdpName extends IdpName>(
   identity: Identity<TIdpName>

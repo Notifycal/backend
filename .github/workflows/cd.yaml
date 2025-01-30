@@ -56,11 +56,16 @@ jobs:
     permissions:
       contents: read
       pull-requests: write
+      packages: read
     needs: preflight
     if: |
       needs.preflight.outputs.backend == 'true' || github.event_name != 'pull_request'
     steps:
       - uses: actions/checkout@v4
+      - name: Generate .npmrc
+        run: |
+          echo "//npm.pkg.github.com/:_authToken=${{secrets.GITHUB_TOKEN}}" > .npmrc
+          echo "@notifycal=https://npm.pkg.github.com/" >> .npmrc
       - uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'

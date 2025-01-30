@@ -16,10 +16,10 @@
     "prettier:fix": "$npm_execpath run prettier -- --write",
     "check": "$npm_execpath run types && $npm_execpath run lint && $npm_execpath run prettier && $npm_execpath run test && echo 'Everything ready to go upstream' || echo 'CAUTION: Have another look'",
     "types": "tsc",
-    "test": "$npm_execpath run types && vitest --watch=false",
-    "test:watch": "$npm_execpath run types vitest",
-    "test:ui": "$npm_execpath run types vitest --ui",
-    "test:coverage": "$npm_execpath run types vitest run --coverage"
+    "test": "vitest --watch=false",
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest run --coverage"
   },
   "author": "",
   "license": "ISC",
@@ -33,6 +33,7 @@
     "@aws-sdk/lib-dynamodb": "^3.726.1",
     "@middy/core": "^6.0.0",
     "@middy/http-cors": "^6.0.0",
+    "@notifycal/shared": "0.1.5",
     "env-var": "^7.5.0",
     "google-auth-library": "^9.15.0",
     "googleapis": "^144.0.0",

@@ -1,6 +1,5 @@
 /* eslint-disable camelcase */
-import type { Calendar } from '@model/Calendar';
-import type { CalendarId, CalendarName } from '@own-types/model';
+import type { Calendar, CalendarId, CalendarName } from '@notifycal/shared/types';
 import { google, type calendar_v3 } from 'googleapis';
 import type { GaxiosResponse } from 'googleapis-common';
 import { describe, expect, it, vi } from 'vitest';

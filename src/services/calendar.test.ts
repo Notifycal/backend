@@ -1,8 +1,6 @@
-import type { Calendar } from '@model/Calendar';
 import type { IdpConfigs } from '@model/Config';
-import type { IdpName } from '@model/Identity';
 import type { AuthorizationForIdp, UserGoogleAuthorization } from '@model/IdpAuthorization';
-import type { CalendarId, CalendarName, UserId } from '@own-types/model';
+import type { Calendar, CalendarId, CalendarName, IdpName, UserId } from '@notifycal/shared/types';
 import { v4 as uuid } from 'uuid';
 import { describe, expect, it, vi } from 'vitest';
 import { calendarList } from './calendar';
