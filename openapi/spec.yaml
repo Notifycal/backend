@@ -160,7 +160,7 @@ paths:
               schema:
                 type: object
                 properties:
-                  result: { $ref: '#/components/responses/User' }
+                  result: { $ref: '#/components/schemas/User' }
                 required: [result]
                 additionalProperties: false
         '401': { $ref: '#/components/responses/Unauthorised' }
@@ -189,7 +189,7 @@ paths:
                   type: string
                 calendars:
                   description: List of calendars the system will be integrating with
-                  $ref: '#/components/responses/CalendarList'
+                  $ref: '#/components/schemas/CalendarList'
       responses:
         '204':
           description: 'No Content'
@@ -215,7 +215,7 @@ paths:
               schema:
                 type: object
                 properties:
-                  result: { $ref: '#/components/responses/CalendarList' }
+                  result: { $ref: '#/components/schemas/CalendarList' }
                 required: [result]
                 additionalProperties: false
         '401': { $ref: '#/components/responses/Unauthorised' }
