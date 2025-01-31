@@ -9,7 +9,7 @@ module "get_idp_user_calendars_lambda" {
 
   runtime     = var.lambdas_runtime
   timeout     = local.api_lambdas_timeout
-  memory_size = 256
+  memory_size = 384
   handler     = var.lambdas_handler_name
 
   logging_log_format    = var.lambdas_logging_log_format
