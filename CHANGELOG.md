@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.7](https://github.com/Notifycal/backend/compare/v0.9.6...v0.9.7) (2025-01-31)
+
+
+### Bug Fixes
+
+* add policy to PATCH user-profile ([ce31da8](https://github.com/Notifycal/backend/commit/ce31da8027f60aff1d9e65bfb6a3531717c9b0fe))
+
 ## [0.9.6](https://github.com/Notifycal/backend/compare/v0.9.5...v0.9.6) (2025-01-31)
 
 
