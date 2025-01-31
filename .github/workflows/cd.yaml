@@ -12,8 +12,8 @@ on:
       - 'CHANGELOG.md' # This is what release-please changes in the release PRs
 
 concurrency:
-  # github.head_ref is only set when the workflow was triggered by a pull_request and it
-  # contains the value of the source branch of the PR.
+  # github.head_ref is only set when the workflow was triggered by a
+  # pull_request and it contains the value of the source branch of the PR.
   group: ${{ github.workflow }}-${{ github.head_ref || github.ref_name }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
@@ -44,12 +44,12 @@ jobs:
           filters: |
             tf:
               - 'tf/**'
-              - '.github/workflows/*.yaml'
+              - '.github/workflows/cd.yaml'
             backend:
               - '**'
               - '!tf/**'
               - '!README.md'
-              - '.github/workflows/*.yaml'
+              - '.github/workflows/cd.yaml'
 
   build:
     runs-on: ubuntu-latest
@@ -94,7 +94,11 @@ jobs:
       - name: Pass or fail?
         # Check previous step outcomes (only if the step has an id)
         run: |
-          if [[ ${{ contains(steps.*.outcome, 'failure') }} == "true" ]]; then exit 1; else exit 0; fi
+          if [[ ${{ contains(steps.*.outcome, 'failure') }} == "true" ]]; then
+            exit 1;
+          else
+            exit 0;
+          fi
       - uses: actions/upload-artifact@v4
         # Only produces artifacts when running on push or manually
         if: github.event_name != 'pull_request'
@@ -112,10 +116,6 @@ jobs:
     if: |
       needs.preflight.outputs.infra == 'true' || github.event_name != 'pull_request'
     steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.head_ref || github.ref_name }}
-
       - name: Get GH token from Github App
         id: gh-app-auth
         uses: getsentry/action-github-app-token@v3
@@ -123,11 +123,16 @@ jobs:
           app_id: ${{ secrets.NOTIFYCAL_CICD_APP_ID }}
           private_key: ${{ secrets.NOTIFYCAL_CICD_APP_SECRET }}
 
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
+          token: ${{ steps.gh-app-auth.outputs.token }}
+
       - name: Hack for github internal repo access :(
         run: git config --global url."https://foo:${{ steps.gh-app-auth.outputs.token }}@github.com".insteadOf ssh://git@github.com
 
       - name: Get tofu version from .opentofu-version
-        run: echo "tofu_version=$(cat .opentofu-version)" >> "$GITHUB_OUTPUT"
+        run: echo "tofu_version=$(cat .opentofu-version)" >> "${GITHUB_OUTPUT}"
         id: get_tofu_version
         working-directory: tf
 
@@ -160,11 +165,11 @@ jobs:
         env:
           TOFU_VERSION: ${{ steps.get_tofu_version.outputs.tofu_version }}
 
-      - run: tofu fmt -recursive
-        if: github.event_name == 'pull_request'
+      - run: tofu init && tofu validate
         working-directory: tf
 
-      - run: tofu init && tofu validate
+      - run: tofu fmt -recursive
+        if: github.event_name == 'pull_request'
         working-directory: tf
 
       - name: Render OpenTofu docs
@@ -190,8 +195,16 @@ jobs:
           git config user.name github-actions
           git config user.email github-actions@github.com
           git add .
-          git commit -m "ci(auto): generate docs and format" || exit 0
-          git push
+
+          # Check if there are any staged changes before committing
+          if git diff --cached --quiet; then
+            echo "git_changes=false" >> "${GITHUB_OUTPUT}"
+            echo "No changes to commit."
+          else
+            echo "git_changes=true" >> "${GITHUB_OUTPUT}"
+            git commit -m "ci(auto): generate docs and format"
+            git push
+          fi
 
   release:
     runs-on: ubuntu-latest
@@ -210,7 +223,7 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: build
-          path: artifact
+          path: artifact/
 
       - name: Display structure of downloaded files
         run: ls -R
