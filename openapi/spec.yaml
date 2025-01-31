@@ -241,9 +241,9 @@ components:
         idpId:
           type: string
         lastSignInAt:
-          schema: { $ref: '#/components/schemas/UnixTimestamp' }
+          $ref: '#/components/schemas/UnixTimestamp'
         signedUpAt:
-          schema: { $ref: '#/components/schemas/UnixTimestamp' }
+          $ref: '#/components/schemas/UnixTimestamp'
         userStatus:
           type: string
           enum:
@@ -270,11 +270,11 @@ components:
             type: string
           name:
             type: string
-          required:
-            - id
-            - name
-          # Additionalproperties are allowed by default in OpenAPI. To enforce maximum strictness use additionalProperties: false to block all arbitrary data.
-          additionalProperties: false
+        required:
+          - id
+          - name
+        # Additionalproperties are allowed by default in OpenAPI. To enforce maximum strictness use additionalProperties: false to block all arbitrary data.
+        additionalProperties: false
 
     UnixTimestamp:
       type: number
