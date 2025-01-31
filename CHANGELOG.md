@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.6](https://github.com/Notifycal/backend/compare/v0.9.5...v0.9.6) (2025-01-31)
+
+
+### Bug Fixes
+
+* attach policy to get idp user-calendars as it is querying users table ([c886e45](https://github.com/Notifycal/backend/commit/c886e4520a7440dec220b122f2751e2a81700502))
+
 ## [0.9.5](https://github.com/Notifycal/backend/compare/v0.9.4...v0.9.5) (2025-01-31)
 
 
