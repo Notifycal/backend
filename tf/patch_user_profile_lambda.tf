@@ -3,7 +3,7 @@ data "aws_iam_policy_document" "patch_user_profile_iam_policydoc" {
     effect = "Allow"
 
     actions = [
-      "dynamodb:Update",
+      "dynamodb:UpdateItem",
     ]
 
     resources = [
