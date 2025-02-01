@@ -1,5 +1,56 @@
 # Changelog
 
+## [0.9.7](https://github.com/Notifycal/backend/compare/v0.9.6...v0.9.7) (2025-01-31)
+
+
+### Bug Fixes
+
+* add policy to PATCH user-profile ([ce31da8](https://github.com/Notifycal/backend/commit/ce31da8027f60aff1d9e65bfb6a3531717c9b0fe))
+
+## [0.9.6](https://github.com/Notifycal/backend/compare/v0.9.5...v0.9.6) (2025-01-31)
+
+
+### Bug Fixes
+
+* attach policy to get idp user-calendars as it is querying users table ([c886e45](https://github.com/Notifycal/backend/commit/c886e4520a7440dec220b122f2751e2a81700502))
+
+## [0.9.5](https://github.com/Notifycal/backend/compare/v0.9.4...v0.9.5) (2025-01-31)
+
+
+### Bug Fixes
+
+* increase memory in GET idp-user-calendars ([6a0cc1f](https://github.com/Notifycal/backend/commit/6a0cc1f9846b92a75cb9dc37fb52f1fcedf3bf12))
+
+## [0.9.4](https://github.com/Notifycal/backend/compare/v0.9.3...v0.9.4) (2025-01-31)
+
+
+### Bug Fixes
+
+* release previous commit ([3043713](https://github.com/Notifycal/backend/commit/3043713ef409243722e0d592005c2d9adc64601a))
+
+## [0.9.3](https://github.com/Notifycal/backend/compare/v0.9.2...v0.9.3) (2025-01-31)
+
+
+### Bug Fixes
+
+* refresh dynamo permissions ([#274](https://github.com/Notifycal/backend/issues/274)) ([602c654](https://github.com/Notifycal/backend/commit/602c65441e37f41ec9de731025fab59868d641b5))
+
+## [0.9.2](https://github.com/Notifycal/backend/compare/v0.9.1...v0.9.2) (2025-01-30)
+
+
+### Bug Fixes
+
+* openapi spec ([aa38658](https://github.com/Notifycal/backend/commit/aa38658595ec9c28860351ee4c90f62c5e3c783d))
+
+## [0.9.1](https://github.com/Notifycal/backend/compare/v0.9.0...v0.9.1) (2025-01-30)
+
+
+### Bug Fixes
+
+* (breaking TBH) separate persistance model from api model ([#266](https://github.com/Notifycal/backend/issues/266)) ([47ed831](https://github.com/Notifycal/backend/commit/47ed831dbe980edf14e2f9aed49324782e6f4f5c))
+* log google requests ([#265](https://github.com/Notifycal/backend/issues/265)) ([dc7597b](https://github.com/Notifycal/backend/commit/dc7597b664820f74aaee42dd7c46b4bdc5d45bb7))
+* trigger release ([6ba171d](https://github.com/Notifycal/backend/commit/6ba171d8215f594217b8d2142ba2d0fea36c5983))
+
 ## [0.9.0](https://github.com/Notifycal/backend/compare/v0.8.0...v0.9.0) (2025-01-29)
 
 

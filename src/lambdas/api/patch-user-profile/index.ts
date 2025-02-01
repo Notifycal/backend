@@ -1,21 +1,15 @@
 import { JSONStringified } from '@aws-lambda-powertools/parser/helpers';
 import { protectedEndpointMiddleware } from '@common/lambda-middleware';
 import { authedEventSchema } from '@model/api/ApiGatewayEvents';
-import { calendarSchema } from '@model/Calendar';
+import { reminderConfigSchema } from '@notifycal/shared/types';
 import { errorHandler, successHandler } from '@services/common/api-response-handlers';
 import { UserBaseStore } from '@services/stores/user-base-store';
 import type { APIGatewayProxyResult, Context } from 'aws-lambda';
-import { z } from 'zod';
+import type { z } from 'zod';
 import { type PatchUserProfileConfig, readPatchUserConfig } from './config';
 
-export const bodySchema = z.object({
-  calendars: z.array(calendarSchema).min(1),
-  businessName: z.string().min(1).brand('BusinessName'),
-  businessAddress: z.string().min(1).brand('BusinessAddress')
-});
-export type BodyPayload = z.infer<typeof bodySchema>;
 const eventSchema = authedEventSchema<PatchUserProfileConfig>().extend({
-  body: JSONStringified(bodySchema)
+  body: JSONStringified(reminderConfigSchema)
 });
 export type Event = z.infer<typeof eventSchema>;
 

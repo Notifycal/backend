@@ -1,7 +1,5 @@
-import type { Calendar } from '@model/Calendar';
 import type { GoogleOAuthConfig, IdpConfigs } from '@model/Config';
-import type { IdpName } from '@model/Identity';
-import type { UserId } from '@own-types/model';
+import type { Calendar, IdpName, UserId } from '@notifycal/shared/types';
 import { throwError } from '@services/common/error-handling';
 import { match } from 'ts-pattern';
 import { GoogleCalendar } from './google/calendar';

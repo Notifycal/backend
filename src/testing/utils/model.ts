@@ -1,6 +1,5 @@
-import type { User } from '@model/api/User';
 import type { UserStoreRecord } from '@model/store/UserStoreRecord';
-import type { Email, IdpId, UnixTimestamp, UserId } from '@own-types/model';
+import type { Email, IdpId, UnixTimestamp, User, UserId } from '@notifycal/shared/types';
 
 export function validUserStoreRecord(userId: UserId): UserStoreRecord<'google.com'> {
   return {

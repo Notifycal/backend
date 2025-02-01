@@ -1,5 +1,5 @@
 import type { RefreshTokenStoreRecord } from '@model/store/RefreshTokenStoreRecord';
-import type { UserId, Uuid } from '@own-types/model';
+import type { UserId, Uuid } from '@notifycal/shared/types';
 import { BaseStore, type BaseStoreConfig } from '../common/base-store';
 
 export type RefreshTokenBaseStoreConfig = BaseStoreConfig;

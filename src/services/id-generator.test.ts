@@ -1,7 +1,7 @@
-import { describe, it, expect } from 'vitest';
+import type { IdpName } from '@notifycal/shared/types';
 import { validate as validateUuid } from 'uuid';
+import { describe, expect, it } from 'vitest';
 import { hashString, idGenerator } from './id-generator';
-import type { IdpName } from '@model/Identity';
 
 describe('Id generator', () => {
   const idpName = 'google.com';

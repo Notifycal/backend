@@ -1,5 +1,5 @@
+import type { IdpName } from '@notifycal/shared/types';
 import { z } from 'zod';
-import type { IdpName } from './Identity';
 
 export const jwtHeaderSchema = z.object({
   alg: z.string(),

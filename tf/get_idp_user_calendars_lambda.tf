@@ -1,3 +1,17 @@
+data "aws_iam_policy_document" "get_idp_user_calendars_iam_policydoc" {
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "dynamodb:Query"
+    ]
+
+    resources = [
+      aws_dynamodb_table.users.arn
+    ]
+  }
+}
+
 module "get_idp_user_calendars_lambda" {
   source  = "terraform-aws-modules/lambda/aws"
   version = "~> 7.17"
@@ -9,7 +23,7 @@ module "get_idp_user_calendars_lambda" {
 
   runtime     = var.lambdas_runtime
   timeout     = local.api_lambdas_timeout
-  memory_size = 256
+  memory_size = 384
   handler     = var.lambdas_handler_name
 
   logging_log_format    = var.lambdas_logging_log_format
@@ -21,6 +35,9 @@ module "get_idp_user_calendars_lambda" {
   tags = merge({
     Api = "GET /idp/user-calendars"
   }, local.common_tags)
+
+  attach_policy_json = true
+  policy_json        = data.aws_iam_policy_document.get_idp_user_calendars_iam_policydoc.json
 
   environment_variables = merge({
   }, local.protected_endpoint_env_vars, local.idps_configs, local.users_persistance_env_vars)

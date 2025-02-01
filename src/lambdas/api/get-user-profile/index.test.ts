@@ -1,7 +1,6 @@
-import type { IdpName } from '@model/Identity';
 import type { OurAccessTokenClaims } from '@model/Jwt';
 import type { UserStoreRecord } from '@model/store/UserStoreRecord';
-import type { Email, IdpId, UserId } from '@own-types/model';
+import type { Email, IdpId, IdpName, UserId } from '@notifycal/shared/types';
 import { UserBaseStore } from '@services/stores/user-base-store';
 import { c, testAuthedEvent, testEvent } from '@testing/apigateway';
 import { responseError, responseSuccess } from '@testing/utils/api-response-handlers';
