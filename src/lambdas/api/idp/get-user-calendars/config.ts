@@ -4,7 +4,7 @@ import {
   readDecodeAccessJwtConfig,
   readEnv,
   readIdpConfigs,
-  readUserStoreConfig
+  readUserBaseStoreConfig
 } from '@services/common/config';
 import type { UserBaseStoreEndpointConfig } from '@services/stores/user-base-store';
 
@@ -16,7 +16,7 @@ export function readGetUserCalendarListConfig(): GetUserCalendarsConfig {
   const env = readEnv();
   return {
     ...readIdpConfigs(env),
-    ...readUserStoreConfig(env),
+    ...readUserBaseStoreConfig(env),
     ...readDecodeAccessJwtConfig(env),
     ...readBaseConfig(env)
   };

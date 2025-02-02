@@ -85,7 +85,7 @@ export function readDecodeRefreshJwtConfig(env: Environment): DecodeRefreshJwtCo
   };
 }
 
-export function readUserStoreConfig(env: Environment): UserBaseStoreEndpointConfig {
+export function readUserBaseStoreConfig(env: Environment): UserBaseStoreEndpointConfig {
   return {
     userBaseStoreConfig: {
       tableName: env.get('USERS_TABLE_NAME').required().asString()
