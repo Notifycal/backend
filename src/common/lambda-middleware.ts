@@ -12,11 +12,8 @@ import { corsMiddleware } from './cors-middleware';
 import { checkClaims, jwtVerificationMiddleware } from './jwt-verification-middleware';
 import { httpRequestEventParserMiddleware } from './parser-http-middleware';
 
-export function baseMiddleware(): middy.MiddyfiedHandler<
-  APIGatewayProxyEvent,
-  APIGatewayProxyResult
-> {
-  return middy<APIGatewayProxyEvent, APIGatewayProxyResult>({
+export function baseMiddleware(): middy.MiddyfiedHandler {
+  return middy({
     timeoutEarlyInMillis: 0
   })
     .use(captureLambdaHandler(tracer))
@@ -24,12 +21,16 @@ export function baseMiddleware(): middy.MiddyfiedHandler<
     .use(logMetrics(metrics, { captureColdStartMetric: true }));
 }
 
+export function configMiddleware<TConfig>(configReader: ConfigReaderFn<TConfig>): middy.MiddyfiedHandler {
+  return baseMiddleware()
+    .use(configReaderMiddleware<TConfig>(configReader));
+}
+
 export function unprotectedEndpointMiddleware<TConfig, T extends z.ZodTypeAny>(
   configReader: ConfigReaderFn<TConfig>,
   eventSchema: T
 ): middy.MiddyfiedHandler<APIGatewayProxyEvent, APIGatewayProxyResult> {
-  return baseMiddleware()
-    .use(configReaderMiddleware<TConfig>(configReader))
+  return configMiddleware(configReader)
     .use(corsMiddleware())
     .use(httpRequestEventParserMiddleware(eventSchema)) as unknown as middy.MiddyfiedHandler<
     APIGatewayProxyEvent,
@@ -45,8 +46,7 @@ export function protectedEndpointMiddleware<
   eventSchema: T,
   claimCheckerFn: JwtClaimCheckerFn = checkClaims
 ): middy.MiddyfiedHandler<APIGatewayProxyEvent, APIGatewayProxyResult> {
-  return baseMiddleware()
-    .use(configReaderMiddleware<TConfig>(configReaderFn))
+  return configMiddleware(configReaderFn)
     .use(corsMiddleware())
     .use(jwtVerificationMiddleware(claimCheckerFn))
     .use(httpRequestEventParserMiddleware(eventSchema)) as unknown as middy.MiddyfiedHandler<
