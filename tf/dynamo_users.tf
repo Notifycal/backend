@@ -23,7 +23,16 @@ resource "aws_dynamodb_table" "users" {
     name = local.live_users_index_name
     hash_key = "UserStatus"
     range_key = "UserId"
-    projection_type = "ALL"
+    projection_type = "INCLUDE"
+
+    # Key attributes (from index and table) are included by default
+    non_key_attributes = [
+      "Config",
+      "Email",
+      "Idp",
+      "IdpId",
+      "IdpAuthorization"
+    ]
   }
 
   # DROP THIS BEFORE MERGING: https://github.com/hashicorp/terraform-provider-aws/issues/41110
