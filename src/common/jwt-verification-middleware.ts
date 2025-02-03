@@ -55,8 +55,9 @@ function jwtVerification<TConfig extends AuthedEndpointConfig>(
 export function jwtVerificationMiddleware<TConfig extends AuthedEndpointConfig>(
   claimChecker: JwtClaimCheckerFn
 ): MiddlewareObj<AuthedAPIEventWithConfig<TConfig>, APIGatewayProxyResult> {
-  const before: middy.MiddlewareFn<AuthedAPIEventWithConfig<TConfig>, APIGatewayProxyResult> = (req) =>
-    jwtVerification(req, claimChecker);
+  const before: middy.MiddlewareFn<AuthedAPIEventWithConfig<TConfig>, APIGatewayProxyResult> = (
+    req
+  ) => jwtVerification(req, claimChecker);
   return {
     before
   };

@@ -9,7 +9,7 @@ export function eventBridgeEventSchema<TLambdaConfig>() {
   });
 }
 
-export interface ScheduledEventWithRequestContext<TLambdaConfig> extends EventBridgeEvent<'Scheduled event', string> {
+export interface ScheduledEventWithRequestContext<TLambdaConfig>
+  extends EventBridgeEvent<'Scheduled event', string> {
   lambdaConfig: TLambdaConfig;
 }
-

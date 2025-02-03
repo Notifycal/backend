@@ -23,7 +23,9 @@ export function corsMiddleware<TConfig extends AuthedEndpointConfig>(): Middlewa
   APIGatewayProxyResult
 > {
   return {
-    after: (req: Request<AuthedAPIEventWithConfig<TConfig>, APIGatewayProxyResult, Error, Context>) =>
+    after: (
+      req: Request<AuthedAPIEventWithConfig<TConfig>, APIGatewayProxyResult, Error, Context>
+    ) =>
       // eslint-disable-next-line @typescript-eslint/no-unsafe-return
       configureMiddleware(req).after?.(req),
     onError: (
