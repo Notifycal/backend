@@ -98,7 +98,7 @@ export function readUserLiveIndexConfig(env: Environment): UserLiveIndexStoreEnd
   return {
     userLiveIndexStoreConfig: {
       tableName: env.get('USERS_TABLE_NAME').required().asString(),
-      indexName: env.get('USERS_INDEX_NAME').required().asString(),
+      indexName: env.get('LIVE_USERS_INDEX_NAME').required().asString(),
       pageSize: env.get('USERS_PAGE_SIZE').default(100).asInt()
     }
   };
