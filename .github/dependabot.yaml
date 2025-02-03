@@ -20,6 +20,10 @@ updates:
       aws-lambda-powertools:
         patterns:
           - '@aws-lambda-powertools/*'
+      vitest:
+        patterns:
+          - 'vitest'
+          - '@vitest/*'
     registries:
       - npm-github-registry
 
