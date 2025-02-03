@@ -1,6 +1,6 @@
 import { JSONStringified } from '@aws-lambda-powertools/parser/helpers';
 import { protectedEndpointMiddleware } from '@common/lambda-middleware';
-import { authedEventSchema } from '@model/api/ApiGatewayEvents';
+import { authedEventSchema } from '@model/lambda-events/ApiGatewayEvents';
 import { reminderConfigSchema } from '@notifycal/shared/types';
 import { errorHandler, successHandler } from '@services/common/api-response-handlers';
 import { UserBaseStore } from '@services/stores/user-base-store';
@@ -18,7 +18,7 @@ function lambdaHandler(
   /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
   ctx: Context
 ): Promise<APIGatewayProxyResult> {
-  const config = event.endpointConfig;
+  const config = event.lambdaConfig;
   const body = event.body;
   const userProvider = UserBaseStore.withConfig(config.userBaseStoreConfig);
   const userId = event.requestContext.authorizer.payload.userId;

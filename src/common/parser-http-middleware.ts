@@ -2,7 +2,7 @@ import { parser } from '@aws-lambda-powertools/parser/middleware';
 import type { MiddlewareObj, Request } from '@middy/core';
 /* eslint-disable-next-line no-duplicate-imports */
 import type middy from '@middy/core';
-import type { EventWithConfig } from '@model/api/ApiGatewayEvents';
+import type { EventWithConfig } from '@model/lambda-events/Event';
 import type { BaseEndpointConfig } from '@model/Config';
 import { errorHandler, headers } from '@services/common/api-response-handlers';
 import { extractErrorMessage } from '@services/common/error-handling';
@@ -20,7 +20,7 @@ function httpRequestEventParser<TConfig extends BaseEndpointConfig>(
     } catch (error: unknown) {
       return errorHandler(
         400,
-        headers(request.event.endpointConfig.baseConfig.frontendDomain)
+        headers(request.event.lambdaConfig.baseConfig.frontendDomain)
       )(
         `Request payload does not satisfy the schema. Error: ${extractErrorMessage(error)}. Schema: ${JSON.stringify(schema)}`
       );

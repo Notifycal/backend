@@ -11,7 +11,7 @@ export function apiEventSchema<TEndpointConfig>() {
     rawPath: z.string().optional(),
     rawQueryString: z.string().optional(),
     queryStringParameters: z.record(z.string()).nullable().optional(),
-    endpointConfig: z.custom<TEndpointConfig>()
+    lambdaConfig: z.custom<TEndpointConfig>()
   });
 }
 
@@ -25,12 +25,10 @@ export function authedEventSchema<TEndpointConfig>() {
   });
 }
 
-interface APIGatewayProxyEventWithRequestContext<TEndpointConfig>
+export interface APIGatewayProxyEventWithRequestContext<TEndpointConfig>
   extends APIGatewayProxyEventBase<AccessToken> {
-  endpointConfig: TEndpointConfig;
+  lambdaConfig: TEndpointConfig;
 }
 
 // ApiGateway Proxy Events
-export type EventWithConfig<TConfig> = APIGatewayProxyEventWithRequestContext<TConfig>;
-
-export type AuthedEventWithConfig<TConfig> = APIGatewayProxyEventWithRequestContext<TConfig>;
+export type AuthedAPIEventWithConfig<TConfig> = APIGatewayProxyEventWithRequestContext<TConfig>;
