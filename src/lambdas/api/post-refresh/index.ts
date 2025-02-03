@@ -1,6 +1,6 @@
 import { JSONStringified } from '@aws-lambda-powertools/parser/helpers';
 import { unprotectedEndpointMiddleware } from '@common/lambda-middleware';
-import { apiEventSchema } from '@model/api/ApiGatewayEvents';
+import { apiEventSchema } from '@model/lambda-events/ApiGatewayEvents';
 import { refreshTokenSchema } from '@model/Jwt';
 import { extractIdentity } from '@model/store/UserStoreRecord';
 import { errorHandler } from '@services/common/api-response-handlers';
@@ -26,7 +26,7 @@ function lambdaHandler(
   /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
   ctx: Context
 ): Promise<APIGatewayProxyResult> {
-  const config = event.endpointConfig;
+  const config = event.lambdaConfig;
   const refreshTokenStore = new RefreshTokenBaseStore(config.refreshTokenBaseStoreConfig);
   const userStore = UserBaseStore.withConfig(config.userBaseStoreConfig);
   const refreshToken = event.body['refreshToken'];
