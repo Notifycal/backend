@@ -1,6 +1,6 @@
 import { JSONStringified } from '@aws-lambda-powertools/parser/helpers';
 import { unprotectedEndpointMiddleware } from '@common/lambda-middleware';
-import { eventSchema } from '@model/api/ApiGatewayEvents';
+import { apiEventSchema } from '@model/api/ApiGatewayEvents';
 import type { IdpConfigs } from '@model/Config';
 import type { AuthorizationForIdp } from '@model/IdpAuthorization';
 import { extractIdentity } from '@model/store/UserStoreRecord';
@@ -16,7 +16,7 @@ import { readLoginConfig, type LoginConfig } from './config';
 export const bodySchema = z.object({
   googleCode: z.string()
 });
-const schema = eventSchema<LoginConfig>().extend({
+const schema = apiEventSchema<LoginConfig>().extend({
   body: JSONStringified(bodySchema)
 });
 export type Event = z.infer<typeof schema>;
