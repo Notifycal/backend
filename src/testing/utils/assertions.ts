@@ -1,5 +1,5 @@
 import { expect } from 'vitest';
 
-export function assert(result: unknown, expectation: unknown): void {
+export function assert<T>(result: T, expectation: T): void {
   expect(result).toStrictEqual(expectation);
 }
