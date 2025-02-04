@@ -1,7 +1,7 @@
 # Fetch user calendars or just fetch calendars? Isn't that implementation details?
 
 locals {
-  fetch_user_calendars_lambda_cron_schedule = "cron(0/5 * * * ? *)"
+  fetch_user_calendars_lambda_cron_schedule      = "cron(0/5 * * * ? *)"
   fetch_user_calendars_lambda_function_name      = "fetch-user-calendars"
   fetch_user_calendars_lambda_function_full_name = "${local.fetch_user_calendars_lambda_function_name}-${var.environment}"
 }
@@ -33,7 +33,7 @@ resource "aws_cloudwatch_event_target" "fetch_user_calendars_event_target" {
   target_id = "GetUsers" # TODO: rename this
 
   # Does this support alias ARN or just the base function?
-  arn       = module.fetch_user_calendars_lambda.lambda_function_arn
+  arn = module.fetch_user_calendars_lambda.lambda_function_arn
 }
 
 module "fetch_user_calendars_lambda" {
@@ -64,7 +64,7 @@ module "fetch_user_calendars_lambda" {
   policy_json        = data.aws_iam_policy_document.fetch_user_calendars_iam_policydoc.json
 
   environment_variables = merge({
-    LIVE_USERS_INDEX_NAME = local.live_users_index_name
+    LIVE_USERS_INDEX_NAME     = local.live_users_index_name
     FETCH_CALENDARS_TOPIC_ARN = "TODO"
   }, local.protected_endpoint_env_vars, local.users_persistance_env_vars)
 }
@@ -79,7 +79,7 @@ module "fetch_user_calendars_lambda_alias" {
 
   allowed_triggers = {
     AllowEventBridgeInvoke = {
-      principal = "events.amazonaws.com"
+      principal  = "events.amazonaws.com"
       source_arn = aws_cloudwatch_event_rule.fetch_user_calendars_trigger_rule.arn
     }
   }

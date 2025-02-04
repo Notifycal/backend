@@ -1,5 +1,5 @@
 locals {
-  users_table_name = "Users-${var.environment}"
+  users_table_name      = "Users-${var.environment}"
   live_users_index_name = "Live${local.users_table_name}"
 }
 
@@ -20,9 +20,9 @@ resource "aws_dynamodb_table" "users" {
   }
 
   global_secondary_index {
-    name = local.live_users_index_name
-    hash_key = "UserStatus"
-    range_key = "UserId"
+    name            = local.live_users_index_name
+    hash_key        = "UserStatus"
+    range_key       = "UserId"
     projection_type = "INCLUDE"
 
     # Key attributes (from index and table) are included by default
