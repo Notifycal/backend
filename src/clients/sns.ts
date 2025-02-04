@@ -1,9 +1,10 @@
-import { SQSClient } from '@aws-sdk/client-sqs';
+import { SNSClient } from '@aws-sdk/client-sns';
+
 import { tracer } from '@common/powertools';
 
-export function sqsClient(): SQSClient {
+export function snsClient(): SNSClient {
   return tracer.captureAWSv3Client(
-    new SQSClient({
+    new SNSClient({
       region: process.env.AWS_REGION || 'eu-west-1'
     })
   );
