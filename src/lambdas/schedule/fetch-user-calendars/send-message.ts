@@ -3,9 +3,9 @@ import { snsClient } from '@clients/sns';
 
 const sns = snsClient();
 
-export const transformItem = <T>(item: T): T => {
+export const transformItems = <T>(items: T): T => {
   // This function does user x calendar list and transforms the items into SNS messages
-  return item;
+  return items;
 };
 
 export const publishToSNSCalendarMessage = (
@@ -21,5 +21,14 @@ export const publishToSNSCalendarMessage = (
     MessageGroupId: '1',
     MessageStructure: 'json'
   });
-  return sns.send(publishCommand);
+  return sns.send(publishCommand).then(
+    (result) => {
+      console.log(`SNS publish result ${JSON.stringify(result)}`);
+      return result;
+    },
+    (error) => {
+      console.log(error);
+      return {} as PublishCommandOutput;
+    }
+  );
 };

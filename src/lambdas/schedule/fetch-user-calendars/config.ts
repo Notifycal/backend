@@ -1,11 +1,20 @@
-import { readEnv, readUserLiveIndexConfig } from '@services/common/config';
-import type { UserLiveIndexStoreEndpointConfig } from '@services/stores/user-live-index-store';
+import {
+  readEnv,
+  readUserCalendarFetchedTopicConfig,
+  readUserLiveIndexConfig
+} from '@services/common/config';
+import type {
+  UserCalendarFetchedTopicEndpointConfig,
+  UserLiveIndexStoreEndpointConfig
+} from '@services/stores/user-live-index-store';
 
-export type FetchUserCalendarsConfig = UserLiveIndexStoreEndpointConfig;
+export type FetchUserCalendarsConfig = UserLiveIndexStoreEndpointConfig &
+  UserCalendarFetchedTopicEndpointConfig;
 
 export function readFetchUserCalendarsConfig(): FetchUserCalendarsConfig {
   const env = readEnv();
   return {
-    ...readUserLiveIndexConfig(env)
+    ...readUserLiveIndexConfig(env),
+    ...readUserCalendarFetchedTopicConfig(env)
   };
 }
