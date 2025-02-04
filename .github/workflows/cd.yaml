@@ -111,6 +111,7 @@ jobs:
     permissions:
       contents: write
       id-token: write
+      pull-requests: read
     needs: preflight
     # Runs if there are changes to the infra (PR) or the event isn't PR
     if: |
