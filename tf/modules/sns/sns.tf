@@ -12,7 +12,7 @@ resource "aws_sns_topic" "topic" {
   tags = merge({}, var.tags)
 }
 
-resource "aws_sns_topic_subscription" "_topic_subscriptions" {
+resource "aws_sns_topic_subscription" "topic_subscriptions" {
   for_each             = var.subscriber_arns
   topic_arn            = aws_sns_topic.topic.arn
   protocol             = "sqs"
