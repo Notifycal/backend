@@ -31,6 +31,8 @@
 | <a name="module_post_login_lambda_alias"></a> [post\_login\_lambda\_alias](#module\_post\_login\_lambda\_alias) | terraform-aws-modules/lambda/aws//modules/alias | ~> 7.17 |
 | <a name="module_post_refresh_lambda"></a> [post\_refresh\_lambda](#module\_post\_refresh\_lambda) | terraform-aws-modules/lambda/aws | ~> 7.17 |
 | <a name="module_post_refresh_lambda_alias"></a> [post\_refresh\_lambda\_alias](#module\_post\_refresh\_lambda\_alias) | terraform-aws-modules/lambda/aws//modules/alias | ~> 7.17 |
+| <a name="module_user_calendar_fetched_queue"></a> [user\_calendar\_fetched\_queue](#module\_user\_calendar\_fetched\_queue) | ./modules/sqs | n/a |
+| <a name="module_user_calendar_fetched_topic"></a> [user\_calendar\_fetched\_topic](#module\_user\_calendar\_fetched\_topic) | ./modules/sns | n/a |
 
 ## Resources
 
