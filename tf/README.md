@@ -18,7 +18,7 @@
 
 | Name | Source | Version |
 |------|--------|---------|
-| <a name="module_apigateway_custom_domain"></a> [apigateway\_custom\_domain](#module\_apigateway\_custom\_domain) | ./api_gateway_external_domain | n/a |
+| <a name="module_apigateway_custom_domain"></a> [apigateway\_custom\_domain](#module\_apigateway\_custom\_domain) | ./modules/api_gateway_external_domain | n/a |
 | <a name="module_fetch_user_calendars_lambda"></a> [fetch\_user\_calendars\_lambda](#module\_fetch\_user\_calendars\_lambda) | terraform-aws-modules/lambda/aws | ~> 7.17 |
 | <a name="module_fetch_user_calendars_lambda_alias"></a> [fetch\_user\_calendars\_lambda\_alias](#module\_fetch\_user\_calendars\_lambda\_alias) | terraform-aws-modules/lambda/aws//modules/alias | ~> 7.17 |
 | <a name="module_get_idp_user_calendars_lambda"></a> [get\_idp\_user\_calendars\_lambda](#module\_get\_idp\_user\_calendars\_lambda) | terraform-aws-modules/lambda/aws | ~> 7.17 |
