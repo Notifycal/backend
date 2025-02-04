@@ -137,7 +137,7 @@ jobs:
         id: filter
         with:
           filters: |
-            .: 
+            tf: 
               - 'tf/*.tf'
               - 'tf/modules/**/*.tf'
               - '!CHANGELOG.md'
@@ -186,7 +186,6 @@ jobs:
           TOFU_VERSION: ${{ steps.get_tofu_version.outputs.tofu_version }}
 
       - name: TF init and validate
-        working-directory: tf
         run: |
           CHANGED_MODULES=$(echo '${{ steps.filter.outputs.changes }}' | jq -r '.[]')
 
