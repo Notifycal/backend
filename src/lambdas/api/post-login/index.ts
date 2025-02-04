@@ -3,7 +3,7 @@ import { unprotectedEndpointMiddleware } from '@common/lambda-middleware';
 import { apiEventSchema } from '@model/lambda-events/ApiGatewayEvents';
 import type { IdpConfigs } from '@model/Config';
 import type { AuthorizationForIdp } from '@model/IdpAuthorization';
-import { extractIdentity } from '@model/store/UserStoreRecord';
+import { extractIdentity } from '@model/UserIdentity';
 import type { Identity, IdpName } from '@notifycal/shared/types';
 import { errorHandler } from '@services/common/api-response-handlers';
 import { GoogleOAuth } from '@services/google/oauth';
