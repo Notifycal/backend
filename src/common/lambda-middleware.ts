@@ -24,8 +24,7 @@ export function baseMiddleware(): middy.MiddyfiedHandler {
 export function configMiddleware<TConfig, TResult>(
   configReader: ConfigReaderFn<TConfig>
 ): middy.MiddyfiedHandler {
-  return baseMiddleware()
-    .use(configReaderMiddleware<TConfig, TResult>(configReader));
+  return baseMiddleware().use(configReaderMiddleware<TConfig, TResult>(configReader));
 }
 
 export function unprotectedEndpointMiddleware<TConfig, T extends z.ZodTypeAny>(
