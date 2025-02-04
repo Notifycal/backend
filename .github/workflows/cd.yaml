@@ -134,22 +134,21 @@ jobs:
       # Using this to avoid unnecessary runs when files have not changed
       - uses: dorny/paths-filter@v3
         id: filter
-        working-directory: tf
         with:
           filters: |
             .: 
-              - '*.tf'
-              - 'modules/**/*.tf'
+              - 'tf/*.tf'
+              - 'tf/modules/**/*.tf'
               - '!CHANGELOG.md'
-            'modules/api_gateway_external_domain':
-              - 'modules/api_gateway_external_domain/**'
-              - '!modules/api_gateway_external_domain/README.md'
-            'modules/sqs':
-              - 'modules/sqs/**'
-              - '!modules/sqs/README.md'
-            'modules/sns':
-              - 'modules/sns/**'
-              - '!modules/sns/README.md'
+            'tf/modules/api_gateway_external_domain':
+              - 'tf/modules/api_gateway_external_domain/**'
+              - '!tf/modules/api_gateway_external_domain/README.md'
+            'tf/modules/sqs':
+              - 'tf/modules/sqs/**'
+              - '!tf/modules/sqs/README.md'
+            'tf/modules/sns':
+              - 'tf/modules/sns/**'
+              - '!tf/modules/sns/README.md'
 
       - name: Get tofu version from .opentofu-version
         run: echo "tofu_version=$(cat .opentofu-version)" >> "${GITHUB_OUTPUT}"
