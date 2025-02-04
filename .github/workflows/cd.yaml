@@ -111,6 +111,7 @@ jobs:
     permissions:
       contents: write
       id-token: write
+      pull-requests: read
     needs: preflight
     # Runs if there are changes to the infra (PR) or the event isn't PR
     if: |
@@ -130,6 +131,25 @@ jobs:
 
       - name: Hack for github internal repo access :(
         run: git config --global url."https://foo:${{ steps.gh-app-auth.outputs.token }}@github.com".insteadOf ssh://git@github.com
+
+      # Using this to avoid unnecessary runs when files have not changed
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            tf: 
+              - 'tf/*.tf'
+              - 'tf/modules/**/*.tf'
+              - '!CHANGELOG.md'
+            'tf/modules/api_gateway_external_domain':
+              - 'tf/modules/api_gateway_external_domain/**'
+              - '!tf/modules/api_gateway_external_domain/README.md'
+            'tf/modules/sqs':
+              - 'tf/modules/sqs/**'
+              - '!tf/modules/sqs/README.md'
+            'tf/modules/sns':
+              - 'tf/modules/sns/**'
+              - '!tf/modules/sns/README.md'
 
       - name: Get tofu version from .opentofu-version
         run: echo "tofu_version=$(cat .opentofu-version)" >> "${GITHUB_OUTPUT}"
@@ -165,12 +185,31 @@ jobs:
         env:
           TOFU_VERSION: ${{ steps.get_tofu_version.outputs.tofu_version }}
 
-      - run: tofu init && tofu validate
-        working-directory: tf
+      - name: TF init and validate
+        run: |
+          CHANGED_MODULES=$(echo '${{ steps.filter.outputs.changes }}' | jq -r '.[]')
+
+          for dir in ${CHANGED_MODULES}; do
+            pushd "${dir}" > /dev/null || exit
+            echo
+            echo "Running init and validate against: $(pwd)"
+            tofu init && tofu validate
+            popd > /dev/null || exit
+          done
 
       - run: tofu fmt -recursive
         if: github.event_name == 'pull_request'
         working-directory: tf
+
+      - id: has_submodules
+        run: |
+          if [[ -d "modules/" ]]; then
+            echo "RECURSIVE=true" >> "${GITHUB_ENV}"
+            echo "RECURSIVE_PATH=modules" >> "${GITHUB_ENV}"
+          else
+            echo "RECURSIVE=false" >> "${GITHUB_ENV}"
+            echo "RECURSIVE_PATH=" >> "${GITHUB_ENV}"
+          fi
 
       - name: Render OpenTofu docs
         if: github.event_name == 'pull_request'
