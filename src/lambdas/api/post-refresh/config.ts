@@ -10,7 +10,7 @@ import {
   readEncodeJwtsConfig,
   readEnv,
   readRefreshTokenStoreConfig,
-  readUserStoreConfig
+  readUserBaseStoreConfig
 } from '@services/common/config';
 import type { RefreshTokenBaseStoreConfig } from '@services/stores/refresh-token-base-store';
 import type { UserBaseStoreEndpointConfig } from '@services/stores/user-base-store';
@@ -28,7 +28,7 @@ export function readRefreshConfig(): RefreshConfig {
     ...readEncodeJwtsConfig(env),
     decodeRefreshJwtConfig: readDecodeRefreshJwtConfig(env),
     ...readRefreshTokenStoreConfig(env),
-    ...readUserStoreConfig(env),
+    ...readUserBaseStoreConfig(env),
     ...readBaseConfig(env)
   };
 }

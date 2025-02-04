@@ -1,14 +1,14 @@
 import type { MiddlewareObj, Request } from '@middy/core';
-import type { AuthedEventWithConfig } from '../model/api/ApiGatewayEvents';
+import type { AuthedAPIEventWithConfig } from '@model/lambda-events/ApiGatewayEvents';
 
 import httpCors from '@middy/http-cors';
 import type { AuthedEndpointConfig } from '@model/Config';
 import type { APIGatewayProxyResult, Context } from 'aws-lambda';
 
 function configureMiddleware<TConfig extends AuthedEndpointConfig>(
-  request: Request<AuthedEventWithConfig<TConfig>, APIGatewayProxyResult, Error, Context>
+  request: Request<AuthedAPIEventWithConfig<TConfig>, APIGatewayProxyResult, Error, Context>
 ): MiddlewareObj {
-  const frontendDomain = request.event.endpointConfig.baseConfig.frontendDomain;
+  const frontendDomain = request.event.lambdaConfig.baseConfig.frontendDomain;
   const options = {
     headers: 'GET,POST,OPTIONS,PUT,DELETE,PATCH',
     methods: 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token',
@@ -19,15 +19,17 @@ function configureMiddleware<TConfig extends AuthedEndpointConfig>(
 }
 
 export function corsMiddleware<TConfig extends AuthedEndpointConfig>(): MiddlewareObj<
-  AuthedEventWithConfig<TConfig>,
+  AuthedAPIEventWithConfig<TConfig>,
   APIGatewayProxyResult
 > {
   return {
-    after: (req: Request<AuthedEventWithConfig<TConfig>, APIGatewayProxyResult, Error, Context>) =>
+    after: (
+      req: Request<AuthedAPIEventWithConfig<TConfig>, APIGatewayProxyResult, Error, Context>
+    ) =>
       // eslint-disable-next-line @typescript-eslint/no-unsafe-return
       configureMiddleware(req).after?.(req),
     onError: (
-      req: Request<AuthedEventWithConfig<TConfig>, APIGatewayProxyResult, Error, Context>
+      req: Request<AuthedAPIEventWithConfig<TConfig>, APIGatewayProxyResult, Error, Context>
       // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     ) => configureMiddleware(req).onError?.(req)
   };

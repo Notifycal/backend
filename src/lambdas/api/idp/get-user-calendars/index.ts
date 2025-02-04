@@ -1,5 +1,5 @@
 import { protectedEndpointMiddleware } from '@common/lambda-middleware';
-import { authedEventSchema } from '@model/api/ApiGatewayEvents';
+import { authedEventSchema } from '@model/lambda-events/ApiGatewayEvents';
 import { calendarList } from '@services/calendar';
 import { errorHandler, successHandler } from '@services/common/api-response-handlers';
 import type { APIGatewayProxyResult, Context } from 'aws-lambda';
@@ -14,7 +14,7 @@ function lambdaHandler(
   /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
   ctx: Context
 ): Promise<APIGatewayProxyResult> {
-  const config = event.endpointConfig;
+  const config = event.lambdaConfig;
   const userId = event.requestContext.authorizer.payload.userId;
   const idp = event.requestContext.authorizer.payload.idp;
   return calendarList(userId, idp, config.idpConfigs, config.userBaseStoreConfig).then(

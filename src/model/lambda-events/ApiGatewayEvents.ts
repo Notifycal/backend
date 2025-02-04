@@ -4,20 +4,20 @@ import { z } from 'zod';
 import type { AccessToken } from '../Jwt';
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, @typescript-eslint/explicit-module-boundary-types
-export function eventSchema<TEndpointConfig>() {
+export function apiEventSchema<TEndpointConfig>() {
   return APIGatewayProxyEventSchema.extend({
     version: z.string().optional(),
     routeKey: z.string().optional(),
     rawPath: z.string().optional(),
     rawQueryString: z.string().optional(),
     queryStringParameters: z.record(z.string()).nullable().optional(),
-    endpointConfig: z.custom<TEndpointConfig>()
+    lambdaConfig: z.custom<TEndpointConfig>()
   });
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, @typescript-eslint/explicit-module-boundary-types
 export function authedEventSchema<TEndpointConfig>() {
-  const schema = eventSchema<TEndpointConfig>();
+  const schema = apiEventSchema<TEndpointConfig>();
   return schema.extend({
     requestContext: z.object({
       authorizer: z.custom<AccessToken>()
@@ -25,12 +25,10 @@ export function authedEventSchema<TEndpointConfig>() {
   });
 }
 
-interface APIGatewayProxyEventWithRequestContext<TEndpointConfig>
+export interface APIGatewayProxyEventWithRequestContext<TEndpointConfig>
   extends APIGatewayProxyEventBase<AccessToken> {
-  endpointConfig: TEndpointConfig;
+  lambdaConfig: TEndpointConfig;
 }
 
 // ApiGateway Proxy Events
-export type EventWithConfig<TConfig> = APIGatewayProxyEventWithRequestContext<TConfig>;
-
-export type AuthedEventWithConfig<TConfig> = APIGatewayProxyEventWithRequestContext<TConfig>;
+export type AuthedAPIEventWithConfig<TConfig> = APIGatewayProxyEventWithRequestContext<TConfig>;

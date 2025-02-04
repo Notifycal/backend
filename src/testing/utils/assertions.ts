@@ -1,6 +1,5 @@
 import { expect } from 'vitest';
-import type { APIGatewayProxyResult } from 'aws-lambda';
 
-export function assert(result: APIGatewayProxyResult, expectation: APIGatewayProxyResult): void {
+export function assert<T>(result: T, expectation: T): void {
   expect(result).toStrictEqual(expectation);
 }

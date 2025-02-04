@@ -10,7 +10,7 @@ import {
   readEnv,
   readIdpConfigs,
   readRefreshTokenStoreConfig,
-  readUserStoreConfig
+  readUserBaseStoreConfig
 } from '@services/common/config';
 import type { RefreshTokenBaseStoreConfig } from '@services/stores/refresh-token-base-store';
 import type { UserBaseStoreConfig } from '@services/stores/user-base-store';
@@ -29,7 +29,7 @@ export function readLoginConfig(): LoginConfig {
   return {
     ...readEncodeJwtsConfig(env),
     ...readIdpConfigs(env),
-    ...readUserStoreConfig(env),
+    ...readUserBaseStoreConfig(env),
     ...readRefreshTokenStoreConfig(env),
     ...readBaseConfig(env)
   };
