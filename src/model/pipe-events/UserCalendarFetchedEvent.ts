@@ -1,7 +1,7 @@
 import { z } from 'zod';
-import { genericPipeEventSchema } from './GenericPipeEvent';
+import { baseEventSchema } from './BaseEvent';
 
-export const userCalendarFetchedEventSchema = genericPipeEventSchema.extend({
+export const userCalendarFetchedEventSchema = baseEventSchema.extend({
   data: z.object({
     calendar: z.object({
       id: z.string().brand('CalendarId'),
@@ -19,7 +19,7 @@ export const userCalendarFetchedEventSchema = genericPipeEventSchema.extend({
   }),
   sensitiveData: z.object({
     idpAuthorization: z.object({
-      refreshToken: z.string().brand('RefreshToken')
+      refreshToken: z.string()
     })
   })
 });
