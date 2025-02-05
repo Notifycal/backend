@@ -24,7 +24,7 @@ async function lambdaHandler(event: Event): Promise<void> {
       .map(transformItem)
       .map(publishToSNSCalendarMessage);
 
-    await Promise.all(sendCalendarFoundMessagePromises);
+    await Promise.allSettled(sendCalendarFoundMessagePromises);
   }
 
   // IF this lambda throws an error, would it go to a DLQ?
