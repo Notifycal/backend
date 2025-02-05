@@ -1,11 +1,11 @@
 import { type UserIdentity, extractIdentity } from '@model/UserIdentity';
 
-import type { LiveUser, UserConfig } from '@model/LiveUser';
+import type { LiveUser } from '@model/LiveUser';
 import type { AuthorizationForIdp } from '@model/IdpAuthorization';
-import type { IdpName, UserStatus } from '@notifycal/shared/types';
+import type { IdpName, ReminderConfig, UserStatus } from '@notifycal/shared/types';
 
 export interface LiveUserStoreRecord<TIdpName> extends UserIdentity<TIdpName> {
-  Config: UserConfig;
+  Config: ReminderConfig;
   IdpAuthorization: AuthorizationForIdp<TIdpName>;
   UserStatus: UserStatus; // Not querying for this, but it'll be included as it's the GSI Hash key
 }
