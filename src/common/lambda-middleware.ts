@@ -22,9 +22,10 @@ export function baseMiddleware(): middy.MiddyfiedHandler {
 }
 
 export function configMiddleware<TConfig, TResult>(
-  configReader: ConfigReaderFn<TConfig>
+  configReader: ConfigReaderFn<TConfig>,
+  isApiRequest: boolean = true
 ): middy.MiddyfiedHandler {
-  return baseMiddleware().use(configReaderMiddleware<TConfig, TResult>(configReader));
+  return baseMiddleware().use(configReaderMiddleware<TConfig, TResult>(configReader, isApiRequest));
 }
 
 export function unprotectedEndpointMiddleware<TConfig, T extends z.ZodTypeAny>(

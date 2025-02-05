@@ -9,10 +9,13 @@ import type {
   EncodeRefreshJwtConfig,
   IdpEndpointConfig
 } from '@model/Config';
-import type { Environment } from '@own-types/model';
+import type { AwsArn, Environment } from '@own-types/model';
 import type { RefreshTokenBaseStoreConfigEndpointConfig } from '@services/stores/refresh-token-base-store';
 import type { UserBaseStoreEndpointConfig } from '@services/stores/user-base-store';
-import type { UserLiveIndexStoreEndpointConfig } from '@services/stores/user-live-index-store';
+import type {
+  UserCalendarFetchedTopicEndpointConfig,
+  UserLiveIndexStoreEndpointConfig
+} from '@services/stores/user-live-index-store';
 import { from } from 'env-var';
 
 export function readEnv(): Environment {
@@ -100,6 +103,16 @@ export function readUserLiveIndexConfig(env: Environment): UserLiveIndexStoreEnd
       tableName: env.get('USERS_TABLE_NAME').required().asString(),
       indexName: env.get('LIVE_USERS_INDEX_NAME').required().asString(),
       pageSize: env.get('USERS_PAGE_SIZE').default(100).asInt()
+    }
+  };
+}
+
+export function readUserCalendarFetchedTopicConfig(
+  env: Environment
+): UserCalendarFetchedTopicEndpointConfig {
+  return {
+    userCalendarFetchedTopicConfig: {
+      topicArn: env.get('USER_CALENDAR_FETCHED_TOPIC_ARN').required().asString() as AwsArn
     }
   };
 }
