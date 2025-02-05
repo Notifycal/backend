@@ -1,5 +1,5 @@
 import type { AuthorizationForIdp } from '@model/IdpAuthorization';
-import type { UserStoreRecord } from '@model/store/UserStoreRecord';
+import type { LiveUserStoreRecord } from '@model/store/LiveUserStoreRecord';
 import type { IdpName } from '@notifycal/shared/types';
 import { IndexStore, type IndexStoreConfig } from '@services/common/index-store';
 
@@ -22,15 +22,25 @@ export class UserLiveIndexStore<
   }
 
   public getLiveUsers(): AsyncGenerator<
-    Array<UserStoreRecord<TIdpName> & AuthorizationForIdp<TIdpName>>,
+    Array<LiveUserStoreRecord<TIdpName> & AuthorizationForIdp<TIdpName>>,
     void,
     void
   > {
+    const projections: Array<keyof LiveUserStoreRecord<IdpName>> = [
+      "UserId",
+      "IdpId",
+      "Idp",
+      "IdpAuthorization",
+      "Config",
+      "Email"
+    ];
+
     const queryCommand = {
       KeyConditionExpression: 'UserStatus = :status',
       ExpressionAttributeValues: {
         ':status': 'live'
-      }
+      },
+      ProjectionExpression: projections.join(', ')
     };
 
     return super.queryCommandRunner(queryCommand);
