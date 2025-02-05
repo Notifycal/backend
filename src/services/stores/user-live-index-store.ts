@@ -1,5 +1,6 @@
 import type { AuthorizationForIdp } from '@model/IdpAuthorization';
 import type { LiveUserStoreRecord } from '@model/store/LiveUserStoreRecord';
+import { UserIdpAuthorizationStoreRecord } from '@model/store/UserIdpAuthorizationStoreRecord';
 import type { IdpName } from '@notifycal/shared/types';
 import { IndexStore, type IndexStoreConfig } from '@services/common/index-store';
 
@@ -22,7 +23,7 @@ export class UserLiveIndexStore<
   }
 
   public getLiveUsers(): AsyncGenerator<
-    Array<LiveUserStoreRecord<TIdpName> & AuthorizationForIdp<TIdpName>>,
+    Array<LiveUserStoreRecord<TIdpName> & UserIdpAuthorizationStoreRecord<TIdpName>>,
     void,
     void
   > {
