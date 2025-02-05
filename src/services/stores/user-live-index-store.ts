@@ -28,12 +28,12 @@ export class UserLiveIndexStore<
     void
   > {
     const projections: Array<keyof LiveUserStoreRecord<IdpName>> = [
-      "UserId",
-      "IdpId",
-      "Idp",
-      "IdpAuthorization",
-      "Config",
-      "Email"
+      'UserId',
+      'IdpId',
+      'Idp',
+      'IdpAuthorization',
+      'Config',
+      'Email'
     ];
 
     const queryCommand = {

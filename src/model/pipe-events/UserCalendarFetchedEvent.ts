@@ -12,10 +12,10 @@ export const userCalendarFetchedEventSchema = genericPipeEventSchema.extend({
       fields: z.object({
         business: z.object({
           name: z.string().brand('BusinessName'),
-          address: z.string().brand('BusinessAddress'),
+          address: z.string().brand('BusinessAddress')
         })
       })
-    }),
+    })
   }),
   sensitiveData: z.object({
     idpAuthorization: z.object({

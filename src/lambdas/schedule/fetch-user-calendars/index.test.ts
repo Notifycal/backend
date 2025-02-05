@@ -18,8 +18,6 @@ vi.mock('@clients/dynamodb', () => {
 });
 
 describe('schedule fetch user calendars', () => {
-  
-
   beforeEach(() => {
     vi.clearAllMocks();
     process.env.USERS_TABLE_NAME = 'Users-local';

@@ -9,7 +9,7 @@ export const genericPipeEventSchema = z.object({
   eventType: z.literal('UserCalendarFetched'),
   eventDateTime: z.string().datetime().brand('EventDateTime'),
   eventId: z.string().uuid().brand('EventId'),
-  correlationId: z.string().uuid().brand('CorrelationId'),
+  correlationId: z.string().uuid().brand('CorrelationId')
 });
 
-export type GenericPipeEvent = z.infer<typeof genericPipeEventSchema>
+export type GenericPipeEvent = z.infer<typeof genericPipeEventSchema>;
