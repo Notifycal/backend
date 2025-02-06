@@ -1,7 +1,7 @@
 import { configMiddleware } from '@common/lambda-middleware';
 import { logger } from '@common/powertools';
+import type { UserCalendarFetchedEvent } from '@model/app-events/UserCalendarFetchedEvent';
 import { eventBridgeEventSchema } from '@model/lambda-events/EventBridgeEvents';
-import type { UserCalendarFetchedEvent } from '@model/pipe-events/UserCalendarFetchedEvent';
 import type { LiveUserStoreRecord } from '@model/store/LiveUserStoreRecord';
 import type { UserIdpAuthorizationStoreRecord } from '@model/store/UserIdpAuthorizationStoreRecord';
 import type { CorrelationId, DateTime, EventId, TemplateId } from '@notifycal/shared/types';

@@ -16,7 +16,7 @@ import type {
 import type { AwsArn } from '@own-types/model';
 import { v4 } from 'uuid';
 import { describe, expect, it, vi, type MockInstance } from 'vitest';
-import type { UserCalendarFetchedEvent } from './../model/pipe-events/UserCalendarFetchedEvent';
+import type { UserCalendarFetchedEvent } from '../model/app-events/UserCalendarFetchedEvent';
 import { SnsService } from './sns';
 
 const validEvent: UserCalendarFetchedEvent = {

@@ -2,7 +2,7 @@ import { PublishCommand, type PublishCommandOutput, type SNSClient } from '@aws-
 import { snsClient } from '@clients/sns';
 import { logger } from '@common/powertools';
 import type { SnsTopicConfig } from '@model/Config';
-import type { BaseEvent } from '@model/pipe-events/BaseEvent';
+import type { BaseEvent } from '@model/app-events/BaseEvent';
 import { extractErrorMessage } from './common/error-handling';
 
 export class SnsService {
