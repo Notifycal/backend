@@ -108,7 +108,6 @@ paths:
               method.response.header.Access-Control-Allow-Methods: "'GET,POST,OPTIONS,PUT,DELETE,PATCH'" # TODO: Review methods
               method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'" # TODO: Review headers
               method.response.header.Access-Control-Max-Age: "'86400'" # 24h. Browsers might ignore it and cap it a 5 mins (Chrome I think)
-              # TODO: Add max age
           '400':
             statusCode: '400'
             responseParameters:

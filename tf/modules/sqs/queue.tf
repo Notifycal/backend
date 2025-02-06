@@ -1,5 +1,5 @@
 locals {
-  queue_name = "${var.queue_name}-${var.environment}${var.queue_config.fifo ? ".fifo" : ""}"
+  queue_name = "${var.queue_name}${var.queue_config.fifo ? ".fifo" : ""}"
 }
 resource "aws_sqs_queue" "queue" {
   name                        = local.queue_name

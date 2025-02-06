@@ -3,10 +3,6 @@ variable "queue_name" {
   description = "SQS queue name"
 }
 
-variable "environment" {
-  type = string
-}
-
 variable "sender_arn" {
   type        = string
   description = "AWS arn of identity sending messages to SQS queue"
