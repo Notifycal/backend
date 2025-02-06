@@ -69,11 +69,12 @@ module "find_actionable_events_lambda_alias" {
       scaling_config = {
         maximum_concurrency = 20
       }
+      metrics_config = {
+        metrics = ["EventCount"]
+      }
+
       # TODO: RESEARCH
       # function_response_types = ["ReportBatchItemFailures"]
-      # metrics_config = {
-      #   metrics = ["EventCount"]
-      # }
     }
   }
 
