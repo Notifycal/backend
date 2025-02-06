@@ -5,7 +5,8 @@ import { tracer } from '@common/powertools';
 export function snsClient(): SNSClient {
   return tracer.captureAWSv3Client(
     new SNSClient({
-      region: process.env.AWS_REGION || 'eu-west-1'
+      region: process.env.AWS_REGION || 'eu-west-1',
+      retryMode: 'standard'
     })
   );
 }

@@ -79,7 +79,9 @@ describe('SnsService.publishEvent', () => {
 
     expect(result).toStrictEqual({});
     expect(spy).toHaveBeenCalledTimes(1);
-    expect(loggerErrorSpy).toHaveBeenCalledWith('Error publishing an event to SNS. Error: Booom!');
+    expect(loggerErrorSpy).toHaveBeenCalledWith(
+      `Error publishing an event to SNS with id ${validEvent.eventId}. Error: {}. Extracted error: Booom!`
+    );
     expect(loggerInfoSpy).toHaveBeenCalledWith('Moving on after error...');
   });
 });
