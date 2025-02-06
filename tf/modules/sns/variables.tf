@@ -8,10 +8,6 @@ variable "topic_display_name" {
   description = "SNS topic display name"
 }
 
-variable "environment" {
-  type = string
-}
-
 variable "publisher_arn" {
   type        = string
   description = "AWS arn of identity publishing messages to SNS topic"

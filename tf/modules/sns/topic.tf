@@ -1,5 +1,5 @@
 locals {
-  topic_name = "${var.topic_name}-${var.environment}${var.topic_config.fifo ? ".fifo" : ""}"
+  topic_name = "${var.topic_name}${var.topic_config.fifo ? ".fifo" : ""}"
 }
 
 resource "aws_sns_topic" "topic" {
