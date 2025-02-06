@@ -19,6 +19,18 @@ data "aws_iam_policy_document" "fetch_user_calendars_iam_policydoc" {
       "${aws_dynamodb_table.users.arn}/index/${local.live_users_index_name}"
     ]
   }
+
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "sns:Publish",
+    ]
+
+    resources = [
+      module.user_calendar_fetched_topic.sns_topic_arn
+    ]
+  }
 }
 
 resource "aws_cloudwatch_event_rule" "fetch_user_calendars_trigger_rule" {
