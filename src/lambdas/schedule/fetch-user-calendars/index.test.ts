@@ -228,7 +228,7 @@ const defaultEnv: FetchUserCalendarsConfig = {
     pageSize: 50
   },
   userCalendarFetchedTopicConfig: {
-    topicArn: 'arn:aws:sqs:eu-west-1:123000000000:user-calendar-fetched-local.fifo' as AwsArn
+    topicArn: 'arn:aws:sns:eu-west-1:123000000000:mock-user-calendar-fetched-local.fifo' as AwsArn
   }
 };
 
