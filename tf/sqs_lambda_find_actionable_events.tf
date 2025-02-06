@@ -20,7 +20,7 @@ data "aws_iam_policy_document" "find_actionable_events_iam_policydoc" {
     ]
 
     resources = [
-      module.actionable_event_found_queue.sqs_queue_arn
+      module.user_calendar_fetched_queue.sqs_queue_arn
     ]
   }
 }
