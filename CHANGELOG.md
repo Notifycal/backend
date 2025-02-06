@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.10.0](https://github.com/Notifycal/backend/compare/v0.9.7...v0.10.0) (2025-02-06)
+
+
+### Features
+
+* fanout SNS and SQS. Provision user calendar fetched topic and q… ([#300](https://github.com/Notifycal/backend/issues/300)) ([28a30c2](https://github.com/Notifycal/backend/commit/28a30c234ff0ac94ba93c189949b58d7d400c394))
+* fetch live Users x calendar ([#301](https://github.com/Notifycal/backend/issues/301)) ([8391c07](https://github.com/Notifycal/backend/commit/8391c077cb0f6d9b04380106a51f840843be4334))
+
 ## [0.9.7](https://github.com/Notifycal/backend/compare/v0.9.6...v0.9.7) (2025-01-31)
 
 
