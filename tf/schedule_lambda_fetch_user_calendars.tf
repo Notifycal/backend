@@ -42,7 +42,7 @@ resource "aws_cloudwatch_event_rule" "fetch_user_calendars_trigger_rule" {
 
 resource "aws_cloudwatch_event_target" "fetch_user_calendars_event_target" {
   rule      = aws_cloudwatch_event_rule.fetch_user_calendars_trigger_rule.name
-  target_id = "GetUsers" # TODO: rename this
+  target_id = "FetchLiveUsersCalendars"
 
   # Does this support alias ARN or just the base function?
   arn = module.fetch_user_calendars_lambda.lambda_function_arn
