@@ -1,4 +1,11 @@
-import type { IdpName } from '@notifycal/shared/types';
+import {
+  emailSchema,
+  idpIdSchema,
+  unixTimestampSchema,
+  userIdSchema,
+  uuidSchema,
+  type IdpName
+} from '@notifycal/shared/types';
 import { z } from 'zod';
 
 export const jwtHeaderSchema = z.object({
@@ -6,13 +13,6 @@ export const jwtHeaderSchema = z.object({
   typ: z.string().optional(),
   kid: z.string().optional()
 });
-
-const unsafeUuidSchema = z.string().uuid();
-const userIdSchema = unsafeUuidSchema.brand('UserId').or(unsafeUuidSchema.brand('Uuid'));
-const uuidSchema = unsafeUuidSchema.brand('Uuid');
-const unixTimestampSchema = z.number().brand('UnixTimestamp');
-const emailSchema = z.string().email().brand('Email');
-const idpIdSchema = z.string().brand('IdpId');
 
 const tokenPayloadBaseSchema = z.object({
   iss: z.string(),

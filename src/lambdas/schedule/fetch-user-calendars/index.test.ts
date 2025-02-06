@@ -1,6 +1,11 @@
-import type { UserGoogleAuthorization } from '@model/IdpAuthorization';
-import type { UserStoreRecord } from '@model/store/UserStoreRecord';
+import type { LiveUserStoreRecord } from '@model/store/LiveUserStoreRecord';
+import type { UserIdpAuthorizationStoreRecord } from '@model/store/UserIdpAuthorizationStoreRecord';
 import type {
+  BusinessAddress,
+  BusinessName,
+  Calendar,
+  CalendarId,
+  CalendarName,
   Email,
   IdpId,
   IdpName,
@@ -9,6 +14,7 @@ import type {
   UserStatus
 } from '@notifycal/shared/types';
 import type { AwsArn } from '@own-types/model';
+import * as snsService from '@services/sns';
 import { UserLiveIndexStore } from '@services/stores/user-live-index-store';
 import { fakeScheduledEventBridgeEvent } from '@testing/event-bridge-event';
 import { setEnvUserCalendarFetchedConfig, setEnvUserLiveStoreConfig } from '@testing/utils/config';
@@ -16,10 +22,13 @@ import type { Context } from 'aws-lambda';
 import { describe, expect, it, vi } from 'vitest';
 import type { FetchUserCalendarsConfig } from './config';
 import { handler } from './index';
-import * as snsService from './send-message';
 
+const validCalendar: Calendar = {
+  id: 'someCalendarId' as CalendarId,
+  name: 'Some Calendar Name' as CalendarName
+};
 async function* validLiveUsers(): AsyncGenerator<
-  Array<UserStoreRecord<'google.com'> & UserGoogleAuthorization>,
+  Array<LiveUserStoreRecord<'google.com'> & UserIdpAuthorizationStoreRecord<'google.com'>>,
   void,
   void
 > {
@@ -31,8 +40,15 @@ async function* validLiveUsers(): AsyncGenerator<
       IdpId: 'google123' as IdpId,
       LastSignInAt: 1672531199 as UnixTimestamp,
       SignedUpAt: 1609459200 as UnixTimestamp,
-      UserStatus: 'active' as UserStatus,
-      refreshToken: 'mock_refresh_token_12345'
+      Config: {
+        calendars: [validCalendar],
+        businessName: 'businessName1' as BusinessName,
+        businessAddress: 'businessNameAddress1' as BusinessAddress
+      },
+      UserStatus: 'live' as UserStatus,
+      IdpAuthorization: {
+        refreshToken: 'mock_refresh_token_94534'
+      }
     },
     {
       UserId: 'user456' as UserId,
@@ -41,8 +57,15 @@ async function* validLiveUsers(): AsyncGenerator<
       IdpId: 'google456' as IdpId,
       LastSignInAt: 1675622399 as UnixTimestamp,
       SignedUpAt: 1612137600 as UnixTimestamp,
-      UserStatus: 'inactive' as UserStatus,
-      refreshToken: 'mock_refresh_token_67890'
+      Config: {
+        calendars: [validCalendar, validCalendar],
+        businessName: 'businessName2' as BusinessName,
+        businessAddress: 'businessNameAddress2' as BusinessAddress
+      },
+      UserStatus: 'live' as UserStatus,
+      IdpAuthorization: {
+        refreshToken: 'mock_refresh_token_087976'
+      }
     }
   ]);
 
@@ -54,14 +77,21 @@ async function* validLiveUsers(): AsyncGenerator<
       IdpId: 'google789' as IdpId,
       LastSignInAt: 1680460800 as UnixTimestamp,
       SignedUpAt: 1619827200 as UnixTimestamp,
-      UserStatus: 'pending' as UserStatus,
-      refreshToken: 'mock_refresh_token_98765'
+      Config: {
+        calendars: [validCalendar],
+        businessName: 'businessName3' as BusinessName,
+        businessAddress: 'businessNameAddress3' as BusinessAddress
+      },
+      UserStatus: 'live' as UserStatus,
+      IdpAuthorization: {
+        refreshToken: 'mock_refresh_token_895694'
+      }
     }
   ]);
 }
 
 async function* oneRejectionInBetweenLiveUsers(): AsyncGenerator<
-  Array<UserStoreRecord<'google.com'> & UserGoogleAuthorization>,
+  Array<LiveUserStoreRecord<'google.com'> & UserIdpAuthorizationStoreRecord<'google.com'>>,
   void,
   void
 > {
@@ -73,8 +103,15 @@ async function* oneRejectionInBetweenLiveUsers(): AsyncGenerator<
       IdpId: 'google123' as IdpId,
       LastSignInAt: 1672531199 as UnixTimestamp,
       SignedUpAt: 1609459200 as UnixTimestamp,
-      UserStatus: 'active' as UserStatus,
-      refreshToken: 'mock_refresh_token_12345'
+      Config: {
+        calendars: [validCalendar],
+        businessName: 'businessName4' as BusinessName,
+        businessAddress: 'businessNameAddress4' as BusinessAddress
+      },
+      UserStatus: 'live' as UserStatus,
+      IdpAuthorization: {
+        refreshToken: 'mock_refresh_token_12345'
+      }
     }
   ]);
 
@@ -88,14 +125,21 @@ async function* oneRejectionInBetweenLiveUsers(): AsyncGenerator<
       IdpId: 'google789' as IdpId,
       LastSignInAt: 1680460800 as UnixTimestamp,
       SignedUpAt: 1619827200 as UnixTimestamp,
-      UserStatus: 'pending' as UserStatus,
-      refreshToken: 'mock_refresh_token_98765'
+      Config: {
+        calendars: [validCalendar],
+        businessName: 'businessName5' as BusinessName,
+        businessAddress: 'businessNameAddress5' as BusinessAddress
+      },
+      UserStatus: 'live' as UserStatus,
+      IdpAuthorization: {
+        refreshToken: 'mock_refresh_token_46744'
+      }
     }
   ]);
 }
 
 async function* rejectedLiveUsers(): AsyncGenerator<
-  Array<UserStoreRecord<'google.com'> & UserGoogleAuthorization>,
+  Array<LiveUserStoreRecord<'google.com'> & UserIdpAuthorizationStoreRecord<'google.com'>>,
   void,
   void
 > {
@@ -103,22 +147,22 @@ async function* rejectedLiveUsers(): AsyncGenerator<
 }
 
 describe('Schedule fetch user calendars', () => {
-  it('publish as many events as live users exist in persistance', async () => {
+  it('publish as many events as live users times calendars exist in persistance', async () => {
     const getLiveUsersFn = () => validLiveUsers();
-    const publishToSNSCalendarMessageSpy = vi
-      .spyOn(snsService, 'publishToSNSCalendarMessage')
+    const publishEventSpy = vi
+      .spyOn(snsService.SnsService.prototype, 'publishEvent')
       .mockResolvedValue({
         $metadata: {}
       });
     await testit(getLiveUsersFn);
 
-    expect(publishToSNSCalendarMessageSpy).toHaveBeenCalledTimes(3);
+    expect(publishEventSpy).toHaveBeenCalledTimes(4);
   });
 
-  it('should not stop even if persistance pagination fails', async () => {
+  it('cannot resume processing if persistance pagination fails', async () => {
     const getLiveUsersFn = () => oneRejectionInBetweenLiveUsers();
-    const publishToSNSCalendarMessageSpy = vi
-      .spyOn(snsService, 'publishToSNSCalendarMessage')
+    const publishEventSpy = vi
+      .spyOn(snsService.SnsService.prototype, 'publishEvent')
       .mockResolvedValue({
         $metadata: {}
       });
@@ -126,13 +170,16 @@ describe('Schedule fetch user calendars', () => {
     await expect(testit(getLiveUsersFn)).rejects.toThrow(
       'An error happened while processing live users. Error: Boom!'
     );
-    expect(publishToSNSCalendarMessageSpy).toHaveBeenCalledTimes(1);
+    expect(publishEventSpy).toHaveBeenCalledTimes(1);
   });
 
   it('should not stop processing current page or the rest of the pages even if a message cannot be published', async () => {
     const getLiveUsersFn = () => validLiveUsers();
-    const publishToSNSCalendarMessageSpy = vi
-      .spyOn(snsService, 'publishToSNSCalendarMessage')
+    const publishEventSpy = vi
+      .spyOn(snsService.SnsService.prototype, 'publishEvent')
+      .mockResolvedValueOnce({
+        $metadata: {}
+      })
       .mockRejectedValueOnce(new Error('Boom!'))
       .mockResolvedValueOnce({
         $metadata: {}
@@ -142,7 +189,7 @@ describe('Schedule fetch user calendars', () => {
       });
     await testit(getLiveUsersFn);
 
-    expect(publishToSNSCalendarMessageSpy).toHaveBeenCalledTimes(3);
+    expect(publishEventSpy).toHaveBeenCalledTimes(4);
   });
 
   it('throw an error if live users cannot be fetched from persistance', () => {
@@ -156,7 +203,7 @@ describe('Schedule fetch user calendars', () => {
 
 function testit(
   getLiveUsersFn: () => AsyncGenerator<
-    Array<UserStoreRecord<'google.com'> & UserGoogleAuthorization>,
+    Array<LiveUserStoreRecord<'google.com'> & UserIdpAuthorizationStoreRecord<'google.com'>>,
     void,
     void
   >,
@@ -181,7 +228,7 @@ const defaultEnv: FetchUserCalendarsConfig = {
     pageSize: 50
   },
   userCalendarFetchedTopicConfig: {
-    topicArn: 'arn:aws:sns:eu-west-1:123000000789:mock-user-calendar-fetched-local.fifo' as AwsArn
+    topicArn: 'arn:aws:sns:eu-west-1:123000000000:mock-user-calendar-fetched-local.fifo' as AwsArn
   }
 };
 
