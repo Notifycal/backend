@@ -56,11 +56,15 @@ export class SnsService {
     });
     return this._client.send(publishCommand).then(
       (result) => {
-        logger.info(`SNS publish result ${JSON.stringify(result)}`);
+        logger.info(
+          `SNS publish result. Event id: ${event.eventId}. Result: ${JSON.stringify(result)}`
+        );
         return result;
       },
       (error) => {
-        logger.error(`Error publishing an event to SNS. Error: ${extractErrorMessage(error)}`);
+        logger.error(
+          `Error publishing an event to SNS with id ${event.eventId}. Error: ${JSON.stringify(error)}. Extracted error: ${extractErrorMessage(error)}`
+        );
         logger.info(`Moving on after error...`);
         return {} as PublishCommandOutput;
       }
