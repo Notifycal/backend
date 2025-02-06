@@ -43,7 +43,7 @@ resource "aws_cloudwatch_event_rule" "fetch_user_calendars_trigger_rule" {
 resource "aws_cloudwatch_event_target" "fetch_user_calendars_event_target" {
   rule      = aws_cloudwatch_event_rule.fetch_user_calendars_trigger_rule.name
   target_id = "FetchLiveUsersCalendars"
-  arn       = module.fetch_user_calendars_lambda_alias.lambda_alias_arn
+  arn       = module.fetch_user_calendars_lambda.lambda_function_arn
 }
 
 module "fetch_user_calendars_lambda" {
@@ -71,24 +71,15 @@ module "fetch_user_calendars_lambda" {
   attach_policy_json = true
   policy_json        = data.aws_iam_policy_document.fetch_user_calendars_iam_policydoc.json
 
-  environment_variables = merge({
-    LIVE_USERS_INDEX_NAME           = local.live_users_index_name
-    USER_CALENDAR_FETCHED_TOPIC_ARN = module.user_calendar_fetched_topic.sns_topic_arn
-  }, local.common_lambda_env_vars, local.users_persistance_env_vars)
-}
-
-module "fetch_user_calendars_lambda_alias" {
-  source  = "terraform-aws-modules/lambda/aws//modules/alias"
-  version = "~> 7.17"
-
-  function_name    = module.fetch_user_calendars_lambda.lambda_function_name
-  function_version = module.fetch_user_calendars_lambda.lambda_function_version
-  name             = var.lambdas_live_alias_name
-
   allowed_triggers = {
     AllowEventBridgeInvoke = {
       principal  = "events.amazonaws.com"
       source_arn = aws_cloudwatch_event_rule.fetch_user_calendars_trigger_rule.arn
     }
   }
+
+  environment_variables = merge({
+    LIVE_USERS_INDEX_NAME           = local.live_users_index_name
+    USER_CALENDAR_FETCHED_TOPIC_ARN = module.user_calendar_fetched_topic.sns_topic_arn
+  }, local.common_lambda_env_vars, local.users_persistance_env_vars)
 }
