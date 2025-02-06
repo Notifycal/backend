@@ -1,9 +1,9 @@
 /* eslint-disable camelcase */
-import type { Email } from '@notifycal/shared/types';
+import type { Email, PhoneNumber } from '@notifycal/shared/types';
 import { google, type people_v1 } from 'googleapis';
 import type { GaxiosResponse } from 'googleapis-common';
 import { describe, expect, it, vi } from 'vitest';
-import { GooglePeople, type PhoneNumber } from './people';
+import { GooglePeople } from './people';
 
 describe('GooglePeople Service', () => {
   const validGooglePeopleResponse: GaxiosResponse<people_v1.Schema$SearchResponse> = {

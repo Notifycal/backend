@@ -1,6 +1,6 @@
 /* eslint-disable camelcase */
 import type { GoogleOAuthConfig } from '@model/Config';
-import type { Brand, Email, PhoneNumber } from '@notifycal/shared/types';
+import type { Email, PhoneNumber } from '@notifycal/shared/types';
 import { throwError } from '@services/common/error-handling';
 import { google, type people_v1 } from 'googleapis';
 import { BaseGoogle } from './base-service';
