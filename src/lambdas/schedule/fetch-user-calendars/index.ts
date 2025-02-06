@@ -61,10 +61,13 @@ async function lambdaHandler(event: Event): Promise<void> {
   try {
     for await (const liveUsersPage of userLiveProvider.getLiveUsers()) {
       logger.info(
-        `Processing page of results number ${totalItems + 1}. Live users in page: ${liveUsersPage.length}`
+        `Processing page of results number ${totalPages + 1}. Live users in page: ${liveUsersPage.length}`
       );
+
       await Promise.allSettled(
-        liveUsersPage.map((user) => toEvents(user).map((event) => snsService.publishEvent(event)))
+        liveUsersPage
+          .flatMap((user) => toEvents(user))
+          .map((event) => snsService.publishEvent(event))
       );
       totalPages += 1;
       totalItems += liveUsersPage.length;

@@ -18,14 +18,43 @@ data "aws_iam_policy_document" "queue_policy" {
     actions = [
       "sqs:SendMessage"
     ]
-    resources = [var.sender_arn]
+
+    resources = [
+      aws_sqs_queue.queue.arn
+    ]
+
+    principals {
+      type = "AWS"
+      identifiers = ["*"]
+    }
+
+    condition {
+      test = "ArnLike"
+      variable = "aws:SourceArn"
+      values = [var.sender_arn]
+    }
   }
+
   statement {
     sid = "${local.queue_name}-receiver-policy"
     actions = [
       "sqs:ReceiveMessage"
     ]
-    resources = [var.receiver_arn]
+
+    resources = [
+      aws_sqs_queue.queue.arn
+    ]
+
+    principals {
+      type = "AWS"
+      identifiers = ["*"]
+    }
+
+    condition {
+      test = "ArnLike"
+      variable = "aws:SourceArn"
+      values = [var.receiver_arn]
+    }
   }
 }
 
