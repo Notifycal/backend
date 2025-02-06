@@ -3,7 +3,7 @@ module "user_calendar_fetched_topic" {
   environment        = var.environment
   topic_name         = "user-calendar-fetched"
   topic_display_name = "User calendar fetched"
-  publisher_arn      = "" //TODO: add scheduled lambda arn here
+  publisher_arn      = module.fetch_user_calendars_lambda_alias.lambda_alias_arn
   subscriber_arns = {
     queue = module.user_calendar_fetched_queue.sqs_queue_arn
   }
