@@ -24,14 +24,14 @@ data "aws_iam_policy_document" "queue_policy" {
     ]
 
     principals {
-      type = "AWS"
+      type        = "AWS"
       identifiers = ["*"]
     }
 
     condition {
-      test = "ArnLike"
+      test     = "ArnLike"
       variable = "aws:SourceArn"
-      values = [var.sender_arn]
+      values   = [var.sender_arn]
     }
   }
 
@@ -46,14 +46,14 @@ data "aws_iam_policy_document" "queue_policy" {
     ]
 
     principals {
-      type = "AWS"
+      type        = "AWS"
       identifiers = ["*"]
     }
 
     condition {
-      test = "ArnLike"
+      test     = "ArnLike"
       variable = "aws:SourceArn"
-      values = [var.receiver_arn]
+      values   = [var.receiver_arn]
     }
   }
 }
