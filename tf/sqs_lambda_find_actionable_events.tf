@@ -10,7 +10,19 @@ data "aws_iam_policy_document" "find_actionable_events_iam_policydoc" {
       module.actionable_event_found_topic.sns_topic_arn
     ]
   }
-  # TODO: SQS statement
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "sqs:DeleteMessage",
+      "sqs:GetQueueAttributes",
+      "sqs:ReceiveMessage"
+    ]
+
+    resources = [
+      module.actionable_event_found_queue.sqs_queue_arn
+    ]
+  }
 }
 
 module "find_actionable_events_lambda" {
