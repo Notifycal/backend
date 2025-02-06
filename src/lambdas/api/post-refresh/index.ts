@@ -2,7 +2,7 @@ import { JSONStringified } from '@aws-lambda-powertools/parser/helpers';
 import { unprotectedEndpointMiddleware } from '@common/lambda-middleware';
 import { apiEventSchema } from '@model/lambda-events/ApiGatewayEvents';
 import { refreshTokenSchema } from '@model/Jwt';
-import { extractIdentity } from '@model/store/UserStoreRecord';
+import { extractIdentity } from '@model/UserIdentity';
 import { errorHandler } from '@services/common/api-response-handlers';
 import { decodeAndVerifyJwtSignature } from '@services/jwt';
 import { _successHandler, buildJwtsAndStoreRefreshJwt } from '@services/login';

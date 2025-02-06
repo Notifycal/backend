@@ -1,4 +1,5 @@
 import type { IdpName } from '@notifycal/shared/types';
+import type { AwsArn } from '@own-types/model';
 
 export interface DecodeAccessJwtConfig {
   publicKey: string;
@@ -53,4 +54,8 @@ export type IdpConfigs = {
 
 export interface IdpEndpointConfig {
   idpConfigs: IdpConfigs;
+}
+
+export interface SnsTopicConfig {
+  topicArn: AwsArn;
 }

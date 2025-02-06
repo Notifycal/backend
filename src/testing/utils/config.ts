@@ -4,10 +4,12 @@ import type {
   DecodeRefreshJwtConfig,
   EncodeAccessJwtConfig,
   EncodeRefreshJwtConfig,
-  IdpConfigs
+  IdpConfigs,
+  SnsTopicConfig
 } from '@model/Config';
 import type { RefreshTokenBaseStoreConfig } from '@services/stores/refresh-token-base-store';
 import type { UserBaseStoreConfig } from '@services/stores/user-base-store';
+import type { UserLiveIndexStoreConfig } from '@services/stores/user-live-index-store';
 import { match } from 'ts-pattern';
 
 export const fakeIdpConfigs: IdpConfigs = {
@@ -50,6 +52,16 @@ export function setEnvDecodeRefreshJwtConfig(config: DecodeRefreshJwtConfig): vo
 
 export function setEnvUserBaseStoreConfig(config: UserBaseStoreConfig): void {
   process.env.USERS_TABLE_NAME = config.tableName;
+}
+
+export function setEnvUserLiveStoreConfig(config: UserLiveIndexStoreConfig): void {
+  process.env.USERS_TABLE_NAME = config.tableName;
+  process.env.LIVE_USERS_INDEX_NAME = config.indexName;
+  process.env.USERS_PAGE_SIZE = config.pageSize.toString();
+}
+
+export function setEnvUserCalendarFetchedConfig(config: SnsTopicConfig): void {
+  process.env.USER_CALENDAR_FETCHED_TOPIC_ARN = config.topicArn;
 }
 
 export function setEnvRefreshTokenBaseStoreConfig(config: RefreshTokenBaseStoreConfig): void {
