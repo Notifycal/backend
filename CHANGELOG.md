@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.11.1](https://github.com/Notifycal/backend/compare/v0.11.0...v0.11.1) (2025-02-06)
+
+
+### Bug Fixes
+
+* actionable events queue name ([#316](https://github.com/Notifycal/backend/issues/316)) ([4b60eb1](https://github.com/Notifycal/backend/commit/4b60eb1d14e6b92d2cda85eb00cdb459d08c5c5b))
+* pin provider versions ([#318](https://github.com/Notifycal/backend/issues/318)) ([03bf0f0](https://github.com/Notifycal/backend/commit/03bf0f07e2e1a7a35150131783aed61c5a69e83e))
+* Sns service logging. Setup retry mode too. ([#315](https://github.com/Notifycal/backend/issues/315)) ([8402bf8](https://github.com/Notifycal/backend/commit/8402bf8c900ad9e72d2e29059bd268353c6903d4))
+
 ## [0.11.0](https://github.com/Notifycal/backend/compare/v0.10.1...v0.11.0) (2025-02-06)
 
 
