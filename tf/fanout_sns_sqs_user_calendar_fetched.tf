@@ -6,7 +6,8 @@ module "user_calendar_fetched_topic" {
   subscriber_arns = {
     queue = module.user_calendar_fetched_queue.sqs_queue_arn
   }
-  tags = local.common_tags
+  sns_feedback_iam_role_arn = aws_iam_role.sns_feedback_role.arn
+  tags                      = local.common_tags
 }
 
 module "user_calendar_fetched_queue" {

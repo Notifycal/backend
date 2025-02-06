@@ -29,6 +29,10 @@ variable "topic_config" {
   }
 }
 
+variable "sns_feedback_iam_role_arn" {
+  type = string
+}
+
 variable "tags" {
   type    = map(string)
   default = {}

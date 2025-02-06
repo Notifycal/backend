@@ -50,19 +50,6 @@ module "find_actionable_events_lambda" {
   attach_policy_json = true
   policy_json        = data.aws_iam_policy_document.find_actionable_events_iam_policydoc.json
 
-  environment_variables = merge({
-    ACTIONABLE_EVENTS_FOUND_TOPIC_ARN = module.actionable_event_found_topic.sns_topic_arn
-  }, local.common_lambda_env_vars)
-}
-
-module "find_actionable_events_lambda_alias" {
-  source  = "terraform-aws-modules/lambda/aws//modules/alias"
-  version = "~> 7.17"
-
-  function_name    = module.find_actionable_events_lambda.lambda_function_name
-  function_version = module.find_actionable_events_lambda.lambda_function_version
-  name             = var.lambdas_live_alias_name
-
   event_source_mapping = {
     sqs = {
       event_source_arn = module.user_calendar_fetched_queue.sqs_queue_arn
@@ -77,6 +64,19 @@ module "find_actionable_events_lambda_alias" {
       # function_response_types = ["ReportBatchItemFailures"]
     }
   }
+
+  environment_variables = merge({
+    ACTIONABLE_EVENTS_FOUND_TOPIC_ARN = module.actionable_event_found_topic.sns_topic_arn
+  }, local.common_lambda_env_vars)
+}
+
+module "find_actionable_events_lambda_alias" {
+  source  = "terraform-aws-modules/lambda/aws//modules/alias"
+  version = "~> 7.17"
+
+  function_name    = module.find_actionable_events_lambda.lambda_function_name
+  function_version = module.find_actionable_events_lambda.lambda_function_version
+  name             = var.lambdas_live_alias_name
 
   allowed_triggers = {
     AllowSQSInvoke = {
