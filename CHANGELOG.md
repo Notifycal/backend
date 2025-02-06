@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.11.0](https://github.com/Notifycal/backend/compare/v0.10.1...v0.11.0) (2025-02-06)
+
+
+### Features
+
+* actionable events structure. WIP: IaC is left ([#311](https://github.com/Notifycal/backend/issues/311)) ([d8c4c12](https://github.com/Notifycal/backend/commit/d8c4c12a8c83f57656b3157271566c66289d2b7e))
+* contacts service and google impl ([#309](https://github.com/Notifycal/backend/issues/309)) ([6c1fdff](https://github.com/Notifycal/backend/commit/6c1fdff8c0019a3e528d3832556dd2c0eac0de24))
+
+
+### Bug Fixes
+
+* the scheduled lambda does not need the protected endpoint env vars ([#314](https://github.com/Notifycal/backend/issues/314)) ([f818e16](https://github.com/Notifycal/backend/commit/f818e165d8b1bb7ee065f8ce2ec467122fc4b775))
+
 ## [0.10.1](https://github.com/Notifycal/backend/compare/v0.10.0...v0.10.1) (2025-02-06)
 
 
