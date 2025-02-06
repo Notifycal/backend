@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.1](https://github.com/Notifycal/backend/compare/v0.10.0...v0.10.1) (2025-02-06)
+
+
+### Bug Fixes
+
+* remove ignore_changes from GSI (localstack bug) ([#310](https://github.com/Notifycal/backend/issues/310)) ([2a75a18](https://github.com/Notifycal/backend/commit/2a75a189666193af2cabded458799c92a662364f))
+
 ## [0.10.0](https://github.com/Notifycal/backend/compare/v0.9.7...v0.10.0) (2025-02-06)
 
 
