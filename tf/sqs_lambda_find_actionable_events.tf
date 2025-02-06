@@ -1,0 +1,74 @@
+data "aws_iam_policy_document" "find_actionable_events_iam_policydoc" {
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "sns:Publish",
+    ]
+
+    resources = [
+      module.actionable_event_found_topic.sns_topic_arn
+    ]
+  }
+  # TODO: SQS statement
+}
+
+module "find_actionable_events_lambda" {
+  source  = "terraform-aws-modules/lambda/aws"
+  version = "~> 7.17"
+
+  function_name          = "find-actionable-events-${var.environment}"
+  publish                = local.lambdas_publish
+  create_package         = local.lambdas_create_package
+  local_existing_package = "${path.root}/../dist/lambdas/sqs/find-actionable-events.zip"
+
+  runtime     = var.lambdas_runtime
+  timeout     = local.api_lambdas_timeout
+  memory_size = 256
+  handler     = var.lambdas_handler_name
+
+  logging_log_format    = var.lambdas_logging_log_format
+  attach_tracing_policy = local.lambdas_attach_tracing_policy
+  tracing_mode          = var.lambdas_tracing_mode
+
+  maximum_retry_attempts = 0
+
+  tags = local.common_tags
+
+  attach_policy_json = true
+  policy_json        = data.aws_iam_policy_document.find_actionable_events_iam_policydoc.json
+
+  environment_variables = merge({
+    ACTIONABLE_EVENTS_FOUND_TOPIC_ARN = module.actionable_event_found_topic.sns_topic_arn
+  }, local.common_lambda_env_vars)
+}
+
+module "find_actionable_events_lambda_alias" {
+  source  = "terraform-aws-modules/lambda/aws//modules/alias"
+  version = "~> 7.17"
+
+  function_name    = module.find_actionable_events_lambda.lambda_function_name
+  function_version = module.find_actionable_events_lambda.lambda_function_version
+  name             = var.lambdas_live_alias_name
+
+  event_source_mapping = {
+    sqs = {
+      event_source_arn = module.user_calendar_fetched_queue.sqs_queue_arn
+      scaling_config = {
+        maximum_concurrency = 20
+      }
+      # TODO: RESEARCH
+      # function_response_types = ["ReportBatchItemFailures"]
+      # metrics_config = {
+      #   metrics = ["EventCount"]
+      # }
+    }
+  }
+
+  allowed_triggers = {
+    AllowSQSInvoke = {
+      principal  = "sqs.amazonaws.com"
+      source_arn = module.user_calendar_fetched_queue.sqs_queue_arn
+    }
+  }
+}
