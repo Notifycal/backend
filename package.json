@@ -34,7 +34,7 @@
     "@aws-sdk/lib-dynamodb": "^3.741.0",
     "@middy/core": "^6.0.0",
     "@middy/http-cors": "^6.0.0",
-    "@notifycal/shared": "0.1.5",
+    "@notifycal/shared": "^0.2.0",
     "env-var": "^7.5.0",
     "google-auth-library": "^9.15.0",
     "googleapis": "^144.0.0",
