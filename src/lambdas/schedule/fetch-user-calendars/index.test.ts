@@ -45,7 +45,7 @@ async function* validLiveUsers(): AsyncGenerator<
         businessName: 'businessName1' as BusinessName,
         businessAddress: 'businessNameAddress1' as BusinessAddress
       },
-      UserStatus: 'active' as UserStatus,
+      UserStatus: 'live' as UserStatus,
       IdpAuthorization: {
         refreshToken: 'mock_refresh_token_94534'
       }
@@ -62,7 +62,7 @@ async function* validLiveUsers(): AsyncGenerator<
         businessName: 'businessName2' as BusinessName,
         businessAddress: 'businessNameAddress2' as BusinessAddress
       },
-      UserStatus: 'inactive' as UserStatus,
+      UserStatus: 'live' as UserStatus,
       IdpAuthorization: {
         refreshToken: 'mock_refresh_token_087976'
       }
@@ -82,7 +82,7 @@ async function* validLiveUsers(): AsyncGenerator<
         businessName: 'businessName3' as BusinessName,
         businessAddress: 'businessNameAddress3' as BusinessAddress
       },
-      UserStatus: 'pending' as UserStatus,
+      UserStatus: 'live' as UserStatus,
       IdpAuthorization: {
         refreshToken: 'mock_refresh_token_895694'
       }
@@ -108,7 +108,7 @@ async function* oneRejectionInBetweenLiveUsers(): AsyncGenerator<
         businessName: 'businessName4' as BusinessName,
         businessAddress: 'businessNameAddress4' as BusinessAddress
       },
-      UserStatus: 'active' as UserStatus,
+      UserStatus: 'live' as UserStatus,
       IdpAuthorization: {
         refreshToken: 'mock_refresh_token_12345'
       }
@@ -130,7 +130,7 @@ async function* oneRejectionInBetweenLiveUsers(): AsyncGenerator<
         businessName: 'businessName5' as BusinessName,
         businessAddress: 'businessNameAddress5' as BusinessAddress
       },
-      UserStatus: 'pending' as UserStatus,
+      UserStatus: 'live' as UserStatus,
       IdpAuthorization: {
         refreshToken: 'mock_refresh_token_46744'
       }
@@ -228,7 +228,7 @@ const defaultEnv: FetchUserCalendarsConfig = {
     pageSize: 50
   },
   userCalendarFetchedTopicConfig: {
-    topicArn: 'arn:aws:sqs:eu-west-1:000000000000:user-calendar-fetched-local.fifo' as AwsArn
+    topicArn: 'arn:aws:sqs:eu-west-1:123000000000:user-calendar-fetched-local.fifo' as AwsArn
   }
 };
 
