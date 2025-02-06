@@ -66,16 +66,14 @@ module "fetch_user_calendars_lambda" {
 
   maximum_retry_attempts = 0
 
-  tags = merge({
-    Schedule = local.fetch_user_calendars_lambda_cron_schedule
-  }, local.common_tags)
+  tags = local.common_tags
 
   attach_policy_json = true
   policy_json        = data.aws_iam_policy_document.fetch_user_calendars_iam_policydoc.json
 
   environment_variables = merge({
-    LIVE_USERS_INDEX_NAME     = local.live_users_index_name
-    FETCH_CALENDARS_TOPIC_ARN = "TODO"
+    LIVE_USERS_INDEX_NAME           = local.live_users_index_name
+    USER_CALENDAR_FETCHED_TOPIC_ARN = module.user_calendar_fetched_topic.sns_topic_arn
   }, local.protected_endpoint_env_vars, local.users_persistance_env_vars)
 }
 
