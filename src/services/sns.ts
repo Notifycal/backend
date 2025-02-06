@@ -20,9 +20,7 @@ export class SnsService {
   public publishEvent<TEvent extends BaseEvent>(event: TEvent): Promise<PublishCommandOutput> {
     const publishCommand = new PublishCommand({
       TopicArn: this._config.topicArn,
-      Message: JSON.stringify({
-        default: event
-      }),
+      Message: JSON.stringify(event),
       MessageAttributes: {
         EventId: {
           DataType: 'String',
@@ -54,8 +52,7 @@ export class SnsService {
         }
       },
       MessageDeduplicationId: event.eventId,
-      MessageGroupId: '1',
-      MessageStructure: 'json'
+      MessageGroupId: '1'
     });
     return this._client.send(publishCommand).then(
       (result) => {
