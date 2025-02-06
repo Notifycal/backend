@@ -74,6 +74,7 @@ module "fetch_user_calendars_lambda" {
   environment_variables = merge({
     LIVE_USERS_INDEX_NAME     = local.live_users_index_name
     FETCH_CALENDARS_TOPIC_ARN = "TODO"
+    USER_CALENDAR_FETCHED_TOPIC_ARN = module.user_calendar_fetched_topic.sns_topic_arn
   }, local.protected_endpoint_env_vars, local.users_persistance_env_vars)
 }
 
