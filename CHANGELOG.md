@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.3](https://github.com/Notifycal/backend/compare/v0.11.2...v0.11.3) (2025-02-07)
+
+
+### Bug Fixes
+
+* SNS delivers messages to SQS not to lambda, duh ([#322](https://github.com/Notifycal/backend/issues/322)) ([4c2f417](https://github.com/Notifycal/backend/commit/4c2f41756b60820644f16c3ca49767aca21d9a5c))
+
 ## [0.11.2](https://github.com/Notifycal/backend/compare/v0.11.1...v0.11.2) (2025-02-07)
 
 

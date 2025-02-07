@@ -5,7 +5,6 @@ data "aws_iam_policy_document" "sns_feedback_assume_role_policydoc" {
 
     actions = [
       "sts:AssumeRole",
-      "sts:TagSession",
     ]
 
     principals {
@@ -23,7 +22,9 @@ data "aws_iam_policy_document" "sns_feedback_policydoc" {
     actions = [
       "logs:CreateLogGroup",
       "logs:CreateLogStream",
-      "logs:PutLogEvents"
+      "logs:PutLogEvents",
+      "logs:PutMetricFilter",
+      "logs:PutRetentionPolicy"
     ]
 
     resources = [
