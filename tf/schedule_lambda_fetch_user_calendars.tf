@@ -1,7 +1,7 @@
 # Fetch user calendars or just fetch calendars? Isn't that implementation details?
 
 locals {
-  fetch_user_calendars_lambda_cron_schedule      = "cron(0/5 * * * ? *)"
+  fetch_user_calendars_lambda_cron_schedule      = "cron(0/30 * * * ? *)"
   fetch_user_calendars_lambda_function_name      = "fetch-user-calendars"
   fetch_user_calendars_lambda_function_full_name = "${local.fetch_user_calendars_lambda_function_name}-${var.environment}"
 }
