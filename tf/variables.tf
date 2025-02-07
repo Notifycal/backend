@@ -105,3 +105,8 @@ variable "jwt_config" {
     error_message = "The algorithm for both access and refresh tokens must be: ES224, ES256, ES384 or ES521"
   }
 }
+
+variable "enable_xray_active_tracing" {
+  type    = bool
+  default = true
+}

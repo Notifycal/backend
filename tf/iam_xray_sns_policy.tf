@@ -1,5 +1,3 @@
-data "aws_caller_identity" "current" {}
-
 data "aws_iam_policy_document" "xray_sns_policydoc" {
   statement {
     effect = "Allow"
@@ -20,20 +18,24 @@ data "aws_iam_policy_document" "xray_sns_policydoc" {
     condition {
       test     = "StringEquals"
       variable = "aws:SourceAccount"
-      values   = [data.aws_caller_identity.current.account_id]
+      values   = [local.aws_account_id]
     }
 
     condition {
       test     = "StringEquals"
       variable = "aws:SourceArn"
-      values   = [aws_sns_topic.topic.arn]
+      values = [
+        # Add new topics here
+        module.actionable_event_found_topic.sns_topic_arn,
+        module.user_calendar_fetched_topic.sns_topic_arn
+      ]
     }
   }
 }
 
 resource "local_file" "xray_policy_tmp_file" {
   content  = data.aws_iam_policy_document.xray_sns_policydoc.json
-  filename = "/tmp/${local.topic_name}-xray-tracing.json"
+  filename = "/tmp/${var.environment}-tracing.json"
 }
 
 resource "null_resource" "put_xray_sns_resource_policy" {
@@ -42,8 +44,8 @@ resource "null_resource" "put_xray_sns_resource_policy" {
   provisioner "local-exec" {
     command = <<EOT
       aws xray put-resource-policy \
-        --policy-name "${local.topic_name}-xray-tracing" \
-        --policy-document file:///tmp/${local.topic_name}-xray-tracing.json
+        --policy-name "${var.environment}-sns-tracing" \
+        --policy-document file:///tmp/${var.environment}-tracing.json
     EOT
   }
 
