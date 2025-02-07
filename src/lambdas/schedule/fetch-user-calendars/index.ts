@@ -11,6 +11,7 @@ import { UserLiveIndexStore } from '@services/stores/user-live-index-store';
 import { v4 } from 'uuid';
 import type { z } from 'zod';
 import { readFetchUserCalendarsConfig, type FetchUserCalendarsConfig } from './config';
+import type { Context } from 'aws-lambda';
 
 const eventSchema = eventBridgeEventSchema<FetchUserCalendarsConfig>();
 export type Event = z.infer<typeof eventSchema>;
@@ -49,7 +50,8 @@ function toEvents(
   });
 }
 
-async function lambdaHandler(event: Event): Promise<void> {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function lambdaHandler(event: Event, context: Context): Promise<void> {
   const { userLiveIndexStoreConfig, userCalendarFetchedTopicConfig } = event.lambdaConfig;
 
   const userLiveProvider = UserLiveIndexStore.withConfig(userLiveIndexStoreConfig);
