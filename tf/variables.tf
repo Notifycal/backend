@@ -45,11 +45,6 @@ variable "lambdas_logging_log_format" {
   default = "JSON"
 }
 
-variable "lambdas_tracing_mode" {
-  type    = string
-  default = "Active"
-}
-
 variable "lambdas_runtime" {
   type    = string
   default = "nodejs22.x"
