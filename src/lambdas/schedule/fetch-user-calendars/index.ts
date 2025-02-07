@@ -1,4 +1,4 @@
-import { configMiddleware } from '@common/lambda-middleware';
+import { backgroundProcessingMiddleware } from '@common/lambda-middleware';
 import { logger } from '@common/powertools';
 import type { UserCalendarFetchedEvent } from '@model/app-events/UserCalendarFetchedEvent';
 import { eventBridgeEventSchema } from '@model/lambda-events/EventBridgeEvents';
@@ -12,7 +12,6 @@ import { v4 } from 'uuid';
 import type { z } from 'zod';
 import { readFetchUserCalendarsConfig, type FetchUserCalendarsConfig } from './config';
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const eventSchema = eventBridgeEventSchema<FetchUserCalendarsConfig>();
 export type Event = z.infer<typeof eventSchema>;
 
@@ -84,6 +83,7 @@ async function lambdaHandler(event: Event): Promise<void> {
     );
   }
 }
-export const handler = configMiddleware(() => readFetchUserCalendarsConfig(), false).handler<Event>(
-  lambdaHandler
-);
+export const handler = backgroundProcessingMiddleware(
+  () => readFetchUserCalendarsConfig(),
+  eventSchema
+).handler<Event>(lambdaHandler);

@@ -4,10 +4,11 @@ export const fakeScheduledEventBridgeEvent: EventBridgeEvent<'Scheduled event', 
   id: 'fakeId',
   version: 'someVersion',
   account: 'someAccount',
-  time: '2025-01-01',
+  time: '2025-02-07T14:53:57.018Z',
   region: 'eu-west-1',
   resources: [],
   source: 'someSource',
   'detail-type': 'Scheduled event',
-  detail: 'SomeDetails'
+  detail: 'SomeDetails',
+  'replay-name': 'Some replay name'
 };

@@ -2,38 +2,46 @@ import { parser } from '@aws-lambda-powertools/parser/middleware';
 import type { MiddlewareObj, Request } from '@middy/core';
 /* eslint-disable-next-line no-duplicate-imports */
 import type middy from '@middy/core';
-import type { EventWithConfig } from '@model/lambda-events/Event';
 import type { BaseEndpointConfig } from '@model/Config';
+import type { EventWithConfig } from '@model/lambda-events/Event';
 import { errorHandler, headers } from '@services/common/api-response-handlers';
 import { extractErrorMessage } from '@services/common/error-handling';
-import type { APIGatewayProxyResult, Context } from 'aws-lambda';
+import type { Context } from 'aws-lambda';
 import type { ZodSchema } from 'zod';
+import { logger } from './powertools';
 
-function httpRequestEventParser<TConfig extends BaseEndpointConfig>(
-  request: Request<EventWithConfig<TConfig>, APIGatewayProxyResult, Error, Context>,
-  schema: ZodSchema
-): APIGatewayProxyResult | void {
+function eventParser<TConfig extends BaseEndpointConfig, TResult>(
+  request: Request<EventWithConfig<TConfig>, TResult, Error, Context>,
+  schema: ZodSchema,
+  isApiRequest: boolean
+): TResult | void {
   const parserFn = parser({ schema }).before;
   if (parserFn) {
     try {
       parserFn(request);
     } catch (error: unknown) {
-      return errorHandler(
-        400,
-        headers(request.event.lambdaConfig.baseConfig.frontendDomain)
-      )(
-        `Request payload does not satisfy the schema. Error: ${extractErrorMessage(error)}. Schema: ${JSON.stringify(schema)}`
-      );
+      const baseMsg = `payload does not satisfy the schema. Error: ${extractErrorMessage(error)}. Schema: ${JSON.stringify(schema)}`;
+      if (isApiRequest) {
+        return errorHandler(
+          400,
+          headers(request.event.lambdaConfig.baseConfig.frontendDomain)
+        )(`Request ${baseMsg}`) as TResult;
+      } else {
+        const errorMsg = `Lambda ${baseMsg}`;
+        logger.error(errorMsg);
+        throw new Error(errorMsg);
+      }
     }
   }
 }
 
-export function httpRequestEventParserMiddleware<TConfig extends BaseEndpointConfig>(
-  schema: ZodSchema
-): MiddlewareObj<EventWithConfig<TConfig>, APIGatewayProxyResult> {
-  const before: middy.MiddlewareFn<EventWithConfig<TConfig>, APIGatewayProxyResult> = (
-    req: Request<EventWithConfig<TConfig>, APIGatewayProxyResult, Error, Context>
-  ) => httpRequestEventParser(req, schema);
+export function eventParserMiddleware<TConfig extends BaseEndpointConfig, TResult>(
+  schema: ZodSchema,
+  isApiRequest: boolean
+): MiddlewareObj<EventWithConfig<TConfig>, TResult> {
+  const before: middy.MiddlewareFn<EventWithConfig<TConfig>, TResult> = (
+    req: Request<EventWithConfig<TConfig>, TResult, Error, Context>
+  ) => eventParser(req, schema, isApiRequest);
   return {
     before
   };
