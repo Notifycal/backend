@@ -4,11 +4,13 @@ import { userCalendarFetchedEventSchema } from '@model/app-events/UserCalendarFe
 import { eventSqsSchema } from '@model/lambda-events/SqsEvents';
 import type { z } from 'zod';
 import { readActionableEventsConfig, type ActionableEventsConfig } from './config';
+import type { Context } from 'aws-lambda';
 
 const eventSchema = eventSqsSchema<ActionableEventsConfig>(userCalendarFetchedEventSchema);
 export type Event = z.infer<typeof eventSchema>;
 
-function lambdaHandler(event: Event): Promise<void> {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function lambdaHandler(event: Event, context: Context): Promise<void> {
   logger.info(`Processing sqs message in second lambda. Event: ${JSON.stringify(event)}`);
   return Promise.resolve();
 }
