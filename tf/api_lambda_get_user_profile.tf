@@ -28,7 +28,7 @@ module "get_user_profile_lambda" {
 
   logging_log_format    = var.lambdas_logging_log_format
   attach_tracing_policy = local.lambdas_attach_tracing_policy
-  tracing_mode          = var.lambdas_tracing_mode
+  tracing_mode          = local.lambdas_tracing_mode
 
   maximum_retry_attempts = 0
 

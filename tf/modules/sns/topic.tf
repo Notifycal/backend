@@ -9,6 +9,8 @@ resource "aws_sns_topic" "topic" {
   fifo_topic                  = var.topic_config.fifo
   content_based_deduplication = var.topic_config.content_based_deduplication
 
+  tracing_config = var.enable_xray_active_tracing ? "Active" : "PassThrough"
+
   sqs_failure_feedback_role_arn    = var.sns_feedback_iam_role_arn
   sqs_success_feedback_role_arn    = var.sns_feedback_iam_role_arn
   sqs_success_feedback_sample_rate = 100

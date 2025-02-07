@@ -45,11 +45,6 @@ variable "lambdas_logging_log_format" {
   default = "JSON"
 }
 
-variable "lambdas_tracing_mode" {
-  type    = string
-  default = "Active"
-}
-
 variable "lambdas_runtime" {
   type    = string
   default = "nodejs22.x"
@@ -104,4 +99,9 @@ variable "jwt_config" {
     )
     error_message = "The algorithm for both access and refresh tokens must be: ES224, ES256, ES384 or ES521"
   }
+}
+
+variable "enable_xray_active_tracing" {
+  type    = bool
+  default = true
 }

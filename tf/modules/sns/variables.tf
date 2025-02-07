@@ -29,6 +29,11 @@ variable "topic_config" {
   }
 }
 
+variable "enable_xray_active_tracing" {
+  type    = bool
+  default = true
+}
+
 variable "sns_feedback_iam_role_arn" {
   type = string
 }

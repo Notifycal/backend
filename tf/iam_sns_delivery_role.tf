@@ -28,7 +28,7 @@ data "aws_iam_policy_document" "sns_feedback_policydoc" {
     ]
 
     resources = [
-      "arn:aws:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:*"
+      "arn:aws:logs:${var.aws_region}:${local.aws_account_id}:*"
     ]
   }
 }

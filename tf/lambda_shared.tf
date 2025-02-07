@@ -44,5 +44,6 @@ locals {
   api_lambdas_timeout           = 30
   lambdas_publish               = true
   lambdas_create_package        = false
-  lambdas_attach_tracing_policy = true
+  lambdas_attach_tracing_policy = var.enable_xray_active_tracing
+  lambdas_tracing_mode          = var.enable_xray_active_tracing ? "Active" : "PassThrough"
 }
