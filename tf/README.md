@@ -88,7 +88,6 @@
 | <a name="input_lambdas_live_alias_name"></a> [lambdas\_live\_alias\_name](#input\_lambdas\_live\_alias\_name) | n/a | `string` | `"live"` | no |
 | <a name="input_lambdas_logging_log_format"></a> [lambdas\_logging\_log\_format](#input\_lambdas\_logging\_log\_format) | n/a | `string` | `"JSON"` | no |
 | <a name="input_lambdas_runtime"></a> [lambdas\_runtime](#input\_lambdas\_runtime) | n/a | `string` | `"nodejs22.x"` | no |
-| <a name="input_lambdas_tracing_mode"></a> [lambdas\_tracing\_mode](#input\_lambdas\_tracing\_mode) | n/a | `string` | `"Active"` | no |
 | <a name="input_openapi_spec_file"></a> [openapi\_spec\_file](#input\_openapi\_spec\_file) | Name of the OpenAPI spec file for this API | `string` | `"spec.yaml"` | no |
 
 ## Outputs
