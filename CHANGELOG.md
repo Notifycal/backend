@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.2](https://github.com/Notifycal/backend/compare/v0.11.1...v0.11.2) (2025-02-07)
+
+
+### Bug Fixes
+
+* flatmap and enable SNS delivery status feedback ([#319](https://github.com/Notifycal/backend/issues/319)) ([b2ad2fa](https://github.com/Notifycal/backend/commit/b2ad2fae54bcd64e67dc4208f908e3b6f1a37388))
+
 ## [0.11.1](https://github.com/Notifycal/backend/compare/v0.11.0...v0.11.1) (2025-02-06)
 
 
