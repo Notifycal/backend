@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.0](https://github.com/Notifycal/backend/compare/v0.11.3...v0.12.0) (2025-02-07)
+
+
+### Features
+
+* enable SNS active tracing + policy ([#321](https://github.com/Notifycal/backend/issues/321)) ([5d80fea](https://github.com/Notifycal/backend/commit/5d80fea317457e32a6d3efc2a6a0b52dba0b9021))
+
 ## [0.11.3](https://github.com/Notifycal/backend/compare/v0.11.2...v0.11.3) (2025-02-07)
 
 
