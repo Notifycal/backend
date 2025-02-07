@@ -2,11 +2,12 @@ module "actionable_event_found_topic" {
   source             = "./modules/sns"
   topic_name         = "actionable-event-found-${var.environment}"
   topic_display_name = "Actionable event found ${var.environment}"
-  publisher_arn      = module.find_actionable_events_lambda_alias.lambda_alias_arn
+  publisher_arn      = module.find_actionable_events_lambda.lambda_function_arn
   subscriber_arns = {
     queue = module.actionable_event_found_queue.sqs_queue_arn
   }
-  tags = local.common_tags
+  sns_feedback_iam_role_arn = aws_iam_role.sns_feedback_role.arn
+  tags                      = local.common_tags
 }
 
 module "actionable_event_found_queue" {
