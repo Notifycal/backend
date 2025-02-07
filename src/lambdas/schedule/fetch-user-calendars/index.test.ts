@@ -21,7 +21,7 @@ import { setEnvUserCalendarFetchedConfig, setEnvUserLiveStoreConfig } from '@tes
 import type { Context } from 'aws-lambda';
 import { describe, expect, it, vi } from 'vitest';
 import type { FetchUserCalendarsConfig } from './config';
-import { handler } from './index';
+import { handler, type Event } from './index';
 
 const validCalendar: Calendar = {
   id: 'someCalendarId' as CalendarId,
@@ -218,7 +218,7 @@ function testit(
   vi.mocked(UserLiveIndexStore.withConfig).mockReturnValue(
     userBaseStoreMock as unknown as UserLiveIndexStore<IdpName>
   );
-  return handler(fakeScheduledEventBridgeEvent as never, {} as Context);
+  return handler(fakeScheduledEventBridgeEvent as unknown as Event, {} as Context);
 }
 
 const defaultEnv: FetchUserCalendarsConfig = {
