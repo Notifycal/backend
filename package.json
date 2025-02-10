@@ -59,7 +59,7 @@
     "body-parser": "^1.20.3",
     "connect-timeout": "^1.9.0",
     "dotenv": "^16.4.7",
-    "esbuild": "^0.24.2",
+    "esbuild": "^0.25.0",
     "eslint": "^9.18.0",
     "eslint-config-prettier": "^10.0.1",
     "eslint-plugin-import": "^2.31.0",
