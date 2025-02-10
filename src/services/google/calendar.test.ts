@@ -1,11 +1,18 @@
 /* eslint-disable camelcase */
-import type { Calendar, CalendarId, CalendarName } from '@notifycal/shared/types';
+import type { ServiceResponse } from '@model/ServiceResponse';
+import type {
+  Calendar,
+  CalendarEvent,
+  CalendarId,
+  CalendarName,
+  DateTime
+} from '@notifycal/shared/types';
 import { google, type calendar_v3 } from 'googleapis';
 import type { GaxiosResponse } from 'googleapis-common';
 import { describe, expect, it, vi } from 'vitest';
 import { GoogleCalendar } from './calendar';
 
-describe('GoogleCalendar Service', () => {
+describe('GoogleCalendar Service calendarList', () => {
   const validGoogleCalendarListEntry: GaxiosResponse<calendar_v3.Schema$CalendarList> = {
     data: {
       items: [
@@ -95,5 +102,128 @@ describe('GoogleCalendar Service', () => {
     } as unknown as calendar_v3.Calendar);
     const config = { clientId: 'id', clientSecret: 'secret', redirectUri: 'uri' };
     return GoogleCalendar.withRefreshToken(config, '').calendarList();
+  }
+});
+
+describe('GoogleCalendar Service eventsWithinPeriod', () => {
+  const calendarId: CalendarId = 'test-calendar-id' as CalendarId;
+  const lowerBoundStartTime: DateTime = '2025-02-01T00:00:00Z' as DateTime;
+  const upperBoundStartTime: DateTime = '2025-03-01T00:00:00Z' as DateTime;
+
+  const validEvent: calendar_v3.Schema$Event = {
+    id: 'event1',
+    summary: 'Meeting',
+    start: { dateTime: '2025-02-15T10:00:00Z' }
+  };
+
+  const validAllDayEvent: calendar_v3.Schema$Event = {
+    id: 'event2',
+    summary: 'Holiday',
+    start: { date: '2025-02-20' }
+  };
+
+  const invalidEvent: calendar_v3.Schema$Event = {
+    id: 'event3',
+    start: {}
+  };
+
+  it('should fetch events successfully', async () => {
+    const eventsListFn = () =>
+      Promise.resolve({ data: { items: [validEvent] }, status: 200 } as GaxiosResponse);
+
+    const result = await testit(eventsListFn);
+
+    expect(result.successList).toHaveLength(1);
+    expect(result.successList![0].id).toBe('event1');
+  });
+
+  it('should filter out events outside the date bounds', async () => {
+    const eventsListFn = () =>
+      Promise.resolve({
+        data: {
+          items: [
+            { ...validEvent, start: { dateTime: '2025-01-15T10:00:00Z' } } // Outside bounds
+          ]
+        },
+        status: 200
+      } as GaxiosResponse);
+
+    const result = await testit(eventsListFn);
+
+    expect(result.successList).toBeUndefined();
+  });
+
+  it('should include all-day events if the flag is true', async () => {
+    const eventsListFn = () =>
+      Promise.resolve({ data: { items: [validAllDayEvent] }, status: 200 } as GaxiosResponse);
+
+    const result = await testit(eventsListFn, true);
+
+    expect(result.successList).toHaveLength(1);
+    expect(result.successList![0].id).toBe('event2');
+  });
+
+  it('should exclude all-day events if the flag is false', async () => {
+    const eventsListFn = () =>
+      Promise.resolve({ data: { items: [validAllDayEvent] }, status: 200 } as GaxiosResponse);
+
+    const result = await testit(eventsListFn);
+
+    expect(result.successList).toBeUndefined();
+  });
+
+  it('should handle errors when event parsing fails', async () => {
+    const eventsListFn = () =>
+      Promise.resolve({ data: { items: [invalidEvent] }, status: 200 } as GaxiosResponse);
+
+    const result = await testit(eventsListFn);
+
+    expect(result.failureList).toHaveLength(1);
+    expect(result.failureList[0].message).includes(
+      `Parsing error when extracting information out of a Google Calendar Events list. Google calendar id: ${calendarId}. Google event id: ${invalidEvent.id}. Error: Neither .date not dateTime could be read on event.`
+    );
+  });
+
+  it('should handle an empty event list', async () => {
+    const eventsListFn = () =>
+      Promise.resolve({ data: { items: [] }, status: 200 } as GaxiosResponse);
+
+    const result = await testit(eventsListFn);
+
+    expect(result.successList).toBeUndefined();
+    expect(result.failureList).toHaveLength(0);
+  });
+
+  it('should handle a non 200 response from Google API', () => {
+    const eventsListFn = () => Promise.resolve({ status: 400 } as GaxiosResponse);
+
+    return expect(testit(eventsListFn)).rejects.toThrow(
+      'GET Events List. Error: GET Events List. Error in response: {"status":400}'
+    );
+  });
+
+  it('should handle a rejected promise from the Google API', async () => {
+    const eventsListFn = () => Promise.reject(new Error('Google API Error'));
+
+    await expect(testit(eventsListFn)).rejects.toThrow('Google API Error');
+  });
+
+  function testit(
+    eventsListFn: () => Promise<GaxiosResponse<calendar_v3.Schema$Events>>,
+    includeAllDayEvents: boolean = false
+  ): Promise<ServiceResponse<CalendarEvent>> {
+    vi.mock('googleapis');
+    vi.mocked(google.calendar).mockReturnValue({
+      events: {
+        list: vi.fn().mockImplementation(eventsListFn)
+      }
+    } as unknown as calendar_v3.Calendar);
+    const config = { clientId: 'id', clientSecret: 'secret', redirectUri: 'uri' };
+    return GoogleCalendar.withRefreshToken(config, '').eventsStartTimeWithin(
+      calendarId,
+      lowerBoundStartTime,
+      upperBoundStartTime,
+      includeAllDayEvents
+    );
   }
 });
