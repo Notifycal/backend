@@ -64,7 +64,10 @@ module "fetch_user_calendars_lambda" {
   attach_tracing_policy = local.lambdas_attach_tracing_policy
   tracing_mode          = local.lambdas_tracing_mode
 
-  maximum_retry_attempts = 0
+  # These 2 go together, if create_async_event_config is set to false (its default),
+  # lambdas will retry up to 2 times
+  create_async_event_config = true
+  maximum_retry_attempts    = 0
 
   tags = local.common_tags
 
