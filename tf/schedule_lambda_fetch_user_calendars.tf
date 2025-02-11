@@ -2,6 +2,7 @@
 
 locals {
   fetch_user_calendars_lambda_cron_schedule      = "cron(0/30 * * * ? *)"
+  fetch_user_calendars_lambda_cron_schedule_window_minutes = 30
   fetch_user_calendars_lambda_function_name      = "fetch-user-calendars"
   fetch_user_calendars_lambda_function_full_name = "${local.fetch_user_calendars_lambda_function_name}-${var.environment}"
 }
@@ -84,5 +85,6 @@ module "fetch_user_calendars_lambda" {
   environment_variables = merge({
     LIVE_USERS_INDEX_NAME           = local.live_users_index_name
     USER_CALENDAR_FETCHED_TOPIC_ARN = module.user_calendar_fetched_topic.sns_topic_arn
+    RUN_TIME_WINDOW_PERIOD_MINUTES  = tostring(local.fetch_user_calendars_lambda_cron_schedule_window_minutes)
   }, local.common_lambda_env_vars, local.users_persistance_env_vars)
 }

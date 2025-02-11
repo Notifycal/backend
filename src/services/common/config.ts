@@ -1,3 +1,4 @@
+import type { CronRunEndpointConfig } from '@lambdas/schedule/fetch-user-calendars/config';
 import type {
   AuthedEndpointConfig,
   BaseEndpointConfig,
@@ -113,6 +114,14 @@ export function readUserCalendarFetchedTopicConfig(
   return {
     userCalendarFetchedTopicConfig: {
       topicArn: env.get('USER_CALENDAR_FETCHED_TOPIC_ARN').required().asString() as AwsArn
+    }
+  };
+}
+
+export function readCronRunConfig(env: Environment): CronRunEndpointConfig {
+  return {
+    cronRunConfig: {
+      windowInMinutes: env.get('RUN_TIME_WINDOW_PERIOD_MINUTES').required().asIntPositive()
     }
   };
 }

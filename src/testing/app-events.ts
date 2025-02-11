@@ -21,6 +21,10 @@ export const userCalendarFetchedEvent: UserCalendarFetchedEvent = {
   idp: 'google.com',
   idpId: 'google-123' as IdpId,
   data: {
+    run: {
+      lowerBoundStartTime: '2023-01-01T00:00:00Z' as DateTime,
+      upperBoundStartTime: '2023-01-01T00:29:59Z' as DateTime
+    },
     calendar: {
       id: 'someCalendarId' as CalendarId,
       name: 'Some Calendar Name' as CalendarName

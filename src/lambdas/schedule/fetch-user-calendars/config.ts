@@ -1,4 +1,5 @@
 import {
+  readCronRunConfig,
   readEnv,
   readUserCalendarFetchedTopicConfig,
   readUserLiveIndexConfig
@@ -8,13 +9,22 @@ import type {
   UserLiveIndexStoreEndpointConfig
 } from '@services/stores/user-live-index-store';
 
+export interface CronRunConfig {
+  windowInMinutes: number;
+}
+export interface CronRunEndpointConfig {
+  cronRunConfig: CronRunConfig;
+}
+
 export type FetchUserCalendarsConfig = UserLiveIndexStoreEndpointConfig &
-  UserCalendarFetchedTopicEndpointConfig;
+  UserCalendarFetchedTopicEndpointConfig &
+  CronRunEndpointConfig;
 
 export function readFetchUserCalendarsConfig(): FetchUserCalendarsConfig {
   const env = readEnv();
   return {
     ...readUserLiveIndexConfig(env),
-    ...readUserCalendarFetchedTopicConfig(env)
+    ...readUserCalendarFetchedTopicConfig(env),
+    ...readCronRunConfig(env)
   };
 }
