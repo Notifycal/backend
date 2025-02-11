@@ -1,4 +1,4 @@
-import { idpIdSchema, userIdSchema } from '@notifycal/shared/types';
+import { idpIdSchema, userIdSchema } from '@notifycal/shared/schemas';
 import { z } from 'zod';
 
 export type PipeEvents = 'UserCalendarFetched' | 'ActionableEventFound';
