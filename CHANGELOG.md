@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.13.0](https://github.com/Notifycal/backend/compare/v0.12.0...v0.13.0) (2025-02-11)
+
+
+### Features
+
+* bg processing middleware. Adapt httpEventParser for reuse. Some… ([#327](https://github.com/Notifycal/backend/issues/327)) ([46751fb](https://github.com/Notifycal/backend/commit/46751fbc83c31193bf7fa9cb2bf1cd83d1e03cbf))
+* google get events within ([#334](https://github.com/Notifycal/backend/issues/334)) ([a9cde3d](https://github.com/Notifycal/backend/commit/a9cde3d4f32db314964c23ef868f9929794cc125))
+
+
+### Bug Fixes
+
+* disable lambda retries for now ([#337](https://github.com/Notifycal/backend/issues/337)) ([4ed52fa](https://github.com/Notifycal/backend/commit/4ed52fa197875f67035d7a82ffea97fe793da4d9))
+* make cron run every 30 mins ([#325](https://github.com/Notifycal/backend/issues/325)) ([3f07047](https://github.com/Notifycal/backend/commit/3f07047ee317be3652b4efac9ad3da2b596393a7))
+
 ## [0.12.0](https://github.com/Notifycal/backend/compare/v0.11.3...v0.12.0) (2025-02-07)
 
 
