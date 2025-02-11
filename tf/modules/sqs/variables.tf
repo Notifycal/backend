@@ -26,7 +26,7 @@ variable "queue_config" {
 
 variable "redrive_policy" {
   type = object({
-    max_receive_count = number
+    max_receive_count      = number
     dead_letter_target_arn = string
   })
 

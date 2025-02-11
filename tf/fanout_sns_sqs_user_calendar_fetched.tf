@@ -19,7 +19,7 @@ module "user_calendar_fetched_queue" {
   tags         = local.common_tags
 
   redrive_policy = {
-    max_receive_count = 2
+    max_receive_count      = 2
     dead_letter_target_arn = aws_sqs_queue.global_dlq.arn
   }
 }

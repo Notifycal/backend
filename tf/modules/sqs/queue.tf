@@ -11,7 +11,7 @@ resource "aws_sqs_queue" "queue" {
 
   redrive_policy = try(jsonencode({
     deadLetterTargetArn = var.redrive_policy.dead_letter_target_arn
-    maxReceiveCount = var.redrive_policy.max_receive_count
+    maxReceiveCount     = var.redrive_policy.max_receive_count
   }), null)
 
   tags = var.tags
