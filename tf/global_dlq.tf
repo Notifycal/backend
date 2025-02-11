@@ -1,7 +1,8 @@
 resource "aws_sqs_queue" "global_dlq" {
   name = "global-dlq-${var.environment}.fifo"
 
-  fifo_queue = true
+  fifo_queue                  = true
+  content_based_deduplication = true
 }
 
 resource "aws_sqs_queue_redrive_allow_policy" "dlq_redrive_allow_policy" {

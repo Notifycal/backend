@@ -69,6 +69,7 @@ module "fetch_user_calendars_lambda" {
   # lambdas will retry up to 2 times
   create_async_event_config = true
   maximum_retry_attempts    = 0
+  dead_letter_target_arn    = aws_sqs_queue.global_dlq.arn
 
   tags = local.common_tags
 
