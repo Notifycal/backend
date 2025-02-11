@@ -3,8 +3,8 @@ locals {
 }
 resource "aws_sqs_queue" "queue" {
   name                        = local.queue_name
-  content_based_deduplication = var.queue_config.fifo
-  fifo_queue                  = var.queue_config.content_based_deduplication
+  content_based_deduplication = var.queue_config.content_based_deduplication
+  fifo_queue                  = var.queue_config.fifo
   message_retention_seconds   = null // default value, 4 days
   receive_wait_time_seconds   = null // default 0 seconds
   visibility_timeout_seconds  = null // default 30 seconds Docs: https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-visibility-timeout.html
