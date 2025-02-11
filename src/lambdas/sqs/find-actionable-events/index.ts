@@ -7,7 +7,7 @@ import { eventSqsSchema } from '@model/lambda-events/SqsEvents';
 import type { Context } from 'aws-lambda';
 import type { z } from 'zod';
 import { readActionableEventsConfig, type ActionableEventsConfig } from './config';
-import { process } from './record-processor';
+import { recordProcessor } from './record-processor';
 
 const eventSchema = eventSqsSchema<ActionableEventsConfig, typeof userCalendarFetchedEventSchema>(
   userCalendarFetchedEventSchema
@@ -15,15 +15,10 @@ const eventSchema = eventSqsSchema<ActionableEventsConfig, typeof userCalendarFe
 export type Event = z.infer<typeof eventSchema>;
 export type Record = z.infer<typeof eventSchema.shape.Records.element>;
 
-function recordHandler(record: Record): Promise<void> {
-  return process(record);
-}
-
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function lambdaHandler(event: Event, context: Context): Promise<PartialItemFailureResponse> {
   logger.info(`Processing sqs message in second lambda. Event: ${JSON.stringify(event)}`);
-  return processPartialResponse(event, recordHandler, new BatchProcessor(EventType.SQS), {
-    context
-  });
+  return processPartialResponse(event, recordProcessor, new BatchProcessor(EventType.SQS));
 }
 export const handler = backgroundProcessingMiddleware(
   () => readActionableEventsConfig(),

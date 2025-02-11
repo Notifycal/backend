@@ -1,15 +1,13 @@
 import type { IdpConfigs } from '@model/Config';
-import type { UserIdpAuthorizationStoreRecord } from '@model/store/UserIdpAuthorizationStoreRecord';
+import type { AuthorizationForIdp } from '@model/IdpAuthorization';
 import type { Email, IdpName, PhoneNumber } from '@notifycal/shared/types';
 import { phoneNumberByEmail } from '@services/contacts';
 import { describe, expect, it, vi } from 'vitest';
 import { GooglePeople } from './google/people';
 
 const validIdpName: IdpName = 'google.com';
-const validIdpAuthorization: UserIdpAuthorizationStoreRecord<IdpName> = {
-  IdpAuthorization: {
-    refreshToken: 'some google refresh token'
-  }
+const validIdpAuthorization: AuthorizationForIdp<IdpName> = {
+  refreshToken: 'some google refresh token'
 };
 const validEmail: Email = 'testuser@gmail.com' as Email;
 const validIdpConfigs: IdpConfigs = {
@@ -53,7 +51,7 @@ describe('Contacts Service', () => {
 
   async function testit(
     email: Email,
-    idpAuthorization: UserIdpAuthorizationStoreRecord<IdpName>,
+    idpAuthorization: AuthorizationForIdp<IdpName>,
     idp: IdpName,
     idpConfigs: IdpConfigs,
     googlePhoneNumbersFn: () => Promise<Array<PhoneNumber> | undefined>

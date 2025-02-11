@@ -61,8 +61,12 @@ export function setEnvUserLiveStoreConfig(config: UserLiveIndexStoreConfig): voi
   process.env.USERS_PAGE_SIZE = config.pageSize.toString();
 }
 
-export function setEnvUserCalendarFetchedConfig(config: SnsTopicConfig): void {
+export function setEnvUserCalendarFetchedTopicConfig(config: SnsTopicConfig): void {
   process.env.USER_CALENDAR_FETCHED_TOPIC_ARN = config.topicArn;
+}
+
+export function setEnvActionableEventFoundTopicConfig(config: SnsTopicConfig): void {
+  process.env.ACTIONABLE_EVENT_FOUND_ARN = config.topicArn;
 }
 
 export function setEnvCronRunConfig(config: CronRunConfig): void {

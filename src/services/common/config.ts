@@ -1,5 +1,6 @@
 import type { CronRunEndpointConfig } from '@lambdas/schedule/fetch-user-calendars/config';
 import type {
+  ActionableEventFoundTopicEndpointConfig,
   AuthedEndpointConfig,
   BaseEndpointConfig,
   DecodeAccessJwtConfig,
@@ -8,15 +9,13 @@ import type {
   EncodeAccessJwtConfig,
   EncodeJwtsEndpointConfig,
   EncodeRefreshJwtConfig,
-  IdpEndpointConfig
+  IdpEndpointConfig,
+  UserCalendarFetchedTopicEndpointConfig
 } from '@model/Config';
 import type { AwsArn, Environment } from '@own-types/model';
 import type { RefreshTokenBaseStoreConfigEndpointConfig } from '@services/stores/refresh-token-base-store';
 import type { UserBaseStoreEndpointConfig } from '@services/stores/user-base-store';
-import type {
-  UserCalendarFetchedTopicEndpointConfig,
-  UserLiveIndexStoreEndpointConfig
-} from '@services/stores/user-live-index-store';
+import type { UserLiveIndexStoreEndpointConfig } from '@services/stores/user-live-index-store';
 import { from } from 'env-var';
 
 export function readEnv(): Environment {
@@ -122,6 +121,16 @@ export function readCronRunConfig(env: Environment): CronRunEndpointConfig {
   return {
     cronRunConfig: {
       windowInMinutes: env.get('RUN_TIME_WINDOW_PERIOD_MINUTES').required().asIntPositive()
+    }
+  };
+}
+
+export function readActionableEventFoundTopicConfig(
+  env: Environment
+): ActionableEventFoundTopicEndpointConfig {
+  return {
+    actionableEventFoundTopicConfig: {
+      topicArn: env.get('ACTIONABLE_EVENT_FOUND_ARN').required().asString() as AwsArn
     }
   };
 }

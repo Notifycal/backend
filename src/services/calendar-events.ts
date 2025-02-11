@@ -1,7 +1,6 @@
 import type { GoogleOAuthConfig, IdpConfigs } from '@model/Config';
-import type { UserGoogleAuthorization } from '@model/IdpAuthorization';
+import type { AuthorizationForIdp, UserGoogleAuthorization } from '@model/IdpAuthorization';
 import type { ServiceResponse } from '@model/ServiceResponse';
-import type { UserIdpAuthorizationStoreRecord } from '@model/store/UserIdpAuthorizationStoreRecord';
 import type { CalendarEvent, CalendarId, DateTime, IdpName } from '@notifycal/shared/types';
 import { match } from 'ts-pattern';
 import { GoogleCalendar } from './google/calendar';
@@ -30,7 +29,7 @@ export function eventsStartTimeWithin(
   lowerBoundStartTime: DateTime,
   upperBoundStartTime: DateTime,
   includeAllDayEvents: boolean,
-  idpAuthorization: UserIdpAuthorizationStoreRecord<IdpName>,
+  idpAuthorization: AuthorizationForIdp<IdpName>,
   idp: IdpName,
   idpConfigs: IdpConfigs
 ): Promise<ServiceResponse<CalendarEvent>> {
@@ -41,7 +40,7 @@ export function eventsStartTimeWithin(
         lowerBoundStartTime,
         upperBoundStartTime,
         includeAllDayEvents,
-        idpAuthorization.IdpAuthorization,
+        idpAuthorization,
         idpConfigs[idp]
       )
     )

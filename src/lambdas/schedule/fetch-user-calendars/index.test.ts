@@ -19,7 +19,7 @@ import { UserLiveIndexStore } from '@services/stores/user-live-index-store';
 import { fakeScheduledEventBridgeEvent } from '@testing/event-bridge-event';
 import {
   setEnvCronRunConfig,
-  setEnvUserCalendarFetchedConfig,
+  setEnvUserCalendarFetchedTopicConfig,
   setEnvUserLiveStoreConfig
 } from '@testing/utils/config';
 import type { Context } from 'aws-lambda';
@@ -241,6 +241,6 @@ const defaultEnv: FetchUserCalendarsConfig = {
 
 function setEnv(config: FetchUserCalendarsConfig) {
   setEnvUserLiveStoreConfig(config.userLiveIndexStoreConfig);
-  setEnvUserCalendarFetchedConfig(config.userCalendarFetchedTopicConfig);
+  setEnvUserCalendarFetchedTopicConfig(config.userCalendarFetchedTopicConfig);
   setEnvCronRunConfig(config.cronRunConfig);
 }

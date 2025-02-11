@@ -1,7 +1,7 @@
 /* eslint-disable camelcase */
 import type { GoogleOAuthConfig } from '@model/Config';
 import type { ServiceResponse } from '@model/ServiceResponse';
-import { calendarSchema, calendarEventSchema } from '@notifycal/shared/schemas';
+import { calendarEventSchema, calendarSchema } from '@notifycal/shared/schemas';
 import type {
   Calendar,
   CalendarEvent,
@@ -74,6 +74,9 @@ export class GoogleCalendar extends BaseGoogle {
       const calendarEvent: Partial<CalendarEvent> = {
         id: item.id ?? undefined,
         description: item.summary ?? undefined,
+        attendees: (item.attendees || []).map((attendee) => ({
+          id: attendee.email as string // if null or undefined it will be caught later on parsing
+        })),
         ...this.extractDateTime(item.start)
       };
       return calendarEventSchema.parse(calendarEvent);

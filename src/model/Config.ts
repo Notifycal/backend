@@ -59,3 +59,11 @@ export interface IdpEndpointConfig {
 export interface SnsTopicConfig {
   topicArn: AwsArn;
 }
+
+export type UserCalendarFetchedTopicEndpointConfig = {
+  userCalendarFetchedTopicConfig: SnsTopicConfig;
+};
+
+export type ActionableEventFoundTopicEndpointConfig = {
+  actionableEventFoundTopicConfig: SnsTopicConfig;
+};

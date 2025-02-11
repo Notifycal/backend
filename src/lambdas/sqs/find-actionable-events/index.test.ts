@@ -1,5 +1,7 @@
 import type { SqsEvent } from '@aws-lambda-powertools/parser/types';
+import type { AwsArn } from '@own-types/model';
 import { userCalendarFetchedEvent } from '@testing/app-events';
+import { setEnvActionableEventFoundTopicConfig, setEnvIdpConfigs } from '@testing/utils/config';
 import type { Context } from 'aws-lambda';
 import type { SqsRecord } from 'node_modules/@aws-lambda-powertools/parser/lib/esm/types/schema';
 import { v4 } from 'uuid';
@@ -8,7 +10,18 @@ import { type Event, handler } from '.';
 import type { ActionableEventsConfig } from './config';
 import * as recordProcessor from './record-processor';
 
-const defaultEnv: ActionableEventsConfig = {};
+const defaultEnv: ActionableEventsConfig = {
+  actionableEventFoundTopicConfig: {
+    topicArn: 'someTopicArn' as AwsArn
+  },
+  idpConfigs: {
+    'google.com': {
+      clientId: 'mock-client-id',
+      clientSecret: 'mock-client-secret',
+      redirectUri: 'mock-redirect-uri'
+    }
+  }
+};
 const validUserCalendarFetchedEvent = userCalendarFetchedEvent;
 const validSqsRecord: SqsRecord = {
   body: JSON.stringify(validUserCalendarFetchedEvent),
@@ -37,7 +50,7 @@ const validSqsBatchEvent: SqsEvent = {
 
 describe('Find actionable events', () => {
   it('should parse config and events', () => {
-    vi.spyOn(recordProcessor, 'process').mockResolvedValue();
+    vi.spyOn(recordProcessor, 'recordProcessor').mockResolvedValue();
     return testit(validSqsBatchEvent).then((r) => {
       expect(r).toStrictEqual({
         batchItemFailures: []
@@ -47,7 +60,7 @@ describe('Find actionable events', () => {
 
   it('should indicate partial failure in response', () => {
     const processorSpy = vi
-      .spyOn(recordProcessor, 'process')
+      .spyOn(recordProcessor, 'recordProcessor')
       .mockResolvedValueOnce()
       .mockImplementation(() => {
         throw new Error('Boom!');
@@ -65,7 +78,7 @@ describe('Find actionable events', () => {
   });
 
   it('should throw an error if processing of every item fails', () => {
-    vi.spyOn(recordProcessor, 'process').mockRejectedValue(new Error('Boom!'));
+    vi.spyOn(recordProcessor, 'recordProcessor').mockRejectedValue(new Error('Boom!'));
     return expect(testit(validSqsBatchEvent)).rejects.toThrow(
       'All records failed processing. See individual errors below.'
     );
@@ -87,5 +100,6 @@ function testit(event: SqsEvent, config: ActionableEventsConfig = defaultEnv): P
 }
 
 function setEnv(config: ActionableEventsConfig) {
-  console.log(`TODO. Just to avoid errors meanwhile ${JSON.stringify(config)}`);
+  setEnvActionableEventFoundTopicConfig(config.actionableEventFoundTopicConfig);
+  setEnvIdpConfigs(config.idpConfigs);
 }

@@ -1,6 +1,6 @@
 import type { GoogleOAuthConfig } from '@model/Config';
+import type { AuthorizationForIdp } from '@model/IdpAuthorization';
 import type { ServiceResponse } from '@model/ServiceResponse';
-import type { UserIdpAuthorizationStoreRecord } from '@model/store/UserIdpAuthorizationStoreRecord';
 import type { CalendarEvent, CalendarId, DateTime, IdpName } from '@notifycal/shared/types';
 import { describe, expect, it, vi } from 'vitest';
 import { eventsStartTimeWithin } from './calendar-events';
@@ -10,10 +10,8 @@ describe('Calendar Events Service', () => {
   const calendarId: CalendarId = 'test-calendar-id' as CalendarId;
   const lowerBoundStartTime: DateTime = '2025-02-01T00:00:00Z' as DateTime;
   const upperBoundStartTime: DateTime = '2025-03-01T00:00:00Z' as DateTime;
-  const idpAuthorization: UserIdpAuthorizationStoreRecord<IdpName> = {
-    IdpAuthorization: {
-      refreshToken: 'test-refresh-token'
-    }
+  const idpAuthorization: AuthorizationForIdp<IdpName> = {
+    refreshToken: 'test-refresh-token'
   };
   const idpConfigs = {
     'google.com': {
@@ -30,7 +28,12 @@ describe('Calendar Events Service', () => {
           id: 'event1',
           startTime: '2025-02-15T10:00:00Z' as DateTime,
           isAllDayEvent: false,
-          description: 'someEventDescription'
+          description: 'someEventDescription',
+          attendees: [
+            {
+              id: 'someIdpIdentifier'
+            }
+          ]
         }
       ],
       failureList: []
@@ -76,7 +79,12 @@ describe('Calendar Events Service', () => {
           id: 'event2',
           startTime: '2025-02-10T00:00:00Z' as DateTime,
           isAllDayEvent: true,
-          description: 'someDescription'
+          description: 'someDescription',
+          attendees: [
+            {
+              id: 'someIdpIdentifier'
+            }
+          ]
         }
       ],
       failureList: []

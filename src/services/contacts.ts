@@ -1,6 +1,5 @@
 import type { GoogleOAuthConfig, IdpConfigs } from '@model/Config';
-import type { UserGoogleAuthorization } from '@model/IdpAuthorization';
-import type { UserIdpAuthorizationStoreRecord } from '@model/store/UserIdpAuthorizationStoreRecord';
+import type { AuthorizationForIdp, UserGoogleAuthorization } from '@model/IdpAuthorization';
 import type { Email, IdpName, PhoneNumber } from '@notifycal/shared/types';
 import { match } from 'ts-pattern';
 import { GooglePeople } from './google/people';
@@ -17,13 +16,11 @@ function googlePhoneNumberBy(
 
 export function phoneNumberByEmail(
   email: Email,
-  idpAuthorization: UserIdpAuthorizationStoreRecord<IdpName>,
+  idpAuthorization: AuthorizationForIdp<IdpName>,
   idp: IdpName,
   idpConfigs: IdpConfigs
 ): Promise<Array<PhoneNumber> | undefined> {
   return match(idp)
-    .with('google.com', (idp) =>
-      googlePhoneNumberBy(email, idpAuthorization.IdpAuthorization, idpConfigs[idp])
-    )
+    .with('google.com', (idp) => googlePhoneNumberBy(email, idpAuthorization, idpConfigs[idp]))
     .exhaustive();
 }
