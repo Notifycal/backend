@@ -1,10 +1,12 @@
 import { JSONStringified } from '@aws-lambda-powertools/parser/helpers';
 import { SqsSchema } from '@aws-lambda-powertools/parser/schemas';
 import type { SQSEvent } from 'aws-lambda';
-import { type ZodSchema, z } from 'zod';
+import { z } from 'zod';
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, @typescript-eslint/explicit-module-boundary-types
-export function eventSqsSchema<TLambdaConfig>(recordBodySchema: ZodSchema) {
+export function eventSqsSchema<TLambdaConfig, TSchema extends z.AnyZodObject>(
+  recordBodySchema: TSchema
+) {
   const schema = SqsSchema.extend({
     lambdaConfig: z.custom<TLambdaConfig>()
   });
