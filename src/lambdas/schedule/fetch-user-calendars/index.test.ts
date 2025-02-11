@@ -17,7 +17,11 @@ import type { AwsArn } from '@own-types/model';
 import * as snsService from '@services/sns';
 import { UserLiveIndexStore } from '@services/stores/user-live-index-store';
 import { fakeScheduledEventBridgeEvent } from '@testing/event-bridge-event';
-import { setEnvUserCalendarFetchedConfig, setEnvUserLiveStoreConfig } from '@testing/utils/config';
+import {
+  setEnvCronRunConfig,
+  setEnvUserCalendarFetchedConfig,
+  setEnvUserLiveStoreConfig
+} from '@testing/utils/config';
 import type { Context } from 'aws-lambda';
 import { describe, expect, it, vi } from 'vitest';
 import type { FetchUserCalendarsConfig } from './config';
@@ -229,10 +233,14 @@ const defaultEnv: FetchUserCalendarsConfig = {
   },
   userCalendarFetchedTopicConfig: {
     topicArn: 'arn:aws:sns:eu-west-1:123000000000:mock-user-calendar-fetched-local.fifo' as AwsArn
+  },
+  cronRunConfig: {
+    windowInMinutes: 30
   }
 };
 
 function setEnv(config: FetchUserCalendarsConfig) {
   setEnvUserLiveStoreConfig(config.userLiveIndexStoreConfig);
   setEnvUserCalendarFetchedConfig(config.userCalendarFetchedTopicConfig);
+  setEnvCronRunConfig(config.cronRunConfig);
 }

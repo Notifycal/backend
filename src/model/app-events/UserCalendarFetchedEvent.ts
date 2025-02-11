@@ -3,6 +3,10 @@ import { baseEventSchema } from './BaseEvent';
 
 export const userCalendarFetchedEventSchema = baseEventSchema.extend({
   data: z.object({
+    run: z.object({
+      lowerBoundStartTime: z.string().brand('DateTime'),
+      upperBoundStartTime: z.string().brand('DateTime')
+    }),
     calendar: z.object({
       id: z.string().brand('CalendarId'),
       name: z.string().brand('CalendarName')

@@ -1,6 +1,9 @@
 import { backgroundProcessingMiddleware } from '@common/lambda-middleware';
 import { logger } from '@common/powertools';
-import type { UserCalendarFetchedEvent } from '@model/app-events/UserCalendarFetchedEvent';
+import type {
+  UserCalendarFetchedEvent,
+  userCalendarFetchedEventSchema
+} from '@model/app-events/UserCalendarFetchedEvent';
 import { eventBridgeEventSchema } from '@model/lambda-events/EventBridgeEvents';
 import type { LiveUserStoreRecord } from '@model/store/LiveUserStoreRecord';
 import type { UserIdpAuthorizationStoreRecord } from '@model/store/UserIdpAuthorizationStoreRecord';
@@ -8,19 +11,22 @@ import type { CorrelationId, DateTime, EventId, TemplateId } from '@notifycal/sh
 import { extractErrorMessage } from '@services/common/error-handling';
 import { SnsService } from '@services/sns';
 import { UserLiveIndexStore } from '@services/stores/user-live-index-store';
+import type { Context } from 'aws-lambda';
+import dayjs from 'dayjs';
 import { v4 } from 'uuid';
 import type { z } from 'zod';
 import { readFetchUserCalendarsConfig, type FetchUserCalendarsConfig } from './config';
-import type { Context } from 'aws-lambda';
 
 const eventSchema = eventBridgeEventSchema<FetchUserCalendarsConfig>();
 export type Event = z.infer<typeof eventSchema>;
 
 function toEvents(
-  item: LiveUserStoreRecord<'google.com'> & UserIdpAuthorizationStoreRecord<'google.com'>
+  item: LiveUserStoreRecord<'google.com'> & UserIdpAuthorizationStoreRecord<'google.com'>,
+  run: z.infer<typeof userCalendarFetchedEventSchema.shape.data.shape.run>
 ): Array<UserCalendarFetchedEvent> {
   const pageData = item.Config.calendars.map((c) => ({
     calendar: c,
+    run: run,
     template: {
       id: 'some-template-id' as TemplateId,
       fields: {
@@ -57,6 +63,17 @@ async function lambdaHandler(event: Event, context: Context): Promise<void> {
   const userLiveProvider = UserLiveIndexStore.withConfig(userLiveIndexStoreConfig);
   const snsService = SnsService.withConfig(userCalendarFetchedTopicConfig);
 
+  const windowStart = dayjs(event.time).add(24, 'hours');
+  const run = {
+    lowerBoundStartTime: windowStart.toISOString() as DateTime,
+    upperBoundStartTime: windowStart
+      .add(event.lambdaConfig.cronRunConfig.windowInMinutes, 'minutes')
+      .subtract(1, 'millisecond')
+      .toISOString() as DateTime
+  };
+  logger.info(
+    `Starting run corresponding to cron ${event.time}. Time window: [${run.lowerBoundStartTime}, ${run.upperBoundStartTime}]`
+  );
   let totalPages = 0;
   let totalItems = 0;
   try {
@@ -67,7 +84,7 @@ async function lambdaHandler(event: Event, context: Context): Promise<void> {
 
       await Promise.allSettled(
         liveUsersPage
-          .flatMap((user) => toEvents(user))
+          .flatMap((user) => toEvents(user, run))
           .map((event) => snsService.publishEvent(event))
       );
       totalPages += 1;

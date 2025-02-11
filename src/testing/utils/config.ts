@@ -1,3 +1,4 @@
+import type { CronRunConfig } from '@lambdas/schedule/fetch-user-calendars/config';
 import type {
   BaseConfig,
   DecodeAccessJwtConfig,
@@ -62,6 +63,10 @@ export function setEnvUserLiveStoreConfig(config: UserLiveIndexStoreConfig): voi
 
 export function setEnvUserCalendarFetchedConfig(config: SnsTopicConfig): void {
   process.env.USER_CALENDAR_FETCHED_TOPIC_ARN = config.topicArn;
+}
+
+export function setEnvCronRunConfig(config: CronRunConfig): void {
+  process.env.RUN_TIME_WINDOW_PERIOD_MINUTES = config.windowInMinutes.toString();
 }
 
 export function setEnvRefreshTokenBaseStoreConfig(config: RefreshTokenBaseStoreConfig): void {
