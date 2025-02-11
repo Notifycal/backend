@@ -1,18 +1,29 @@
+import { BatchProcessor, EventType, processPartialResponse } from '@aws-lambda-powertools/batch';
+import type { PartialItemFailureResponse } from '@aws-lambda-powertools/batch/types';
 import { backgroundProcessingMiddleware } from '@common/lambda-middleware';
 import { logger } from '@common/powertools';
 import { userCalendarFetchedEventSchema } from '@model/app-events/UserCalendarFetchedEvent';
 import { eventSqsSchema } from '@model/lambda-events/SqsEvents';
+import type { Context } from 'aws-lambda';
 import type { z } from 'zod';
 import { readActionableEventsConfig, type ActionableEventsConfig } from './config';
-import type { Context } from 'aws-lambda';
+import { process } from './record-processor';
 
-const eventSchema = eventSqsSchema<ActionableEventsConfig>(userCalendarFetchedEventSchema);
+const eventSchema = eventSqsSchema<ActionableEventsConfig, typeof userCalendarFetchedEventSchema>(
+  userCalendarFetchedEventSchema
+);
 export type Event = z.infer<typeof eventSchema>;
+export type Record = z.infer<typeof eventSchema.shape.Records.element>;
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function lambdaHandler(event: Event, context: Context): Promise<void> {
+function recordHandler(record: Record): Promise<void> {
+  return process(record);
+}
+
+function lambdaHandler(event: Event, context: Context): Promise<PartialItemFailureResponse> {
   logger.info(`Processing sqs message in second lambda. Event: ${JSON.stringify(event)}`);
-  return Promise.resolve();
+  return processPartialResponse(event, recordHandler, new BatchProcessor(EventType.SQS), {
+    context
+  });
 }
 export const handler = backgroundProcessingMiddleware(
   () => readActionableEventsConfig(),
