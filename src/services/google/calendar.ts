@@ -1,11 +1,7 @@
 /* eslint-disable camelcase */
 import type { GoogleOAuthConfig } from '@model/Config';
-import {
-  calendarSchema,
-  type Calendar,
-  type CalendarId,
-  type CalendarName
-} from '@notifycal/shared/types';
+import type { Calendar, CalendarId, CalendarName } from '@notifycal/shared/types';
+import { calendarSchema } from '@notifycal/shared/schemas';
 import { throwError } from '@services/common/error-handling';
 import { google, type calendar_v3 } from 'googleapis';
 import { z } from 'zod';

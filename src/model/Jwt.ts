@@ -3,9 +3,9 @@ import {
   idpIdSchema,
   unixTimestampSchema,
   userIdSchema,
-  uuidSchema,
-  type IdpName
-} from '@notifycal/shared/types';
+  uuidSchema
+} from '@notifycal/shared/schemas';
+import type { IdpName } from '@notifycal/shared/types';
 import { z } from 'zod';
 
 export const jwtHeaderSchema = z.object({

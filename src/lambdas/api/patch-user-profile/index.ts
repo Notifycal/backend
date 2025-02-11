@@ -1,7 +1,7 @@
 import { JSONStringified } from '@aws-lambda-powertools/parser/helpers';
 import { protectedEndpointMiddleware } from '@common/lambda-middleware';
 import { authedEventSchema } from '@model/lambda-events/ApiGatewayEvents';
-import { reminderConfigSchema } from '@notifycal/shared/types';
+import { reminderConfigSchema } from '@notifycal/shared/schemas';
 import { errorHandler, successHandler } from '@services/common/api-response-handlers';
 import { UserBaseStore } from '@services/stores/user-base-store';
 import type { APIGatewayProxyResult, Context } from 'aws-lambda';
