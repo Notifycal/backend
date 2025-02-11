@@ -24,6 +24,15 @@ variable "queue_config" {
   }
 }
 
+variable "redrive_policy" {
+  type = object({
+    max_receive_count = number
+    dead_letter_target_arn = string
+  })
+
+  default = null
+}
+
 variable "tags" {
   type    = map(string)
   default = {}

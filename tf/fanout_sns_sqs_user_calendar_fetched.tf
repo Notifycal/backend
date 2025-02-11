@@ -17,4 +17,9 @@ module "user_calendar_fetched_queue" {
   sender_arn   = module.user_calendar_fetched_topic.sns_topic_arn
   receiver_arn = module.find_actionable_events_lambda.lambda_function_arn
   tags         = local.common_tags
+
+  redrive_policy = {
+    max_receive_count = 2
+    dead_letter_target_arn = aws_sqs_queue.global_dlq.arn
+  }
 }

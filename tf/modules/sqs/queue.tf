@@ -9,6 +9,11 @@ resource "aws_sqs_queue" "queue" {
   receive_wait_time_seconds   = null // default 0 seconds
   visibility_timeout_seconds  = null // default 30 seconds Docs: https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-visibility-timeout.html
 
+  redrive_policy = try(jsonencode({
+    deadLetterTargetArn = var.redrive_policy.dead_letter_target_arn
+    maxReceiveCount = var.redrive_policy.max_receive_count
+  }), null)
+
   tags = var.tags
 }
 
