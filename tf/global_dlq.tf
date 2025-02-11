@@ -1,12 +1,19 @@
-resource "aws_sqs_queue" "global_dlq" {
-  name = "global-dlq-${var.environment}.fifo"
+resource "aws_sqs_queue" "global_dlq_sqs" {
+  name = "global-dlq-sqs-${var.environment}.fifo"
 
   fifo_queue                  = true
   content_based_deduplication = true
 }
 
+resource "aws_sqs_queue" "global_dlq_lambda" {
+  name = "global-dlq-lambda-${var.environment}"
+
+  fifo_queue                  = false
+  content_based_deduplication = false
+}
+
 resource "aws_sqs_queue_redrive_allow_policy" "dlq_redrive_allow_policy" {
-  queue_url = aws_sqs_queue.global_dlq.url
+  queue_url = aws_sqs_queue.global_dlq_sqs.url
 
   redrive_allow_policy = jsonencode({
     redrivePermission = "byQueue",
