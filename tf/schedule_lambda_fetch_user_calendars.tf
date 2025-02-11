@@ -1,10 +1,10 @@
 # Fetch user calendars or just fetch calendars? Isn't that implementation details?
 
 locals {
-  fetch_user_calendars_lambda_cron_schedule      = "cron(0/30 * * * ? *)"
+  fetch_user_calendars_lambda_cron_schedule                = "cron(0/30 * * * ? *)"
   fetch_user_calendars_lambda_cron_schedule_window_minutes = 30
-  fetch_user_calendars_lambda_function_name      = "fetch-user-calendars"
-  fetch_user_calendars_lambda_function_full_name = "${local.fetch_user_calendars_lambda_function_name}-${var.environment}"
+  fetch_user_calendars_lambda_function_name                = "fetch-user-calendars"
+  fetch_user_calendars_lambda_function_full_name           = "${local.fetch_user_calendars_lambda_function_name}-${var.environment}"
 }
 
 data "aws_iam_policy_document" "fetch_user_calendars_iam_policydoc" {
