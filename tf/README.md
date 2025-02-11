@@ -12,7 +12,7 @@
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 5.86.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 5.86.1 |
 | <a name="provider_awscc"></a> [awscc](#provider\_awscc) | 1.28.0 |
 | <a name="provider_tls"></a> [tls](#provider\_tls) | 4.0.6 |
 
