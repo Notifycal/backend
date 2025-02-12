@@ -8,7 +8,8 @@ import type {
   DateTime,
   Email,
   EventId,
-  PhoneNumber
+  PhoneNumber,
+  TimeZone
 } from '@notifycal/shared/types';
 import { eventsStartTimeWithin } from '@services/calendar-events';
 import { phoneNumberByEmail } from '@services/contacts';
@@ -22,9 +23,10 @@ import { publishToDlq } from './dlq';
 function interpolateMessage(
   businessName: BusinessName,
   businessAddress: BusinessAddress,
-  startTime: DateTime
+  startTime: DateTime,
+  timeZone: TimeZone
 ): string {
-  const dateTime = DT.fromISO(startTime); // TODO make sure it is date time of calendar timezone?
+  const dateTime = DT.fromISO(startTime, { zone: timeZone });
   return `Tienes una cita con ${businessName} en ${businessAddress} el dia ${dateTime.get('day')}/${dateTime.get('month')} a las ${dateTime.get('hour')}:${dateTime.get('minute')}. En caso de no poder asistir, pongase en contacto con nosotros. Este mensaje ha sido enviado con Notifycal.es`;
 }
 
@@ -103,7 +105,8 @@ function buildActionableEvents(
         message: interpolateMessage(
           event.data.template.fields.business.name,
           event.data.template.fields.business.address,
-          calendarEvent.startTime
+          calendarEvent.startTime,
+          calendarEvent.timeZone
         )
       },
       sensitiveData: {
