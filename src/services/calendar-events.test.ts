@@ -1,7 +1,13 @@
 import type { GoogleOAuthConfig } from '@model/Config';
 import type { AuthorizationForIdp } from '@model/IdpAuthorization';
 import type { ServiceResponse } from '@model/ServiceResponse';
-import type { CalendarEvent, CalendarId, DateTime, IdpName } from '@notifycal/shared/types';
+import type {
+  CalendarEvent,
+  CalendarId,
+  DateTime,
+  IdpName,
+  TimeZone
+} from '@notifycal/shared/types';
 import { describe, expect, it, vi } from 'vitest';
 import { eventsStartTimeWithin } from './calendar-events';
 import { GoogleCalendar } from './google/calendar';
@@ -27,6 +33,7 @@ describe('Calendar Events Service', () => {
         {
           id: 'event1',
           startTime: '2025-02-15T10:00:00Z' as DateTime,
+          timeZone: 'Europe/Madrid' as TimeZone,
           isAllDayEvent: false,
           description: 'someEventDescription',
           attendees: [
@@ -78,6 +85,7 @@ describe('Calendar Events Service', () => {
         {
           id: 'event2',
           startTime: '2025-02-10T00:00:00Z' as DateTime,
+          timeZone: 'Europe/Madrid' as TimeZone,
           isAllDayEvent: true,
           description: 'someDescription',
           attendees: [

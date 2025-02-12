@@ -11,6 +11,7 @@ import type {
   IdpId,
   PhoneNumber,
   TemplateId,
+  TimeZone,
   UserId
 } from '@notifycal/shared/types';
 import type { AwsArn } from '@own-types/model';
@@ -95,7 +96,8 @@ const validEvents: Array<CalendarEvent> = [
     id: 'event-1',
     attendees: [{ id: 'attendee@test.com' }],
     isAllDayEvent: false,
-    startTime: '2024-01-02T15:05:00Z' as DateTime
+    startTime: '2024-01-02T15:05:00Z' as DateTime,
+    timeZone: 'Europe/Madrid' as TimeZone
   }
 ];
 
@@ -138,13 +140,15 @@ describe('Find actionable events record processor', () => {
         id: 'event-1',
         attendees: [{ id: 'attendee1@test.com' }],
         isAllDayEvent: true,
-        startTime: '2024-01-02T10:29:59.000Z' as DateTime
+        startTime: '2024-01-02T10:29:59.000Z' as DateTime,
+        timeZone: 'Europe/Madrid' as TimeZone
       },
       {
         id: 'event-2',
         attendees: [{ id: 'attendee2@test.com' }],
         isAllDayEvent: false,
-        startTime: '2024-01-02T10:29:59.000Z' as DateTime
+        startTime: '2024-01-02T10:29:59.000Z' as DateTime,
+        timeZone: 'Europe/Madrid' as TimeZone
       }
     ];
     const eventsStartTimeWithinFn = () =>
@@ -188,13 +192,15 @@ describe('Find actionable events record processor', () => {
         id: 'event-1',
         attendees: [{ id: 'attendee1@test.com' }],
         isAllDayEvent: false,
-        startTime: '2024-01-02T10:29:59Z' as DateTime
+        startTime: '2024-01-02T10:29:59Z' as DateTime,
+        timeZone: 'Europe/Madrid' as TimeZone
       },
       {
         id: 'event-2',
         attendees: [{ id: 'attendee2@test.com' }],
         isAllDayEvent: false,
-        startTime: '2024-01-02T10:29:59Z' as DateTime
+        startTime: '2024-01-02T10:29:59Z' as DateTime,
+        timeZone: 'Europe/Madrid' as TimeZone
       }
     ];
     const eventsStartTimeWithinFn = () =>
@@ -214,7 +220,8 @@ describe('Find actionable events record processor', () => {
         id: 'event-1',
         attendees: [{ id: 'attendee1@test.com' }, { id: 'attendee2@test.com' }],
         isAllDayEvent: false,
-        startTime: '2024-01-02T10:29:59Z' as DateTime
+        startTime: '2024-01-02T10:29:59Z' as DateTime,
+        timeZone: 'Europe/Madrid' as TimeZone
       }
     ];
     const eventsStartTimeWithinFn = () =>

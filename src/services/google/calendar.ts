@@ -7,7 +7,8 @@ import type {
   CalendarEvent,
   CalendarId,
   CalendarName,
-  DateTime
+  DateTime,
+  TimeZone
 } from '@notifycal/shared/types';
 import { extractErrorMessage, throwError } from '@services/common/error-handling';
 import { partitionByError } from '@utils/array';
@@ -32,7 +33,9 @@ export class GoogleCalendar extends BaseGoogle {
     includeAllDayEvents: boolean
   ): Promise<ServiceResponse<CalendarEvent>> {
     return this._eventsList(calendarId, lowerBoundStartTime, upperBoundStartTime).then((list) => {
-      const transformedList = list.map((e) => this.toCalendarEventEntry(e, calendarId));
+      const transformedList = (list.items || []).map((e) =>
+        this.toCalendarEventEntry(e, calendarId, list.timeZone || undefined)
+      );
       const [successList, failureList] = partitionByError(transformedList);
       const finalList = successList.filter((e) =>
         // In plain language, yield events which start time is within boundaries(inclusive). Also include all day events based on parameter.
@@ -68,15 +71,20 @@ export class GoogleCalendar extends BaseGoogle {
   // Docs: it includes events which start time happens between start and end inclusive and all day events too.
   private toCalendarEventEntry(
     item: calendar_v3.Schema$Event,
-    calendarId: CalendarId
+    calendarId: CalendarId,
+    calendarTimezone: string | undefined
   ): CalendarEvent | Error {
     try {
+      const timeZone =
+        (item.start?.dateTime as TimeZone) ??
+        (typeof calendarTimezone === 'string' ? (calendarTimezone as TimeZone) : undefined);
       const calendarEvent: Partial<CalendarEvent> = {
         id: item.id ?? undefined,
         description: item.summary ?? undefined,
         attendees: (item.attendees || []).map((attendee) => ({
           id: attendee.email as string // if null or undefined it will be caught later on parsing
         })),
+        timeZone: timeZone,
         ...this.extractDateTime(item.start)
       };
       return calendarEventSchema.parse(calendarEvent);
@@ -143,7 +151,7 @@ export class GoogleCalendar extends BaseGoogle {
     calendarId: CalendarId,
     upperBoundStartTime: DateTime,
     lowerBoundEndTime: DateTime
-  ): Promise<Array<calendar_v3.Schema$Event>> {
+  ): Promise<calendar_v3.Schema$Events> {
     const baseMsg = 'GET Events List';
     const calendar = google.calendar({ version: 'v3', auth: this._client });
     return calendar.events
@@ -155,7 +163,7 @@ export class GoogleCalendar extends BaseGoogle {
       })
       .then((response) => {
         if (response.status >= 200 && response.status <= 299) {
-          return response.data.items || [];
+          return response.data;
         } else {
           throwError(`${baseMsg}. Error in response: ${JSON.stringify(response)}`);
         }

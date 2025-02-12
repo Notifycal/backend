@@ -113,7 +113,7 @@ describe('GoogleCalendar Service eventsWithinPeriod', () => {
   const validEvent: calendar_v3.Schema$Event = {
     id: 'event1',
     summary: 'Meeting',
-    start: { dateTime: '2025-02-15T10:00:00Z' }
+    start: { dateTime: '2025-02-15T10:00:00Z', timeZone: 'Europe/Madrid' }
   };
 
   const validAllDayEvent: calendar_v3.Schema$Event = {
@@ -155,7 +155,10 @@ describe('GoogleCalendar Service eventsWithinPeriod', () => {
 
   it('should include all-day events if the flag is true', async () => {
     const eventsListFn = () =>
-      Promise.resolve({ data: { items: [validAllDayEvent] }, status: 200 } as GaxiosResponse);
+      Promise.resolve({
+        data: { items: [validAllDayEvent], timeZone: 'Europe/Madrid' },
+        status: 200
+      } as GaxiosResponse);
 
     const result = await testit(eventsListFn, true);
 
@@ -165,7 +168,10 @@ describe('GoogleCalendar Service eventsWithinPeriod', () => {
 
   it('should exclude all-day events if the flag is false', async () => {
     const eventsListFn = () =>
-      Promise.resolve({ data: { items: [validAllDayEvent] }, status: 200 } as GaxiosResponse);
+      Promise.resolve({
+        data: { items: [validAllDayEvent], timeZone: 'Europe/Madrid' },
+        status: 200
+      } as GaxiosResponse);
 
     const result = await testit(eventsListFn);
 
