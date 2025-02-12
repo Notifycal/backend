@@ -33,6 +33,30 @@ describe('GooglePeople Service', () => {
     });
   });
 
+  it('should return phone number list ordered. Mobile types first', () => {
+    const searchContactsFn = () =>
+      Promise.resolve({
+        ...validGooglePeopleResponse,
+        data: {
+          results: [
+            {
+              person: {
+                phoneNumbers: [
+                  { canonicalForm: '+2', type: 'main' },
+                  { canonicalForm: '+1', type: 'mobile' },
+                  { canonicalForm: '+3', type: 'home' }
+                ]
+              }
+            }
+          ]
+        }
+      });
+
+    return testit(searchContactsFn).then((result) => {
+      expect(result).toStrictEqual(['+1', '+2', '+3'] as Array<PhoneNumber>);
+    });
+  });
+
   it('should return undefined if no phone numbers are found', () => {
     const emptyResponse: GaxiosResponse<people_v1.Schema$SearchResponse> = {
       data: { results: [] },

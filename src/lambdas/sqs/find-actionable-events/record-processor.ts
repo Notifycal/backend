@@ -65,7 +65,7 @@ function fetchAttendeePhoneNumbers(
           return Promise.resolve([
             {
               calendarEvent: calendarEvent,
-              attendeePhoneNumber: phoneNumbers[0]
+              attendeePhoneNumber: phoneNumbers[0] // if attendee has more than 1 phone number set, pick the first one.
             }
           ]);
         } else {

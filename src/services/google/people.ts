@@ -21,7 +21,26 @@ export class GooglePeople extends BaseGoogle {
   private toPhoneNumber(item: people_v1.Schema$SearchResponse): Array<PhoneNumber> | undefined {
     const phoneNumbers = (item.results || []).flatMap((r) => {
       if (r.person && r.person.phoneNumbers) {
-        return r.person.phoneNumbers;
+        const order = [
+          'mobile',
+          'main',
+          'workMobile',
+          'home',
+          'work',
+          'pager',
+          'workPager',
+          'googleVoice',
+          'other',
+          'homeFax',
+          'workFax',
+          'otherFax'
+        ];
+        const orderMap = new Map(order.map((type, index) => [type, index]));
+        return r.person.phoneNumbers.sort((a, b) => {
+          const indexA = orderMap.get(a.type || order[order.length - 1]) ?? order.length;
+          const indexB = orderMap.get(b.type || order[order.length - 1]) ?? order.length;
+          return indexA - indexB;
+        });
       } else {
         return [];
       }
