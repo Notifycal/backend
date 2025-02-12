@@ -12,7 +12,7 @@ import { extractErrorMessage } from '@services/common/error-handling';
 import { SnsService } from '@services/sns';
 import { UserLiveIndexStore } from '@services/stores/user-live-index-store';
 import type { Context } from 'aws-lambda';
-import dayjs from 'dayjs';
+import { DateTime as DT } from 'luxon';
 import { v4 } from 'uuid';
 import type { z } from 'zod';
 import { readFetchUserCalendarsConfig, type FetchUserCalendarsConfig } from './config';
@@ -63,13 +63,13 @@ async function lambdaHandler(event: Event, context: Context): Promise<void> {
   const userLiveProvider = UserLiveIndexStore.withConfig(userLiveIndexStoreConfig);
   const snsService = SnsService.withConfig(userCalendarFetchedTopicConfig);
 
-  const windowStart = dayjs(event.time).add(24, 'hours');
+  const windowStart = DT.fromISO(event.time).toUTC().plus({ days: 1 });
   const run = {
-    lowerBoundStartTime: windowStart.toISOString() as DateTime,
+    lowerBoundStartTime: windowStart.toISO() as DateTime,
     upperBoundStartTime: windowStart
-      .add(event.lambdaConfig.cronRunConfig.windowInMinutes, 'minutes')
-      .subtract(1, 'millisecond')
-      .toISOString() as DateTime
+      .plus({ minutes: event.lambdaConfig.cronRunConfig.windowInMinutes })
+      .minus({ millisecond: 1 })
+      .toISO() as DateTime
   };
   logger.info(
     `Starting run corresponding to cron ${event.time}. Time window: [${run.lowerBoundStartTime}, ${run.upperBoundStartTime}]`

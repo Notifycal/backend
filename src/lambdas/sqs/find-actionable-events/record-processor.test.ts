@@ -27,15 +27,15 @@ const validRecord: Record = {
   body: {
     eventId: 'some-event-id' as EventId,
     eventType: 'UserCalendarFetched',
-    happenedAt: '2024-01-01T10:00:00Z' as DateTime,
+    happenedAt: '2024-01-01T15:00:00Z' as DateTime,
     correlationId: 'test-correlation-id' as CorrelationId,
     userId: 'test-user-id' as UserId,
     idp: 'google.com',
     idpId: 'test-idp-id' as IdpId,
     data: {
       run: {
-        lowerBoundStartTime: '2024-01-02T10:00:00Z' as DateTime,
-        upperBoundStartTime: '2024-01-02T10:29:59Z' as DateTime
+        lowerBoundStartTime: '2024-01-02T15:00:00Z' as DateTime,
+        upperBoundStartTime: '2024-01-02T15:29:59Z' as DateTime
       },
       calendar: {
         id: 'test-calendar-id' as CalendarId,
@@ -95,9 +95,11 @@ const validEvents: Array<CalendarEvent> = [
     id: 'event-1',
     attendees: [{ id: 'attendee@test.com' }],
     isAllDayEvent: false,
-    startTime: '' as DateTime
+    startTime: '2024-01-02T15:05:00Z' as DateTime
   }
 ];
+
+const validPhoneNumber: PhoneNumber = '+34666888999' as PhoneNumber;
 
 describe('Find actionable events record processor', () => {
   it('should process an event successfully and publish to SNS', async () => {
@@ -105,16 +107,75 @@ describe('Find actionable events record processor', () => {
     const publishToDlqSpy = vi.spyOn(dlq, 'publishToDlq').mockResolvedValue();
     const eventsStartTimeWithinFn = () =>
       Promise.resolve({ successList: validEvents, failureList: [] });
-    const phoneNumberByEmailFn = () => Promise.resolve(['+34666888999' as PhoneNumber]);
+    const phoneNumberByEmailFn = () => Promise.resolve([validPhoneNumber]);
     await testit(validRecord, eventsStartTimeWithinFn, phoneNumberByEmailFn);
+    const eventInRecord = validRecord.body;
 
     expect(publishEventSpy).toHaveBeenCalledTimes(1);
     expect(publishToDlqSpy).not.toHaveBeenCalled();
-    expect(eventsStartTimeWithin).toHaveBeenCalledTimes(1);
+    expect(eventsStartTimeWithin).toHaveBeenCalledWith(
+      eventInRecord.data.calendar.id,
+      eventInRecord.data.run.lowerBoundStartTime,
+      eventInRecord.data.run.upperBoundStartTime,
+      false,
+      eventInRecord.sensitiveData.idpAuthorization,
+      eventInRecord.idp,
+      defaultConfig.idpConfigs
+    );
     expect(phoneNumberByEmail).toHaveBeenCalledWith(
       'attendee@test.com',
-      validRecord.body.sensitiveData.idpAuthorization,
-      validRecord.body.idp,
+      eventInRecord.sensitiveData.idpAuthorization,
+      eventInRecord.idp,
+      defaultConfig.idpConfigs
+    );
+  });
+
+  it('should include all day events if it is the 10 oclock run', async () => {
+    const publishEventSpy = vi.spyOn(SnsService.prototype, 'publishEvent');
+    const publishToDlqSpy = vi.spyOn(dlq, 'publishToDlq').mockResolvedValue();
+    const multipleEvents: Array<CalendarEvent> = [
+      {
+        id: 'event-1',
+        attendees: [{ id: 'attendee1@test.com' }],
+        isAllDayEvent: true,
+        startTime: '2024-01-02T10:29:59.000Z' as DateTime
+      },
+      {
+        id: 'event-2',
+        attendees: [{ id: 'attendee2@test.com' }],
+        isAllDayEvent: false,
+        startTime: '2024-01-02T10:29:59.000Z' as DateTime
+      }
+    ];
+    const eventsStartTimeWithinFn = () =>
+      Promise.resolve({ successList: multipleEvents, failureList: [] });
+    const phoneNumberByEmailFn = () => Promise.resolve([validPhoneNumber]);
+    const validRecordAllDayEvents = {
+      ...validRecord,
+      body: {
+        ...validRecord.body,
+        data: {
+          ...validRecord.body.data,
+          run: {
+            lowerBoundStartTime: '2024-01-02T10:00:00.000Z' as DateTime,
+            upperBoundStartTime: '2024-01-02T10:29:59.000Z' as DateTime
+          }
+        }
+      }
+    };
+    await testit(validRecordAllDayEvents, eventsStartTimeWithinFn, phoneNumberByEmailFn);
+    const eventInRecord = validRecordAllDayEvents.body;
+
+    expect(publishEventSpy).toHaveBeenCalledTimes(2);
+    expect(publishToDlqSpy).not.toHaveBeenCalled();
+    expect(eventsStartTimeWithin).toHaveBeenCalledTimes(1);
+    expect(eventsStartTimeWithin).toHaveBeenCalledWith(
+      eventInRecord.data.calendar.id,
+      eventInRecord.data.run.lowerBoundStartTime,
+      eventInRecord.data.run.upperBoundStartTime,
+      true,
+      eventInRecord.sensitiveData.idpAuthorization,
+      eventInRecord.idp,
       defaultConfig.idpConfigs
     );
   });
@@ -138,7 +199,7 @@ describe('Find actionable events record processor', () => {
     ];
     const eventsStartTimeWithinFn = () =>
       Promise.resolve({ successList: multipleEvents, failureList: [] });
-    const phoneNumberByEmailFn = () => Promise.resolve(['+34666888999' as PhoneNumber]);
+    const phoneNumberByEmailFn = () => Promise.resolve([validPhoneNumber]);
     await testit(validRecord, eventsStartTimeWithinFn, phoneNumberByEmailFn);
 
     expect(publishEventSpy).toHaveBeenCalledTimes(2);
@@ -158,7 +219,7 @@ describe('Find actionable events record processor', () => {
     ];
     const eventsStartTimeWithinFn = () =>
       Promise.resolve({ successList: eventWithMultipleAttendees, failureList: [] });
-    const phoneNumberByEmailFn = () => Promise.resolve(['+34666888999' as PhoneNumber]);
+    const phoneNumberByEmailFn = () => Promise.resolve([validPhoneNumber]);
     await testit(validRecord, eventsStartTimeWithinFn, phoneNumberByEmailFn);
 
     expect(publishEventSpy).toHaveBeenCalledTimes(2);
@@ -178,7 +239,7 @@ describe('Find actionable events record processor', () => {
     expect(publishToDlqSpy).not.toHaveBeenCalled();
   });
 
-  it('should not publish if no valid events are found', async () => {
+  it('should finish processing sucessfully if no valid events are found', async () => {
     const publishEventSpy = vi.spyOn(SnsService.prototype, 'publishEvent');
     const publishToDlqSpy = vi.spyOn(dlq, 'publishToDlq').mockResolvedValue();
     const eventsStartTimeWithinFn = () => Promise.resolve({ successList: [], failureList: [] });
@@ -189,34 +250,35 @@ describe('Find actionable events record processor', () => {
     expect(publishToDlqSpy).not.toHaveBeenCalled();
   });
 
-  it('should not publish if eventsStartTimeWithin fails', async () => {
+  it('should throw an error if eventsStartTimeWithin fails. Retrying the whole record relying on idempotence', async () => {
     const publishEventSpy = vi.spyOn(SnsService.prototype, 'publishEvent');
     const publishToDlqSpy = vi.spyOn(dlq, 'publishToDlq').mockResolvedValue();
-    const eventsStartTimeWithinFn = () => Promise.reject(new Error('Boom!'));
-    const phoneNumberByEmailFn = () => Promise.resolve(['+34666888999' as PhoneNumber]);
+    const error = new Error('Boom!');
+    const eventsStartTimeWithinFn = () => Promise.reject(error);
+    const phoneNumberByEmailFn = () => Promise.resolve([validPhoneNumber]);
 
     await expect(
       testit(validRecord, eventsStartTimeWithinFn, phoneNumberByEmailFn)
-    ).rejects.toThrow('Boom!');
+    ).rejects.toThrow(error);
 
     expect(publishEventSpy).not.toHaveBeenCalled();
     expect(publishToDlqSpy).not.toHaveBeenCalled();
   });
 
-  it('should publish to DLQ if fetched events could not be parsed', async () => {
+  it('should publish to DLQ if some or all fetched events could not be parsed and keep processing', async () => {
     const publishEventSpy = vi.spyOn(SnsService.prototype, 'publishEvent');
     const publishToDlqSpy = vi.spyOn(dlq, 'publishToDlq').mockResolvedValue();
     const error = new Error(`Booom!`);
     const eventsStartTimeWithinFn = () =>
-      Promise.resolve({ successList: [], failureList: [error] });
-    const phoneNumberByEmailFn = () => Promise.resolve([]);
+      Promise.resolve({ successList: validEvents, failureList: [error] });
+    const phoneNumberByEmailFn = () => Promise.resolve([validPhoneNumber]);
     await testit(validRecord, eventsStartTimeWithinFn, phoneNumberByEmailFn);
 
-    expect(publishEventSpy).not.toHaveBeenCalled();
+    expect(publishEventSpy).toHaveBeenCalledTimes(1);
     expect(publishToDlqSpy).toHaveBeenCalledWith(error);
   });
 
-  it('should publish to DLQ if no phone number for an attendee', async () => {
+  it('should publish to DLQ if no phone number for an attendee and keep processing', async () => {
     const publishEventSpy = vi.spyOn(SnsService.prototype, 'publishEvent');
     const publishToDlqSpy = vi.spyOn(dlq, 'publishToDlq').mockResolvedValue();
     const eventsStartTimeWithinFn = () =>
@@ -230,14 +292,30 @@ describe('Find actionable events record processor', () => {
     );
   });
 
-  it('should throw an error if publishEvent fails', async () => {
+  it('should throw an error if phoneNumberByEmail fails. Retrying the whole record relying on idempotence', async () => {
+    const publishEventSpy = vi.spyOn(SnsService.prototype, 'publishEvent');
+    const publishToDlqSpy = vi.spyOn(dlq, 'publishToDlq').mockResolvedValue();
+    const error = new Error('Booom!');
+    const eventsStartTimeWithinFn = () =>
+      Promise.resolve({ successList: validEvents, failureList: [] });
+    const phoneNumberByEmailFn = () => Promise.reject(error);
+
+    await expect(
+      testit(validRecord, eventsStartTimeWithinFn, phoneNumberByEmailFn)
+    ).rejects.toThrow(error);
+
+    expect(publishEventSpy).not.toHaveBeenCalled();
+    expect(publishToDlqSpy).not.toHaveBeenCalled();
+  });
+
+  it('should throw an error if publishEvent fails. Retrying the whole record relying on idempotence', async () => {
     const publishEventSpy = vi
       .spyOn(SnsService.prototype, 'publishEvent')
       .mockRejectedValue(new Error('SNS Error'));
     const publishToDlqSpy = vi.spyOn(dlq, 'publishToDlq').mockResolvedValue();
     const eventsStartTimeWithinFn = () =>
       Promise.resolve({ successList: validEvents, failureList: [] });
-    const phoneNumberByEmailFn = () => Promise.resolve(['+34666888999' as PhoneNumber]);
+    const phoneNumberByEmailFn = () => Promise.resolve([validPhoneNumber]);
 
     await expect(
       testit(validRecord, eventsStartTimeWithinFn, phoneNumberByEmailFn)

@@ -13,7 +13,7 @@ import type {
 import { eventsStartTimeWithin } from '@services/calendar-events';
 import { phoneNumberByEmail } from '@services/contacts';
 import { SnsService } from '@services/sns';
-import dayjs from 'dayjs';
+import { DateTime as DT } from 'luxon';
 import { v4 } from 'uuid';
 import type { Record } from '.';
 import type { ActionableEventsConfig } from './config';
@@ -24,8 +24,8 @@ function interpolateMessage(
   businessAddress: BusinessAddress,
   startTime: DateTime
 ): string {
-  const dateTime = dayjs(startTime);
-  return `Tienes una cita con ${businessName} en ${businessAddress} el dia ${dateTime.get('day')}/${dateTime.get('month')} a las ${dateTime.get('hours')}:${dateTime.get('minutes')}. En caso de no poder asistir, pongase en contacto con nosotros. Este mensaje ha sido enviado con Notifycal.es`;
+  const dateTime = DT.fromISO(startTime); // TODO make sure it is date time of calendar timezone?
+  return `Tienes una cita con ${businessName} en ${businessAddress} el dia ${dateTime.get('day')}/${dateTime.get('month')} a las ${dateTime.get('hour')}:${dateTime.get('minute')}. En caso de no poder asistir, pongase en contacto con nosotros. Este mensaje ha sido enviado con Notifycal.es`;
 }
 
 function fetchCalendarEvents(
@@ -33,9 +33,9 @@ function fetchCalendarEvents(
   config: ActionableEventsConfig
 ): Promise<ServiceResponse<CalendarEvent>> {
   const { idpAuthorization } = event.sensitiveData;
-  const calendarEventStartTime = dayjs(event.data.run.lowerBoundStartTime);
+  const calendarEventStartTime = DT.fromISO(event.data.run.lowerBoundStartTime).toUTC();
   const includeAllDayEvents =
-    calendarEventStartTime.hour() === 10 && calendarEventStartTime.minute() === 0;
+    calendarEventStartTime.get('hour') === 10 && calendarEventStartTime.get('minute') === 0;
 
   return eventsStartTimeWithin(
     event.data.calendar.id,
