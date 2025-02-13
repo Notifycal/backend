@@ -1,4 +1,3 @@
-import type { GoogleOAuthConfig } from '@model/Config';
 import { ParsingError } from '@model/Errors';
 import type { AuthorizationForIdp } from '@model/IdpAuthorization';
 import type { ServiceResponse } from '@model/ServiceResponse';
@@ -19,13 +18,6 @@ describe('Calendar Events Service', () => {
   const upperBoundStartTime: DateTime = '2025-03-01T00:00:00Z' as DateTime;
   const idpAuthorization: AuthorizationForIdp<IdpName> = {
     refreshToken: 'test-refresh-token'
-  };
-  const idpConfigs = {
-    'google.com': {
-      clientId: 'test-client-id',
-      clientSecret: 'test-client-secret',
-      redirectUri: 'https://example.com/callback'
-    } as GoogleOAuthConfig
   };
 
   it('should fetch calendar events successfully', async () => {
@@ -50,7 +42,7 @@ describe('Calendar Events Service', () => {
     const result = await testit(() => Promise.resolve(mockServiceResponse));
 
     expect(result.successList).toHaveLength(1);
-    expect(result.successList![0].id).toBe('event1');
+    expect(result.successList[0].id).toBe('event1');
     expect(result.failureList).toHaveLength(0);
   });
 
@@ -102,7 +94,7 @@ describe('Calendar Events Service', () => {
     const result = await testit(() => Promise.resolve(mockServiceResponse));
 
     expect(result.successList).toHaveLength(1);
-    expect(result.successList![0].id).toBe('event2');
+    expect(result.successList[0].id).toBe('event2');
     expect(result.failureList).toHaveLength(0);
   });
 
@@ -122,8 +114,7 @@ describe('Calendar Events Service', () => {
       upperBoundStartTime,
       includeAllDayEvents,
       idpAuthorization,
-      'google.com',
-      idpConfigs
+      'google.com'
     );
   }
 });

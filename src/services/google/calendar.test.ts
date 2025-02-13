@@ -101,8 +101,7 @@ describe('GoogleCalendar Service calendarList', () => {
         list: vi.fn().mockImplementation(calendarListFn)
       }
     } as unknown as calendar_v3.Calendar);
-    const config = { clientId: 'id', clientSecret: 'secret', redirectUri: 'uri' };
-    return GoogleCalendar.withRefreshToken(config, '').calendarList();
+    return GoogleCalendar.withRefreshToken('some-refresh-token').calendarList();
   }
 });
 
@@ -135,7 +134,7 @@ describe('GoogleCalendar Service eventsWithinPeriod', () => {
     const result = await testit(eventsListFn);
 
     expect(result.successList).toHaveLength(1);
-    expect(result.successList![0].id).toBe('event1');
+    expect(result.successList[0].id).toBe('event1');
   });
 
   it('should filter out events outside the date bounds', async () => {
@@ -151,7 +150,7 @@ describe('GoogleCalendar Service eventsWithinPeriod', () => {
 
     const result = await testit(eventsListFn);
 
-    expect(result.successList).toBeUndefined();
+    expect(result.successList).toStrictEqual([]);
   });
 
   it('should include all-day events if the flag is true', async () => {
@@ -164,7 +163,7 @@ describe('GoogleCalendar Service eventsWithinPeriod', () => {
     const result = await testit(eventsListFn, true);
 
     expect(result.successList).toHaveLength(1);
-    expect(result.successList![0].id).toBe('event2');
+    expect(result.successList[0].id).toBe('event2');
   });
 
   it('should exclude all-day events if the flag is false', async () => {
@@ -176,7 +175,7 @@ describe('GoogleCalendar Service eventsWithinPeriod', () => {
 
     const result = await testit(eventsListFn);
 
-    expect(result.successList).toBeUndefined();
+    expect(result.successList).toStrictEqual([]);
   });
 
   it('should handle errors when event parsing fails', async () => {
@@ -197,7 +196,7 @@ describe('GoogleCalendar Service eventsWithinPeriod', () => {
 
     const result = await testit(eventsListFn);
 
-    expect(result.successList).toBeUndefined();
+    expect(result.successList).toStrictEqual([]);
     expect(result.failureList).toHaveLength(0);
   });
 
@@ -225,8 +224,7 @@ describe('GoogleCalendar Service eventsWithinPeriod', () => {
         list: vi.fn().mockImplementation(eventsListFn)
       }
     } as unknown as calendar_v3.Calendar);
-    const config = { clientId: 'id', clientSecret: 'secret', redirectUri: 'uri' };
-    return GoogleCalendar.withRefreshToken(config, '').eventsStartTimeWithin(
+    return GoogleCalendar.withRefreshToken('some-refresh-token').eventsStartTimeWithin(
       calendarId,
       lowerBoundStartTime,
       upperBoundStartTime,

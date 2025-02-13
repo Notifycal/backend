@@ -1,24 +1,20 @@
 import type {
   ActionableEventFoundTopicEndpointConfig,
-  DeadLetterQueueEndpointConfig,
-  IdpEndpointConfig
+  DeadLetterQueueEndpointConfig
 } from '@model/Config';
 import {
   readActionableEventFoundTopicConfig,
   readDeadLetterQueueConfig,
-  readEnv,
-  readIdpConfigs
+  readEnv
 } from '@services/common/config';
 
 export type ActionableEventsConfig = ActionableEventFoundTopicEndpointConfig &
-  DeadLetterQueueEndpointConfig &
-  IdpEndpointConfig;
+  DeadLetterQueueEndpointConfig;
 
 export function readActionableEventsConfig(): ActionableEventsConfig {
   const env = readEnv();
   return {
     ...readActionableEventFoundTopicConfig(env),
-    ...readDeadLetterQueueConfig(env),
-    ...readIdpConfigs(env)
+    ...readDeadLetterQueueConfig(env)
   };
 }
