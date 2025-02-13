@@ -85,13 +85,6 @@ const defaultConfig: ActionableEventsConfig = {
   },
   deadLetterQueueConfig: {
     queueUrl: 'http://aws.com/dlq' as Url
-  },
-  idpConfigs: {
-    'google.com': {
-      clientId: 'mock-client-id',
-      clientSecret: 'mock-client-secret',
-      redirectUri: 'mock-redirect-uri'
-    }
   }
 };
 
@@ -125,14 +118,12 @@ describe('Find actionable events record processor', () => {
       eventInRecord.data.run.upperBoundStartTime,
       false,
       eventInRecord.sensitiveData.idpAuthorization,
-      eventInRecord.idp,
-      defaultConfig.idpConfigs
+      eventInRecord.idp
     );
     expect(phoneNumberByEmail).toHaveBeenCalledWith(
       'attendee@test.com',
       eventInRecord.sensitiveData.idpAuthorization,
-      eventInRecord.idp,
-      defaultConfig.idpConfigs
+      eventInRecord.idp
     );
   });
 
@@ -183,8 +174,7 @@ describe('Find actionable events record processor', () => {
       eventInRecord.data.run.upperBoundStartTime,
       true,
       eventInRecord.sensitiveData.idpAuthorization,
-      eventInRecord.idp,
-      defaultConfig.idpConfigs
+      eventInRecord.idp
     );
   });
 

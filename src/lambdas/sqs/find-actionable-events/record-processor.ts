@@ -34,8 +34,7 @@ function interpolateMessage(
 }
 
 function fetchCalendarEvents(
-  event: Record['body'],
-  config: ActionableEventsConfig
+  event: Record['body']
 ): Promise<ServiceResponse<CalendarEvent, ParsingError>> {
   const { idpAuthorization } = event.sensitiveData;
   const calendarEventStartTime = DT.fromISO(event.data.run.lowerBoundStartTime).toUTC();
@@ -48,15 +47,13 @@ function fetchCalendarEvents(
     event.data.run.upperBoundStartTime,
     includeAllDayEvents,
     idpAuthorization,
-    event.idp,
-    config.idpConfigs
+    event.idp
   );
 }
 
 function fetchAttendeePhoneNumbers(
   calendarEvent: CalendarEvent,
   event: Record['body'],
-  config: ActionableEventsConfig,
   dqlService: DeadLetteringService
 ): Promise<Array<{ calendarEvent: CalendarEvent; attendeePhoneNumber: PhoneNumber }>> {
   return Promise.all(
@@ -64,8 +61,7 @@ function fetchAttendeePhoneNumbers(
       phoneNumberByEmail(
         attendee.id as Email,
         event.sensitiveData.idpAuthorization,
-        event.idp,
-        config.idpConfigs
+        event.idp
       ).then((phoneNumbers) => {
         if (phoneNumbers && phoneNumbers.length > 0) {
           return Promise.resolve([
@@ -130,7 +126,7 @@ export function recordProcessor(record: Record, config: ActionableEventsConfig):
   const dlqService = DeadLetteringService.withConfig(config.deadLetterQueueConfig);
   const event = record.body;
 
-  return fetchCalendarEvents(event, config)
+  return fetchCalendarEvents(event)
     .then(({ successList, failureList }) => {
       if ((successList && successList?.length > 0) || (failureList && failureList?.length > 0)) {
         return Promise.allSettled(
@@ -149,7 +145,7 @@ export function recordProcessor(record: Record, config: ActionableEventsConfig):
     .then((calendarEvents) =>
       Promise.all(
         calendarEvents.map((calendarEvent) =>
-          fetchAttendeePhoneNumbers(calendarEvent, event, config, dlqService)
+          fetchAttendeePhoneNumbers(calendarEvent, event, dlqService)
         )
       )
     )

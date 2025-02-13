@@ -1,13 +1,10 @@
-import type { SqsEvent } from '@aws-lambda-powertools/parser/types';
 import type { AwsArn, Url } from '@own-types/model';
 import { userCalendarFetchedEvent } from '@testing/app-events';
 import {
   setEnvActionableEventFoundTopicConfig,
-  setEnvDeadLetterQueueConfig,
-  setEnvIdpConfigs
+  setEnvDeadLetterQueueConfig
 } from '@testing/utils/config';
-import type { Context } from 'aws-lambda';
-import type { SqsRecord } from 'node_modules/@aws-lambda-powertools/parser/lib/esm/types/schema';
+import type { Context, SQSEvent, SQSRecord } from 'aws-lambda';
 import { v4 } from 'uuid';
 import { describe, expect, it, vi } from 'vitest';
 import { type Event, handler } from '.';
@@ -20,17 +17,10 @@ const defaultEnv: ActionableEventsConfig = {
   },
   deadLetterQueueConfig: {
     queueUrl: 'http://aws.com/dql' as Url
-  },
-  idpConfigs: {
-    'google.com': {
-      clientId: 'mock-client-id',
-      clientSecret: 'mock-client-secret',
-      redirectUri: 'mock-redirect-uri'
-    }
   }
 };
 const validUserCalendarFetchedEvent = userCalendarFetchedEvent;
-const validSqsRecord: SqsRecord = {
+const validSqsRecord: SQSRecord = {
   body: JSON.stringify(validUserCalendarFetchedEvent),
   messageId: v4(),
   receiptHandle: '',
@@ -51,7 +41,7 @@ const validSqsRecord: SqsRecord = {
   eventSourceARN: '',
   awsRegion: ''
 };
-const validSqsBatchEvent: SqsEvent = {
+const validSqsBatchEvent: SQSEvent = {
   Records: [validSqsRecord]
 };
 
@@ -72,8 +62,8 @@ describe('Find actionable events', () => {
       .mockImplementation(() => {
         throw new Error('Boom!');
       });
-    const eventError: SqsRecord = { ...validSqsRecord, messageId: 'messageWithErrorId' };
-    const validInput: SqsEvent = {
+    const eventError: SQSRecord = { ...validSqsRecord, messageId: 'messageWithErrorId' };
+    const validInput: SQSEvent = {
       Records: [validSqsRecord, eventError]
     };
     return testit(validInput).then((r) => {
@@ -94,14 +84,14 @@ describe('Find actionable events', () => {
   it('should fail to parse an event', () => {
     const invalidEvent = { Records: [{ someField: 'someValue' }] };
     return expect(
-      testit(invalidEvent as unknown as SqsEvent)
+      testit(invalidEvent as unknown as SQSEvent)
     ).toRejectWithErrorContainingMessageParts([
       'Lambda payload does not satisfy the schema. Error: Failed to parse schema. This error was caused by:'
     ]);
   });
 });
 
-function testit(event: SqsEvent, config: ActionableEventsConfig = defaultEnv): Promise<void> {
+function testit(event: SQSEvent, config: ActionableEventsConfig = defaultEnv): Promise<void> {
   setEnv(config);
   return handler(event as unknown as Event, {} as Context);
 }
@@ -109,5 +99,4 @@ function testit(event: SqsEvent, config: ActionableEventsConfig = defaultEnv): P
 function setEnv(config: ActionableEventsConfig) {
   setEnvActionableEventFoundTopicConfig(config.actionableEventFoundTopicConfig);
   setEnvDeadLetterQueueConfig(config.deadLetterQueueConfig);
-  setEnvIdpConfigs(config.idpConfigs);
 }

@@ -1,4 +1,3 @@
-import type { GoogleOAuthConfig, IdpConfigs } from '@model/Config';
 import type { ParsingError } from '@model/Errors';
 import type { AuthorizationForIdp, UserGoogleAuthorization } from '@model/IdpAuthorization';
 import type { ServiceResponse } from '@model/ServiceResponse';
@@ -11,13 +10,9 @@ function googleEventsStartTimeWithin(
   lowerBoundStartTime: DateTime,
   upperBoundStartTime: DateTime,
   includeAllDayEvents: boolean,
-  idpAuthorization: UserGoogleAuthorization,
-  idpConfig: GoogleOAuthConfig
+  idpAuthorization: UserGoogleAuthorization
 ): Promise<ServiceResponse<CalendarEvent, ParsingError>> {
-  return GoogleCalendar.withRefreshToken(
-    idpConfig,
-    idpAuthorization.refreshToken
-  ).eventsStartTimeWithin(
+  return GoogleCalendar.withRefreshToken(idpAuthorization.refreshToken).eventsStartTimeWithin(
     calendarId,
     lowerBoundStartTime,
     upperBoundStartTime,
@@ -31,18 +26,16 @@ export function eventsStartTimeWithin(
   upperBoundStartTime: DateTime,
   includeAllDayEvents: boolean,
   idpAuthorization: AuthorizationForIdp<IdpName>,
-  idp: IdpName,
-  idpConfigs: IdpConfigs
+  idp: IdpName
 ): Promise<ServiceResponse<CalendarEvent, ParsingError>> {
   return match(idp)
-    .with('google.com', (idp) =>
+    .with('google.com', () =>
       googleEventsStartTimeWithin(
         calendarId,
         lowerBoundStartTime,
         upperBoundStartTime,
         includeAllDayEvents,
-        idpAuthorization,
-        idpConfigs[idp]
+        idpAuthorization
       )
     )
     .exhaustive();
