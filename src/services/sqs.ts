@@ -8,7 +8,7 @@ import { logger } from '@common/powertools';
 import type { SqsQueueConfig } from '@model/Config';
 import type { BaseEvent } from '@model/app-events/BaseEvent';
 import { BaseAwsMessagingService } from './common/base-aws-messaging-service';
-import { extractErrorMessage } from './common/error-handling';
+import { extractErrorMessage, throwError } from './common/error-handling';
 
 export class SqsService extends BaseAwsMessagingService {
   private readonly _client: SQSClient;
@@ -38,13 +38,10 @@ export class SqsService extends BaseAwsMessagingService {
         );
         return result;
       },
-      (error) => {
-        logger.error(
+      (error) =>
+        throwError(
           `Error sending an event to SQS with id ${event.eventId}. Error: ${JSON.stringify(error)}. Extracted error: ${extractErrorMessage(error)}`
-        );
-        logger.info(`Moving on after error...`);
-        return {} as SendMessageCommandOutput;
-      }
+        )
     );
   }
 }

@@ -4,7 +4,7 @@ import { logger } from '@common/powertools';
 import type { SnsTopicConfig } from '@model/Config';
 import type { BaseEvent } from '@model/app-events/BaseEvent';
 import { BaseAwsMessagingService } from './common/base-aws-messaging-service';
-import { extractErrorMessage } from './common/error-handling';
+import { extractErrorMessage, throwError } from './common/error-handling';
 
 export class SnsService extends BaseAwsMessagingService {
   private readonly _client: SNSClient;
@@ -19,7 +19,10 @@ export class SnsService extends BaseAwsMessagingService {
     return new this(config);
   }
 
-  public publishEvent<TEvent extends BaseEvent>(event: TEvent): Promise<PublishCommandOutput> {
+  public publishEvent<TEvent extends BaseEvent>(
+    event: TEvent,
+    failureOnError: boolean = false
+  ): Promise<PublishCommandOutput> {
     const publishCommand = new PublishCommand({
       TopicArn: this._config.topicArn,
       Message: JSON.stringify(event),
@@ -35,11 +38,14 @@ export class SnsService extends BaseAwsMessagingService {
         return result;
       },
       (error) => {
-        logger.error(
-          `Error publishing an event to SNS with id ${event.eventId}. Error: ${JSON.stringify(error)}. Extracted error: ${extractErrorMessage(error)}`
-        );
-        logger.info(`Moving on after error...`);
-        return {} as PublishCommandOutput;
+        const msg = `Error publishing an event to SNS with id ${event.eventId}. Error: ${JSON.stringify(error)}. Extracted error: ${extractErrorMessage(error)}`;
+        if (failureOnError) {
+          throwError(msg);
+        } else {
+          logger.error(msg);
+          logger.info(`Moving on after error...`);
+          return {} as PublishCommandOutput;
+        }
       }
     );
   }

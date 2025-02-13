@@ -17,10 +17,19 @@ describe('Working with datetimes', () => {
   });
 
   it('handle timezones properly for display', () => {
-    const input = '2024-01-01T15:00:00.000Z';
+    const input = '2025-03-29T00:00:00.000Z';
 
     const result = DateTime.fromISO(input, { zone: 'Europe/Madrid' });
-    const expectedResultForMadrileanGuy = '2024-01-01T16:00:00.000+01:00';
+    const expectedResultForMadrileanGuy = '2025-03-29T01:00:00.000+01:00';
+
+    expect(result.toISO()).toStrictEqual(expectedResultForMadrileanGuy);
+  });
+
+  it('handle timezones properly for display - summertime', () => {
+    const input = '2025-03-30T10:00:00.000Z';
+
+    const result = DateTime.fromISO(input, { zone: 'Europe/Madrid' });
+    const expectedResultForMadrileanGuy = '2025-03-30T12:00:00.000+02:00';
 
     expect(result.toISO()).toStrictEqual(expectedResultForMadrileanGuy);
   });

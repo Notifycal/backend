@@ -18,6 +18,7 @@ import { eventsStartTimeWithin } from '@services/calendar-events';
 import { phoneNumberByEmail } from '@services/contacts';
 import { DeadLetteringService } from '@services/dead-lettering';
 import { SnsService } from '@services/sns';
+import { allSettledAllOrErrorHandler } from '@utils/promises';
 import { DateTime as DT } from 'luxon';
 import { v4 } from 'uuid';
 import type { Record } from '.';
@@ -56,7 +57,7 @@ function fetchAttendeePhoneNumbers(
   event: Record['body'],
   dqlService: DeadLetteringService
 ): Promise<Array<{ calendarEvent: CalendarEvent; attendeePhoneNumber: PhoneNumber }>> {
-  return Promise.all(
+  return Promise.allSettled(
     calendarEvent.attendees.map((attendee) =>
       phoneNumberByEmail(
         attendee.id as Email,
@@ -73,14 +74,16 @@ function fetchAttendeePhoneNumbers(
         } else {
           return dqlService
             .send(noPhoneNumberForAttendeeFound(event, calendarEvent, attendee.id))
-            .then(
-              () => [],
-              () => []
-            );
+            .then(() => []);
         }
       })
     )
-  ).then((results) => results.flat());
+  ).then((results) =>
+    allSettledAllOrErrorHandler(
+      results,
+      `fetch attendees' phone numbers for a calendar event ${calendarEvent.id}`
+    ).flat()
+  );
 }
 
 function buildActionableEvents(
@@ -143,21 +146,26 @@ export function recordProcessor(record: Record, config: ActionableEventsConfig):
       }
     })
     .then((calendarEvents) =>
-      Promise.all(
+      Promise.allSettled(
         calendarEvents.map((calendarEvent) =>
           fetchAttendeePhoneNumbers(calendarEvent, event, dlqService)
         )
       )
     )
-    .then((attendeePhoneNumbers) => {
-      const actionableEvents = buildActionableEvents(attendeePhoneNumbers.flat(), event);
-      return Promise.all(
-        actionableEvents.map((actionableEvent) => snsService.publishEvent(actionableEvent))
+    .then((results) =>
+      allSettledAllOrErrorHandler(results, 'fetch all atteendee phone number for every calendar')
+    )
+    .then((eventWithAttendeePhoneNumbers) => {
+      const actionableEvents = buildActionableEvents(eventWithAttendeePhoneNumbers.flat(), event);
+      return Promise.allSettled(
+        actionableEvents.map((actionableEvent) => {
+          const failureOnError = true;
+          return snsService.publishEvent(actionableEvent, failureOnError);
+        })
       );
     })
+    .then((results) => allSettledAllOrErrorHandler(results, 'publish actionable events'))
     .then(() => {
-      logger.info(
-        'ActionableEventFound events derived from UserCalendarFetched event have been published'
-      );
+      return;
     });
 }
