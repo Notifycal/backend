@@ -69,7 +69,7 @@ describe('GooglePeople Service', () => {
     const searchContactsFn = () => Promise.resolve(emptyResponse);
 
     return testit(searchContactsFn).then((result) => {
-      expect(result).toBeUndefined();
+      expect(result).toStrictEqual([]);
     });
   });
 
@@ -84,7 +84,7 @@ describe('GooglePeople Service', () => {
 
   function testit(
     searchContactsFn: () => Promise<GaxiosResponse<people_v1.Schema$SearchResponse>>
-  ): Promise<Array<PhoneNumber> | undefined> {
+  ): Promise<Array<PhoneNumber>> {
     vi.mock('googleapis');
     vi.mocked(google.people).mockReturnValue({
       people: {

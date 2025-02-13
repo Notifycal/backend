@@ -41,7 +41,7 @@ describe('Calendar Events Service', () => {
     const result = await testit(() => Promise.resolve(mockServiceResponse));
 
     expect(result.successList).toHaveLength(1);
-    expect(result.successList![0].id).toBe('event1');
+    expect(result.successList[0].id).toBe('event1');
     expect(result.failureList).toHaveLength(0);
   });
 
@@ -93,7 +93,7 @@ describe('Calendar Events Service', () => {
     const result = await testit(() => Promise.resolve(mockServiceResponse));
 
     expect(result.successList).toHaveLength(1);
-    expect(result.successList![0].id).toBe('event2');
+    expect(result.successList[0].id).toBe('event2');
     expect(result.failureList).toHaveLength(0);
   });
 

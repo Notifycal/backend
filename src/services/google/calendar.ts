@@ -36,7 +36,7 @@ export class GoogleCalendar extends ImpersonatedBaseGoogle {
         this.toCalendarEventEntry(e, calendarId, list.timeZone || undefined)
       );
       const [successList, failureList] = partitionByError(transformedList);
-      const finalList = successList.filter((e) =>
+      const finalSuccessList = successList.filter((e) =>
         // In plain language, yield events which start time is within boundaries(inclusive). Also include all day events based on parameter.
         // This is necessary due to Google Calendar API nature to be able to implement sliding windows so that we don't process events twice.
         {
@@ -52,11 +52,7 @@ export class GoogleCalendar extends ImpersonatedBaseGoogle {
           }
         }
       );
-      if (finalList.length > 0) {
-        return { successList: finalList, failureList: failureList };
-      } else {
-        return { successList: undefined, failureList: failureList };
-      }
+      return { successList: finalSuccessList, failureList: failureList };
     });
   }
 

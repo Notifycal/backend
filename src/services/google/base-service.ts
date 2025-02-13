@@ -38,7 +38,6 @@ export abstract class OAuthBaseGoogle extends BaseGoogle {
       this.setInterceptors(axios);
     }
   }
-
 }
 export abstract class ImpersonatedBaseGoogle extends BaseGoogle {
   protected _client: OAuth2Client;

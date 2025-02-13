@@ -35,8 +35,8 @@ describe('Contacts Service', () => {
     email: Email,
     idpAuthorization: AuthorizationForIdp<IdpName>,
     idp: IdpName,
-    googlePhoneNumbersFn: () => Promise<Array<PhoneNumber> | undefined>
-  ): Promise<Array<PhoneNumber> | undefined> {
+    googlePhoneNumbersFn: () => Promise<Array<PhoneNumber>>
+  ): Promise<Array<PhoneNumber>> {
     vi.mock('@services/google/people');
     const mockInstance2 = {
       getPhoneNumbersBy: vi.fn().mockImplementation(googlePhoneNumbersFn)

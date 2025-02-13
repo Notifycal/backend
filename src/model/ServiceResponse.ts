@@ -1,4 +1,4 @@
 export interface ServiceResponse<T> {
-  successList: Array<T> | undefined;
+  successList: Array<T>;
   failureList: Array<Error>;
 }
