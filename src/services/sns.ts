@@ -3,10 +3,10 @@ import { snsClient } from '@clients/sns';
 import { logger } from '@common/powertools';
 import type { SnsTopicConfig } from '@model/Config';
 import type { BaseEvent } from '@model/app-events/BaseEvent';
-import { BaseAwsService } from './common/base-aws-service';
+import { BaseAwsMessagingService } from './common/base-aws-messaging-service';
 import { extractErrorMessage } from './common/error-handling';
 
-export class SnsService extends BaseAwsService {
+export class SnsService extends BaseAwsMessagingService {
   private readonly _client: SNSClient;
   private readonly _config: SnsTopicConfig;
   private constructor(config: SnsTopicConfig) {

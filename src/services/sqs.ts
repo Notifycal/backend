@@ -7,10 +7,10 @@ import { sqsClient } from '@clients/sqs';
 import { logger } from '@common/powertools';
 import type { SqsQueueConfig } from '@model/Config';
 import type { BaseEvent } from '@model/app-events/BaseEvent';
-import { BaseAwsService } from './common/base-aws-service';
+import { BaseAwsMessagingService } from './common/base-aws-messaging-service';
 import { extractErrorMessage } from './common/error-handling';
 
-export class SqsService extends BaseAwsService {
+export class SqsService extends BaseAwsMessagingService {
   private readonly _client: SQSClient;
   private readonly _config: SqsQueueConfig;
   private constructor(config: SqsQueueConfig) {

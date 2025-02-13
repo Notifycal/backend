@@ -1,7 +1,7 @@
 import type { MessageAttributeValue } from '@aws-sdk/client-sns';
 import type { BaseEvent } from '@model/app-events/BaseEvent';
 
-export abstract class BaseAwsService {
+export abstract class BaseAwsMessagingService {
   protected messageAttributes(event: BaseEvent): Record<string, MessageAttributeValue> {
     return {
       EventId: {
