@@ -1,6 +1,6 @@
 import type { AwsArn } from '@own-types/model';
 import { userCalendarFetchedEvent } from '@testing/app-events';
-import { setEnvActionableEventFoundTopicConfig, setEnvIdpConfigs } from '@testing/utils/config';
+import { setEnvActionableEventFoundTopicConfig } from '@testing/utils/config';
 import type { Context, SQSEvent, SQSRecord } from 'aws-lambda';
 import { v4 } from 'uuid';
 import { describe, expect, it, vi } from 'vitest';
@@ -11,13 +11,6 @@ import * as recordProcessor from './record-processor';
 const defaultEnv: ActionableEventsConfig = {
   actionableEventFoundTopicConfig: {
     topicArn: 'someTopicArn' as AwsArn
-  },
-  idpConfigs: {
-    'google.com': {
-      clientId: 'mock-client-id',
-      clientSecret: 'mock-client-secret',
-      redirectUri: 'mock-redirect-uri'
-    }
   }
 };
 const validUserCalendarFetchedEvent = userCalendarFetchedEvent;
@@ -99,5 +92,4 @@ function testit(event: SQSEvent, config: ActionableEventsConfig = defaultEnv): P
 
 function setEnv(config: ActionableEventsConfig) {
   setEnvActionableEventFoundTopicConfig(config.actionableEventFoundTopicConfig);
-  setEnvIdpConfigs(config.idpConfigs);
 }

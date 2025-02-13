@@ -1,4 +1,3 @@
-import type { GoogleOAuthConfig } from '@model/Config';
 import type { AuthorizationForIdp } from '@model/IdpAuthorization';
 import type { ServiceResponse } from '@model/ServiceResponse';
 import type {
@@ -18,13 +17,6 @@ describe('Calendar Events Service', () => {
   const upperBoundStartTime: DateTime = '2025-03-01T00:00:00Z' as DateTime;
   const idpAuthorization: AuthorizationForIdp<IdpName> = {
     refreshToken: 'test-refresh-token'
-  };
-  const idpConfigs = {
-    'google.com': {
-      clientId: 'test-client-id',
-      clientSecret: 'test-client-secret',
-      redirectUri: 'https://example.com/callback'
-    } as GoogleOAuthConfig
   };
 
   it('should fetch calendar events successfully', async () => {
@@ -121,8 +113,7 @@ describe('Calendar Events Service', () => {
       upperBoundStartTime,
       includeAllDayEvents,
       idpAuthorization,
-      'google.com',
-      idpConfigs
+      'google.com'
     );
   }
 });

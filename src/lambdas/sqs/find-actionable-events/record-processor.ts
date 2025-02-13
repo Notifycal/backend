@@ -30,10 +30,7 @@ function interpolateMessage(
   return `Tienes una cita con ${businessName} en ${businessAddress} el dia ${dateTime.get('day')}/${dateTime.get('month')} a las ${dateTime.get('hour')}:${dateTime.get('minute')}. En caso de no poder asistir, pongase en contacto con nosotros. Este mensaje ha sido enviado con Notifycal.es`;
 }
 
-function fetchCalendarEvents(
-  event: Record['body'],
-  config: ActionableEventsConfig
-): Promise<ServiceResponse<CalendarEvent>> {
+function fetchCalendarEvents(event: Record['body']): Promise<ServiceResponse<CalendarEvent>> {
   const { idpAuthorization } = event.sensitiveData;
   const calendarEventStartTime = DT.fromISO(event.data.run.lowerBoundStartTime).toUTC();
   const includeAllDayEvents =
@@ -45,23 +42,20 @@ function fetchCalendarEvents(
     event.data.run.upperBoundStartTime,
     includeAllDayEvents,
     idpAuthorization,
-    event.idp,
-    config.idpConfigs
+    event.idp
   );
 }
 
 function fetchAttendeePhoneNumbers(
   calendarEvent: CalendarEvent,
-  event: Record['body'],
-  config: ActionableEventsConfig
+  event: Record['body']
 ): Promise<Array<{ calendarEvent: CalendarEvent; attendeePhoneNumber: PhoneNumber }>> {
   return Promise.all(
     calendarEvent.attendees.map((attendee) =>
       phoneNumberByEmail(
         attendee.id as Email,
         event.sensitiveData.idpAuthorization,
-        event.idp,
-        config.idpConfigs
+        event.idp
       ).then((phoneNumbers) => {
         if (phoneNumbers && phoneNumbers.length > 0) {
           return Promise.resolve([
@@ -123,7 +117,7 @@ export function recordProcessor(record: Record, config: ActionableEventsConfig):
   const snsService = SnsService.withConfig(config.actionableEventFoundTopicConfig);
   const event = record.body;
 
-  return fetchCalendarEvents(event, config)
+  return fetchCalendarEvents(event)
     .then(({ successList, failureList }) => {
       if ((successList && successList?.length > 0) || (failureList && failureList?.length > 0)) {
         return Promise.allSettled(failureList.map((f: Error) => publishToDlq(f))).then(
@@ -137,9 +131,7 @@ export function recordProcessor(record: Record, config: ActionableEventsConfig):
     })
     .then((calendarEvents) =>
       Promise.all(
-        calendarEvents.map((calendarEvent) =>
-          fetchAttendeePhoneNumbers(calendarEvent, event, config)
-        )
+        calendarEvents.map((calendarEvent) => fetchAttendeePhoneNumbers(calendarEvent, event))
       )
     )
     .then((attendeePhoneNumbers) => {

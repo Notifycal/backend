@@ -81,13 +81,6 @@ const validRecord: Record = {
 const defaultConfig: ActionableEventsConfig = {
   actionableEventFoundTopicConfig: {
     topicArn: 'arn:aws:sns:us-east-1:123456789012:test-topic' as AwsArn
-  },
-  idpConfigs: {
-    'google.com': {
-      clientId: 'mock-client-id',
-      clientSecret: 'mock-client-secret',
-      redirectUri: 'mock-redirect-uri'
-    }
   }
 };
 
@@ -121,14 +114,12 @@ describe('Find actionable events record processor', () => {
       eventInRecord.data.run.upperBoundStartTime,
       false,
       eventInRecord.sensitiveData.idpAuthorization,
-      eventInRecord.idp,
-      defaultConfig.idpConfigs
+      eventInRecord.idp
     );
     expect(phoneNumberByEmail).toHaveBeenCalledWith(
       'attendee@test.com',
       eventInRecord.sensitiveData.idpAuthorization,
-      eventInRecord.idp,
-      defaultConfig.idpConfigs
+      eventInRecord.idp
     );
   });
 
@@ -179,8 +170,7 @@ describe('Find actionable events record processor', () => {
       eventInRecord.data.run.upperBoundStartTime,
       true,
       eventInRecord.sensitiveData.idpAuthorization,
-      eventInRecord.idp,
-      defaultConfig.idpConfigs
+      eventInRecord.idp
     );
   });
 

@@ -1,4 +1,3 @@
-import type { IdpConfigs } from '@model/Config';
 import type { AuthorizationForIdp, UserGoogleAuthorization } from '@model/IdpAuthorization';
 import type { Calendar, CalendarId, CalendarName, IdpName, UserId } from '@notifycal/shared/types';
 import { v4 as uuid } from 'uuid';
@@ -8,13 +7,6 @@ import { GoogleCalendar } from './google/calendar';
 import { UserBaseStore, type UserBaseStoreConfig } from './stores/user-base-store';
 
 const validUserId: UserId = uuid() as UserId;
-const validIdpConfigs = {
-  'google.com': {
-    clientId: 'mock-client-id',
-    clientSecret: 'mock-client-secret',
-    redirectUri: 'mock-redirect-uri'
-  }
-};
 const validUserBaseStoreConfig = {
   tableName: 'Users-local'
 };
@@ -34,28 +26,18 @@ describe('Calendar Service', () => {
     const googleCalendarListFn = () => Promise.resolve(validCalendarList);
     const getIdpAuthorizationFn = () => Promise.resolve(validAuthorizationForIdp);
 
-    return testit(
-      validUserId,
-      validIdpName,
-      validIdpConfigs,
-      getIdpAuthorizationFn,
-      googleCalendarListFn
-    ).then((list) => {
-      expect(list).toStrictEqual(validCalendarList);
-    });
+    return testit(validUserId, validIdpName, getIdpAuthorizationFn, googleCalendarListFn).then(
+      (list) => {
+        expect(list).toStrictEqual(validCalendarList);
+      }
+    );
   });
 
   it('should throw an error if idp authorization was not present in persistance', () => {
     const googleCalendarListFn = () => Promise.resolve(validCalendarList);
     const getIdpAuthorizationFn = () => Promise.resolve(undefined);
 
-    const result = testit(
-      validUserId,
-      validIdpName,
-      validIdpConfigs,
-      getIdpAuthorizationFn,
-      googleCalendarListFn
-    );
+    const result = testit(validUserId, validIdpName, getIdpAuthorizationFn, googleCalendarListFn);
 
     return expect(result).rejects.toThrow(
       `Google Idp authorization could not be found in persistance for user id ${validUserId}`
@@ -67,13 +49,7 @@ describe('Calendar Service', () => {
     const googleCalendarListFn = () => Promise.resolve(validCalendarList);
     const getIdpAuthorizationFn = () => Promise.reject(error);
 
-    const result = testit(
-      validUserId,
-      validIdpName,
-      validIdpConfigs,
-      getIdpAuthorizationFn,
-      googleCalendarListFn
-    );
+    const result = testit(validUserId, validIdpName, getIdpAuthorizationFn, googleCalendarListFn);
 
     return expect(result).rejects.toBe(error);
   });
@@ -83,13 +59,7 @@ describe('Calendar Service', () => {
     const googleCalendarListFn = () => Promise.reject(error);
     const getIdpAuthorizationFn = () => Promise.resolve(validAuthorizationForIdp);
 
-    const result = testit(
-      validUserId,
-      validIdpName,
-      validIdpConfigs,
-      getIdpAuthorizationFn,
-      googleCalendarListFn
-    );
+    const result = testit(validUserId, validIdpName, getIdpAuthorizationFn, googleCalendarListFn);
 
     return expect(result).rejects.toBe(error);
   });
@@ -97,7 +67,6 @@ describe('Calendar Service', () => {
   async function testit(
     userId: UserId,
     idp: IdpName,
-    idpConfigs: IdpConfigs,
     getIdpAuthorizationFn: () => Promise<AuthorizationForIdp<IdpName> | undefined>,
     googleCalendarListFn: () => Promise<Array<Calendar>>,
     userBaseStoreConfig: UserBaseStoreConfig = validUserBaseStoreConfig
@@ -120,6 +89,6 @@ describe('Calendar Service', () => {
       mockInstance2 as unknown as GoogleCalendar
     );
 
-    return calendarList(userId, idp, idpConfigs, userBaseStoreConfig);
+    return calendarList(userId, idp, userBaseStoreConfig);
   }
 });

@@ -100,8 +100,7 @@ describe('GoogleCalendar Service calendarList', () => {
         list: vi.fn().mockImplementation(calendarListFn)
       }
     } as unknown as calendar_v3.Calendar);
-    const config = { clientId: 'id', clientSecret: 'secret', redirectUri: 'uri' };
-    return GoogleCalendar.withRefreshToken(config, '').calendarList();
+    return GoogleCalendar.withRefreshToken('some-refresh-token').calendarList();
   }
 });
 
@@ -224,8 +223,7 @@ describe('GoogleCalendar Service eventsWithinPeriod', () => {
         list: vi.fn().mockImplementation(eventsListFn)
       }
     } as unknown as calendar_v3.Calendar);
-    const config = { clientId: 'id', clientSecret: 'secret', redirectUri: 'uri' };
-    return GoogleCalendar.withRefreshToken(config, '').eventsStartTimeWithin(
+    return GoogleCalendar.withRefreshToken('some-refresh-token').eventsStartTimeWithin(
       calendarId,
       lowerBoundStartTime,
       upperBoundStartTime,

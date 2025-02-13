@@ -91,7 +91,8 @@ describe('GooglePeople Service', () => {
         searchContacts: vi.fn().mockImplementation(searchContactsFn)
       }
     } as unknown as people_v1.People);
-    const config = { clientId: 'id', clientSecret: 'secret', redirectUri: 'uri' };
-    return GooglePeople.withRefreshToken(config, '').getPhoneNumbersBy('test@example.com' as Email);
+    return GooglePeople.withRefreshToken('some-refresh-token').getPhoneNumbersBy(
+      'test@example.com' as Email
+    );
   }
 });

@@ -1,13 +1,12 @@
 /* eslint-disable camelcase */
-import type { GoogleOAuthConfig } from '@model/Config';
 import type { Email, PhoneNumber } from '@notifycal/shared/types';
 import { throwError } from '@services/common/error-handling';
 import { google, type people_v1 } from 'googleapis';
-import { BaseGoogle } from './base-service';
+import { ImpersonatedBaseGoogle } from './base-service';
 
-export class GooglePeople extends BaseGoogle {
-  public static withRefreshToken(config: GoogleOAuthConfig, refreshToken: string): GooglePeople {
-    return new this(config, refreshToken);
+export class GooglePeople extends ImpersonatedBaseGoogle {
+  public static withRefreshToken(refreshToken: string): GooglePeople {
+    return new this(refreshToken);
   }
 
   public getPhoneNumbersBy(email: Email): Promise<Array<PhoneNumber> | undefined> {
