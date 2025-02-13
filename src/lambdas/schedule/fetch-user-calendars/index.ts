@@ -63,7 +63,7 @@ async function lambdaHandler(event: Event, context: Context): Promise<void> {
   const userLiveProvider = UserLiveIndexStore.withConfig(userLiveIndexStoreConfig);
   const snsService = SnsService.withConfig(userCalendarFetchedTopicConfig);
 
-  const windowStart = DT.fromISO(event.time).toUTC().plus({ days: 1 });
+  const windowStart = DT.fromISO(event.time).toUTC().plus({ hours: 24 });
   const run = {
     lowerBoundStartTime: windowStart.toISO() as DateTime,
     upperBoundStartTime: windowStart
