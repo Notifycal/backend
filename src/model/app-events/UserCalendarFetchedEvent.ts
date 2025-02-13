@@ -1,12 +1,10 @@
 import { z } from 'zod';
 import { baseEventSchema } from './BaseEvent';
+import { idpAuthorizationSchema, runSchema } from '@model/schemas';
 
 export const userCalendarFetchedEventSchema = baseEventSchema.extend({
   data: z.object({
-    run: z.object({
-      lowerBoundStartTime: z.string().brand('DateTime'),
-      upperBoundStartTime: z.string().brand('DateTime')
-    }),
+    run: runSchema,
     calendar: z.object({
       id: z.string().brand('CalendarId'),
       name: z.string().brand('CalendarName')
@@ -22,9 +20,7 @@ export const userCalendarFetchedEventSchema = baseEventSchema.extend({
     })
   }),
   sensitiveData: z.object({
-    idpAuthorization: z.object({
-      refreshToken: z.string()
-    })
+    idpAuthorization: idpAuthorizationSchema
   })
 });
 
