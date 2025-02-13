@@ -12,7 +12,7 @@ export const templateSchema = z.object({
 
 export const idpAuthorizationSchema = z.object({
   refreshToken: z.string()
-})
+});
 
 export const runSchema = z.object({
   lowerBoundStartTime: z.string().brand('DateTime'),
