@@ -1,5 +1,8 @@
 import { logger } from '@common/powertools';
 import type { ActionableEventFoundEvent } from '@model/app-events/ActionableEventFound';
+import { noPhoneNumberForAttendeeFound } from '@model/app-events/NoPhoneNumberForAttendeeFound';
+import { userFetchedEventsParsingFailed } from '@model/app-events/UserFetchedEventsParsingFailed';
+import type { ParsingError } from '@model/Errors';
 import type { ServiceResponse } from '@model/ServiceResponse';
 import type {
   BusinessAddress,
@@ -13,12 +16,12 @@ import type {
 } from '@notifycal/shared/types';
 import { eventsStartTimeWithin } from '@services/calendar-events';
 import { phoneNumberByEmail } from '@services/contacts';
+import { DeadLetteringService } from '@services/dead-lettering';
 import { SnsService } from '@services/sns';
 import { DateTime as DT } from 'luxon';
 import { v4 } from 'uuid';
 import type { Record } from '.';
 import type { ActionableEventsConfig } from './config';
-import { publishToDlq } from './dlq';
 
 function interpolateMessage(
   businessName: BusinessName,
@@ -33,7 +36,7 @@ function interpolateMessage(
 function fetchCalendarEvents(
   event: Record['body'],
   config: ActionableEventsConfig
-): Promise<ServiceResponse<CalendarEvent>> {
+): Promise<ServiceResponse<CalendarEvent, ParsingError>> {
   const { idpAuthorization } = event.sensitiveData;
   const calendarEventStartTime = DT.fromISO(event.data.run.lowerBoundStartTime).toUTC();
   const includeAllDayEvents =
@@ -53,7 +56,8 @@ function fetchCalendarEvents(
 function fetchAttendeePhoneNumbers(
   calendarEvent: CalendarEvent,
   event: Record['body'],
-  config: ActionableEventsConfig
+  config: ActionableEventsConfig,
+  dqlService: DeadLetteringService
 ): Promise<Array<{ calendarEvent: CalendarEvent; attendeePhoneNumber: PhoneNumber }>> {
   return Promise.all(
     calendarEvent.attendees.map((attendee) =>
@@ -71,10 +75,12 @@ function fetchAttendeePhoneNumbers(
             }
           ]);
         } else {
-          return publishToDlq(new Error(`No phone number on some calendar event attendee`)).then(
-            () => [],
-            () => []
-          );
+          return dqlService
+            .send(noPhoneNumberForAttendeeFound(event, calendarEvent, attendee.id))
+            .then(
+              () => [],
+              () => []
+            );
         }
       })
     )
@@ -121,12 +127,17 @@ function buildActionableEvents(
 
 export function recordProcessor(record: Record, config: ActionableEventsConfig): Promise<void> {
   const snsService = SnsService.withConfig(config.actionableEventFoundTopicConfig);
+  const dlqService = DeadLetteringService.withConfig(config.deadLetterQueueConfig);
   const event = record.body;
 
   return fetchCalendarEvents(event, config)
     .then(({ successList, failureList }) => {
       if ((successList && successList?.length > 0) || (failureList && failureList?.length > 0)) {
-        return Promise.allSettled(failureList.map((f: Error) => publishToDlq(f))).then(
+        return Promise.allSettled(
+          failureList.map((failure) =>
+            dlqService.send(userFetchedEventsParsingFailed(event, failure))
+          )
+        ).then(
           () => successList || [],
           () => successList || []
         );
@@ -138,7 +149,7 @@ export function recordProcessor(record: Record, config: ActionableEventsConfig):
     .then((calendarEvents) =>
       Promise.all(
         calendarEvents.map((calendarEvent) =>
-          fetchAttendeePhoneNumbers(calendarEvent, event, config)
+          fetchAttendeePhoneNumbers(calendarEvent, event, config, dlqService)
         )
       )
     )

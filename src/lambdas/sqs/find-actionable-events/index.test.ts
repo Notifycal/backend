@@ -1,7 +1,11 @@
 import type { SqsEvent } from '@aws-lambda-powertools/parser/types';
-import type { AwsArn } from '@own-types/model';
+import type { AwsArn, Url } from '@own-types/model';
 import { userCalendarFetchedEvent } from '@testing/app-events';
-import { setEnvActionableEventFoundTopicConfig, setEnvIdpConfigs } from '@testing/utils/config';
+import {
+  setEnvActionableEventFoundTopicConfig,
+  setEnvDeadLetterQueueConfig,
+  setEnvIdpConfigs
+} from '@testing/utils/config';
 import type { Context } from 'aws-lambda';
 import type { SqsRecord } from 'node_modules/@aws-lambda-powertools/parser/lib/esm/types/schema';
 import { v4 } from 'uuid';
@@ -13,6 +17,9 @@ import * as recordProcessor from './record-processor';
 const defaultEnv: ActionableEventsConfig = {
   actionableEventFoundTopicConfig: {
     topicArn: 'someTopicArn' as AwsArn
+  },
+  deadLetterQueueConfig: {
+    queueUrl: 'http://aws.com/dql' as Url
   },
   idpConfigs: {
     'google.com': {
@@ -101,5 +108,6 @@ function testit(event: SqsEvent, config: ActionableEventsConfig = defaultEnv): P
 
 function setEnv(config: ActionableEventsConfig) {
   setEnvActionableEventFoundTopicConfig(config.actionableEventFoundTopicConfig);
+  setEnvDeadLetterQueueConfig(config.deadLetterQueueConfig);
   setEnvIdpConfigs(config.idpConfigs);
 }

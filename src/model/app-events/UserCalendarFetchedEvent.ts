@@ -1,3 +1,4 @@
+import { calendarSchema } from '@notifycal/shared/schemas';
 import { z } from 'zod';
 import { baseEventSchema } from './BaseEvent';
 
@@ -7,10 +8,7 @@ export const userCalendarFetchedEventSchema = baseEventSchema.extend({
       lowerBoundStartTime: z.string().brand('DateTime'),
       upperBoundStartTime: z.string().brand('DateTime')
     }),
-    calendar: z.object({
-      id: z.string().brand('CalendarId'),
-      name: z.string().brand('CalendarName')
-    }),
+    calendar: calendarSchema,
     template: z.object({
       id: z.string().brand('TemplateId'),
       fields: z.object({

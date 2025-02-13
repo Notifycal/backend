@@ -1,4 +1,5 @@
 /* eslint-disable camelcase */
+import type { ParsingError } from '@model/Errors';
 import type { ServiceResponse } from '@model/ServiceResponse';
 import type {
   Calendar,
@@ -217,7 +218,7 @@ describe('GoogleCalendar Service eventsWithinPeriod', () => {
   function testit(
     eventsListFn: () => Promise<GaxiosResponse<calendar_v3.Schema$Events>>,
     includeAllDayEvents: boolean = false
-  ): Promise<ServiceResponse<CalendarEvent>> {
+  ): Promise<ServiceResponse<CalendarEvent, ParsingError>> {
     vi.mock('googleapis');
     vi.mocked(google.calendar).mockReturnValue({
       events: {

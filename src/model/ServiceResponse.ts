@@ -1,4 +1,4 @@
-export interface ServiceResponse<T> {
+export interface ServiceResponse<T, TError extends Error> {
   successList: Array<T> | undefined;
-  failureList: Array<Error>;
+  failureList: Array<TError>;
 }

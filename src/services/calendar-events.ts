@@ -1,4 +1,5 @@
 import type { GoogleOAuthConfig, IdpConfigs } from '@model/Config';
+import type { ParsingError } from '@model/Errors';
 import type { AuthorizationForIdp, UserGoogleAuthorization } from '@model/IdpAuthorization';
 import type { ServiceResponse } from '@model/ServiceResponse';
 import type { CalendarEvent, CalendarId, DateTime, IdpName } from '@notifycal/shared/types';
@@ -12,7 +13,7 @@ function googleEventsStartTimeWithin(
   includeAllDayEvents: boolean,
   idpAuthorization: UserGoogleAuthorization,
   idpConfig: GoogleOAuthConfig
-): Promise<ServiceResponse<CalendarEvent>> {
+): Promise<ServiceResponse<CalendarEvent, ParsingError>> {
   return GoogleCalendar.withRefreshToken(
     idpConfig,
     idpAuthorization.refreshToken
@@ -32,7 +33,7 @@ export function eventsStartTimeWithin(
   idpAuthorization: AuthorizationForIdp<IdpName>,
   idp: IdpName,
   idpConfigs: IdpConfigs
-): Promise<ServiceResponse<CalendarEvent>> {
+): Promise<ServiceResponse<CalendarEvent, ParsingError>> {
   return match(idp)
     .with('google.com', (idp) =>
       googleEventsStartTimeWithin(

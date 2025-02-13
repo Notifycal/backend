@@ -1,4 +1,5 @@
 import type { GoogleOAuthConfig } from '@model/Config';
+import { ParsingError } from '@model/Errors';
 import type { AuthorizationForIdp } from '@model/IdpAuthorization';
 import type { ServiceResponse } from '@model/ServiceResponse';
 import type {
@@ -28,7 +29,7 @@ describe('Calendar Events Service', () => {
   };
 
   it('should fetch calendar events successfully', async () => {
-    const mockServiceResponse: ServiceResponse<CalendarEvent> = {
+    const mockServiceResponse: ServiceResponse<CalendarEvent, ParsingError> = {
       successList: [
         {
           id: 'event1',
@@ -66,7 +67,7 @@ describe('Calendar Events Service', () => {
   });
 
   it('should passthough failures gracefully', async () => {
-    const error = new Error('Boom!');
+    const error = new ParsingError('Boom!', { something: false });
     const result = await testit(() =>
       Promise.resolve({
         successList: [],
@@ -80,7 +81,7 @@ describe('Calendar Events Service', () => {
   });
 
   it('should respect the all-day events inclusion flag', async () => {
-    const mockServiceResponse: ServiceResponse<CalendarEvent> = {
+    const mockServiceResponse: ServiceResponse<CalendarEvent, ParsingError> = {
       successList: [
         {
           id: 'event2',
@@ -106,7 +107,7 @@ describe('Calendar Events Service', () => {
   });
 
   function testit(
-    googleResponseFn: () => Promise<ServiceResponse<CalendarEvent>>,
+    googleResponseFn: () => Promise<ServiceResponse<CalendarEvent, ParsingError>>,
     includeAllDayEvents: boolean = false
   ) {
     vi.mock('@services/google/calendar');
