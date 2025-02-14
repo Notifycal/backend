@@ -1,3 +1,4 @@
+import type { PublishCommandOutput } from '@aws-sdk/client-sns';
 import { ParsingError } from '@model/Errors';
 import type { ServiceResponse } from '@model/ServiceResponse';
 import type {
@@ -102,7 +103,9 @@ const validPhoneNumber: PhoneNumber = '+34666888999' as PhoneNumber;
 
 describe('Find actionable events record processor', () => {
   it('should process an event successfully and publish to SNS', async () => {
-    const publishEventSpy = vi.spyOn(SnsService.prototype, 'publishEvent');
+    const publishEventSpy = vi
+      .spyOn(SnsService.prototype, 'publishEvent')
+      .mockResolvedValue({} as PublishCommandOutput);
     const dlqSpy = vi.spyOn(DeadLetteringService.prototype, 'send').mockResolvedValue();
     const eventsStartTimeWithinFn = () =>
       Promise.resolve({ successList: validEvents, failureList: [] });
@@ -128,7 +131,9 @@ describe('Find actionable events record processor', () => {
   });
 
   it('should include all day events if it is the 10 oclock run', async () => {
-    const publishEventSpy = vi.spyOn(SnsService.prototype, 'publishEvent');
+    const publishEventSpy = vi
+      .spyOn(SnsService.prototype, 'publishEvent')
+      .mockResolvedValue({} as PublishCommandOutput);
     const dlqSpy = vi.spyOn(DeadLetteringService.prototype, 'send').mockResolvedValue();
     const multipleEvents: Array<CalendarEvent> = [
       {
@@ -179,7 +184,9 @@ describe('Find actionable events record processor', () => {
   });
 
   it('should process multiple events and publish to SNS for each', async () => {
-    const publishEventSpy = vi.spyOn(SnsService.prototype, 'publishEvent');
+    const publishEventSpy = vi
+      .spyOn(SnsService.prototype, 'publishEvent')
+      .mockResolvedValue({} as PublishCommandOutput);
     const dlqSpy = vi.spyOn(DeadLetteringService.prototype, 'send').mockResolvedValue();
     const multipleEvents: Array<CalendarEvent> = [
       {
@@ -207,7 +214,9 @@ describe('Find actionable events record processor', () => {
   });
 
   it('should process events with multiple attendees and publish to SNS for each', async () => {
-    const publishEventSpy = vi.spyOn(SnsService.prototype, 'publishEvent');
+    const publishEventSpy = vi
+      .spyOn(SnsService.prototype, 'publishEvent')
+      .mockResolvedValue({} as PublishCommandOutput);
     const dlqSpy = vi.spyOn(DeadLetteringService.prototype, 'send').mockResolvedValue();
     const eventWithMultipleAttendees = [
       {
@@ -228,7 +237,9 @@ describe('Find actionable events record processor', () => {
   });
 
   it('should process attendees with multiple phone numbers and publish to SNS using the first one', async () => {
-    const publishEventSpy = vi.spyOn(SnsService.prototype, 'publishEvent');
+    const publishEventSpy = vi
+      .spyOn(SnsService.prototype, 'publishEvent')
+      .mockResolvedValue({} as PublishCommandOutput);
     const dlqSpy = vi.spyOn(DeadLetteringService.prototype, 'send').mockResolvedValue();
     const eventsStartTimeWithinFn = () =>
       Promise.resolve({ successList: validEvents, failureList: [] });
@@ -241,7 +252,9 @@ describe('Find actionable events record processor', () => {
   });
 
   it('should finish processing sucessfully if no valid events are found', async () => {
-    const publishEventSpy = vi.spyOn(SnsService.prototype, 'publishEvent');
+    const publishEventSpy = vi
+      .spyOn(SnsService.prototype, 'publishEvent')
+      .mockResolvedValue({} as PublishCommandOutput);
     const dlqSpy = vi.spyOn(DeadLetteringService.prototype, 'send').mockResolvedValue();
     const eventsStartTimeWithinFn = () => Promise.resolve({ successList: [], failureList: [] });
     const phoneNumberByEmailFn = () => Promise.resolve([]);
@@ -252,7 +265,9 @@ describe('Find actionable events record processor', () => {
   });
 
   it('should throw an error if eventsStartTimeWithin fails. Retrying the whole record relying on idempotence', async () => {
-    const publishEventSpy = vi.spyOn(SnsService.prototype, 'publishEvent');
+    const publishEventSpy = vi
+      .spyOn(SnsService.prototype, 'publishEvent')
+      .mockResolvedValue({} as PublishCommandOutput);
     const dlqSpy = vi.spyOn(DeadLetteringService.prototype, 'send').mockResolvedValue();
     const error = new Error('Boom!');
     const eventsStartTimeWithinFn = () => Promise.reject(error);
@@ -267,7 +282,9 @@ describe('Find actionable events record processor', () => {
   });
 
   it('should publish to DLQ if some or all fetched events could not be parsed and keep processing', async () => {
-    const publishEventSpy = vi.spyOn(SnsService.prototype, 'publishEvent');
+    const publishEventSpy = vi
+      .spyOn(SnsService.prototype, 'publishEvent')
+      .mockResolvedValue({} as PublishCommandOutput);
     const dlqSpy = vi.spyOn(DeadLetteringService.prototype, 'send').mockResolvedValue();
     const error = new ParsingError(`Booom!`, { something: null });
     const eventsStartTimeWithinFn = () =>
@@ -296,7 +313,9 @@ describe('Find actionable events record processor', () => {
   });
 
   it('should publish to DLQ if no phone number for an attendee and keep processing', async () => {
-    const publishEventSpy = vi.spyOn(SnsService.prototype, 'publishEvent');
+    const publishEventSpy = vi
+      .spyOn(SnsService.prototype, 'publishEvent')
+      .mockResolvedValue({} as PublishCommandOutput);
     const dlqSpy = vi.spyOn(DeadLetteringService.prototype, 'send').mockResolvedValue();
     const eventsStartTimeWithinFn = () =>
       Promise.resolve({ successList: validEvents, failureList: [] });
@@ -322,7 +341,9 @@ describe('Find actionable events record processor', () => {
   });
 
   it('should throw an error if phoneNumberByEmail fails. Retrying the whole record relying on idempotence', async () => {
-    const publishEventSpy = vi.spyOn(SnsService.prototype, 'publishEvent');
+    const publishEventSpy = vi
+      .spyOn(SnsService.prototype, 'publishEvent')
+      .mockResolvedValue({} as PublishCommandOutput);
     const dlqSpy = vi.spyOn(DeadLetteringService.prototype, 'send').mockResolvedValue();
     const error = new Error('Booom!');
     const eventsStartTimeWithinFn = () =>

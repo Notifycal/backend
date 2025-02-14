@@ -19,10 +19,7 @@ export class SnsService extends BaseAwsMessagingService {
     return new this(config);
   }
 
-  public publishEvent<TEvent extends BaseEvent>(
-    event: TEvent,
-    failureOnError: boolean = false
-  ): Promise<PublishCommandOutput> {
+  public publishEvent<TEvent extends BaseEvent>(event: TEvent): Promise<PublishCommandOutput> {
     const publishCommand = new PublishCommand({
       TopicArn: this._config.topicArn,
       Message: JSON.stringify(event),
@@ -39,13 +36,7 @@ export class SnsService extends BaseAwsMessagingService {
       },
       (error) => {
         const msg = `Error publishing an event to SNS with id ${event.eventId}. Error: ${JSON.stringify(error)}. Extracted error: ${extractErrorMessage(error)}`;
-        if (failureOnError) {
-          throwError(msg);
-        } else {
-          logger.error(msg);
-          logger.info(`Moving on after error...`);
-          return {} as PublishCommandOutput;
-        }
+        throwError(msg);
       }
     );
   }

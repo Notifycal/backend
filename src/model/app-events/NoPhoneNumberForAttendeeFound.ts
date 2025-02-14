@@ -2,10 +2,11 @@ import { calendarEventSchema, calendarSchema } from '@notifycal/shared/schemas';
 import type { CalendarEvent, DateTime, EventId } from '@notifycal/shared/types';
 import { v4 } from 'uuid';
 import { z } from 'zod';
-import { baseEventSchema, eventIdSchema } from './BaseEvent';
+import { baseErrorEventSchema } from './BaseErrorEvent';
+import { eventIdSchema } from './BaseEvent';
 import type { UserCalendarFetchedEvent } from './UserCalendarFetchedEvent';
 
-export const noPhoneNumberForAttendeeFoundSchema = baseEventSchema.extend({
+export const noPhoneNumberForAttendeeFoundSchema = baseErrorEventSchema.extend({
   data: z.object({
     eventIdCause: eventIdSchema,
     run: z.object({

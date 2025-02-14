@@ -136,10 +136,11 @@ export function recordProcessor(record: Record, config: ActionableEventsConfig):
           failureList.map((failure) =>
             dlqService.send(userFetchedEventsParsingFailed(event, failure))
           )
-        ).then(
-          () => successList || [],
-          () => successList || []
-        );
+        )
+          .then((results) =>
+            allSettledAllOrErrorHandler(results, 'send calendar event fetch failures to DLQ')
+          )
+          .then(() => successList);
       } else {
         logger.info(`NoActionableEventsFound`);
         return Promise.resolve([]);
@@ -158,10 +159,7 @@ export function recordProcessor(record: Record, config: ActionableEventsConfig):
     .then((eventWithAttendeePhoneNumbers) => {
       const actionableEvents = buildActionableEvents(eventWithAttendeePhoneNumbers.flat(), event);
       return Promise.allSettled(
-        actionableEvents.map((actionableEvent) => {
-          const failureOnError = true;
-          return snsService.publishEvent(actionableEvent, failureOnError);
-        })
+        actionableEvents.map((actionableEvent) => snsService.publishEvent(actionableEvent))
       );
     })
     .then((results) => allSettledAllOrErrorHandler(results, 'publish actionable events'))

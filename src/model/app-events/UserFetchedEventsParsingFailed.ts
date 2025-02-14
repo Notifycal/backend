@@ -3,11 +3,12 @@ import { calendarSchema } from '@notifycal/shared/schemas';
 import type { DateTime, EventId } from '@notifycal/shared/types';
 import { v4 } from 'uuid';
 import { z } from 'zod';
-import { baseEventSchema, eventIdSchema } from './BaseEvent';
+import { baseErrorEventSchema } from './BaseErrorEvent';
+import { eventIdSchema } from './BaseEvent';
 import type { UserCalendarFetchedEvent } from './UserCalendarFetchedEvent';
 import { errorSchema } from './common';
 
-export const userFetchedEventsParsingFailedSchema = baseEventSchema.extend({
+export const userFetchedEventsParsingFailedSchema = baseErrorEventSchema.extend({
   data: z.object({
     eventIdCause: eventIdSchema,
     run: z.object({
