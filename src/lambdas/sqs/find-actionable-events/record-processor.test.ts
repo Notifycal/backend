@@ -38,7 +38,8 @@ const validRecord: Record = {
     data: {
       run: {
         lowerBoundStartTime: '2024-01-02T15:00:00Z' as DateTime,
-        upperBoundStartTime: '2024-01-02T15:29:59Z' as DateTime
+        upperBoundStartTime: '2024-01-02T15:29:59Z' as DateTime,
+        slidingWindowInMinutes: 30
       },
       calendar: {
         id: 'test-calendar-id' as CalendarId,
@@ -162,7 +163,8 @@ describe('Find actionable events record processor', () => {
           ...validRecord.body.data,
           run: {
             lowerBoundStartTime: '2024-01-02T10:00:00.000Z' as DateTime,
-            upperBoundStartTime: '2024-01-02T10:29:59.000Z' as DateTime
+            upperBoundStartTime: '2024-01-02T10:29:59.000Z' as DateTime,
+            slidingWindowInMinutes: 30
           }
         }
       }

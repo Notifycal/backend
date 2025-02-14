@@ -1,13 +1,11 @@
 import { calendarEventSchema, calendarSchema } from '@notifycal/shared/schemas';
 import { z } from 'zod';
 import { baseEventSchema } from './BaseEvent';
+import { runSchema } from './common';
 
 export const actionableEventFoundEventSchema = baseEventSchema.extend({
   data: z.object({
-    run: z.object({
-      lowerBoundStartTime: z.string().brand('DateTime'),
-      upperBoundStartTime: z.string().brand('DateTime')
-    }),
+    run: runSchema,
     calendar: calendarSchema,
     event: calendarEventSchema,
     contactDetails: z.object({

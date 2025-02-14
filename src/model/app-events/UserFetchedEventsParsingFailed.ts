@@ -6,15 +6,12 @@ import { z } from 'zod';
 import { baseErrorEventSchema } from './BaseErrorEvent';
 import { eventIdSchema } from './BaseEvent';
 import type { UserCalendarFetchedEvent } from './UserCalendarFetchedEvent';
-import { errorSchema } from './common';
+import { errorSchema, runSchema } from './common';
 
 export const userFetchedEventsParsingFailedSchema = baseErrorEventSchema.extend({
   data: z.object({
     eventIdCause: eventIdSchema,
-    run: z.object({
-      lowerBoundStartTime: z.string().brand('DateTime'),
-      upperBoundStartTime: z.string().brand('DateTime')
-    }),
+    run: runSchema,
     calendar: calendarSchema,
     error: errorSchema
   })

@@ -69,7 +69,8 @@ async function lambdaHandler(event: Event, context: Context): Promise<void> {
     upperBoundStartTime: windowStart
       .plus({ minutes: event.lambdaConfig.cronRunConfig.windowInMinutes })
       .minus({ millisecond: 1 })
-      .toISO() as DateTime
+      .toISO() as DateTime,
+    slidingWindowInMinutes: event.lambdaConfig.cronRunConfig.windowInMinutes
   };
   logger.info(
     `Starting run corresponding to cron ${event.time}. Time window: [${run.lowerBoundStartTime}, ${run.upperBoundStartTime}]`
