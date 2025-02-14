@@ -1,3 +1,4 @@
+import type { SendMessageCommandOutput } from '@aws-sdk/client-sqs';
 import type { BaseErrorEvent } from '@model/app-events/BaseErrorEvent';
 import type { SqsQueueConfig } from '@model/Config';
 import { SqsService } from './sqs';
@@ -13,7 +14,7 @@ export class DeadLetteringService {
     return new this(SqsService.withConfig(config));
   }
 
-  public send<TEvent extends BaseErrorEvent>(event: TEvent): Promise<void> {
-    return this._sqsService.sendEvent(event).then(() => {});
+  public send<TEvent extends BaseErrorEvent>(event: TEvent): Promise<SendMessageCommandOutput> {
+    return this._sqsService.sendEvent(event);
   }
 }
