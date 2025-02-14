@@ -1,4 +1,5 @@
 import type { PublishCommandOutput } from '@aws-sdk/client-sns';
+import type { SendMessageCommandOutput } from '@aws-sdk/client-sqs';
 import { ParsingError } from '@model/Errors';
 import type { ServiceResponse } from '@model/ServiceResponse';
 import type {
@@ -107,7 +108,9 @@ describe('Find actionable events record processor', () => {
     const publishEventSpy = vi
       .spyOn(SnsService.prototype, 'publishEvent')
       .mockResolvedValue({} as PublishCommandOutput);
-    const dlqSpy = vi.spyOn(DeadLetteringService.prototype, 'send').mockResolvedValue();
+    const dlqSpy = vi
+      .spyOn(DeadLetteringService.prototype, 'send')
+      .mockResolvedValue({} as SendMessageCommandOutput);
     const eventsStartTimeWithinFn = () =>
       Promise.resolve({ successList: validEvents, failureList: [] });
     const phoneNumberByEmailFn = () => Promise.resolve([validPhoneNumber]);
@@ -135,7 +138,9 @@ describe('Find actionable events record processor', () => {
     const publishEventSpy = vi
       .spyOn(SnsService.prototype, 'publishEvent')
       .mockResolvedValue({} as PublishCommandOutput);
-    const dlqSpy = vi.spyOn(DeadLetteringService.prototype, 'send').mockResolvedValue();
+    const dlqSpy = vi
+      .spyOn(DeadLetteringService.prototype, 'send')
+      .mockResolvedValue({} as SendMessageCommandOutput);
     const multipleEvents: Array<CalendarEvent> = [
       {
         id: 'event-1',
@@ -189,7 +194,9 @@ describe('Find actionable events record processor', () => {
     const publishEventSpy = vi
       .spyOn(SnsService.prototype, 'publishEvent')
       .mockResolvedValue({} as PublishCommandOutput);
-    const dlqSpy = vi.spyOn(DeadLetteringService.prototype, 'send').mockResolvedValue();
+    const dlqSpy = vi
+      .spyOn(DeadLetteringService.prototype, 'send')
+      .mockResolvedValue({} as SendMessageCommandOutput);
     const multipleEvents: Array<CalendarEvent> = [
       {
         id: 'event-1',
@@ -219,7 +226,9 @@ describe('Find actionable events record processor', () => {
     const publishEventSpy = vi
       .spyOn(SnsService.prototype, 'publishEvent')
       .mockResolvedValue({} as PublishCommandOutput);
-    const dlqSpy = vi.spyOn(DeadLetteringService.prototype, 'send').mockResolvedValue();
+    const dlqSpy = vi
+      .spyOn(DeadLetteringService.prototype, 'send')
+      .mockResolvedValue({} as SendMessageCommandOutput);
     const eventWithMultipleAttendees = [
       {
         id: 'event-1',
@@ -242,7 +251,9 @@ describe('Find actionable events record processor', () => {
     const publishEventSpy = vi
       .spyOn(SnsService.prototype, 'publishEvent')
       .mockResolvedValue({} as PublishCommandOutput);
-    const dlqSpy = vi.spyOn(DeadLetteringService.prototype, 'send').mockResolvedValue();
+    const dlqSpy = vi
+      .spyOn(DeadLetteringService.prototype, 'send')
+      .mockResolvedValue({} as SendMessageCommandOutput);
     const eventsStartTimeWithinFn = () =>
       Promise.resolve({ successList: validEvents, failureList: [] });
     const phoneNumberByEmailFn = () =>
@@ -257,7 +268,9 @@ describe('Find actionable events record processor', () => {
     const publishEventSpy = vi
       .spyOn(SnsService.prototype, 'publishEvent')
       .mockResolvedValue({} as PublishCommandOutput);
-    const dlqSpy = vi.spyOn(DeadLetteringService.prototype, 'send').mockResolvedValue();
+    const dlqSpy = vi
+      .spyOn(DeadLetteringService.prototype, 'send')
+      .mockResolvedValue({} as SendMessageCommandOutput);
     const eventsStartTimeWithinFn = () => Promise.resolve({ successList: [], failureList: [] });
     const phoneNumberByEmailFn = () => Promise.resolve([]);
     await testit(validRecord, eventsStartTimeWithinFn, phoneNumberByEmailFn);
@@ -270,7 +283,9 @@ describe('Find actionable events record processor', () => {
     const publishEventSpy = vi
       .spyOn(SnsService.prototype, 'publishEvent')
       .mockResolvedValue({} as PublishCommandOutput);
-    const dlqSpy = vi.spyOn(DeadLetteringService.prototype, 'send').mockResolvedValue();
+    const dlqSpy = vi
+      .spyOn(DeadLetteringService.prototype, 'send')
+      .mockResolvedValue({} as SendMessageCommandOutput);
     const error = new Error('Boom!');
     const eventsStartTimeWithinFn = () => Promise.reject(error);
     const phoneNumberByEmailFn = () => Promise.resolve([validPhoneNumber]);
@@ -287,7 +302,9 @@ describe('Find actionable events record processor', () => {
     const publishEventSpy = vi
       .spyOn(SnsService.prototype, 'publishEvent')
       .mockResolvedValue({} as PublishCommandOutput);
-    const dlqSpy = vi.spyOn(DeadLetteringService.prototype, 'send').mockResolvedValue();
+    const dlqSpy = vi
+      .spyOn(DeadLetteringService.prototype, 'send')
+      .mockResolvedValue({} as SendMessageCommandOutput);
     const error = new ParsingError(`Booom!`, { something: null });
     const eventsStartTimeWithinFn = () =>
       Promise.resolve({ successList: validEvents, failureList: [error] });
@@ -318,7 +335,9 @@ describe('Find actionable events record processor', () => {
     const publishEventSpy = vi
       .spyOn(SnsService.prototype, 'publishEvent')
       .mockResolvedValue({} as PublishCommandOutput);
-    const dlqSpy = vi.spyOn(DeadLetteringService.prototype, 'send').mockResolvedValue();
+    const dlqSpy = vi
+      .spyOn(DeadLetteringService.prototype, 'send')
+      .mockResolvedValue({} as SendMessageCommandOutput);
     const eventsStartTimeWithinFn = () =>
       Promise.resolve({ successList: validEvents, failureList: [] });
     const phoneNumberByEmailFn = () => Promise.resolve([]);
@@ -346,7 +365,9 @@ describe('Find actionable events record processor', () => {
     const publishEventSpy = vi
       .spyOn(SnsService.prototype, 'publishEvent')
       .mockResolvedValue({} as PublishCommandOutput);
-    const dlqSpy = vi.spyOn(DeadLetteringService.prototype, 'send').mockResolvedValue();
+    const dlqSpy = vi
+      .spyOn(DeadLetteringService.prototype, 'send')
+      .mockResolvedValue({} as SendMessageCommandOutput);
     const error = new Error('Booom!');
     const eventsStartTimeWithinFn = () =>
       Promise.resolve({ successList: validEvents, failureList: [] });
@@ -366,7 +387,9 @@ describe('Find actionable events record processor', () => {
     const publishEventSpy = vi
       .spyOn(SnsService.prototype, 'publishEvent')
       .mockRejectedValue(new Error('SNS Error'));
-    const dlqSpy = vi.spyOn(DeadLetteringService.prototype, 'send').mockResolvedValue();
+    const dlqSpy = vi
+      .spyOn(DeadLetteringService.prototype, 'send')
+      .mockResolvedValue({} as SendMessageCommandOutput);
     const eventsStartTimeWithinFn = () =>
       Promise.resolve({ successList: validEvents, failureList: [] });
     const phoneNumberByEmailFn = () => Promise.resolve([validPhoneNumber]);
