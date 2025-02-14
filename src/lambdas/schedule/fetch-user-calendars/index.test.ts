@@ -153,34 +153,30 @@ async function* rejectedLiveUsers(): AsyncGenerator<
 describe('Schedule fetch user calendars', () => {
   it('publish as many events as live users times calendars exist in persistance', async () => {
     const getLiveUsersFn = () => validLiveUsers();
-    const publishEventSpy = vi
-      .spyOn(snsService.SnsService.prototype, 'publishEvent')
-      .mockResolvedValue({
-        $metadata: {}
-      });
+    const publishSpy = vi.spyOn(snsService.SnsService.prototype, 'publish').mockResolvedValue({
+      $metadata: {}
+    });
     await testit(getLiveUsersFn);
 
-    expect(publishEventSpy).toHaveBeenCalledTimes(4);
+    expect(publishSpy).toHaveBeenCalledTimes(4);
   });
 
   it('cannot resume processing if persistance pagination fails', async () => {
     const getLiveUsersFn = () => oneRejectionInBetweenLiveUsers();
-    const publishEventSpy = vi
-      .spyOn(snsService.SnsService.prototype, 'publishEvent')
-      .mockResolvedValue({
-        $metadata: {}
-      });
+    const publishSpy = vi.spyOn(snsService.SnsService.prototype, 'publish').mockResolvedValue({
+      $metadata: {}
+    });
 
     await expect(testit(getLiveUsersFn)).rejects.toThrow(
       'An error happened while processing live users. Error: Boom!'
     );
-    expect(publishEventSpy).toHaveBeenCalledTimes(1);
+    expect(publishSpy).toHaveBeenCalledTimes(1);
   });
 
   it('should not stop processing current page or the rest of the pages even if a message cannot be published', async () => {
     const getLiveUsersFn = () => validLiveUsers();
-    const publishEventSpy = vi
-      .spyOn(snsService.SnsService.prototype, 'publishEvent')
+    const publishSpy = vi
+      .spyOn(snsService.SnsService.prototype, 'publish')
       .mockResolvedValueOnce({
         $metadata: {}
       })
@@ -193,7 +189,7 @@ describe('Schedule fetch user calendars', () => {
       });
     await testit(getLiveUsersFn);
 
-    expect(publishEventSpy).toHaveBeenCalledTimes(4);
+    expect(publishSpy).toHaveBeenCalledTimes(4);
   });
 
   it('throw an error if live users cannot be fetched from persistance', () => {

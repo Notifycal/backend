@@ -105,8 +105,8 @@ const validPhoneNumber: PhoneNumber = '+34666888999' as PhoneNumber;
 
 describe('Find actionable events record processor', () => {
   it('should process an event successfully and publish to SNS', async () => {
-    const publishEventSpy = vi
-      .spyOn(SnsService.prototype, 'publishEvent')
+    const publishSpy = vi
+      .spyOn(SnsService.prototype, 'publish')
       .mockResolvedValue({} as PublishCommandOutput);
     const dlqSpy = vi
       .spyOn(DeadLetteringService.prototype, 'send')
@@ -117,7 +117,7 @@ describe('Find actionable events record processor', () => {
     await testit(validRecord, eventsStartTimeWithinFn, phoneNumberByEmailFn);
     const eventInRecord = validRecord.body;
 
-    expect(publishEventSpy).toHaveBeenCalledTimes(1);
+    expect(publishSpy).toHaveBeenCalledTimes(1);
     expect(dlqSpy).not.toHaveBeenCalled();
     expect(eventsStartTimeWithin).toHaveBeenCalledWith(
       eventInRecord.data.calendar.id,
@@ -135,8 +135,8 @@ describe('Find actionable events record processor', () => {
   });
 
   it('should include all day events if it is the 10 oclock run', async () => {
-    const publishEventSpy = vi
-      .spyOn(SnsService.prototype, 'publishEvent')
+    const publishSpy = vi
+      .spyOn(SnsService.prototype, 'publish')
       .mockResolvedValue({} as PublishCommandOutput);
     const dlqSpy = vi
       .spyOn(DeadLetteringService.prototype, 'send')
@@ -177,7 +177,7 @@ describe('Find actionable events record processor', () => {
     await testit(validRecordAllDayEvents, eventsStartTimeWithinFn, phoneNumberByEmailFn);
     const eventInRecord = validRecordAllDayEvents.body;
 
-    expect(publishEventSpy).toHaveBeenCalledTimes(2);
+    expect(publishSpy).toHaveBeenCalledTimes(2);
     expect(dlqSpy).not.toHaveBeenCalled();
     expect(eventsStartTimeWithin).toHaveBeenCalledTimes(1);
     expect(eventsStartTimeWithin).toHaveBeenCalledWith(
@@ -191,8 +191,8 @@ describe('Find actionable events record processor', () => {
   });
 
   it('should process multiple events and publish to SNS for each', async () => {
-    const publishEventSpy = vi
-      .spyOn(SnsService.prototype, 'publishEvent')
+    const publishSpy = vi
+      .spyOn(SnsService.prototype, 'publish')
       .mockResolvedValue({} as PublishCommandOutput);
     const dlqSpy = vi
       .spyOn(DeadLetteringService.prototype, 'send')
@@ -218,13 +218,13 @@ describe('Find actionable events record processor', () => {
     const phoneNumberByEmailFn = () => Promise.resolve([validPhoneNumber]);
     await testit(validRecord, eventsStartTimeWithinFn, phoneNumberByEmailFn);
 
-    expect(publishEventSpy).toHaveBeenCalledTimes(2);
+    expect(publishSpy).toHaveBeenCalledTimes(2);
     expect(dlqSpy).not.toHaveBeenCalled();
   });
 
   it('should process events with multiple attendees and publish to SNS for each', async () => {
-    const publishEventSpy = vi
-      .spyOn(SnsService.prototype, 'publishEvent')
+    const publishSpy = vi
+      .spyOn(SnsService.prototype, 'publish')
       .mockResolvedValue({} as PublishCommandOutput);
     const dlqSpy = vi
       .spyOn(DeadLetteringService.prototype, 'send')
@@ -243,13 +243,13 @@ describe('Find actionable events record processor', () => {
     const phoneNumberByEmailFn = () => Promise.resolve([validPhoneNumber]);
     await testit(validRecord, eventsStartTimeWithinFn, phoneNumberByEmailFn);
 
-    expect(publishEventSpy).toHaveBeenCalledTimes(2);
+    expect(publishSpy).toHaveBeenCalledTimes(2);
     expect(dlqSpy).not.toHaveBeenCalled();
   });
 
   it('should process attendees with multiple phone numbers and publish to SNS using the first one', async () => {
-    const publishEventSpy = vi
-      .spyOn(SnsService.prototype, 'publishEvent')
+    const publishSpy = vi
+      .spyOn(SnsService.prototype, 'publish')
       .mockResolvedValue({} as PublishCommandOutput);
     const dlqSpy = vi
       .spyOn(DeadLetteringService.prototype, 'send')
@@ -260,13 +260,13 @@ describe('Find actionable events record processor', () => {
       Promise.resolve(['+34666888999' as PhoneNumber, '+34666111222' as PhoneNumber]);
     await testit(validRecord, eventsStartTimeWithinFn, phoneNumberByEmailFn);
 
-    expect(publishEventSpy).toHaveBeenCalledTimes(1);
+    expect(publishSpy).toHaveBeenCalledTimes(1);
     expect(dlqSpy).not.toHaveBeenCalled();
   });
 
   it('should finish processing sucessfully if no valid events are found', async () => {
-    const publishEventSpy = vi
-      .spyOn(SnsService.prototype, 'publishEvent')
+    const publishSpy = vi
+      .spyOn(SnsService.prototype, 'publish')
       .mockResolvedValue({} as PublishCommandOutput);
     const dlqSpy = vi
       .spyOn(DeadLetteringService.prototype, 'send')
@@ -275,13 +275,13 @@ describe('Find actionable events record processor', () => {
     const phoneNumberByEmailFn = () => Promise.resolve([]);
     await testit(validRecord, eventsStartTimeWithinFn, phoneNumberByEmailFn);
 
-    expect(publishEventSpy).not.toHaveBeenCalled();
+    expect(publishSpy).not.toHaveBeenCalled();
     expect(dlqSpy).not.toHaveBeenCalled();
   });
 
   it('should throw an error if eventsStartTimeWithin fails. Retrying the whole record relying on idempotence', async () => {
-    const publishEventSpy = vi
-      .spyOn(SnsService.prototype, 'publishEvent')
+    const publishSpy = vi
+      .spyOn(SnsService.prototype, 'publish')
       .mockResolvedValue({} as PublishCommandOutput);
     const dlqSpy = vi
       .spyOn(DeadLetteringService.prototype, 'send')
@@ -294,13 +294,13 @@ describe('Find actionable events record processor', () => {
       testit(validRecord, eventsStartTimeWithinFn, phoneNumberByEmailFn)
     ).rejects.toThrow(error);
 
-    expect(publishEventSpy).not.toHaveBeenCalled();
+    expect(publishSpy).not.toHaveBeenCalled();
     expect(dlqSpy).not.toHaveBeenCalled();
   });
 
   it('should publish to DLQ if some or all fetched events could not be parsed and keep processing', async () => {
-    const publishEventSpy = vi
-      .spyOn(SnsService.prototype, 'publishEvent')
+    const publishSpy = vi
+      .spyOn(SnsService.prototype, 'publish')
       .mockResolvedValue({} as PublishCommandOutput);
     const dlqSpy = vi
       .spyOn(DeadLetteringService.prototype, 'send')
@@ -311,7 +311,7 @@ describe('Find actionable events record processor', () => {
     const phoneNumberByEmailFn = () => Promise.resolve([validPhoneNumber]);
     await testit(validRecord, eventsStartTimeWithinFn, phoneNumberByEmailFn);
 
-    expect(publishEventSpy).toHaveBeenCalledTimes(1);
+    expect(publishSpy).toHaveBeenCalledTimes(1);
     expect(dlqSpy).toHaveBeenCalledWith(
       expect.objectContaining({
         correlationId: validRecord.body.correlationId,
@@ -332,8 +332,8 @@ describe('Find actionable events record processor', () => {
   });
 
   it('should publish to DLQ if no phone number for an attendee and keep processing', async () => {
-    const publishEventSpy = vi
-      .spyOn(SnsService.prototype, 'publishEvent')
+    const publishSpy = vi
+      .spyOn(SnsService.prototype, 'publish')
       .mockResolvedValue({} as PublishCommandOutput);
     const dlqSpy = vi
       .spyOn(DeadLetteringService.prototype, 'send')
@@ -343,7 +343,7 @@ describe('Find actionable events record processor', () => {
     const phoneNumberByEmailFn = () => Promise.resolve([]);
     await testit(validRecord, eventsStartTimeWithinFn, phoneNumberByEmailFn);
 
-    expect(publishEventSpy).not.toHaveBeenCalled();
+    expect(publishSpy).not.toHaveBeenCalled();
     expect(dlqSpy).toHaveBeenCalledWith(
       expect.objectContaining({
         correlationId: validRecord.body.correlationId,
@@ -362,8 +362,8 @@ describe('Find actionable events record processor', () => {
   });
 
   it('should throw an error if phoneNumberByEmail fails. Retrying the whole record relying on idempotence', async () => {
-    const publishEventSpy = vi
-      .spyOn(SnsService.prototype, 'publishEvent')
+    const publishSpy = vi
+      .spyOn(SnsService.prototype, 'publish')
       .mockResolvedValue({} as PublishCommandOutput);
     const dlqSpy = vi
       .spyOn(DeadLetteringService.prototype, 'send')
@@ -379,13 +379,13 @@ describe('Find actionable events record processor', () => {
       'There were 1 failures to fetch all atteendee phone number for every calendar. Successes: 0. Total: 1. All results: [{"status":"rejected","reason":{}}]'
     );
 
-    expect(publishEventSpy).not.toHaveBeenCalled();
+    expect(publishSpy).not.toHaveBeenCalled();
     expect(dlqSpy).not.toHaveBeenCalled();
   });
 
-  it('should throw an error if publishEvent fails. Retrying the whole record relying on idempotence', async () => {
-    const publishEventSpy = vi
-      .spyOn(SnsService.prototype, 'publishEvent')
+  it('should throw an error if publish fails. Retrying the whole record relying on idempotence', async () => {
+    const publishSpy = vi
+      .spyOn(SnsService.prototype, 'publish')
       .mockRejectedValue(new Error('SNS Error'));
     const dlqSpy = vi
       .spyOn(DeadLetteringService.prototype, 'send')
@@ -400,7 +400,7 @@ describe('Find actionable events record processor', () => {
       'There were 1 failures to publish actionable events. Successes: 0. Total: 1. All results: [{"status":"rejected","reason":{}}]'
     );
 
-    expect(publishEventSpy).toHaveBeenCalledTimes(1);
+    expect(publishSpy).toHaveBeenCalledTimes(1);
     expect(dlqSpy).not.toHaveBeenCalled();
   });
 });

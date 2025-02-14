@@ -19,7 +19,7 @@ export class SnsService extends BaseAwsMessagingService {
     return new this(config);
   }
 
-  public publishEvent<TEvent extends BaseEvent>(event: TEvent): Promise<PublishCommandOutput> {
+  public publish<TEvent extends BaseEvent>(event: TEvent): Promise<PublishCommandOutput> {
     const publishCommand = new PublishCommand({
       TopicArn: this._config.topicArn,
       Message: JSON.stringify(event),

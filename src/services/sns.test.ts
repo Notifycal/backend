@@ -10,7 +10,7 @@ import { SnsService } from './sns';
 
 const validEvent = userCalendarFetchedEvent;
 
-describe('SnsService.publishEvent', () => {
+describe('SnsService.publish', () => {
   it('should publish the event successfully and log the result', async () => {
     const snsSendResponse: PublishCommandOutput = {
       $metadata: {},
@@ -49,5 +49,5 @@ function testit(event: UserCalendarFetchedEvent) {
     topicArn: 'arn:aws:sns:us-east-1:123456789012:MyTopic' as AwsArn
   };
   const snsService = SnsService.withConfig(config);
-  return snsService.publishEvent(event);
+  return snsService.publish(event);
 }

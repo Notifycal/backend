@@ -159,7 +159,7 @@ export function recordProcessor(record: Record, config: ActionableEventsConfig):
     .then((eventWithAttendeePhoneNumbers) => {
       const actionableEvents = buildActionableEvents(eventWithAttendeePhoneNumbers.flat(), event);
       return Promise.allSettled(
-        actionableEvents.map((actionableEvent) => snsService.publishEvent(actionableEvent))
+        actionableEvents.map((actionableEvent) => snsService.publish(actionableEvent))
       );
     })
     .then((results) => allSettledAllOrErrorHandler(results, 'publish actionable events'))
