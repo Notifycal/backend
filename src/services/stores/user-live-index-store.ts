@@ -1,13 +1,9 @@
-import type { SnsTopicConfig } from '@model/Config';
 import type { LiveUserStoreRecord } from '@model/store/LiveUserStoreRecord';
 import type { UserIdpAuthorizationStoreRecord } from '@model/store/UserIdpAuthorizationStoreRecord';
 import type { IdpName } from '@notifycal/shared/types';
 import { IndexStore, type IndexStoreConfig } from '@services/common/index-store';
 
 export type UserLiveIndexStoreConfig = IndexStoreConfig;
-export type UserCalendarFetchedTopicEndpointConfig = {
-  userCalendarFetchedTopicConfig: SnsTopicConfig;
-};
 export type UserLiveIndexStoreEndpointConfig = {
   userLiveIndexStoreConfig: UserLiveIndexStoreConfig;
 };

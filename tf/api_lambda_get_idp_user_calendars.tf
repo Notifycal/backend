@@ -40,7 +40,7 @@ module "get_idp_user_calendars_lambda" {
   policy_json        = data.aws_iam_policy_document.get_idp_user_calendars_iam_policydoc.json
 
   environment_variables = merge({
-  }, local.protected_endpoint_env_vars, local.idps_configs, local.users_persistance_env_vars)
+  }, local.protected_endpoint_env_vars, local.idps_configs_env_vars, local.users_persistance_env_vars)
 }
 
 module "get_idp_user_calendars_lambda_alias" {

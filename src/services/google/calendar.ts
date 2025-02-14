@@ -1,24 +1,26 @@
 /* eslint-disable camelcase */
-import type { GoogleOAuthConfig } from '@model/Config';
+import { ParsingError } from '@model/Errors';
 import type { ServiceResponse } from '@model/ServiceResponse';
-import { calendarSchema, calendarEventSchema } from '@notifycal/shared/schemas';
+import { calendarEventSchema, calendarSchema } from '@notifycal/shared/schemas';
 import type {
   Calendar,
   CalendarEvent,
   CalendarId,
   CalendarName,
-  DateTime
+  DateTime,
+  TimeZone
 } from '@notifycal/shared/types';
+import type { JsonObject } from '@own-types/model';
 import { extractErrorMessage, throwError } from '@services/common/error-handling';
 import { partitionByError } from '@utils/array';
 import { isWithinBoundaries } from '@utils/datetime';
 import { google, type calendar_v3 } from 'googleapis';
 import { z } from 'zod';
-import { BaseGoogle } from './base-service';
+import { ImpersonatedBaseGoogle } from './base-service';
 
-export class GoogleCalendar extends BaseGoogle {
-  public static withRefreshToken(config: GoogleOAuthConfig, refreshToken: string): GoogleCalendar {
-    return new this(config, refreshToken);
+export class GoogleCalendar extends ImpersonatedBaseGoogle {
+  public static withRefreshToken(refreshToken: string): GoogleCalendar {
+    return new this(refreshToken);
   }
 
   public calendarList(): Promise<Array<Calendar>> {
@@ -30,11 +32,15 @@ export class GoogleCalendar extends BaseGoogle {
     lowerBoundStartTime: DateTime,
     upperBoundStartTime: DateTime,
     includeAllDayEvents: boolean
-  ): Promise<ServiceResponse<CalendarEvent>> {
+  ): Promise<ServiceResponse<CalendarEvent, ParsingError>> {
     return this._eventsList(calendarId, lowerBoundStartTime, upperBoundStartTime).then((list) => {
-      const transformedList = list.map((e) => this.toCalendarEventEntry(e, calendarId));
-      const [successList, failureList] = partitionByError(transformedList);
-      const finalList = successList.filter((e) =>
+      const transformedList = (list.items || []).map((e) =>
+        this.toCalendarEventEntry(e, calendarId, list.timeZone || undefined)
+      );
+      const [successList, failureList] = partitionByError<CalendarEvent, ParsingError>(
+        transformedList
+      );
+      const finalSuccessList = successList.filter((e) =>
         // In plain language, yield events which start time is within boundaries(inclusive). Also include all day events based on parameter.
         // This is necessary due to Google Calendar API nature to be able to implement sliding windows so that we don't process events twice.
         {
@@ -50,11 +56,7 @@ export class GoogleCalendar extends BaseGoogle {
           }
         }
       );
-      if (finalList.length > 0) {
-        return { successList: finalList, failureList: failureList };
-      } else {
-        return { successList: undefined, failureList: failureList };
-      }
+      return { successList: finalSuccessList, failureList: failureList };
     });
   }
 
@@ -68,18 +70,26 @@ export class GoogleCalendar extends BaseGoogle {
   // Docs: it includes events which start time happens between start and end inclusive and all day events too.
   private toCalendarEventEntry(
     item: calendar_v3.Schema$Event,
-    calendarId: CalendarId
-  ): CalendarEvent | Error {
+    calendarId: CalendarId,
+    calendarTimezone: string | undefined
+  ): CalendarEvent | ParsingError {
     try {
+      const timeZone =
+        (item.start?.dateTime as TimeZone) ??
+        (typeof calendarTimezone === 'string' ? (calendarTimezone as TimeZone) : undefined);
       const calendarEvent: Partial<CalendarEvent> = {
         id: item.id ?? undefined,
         description: item.summary ?? undefined,
+        attendees: (item.attendees || []).map((attendee) => ({
+          id: attendee.email as string // if null or undefined it will be caught later on parsing
+        })),
+        timeZone: timeZone,
         ...this.extractDateTime(item.start)
       };
       return calendarEventSchema.parse(calendarEvent);
     } catch (error) {
       const msg = `Parsing error when extracting information out of a Google Calendar Events list. Google calendar id: ${calendarId}. Google event id: ${item.id}. Error: ${extractErrorMessage(error)}`;
-      return new Error(msg);
+      return new ParsingError(msg, JSON.parse(JSON.stringify(item)) as JsonObject);
     }
   }
 
@@ -140,7 +150,7 @@ export class GoogleCalendar extends BaseGoogle {
     calendarId: CalendarId,
     upperBoundStartTime: DateTime,
     lowerBoundEndTime: DateTime
-  ): Promise<Array<calendar_v3.Schema$Event>> {
+  ): Promise<calendar_v3.Schema$Events> {
     const baseMsg = 'GET Events List';
     const calendar = google.calendar({ version: 'v3', auth: this._client });
     return calendar.events
@@ -152,7 +162,7 @@ export class GoogleCalendar extends BaseGoogle {
       })
       .then((response) => {
         if (response.status >= 200 && response.status <= 299) {
-          return response.data.items || [];
+          return response.data;
         } else {
           throwError(`${baseMsg}. Error in response: ${JSON.stringify(response)}`);
         }

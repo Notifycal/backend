@@ -1,15 +1,22 @@
 import { dateTimeSchema, idpIdSchema, userIdSchema } from '@notifycal/shared/schemas';
 import { z } from 'zod';
 
-export type PipeEvents = 'UserCalendarFetched' | 'ActionableEventFound';
+const eventTypes = z.union([
+  z.literal('UserCalendarFetched'),
+  z.literal('ActionableEventFound'),
+  z.literal('UserFetchedEventsParsingFailed'),
+  z.literal('NoPhoneNumberForAttendeeFound')
+]);
+
+export const eventIdSchema = z.string().uuid().brand('EventId');
 
 export const baseEventSchema = z.object({
   userId: userIdSchema,
   idpId: idpIdSchema,
   idp: z.literal('google.com'),
-  eventType: z.literal('UserCalendarFetched'),
+  eventType: eventTypes,
   happenedAt: dateTimeSchema,
-  eventId: z.string().uuid().brand('EventId'),
+  eventId: eventIdSchema,
   correlationId: z.string().uuid().brand('CorrelationId')
 });
 

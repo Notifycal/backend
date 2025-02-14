@@ -23,7 +23,8 @@ export const userCalendarFetchedEvent: UserCalendarFetchedEvent = {
   data: {
     run: {
       lowerBoundStartTime: '2023-01-01T00:00:00Z' as DateTime,
-      upperBoundStartTime: '2023-01-01T00:29:59Z' as DateTime
+      upperBoundStartTime: '2023-01-01T00:29:59Z' as DateTime,
+      slidingWindowInMinutes: 30
     },
     calendar: {
       id: 'someCalendarId' as CalendarId,

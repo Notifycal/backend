@@ -1,16 +1,26 @@
-import type { SqsEvent } from '@aws-lambda-powertools/parser/types';
+import type { AwsArn, Url } from '@own-types/model';
 import { userCalendarFetchedEvent } from '@testing/app-events';
-import type { Context } from 'aws-lambda';
-import type { SqsRecord } from 'node_modules/@aws-lambda-powertools/parser/lib/esm/types/schema';
+import {
+  setEnvActionableEventFoundTopicConfig,
+  setEnvDeadLetterQueueConfig
+} from '@testing/utils/config';
+import type { Context, SQSEvent, SQSRecord } from 'aws-lambda';
 import { v4 } from 'uuid';
 import { describe, expect, it, vi } from 'vitest';
 import { type Event, handler } from '.';
 import type { ActionableEventsConfig } from './config';
 import * as recordProcessor from './record-processor';
 
-const defaultEnv: ActionableEventsConfig = {};
+const defaultEnv: ActionableEventsConfig = {
+  actionableEventFoundTopicConfig: {
+    topicArn: 'someTopicArn' as AwsArn
+  },
+  deadLetterQueueConfig: {
+    queueUrl: 'http://aws.com/dql' as Url
+  }
+};
 const validUserCalendarFetchedEvent = userCalendarFetchedEvent;
-const validSqsRecord: SqsRecord = {
+const validSqsRecord: SQSRecord = {
   body: JSON.stringify(validUserCalendarFetchedEvent),
   messageId: v4(),
   receiptHandle: '',
@@ -31,13 +41,13 @@ const validSqsRecord: SqsRecord = {
   eventSourceARN: '',
   awsRegion: ''
 };
-const validSqsBatchEvent: SqsEvent = {
+const validSqsBatchEvent: SQSEvent = {
   Records: [validSqsRecord]
 };
 
 describe('Find actionable events', () => {
   it('should parse config and events', () => {
-    vi.spyOn(recordProcessor, 'process').mockResolvedValue();
+    vi.spyOn(recordProcessor, 'recordProcessor').mockResolvedValue();
     return testit(validSqsBatchEvent).then((r) => {
       expect(r).toStrictEqual({
         batchItemFailures: []
@@ -47,13 +57,13 @@ describe('Find actionable events', () => {
 
   it('should indicate partial failure in response', () => {
     const processorSpy = vi
-      .spyOn(recordProcessor, 'process')
+      .spyOn(recordProcessor, 'recordProcessor')
       .mockResolvedValueOnce()
       .mockImplementation(() => {
         throw new Error('Boom!');
       });
-    const eventError: SqsRecord = { ...validSqsRecord, messageId: 'messageWithErrorId' };
-    const validInput: SqsEvent = {
+    const eventError: SQSRecord = { ...validSqsRecord, messageId: 'messageWithErrorId' };
+    const validInput: SQSEvent = {
       Records: [validSqsRecord, eventError]
     };
     return testit(validInput).then((r) => {
@@ -65,7 +75,7 @@ describe('Find actionable events', () => {
   });
 
   it('should throw an error if processing of every item fails', () => {
-    vi.spyOn(recordProcessor, 'process').mockRejectedValue(new Error('Boom!'));
+    vi.spyOn(recordProcessor, 'recordProcessor').mockRejectedValue(new Error('Boom!'));
     return expect(testit(validSqsBatchEvent)).rejects.toThrow(
       'All records failed processing. See individual errors below.'
     );
@@ -74,18 +84,19 @@ describe('Find actionable events', () => {
   it('should fail to parse an event', () => {
     const invalidEvent = { Records: [{ someField: 'someValue' }] };
     return expect(
-      testit(invalidEvent as unknown as SqsEvent)
+      testit(invalidEvent as unknown as SQSEvent)
     ).toRejectWithErrorContainingMessageParts([
       'Lambda payload does not satisfy the schema. Error: Failed to parse schema. This error was caused by:'
     ]);
   });
 });
 
-function testit(event: SqsEvent, config: ActionableEventsConfig = defaultEnv): Promise<void> {
+function testit(event: SQSEvent, config: ActionableEventsConfig = defaultEnv): Promise<void> {
   setEnv(config);
   return handler(event as unknown as Event, {} as Context);
 }
 
 function setEnv(config: ActionableEventsConfig) {
-  console.log(`TODO. Just to avoid errors meanwhile ${JSON.stringify(config)}`);
+  setEnvActionableEventFoundTopicConfig(config.actionableEventFoundTopicConfig);
+  setEnvDeadLetterQueueConfig(config.deadLetterQueueConfig);
 }

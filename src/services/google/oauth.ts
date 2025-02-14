@@ -3,9 +3,15 @@ import type { AuthorizationForIdp } from '@model/IdpAuthorization';
 import type { Email, Identity, IdpId } from '@notifycal/shared/types';
 import { throwError } from '@services/common/error-handling';
 import { idGenerator } from '@services/id-generator';
-import { BaseGoogle } from './base-service';
+import { OAuthBaseGoogle } from './base-service';
 
-export class GoogleOAuth extends BaseGoogle {
+export class GoogleOAuth extends OAuthBaseGoogle {
+  protected _config: GoogleOAuthConfig;
+
+  protected constructor(config: GoogleOAuthConfig) {
+    super(config);
+    this._config = config;
+  }
   public static withConfig(config: GoogleOAuthConfig): GoogleOAuth {
     return new this(config);
   }
