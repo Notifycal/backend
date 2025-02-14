@@ -14,6 +14,7 @@ import type {
   UserCalendarFetchedTopicEndpointConfig
 } from '@model/Config';
 import type { AwsArn, Environment, Url } from '@own-types/model';
+import type { AuditTrailBaseStoreEndpointConfig } from '@services/stores/audit-trail-base-store';
 import type { RefreshTokenBaseStoreConfigEndpointConfig } from '@services/stores/refresh-token-base-store';
 import type { UserBaseStoreEndpointConfig } from '@services/stores/user-base-store';
 import type { UserLiveIndexStoreEndpointConfig } from '@services/stores/user-live-index-store';
@@ -90,10 +91,11 @@ export function readDecodeRefreshJwtConfig(env: Environment): DecodeRefreshJwtCo
   };
 }
 
+const userBaseTableEnvVarName = 'USERS_TABLE_NAME';
 export function readUserBaseStoreConfig(env: Environment): UserBaseStoreEndpointConfig {
   return {
     userBaseStoreConfig: {
-      tableName: env.get('USERS_TABLE_NAME').required().asString()
+      tableName: env.get(userBaseTableEnvVarName).required().asString()
     }
   };
 }
@@ -101,7 +103,7 @@ export function readUserBaseStoreConfig(env: Environment): UserBaseStoreEndpoint
 export function readUserLiveIndexConfig(env: Environment): UserLiveIndexStoreEndpointConfig {
   return {
     userLiveIndexStoreConfig: {
-      tableName: env.get('USERS_TABLE_NAME').required().asString(),
+      tableName: env.get(userBaseTableEnvVarName).required().asString(),
       indexName: env.get('LIVE_USERS_INDEX_NAME').required().asString(),
       pageSize: env.get('USERS_PAGE_SIZE').default(100).asInt()
     }
@@ -162,6 +164,14 @@ export function readIdpConfigs(env: Environment): IdpEndpointConfig {
         clientSecret: env.get('GOOGLE_OAUTH_CLIENT_SECRET').required().asString(),
         redirectUri: env.get('GOOGLE_OAUTH_CLIENT_REDIRECT_URI').required().asString()
       }
+    }
+  };
+}
+
+export function readAuditTrailBaseStoreConfig(env: Environment): AuditTrailBaseStoreEndpointConfig {
+  return {
+    auditTrailBaseStoreConfig: {
+      tableName: env.get('AUDIT_TRAIL_TABLE_NAME').required().asString()
     }
   };
 }
