@@ -1,6 +1,9 @@
-import type { AwsArn } from '@own-types/model';
+import type { AwsArn, Url } from '@own-types/model';
 import { userCalendarFetchedEvent } from '@testing/app-events';
-import { setEnvActionableEventFoundTopicConfig } from '@testing/utils/config';
+import {
+  setEnvActionableEventFoundTopicConfig,
+  setEnvDeadLetterQueueConfig
+} from '@testing/utils/config';
 import type { Context, SQSEvent, SQSRecord } from 'aws-lambda';
 import { v4 } from 'uuid';
 import { describe, expect, it, vi } from 'vitest';
@@ -11,6 +14,9 @@ import * as recordProcessor from './record-processor';
 const defaultEnv: ActionableEventsConfig = {
   actionableEventFoundTopicConfig: {
     topicArn: 'someTopicArn' as AwsArn
+  },
+  deadLetterQueueConfig: {
+    queueUrl: 'http://aws.com/dql' as Url
   }
 };
 const validUserCalendarFetchedEvent = userCalendarFetchedEvent;
@@ -92,4 +98,5 @@ function testit(event: SQSEvent, config: ActionableEventsConfig = defaultEnv): P
 
 function setEnv(config: ActionableEventsConfig) {
   setEnvActionableEventFoundTopicConfig(config.actionableEventFoundTopicConfig);
+  setEnvDeadLetterQueueConfig(config.deadLetterQueueConfig);
 }

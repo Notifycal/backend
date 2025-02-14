@@ -1,4 +1,5 @@
 /* eslint-disable camelcase */
+import { ParsingError } from '@model/Errors';
 import type { ServiceResponse } from '@model/ServiceResponse';
 import { calendarEventSchema, calendarSchema } from '@notifycal/shared/schemas';
 import type {
@@ -9,6 +10,7 @@ import type {
   DateTime,
   TimeZone
 } from '@notifycal/shared/types';
+import type { JsonObject } from '@own-types/model';
 import { extractErrorMessage, throwError } from '@services/common/error-handling';
 import { partitionByError } from '@utils/array';
 import { isWithinBoundaries } from '@utils/datetime';
@@ -30,12 +32,14 @@ export class GoogleCalendar extends ImpersonatedBaseGoogle {
     lowerBoundStartTime: DateTime,
     upperBoundStartTime: DateTime,
     includeAllDayEvents: boolean
-  ): Promise<ServiceResponse<CalendarEvent>> {
+  ): Promise<ServiceResponse<CalendarEvent, ParsingError>> {
     return this._eventsList(calendarId, lowerBoundStartTime, upperBoundStartTime).then((list) => {
       const transformedList = (list.items || []).map((e) =>
         this.toCalendarEventEntry(e, calendarId, list.timeZone || undefined)
       );
-      const [successList, failureList] = partitionByError(transformedList);
+      const [successList, failureList] = partitionByError<CalendarEvent, ParsingError>(
+        transformedList
+      );
       const finalSuccessList = successList.filter((e) =>
         // In plain language, yield events which start time is within boundaries(inclusive). Also include all day events based on parameter.
         // This is necessary due to Google Calendar API nature to be able to implement sliding windows so that we don't process events twice.
@@ -68,7 +72,7 @@ export class GoogleCalendar extends ImpersonatedBaseGoogle {
     item: calendar_v3.Schema$Event,
     calendarId: CalendarId,
     calendarTimezone: string | undefined
-  ): CalendarEvent | Error {
+  ): CalendarEvent | ParsingError {
     try {
       const timeZone =
         (item.start?.dateTime as TimeZone) ??
@@ -85,7 +89,7 @@ export class GoogleCalendar extends ImpersonatedBaseGoogle {
       return calendarEventSchema.parse(calendarEvent);
     } catch (error) {
       const msg = `Parsing error when extracting information out of a Google Calendar Events list. Google calendar id: ${calendarId}. Google event id: ${item.id}. Error: ${extractErrorMessage(error)}`;
-      return new Error(msg);
+      return new ParsingError(msg, JSON.parse(JSON.stringify(item)) as JsonObject);
     }
   }
 

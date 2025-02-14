@@ -3,6 +3,7 @@ import type {
   ActionableEventFoundTopicEndpointConfig,
   AuthedEndpointConfig,
   BaseEndpointConfig,
+  DeadLetterQueueEndpointConfig,
   DecodeAccessJwtConfig,
   DecodeAccessJwtEndpointConfig,
   DecodeRefreshJwtConfig,
@@ -12,7 +13,7 @@ import type {
   IdpEndpointConfig,
   UserCalendarFetchedTopicEndpointConfig
 } from '@model/Config';
-import type { AwsArn, Environment } from '@own-types/model';
+import type { AwsArn, Environment, Url } from '@own-types/model';
 import type { RefreshTokenBaseStoreConfigEndpointConfig } from '@services/stores/refresh-token-base-store';
 import type { UserBaseStoreEndpointConfig } from '@services/stores/user-base-store';
 import type { UserLiveIndexStoreEndpointConfig } from '@services/stores/user-live-index-store';
@@ -131,6 +132,14 @@ export function readActionableEventFoundTopicConfig(
   return {
     actionableEventFoundTopicConfig: {
       topicArn: env.get('ACTIONABLE_EVENT_FOUND_ARN').required().asString() as AwsArn
+    }
+  };
+}
+
+export function readDeadLetterQueueConfig(env: Environment): DeadLetterQueueEndpointConfig {
+  return {
+    deadLetterQueueConfig: {
+      queueUrl: env.get('DEAD_LETTER_QUEUE_URL').required().asString() as Url
     }
   };
 }

@@ -31,12 +31,16 @@ locals {
     REFRESH_JWT_EXPIRATION  = var.jwt_config.refresh.expiration
   }, local.decode_access_jwt_env_vars, local.users_persistance_env_vars, local.refresh_token_persistance_env_vars)
 
-  google_idp_config = {
+  google_idp_config_env_vars = {
     GOOGLE_OAUTH_CLIENT_ID           = var.google_oauth_config.client_id
     GOOGLE_OAUTH_CLIENT_SECRET       = var.google_oauth_config.client_secret
     GOOGLE_OAUTH_CLIENT_REDIRECT_URI = var.google_oauth_config.redirect_url
   }
-  idps_configs = merge({}, local.google_idp_config)
+  idps_configs_env_vars = merge({}, local.google_idp_config_env_vars)
+
+  dead_letter_queue_env_vars = {
+    DEAD_LETTER_QUEUE_URL = aws_sqs_queue.global_dlq_lambda.url
+  }
 
   common_tags = {}
 

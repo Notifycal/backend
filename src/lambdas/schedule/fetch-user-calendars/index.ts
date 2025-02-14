@@ -69,7 +69,8 @@ async function lambdaHandler(event: Event, context: Context): Promise<void> {
     upperBoundStartTime: windowStart
       .plus({ minutes: event.lambdaConfig.cronRunConfig.windowInMinutes })
       .minus({ millisecond: 1 })
-      .toISO() as DateTime
+      .toISO() as DateTime,
+    slidingWindowInMinutes: event.lambdaConfig.cronRunConfig.windowInMinutes
   };
   logger.info(
     `Starting run corresponding to cron ${event.time}. Time window: [${run.lowerBoundStartTime}, ${run.upperBoundStartTime}]`
@@ -85,7 +86,14 @@ async function lambdaHandler(event: Event, context: Context): Promise<void> {
       await Promise.allSettled(
         liveUsersPage
           .flatMap((user) => toEvents(user, run))
-          .map((event) => snsService.publishEvent(event))
+          .map((event) =>
+            snsService.publishEvent(event).catch((error) => {
+              const msg = `Error publishing an event to SNS with id ${event.eventId}. Error: ${JSON.stringify(error)}. Extracted error: ${extractErrorMessage(error)}`;
+              logger.error(msg);
+              logger.info(`Moving on after error...`);
+              return;
+            })
+          )
       );
       totalPages += 1;
       totalItems += liveUsersPage.length;

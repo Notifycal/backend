@@ -6,7 +6,8 @@ import type {
   EncodeAccessJwtConfig,
   EncodeRefreshJwtConfig,
   IdpConfigs,
-  SnsTopicConfig
+  SnsTopicConfig,
+  SqsQueueConfig
 } from '@model/Config';
 import type { RefreshTokenBaseStoreConfig } from '@services/stores/refresh-token-base-store';
 import type { UserBaseStoreConfig } from '@services/stores/user-base-store';
@@ -67,6 +68,10 @@ export function setEnvUserCalendarFetchedTopicConfig(config: SnsTopicConfig): vo
 
 export function setEnvActionableEventFoundTopicConfig(config: SnsTopicConfig): void {
   process.env.ACTIONABLE_EVENT_FOUND_ARN = config.topicArn;
+}
+
+export function setEnvDeadLetterQueueConfig(config: SqsQueueConfig): void {
+  process.env.DEAD_LETTER_QUEUE_URL = config.queueUrl;
 }
 
 export function setEnvCronRunConfig(config: CronRunConfig): void {

@@ -1,5 +1,8 @@
 import { logger } from '@common/powertools';
 import type { ActionableEventFoundEvent } from '@model/app-events/ActionableEventFound';
+import { noPhoneNumberForAttendeeFound } from '@model/app-events/NoPhoneNumberForAttendeeFound';
+import { userFetchedEventsParsingFailed } from '@model/app-events/UserFetchedEventsParsingFailed';
+import type { ParsingError } from '@model/Errors';
 import type { ServiceResponse } from '@model/ServiceResponse';
 import type {
   BusinessAddress,
@@ -13,12 +16,13 @@ import type {
 } from '@notifycal/shared/types';
 import { eventsStartTimeWithin } from '@services/calendar-events';
 import { phoneNumberByEmail } from '@services/contacts';
+import { DeadLetteringService } from '@services/dead-lettering';
 import { SnsService } from '@services/sns';
+import { allSettledAllOrErrorHandler } from '@utils/promises';
 import { DateTime as DT } from 'luxon';
 import { v4 } from 'uuid';
 import type { Record } from '.';
 import type { ActionableEventsConfig } from './config';
-import { publishToDlq } from './dlq';
 
 function interpolateMessage(
   businessName: BusinessName,
@@ -30,7 +34,9 @@ function interpolateMessage(
   return `Tienes una cita con ${businessName} en ${businessAddress} el dia ${dateTime.get('day')}/${dateTime.get('month')} a las ${dateTime.get('hour')}:${dateTime.get('minute')}. En caso de no poder asistir, pongase en contacto con nosotros. Este mensaje ha sido enviado con Notifycal.es`;
 }
 
-function fetchCalendarEvents(event: Record['body']): Promise<ServiceResponse<CalendarEvent>> {
+function fetchCalendarEvents(
+  event: Record['body']
+): Promise<ServiceResponse<CalendarEvent, ParsingError>> {
   const { idpAuthorization } = event.sensitiveData;
   const calendarEventStartTime = DT.fromISO(event.data.run.lowerBoundStartTime).toUTC();
   const includeAllDayEvents =
@@ -48,9 +54,10 @@ function fetchCalendarEvents(event: Record['body']): Promise<ServiceResponse<Cal
 
 function fetchAttendeePhoneNumbers(
   calendarEvent: CalendarEvent,
-  event: Record['body']
+  event: Record['body'],
+  dqlService: DeadLetteringService
 ): Promise<Array<{ calendarEvent: CalendarEvent; attendeePhoneNumber: PhoneNumber }>> {
-  return Promise.all(
+  return Promise.allSettled(
     calendarEvent.attendees.map((attendee) =>
       phoneNumberByEmail(
         attendee.id as Email,
@@ -65,14 +72,18 @@ function fetchAttendeePhoneNumbers(
             }
           ]);
         } else {
-          return publishToDlq(new Error(`No phone number on some calendar event attendee`)).then(
-            () => [],
-            () => []
-          );
+          return dqlService
+            .send(noPhoneNumberForAttendeeFound(event, calendarEvent, attendee.id))
+            .then(() => []);
         }
       })
     )
-  ).then((results) => results.flat());
+  ).then((results) =>
+    allSettledAllOrErrorHandler(
+      results,
+      `fetch attendees' phone numbers for a calendar event ${calendarEvent.id}`
+    ).flat()
+  );
 }
 
 function buildActionableEvents(
@@ -115,34 +126,44 @@ function buildActionableEvents(
 
 export function recordProcessor(record: Record, config: ActionableEventsConfig): Promise<void> {
   const snsService = SnsService.withConfig(config.actionableEventFoundTopicConfig);
+  const dlqService = DeadLetteringService.withConfig(config.deadLetterQueueConfig);
   const event = record.body;
 
   return fetchCalendarEvents(event)
     .then(({ successList, failureList }) => {
       if ((successList && successList?.length > 0) || (failureList && failureList?.length > 0)) {
-        return Promise.allSettled(failureList.map((f: Error) => publishToDlq(f))).then(
-          () => successList || [],
-          () => successList || []
-        );
+        return Promise.allSettled(
+          failureList.map((failure) =>
+            dlqService.send(userFetchedEventsParsingFailed(event, failure))
+          )
+        )
+          .then((results) =>
+            allSettledAllOrErrorHandler(results, 'send calendar event fetch failures to DLQ')
+          )
+          .then(() => successList);
       } else {
         logger.info(`NoActionableEventsFound`);
         return Promise.resolve([]);
       }
     })
     .then((calendarEvents) =>
-      Promise.all(
-        calendarEvents.map((calendarEvent) => fetchAttendeePhoneNumbers(calendarEvent, event))
+      Promise.allSettled(
+        calendarEvents.map((calendarEvent) =>
+          fetchAttendeePhoneNumbers(calendarEvent, event, dlqService)
+        )
       )
     )
-    .then((attendeePhoneNumbers) => {
-      const actionableEvents = buildActionableEvents(attendeePhoneNumbers.flat(), event);
-      return Promise.all(
+    .then((results) =>
+      allSettledAllOrErrorHandler(results, 'fetch all atteendee phone number for every calendar')
+    )
+    .then((eventWithAttendeePhoneNumbers) => {
+      const actionableEvents = buildActionableEvents(eventWithAttendeePhoneNumbers.flat(), event);
+      return Promise.allSettled(
         actionableEvents.map((actionableEvent) => snsService.publishEvent(actionableEvent))
       );
     })
+    .then((results) => allSettledAllOrErrorHandler(results, 'publish actionable events'))
     .then(() => {
-      logger.info(
-        'ActionableEventFound events derived from UserCalendarFetched event have been published'
-      );
+      return;
     });
 }
