@@ -1,4 +1,5 @@
 import type { CronRunEndpointConfig } from '@lambdas/schedule/fetch-user-calendars/config';
+import type { AuditTrailRecordExpiresAtEndpointConfig } from '@lambdas/sqs/audit-trail/config';
 import type {
   ActionableEventFoundTopicEndpointConfig,
   AuthedEndpointConfig,
@@ -172,6 +173,16 @@ export function readAuditTrailBaseStoreConfig(env: Environment): AuditTrailBaseS
   return {
     auditTrailBaseStoreConfig: {
       tableName: env.get('AUDIT_TRAIL_TABLE_NAME').required().asString()
+    }
+  };
+}
+
+export function readAuditTrailRecordExpiresAtConfig(
+  env: Environment
+): AuditTrailRecordExpiresAtEndpointConfig {
+  return {
+    recordExpiresAtConfig: {
+      expiresAtInDays: env.get('AUDIT_TRAIL_RECORD_EXPIRES_AT_IN_DAYS').required().asIntPositive()
     }
   };
 }

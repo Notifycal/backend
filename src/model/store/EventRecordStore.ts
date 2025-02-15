@@ -5,6 +5,7 @@ import type {
   EventId,
   IdpId,
   IdpName,
+  UnixTimestamp,
   UserId
 } from '@notifycal/shared/types';
 
@@ -17,4 +18,5 @@ export interface EventStoreRecord {
   EventType: EventType;
   HappenedAt: DateTime;
   Data: Data;
+  ExpiresAt: UnixTimestamp;
 }

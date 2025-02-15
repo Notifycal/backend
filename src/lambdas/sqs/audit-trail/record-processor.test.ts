@@ -75,6 +75,9 @@ const validRecord: Record = {
 const defaultConfig: AuditTrailConfig = {
   auditTrailBaseStoreConfig: {
     tableName: 'some-table-name'
+  },
+  recordExpiresAtConfig: {
+    expiresAtInDays: 7
   }
 };
 

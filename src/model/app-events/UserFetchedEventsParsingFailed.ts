@@ -39,6 +39,7 @@ export function userFetchedEventsParsingFailed(
         message: error.message,
         cause: error.item
       }
-    }
+    },
+    sensitiveData: {}
   };
 }

@@ -1,4 +1,5 @@
 import type { CronRunConfig } from '@lambdas/schedule/fetch-user-calendars/config';
+import type { AuditTrailRecordExpiresAtConfig } from '@lambdas/sqs/audit-trail/config';
 import type {
   BaseConfig,
   DecodeAccessJwtConfig,
@@ -85,6 +86,12 @@ export function setEnvRefreshTokenBaseStoreConfig(config: RefreshTokenBaseStoreC
 
 export function setEnvAuditTrailBaseStoreConfig(config: AuditTrailBaseStoreConfig): void {
   process.env.AUDIT_TRAIL_TABLE_NAME = config.tableName;
+}
+
+export function setEnvAuditTrailRecordExpiresAtConfig(
+  config: AuditTrailRecordExpiresAtConfig
+): void {
+  process.env.AUDIT_TRAIL_RECORD_EXPIRES_AT_IN_DAYS = config.expiresAtInDays.toString();
 }
 
 export function setEnvBaseConfig(config: BaseConfig): void {

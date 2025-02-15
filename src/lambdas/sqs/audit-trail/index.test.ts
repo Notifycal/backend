@@ -1,5 +1,8 @@
 import { userCalendarFetchedEvent } from '@testing/app-events';
-import { setEnvAuditTrailBaseStoreConfig } from '@testing/utils/config';
+import {
+  setEnvAuditTrailBaseStoreConfig,
+  setEnvAuditTrailRecordExpiresAtConfig
+} from '@testing/utils/config';
 import type { Context, SQSEvent, SQSRecord } from 'aws-lambda';
 import { v4 } from 'uuid';
 import { describe, expect, it, vi } from 'vitest';
@@ -10,6 +13,9 @@ import * as recordProcessor from './record-processor';
 const defaultConfig: AuditTrailConfig = {
   auditTrailBaseStoreConfig: {
     tableName: 'some-table-name'
+  },
+  recordExpiresAtConfig: {
+    expiresAtInDays: 7
   }
 };
 const validUserCalendarFetchedEvent = userCalendarFetchedEvent;
@@ -91,4 +97,5 @@ function testit(event: SQSEvent, config: AuditTrailConfig = defaultConfig): Prom
 
 function setEnv(config: AuditTrailConfig) {
   setEnvAuditTrailBaseStoreConfig(config.auditTrailBaseStoreConfig);
+  setEnvAuditTrailRecordExpiresAtConfig(config.recordExpiresAtConfig);
 }
