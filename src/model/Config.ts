@@ -64,14 +64,14 @@ export interface SqsQueueConfig {
   queueUrl: Url;
 }
 
-export type UserCalendarFetchedTopicEndpointConfig = {
+export type UserCalendarFetchedTopicConfig = {
   userCalendarFetchedTopicConfig: SnsTopicConfig;
 };
 
-export type ActionableEventFoundTopicEndpointConfig = {
+export type ActionableEventFoundTopicConfig = {
   actionableEventFoundTopicConfig: SnsTopicConfig;
 };
 
-export type DeadLetterQueueEndpointConfig = {
+export type DeadLetterQueueConfig = {
   deadLetterQueueConfig: SqsQueueConfig;
 };
