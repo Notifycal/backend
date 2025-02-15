@@ -11,7 +11,6 @@ import type {
   TemplateId,
   UserId
 } from '@notifycal/shared/types';
-import type { Url } from '@own-types/model';
 import { AuditTrailBaseStore } from '@services/stores/audit-trail-base-store';
 import { describe, expect, it, vi } from 'vitest';
 import type { AuditTrailConfig } from './config';
@@ -76,9 +75,6 @@ const validRecord: Record = {
 const defaultConfig: AuditTrailConfig = {
   auditTrailBaseStoreConfig: {
     tableName: 'some-table-name'
-  },
-  deadLetterQueueConfig: {
-    queueUrl: 'http://aws.com/dlq' as Url
   }
 };
 
