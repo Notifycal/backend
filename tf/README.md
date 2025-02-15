@@ -23,6 +23,8 @@
 | <a name="module_actionable_event_found_queue"></a> [actionable\_event\_found\_queue](#module\_actionable\_event\_found\_queue) | ./modules/sqs | n/a |
 | <a name="module_actionable_event_found_topic"></a> [actionable\_event\_found\_topic](#module\_actionable\_event\_found\_topic) | ./modules/sns | n/a |
 | <a name="module_apigateway_custom_domain"></a> [apigateway\_custom\_domain](#module\_apigateway\_custom\_domain) | ./modules/api_gateway_external_domain | n/a |
+| <a name="module_audit_trail_lambda"></a> [audit\_trail\_lambda](#module\_audit\_trail\_lambda) | terraform-aws-modules/lambda/aws | ~> 7.17 |
+| <a name="module_audit_trail_queue"></a> [audit\_trail\_queue](#module\_audit\_trail\_queue) | ./modules/sqs | n/a |
 | <a name="module_fetch_user_calendars_lambda"></a> [fetch\_user\_calendars\_lambda](#module\_fetch\_user\_calendars\_lambda) | terraform-aws-modules/lambda/aws | ~> 7.17 |
 | <a name="module_find_actionable_events_lambda"></a> [find\_actionable\_events\_lambda](#module\_find\_actionable\_events\_lambda) | terraform-aws-modules/lambda/aws | ~> 7.17 |
 | <a name="module_get_idp_user_calendars_lambda"></a> [get\_idp\_user\_calendars\_lambda](#module\_get\_idp\_user\_calendars\_lambda) | terraform-aws-modules/lambda/aws | ~> 7.17 |
@@ -48,6 +50,7 @@
 | [aws_api_gateway_stage.stage](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/api_gateway_stage) | resource |
 | [aws_cloudwatch_event_rule.fetch_user_calendars_trigger_rule](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_event_rule) | resource |
 | [aws_cloudwatch_event_target.fetch_user_calendars_event_target](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_event_target) | resource |
+| [aws_dynamodb_table.audit_trail_events](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/dynamodb_table) | resource |
 | [aws_dynamodb_table.refresh_tokens](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/dynamodb_table) | resource |
 | [aws_dynamodb_table.users](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/dynamodb_table) | resource |
 | [aws_iam_role.sns_feedback_role](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role) | resource |
@@ -60,6 +63,7 @@
 | [tls_private_key.jwt_access_key](https://registry.terraform.io/providers/hashicorp/tls/latest/docs/resources/private_key) | resource |
 | [tls_private_key.jwt_refresh_key](https://registry.terraform.io/providers/hashicorp/tls/latest/docs/resources/private_key) | resource |
 | [aws_caller_identity.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/caller_identity) | data source |
+| [aws_iam_policy_document.audit_trail_iam_policydoc](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
 | [aws_iam_policy_document.fetch_user_calendars_iam_policydoc](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
 | [aws_iam_policy_document.find_actionable_events_iam_policydoc](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
 | [aws_iam_policy_document.get_idp_user_calendars_iam_policydoc](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |

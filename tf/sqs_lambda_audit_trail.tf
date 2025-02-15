@@ -4,7 +4,7 @@ locals {
     global_dlq_lambda = aws_sqs_queue.global_dlq_lambda.arn,
     global_dlq_sqs    = aws_sqs_queue.global_dlq_sqs.arn
   }
-  
+
   event_source_mappings = {
     for queue_name, queue_arn in local.queue_sources : queue_name => {
       event_source_arn = queue_arn
@@ -67,6 +67,6 @@ module "audit_trail_lambda" {
   allowed_triggers     = local.allowed_triggers
 
   environment_variables = merge({
-    AUDIT_TRAIL_TABLE_NAME                = aws_dynamodb_table.audit_trail_events.name
+    AUDIT_TRAIL_TABLE_NAME = aws_dynamodb_table.audit_trail_events.name
   }, local.common_lambda_env_vars)
 }
