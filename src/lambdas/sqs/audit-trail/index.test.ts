@@ -1,9 +1,6 @@
 import { userCalendarFetchedEvent } from '@testing/data/app-events';
 import { validRawRecord } from '@testing/data/sqs-events';
-import {
-  setEnvAuditTrailBaseStoreConfig,
-  setEnvAuditTrailRecordExpiresAtConfig
-} from '@testing/utils/config';
+import { setEnvAuditTrailBaseStoreConfig } from '@testing/utils/config';
 import type { SQSEvent, SQSRecord } from 'aws-lambda';
 import { describe } from 'vitest';
 import { handler } from '.';
@@ -21,13 +18,9 @@ function setEnv() {
   const config: AuditTrailConfig = {
     auditTrailBaseStoreConfig: {
       tableName: 'some-table-name'
-    },
-    recordExpiresAtConfig: {
-      expiresAtInDays: 7
     }
   };
   setEnvAuditTrailBaseStoreConfig(config.auditTrailBaseStoreConfig);
-  setEnvAuditTrailRecordExpiresAtConfig(config.recordExpiresAtConfig);
 }
 
 describe(

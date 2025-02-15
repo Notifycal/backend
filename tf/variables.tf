@@ -101,12 +101,6 @@ variable "jwt_config" {
   }
 }
 
-variable "audit_trail" {
-  type = object({
-    recordExpiresAtInDays = optional(number, 60)
-  })
-}
-
 variable "enable_xray_active_tracing" {
   type    = bool
   default = true
