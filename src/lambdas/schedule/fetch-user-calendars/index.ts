@@ -12,7 +12,7 @@ import { extractErrorMessage } from '@services/common/error-handling';
 import { SnsService } from '@services/sns';
 import { UserLiveIndexStore } from '@services/stores/user-live-index-store';
 import type { Context } from 'aws-lambda';
-import dayjs from 'dayjs';
+import { DateTime as DT } from 'luxon';
 import { v4 } from 'uuid';
 import type { z } from 'zod';
 import { readFetchUserCalendarsConfig, type FetchUserCalendarsConfig } from './config';
@@ -63,13 +63,14 @@ async function lambdaHandler(event: Event, context: Context): Promise<void> {
   const userLiveProvider = UserLiveIndexStore.withConfig(userLiveIndexStoreConfig);
   const snsService = SnsService.withConfig(userCalendarFetchedTopicConfig);
 
-  const windowStart = dayjs(event.time).add(24, 'hours');
+  const windowStart = DT.fromISO(event.time).toUTC().plus({ hours: 24 });
   const run = {
-    lowerBoundStartTime: windowStart.toISOString() as DateTime,
+    lowerBoundStartTime: windowStart.toISO() as DateTime,
     upperBoundStartTime: windowStart
-      .add(event.lambdaConfig.cronRunConfig.windowInMinutes, 'minutes')
-      .subtract(1, 'millisecond')
-      .toISOString() as DateTime
+      .plus({ minutes: event.lambdaConfig.cronRunConfig.windowInMinutes })
+      .minus({ millisecond: 1 })
+      .toISO() as DateTime,
+    slidingWindowInMinutes: event.lambdaConfig.cronRunConfig.windowInMinutes
   };
   logger.info(
     `Starting run corresponding to cron ${event.time}. Time window: [${run.lowerBoundStartTime}, ${run.upperBoundStartTime}]`
@@ -85,7 +86,14 @@ async function lambdaHandler(event: Event, context: Context): Promise<void> {
       await Promise.allSettled(
         liveUsersPage
           .flatMap((user) => toEvents(user, run))
-          .map((event) => snsService.publishEvent(event))
+          .map((event) =>
+            snsService.publish(event).catch((error) => {
+              const msg = `Error publishing an event to SNS with id ${event.eventId}. Error: ${JSON.stringify(error)}. Extracted error: ${extractErrorMessage(error)}`;
+              logger.error(msg);
+              logger.info(`Moving on after error...`);
+              return;
+            })
+          )
       );
       totalPages += 1;
       totalItems += liveUsersPage.length;

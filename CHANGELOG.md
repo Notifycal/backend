@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.14.0](https://github.com/Notifycal/backend/compare/v0.13.0...v0.14.0) (2025-02-14)
+
+
+### Features
+
+* actionable events lambda. ([#343](https://github.com/Notifycal/backend/issues/343)) ([b69a57c](https://github.com/Notifycal/backend/commit/b69a57c60a8d33d553061c19aff63a87eae61aa1))
+* add global dlqs as error sink ([#342](https://github.com/Notifycal/backend/issues/342)) ([a9deeb0](https://github.com/Notifycal/backend/commit/a9deeb080e2982f0210d2e8aa106ea033efdf58e))
+* batch processing in sqs lambda ([#338](https://github.com/Notifycal/backend/issues/338)) ([51138f4](https://github.com/Notifycal/backend/commit/51138f4cd1ddee07924bb4ad4d567c19fe3afc84))
+* run start time for actionable events ([#339](https://github.com/Notifycal/backend/issues/339)) ([e665af0](https://github.com/Notifycal/backend/commit/e665af06c71f3b9511734994d467e6a442dc9006))
+
+
+### Bug Fixes
+
+* sqs queue values for fifo and content_based_deduplication ([#340](https://github.com/Notifycal/backend/issues/340)) ([5b80581](https://github.com/Notifycal/backend/commit/5b805813b23c5954c28d45fd36c750a40ce9bd22))
+
 ## [0.13.0](https://github.com/Notifycal/backend/compare/v0.12.0...v0.13.0) (2025-02-11)
 
 

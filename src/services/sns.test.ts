@@ -10,7 +10,7 @@ import { SnsService } from './sns';
 
 const validEvent = userCalendarFetchedEvent;
 
-describe('SnsService.publishEvent', () => {
+describe('SnsService.publish', () => {
   it('should publish the event successfully and log the result', async () => {
     const snsSendResponse: PublishCommandOutput = {
       $metadata: {},
@@ -35,15 +35,12 @@ describe('SnsService.publishEvent', () => {
     );
     spy.mockRejectedValue(snsSendResponse);
     const loggerErrorSpy = vi.spyOn(logger, 'error').mockReturnValue();
-    const loggerInfoSpy = vi.spyOn(logger, 'info').mockReturnValue();
-    const result = await testit(validEvent);
+    const expectedErrorMsg = `Error publishing an event to SNS with id c1625a78-7337-4fd8-a6c4-a0afb9c0ceb9. Error: {}. Extracted error: Booom!`;
 
-    expect(result).toStrictEqual({});
+    await expect(testit(validEvent)).rejects.toThrow(expectedErrorMsg);
+
     expect(spy).toHaveBeenCalledTimes(1);
-    expect(loggerErrorSpy).toHaveBeenCalledWith(
-      `Error publishing an event to SNS with id ${validEvent.eventId}. Error: {}. Extracted error: Booom!`
-    );
-    expect(loggerInfoSpy).toHaveBeenCalledWith('Moving on after error...');
+    expect(loggerErrorSpy).toHaveBeenCalledWith(expectedErrorMsg);
   });
 });
 
@@ -52,5 +49,5 @@ function testit(event: UserCalendarFetchedEvent) {
     topicArn: 'arn:aws:sns:us-east-1:123456789012:MyTopic' as AwsArn
   };
   const snsService = SnsService.withConfig(config);
-  return snsService.publishEvent(event);
+  return snsService.publish(event);
 }

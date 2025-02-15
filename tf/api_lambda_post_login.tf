@@ -52,7 +52,7 @@ module "post_login_lambda" {
   policy_json        = data.aws_iam_policy_document.post_login_iam_policydoc.json
 
   environment_variables = merge({
-  }, local.login_and_refresh_env_vars, local.idps_configs, local.common_lambda_env_vars)
+  }, local.login_and_refresh_env_vars, local.idps_configs_env_vars, local.common_lambda_env_vars)
 }
 
 module "post_login_lambda_alias" {

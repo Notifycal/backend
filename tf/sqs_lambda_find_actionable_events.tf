@@ -79,5 +79,5 @@ module "find_actionable_events_lambda" {
 
   environment_variables = merge({
     ACTIONABLE_EVENTS_FOUND_TOPIC_ARN = module.actionable_event_found_topic.sns_topic_arn
-  }, local.common_lambda_env_vars)
+  }, local.dead_letter_queue_env_vars, local.common_lambda_env_vars)
 }

@@ -33,6 +33,30 @@ describe('GooglePeople Service', () => {
     });
   });
 
+  it('should return phone number list ordered. Mobile types first', () => {
+    const searchContactsFn = () =>
+      Promise.resolve({
+        ...validGooglePeopleResponse,
+        data: {
+          results: [
+            {
+              person: {
+                phoneNumbers: [
+                  { canonicalForm: '+2', type: 'main' },
+                  { canonicalForm: '+1', type: 'mobile' },
+                  { canonicalForm: '+3', type: 'home' }
+                ]
+              }
+            }
+          ]
+        }
+      });
+
+    return testit(searchContactsFn).then((result) => {
+      expect(result).toStrictEqual(['+1', '+2', '+3'] as Array<PhoneNumber>);
+    });
+  });
+
   it('should return undefined if no phone numbers are found', () => {
     const emptyResponse: GaxiosResponse<people_v1.Schema$SearchResponse> = {
       data: { results: [] },
@@ -45,7 +69,7 @@ describe('GooglePeople Service', () => {
     const searchContactsFn = () => Promise.resolve(emptyResponse);
 
     return testit(searchContactsFn).then((result) => {
-      expect(result).toBeUndefined();
+      expect(result).toStrictEqual([]);
     });
   });
 
@@ -60,14 +84,15 @@ describe('GooglePeople Service', () => {
 
   function testit(
     searchContactsFn: () => Promise<GaxiosResponse<people_v1.Schema$SearchResponse>>
-  ): Promise<Array<PhoneNumber> | undefined> {
+  ): Promise<Array<PhoneNumber>> {
     vi.mock('googleapis');
     vi.mocked(google.people).mockReturnValue({
       people: {
         searchContacts: vi.fn().mockImplementation(searchContactsFn)
       }
     } as unknown as people_v1.People);
-    const config = { clientId: 'id', clientSecret: 'secret', redirectUri: 'uri' };
-    return GooglePeople.withRefreshToken(config, '').getPhoneNumbersBy('test@example.com' as Email);
+    return GooglePeople.withRefreshToken('some-refresh-token').getPhoneNumbersBy(
+      'test@example.com' as Email
+    );
   }
 });

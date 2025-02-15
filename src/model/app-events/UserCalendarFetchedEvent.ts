@@ -1,14 +1,12 @@
+import { calendarSchema } from '@notifycal/shared/schemas';
 import { z } from 'zod';
 import { baseEventSchema } from './BaseEvent';
-import { idpAuthorizationSchema, runSchema } from '@model/schemas';
+import { runSchema } from './common';
 
 export const userCalendarFetchedEventSchema = baseEventSchema.extend({
   data: z.object({
     run: runSchema,
-    calendar: z.object({
-      id: z.string().brand('CalendarId'),
-      name: z.string().brand('CalendarName')
-    }),
+    calendar: calendarSchema,
     template: z.object({
       id: z.string().brand('TemplateId'),
       fields: z.object({
@@ -20,7 +18,9 @@ export const userCalendarFetchedEventSchema = baseEventSchema.extend({
     })
   }),
   sensitiveData: z.object({
-    idpAuthorization: idpAuthorizationSchema
+    idpAuthorization: z.object({
+      refreshToken: z.string()
+    })
   })
 });
 

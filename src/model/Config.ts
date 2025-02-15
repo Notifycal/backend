@@ -1,5 +1,5 @@
 import type { IdpName } from '@notifycal/shared/types';
-import type { AwsArn } from '@own-types/model';
+import type { AwsArn, Url } from '@own-types/model';
 
 export interface DecodeAccessJwtConfig {
   publicKey: string;
@@ -59,3 +59,19 @@ export interface IdpEndpointConfig {
 export interface SnsTopicConfig {
   topicArn: AwsArn;
 }
+
+export interface SqsQueueConfig {
+  queueUrl: Url;
+}
+
+export type UserCalendarFetchedTopicEndpointConfig = {
+  userCalendarFetchedTopicConfig: SnsTopicConfig;
+};
+
+export type ActionableEventFoundTopicEndpointConfig = {
+  actionableEventFoundTopicConfig: SnsTopicConfig;
+};
+
+export type DeadLetterQueueEndpointConfig = {
+  deadLetterQueueConfig: SqsQueueConfig;
+};

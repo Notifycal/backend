@@ -1,7 +1,13 @@
-import type { GoogleOAuthConfig } from '@model/Config';
+import { ParsingError } from '@model/Errors';
+import type { AuthorizationForIdp } from '@model/IdpAuthorization';
 import type { ServiceResponse } from '@model/ServiceResponse';
-import type { UserIdpAuthorizationStoreRecord } from '@model/store/UserIdpAuthorizationStoreRecord';
-import type { CalendarEvent, CalendarId, DateTime, IdpName } from '@notifycal/shared/types';
+import type {
+  CalendarEvent,
+  CalendarId,
+  DateTime,
+  IdpName,
+  TimeZone
+} from '@notifycal/shared/types';
 import { describe, expect, it, vi } from 'vitest';
 import { eventsStartTimeWithin } from './calendar-events';
 import { GoogleCalendar } from './google/calendar';
@@ -10,27 +16,24 @@ describe('Calendar Events Service', () => {
   const calendarId: CalendarId = 'test-calendar-id' as CalendarId;
   const lowerBoundStartTime: DateTime = '2025-02-01T00:00:00Z' as DateTime;
   const upperBoundStartTime: DateTime = '2025-03-01T00:00:00Z' as DateTime;
-  const idpAuthorization: UserIdpAuthorizationStoreRecord<IdpName> = {
-    IdpAuthorization: {
-      refreshToken: 'test-refresh-token'
-    }
-  };
-  const idpConfigs = {
-    'google.com': {
-      clientId: 'test-client-id',
-      clientSecret: 'test-client-secret',
-      redirectUri: 'https://example.com/callback'
-    } as GoogleOAuthConfig
+  const idpAuthorization: AuthorizationForIdp<IdpName> = {
+    refreshToken: 'test-refresh-token'
   };
 
   it('should fetch calendar events successfully', async () => {
-    const mockServiceResponse: ServiceResponse<CalendarEvent> = {
+    const mockServiceResponse: ServiceResponse<CalendarEvent, ParsingError> = {
       successList: [
         {
           id: 'event1',
           startTime: '2025-02-15T10:00:00Z' as DateTime,
+          timeZone: 'Europe/Madrid' as TimeZone,
           isAllDayEvent: false,
-          description: 'someEventDescription'
+          description: 'someEventDescription',
+          attendees: [
+            {
+              id: 'someIdpIdentifier'
+            }
+          ]
         }
       ],
       failureList: []
@@ -39,7 +42,7 @@ describe('Calendar Events Service', () => {
     const result = await testit(() => Promise.resolve(mockServiceResponse));
 
     expect(result.successList).toHaveLength(1);
-    expect(result.successList![0].id).toBe('event1');
+    expect(result.successList[0].id).toBe('event1');
     expect(result.failureList).toHaveLength(0);
   });
 
@@ -56,7 +59,7 @@ describe('Calendar Events Service', () => {
   });
 
   it('should passthough failures gracefully', async () => {
-    const error = new Error('Boom!');
+    const error = new ParsingError('Boom!', { something: false });
     const result = await testit(() =>
       Promise.resolve({
         successList: [],
@@ -70,13 +73,19 @@ describe('Calendar Events Service', () => {
   });
 
   it('should respect the all-day events inclusion flag', async () => {
-    const mockServiceResponse: ServiceResponse<CalendarEvent> = {
+    const mockServiceResponse: ServiceResponse<CalendarEvent, ParsingError> = {
       successList: [
         {
           id: 'event2',
           startTime: '2025-02-10T00:00:00Z' as DateTime,
+          timeZone: 'Europe/Madrid' as TimeZone,
           isAllDayEvent: true,
-          description: 'someDescription'
+          description: 'someDescription',
+          attendees: [
+            {
+              id: 'someIdpIdentifier'
+            }
+          ]
         }
       ],
       failureList: []
@@ -85,12 +94,12 @@ describe('Calendar Events Service', () => {
     const result = await testit(() => Promise.resolve(mockServiceResponse));
 
     expect(result.successList).toHaveLength(1);
-    expect(result.successList![0].id).toBe('event2');
+    expect(result.successList[0].id).toBe('event2');
     expect(result.failureList).toHaveLength(0);
   });
 
   function testit(
-    googleResponseFn: () => Promise<ServiceResponse<CalendarEvent>>,
+    googleResponseFn: () => Promise<ServiceResponse<CalendarEvent, ParsingError>>,
     includeAllDayEvents: boolean = false
   ) {
     vi.mock('@services/google/calendar');
@@ -105,8 +114,7 @@ describe('Calendar Events Service', () => {
       upperBoundStartTime,
       includeAllDayEvents,
       idpAuthorization,
-      'google.com',
-      idpConfigs
+      'google.com'
     );
   }
 });
