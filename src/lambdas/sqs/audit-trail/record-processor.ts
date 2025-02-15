@@ -1,6 +1,6 @@
 import { logger } from '@common/powertools';
 import type { BaseEvent } from '@model/app-events/BaseEvent';
-import type { EventStoreRecord } from '@model/store/EventRecordStore';
+import type { AuditTrailStoreRecord } from '@model/store/AuditTrailStoreRecord';
 import type { UnixTimestamp } from '@notifycal/shared/types';
 import { extractErrorMessage, throwError } from '@services/common/error-handling';
 import { AuditTrailBaseStore } from '@services/stores/audit-trail-base-store';
@@ -11,7 +11,7 @@ import type { AuditTrailConfig } from './config';
 function toStoreRecord<TEvent extends BaseEvent>(
   event: TEvent,
   expiresAtInDays: number
-): EventStoreRecord {
+): AuditTrailStoreRecord {
   return {
     EventId: event.eventId,
     CorrelationId: event.correlationId,

@@ -1,4 +1,4 @@
-import type { EventStoreRecord } from '@model/store/EventRecordStore';
+import type { AuditTrailStoreRecord } from '@model/store/AuditTrailStoreRecord';
 import { type BaseStoreConfig, BaseStore } from '@services/common/base-store';
 
 export type AuditTrailBaseStoreConfig = BaseStoreConfig;
@@ -15,7 +15,7 @@ export class AuditTrailBaseStore extends BaseStore<AuditTrailBaseStoreConfig> {
     super(config);
   }
 
-  public put(event: EventStoreRecord): Promise<void> {
+  public put(event: AuditTrailStoreRecord): Promise<void> {
     return this.putCommandRunner({ Item: { ...event } }).then(() => {
       return;
     });

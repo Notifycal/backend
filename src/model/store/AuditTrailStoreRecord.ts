@@ -9,7 +9,7 @@ import type {
   UserId
 } from '@notifycal/shared/types';
 
-export interface EventStoreRecord {
+export interface AuditTrailStoreRecord {
   EventId: EventId;
   CorrelationId: CorrelationId;
   UserId: UserId;
