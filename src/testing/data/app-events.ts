@@ -1,3 +1,4 @@
+import type { NoPhoneNumberForAttendeeFound } from '@model/app-events/NoPhoneNumberForAttendeeFound';
 import type { UserCalendarFetchedEvent } from '@model/app-events/UserCalendarFetchedEvent';
 import type {
   BusinessAddress,
@@ -12,7 +13,6 @@ import type {
   TimeZone,
   UserId
 } from '@notifycal/shared/types';
-import type { NoPhoneNumberForAttendeeFound } from '../../model/app-events/NoPhoneNumberForAttendeeFound';
 
 export const userCalendarFetchedEvent: UserCalendarFetchedEvent = {
   eventId: 'c1625a78-7337-4fd8-a6c4-a0afb9c0ceb9' as EventId,
