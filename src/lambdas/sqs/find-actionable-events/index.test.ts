@@ -1,5 +1,6 @@
 import type { AwsArn, Url } from '@own-types/model';
-import { userCalendarFetchedEvent } from '@testing/app-events';
+import { userCalendarFetchedEvent } from '@testing/data/app-events';
+import { validRawRecord } from '@testing/data/sqs-events';
 import {
   fakeIdpConfigs,
   setEnvActionableEventFoundTopicConfig,
@@ -7,7 +8,6 @@ import {
   setEnvIdpConfigs
 } from '@testing/utils/config';
 import type { Context, SQSEvent, SQSRecord } from 'aws-lambda';
-import { v4 } from 'uuid';
 import { describe, expect, it, vi } from 'vitest';
 import { type Event, handler } from '.';
 import type { ActionableEventsConfig } from './config';
@@ -23,27 +23,7 @@ const defaultEnv: ActionableEventsConfig = {
   idpConfigs: fakeIdpConfigs
 };
 const validUserCalendarFetchedEvent = userCalendarFetchedEvent;
-const validSqsRecord: SQSRecord = {
-  body: JSON.stringify(validUserCalendarFetchedEvent),
-  messageId: v4(),
-  receiptHandle: '',
-  attributes: {
-    ApproximateReceiveCount: '',
-    ApproximateFirstReceiveTimestamp: '',
-    SenderId: '',
-    SentTimestamp: '',
-    SequenceNumber: undefined,
-    MessageDeduplicationId: undefined,
-    MessageGroupId: undefined,
-    AWSTraceHeader: undefined,
-    DeadLetterQueueSourceArn: undefined
-  },
-  messageAttributes: {},
-  md5OfBody: '',
-  eventSource: 'aws:sqs',
-  eventSourceARN: '',
-  awsRegion: ''
-};
+const validSqsRecord: SQSRecord = validRawRecord(validUserCalendarFetchedEvent);
 const validSqsBatchEvent: SQSEvent = {
   Records: [validSqsRecord]
 };

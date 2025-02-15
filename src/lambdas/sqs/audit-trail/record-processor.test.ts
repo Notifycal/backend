@@ -1,84 +1,18 @@
 import { logger } from '@common/powertools';
 import type { BaseEvent } from '@model/app-events/BaseEvent';
 import type { NoPhoneNumberForAttendeeFound } from '@model/app-events/NoPhoneNumberForAttendeeFound';
-import type { UserCalendarFetchedEvent } from '@model/app-events/UserCalendarFetchedEvent';
-import type {
-  BusinessAddress,
-  BusinessName,
-  CalendarId,
-  CalendarName,
-  CorrelationId,
-  DateTime,
-  EventId,
-  IdpId,
-  TemplateId,
-  TimeZone,
-  UserId
-} from '@notifycal/shared/types';
 import { AuditTrailBaseStore } from '@services/stores/audit-trail-base-store';
+import {
+  noPhoneNumberForAttendeeFoundEvent,
+  userCalendarFetchedEvent
+} from '@testing/data/app-events';
+import { validRecord } from '@testing/data/sqs-events';
 import { describe, expect, it, vi } from 'vitest';
 import type { AuditTrailConfig } from './config';
 import type { Record } from './index';
 import { recordProcessor } from './record-processor';
 
-function validRecord(event: BaseEvent): Record {
-  return {
-    body: event,
-    messageId: 'some message id',
-    receiptHandle: '',
-    attributes: {
-      ApproximateReceiveCount: '',
-      ApproximateFirstReceiveTimestamp: '',
-      SenderId: '',
-      SentTimestamp: '',
-      SequenceNumber: undefined,
-      MessageDeduplicationId: undefined,
-      MessageGroupId: undefined,
-      AWSTraceHeader: undefined,
-      DeadLetterQueueSourceArn: undefined
-    },
-    messageAttributes: {},
-    md5OfBody: '',
-    eventSource: 'aws:sqs',
-    eventSourceARN: '',
-    awsRegion: ''
-  };
-}
-
-const validEvent: UserCalendarFetchedEvent = {
-  eventId: 'some-event-id' as EventId,
-  eventType: 'UserCalendarFetched',
-  happenedAt: '2024-01-01T15:00:00Z' as DateTime,
-  correlationId: 'test-correlation-id' as CorrelationId,
-  userId: 'test-user-id' as UserId,
-  idp: 'google.com',
-  idpId: 'test-idp-id' as IdpId,
-  data: {
-    run: {
-      lowerBoundStartTime: '2024-01-02T15:00:00Z' as DateTime,
-      upperBoundStartTime: '2024-01-02T15:29:59Z' as DateTime,
-      slidingWindowInMinutes: 30
-    },
-    calendar: {
-      id: 'test-calendar-id' as CalendarId,
-      name: 'Test Calendar' as CalendarName
-    },
-    template: {
-      id: 'sometemplate id' as TemplateId,
-      fields: {
-        business: {
-          name: 'Test Business' as BusinessName,
-          address: '123 Test Street' as BusinessAddress
-        }
-      }
-    }
-  },
-  sensitiveData: {
-    idpAuthorization: {
-      refreshToken: 'some-refresh-token'
-    }
-  }
-};
+const validEvent = userCalendarFetchedEvent;
 
 const defaultConfig: AuditTrailConfig = {
   auditTrailBaseStoreConfig: {
@@ -108,36 +42,7 @@ describe('Audit trail record processor', () => {
 
   // eslint-disable-next-line vitest/expect-expect
   it('should process an error event successfully and log the success message', async () => {
-    const validErrorEvent: NoPhoneNumberForAttendeeFound = {
-      eventId: 'some-event-id' as EventId,
-      eventType: 'UserCalendarFetched',
-      happenedAt: '2024-01-01T15:00:00Z' as DateTime,
-      correlationId: 'test-correlation-id' as CorrelationId,
-      userId: 'test-user-id' as UserId,
-      idp: 'google.com',
-      idpId: 'test-idp-id' as IdpId,
-      data: {
-        eventIdCause: 'some-cause-event-id' as EventId,
-        run: {
-          lowerBoundStartTime: '2024-01-02T15:00:00Z' as DateTime,
-          upperBoundStartTime: '2024-01-02T15:29:59Z' as DateTime,
-          slidingWindowInMinutes: 30
-        },
-        calendar: {
-          id: 'test-calendar-id' as CalendarId,
-          name: 'Test Calendar' as CalendarName
-        },
-        calendarEvent: {
-          id: 'event-1',
-          attendees: [{ id: 'attendee@test.com' }],
-          isAllDayEvent: false,
-          startTime: '2024-01-02T15:05:00Z' as DateTime,
-          timeZone: 'Europe/Madrid' as TimeZone
-        },
-        attendeeId: 'some-ateendee-id'
-      },
-      sensitiveData: {}
-    };
+    const validErrorEvent: NoPhoneNumberForAttendeeFound = noPhoneNumberForAttendeeFoundEvent;
     return successTest(validErrorEvent);
   });
 

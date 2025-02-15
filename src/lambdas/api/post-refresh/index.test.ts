@@ -6,7 +6,7 @@ import { decodeAndVerifyJwtSignature, type EncodedAndDecodedJwts } from '@servic
 import { buildJwtsAndStoreRefreshJwt } from '@services/login';
 import { RefreshTokenBaseStore } from '@services/stores/refresh-token-base-store';
 import { UserBaseStore } from '@services/stores/user-base-store';
-import { c, testEvent } from '@testing/apigateway';
+import { c, testEvent } from '@testing/data/apigateway';
 import { responseError, responseSuccess } from '@testing/utils/api-response-handlers';
 import { assert } from '@testing/utils/assertions';
 import {
