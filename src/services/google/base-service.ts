@@ -4,6 +4,21 @@ import type { Gaxios, GaxiosInterceptor, GaxiosOptions, GaxiosResponse } from 'g
 import { OAuth2Client } from 'google-auth-library';
 
 export abstract class BaseGoogle {
+  protected _client: OAuth2Client;
+  protected _config: GoogleOAuthConfig;
+  protected constructor(config: GoogleOAuthConfig, refreshToken?: string) {
+    this._client = new OAuth2Client(config.clientId, config.clientSecret, config.redirectUri);
+    this._config = config;
+    if (refreshToken) {
+      // eslint-disable-next-line camelcase
+      this._client.setCredentials({ refresh_token: refreshToken });
+    }
+    const axios = this._client.gaxios;
+    if (axios) {
+      this.setInterceptors(axios);
+    }
+  }
+
   protected setInterceptors(gaxios: Gaxios): void {
     const requestInterceptor: GaxiosInterceptor<GaxiosOptions> = {
       resolved: (config) => {
@@ -25,30 +40,5 @@ export abstract class BaseGoogle {
     };
     gaxios.interceptors.request.add(requestInterceptor);
     gaxios.interceptors.response.add(responseInterceptor);
-  }
-}
-
-export abstract class OAuthBaseGoogle extends BaseGoogle {
-  protected _client: OAuth2Client;
-  protected constructor(config: GoogleOAuthConfig) {
-    super();
-    this._client = new OAuth2Client(config.clientId, config.clientSecret, config.redirectUri);
-    const axios = this._client.gaxios;
-    if (axios) {
-      this.setInterceptors(axios);
-    }
-  }
-}
-export abstract class ImpersonatedBaseGoogle extends BaseGoogle {
-  protected _client: OAuth2Client;
-  protected constructor(refreshToken: string) {
-    super();
-    this._client = new OAuth2Client();
-    // eslint-disable-next-line camelcase
-    this._client.setCredentials({ refresh_token: refreshToken });
-    const axios = this._client.gaxios;
-    if (axios) {
-      this.setInterceptors(axios);
-    }
   }
 }

@@ -1,8 +1,10 @@
 import type { AwsArn, Url } from '@own-types/model';
 import { userCalendarFetchedEvent } from '@testing/app-events';
 import {
+  fakeIdpConfigs,
   setEnvActionableEventFoundTopicConfig,
-  setEnvDeadLetterQueueConfig
+  setEnvDeadLetterQueueConfig,
+  setEnvIdpConfigs
 } from '@testing/utils/config';
 import type { Context, SQSEvent, SQSRecord } from 'aws-lambda';
 import { v4 } from 'uuid';
@@ -17,7 +19,8 @@ const defaultEnv: ActionableEventsConfig = {
   },
   deadLetterQueueConfig: {
     queueUrl: 'http://aws.com/dql' as Url
-  }
+  },
+  idpConfigs: fakeIdpConfigs
 };
 const validUserCalendarFetchedEvent = userCalendarFetchedEvent;
 const validSqsRecord: SQSRecord = {
@@ -99,4 +102,5 @@ function testit(event: SQSEvent, config: ActionableEventsConfig = defaultEnv): P
 function setEnv(config: ActionableEventsConfig) {
   setEnvActionableEventFoundTopicConfig(config.actionableEventFoundTopicConfig);
   setEnvDeadLetterQueueConfig(config.deadLetterQueueConfig);
+  setEnvIdpConfigs(config.idpConfigs);
 }

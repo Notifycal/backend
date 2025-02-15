@@ -17,7 +17,7 @@ function lambdaHandler(
   const config = event.lambdaConfig;
   const userId = event.requestContext.authorizer.payload.userId;
   const idp = event.requestContext.authorizer.payload.idp;
-  return calendarList(userId, idp, config.userBaseStoreConfig).then(
+  return calendarList(userId, idp, config.idpConfigs, config.userBaseStoreConfig).then(
     (calendars) => successHandler()({ result: calendars }),
     errorHandler(500)
   );

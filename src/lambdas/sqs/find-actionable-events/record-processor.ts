@@ -2,6 +2,7 @@ import { logger } from '@common/powertools';
 import type { ActionableEventFoundEvent } from '@model/app-events/ActionableEventFound';
 import { noPhoneNumberForAttendeeFound } from '@model/app-events/NoPhoneNumberForAttendeeFound';
 import { userFetchedEventsParsingFailed } from '@model/app-events/UserFetchedEventsParsingFailed';
+import type { IdpConfigs } from '@model/Config';
 import type { ParsingError } from '@model/Errors';
 import type { ServiceResponse } from '@model/ServiceResponse';
 import type {
@@ -35,7 +36,8 @@ function interpolateMessage(
 }
 
 function fetchCalendarEvents(
-  event: Record['body']
+  event: Record['body'],
+  idpConfigs: IdpConfigs
 ): Promise<ServiceResponse<CalendarEvent, ParsingError>> {
   const { idpAuthorization } = event.sensitiveData;
   const calendarEventStartTime = DT.fromISO(event.data.run.lowerBoundStartTime).toUTC();
@@ -48,21 +50,24 @@ function fetchCalendarEvents(
     event.data.run.upperBoundStartTime,
     includeAllDayEvents,
     idpAuthorization,
-    event.idp
+    event.idp,
+    idpConfigs
   );
 }
 
 function fetchAttendeePhoneNumbers(
   calendarEvent: CalendarEvent,
   event: Record['body'],
-  dqlService: DeadLetteringService
+  dqlService: DeadLetteringService,
+  idpConfigs: IdpConfigs
 ): Promise<Array<{ calendarEvent: CalendarEvent; attendeePhoneNumber: PhoneNumber }>> {
   return Promise.allSettled(
     calendarEvent.attendees.map((attendee) =>
       phoneNumberByEmail(
         attendee.id as Email,
         event.sensitiveData.idpAuthorization,
-        event.idp
+        event.idp,
+        idpConfigs
       ).then((phoneNumbers) => {
         if (phoneNumbers && phoneNumbers.length > 0) {
           return Promise.resolve([
@@ -129,7 +134,7 @@ export function recordProcessor(record: Record, config: ActionableEventsConfig):
   const dlqService = DeadLetteringService.withConfig(config.deadLetterQueueConfig);
   const event = record.body;
 
-  return fetchCalendarEvents(event)
+  return fetchCalendarEvents(event, config.idpConfigs)
     .then(({ successList, failureList }) => {
       if ((successList && successList?.length > 0) || (failureList && failureList?.length > 0)) {
         return Promise.allSettled(
@@ -149,7 +154,7 @@ export function recordProcessor(record: Record, config: ActionableEventsConfig):
     .then((calendarEvents) =>
       Promise.allSettled(
         calendarEvents.map((calendarEvent) =>
-          fetchAttendeePhoneNumbers(calendarEvent, event, dlqService)
+          fetchAttendeePhoneNumbers(calendarEvent, event, dlqService, config.idpConfigs)
         )
       )
     )
