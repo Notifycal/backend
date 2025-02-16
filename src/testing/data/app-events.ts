@@ -9,6 +9,7 @@ import type {
   DateTime,
   EventId,
   IdpId,
+  PhoneNumber,
   TemplateId,
   TimeZone,
   UserId
@@ -31,6 +32,10 @@ export const userCalendarFetchedEvent: UserCalendarFetchedEvent = {
     calendar: {
       id: 'someCalendarId' as CalendarId,
       name: 'Some Calendar Name' as CalendarName
+    },
+    senderDetails: {
+      type: 'phone' as const,
+      number: '+34888666888' as PhoneNumber,
     },
     template: {
       id: 'some-template-id' as TemplateId,

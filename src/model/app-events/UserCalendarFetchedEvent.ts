@@ -1,7 +1,7 @@
 import { calendarSchema } from '@notifycal/shared/schemas';
 import { z } from 'zod';
 import { baseEventSchema } from './BaseEvent';
-import { runSchema } from './common';
+import { contactDetailsSchema, runSchema } from './common';
 
 export const userCalendarFetchedEventSchema = baseEventSchema.extend({
   data: z.object({
@@ -15,7 +15,8 @@ export const userCalendarFetchedEventSchema = baseEventSchema.extend({
           address: z.string().brand('BusinessAddress')
         })
       })
-    })
+    }),
+    senderDetails: contactDetailsSchema,
   }),
   sensitiveData: z.object({
     idpAuthorization: z.object({
