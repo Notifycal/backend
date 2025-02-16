@@ -20,7 +20,7 @@ function eventParser<TConfig extends BaseEndpointConfig, TSchema extends z.AnyZo
     try {
       parserFn(request);
     } catch (error: unknown) {
-      const baseMsg = `payload does not satisfy the schema. Error: ${extractErrorMessage(error)}. Schema: ${schema.shape}`;
+      const baseMsg = `payload does not satisfy the schema. Error: ${extractErrorMessage(error)}. Schema: ${JSON.stringify(schema.shape)}`;
       if (isApiRequest) {
         return errorHandler(
           400,
