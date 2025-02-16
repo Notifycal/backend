@@ -1,6 +1,6 @@
 import { logger } from '@common/powertools';
 import type { BaseEvent } from '@model/app-events/BaseEvent';
-import type { NoPhoneNumberForAttendeeFound } from '@model/app-events/NoPhoneNumberForAttendeeFound';
+import type { NoPhoneNumberForAttendeeFoundEvent } from '@model/app-events/NoPhoneNumberForAttendeeFoundEvent';
 import { AuditTrailBaseStore } from '@services/stores/audit-trail-base-store';
 import {
   noPhoneNumberForAttendeeFoundEvent,
@@ -39,7 +39,7 @@ describe('Audit trail record processor', () => {
 
   // eslint-disable-next-line vitest/expect-expect
   it('should process an error event successfully and log the success message', async () => {
-    const validErrorEvent: NoPhoneNumberForAttendeeFound = noPhoneNumberForAttendeeFoundEvent;
+    const validErrorEvent: NoPhoneNumberForAttendeeFoundEvent = noPhoneNumberForAttendeeFoundEvent;
     return successTest(validErrorEvent);
   });
 

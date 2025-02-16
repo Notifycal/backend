@@ -1,4 +1,4 @@
-import type { UserCalendarFetchedTopicEndpointConfig } from '@model/Config';
+import type { UserCalendarFetchedTopicConfig } from '@model/Config';
 import {
   readCronRunConfig,
   readEnv,
@@ -15,7 +15,7 @@ export interface CronRunEndpointConfig {
 }
 
 export type FetchUserCalendarsConfig = UserLiveIndexStoreEndpointConfig &
-  UserCalendarFetchedTopicEndpointConfig &
+  UserCalendarFetchedTopicConfig &
   CronRunEndpointConfig;
 
 export function readFetchUserCalendarsConfig(): FetchUserCalendarsConfig {

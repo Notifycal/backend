@@ -1,6 +1,6 @@
 import type {
-  ActionableEventFoundTopicEndpointConfig,
-  DeadLetterQueueEndpointConfig,
+  ActionableEventFoundTopicConfig,
+  DeadLetterQueueConfig,
   IdpEndpointConfig
 } from '@model/Config';
 import {
@@ -10,8 +10,8 @@ import {
   readIdpConfigs
 } from '@services/common/config';
 
-export type ActionableEventsConfig = ActionableEventFoundTopicEndpointConfig &
-  DeadLetterQueueEndpointConfig &
+export type ActionableEventsConfig = ActionableEventFoundTopicConfig &
+  DeadLetterQueueConfig &
   IdpEndpointConfig;
 
 export function readActionableEventsConfig(): ActionableEventsConfig {

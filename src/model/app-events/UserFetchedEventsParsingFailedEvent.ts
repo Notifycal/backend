@@ -8,7 +8,7 @@ import { eventIdSchema } from './BaseEvent';
 import type { UserCalendarFetchedEvent } from './UserCalendarFetchedEvent';
 import { errorSchema, runSchema } from './common';
 
-export const userFetchedEventsParsingFailedSchema = baseErrorEventSchema.extend({
+export const userFetchedEventsParsingFailedEventSchema = baseErrorEventSchema.extend({
   data: z.object({
     eventIdCause: eventIdSchema,
     run: runSchema,
@@ -17,12 +17,14 @@ export const userFetchedEventsParsingFailedSchema = baseErrorEventSchema.extend(
   })
 });
 
-export type UserFetchedEventsParsingFailed = z.infer<typeof userFetchedEventsParsingFailedSchema>;
+export type UserFetchedEventsParsingFailedEvent = z.infer<
+  typeof userFetchedEventsParsingFailedEventSchema
+>;
 
 export function userFetchedEventsParsingFailed(
   origin: UserCalendarFetchedEvent,
   error: ParsingError
-): UserFetchedEventsParsingFailed {
+): UserFetchedEventsParsingFailedEvent {
   return {
     eventId: v4() as EventId,
     correlationId: origin.correlationId,

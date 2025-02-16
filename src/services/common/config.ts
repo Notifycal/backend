@@ -1,9 +1,9 @@
 import type { CronRunEndpointConfig } from '@lambdas/schedule/fetch-user-calendars/config';
 import type {
-  ActionableEventFoundTopicEndpointConfig,
+  ActionableEventFoundTopicConfig,
   AuthedEndpointConfig,
   BaseEndpointConfig,
-  DeadLetterQueueEndpointConfig,
+  DeadLetterQueueConfig,
   DecodeAccessJwtConfig,
   DecodeAccessJwtEndpointConfig,
   DecodeRefreshJwtConfig,
@@ -11,7 +11,7 @@ import type {
   EncodeJwtsEndpointConfig,
   EncodeRefreshJwtConfig,
   IdpEndpointConfig,
-  UserCalendarFetchedTopicEndpointConfig
+  UserCalendarFetchedTopicConfig
 } from '@model/Config';
 import type { AwsArn, Environment, Url } from '@own-types/model';
 import type { AuditTrailBaseStoreEndpointConfig } from '@services/stores/audit-trail-base-store';
@@ -112,7 +112,7 @@ export function readUserLiveIndexConfig(env: Environment): UserLiveIndexStoreEnd
 
 export function readUserCalendarFetchedTopicConfig(
   env: Environment
-): UserCalendarFetchedTopicEndpointConfig {
+): UserCalendarFetchedTopicConfig {
   return {
     userCalendarFetchedTopicConfig: {
       topicArn: env.get('USER_CALENDAR_FETCHED_TOPIC_ARN').required().asString() as AwsArn
@@ -130,7 +130,7 @@ export function readCronRunConfig(env: Environment): CronRunEndpointConfig {
 
 export function readActionableEventFoundTopicConfig(
   env: Environment
-): ActionableEventFoundTopicEndpointConfig {
+): ActionableEventFoundTopicConfig {
   return {
     actionableEventFoundTopicConfig: {
       topicArn: env.get('ACTIONABLE_EVENT_FOUND_TOPIC_ARN').required().asString() as AwsArn
@@ -138,7 +138,7 @@ export function readActionableEventFoundTopicConfig(
   };
 }
 
-export function readDeadLetterQueueConfig(env: Environment): DeadLetterQueueEndpointConfig {
+export function readDeadLetterQueueConfig(env: Environment): DeadLetterQueueConfig {
   return {
     deadLetterQueueConfig: {
       queueUrl: env.get('DEAD_LETTER_QUEUE_URL').required().asString() as Url

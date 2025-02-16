@@ -1,4 +1,4 @@
-import type { NoPhoneNumberForAttendeeFound } from '@model/app-events/NoPhoneNumberForAttendeeFound';
+import type { NoPhoneNumberForAttendeeFoundEvent } from '@model/app-events/NoPhoneNumberForAttendeeFoundEvent';
 import type { UserCalendarFetchedEvent } from '@model/app-events/UserCalendarFetchedEvent';
 import type {
   BusinessAddress,
@@ -49,7 +49,7 @@ export const userCalendarFetchedEvent: UserCalendarFetchedEvent = {
   }
 };
 
-export const noPhoneNumberForAttendeeFoundEvent: NoPhoneNumberForAttendeeFound = {
+export const noPhoneNumberForAttendeeFoundEvent: NoPhoneNumberForAttendeeFoundEvent = {
   eventId: 'some-event-id' as EventId,
   eventType: 'UserCalendarFetched',
   happenedAt: '2024-01-01T15:00:00Z' as DateTime,
