@@ -7,7 +7,7 @@ import { eventIdSchema } from './BaseEvent';
 import type { UserCalendarFetchedEvent } from './UserCalendarFetchedEvent';
 import { runSchema } from './common';
 
-export const noPhoneNumberForAttendeeFoundSchema = baseErrorEventSchema.extend({
+export const noPhoneNumberForAttendeeFoundEventSchema = baseErrorEventSchema.extend({
   data: z.object({
     eventIdCause: eventIdSchema,
     run: runSchema,
@@ -17,13 +17,13 @@ export const noPhoneNumberForAttendeeFoundSchema = baseErrorEventSchema.extend({
   })
 });
 
-export type NoPhoneNumberForAttendeeFound = z.infer<typeof noPhoneNumberForAttendeeFoundSchema>;
+export type NoPhoneNumberForAttendeeFoundEvent = z.infer<typeof noPhoneNumberForAttendeeFoundEventSchema>;
 
 export function noPhoneNumberForAttendeeFound(
   origin: UserCalendarFetchedEvent,
   calendarEvent: CalendarEvent,
   attendeeId: string
-): NoPhoneNumberForAttendeeFound {
+): NoPhoneNumberForAttendeeFoundEvent {
   return {
     eventId: v4() as EventId,
     correlationId: origin.correlationId,
