@@ -28,7 +28,7 @@ data "aws_iam_policy_document" "send_event_reminder_iam_policydoc" {
     ]
 
     resources = [
-      aws_dynamodb_table.send_event_reminder_idempotency.arn
+      aws_dynamodb_table.lambda_idempotency.arn
     ]
   }
   statement {
@@ -77,6 +77,7 @@ module "send_event_reminder_lambda" {
   event_source_mapping = {
     sqs = {
       event_source_arn = module.actionable_event_found_queue.sqs_queue_arn
+      batch_size = 1
       scaling_config = {
         maximum_concurrency = 20
       }
