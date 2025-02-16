@@ -38,6 +38,7 @@ export function noPhoneNumberForAttendeeFound(
       calendar: origin.data.calendar,
       calendarEvent: calendarEvent,
       attendeeId: attendeeId
-    }
+    },
+    sensitiveData: {}
   };
 }

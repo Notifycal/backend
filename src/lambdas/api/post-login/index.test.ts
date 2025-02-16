@@ -12,7 +12,7 @@ import type {
 import { GoogleOAuth } from '@services/google/oauth';
 import type { EncodedAndDecodedJwts } from '@services/jwt';
 import { buildJwtsAndStoreRefreshJwt, signInOrUpUser } from '@services/login';
-import { c, testEvent, unsafeTestEvent } from '@testing/apigateway';
+import { c, testEvent, unsafeTestEvent } from '@testing/data/apigateway';
 import { resetTestingContext } from '@testing/setup-tests';
 import {
   responseError,

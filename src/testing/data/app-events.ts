@@ -1,3 +1,4 @@
+import type { NoPhoneNumberForAttendeeFound } from '@model/app-events/NoPhoneNumberForAttendeeFound';
 import type { UserCalendarFetchedEvent } from '@model/app-events/UserCalendarFetchedEvent';
 import type {
   BusinessAddress,
@@ -9,6 +10,7 @@ import type {
   EventId,
   IdpId,
   TemplateId,
+  TimeZone,
   UserId
 } from '@notifycal/shared/types';
 
@@ -45,4 +47,35 @@ export const userCalendarFetchedEvent: UserCalendarFetchedEvent = {
       refreshToken: 'some refresh token'
     }
   }
+};
+
+export const noPhoneNumberForAttendeeFoundEvent: NoPhoneNumberForAttendeeFound = {
+  eventId: 'some-event-id' as EventId,
+  eventType: 'UserCalendarFetched',
+  happenedAt: '2024-01-01T15:00:00Z' as DateTime,
+  correlationId: 'test-correlation-id' as CorrelationId,
+  userId: 'test-user-id' as UserId,
+  idp: 'google.com',
+  idpId: 'test-idp-id' as IdpId,
+  data: {
+    eventIdCause: 'some-cause-event-id' as EventId,
+    run: {
+      lowerBoundStartTime: '2024-01-02T15:00:00Z' as DateTime,
+      upperBoundStartTime: '2024-01-02T15:29:59Z' as DateTime,
+      slidingWindowInMinutes: 30
+    },
+    calendar: {
+      id: 'test-calendar-id' as CalendarId,
+      name: 'Test Calendar' as CalendarName
+    },
+    calendarEvent: {
+      id: 'event-1',
+      attendees: [{ id: 'attendee@test.com' }],
+      isAllDayEvent: false,
+      startTime: '2024-01-02T15:05:00Z' as DateTime,
+      timeZone: 'Europe/Madrid' as TimeZone
+    },
+    attendeeId: 'some-ateendee-id'
+  },
+  sensitiveData: {}
 };

@@ -9,7 +9,7 @@ import type {
   UserId
 } from '@notifycal/shared/types';
 import { calendarList } from '@services/calendar';
-import { c, testAuthedEvent } from '@testing/apigateway';
+import { c, testAuthedEvent } from '@testing/data/apigateway';
 import { responseError, responseSuccess } from '@testing/utils/api-response-handlers';
 import { assert } from '@testing/utils/assertions';
 import {

@@ -1,10 +1,10 @@
-import express from 'express';
 import bodyParser from 'body-parser';
+import express from 'express';
 
 import timeout from 'connect-timeout';
 
+import { c as testingContext, unsafeTestEvent } from '../dist/testing/data/apigateway.cjs';
 import routes from './routes.js';
-import { unsafeTestEvent, c as testingContext } from '../dist/testing/apigateway.cjs';
 
 const port = process.env.PORT || 8080;
 
