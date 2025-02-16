@@ -11,26 +11,36 @@ export type VonagePrivateKey = Brand<string, 'PrivateKey'>;
 
 export class MessagingService {
   protected _client: Vonage;
-  
+
   public constructor(applicationId: VonageApplicationId, privateKey: VonagePrivateKey) {
-    this._client = new Vonage(new Auth({
-      privateKey,
-      applicationId,
-    }));
+    this._client = new Vonage(
+      new Auth({
+        privateKey,
+        applicationId
+      })
+    );
   }
 
-  public async sendMessage(messageBody: string, phoneNumber: PhoneNumber, clientRef: string): Promise<Uuid | void> {
+  public async sendMessage(
+    messageBody: string,
+    phoneNumber: PhoneNumber,
+    clientRef: string
+  ): Promise<Uuid | void> {
     try {
-      const { messageUUID } = await this._client.messages.send(new RCSText({
-        to: phoneNumber,
-        from: '',
-        clientRef,
-        text: messageBody
-      }));
+      const { messageUUID } = await this._client.messages.send(
+        new RCSText({
+          to: phoneNumber,
+          from: '',
+          clientRef,
+          text: messageBody
+        })
+      );
 
       return messageUUID as unknown as Uuid;
     } catch (error) {
-      throwError(`Vonage API failed to send the reminder: ${clientRef}. Error: ${extractErrorMessage(error)}`);
+      throwError(
+        `Vonage API failed to send the reminder: ${clientRef}. Error: ${extractErrorMessage(error)}`
+      );
     }
   }
 }

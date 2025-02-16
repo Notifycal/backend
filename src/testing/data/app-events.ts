@@ -35,7 +35,7 @@ export const userCalendarFetchedEvent: UserCalendarFetchedEvent = {
     },
     senderDetails: {
       type: 'phone' as const,
-      number: '+34888666888' as PhoneNumber,
+      number: '+34888666888' as PhoneNumber
     },
     template: {
       id: 'some-template-id' as TemplateId,

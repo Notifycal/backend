@@ -16,7 +16,7 @@ export const userCalendarFetchedEventSchema = baseEventSchema.extend({
         })
       })
     }),
-    senderDetails: contactDetailsSchema,
+    senderDetails: contactDetailsSchema
   }),
   sensitiveData: z.object({
     idpAuthorization: z.object({

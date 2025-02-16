@@ -7,7 +7,13 @@ import type {
 import { eventBridgeEventSchema } from '@model/lambda-events/EventBridgeEvents';
 import type { LiveUserStoreRecord } from '@model/store/LiveUserStoreRecord';
 import type { UserIdpAuthorizationStoreRecord } from '@model/store/UserIdpAuthorizationStoreRecord';
-import type { CorrelationId, DateTime, EventId, PhoneNumber, TemplateId } from '@notifycal/shared/types';
+import type {
+  CorrelationId,
+  DateTime,
+  EventId,
+  PhoneNumber,
+  TemplateId
+} from '@notifycal/shared/types';
 import { extractErrorMessage } from '@services/common/error-handling';
 import { SnsService } from '@services/sns';
 import { UserLiveIndexStore } from '@services/stores/user-live-index-store';
