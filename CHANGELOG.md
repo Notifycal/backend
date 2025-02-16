@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.15.2](https://github.com/Notifycal/backend/compare/v0.15.1...v0.15.2) (2025-02-16)
+
+
+### Bug Fixes
+
+* desencapsulate sns message for easier reads ([#357](https://github.com/Notifycal/backend/issues/357)) ([fe48fda](https://github.com/Notifycal/backend/commit/fe48fda40b9fffd5a2b33435b4ac7f300f0b2676))
+* patching a previous commit ([048aa84](https://github.com/Notifycal/backend/commit/048aa847f4307f999aaf39aeb58a802386774363))
+
 ## [0.15.1](https://github.com/Notifycal/backend/compare/v0.15.0...v0.15.1) (2025-02-16)
 
 
