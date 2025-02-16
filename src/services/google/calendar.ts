@@ -1,4 +1,5 @@
 /* eslint-disable camelcase */
+import type { GoogleOAuthConfig } from '@model/Config';
 import { ParsingError } from '@model/Errors';
 import type { ServiceResponse } from '@model/ServiceResponse';
 import { calendarEventSchema, calendarSchema } from '@notifycal/shared/schemas';
@@ -16,11 +17,11 @@ import { partitionByError } from '@utils/array';
 import { isWithinBoundaries } from '@utils/datetime';
 import { google, type calendar_v3 } from 'googleapis';
 import { z } from 'zod';
-import { ImpersonatedBaseGoogle } from './base-service';
+import { BaseGoogle } from './base-service';
 
-export class GoogleCalendar extends ImpersonatedBaseGoogle {
-  public static withRefreshToken(refreshToken: string): GoogleCalendar {
-    return new this(refreshToken);
+export class GoogleCalendar extends BaseGoogle {
+  public static withRefreshToken(config: GoogleOAuthConfig, refreshToken: string): GoogleCalendar {
+    return new this(config, refreshToken);
   }
 
   public calendarList(): Promise<Array<Calendar>> {

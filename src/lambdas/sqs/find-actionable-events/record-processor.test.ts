@@ -22,6 +22,7 @@ import { eventsStartTimeWithin } from '@services/calendar-events';
 import { phoneNumberByEmail } from '@services/contacts';
 import { DeadLetteringService } from '@services/dead-lettering';
 import { SnsService } from '@services/sns';
+import { fakeIdpConfigs } from '@testing/utils/config';
 import { describe, expect, it, vi } from 'vitest';
 import type { ActionableEventsConfig } from './config';
 import type { Record } from './index';
@@ -88,7 +89,8 @@ const defaultConfig: ActionableEventsConfig = {
   },
   deadLetterQueueConfig: {
     queueUrl: 'http://aws.com/dlq' as Url
-  }
+  },
+  idpConfigs: fakeIdpConfigs
 };
 
 const validEvents: Array<CalendarEvent> = [
@@ -125,12 +127,14 @@ describe('Find actionable events record processor', () => {
       eventInRecord.data.run.upperBoundStartTime,
       false,
       eventInRecord.sensitiveData.idpAuthorization,
-      eventInRecord.idp
+      eventInRecord.idp,
+      defaultConfig.idpConfigs
     );
     expect(phoneNumberByEmail).toHaveBeenCalledWith(
       'attendee@test.com',
       eventInRecord.sensitiveData.idpAuthorization,
-      eventInRecord.idp
+      eventInRecord.idp,
+      defaultConfig.idpConfigs
     );
   });
 
@@ -186,7 +190,8 @@ describe('Find actionable events record processor', () => {
       eventInRecord.data.run.upperBoundStartTime,
       true,
       eventInRecord.sensitiveData.idpAuthorization,
-      eventInRecord.idp
+      eventInRecord.idp,
+      defaultConfig.idpConfigs
     );
   });
 
