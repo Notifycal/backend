@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.15.1](https://github.com/Notifycal/backend/compare/v0.15.0...v0.15.1) (2025-02-16)
+
+
+### Bug Fixes
+
+* various fixes after merging audit trail and actionable events ([#353](https://github.com/Notifycal/backend/issues/353)) ([5d80f1e](https://github.com/Notifycal/backend/commit/5d80f1e3502d4300e80a1ed1f7fb35cc92fc5f57))
+
 ## [0.15.0](https://github.com/Notifycal/backend/compare/v0.14.0...v0.15.0) (2025-02-16)
 
 
