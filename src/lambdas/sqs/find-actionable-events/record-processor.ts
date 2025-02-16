@@ -1,7 +1,7 @@
 import { logger } from '@common/powertools';
-import type { ActionableEventFoundEvent } from '@model/app-events/ActionableEventFound';
-import { noPhoneNumberForAttendeeFound } from '@model/app-events/NoPhoneNumberForAttendeeFound';
-import { userFetchedEventsParsingFailed } from '@model/app-events/UserFetchedEventsParsingFailed';
+import type { ActionableEventFoundEvent } from '@model/app-events/ActionableEventFoundEvent';
+import { noPhoneNumberForAttendeeFound } from '@model/app-events/NoPhoneNumberForAttendeeFoundEvent';
+import { userFetchedEventsParsingFailed } from '@model/app-events/UserFetchedEventsParsingFailedEvent';
 import type { IdpConfigs } from '@model/Config';
 import type { ParsingError } from '@model/Errors';
 import type { ServiceResponse } from '@model/ServiceResponse';

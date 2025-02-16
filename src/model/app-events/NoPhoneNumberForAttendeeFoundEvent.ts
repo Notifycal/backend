@@ -1,32 +1,33 @@
-import type { ParsingError } from '@model/Errors';
-import { calendarSchema } from '@notifycal/shared/schemas';
-import type { DateTime, EventId } from '@notifycal/shared/types';
+import { calendarEventSchema, calendarSchema } from '@notifycal/shared/schemas';
+import type { CalendarEvent, DateTime, EventId } from '@notifycal/shared/types';
 import { v4 } from 'uuid';
 import { z } from 'zod';
 import { baseErrorEventSchema } from './BaseErrorEvent';
 import { eventIdSchema } from './BaseEvent';
 import type { UserCalendarFetchedEvent } from './UserCalendarFetchedEvent';
-import { errorSchema, runSchema } from './common';
+import { runSchema } from './common';
 
-export const userFetchedEventsParsingFailedSchema = baseErrorEventSchema.extend({
+export const noPhoneNumberForAttendeeFoundEventSchema = baseErrorEventSchema.extend({
   data: z.object({
     eventIdCause: eventIdSchema,
     run: runSchema,
     calendar: calendarSchema,
-    error: errorSchema
+    calendarEvent: calendarEventSchema,
+    attendeeId: z.string()
   })
 });
 
-export type UserFetchedEventsParsingFailed = z.infer<typeof userFetchedEventsParsingFailedSchema>;
+export type NoPhoneNumberForAttendeeFoundEvent = z.infer<typeof noPhoneNumberForAttendeeFoundEventSchema>;
 
-export function userFetchedEventsParsingFailed(
+export function noPhoneNumberForAttendeeFound(
   origin: UserCalendarFetchedEvent,
-  error: ParsingError
-): UserFetchedEventsParsingFailed {
+  calendarEvent: CalendarEvent,
+  attendeeId: string
+): NoPhoneNumberForAttendeeFoundEvent {
   return {
     eventId: v4() as EventId,
     correlationId: origin.correlationId,
-    eventType: 'UserFetchedEventsParsingFailed',
+    eventType: 'NoPhoneNumberForAttendeeFound',
     happenedAt: new Date().toISOString() as DateTime,
     userId: origin.userId,
     idp: origin.idp,
@@ -35,10 +36,8 @@ export function userFetchedEventsParsingFailed(
       eventIdCause: origin.eventId,
       run: origin.data.run,
       calendar: origin.data.calendar,
-      error: {
-        message: error.message,
-        cause: error.item
-      }
+      calendarEvent: calendarEvent,
+      attendeeId: attendeeId
     },
     sensitiveData: {}
   };
