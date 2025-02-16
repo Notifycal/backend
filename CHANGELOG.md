@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.15.0](https://github.com/Notifycal/backend/compare/v0.14.0...v0.15.0) (2025-02-16)
+
+
+### Features
+
+* audit trail ([#350](https://github.com/Notifycal/backend/issues/350)) ([a5b8bb7](https://github.com/Notifycal/backend/commit/a5b8bb7f896a0015a9b91438aa1b85a3b16a7623))
+
+
+### Bug Fixes
+
+* revert google integration change ([#351](https://github.com/Notifycal/backend/issues/351)) ([cc8dd8e](https://github.com/Notifycal/backend/commit/cc8dd8ea967d970bc6067f531aad5e83151e0c98))
+
 ## [0.14.0](https://github.com/Notifycal/backend/compare/v0.13.0...v0.14.0) (2025-02-14)
 
 
