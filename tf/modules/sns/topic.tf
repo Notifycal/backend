@@ -24,6 +24,6 @@ resource "aws_sns_topic_subscription" "topic_subscriptions" {
   protocol             = "sqs"
   delivery_policy      = null // by default, there is a delivery policy https://docs.aws.amazon.com/sns/latest/dg/sns-message-delivery-retries.html
   endpoint             = each.value
-  raw_message_delivery = false // by default it is false anyways. Docs: https://docs.aws.amazon.com/sns/latest/dg/sns-large-payload-raw-message-delivery.html
+  raw_message_delivery = true // by default it is false. If you want that be ready to desencapsulate the message several times.
   redrive_policy       = null  // TODO: DLQ stuff https://docs.aws.amazon.com/sns/latest/dg/sns-dead-letter-queues.html#how-messages-moved-into-dead-letter-queue
 }
