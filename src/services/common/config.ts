@@ -133,7 +133,7 @@ export function readActionableEventFoundTopicConfig(
 ): ActionableEventFoundTopicEndpointConfig {
   return {
     actionableEventFoundTopicConfig: {
-      topicArn: env.get('ACTIONABLE_EVENT_FOUND_ARN').required().asString() as AwsArn
+      topicArn: env.get('ACTIONABLE_EVENT_FOUND_TOPIC_ARN').required().asString() as AwsArn
     }
   };
 }

@@ -68,7 +68,7 @@ export function setEnvUserCalendarFetchedTopicConfig(config: SnsTopicConfig): vo
 }
 
 export function setEnvActionableEventFoundTopicConfig(config: SnsTopicConfig): void {
-  process.env.ACTIONABLE_EVENT_FOUND_ARN = config.topicArn;
+  process.env.ACTIONABLE_EVENT_FOUND_TOPIC_ARN = config.topicArn;
 }
 
 export function setEnvDeadLetterQueueConfig(config: SqsQueueConfig): void {
