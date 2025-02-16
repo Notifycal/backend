@@ -7,12 +7,12 @@ import type { EventWithConfig } from '@model/lambda-events/Event';
 import { errorHandler, headers } from '@services/common/api-response-handlers';
 import { extractErrorMessage } from '@services/common/error-handling';
 import type { Context } from 'aws-lambda';
-import type { ZodSchema } from 'zod';
+import type { z } from 'zod';
 import { logger } from './powertools';
 
-function eventParser<TConfig extends BaseEndpointConfig, TResult>(
+function eventParser<TConfig extends BaseEndpointConfig, TSchema extends z.AnyZodObject, TResult>(
   request: Request<EventWithConfig<TConfig>, TResult, Error, Context>,
-  schema: ZodSchema,
+  schema: TSchema,
   isApiRequest: boolean
 ): TResult | void {
   const parserFn = parser({ schema }).before;
@@ -20,7 +20,7 @@ function eventParser<TConfig extends BaseEndpointConfig, TResult>(
     try {
       parserFn(request);
     } catch (error: unknown) {
-      const baseMsg = `payload does not satisfy the schema. Error: ${extractErrorMessage(error)}. Schema: ${JSON.stringify(schema)}`;
+      const baseMsg = `payload does not satisfy the schema. Error: ${extractErrorMessage(error)}. Schema: ${schema.shape}`;
       if (isApiRequest) {
         return errorHandler(
           400,
@@ -35,10 +35,11 @@ function eventParser<TConfig extends BaseEndpointConfig, TResult>(
   }
 }
 
-export function eventParserMiddleware<TConfig extends BaseEndpointConfig, TResult>(
-  schema: ZodSchema,
-  isApiRequest: boolean
-): MiddlewareObj<EventWithConfig<TConfig>, TResult> {
+export function eventParserMiddleware<
+  TConfig extends BaseEndpointConfig,
+  TSchema extends z.AnyZodObject,
+  TResult
+>(schema: TSchema, isApiRequest: boolean): MiddlewareObj<EventWithConfig<TConfig>, TResult> {
   const before: middy.MiddlewareFn<EventWithConfig<TConfig>, TResult> = (
     req: Request<EventWithConfig<TConfig>, TResult, Error, Context>
   ) => eventParser(req, schema, isApiRequest);

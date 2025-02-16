@@ -28,14 +28,14 @@ function baseConfigMiddleware<TConfig, TResult>(
   return baseMiddleware().use(configReaderMiddleware<TConfig, TResult>(configReader, isApiRequest));
 }
 
-export function backgroundProcessingMiddleware<TConfig, T extends z.ZodTypeAny>(
+export function backgroundProcessingMiddleware<TConfig, T extends z.AnyZodObject>(
   configReader: ConfigReaderFn<TConfig>,
   eventSchema: T
 ): middy.MiddyfiedHandler {
   return baseConfigMiddleware(configReader, false).use(eventParserMiddleware(eventSchema, false));
 }
 
-export function unprotectedEndpointMiddleware<TConfig, T extends z.ZodTypeAny>(
+export function unprotectedEndpointMiddleware<TConfig, T extends z.AnyZodObject>(
   configReader: ConfigReaderFn<TConfig>,
   eventSchema: T
 ): middy.MiddyfiedHandler<APIGatewayProxyEvent, APIGatewayProxyResult> {
@@ -49,7 +49,7 @@ export function unprotectedEndpointMiddleware<TConfig, T extends z.ZodTypeAny>(
 
 export function protectedEndpointMiddleware<
   TConfig extends AuthedEndpointConfig,
-  T extends z.ZodTypeAny
+  T extends z.AnyZodObject
 >(
   configReaderFn: ConfigReaderFn<TConfig>,
   eventSchema: T,
