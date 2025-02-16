@@ -108,7 +108,7 @@ function buildActionableEvents(
         run: event.data.run,
         calendar: event.data.calendar,
         event: calendarEvent,
-        contactDetails: {
+        receiverDetails: {
           type: 'phone',
           number: attendeePhoneNumber
         },

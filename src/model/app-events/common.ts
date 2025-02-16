@@ -10,3 +10,8 @@ export const runSchema = z.object({
   upperBoundStartTime: z.string().brand('DateTime'),
   slidingWindowInMinutes: z.number().int().positive()
 });
+
+export const contactDetailsSchema = z.object({
+  type: z.literal('phone'),
+  number: z.string().brand('PhoneNumber')
+});
