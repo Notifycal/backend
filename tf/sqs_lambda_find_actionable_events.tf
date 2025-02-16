@@ -36,7 +36,7 @@ module "find_actionable_events_lambda" {
 
   runtime     = var.lambdas_runtime
   timeout     = local.api_lambdas_timeout
-  memory_size = 256
+  memory_size = 384
   handler     = var.lambdas_handler_name
 
   logging_log_format    = var.lambdas_logging_log_format
@@ -78,6 +78,6 @@ module "find_actionable_events_lambda" {
   }
 
   environment_variables = merge({
-    ACTIONABLE_EVENTS_FOUND_TOPIC_ARN = module.actionable_event_found_topic.sns_topic_arn
-  }, local.dead_letter_queue_env_vars, local.common_lambda_env_vars)
+    ACTIONABLE_EVENT_FOUND_TOPIC_ARN = module.actionable_event_found_topic.sns_topic_arn
+  }, local.idps_configs_env_vars, local.dead_letter_queue_env_vars, local.common_lambda_env_vars)
 }

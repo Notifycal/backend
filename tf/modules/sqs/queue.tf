@@ -36,7 +36,7 @@ data "aws_iam_policy_document" "queue_policy" {
     condition {
       test     = "ArnLike"
       variable = "aws:SourceArn"
-      values   = [var.sender_arn]
+      values   = var.sender_arns
     }
   }
 

@@ -3,9 +3,9 @@ variable "queue_name" {
   description = "SQS queue name"
 }
 
-variable "sender_arn" {
-  type        = string
-  description = "AWS arn of identity sending messages to SQS queue"
+variable "sender_arns" {
+  type        = set(string)
+  description = "AWS arn of identity sending messages to SQS queue. Only SNS supported."
 }
 
 variable "receiver_arn" {

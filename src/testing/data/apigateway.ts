@@ -1,12 +1,12 @@
-import type { Context } from 'aws-lambda/handler';
 import type { APIGatewayProxyEvent } from '@aws-lambda-powertools/parser/types';
+import type { EncodeAccessJwtConfig } from '@model/Config';
+import { type OurAccessTokenClaims, accessTokenSchema } from '@model/Jwt';
 import {
   getDefaultAccessTokenPayload,
   getDefaultEncodeAccessJwtConfig,
   testJwt
-} from './utils/jwt';
-import type { EncodeAccessJwtConfig } from '@model/Config';
-import { type OurAccessTokenClaims, accessTokenSchema } from '@model/Jwt';
+} from '@testing/utils/jwt';
+import type { Context } from 'aws-lambda/handler';
 import type { ZodSchema } from 'zod';
 
 function ttestEvent(

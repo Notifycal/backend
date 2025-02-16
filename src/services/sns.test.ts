@@ -2,7 +2,7 @@ import { SNSClient, type PublishCommandOutput } from '@aws-sdk/client-sns';
 import { logger } from '@common/powertools';
 import type { SnsTopicConfig } from '@model/Config';
 import type { AwsArn } from '@own-types/model';
-import { userCalendarFetchedEvent } from '@testing/app-events';
+import { userCalendarFetchedEvent } from '@testing/data/app-events';
 import { v4 } from 'uuid';
 import { describe, expect, it, vi, type MockInstance } from 'vitest';
 import type { UserCalendarFetchedEvent } from '../model/app-events/UserCalendarFetchedEvent';

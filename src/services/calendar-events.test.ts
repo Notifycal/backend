@@ -8,6 +8,7 @@ import type {
   IdpName,
   TimeZone
 } from '@notifycal/shared/types';
+import { fakeIdpConfigs } from '@testing/utils/config';
 import { describe, expect, it, vi } from 'vitest';
 import { eventsStartTimeWithin } from './calendar-events';
 import { GoogleCalendar } from './google/calendar';
@@ -100,7 +101,8 @@ describe('Calendar Events Service', () => {
 
   function testit(
     googleResponseFn: () => Promise<ServiceResponse<CalendarEvent, ParsingError>>,
-    includeAllDayEvents: boolean = false
+    includeAllDayEvents: boolean = false,
+    idpConfigs = fakeIdpConfigs
   ) {
     vi.mock('@services/google/calendar');
     // eslint-disable-next-line @typescript-eslint/unbound-method
@@ -114,7 +116,8 @@ describe('Calendar Events Service', () => {
       upperBoundStartTime,
       includeAllDayEvents,
       idpAuthorization,
-      'google.com'
+      'google.com',
+      idpConfigs
     );
   }
 });

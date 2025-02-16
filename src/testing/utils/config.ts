@@ -9,6 +9,7 @@ import type {
   SnsTopicConfig,
   SqsQueueConfig
 } from '@model/Config';
+import type { AuditTrailBaseStoreConfig } from '@services/stores/audit-trail-base-store';
 import type { RefreshTokenBaseStoreConfig } from '@services/stores/refresh-token-base-store';
 import type { UserBaseStoreConfig } from '@services/stores/user-base-store';
 import type { UserLiveIndexStoreConfig } from '@services/stores/user-live-index-store';
@@ -67,7 +68,7 @@ export function setEnvUserCalendarFetchedTopicConfig(config: SnsTopicConfig): vo
 }
 
 export function setEnvActionableEventFoundTopicConfig(config: SnsTopicConfig): void {
-  process.env.ACTIONABLE_EVENT_FOUND_ARN = config.topicArn;
+  process.env.ACTIONABLE_EVENT_FOUND_TOPIC_ARN = config.topicArn;
 }
 
 export function setEnvDeadLetterQueueConfig(config: SqsQueueConfig): void {
@@ -80,6 +81,10 @@ export function setEnvCronRunConfig(config: CronRunConfig): void {
 
 export function setEnvRefreshTokenBaseStoreConfig(config: RefreshTokenBaseStoreConfig): void {
   process.env.REFRESH_TOKENS_TABLE_NAME = config.tableName;
+}
+
+export function setEnvAuditTrailBaseStoreConfig(config: AuditTrailBaseStoreConfig): void {
+  process.env.AUDIT_TRAIL_TABLE_NAME = config.tableName;
 }
 
 export function setEnvBaseConfig(config: BaseConfig): void {

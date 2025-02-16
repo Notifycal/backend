@@ -17,7 +17,9 @@ export const userFetchedEventsParsingFailedEventSchema = baseErrorEventSchema.ex
   })
 });
 
-export type UserFetchedEventsParsingFailedEvent = z.infer<typeof userFetchedEventsParsingFailedEventSchema>;
+export type UserFetchedEventsParsingFailedEvent = z.infer<
+  typeof userFetchedEventsParsingFailedEventSchema
+>;
 
 export function userFetchedEventsParsingFailed(
   origin: UserCalendarFetchedEvent,
@@ -39,6 +41,7 @@ export function userFetchedEventsParsingFailed(
         message: error.message,
         cause: error.item
       }
-    }
+    },
+    sensitiveData: {}
   };
 }

@@ -17,7 +17,9 @@ export const noPhoneNumberForAttendeeFoundEventSchema = baseErrorEventSchema.ext
   })
 });
 
-export type NoPhoneNumberForAttendeeFoundEvent = z.infer<typeof noPhoneNumberForAttendeeFoundEventSchema>;
+export type NoPhoneNumberForAttendeeFoundEvent = z.infer<
+  typeof noPhoneNumberForAttendeeFoundEventSchema
+>;
 
 export function noPhoneNumberForAttendeeFound(
   origin: UserCalendarFetchedEvent,
@@ -38,6 +40,7 @@ export function noPhoneNumberForAttendeeFound(
       calendar: origin.data.calendar,
       calendarEvent: calendarEvent,
       attendeeId: attendeeId
-    }
+    },
+    sensitiveData: {}
   };
 }

@@ -1,4 +1,4 @@
-import { c, testAuthedEvent, testEvent } from '@testing/apigateway';
+import { c, testAuthedEvent, testEvent } from '@testing/data/apigateway';
 import { responseError, responseSuccess } from '@testing/utils/api-response-handlers';
 import type { TestingWhiteApiConfig } from '@testing/white-authed-api-lambda';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';

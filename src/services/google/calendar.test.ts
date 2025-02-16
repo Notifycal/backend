@@ -8,6 +8,7 @@ import type {
   CalendarName,
   DateTime
 } from '@notifycal/shared/types';
+import { fakeIdpConfigs } from '@testing/utils/config';
 import { google, type calendar_v3 } from 'googleapis';
 import type { GaxiosResponse } from 'googleapis-common';
 import { describe, expect, it, vi } from 'vitest';
@@ -93,7 +94,8 @@ describe('GoogleCalendar Service calendarList', () => {
   });
 
   function testit(
-    calendarListFn: () => Promise<GaxiosResponse<calendar_v3.Schema$CalendarList>>
+    calendarListFn: () => Promise<GaxiosResponse<calendar_v3.Schema$CalendarList>>,
+    config = fakeIdpConfigs['google.com']
   ): Promise<Array<Calendar>> {
     vi.mock('googleapis');
     vi.mocked(google.calendar).mockReturnValue({
@@ -101,7 +103,7 @@ describe('GoogleCalendar Service calendarList', () => {
         list: vi.fn().mockImplementation(calendarListFn)
       }
     } as unknown as calendar_v3.Calendar);
-    return GoogleCalendar.withRefreshToken('some-refresh-token').calendarList();
+    return GoogleCalendar.withRefreshToken(config, 'some-refresh-token').calendarList();
   }
 });
 
@@ -216,7 +218,8 @@ describe('GoogleCalendar Service eventsWithinPeriod', () => {
 
   function testit(
     eventsListFn: () => Promise<GaxiosResponse<calendar_v3.Schema$Events>>,
-    includeAllDayEvents: boolean = false
+    includeAllDayEvents: boolean = false,
+    config = fakeIdpConfigs['google.com']
   ): Promise<ServiceResponse<CalendarEvent, ParsingError>> {
     vi.mock('googleapis');
     vi.mocked(google.calendar).mockReturnValue({
@@ -224,7 +227,7 @@ describe('GoogleCalendar Service eventsWithinPeriod', () => {
         list: vi.fn().mockImplementation(eventsListFn)
       }
     } as unknown as calendar_v3.Calendar);
-    return GoogleCalendar.withRefreshToken('some-refresh-token').eventsStartTimeWithin(
+    return GoogleCalendar.withRefreshToken(config, 'some-refresh-token').eventsStartTimeWithin(
       calendarId,
       lowerBoundStartTime,
       upperBoundStartTime,

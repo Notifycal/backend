@@ -2,7 +2,7 @@ import type { OurAccessTokenClaims } from '@model/Jwt';
 import type { UserStoreRecord } from '@model/store/UserStoreRecord';
 import type { Email, IdpId, IdpName, UserId } from '@notifycal/shared/types';
 import { UserBaseStore } from '@services/stores/user-base-store';
-import { c, testAuthedEvent, testEvent } from '@testing/apigateway';
+import { c, testAuthedEvent, testEvent } from '@testing/data/apigateway';
 import { responseError, responseSuccess } from '@testing/utils/api-response-handlers';
 import { assert } from '@testing/utils/assertions';
 import {

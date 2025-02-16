@@ -1,5 +1,6 @@
 import type { AuthorizationForIdp, UserGoogleAuthorization } from '@model/IdpAuthorization';
 import type { Calendar, CalendarId, CalendarName, IdpName, UserId } from '@notifycal/shared/types';
+import { fakeIdpConfigs } from '@testing/utils/config';
 import { v4 as uuid } from 'uuid';
 import { describe, expect, it, vi } from 'vitest';
 import { calendarList } from './calendar';
@@ -69,7 +70,8 @@ describe('Calendar Service', () => {
     idp: IdpName,
     getIdpAuthorizationFn: () => Promise<AuthorizationForIdp<IdpName> | undefined>,
     googleCalendarListFn: () => Promise<Array<Calendar>>,
-    userBaseStoreConfig: UserBaseStoreConfig = validUserBaseStoreConfig
+    userBaseStoreConfig: UserBaseStoreConfig = validUserBaseStoreConfig,
+    idpConfigs = fakeIdpConfigs
   ): Promise<Array<Calendar>> {
     vi.mock('@services/stores/user-base-store');
     const userBaseStoreMock = {
@@ -89,6 +91,6 @@ describe('Calendar Service', () => {
       mockInstance2 as unknown as GoogleCalendar
     );
 
-    return calendarList(userId, idp, userBaseStoreConfig);
+    return calendarList(userId, idp, idpConfigs, userBaseStoreConfig);
   }
 });

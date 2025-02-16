@@ -1,7 +1,7 @@
+import esbuild from 'esbuild';
+import { globSync } from 'glob';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { globSync } from 'glob';
-import esbuild from 'esbuild';
 
 // https://byby.dev/node-dirname-not-defined
 const __filename = fileURLToPath(import.meta.url);
@@ -12,8 +12,12 @@ const tsconfig = path.join(__dirname, './tsconfig.json');
 const lambdasDir = 'src';
 const outDir = 'dist';
 const entryPoints = globSync('src/lambdas/**/index.ts')
-  .concat(process.env.NODE_ENV == 'production' ? [] : globSync('src/testing/apigateway.ts'))
-  .filter((path) => !path.endsWith('.test.ts'));
+  .concat(process.env.NODE_ENV == 'production' ? [] : globSync('src/testing/data/apigateway.ts'))
+  .filter(
+    (path) =>
+      ['.test.ts', '.spec.ts', '.suite.ts'].findIndex((pathEnding) => !path.endsWith(pathEnding)) >=
+      0
+  );
 console.log(entryPoints);
 
 const isWatchMode = process.argv.includes('--watch');

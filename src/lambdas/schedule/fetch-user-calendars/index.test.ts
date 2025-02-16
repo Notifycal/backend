@@ -16,7 +16,7 @@ import type {
 import type { AwsArn } from '@own-types/model';
 import * as snsService from '@services/sns';
 import { UserLiveIndexStore } from '@services/stores/user-live-index-store';
-import { fakeScheduledEventBridgeEvent } from '@testing/event-bridge-event';
+import { fakeScheduledEventBridgeEvent } from '@testing/data/event-bridge-event';
 import {
   setEnvCronRunConfig,
   setEnvUserCalendarFetchedTopicConfig,

@@ -8,10 +8,10 @@ import typescriptEslint from 'typescript-eslint';
 
 // import tsPlugin from '@typescript-eslint/eslint-plugin';
 
-import eslintPluginImport from 'eslint-plugin-import';
-import eslintPluginUnicorn from 'eslint-plugin-unicorn';
 import vitestPlugin from '@vitest/eslint-plugin';
 import eslintConfigPrettier from 'eslint-config-prettier';
+import eslintPluginImport from 'eslint-plugin-import';
+import eslintPluginUnicorn from 'eslint-plugin-unicorn';
 
 const patchedImportPlugin = fixupPluginRules(eslintPluginImport);
 
@@ -120,7 +120,7 @@ const vitestConfig = {
   plugins: {
     vitest: vitestPlugin
   },
-  files: ['**/*.test.ts', '**/*.spec.ts'],
+  files: ['**/*.test.ts', '**/*.spec.ts', '**/*.suite.ts'],
   languageOptions: {
     globals: {
       ...vitestPlugin.environments.env.globals
