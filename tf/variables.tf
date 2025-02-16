@@ -72,7 +72,7 @@ variable "google_oauth_config" {
 
 variable "vonage_auth_config" {
   type = object({
-    application_id = string
+    application_id          = string
     private_key_secret_path = string
   })
   sensitive = true

@@ -77,7 +77,7 @@ module "send_event_reminder_lambda" {
   event_source_mapping = {
     sqs = {
       event_source_arn = module.actionable_event_found_queue.sqs_queue_arn
-      batch_size = 1
+      batch_size       = 1
       scaling_config = {
         maximum_concurrency = 20
       }
@@ -98,7 +98,7 @@ module "send_event_reminder_lambda" {
   }
 
   environment_variables = merge({
-    VONAGE_APPLICATION_ID = var.vonage_auth_config.application_id
+    VONAGE_APPLICATION_ID       = var.vonage_auth_config.application_id
     VONAGE_SSM_PATH_PRIVATE_KEY = data.aws_ssm_parameter.vonage_private_key.name
   }, local.common_lambda_env_vars)
 }
