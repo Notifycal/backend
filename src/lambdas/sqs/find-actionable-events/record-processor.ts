@@ -112,6 +112,7 @@ function buildActionableEvents(
           type: 'phone',
           number: attendeePhoneNumber
         },
+        senderDetails: event.data.senderDetails,
         message: interpolateMessage(
           event.data.template.fields.business.name,
           event.data.template.fields.business.address,

@@ -9,6 +9,7 @@ export const actionableEventFoundEventSchema = baseEventSchema.extend({
     calendar: calendarSchema,
     event: calendarEventSchema,
     receiverDetails: contactDetailsSchema,
+    senderDetails: contactDetailsSchema,
     message: z.string()
   }),
   sensitiveData: z.object({
