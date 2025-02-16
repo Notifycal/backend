@@ -70,6 +70,14 @@ variable "google_oauth_config" {
   sensitive = true
 }
 
+variable "vonage_auth_config" {
+  type = object({
+    application_id = string
+    private_key_secret_path = string
+  })
+  sensitive = true
+}
+
 variable "jwt_config" {
   type = object({
     access = object({

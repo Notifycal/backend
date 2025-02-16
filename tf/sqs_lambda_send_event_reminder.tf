@@ -1,3 +1,8 @@
+data "aws_ssm_parameter" "vonage_private_key" {
+  # Purely used to be able to get the parameter ARN (for the policy) without interpolation
+  name = var.vonage_auth_config.private_key_secret_path
+}
+
 data "aws_iam_policy_document" "send_event_reminder_iam_policydoc" {
   statement {
     effect = "Allow"
@@ -10,6 +15,31 @@ data "aws_iam_policy_document" "send_event_reminder_iam_policydoc" {
 
     resources = [
       module.actionable_event_found_queue.sqs_queue_arn
+    ]
+  }
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "dynamodb:PutItem",
+      "dynamodb:GetItem",
+      "dynamodb:UpdateItem",
+      "dynamodb:DeleteItem",
+    ]
+
+    resources = [
+      aws_dynamodb_table.send_event_reminder_idempotency.arn
+    ]
+  }
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "ssm:GetParameter",
+    ]
+
+    resources = [
+      data.aws_ssm_parameter.vonage_private_key.arn
     ]
   }
 }
@@ -67,6 +97,7 @@ module "send_event_reminder_lambda" {
   }
 
   environment_variables = merge({
-    # TODO: Vonage API Key
+    VONAGE_APPLICATION_ID = var.vonage_auth_config.application_id
+    VONAGE_SSM_PATH_PRIVATE_KEY = data.aws_ssm_parameter.vonage_private_key.name
   }, local.common_lambda_env_vars)
 }

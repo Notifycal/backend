@@ -11,9 +11,12 @@ import type {
   EncodeJwtsEndpointConfig,
   EncodeRefreshJwtConfig,
   IdpEndpointConfig,
-  UserCalendarFetchedTopicConfig
+  UserCalendarFetchedTopicConfig,
+  IdempotencyConfig,
+  VonageConfig
 } from '@model/Config';
 import type { AwsArn, Environment, Url } from '@own-types/model';
+import type { VonageApplicationId } from '@services/messaging';
 import type { AuditTrailBaseStoreEndpointConfig } from '@services/stores/audit-trail-base-store';
 import type { RefreshTokenBaseStoreConfigEndpointConfig } from '@services/stores/refresh-token-base-store';
 import type { UserBaseStoreEndpointConfig } from '@services/stores/user-base-store';
@@ -172,6 +175,23 @@ export function readAuditTrailBaseStoreConfig(env: Environment): AuditTrailBaseS
   return {
     auditTrailBaseStoreConfig: {
       tableName: env.get('AUDIT_TRAIL_TABLE_NAME').required().asString()
+    }
+  };
+}
+
+export function readIdempotencyConfig(env: Environment): IdempotencyConfig {
+  return {
+    idempotencyConfig: {
+      tableName: env.get('IDEMPOTENCY_TABLE_NAME').required().asString()
+    }
+  };
+}
+
+export function readVonageConfig(env: Environment): VonageConfig {
+  return {
+    vonageConfig: {
+      privateKeySSMPath: env.get('VONAGE_SSM_PATH_PRIVATE_KEY').required().asString(),
+      applicationId: env.get('VONAGE_APPLICATION_ID').required().asString() as VonageApplicationId
     }
   };
 }

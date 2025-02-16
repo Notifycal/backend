@@ -1,5 +1,6 @@
 import type { IdpName } from '@notifycal/shared/types';
 import type { AwsArn, Url } from '@own-types/model';
+import type { VonageApplicationId } from '@services/messaging';
 
 export interface DecodeAccessJwtConfig {
   publicKey: string;
@@ -74,4 +75,17 @@ export type ActionableEventFoundTopicConfig = {
 
 export type DeadLetterQueueConfig = {
   deadLetterQueueConfig: SqsQueueConfig;
+};
+
+export type IdempotencyConfig = {
+  idempotencyConfig: {
+    tableName: string;
+  };
+};
+
+export type VonageConfig = {
+  vonageConfig: {
+    privateKeySSMPath: string;
+    applicationId: VonageApplicationId;
+  };
 };
