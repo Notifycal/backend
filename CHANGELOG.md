@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.15.7](https://github.com/Notifycal/backend/compare/v0.15.6...v0.15.7) (2025-02-17)
+
+
+### Bug Fixes
+
+* previous commit ([db7438d](https://github.com/Notifycal/backend/commit/db7438d05217a880a7617cb428c53b32765ff41b))
+
 ## [0.15.6](https://github.com/Notifycal/backend/compare/v0.15.5...v0.15.6) (2025-02-17)
 
 
