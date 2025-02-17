@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.15.6](https://github.com/Notifycal/backend/compare/v0.15.5...v0.15.6) (2025-02-17)
+
+
+### Bug Fixes
+
+* add another DLQ to get unprocessable messages out of the way so … ([#369](https://github.com/Notifycal/backend/issues/369)) ([ff732cd](https://github.com/Notifycal/backend/commit/ff732cd6dac20e54daefac80171e674c8adc5504))
+
 ## [0.15.5](https://github.com/Notifycal/backend/compare/v0.15.4...v0.15.5) (2025-02-17)
 
 
