@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.15.5](https://github.com/Notifycal/backend/compare/v0.15.4...v0.15.5) (2025-02-17)
+
+
+### Bug Fixes
+
+* remove fifo params if sending to standard queue. Global dlq is s… ([#367](https://github.com/Notifycal/backend/issues/367)) ([f145266](https://github.com/Notifycal/backend/commit/f1452662dab490917e4b6a831349e7192e7badce))
+
 ## [0.15.4](https://github.com/Notifycal/backend/compare/v0.15.3...v0.15.4) (2025-02-17)
 
 
