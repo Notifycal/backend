@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.15.9](https://github.com/Notifycal/backend/compare/v0.15.8...v0.15.9) (2025-02-17)
+
+
+### Bug Fixes
+
+* unprocessable dlq name ([03ee59b](https://github.com/Notifycal/backend/commit/03ee59b00b7823a277feca54f944f98257cdae17))
+
 ## [0.15.8](https://github.com/Notifycal/backend/compare/v0.15.7...v0.15.8) (2025-02-17)
 
 
