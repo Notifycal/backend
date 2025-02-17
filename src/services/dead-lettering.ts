@@ -15,6 +15,6 @@ export class DeadLetteringService {
   }
 
   public send<TEvent extends BaseErrorEvent>(event: TEvent): Promise<SendMessageCommandOutput> {
-    return this._sqsService.sendEvent(event);
+    return this._sqsService.send(event);
   }
 }

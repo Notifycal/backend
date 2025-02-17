@@ -23,13 +23,18 @@ export class SqsService extends BaseAwsMessagingService {
     return new this(config);
   }
 
-  public sendEvent<TEvent extends BaseEvent>(event: TEvent): Promise<SendMessageCommandOutput> {
+  public send<TEvent extends BaseEvent>(event: TEvent): Promise<SendMessageCommandOutput> {
+    const fifoParams = this._config.queueUrl.endsWith('.fifo')
+      ? {
+          MessageDeduplicationId: event.eventId,
+          MessageGroupId: '1'
+        }
+      : {};
     const sendMessageCommand = new SendMessageCommand({
       QueueUrl: this._config.queueUrl,
       MessageBody: JSON.stringify(event),
       MessageAttributes: this.messageAttributes(event),
-      MessageDeduplicationId: event.eventId,
-      MessageGroupId: '1'
+      ...fifoParams
     });
     return this._client.send(sendMessageCommand).then(
       (result) => {
