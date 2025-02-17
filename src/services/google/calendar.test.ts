@@ -115,7 +115,16 @@ describe('GoogleCalendar Service eventsWithinPeriod', () => {
   const validEvent: calendar_v3.Schema$Event = {
     id: 'event1',
     summary: 'Meeting',
-    start: { dateTime: '2025-02-15T10:00:00Z', timeZone: 'Europe/Madrid' }
+    start: { dateTime: '2025-02-15T10:00:00Z', timeZone: 'Europe/Madrid' },
+    attendees: [
+      {
+        email: 'some-attendee1@gmail.com',
+        organizer: true
+      },
+      {
+        email: 'some-attendee2@gmail.com'
+      }
+    ]
   };
 
   const validAllDayEvent: calendar_v3.Schema$Event = {
@@ -129,7 +138,7 @@ describe('GoogleCalendar Service eventsWithinPeriod', () => {
     start: {}
   };
 
-  it('should fetch events successfully', async () => {
+  it('should fetch events including attendees and excluding organizers successfully', async () => {
     const eventsListFn = () =>
       Promise.resolve({ data: { items: [validEvent] }, status: 200 } as GaxiosResponse);
 
@@ -137,6 +146,9 @@ describe('GoogleCalendar Service eventsWithinPeriod', () => {
 
     expect(result.successList).toHaveLength(1);
     expect(result.successList[0].id).toBe('event1');
+    expect(result.successList[0].attendees).toStrictEqual([
+      { id: (validEvent.attendees || [])[1]?.email }
+    ]);
   });
 
   it('should filter out events outside the date bounds', async () => {

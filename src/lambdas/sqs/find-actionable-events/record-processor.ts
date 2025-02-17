@@ -159,7 +159,10 @@ export function recordProcessor(record: Record, config: ActionableEventsConfig):
       )
     )
     .then((results) =>
-      allSettledAllOrErrorHandler(results, 'fetch all atteendee phone number for every calendar')
+      allSettledAllOrErrorHandler(
+        results,
+        'fetch all atteendee phone number for every calendar event'
+      )
     )
     .then((eventWithAttendeePhoneNumbers) => {
       const actionableEvents = buildActionableEvents(eventWithAttendeePhoneNumbers.flat(), event);
