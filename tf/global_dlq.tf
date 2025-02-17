@@ -13,7 +13,7 @@ resource "aws_sqs_queue" "global_dlq_lambda" {
 }
 
 resource "aws_sqs_queue" "global_dlq_unprocessable_sqs" {
-  name = "global-dlq-unprocessable-sqs-${var.environment}"
+  name = "global-dlq-unprocessable-sqs-${var.environment}.fifo"
 
   fifo_queue                  = true
   content_based_deduplication = true
