@@ -13,11 +13,6 @@ export const actionableEventFoundEventSchema = baseEventSchema.extend({
       number: z.string().brand('PhoneNumber')
     }),
     message: z.string()
-  }),
-  sensitiveData: z.object({
-    idpAuthorization: z.object({
-      refreshToken: z.string()
-    })
   })
 });
 

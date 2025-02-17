@@ -32,7 +32,9 @@ function interpolateMessage(
   timeZone: TimeZone
 ): string {
   const dateTime = DT.fromISO(startTime, { zone: timeZone });
-  return `Tienes una cita con ${businessName} en ${businessAddress} el dia ${dateTime.get('day')}/${dateTime.get('month')} a las ${dateTime.get('hour')}:${dateTime.get('minute')}. En caso de no poder asistir, pongase en contacto con nosotros. Este mensaje ha sido enviado con Notifycal.es`;
+  const formattedDate = dateTime.toFormat('dd/MM/yyyy');
+  const formattedTime = dateTime.toFormat('HH:mm');
+  return `Tienes una cita con ${businessName} en ${businessAddress} el dia ${formattedDate} a las ${formattedTime}. En caso de no poder asistir, pongase en contacto con nosotros. Este mensaje ha sido enviado con Notifycal.es`;
 }
 
 function fetchCalendarEvents(
@@ -118,11 +120,6 @@ function buildActionableEvents(
           calendarEvent.startTime,
           calendarEvent.timeZone
         )
-      },
-      sensitiveData: {
-        idpAuthorization: {
-          refreshToken: 'some refresh token'
-        }
       }
     };
     return actionableEvent;
