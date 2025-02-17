@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.15.8](https://github.com/Notifycal/backend/compare/v0.15.7...v0.15.8) (2025-02-17)
+
+
+### Bug Fixes
+
+* same queue type as source for global dlq unprocessable ([#372](https://github.com/Notifycal/backend/issues/372)) ([c2398d3](https://github.com/Notifycal/backend/commit/c2398d3843cd48a3d9f48fb371ea5d2489a31f21))
+
 ## [0.15.7](https://github.com/Notifycal/backend/compare/v0.15.6...v0.15.7) (2025-02-17)
 
 
