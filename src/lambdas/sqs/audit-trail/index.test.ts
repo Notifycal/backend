@@ -2,11 +2,11 @@ import { userCalendarFetchedEvent } from '@testing/data/app-events';
 import { validRawRecord } from '@testing/data/sqs-events';
 import { setEnvAuditTrailBaseStoreConfig } from '@testing/utils/config';
 import type { SQSEvent, SQSRecord } from 'aws-lambda';
-import { describe } from 'vitest';
+import { describe, vi } from 'vitest';
 import { handler } from '.';
 import { createSqsHandlerTestSuite } from '../sqs-lambda-handler-test.suite';
 import type { AuditTrailConfig } from './config';
-import * as recordProcessorModule from './record-processor';
+import { recordProcessor } from './record-processor';
 
 const validUserCalendarFetchedEvent = userCalendarFetchedEvent;
 const validSqsRecord: SQSRecord = validRawRecord(validUserCalendarFetchedEvent);
@@ -23,6 +23,8 @@ function setEnv() {
   setEnvAuditTrailBaseStoreConfig(config.auditTrailBaseStoreConfig);
 }
 
+vi.mock('./record-processor');
+
 describe(
   // eslint-disable-next-line vitest/valid-describe-callback
   'Audit Trail',
@@ -30,6 +32,6 @@ describe(
     handler,
     setEnv,
     validSqsBatchEvent,
-    recordProcessorModule
+    recordProcessorMockFn: () => vi.mocked(recordProcessor)
   })
 );
