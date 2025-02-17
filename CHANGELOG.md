@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.15.3](https://github.com/Notifycal/backend/compare/v0.15.2...v0.15.3) (2025-02-17)
+
+
+### Bug Fixes
+
+* processor in sqs lambdas. Calls to record processor were being m… ([#358](https://github.com/Notifycal/backend/issues/358)) ([9fbddee](https://github.com/Notifycal/backend/commit/9fbddeef48fb7ca6e27c419ed39ca1a35c10f04f))
+
 ## [0.15.2](https://github.com/Notifycal/backend/compare/v0.15.1...v0.15.2) (2025-02-16)
 
 
