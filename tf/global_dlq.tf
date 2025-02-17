@@ -12,6 +12,13 @@ resource "aws_sqs_queue" "global_dlq_lambda" {
   content_based_deduplication = false
 }
 
+resource "aws_sqs_queue" "global_dlq_unprocessable_lambda" {
+  name = "global-dlq-unprocessable-lambda-${var.environment}"
+
+  fifo_queue                  = false
+  content_based_deduplication = false
+}
+
 resource "aws_sqs_queue_redrive_allow_policy" "dlq_redrive_allow_policy" {
   queue_url = aws_sqs_queue.global_dlq_sqs.url
 

@@ -57,6 +57,8 @@ module "audit_trail_lambda" {
 
   create_async_event_config = true
   maximum_retry_attempts    = 0
+  attach_dead_letter_policy = true
+  dead_letter_target_arn    = aws_sqs_queue.global_dlq_unprocessable_lambda
 
   tags = local.common_tags
 
