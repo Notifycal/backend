@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.15.4](https://github.com/Notifycal/backend/compare/v0.15.3...v0.15.4) (2025-02-17)
+
+
+### Bug Fixes
+
+* exclude organizers from attendee list in google integration ([#360](https://github.com/Notifycal/backend/issues/360)) ([72affc6](https://github.com/Notifycal/backend/commit/72affc61525400de0bbc5584b3d85d58694dd6d9))
+
 ## [0.15.3](https://github.com/Notifycal/backend/compare/v0.15.2...v0.15.3) (2025-02-17)
 
 
