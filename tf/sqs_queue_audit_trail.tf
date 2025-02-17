@@ -10,6 +10,6 @@ module "audit_trail_queue" {
 
   redrive_policy = {
     max_receive_count      = 2
-    dead_letter_target_arn = aws_sqs_queue.global_dlq_unprocessable_lambda.arn
+    dead_letter_target_arn = aws_sqs_queue.global_dlq_unprocessable_sqs.arn
   }
 }
