@@ -11,7 +11,7 @@ import type {
 import { fakeIdpConfigs } from '@testing/utils/config';
 import { google, type calendar_v3 } from 'googleapis';
 import type { GaxiosResponse } from 'googleapis-common';
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi, type Mock } from 'vitest';
 import { GoogleCalendar } from './calendar';
 
 describe('GoogleCalendar Service calendarList', () => {
@@ -139,28 +139,57 @@ describe('GoogleCalendar Service eventsWithinPeriod', () => {
   };
 
   it('should fetch events including attendees and excluding organizers successfully', async () => {
-    const eventsListFn = () =>
-      Promise.resolve({ data: { items: [validEvent] }, status: 200 } as GaxiosResponse);
+    const validEvent2: calendar_v3.Schema$Event = {
+      id: 'event2',
+      summary: 'Meeting',
+      start: { dateTime: '2025-02-15T10:00:00Z', timeZone: 'Europe/Madrid' },
+      attendees: [
+        {
+          email: 'some-attendee11@gmail.com'
+        },
+        {
+          email: 'some-attendee22@gmail.com',
+          organizer: true
+        }
+      ]
+    };
+    const eventsListFn = vi
+      .fn<() => Promise<GaxiosResponse<calendar_v3.Schema$Events>>>()
+      .mockResolvedValueOnce({
+        data: { items: [validEvent], nextPageToken: 'someToken' },
+        status: 200
+      } as GaxiosResponse<calendar_v3.Schema$Events>)
+      .mockResolvedValueOnce({
+        data: { items: [validEvent2] },
+        status: 200
+      } as GaxiosResponse<calendar_v3.Schema$Events>);
 
     const result = await testit(eventsListFn);
 
-    expect(result.successList).toHaveLength(1);
+    expect(eventsListFn).toHaveBeenCalledTimes(2);
+    expect(result.successList).toHaveLength(2);
     expect(result.successList[0].id).toBe('event1');
+    expect(result.successList[1].id).toBe('event2');
     expect(result.successList[0].attendees).toStrictEqual([
       { id: (validEvent.attendees || [])[1]?.email }
+    ]);
+    // eslint-disable-next-line vitest/max-expects
+    expect(result.successList[1].attendees).toStrictEqual([
+      { id: (validEvent2.attendees || [])[0]?.email }
     ]);
   });
 
   it('should filter out events outside the date bounds', async () => {
-    const eventsListFn = () =>
-      Promise.resolve({
+    const eventsListFn = vi
+      .fn<() => Promise<GaxiosResponse<calendar_v3.Schema$Events>>>()
+      .mockResolvedValue({
         data: {
           items: [
             { ...validEvent, start: { dateTime: '2025-01-15T10:00:00Z' } } // Outside bounds
           ]
         },
         status: 200
-      } as GaxiosResponse);
+      } as GaxiosResponse<calendar_v3.Schema$Events>);
 
     const result = await testit(eventsListFn);
 
@@ -168,11 +197,12 @@ describe('GoogleCalendar Service eventsWithinPeriod', () => {
   });
 
   it('should include all-day events if the flag is true', async () => {
-    const eventsListFn = () =>
-      Promise.resolve({
+    const eventsListFn = vi
+      .fn<() => Promise<GaxiosResponse<calendar_v3.Schema$Events>>>()
+      .mockResolvedValue({
         data: { items: [validAllDayEvent], timeZone: 'Europe/Madrid' },
         status: 200
-      } as GaxiosResponse);
+      } as GaxiosResponse<calendar_v3.Schema$Events>);
 
     const result = await testit(eventsListFn, true);
 
@@ -181,11 +211,12 @@ describe('GoogleCalendar Service eventsWithinPeriod', () => {
   });
 
   it('should exclude all-day events if the flag is false', async () => {
-    const eventsListFn = () =>
-      Promise.resolve({
+    const eventsListFn = vi
+      .fn<() => Promise<GaxiosResponse<calendar_v3.Schema$Events>>>()
+      .mockResolvedValue({
         data: { items: [validAllDayEvent], timeZone: 'Europe/Madrid' },
         status: 200
-      } as GaxiosResponse);
+      } as GaxiosResponse<calendar_v3.Schema$Events>);
 
     const result = await testit(eventsListFn);
 
@@ -193,8 +224,12 @@ describe('GoogleCalendar Service eventsWithinPeriod', () => {
   });
 
   it('should handle errors when event parsing fails', async () => {
-    const eventsListFn = () =>
-      Promise.resolve({ data: { items: [invalidEvent] }, status: 200 } as GaxiosResponse);
+    const eventsListFn = vi
+      .fn<() => Promise<GaxiosResponse<calendar_v3.Schema$Events>>>()
+      .mockResolvedValue({
+        data: { items: [invalidEvent] },
+        status: 200
+      } as GaxiosResponse<calendar_v3.Schema$Events>);
 
     const result = await testit(eventsListFn);
 
@@ -205,8 +240,12 @@ describe('GoogleCalendar Service eventsWithinPeriod', () => {
   });
 
   it('should handle an empty event list', async () => {
-    const eventsListFn = () =>
-      Promise.resolve({ data: { items: [] }, status: 200 } as GaxiosResponse);
+    const eventsListFn = vi
+      .fn<() => Promise<GaxiosResponse<calendar_v3.Schema$Events>>>()
+      .mockResolvedValue({
+        data: { items: [] },
+        status: 200
+      } as unknown as GaxiosResponse<calendar_v3.Schema$Events>);
 
     const result = await testit(eventsListFn);
 
@@ -215,28 +254,32 @@ describe('GoogleCalendar Service eventsWithinPeriod', () => {
   });
 
   it('should handle a non 200 response from Google API', () => {
-    const eventsListFn = () => Promise.resolve({ status: 400 } as GaxiosResponse);
+    const eventsListFn = vi
+      .fn<() => Promise<GaxiosResponse<calendar_v3.Schema$Events>>>()
+      .mockResolvedValue({ status: 400 } as GaxiosResponse<calendar_v3.Schema$Events>);
 
     return expect(testit(eventsListFn)).rejects.toThrow(
-      'GET Events List. Error: GET Events List. Error in response: {"status":400}'
+      'GET Events List. Error in response page number 0. Response: {"status":400}'
     );
   });
 
   it('should handle a rejected promise from the Google API', async () => {
-    const eventsListFn = () => Promise.reject(new Error('Google API Error'));
+    const eventsListFn = vi
+      .fn<() => Promise<GaxiosResponse<calendar_v3.Schema$Events>>>()
+      .mockRejectedValue(new Error('Google API Error'));
 
     await expect(testit(eventsListFn)).rejects.toThrow('Google API Error');
   });
 
   function testit(
-    eventsListFn: () => Promise<GaxiosResponse<calendar_v3.Schema$Events>>,
+    eventsListMock: Mock<() => Promise<GaxiosResponse<calendar_v3.Schema$Events>>>,
     includeAllDayEvents: boolean = false,
     config = fakeIdpConfigs['google.com']
   ): Promise<ServiceResponse<CalendarEvent, ParsingError>> {
     vi.mock('googleapis');
     vi.mocked(google.calendar).mockReturnValue({
       events: {
-        list: vi.fn().mockImplementation(eventsListFn)
+        list: eventsListMock
       }
     } as unknown as calendar_v3.Calendar);
     return GoogleCalendar.withRefreshToken(config, 'some-refresh-token').eventsStartTimeWithin(
