@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.15.10](https://github.com/Notifycal/backend/compare/v0.15.9...v0.15.10) (2025-02-17)
+
+
+### Bug Fixes
+
+* lambda audit trail dynamo permissions ([a7d0fd7](https://github.com/Notifycal/backend/commit/a7d0fd75723ff114891755a9836fe3540c288a68))
+
 ## [0.15.9](https://github.com/Notifycal/backend/compare/v0.15.8...v0.15.9) (2025-02-17)
 
 
