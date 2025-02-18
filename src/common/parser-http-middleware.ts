@@ -10,6 +10,8 @@ import type { Context } from 'aws-lambda';
 import type { z } from 'zod';
 import { logger } from './powertools';
 
+console.log('I am a ssm parameter');
+
 function eventParser<TConfig extends BaseEndpointConfig, TSchema extends z.AnyZodObject, TResult>(
   request: Request<EventWithConfig<TConfig>, TResult, Error, Context>,
   schema: TSchema,

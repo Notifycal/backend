@@ -1,4 +1,4 @@
-import { backgroundProcessingMiddleware } from '@common/lambda-middleware';
+import { backgroundProcessingMiddleware, backgroundProcessingMiddleware2 } from '@common/lambda-middleware';
 import { logger } from '@common/powertools';
 import { actionableEventFoundEventSchema } from '@model/app-events/ActionableEventFoundEvent';
 import { eventSqsSchema } from '@model/lambda-events/SqsEvents';
@@ -29,14 +29,17 @@ async function lambdaHandler(event: Event, context: Context): Promise<Uuid | voi
 
   const eventBody = event.Records[0].body;
 
-  return messenger.sendMessage(
-    eventBody.data.message,
-    eventBody.data.receiverDetails.number,
-    eventBody.correlationId
-  );
+  // return messenger.sendMessage(
+  //   eventBody.data.message,
+  //   eventBody.data.senderDetails.number,
+  //   eventBody.data.receiverDetails.number,
+  //   eventBody.correlationId
+  // );
 }
 
-export const handler = backgroundProcessingMiddleware(
-  () => readSendEventReminderConfig(),
-  eventSchema
+console.log('How many times does this print?');
+let ssmParameterObj!: { ssmParameter: string | undefined };
+
+export const handler = backgroundProcessingMiddleware2(
+  () => readSendEventReminderConfig(ssmParameterObj),
 ).handler<Event>(lambdaHandler);

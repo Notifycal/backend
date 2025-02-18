@@ -23,14 +23,15 @@ export class MessagingService {
 
   public async sendMessage(
     messageBody: string,
-    phoneNumber: PhoneNumber,
+    senderNumber: PhoneNumber,
+    receiverNumber: PhoneNumber,
     clientRef: string
   ): Promise<Uuid | void> {
     try {
       const { messageUUID } = await this._client.messages.send(
         new RCSText({
-          to: phoneNumber,
-          from: '',
+          to: receiverNumber,
+          from: senderNumber,
           clientRef,
           text: messageBody
         })
