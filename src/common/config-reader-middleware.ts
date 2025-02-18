@@ -9,65 +9,33 @@ import { logger } from './powertools';
 
 function configReader<TConfig, TResult>(
   request: Request<EventWithConfig<TConfig>, TResult, Error, Context>,
-  configReaderFn: () => TConfig,
-  isApiRequest: boolean = true
-): TResult | void {
-  try {
-    const config = configReaderFn();
-    request.event.lambdaConfig = config;
-  } catch (error: unknown) {
-    if (isApiRequest) {
-      return errorHandler(500)(
-        `Endpoint config could not be loaded. Error: ${extractErrorMessage(error)}`
-      ) as TResult;
-    } else {
-      const errorMsg = `Lambda config could not be loaded. Error: ${extractErrorMessage(error)}`;
-      logger.error(errorMsg);
-      throw new Error(errorMsg);
-    }
-  }
-}
-
-async function configReader2<TConfig, TResult>(
-  request: Request<EventWithConfig<TConfig>, TResult, Error, Context>,
   configReaderFn: () => Promise<TConfig>,
   isApiRequest: boolean = true
 ): Promise<TResult | void> {
-  try {
-    const config = await configReaderFn();
-    request.event.lambdaConfig = config;
-    // eslint-disable-next-line @typescript-eslint/no-confusing-void-expression
-    return await Promise.resolve();
-  } catch (error: unknown) {
-    if (isApiRequest) {
-      return errorHandler(500)(
-        `Endpoint config could not be loaded. Error: ${extractErrorMessage(error)}`
-      ) as TResult;
-    } else {
-      const errorMsg = `Lambda config could not be loaded. Error: ${extractErrorMessage(error)}`;
-      logger.error(errorMsg);
-      throw new Error(errorMsg);
+  return configReaderFn().then(
+    (config) => {
+      request.event.lambdaConfig = config;
+    },
+    (error) => {
+      if (isApiRequest) {
+        return errorHandler(500)(
+          `Endpoint config could not be loaded. Error: ${extractErrorMessage(error)}`
+        ) as TResult;
+      } else {
+        const errorMsg = `Lambda config could not be loaded. Error: ${extractErrorMessage(error)}`;
+        logger.error(errorMsg);
+        return Promise.reject(new Error(errorMsg));
+      }
     }
-  }
+  );
 }
 
 export function configReaderMiddleware<TConfig, TResult>(
-  configReaderFn: () => TConfig,
+  configReaderFn: () => Promise<TConfig>,
   isApiRequest: boolean
 ): MiddlewareObj<EventWithConfig<TConfig>, TResult> {
   const before: middy.MiddlewareFn<EventWithConfig<TConfig>, TResult> = (req) =>
     configReader(req, configReaderFn, isApiRequest);
-  return {
-    before
-  };
-}
-
-export function configReaderMiddleware2<TConfig, TResult>(
-  configReaderFn: () => Promise<TConfig>,
-  isApiRequest: boolean
-): MiddlewareObj<EventWithConfig<TConfig>, TResult> {
-  const before: middy.MiddlewareFn<EventWithConfig<TConfig>, TResult> = (req) =>
-    configReader2(req, configReaderFn, isApiRequest);
   return {
     before
   };

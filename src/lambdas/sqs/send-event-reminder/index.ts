@@ -1,18 +1,21 @@
-import { backgroundProcessingMiddleware, backgroundProcessingMiddleware2 } from '@common/lambda-middleware';
+import { getParameter } from '@aws-lambda-powertools/parameters/ssm';
+import { backgroundProcessingMiddleware } from '@common/lambda-middleware';
 import { logger } from '@common/powertools';
 import { actionableEventFoundEventSchema } from '@model/app-events/ActionableEventFoundEvent';
 import { eventSqsSchema } from '@model/lambda-events/SqsEvents';
+import type { Uuid } from '@notifycal/shared/types';
+import { MessagingService, type VonagePrivateKey } from '@services/messaging';
+import type { Context } from 'aws-lambda';
 import type { z } from 'zod';
 import { readSendEventReminderConfig, type SendEventReminderConfig } from './config';
-import type { Context } from 'aws-lambda';
-import { getParameter } from '@aws-lambda-powertools/parameters/ssm';
-import { MessagingService, type VonagePrivateKey } from '@services/messaging';
-import type { Uuid } from '@notifycal/shared/types';
 
 const eventSchema = eventSqsSchema<SendEventReminderConfig, typeof actionableEventFoundEventSchema>(
   actionableEventFoundEventSchema
 );
 export type Event = z.infer<typeof eventSchema>;
+
+// eslint-disable-next-line prefer-const
+let ssmParameterObj: { ssmParameter?: string } = {};
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function lambdaHandler(event: Event, context: Context): Promise<Uuid | void> {
@@ -26,8 +29,8 @@ async function lambdaHandler(event: Event, context: Context): Promise<Uuid | voi
     event.lambdaConfig.vonageConfig.applicationId,
     vonagePrivateKey
   );
-
-  const eventBody = event.Records[0].body;
+  console.log(messenger);
+  // const eventBody = event.Records[0].body;
 
   // return messenger.sendMessage(
   //   eventBody.data.message,
@@ -35,11 +38,10 @@ async function lambdaHandler(event: Event, context: Context): Promise<Uuid | voi
   //   eventBody.data.receiverDetails.number,
   //   eventBody.correlationId
   // );
+  return Promise.resolve();
 }
 
-console.log('How many times does this print?');
-let ssmParameterObj!: { ssmParameter: string | undefined };
-
-export const handler = backgroundProcessingMiddleware2(
+export const handler = backgroundProcessingMiddleware(
   () => readSendEventReminderConfig(ssmParameterObj),
+  eventSchema
 ).handler<Event>(lambdaHandler);

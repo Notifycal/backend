@@ -4,7 +4,7 @@ import { captureLambdaHandler } from '@aws-lambda-powertools/tracer/middleware';
 import { logger, metrics, tracer } from '@common/powertools';
 import middy from '@middy/core';
 import type { AuthedEndpointConfig } from '@model/Config';
-import type { ConfigReaderFn, ConfigReaderFn2, JwtClaimCheckerFn } from '@own-types/model';
+import type { ConfigReaderFn, JwtClaimCheckerFn } from '@own-types/model';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import type { z } from 'zod';
 import { configReaderMiddleware } from './config-reader-middleware';
@@ -22,30 +22,28 @@ function baseMiddleware(): middy.MiddyfiedHandler {
 }
 
 function baseConfigMiddleware<TConfig, TResult>(
-  configReader: ConfigReaderFn<TConfig>,
+  configReaderFn: ConfigReaderFn<Promise<TConfig>>,
   isApiRequest: boolean
 ): middy.MiddyfiedHandler {
-  return baseMiddleware().use(configReaderMiddleware<TConfig, TResult>(configReader, isApiRequest));
+  return baseMiddleware().use(
+    configReaderMiddleware<TConfig, TResult>(configReaderFn, isApiRequest)
+  );
 }
 
 export function backgroundProcessingMiddleware<TConfig, T extends z.AnyZodObject>(
-  configReader: ConfigReaderFn<TConfig>,
+  configReaderFn: ConfigReaderFn<TConfig>,
   eventSchema: T
 ): middy.MiddyfiedHandler {
-  return baseConfigMiddleware(configReader, false).use(eventParserMiddleware(eventSchema, false));
-}
-
-export function backgroundProcessingMiddleware2<TConfig, T extends z.AnyZodObject>(
-  configReader: ConfigReaderFn2<TConfig>,
-): middy.MiddyfiedHandler {
-  return baseConfigMiddleware(configReader, false);
+  return baseConfigMiddleware(() => Promise.resolve(configReaderFn()), false).use(
+    eventParserMiddleware(eventSchema, false)
+  );
 }
 
 export function unprotectedEndpointMiddleware<TConfig, T extends z.AnyZodObject>(
-  configReader: ConfigReaderFn<TConfig>,
+  configReaderFn: ConfigReaderFn<TConfig>,
   eventSchema: T
 ): middy.MiddyfiedHandler<APIGatewayProxyEvent, APIGatewayProxyResult> {
-  return baseConfigMiddleware(configReader, true)
+  return baseConfigMiddleware(() => Promise.resolve(configReaderFn()), true)
     .use(corsMiddleware())
     .use(eventParserMiddleware(eventSchema, true)) as unknown as middy.MiddyfiedHandler<
     APIGatewayProxyEvent,
@@ -61,7 +59,7 @@ export function protectedEndpointMiddleware<
   eventSchema: T,
   claimCheckerFn: JwtClaimCheckerFn = checkClaims
 ): middy.MiddyfiedHandler<APIGatewayProxyEvent, APIGatewayProxyResult> {
-  return baseConfigMiddleware(configReaderFn, true)
+  return baseConfigMiddleware(() => Promise.resolve(configReaderFn()), true)
     .use(corsMiddleware())
     .use(jwtVerificationMiddleware(claimCheckerFn))
     .use(eventParserMiddleware(eventSchema, true)) as unknown as middy.MiddyfiedHandler<

@@ -182,7 +182,7 @@ export function readAuditTrailBaseStoreConfig(env: Environment): AuditTrailBaseS
 export function readIdempotencyConfig(env: Environment): IdempotencyConfig {
   return {
     idempotencyConfig: {
-      tableName: env.get('IDEMPOTENCY_TABLE_NAME').required().asString()
+      tableName: env.get('IDEMPOTENCY_TABLE_NAME').asString()
     }
   };
 }
