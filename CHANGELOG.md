@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.15.11](https://github.com/Notifycal/backend/compare/v0.15.10...v0.15.11) (2025-02-18)
+
+
+### Bug Fixes
+
+* pagination google get events within ([#377](https://github.com/Notifycal/backend/issues/377)) ([a85c598](https://github.com/Notifycal/backend/commit/a85c5984a0c047a8718f3477916fcf1537d72260))
+* reminder interpolation ([#376](https://github.com/Notifycal/backend/issues/376)) ([f641af1](https://github.com/Notifycal/backend/commit/f641af1925e1b24d3e8058da54c6f327d2ccf8e8))
+
 ## [0.15.10](https://github.com/Notifycal/backend/compare/v0.15.9...v0.15.10) (2025-02-17)
 
 
