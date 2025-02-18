@@ -1,22 +1,25 @@
+/* eslint-disable vitest/require-top-level-describe */
 import type { MiddyfiedHandler } from '@middy/core';
 import type { Context, SQSEvent, SQSRecord } from 'aws-lambda';
-import { expect, test, vi, type SuiteFactory } from 'vitest';
+import { expect, test, type MockedFunction, type SuiteFactory } from 'vitest';
 
 export type RecordProcessorModule = {
   recordProcessor: (...args: Array<never>) => Promise<void>;
 };
 
 export const createSqsHandlerTestSuite =
-  ({
+  <TRecord, TConfig>({
     handler,
     setEnv,
     validSqsBatchEvent,
-    recordProcessorModule
+    recordProcessorMockFn
   }: {
     handler: MiddyfiedHandler;
     setEnv: () => void;
     validSqsBatchEvent: SQSEvent;
-    recordProcessorModule: RecordProcessorModule;
+    recordProcessorMockFn: () => MockedFunction<
+      (record: TRecord, config: TConfig) => Promise<void>
+    >;
   }): SuiteFactory =>
   () => {
     function testit(event: SQSEvent): Promise<unknown> {
@@ -25,7 +28,7 @@ export const createSqsHandlerTestSuite =
     }
 
     test('should parse config and events', () => {
-      vi.spyOn(recordProcessorModule, 'recordProcessor').mockResolvedValue({});
+      recordProcessorMockFn().mockResolvedValue(undefined);
       return testit(validSqsBatchEvent).then((r) => {
         expect(r).toStrictEqual({
           batchItemFailures: []
@@ -34,12 +37,9 @@ export const createSqsHandlerTestSuite =
     });
 
     test('should indicate partial failure in response', () => {
-      const processorSpy = vi
-        .spyOn(recordProcessorModule, 'recordProcessor')
-        .mockResolvedValueOnce({})
-        .mockImplementation(() => {
-          throw new Error('Boom!');
-        });
+      const processorSpy = recordProcessorMockFn()
+        .mockResolvedValueOnce(undefined)
+        .mockRejectedValue(new Error('Boom!'));
 
       const eventError: SQSRecord = {
         ...validSqsBatchEvent.Records[0],
@@ -58,7 +58,7 @@ export const createSqsHandlerTestSuite =
     });
 
     test('should throw an error if processing of every item fails', () => {
-      vi.spyOn(recordProcessorModule, 'recordProcessor').mockRejectedValue(new Error('Boom!'));
+      recordProcessorMockFn().mockRejectedValue(new Error('Boom!'));
       return expect(testit(validSqsBatchEvent)).rejects.toThrow(
         'All records failed processing. See individual errors below.'
       );

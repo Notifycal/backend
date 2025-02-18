@@ -1,5 +1,69 @@
 # Changelog
 
+## [0.15.10](https://github.com/Notifycal/backend/compare/v0.15.9...v0.15.10) (2025-02-17)
+
+
+### Bug Fixes
+
+* lambda audit trail dynamo permissions ([a7d0fd7](https://github.com/Notifycal/backend/commit/a7d0fd75723ff114891755a9836fe3540c288a68))
+
+## [0.15.9](https://github.com/Notifycal/backend/compare/v0.15.8...v0.15.9) (2025-02-17)
+
+
+### Bug Fixes
+
+* unprocessable dlq name ([03ee59b](https://github.com/Notifycal/backend/commit/03ee59b00b7823a277feca54f944f98257cdae17))
+
+## [0.15.8](https://github.com/Notifycal/backend/compare/v0.15.7...v0.15.8) (2025-02-17)
+
+
+### Bug Fixes
+
+* same queue type as source for global dlq unprocessable ([#372](https://github.com/Notifycal/backend/issues/372)) ([c2398d3](https://github.com/Notifycal/backend/commit/c2398d3843cd48a3d9f48fb371ea5d2489a31f21))
+
+## [0.15.7](https://github.com/Notifycal/backend/compare/v0.15.6...v0.15.7) (2025-02-17)
+
+
+### Bug Fixes
+
+* previous commit ([db7438d](https://github.com/Notifycal/backend/commit/db7438d05217a880a7617cb428c53b32765ff41b))
+
+## [0.15.6](https://github.com/Notifycal/backend/compare/v0.15.5...v0.15.6) (2025-02-17)
+
+
+### Bug Fixes
+
+* add another DLQ to get unprocessable messages out of the way so … ([#369](https://github.com/Notifycal/backend/issues/369)) ([ff732cd](https://github.com/Notifycal/backend/commit/ff732cd6dac20e54daefac80171e674c8adc5504))
+
+## [0.15.5](https://github.com/Notifycal/backend/compare/v0.15.4...v0.15.5) (2025-02-17)
+
+
+### Bug Fixes
+
+* remove fifo params if sending to standard queue. Global dlq is s… ([#367](https://github.com/Notifycal/backend/issues/367)) ([f145266](https://github.com/Notifycal/backend/commit/f1452662dab490917e4b6a831349e7192e7badce))
+
+## [0.15.4](https://github.com/Notifycal/backend/compare/v0.15.3...v0.15.4) (2025-02-17)
+
+
+### Bug Fixes
+
+* exclude organizers from attendee list in google integration ([#360](https://github.com/Notifycal/backend/issues/360)) ([72affc6](https://github.com/Notifycal/backend/commit/72affc61525400de0bbc5584b3d85d58694dd6d9))
+
+## [0.15.3](https://github.com/Notifycal/backend/compare/v0.15.2...v0.15.3) (2025-02-17)
+
+
+### Bug Fixes
+
+* processor in sqs lambdas. Calls to record processor were being m… ([#358](https://github.com/Notifycal/backend/issues/358)) ([9fbddee](https://github.com/Notifycal/backend/commit/9fbddeef48fb7ca6e27c419ed39ca1a35c10f04f))
+
+## [0.15.2](https://github.com/Notifycal/backend/compare/v0.15.1...v0.15.2) (2025-02-16)
+
+
+### Bug Fixes
+
+* desencapsulate sns message for easier reads ([#357](https://github.com/Notifycal/backend/issues/357)) ([fe48fda](https://github.com/Notifycal/backend/commit/fe48fda40b9fffd5a2b33435b4ac7f300f0b2676))
+* patching a previous commit ([048aa84](https://github.com/Notifycal/backend/commit/048aa847f4307f999aaf39aeb58a802386774363))
+
 ## [0.15.1](https://github.com/Notifycal/backend/compare/v0.15.0...v0.15.1) (2025-02-16)
 
 

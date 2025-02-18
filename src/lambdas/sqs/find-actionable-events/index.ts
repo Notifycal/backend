@@ -15,10 +15,23 @@ const eventSchema = eventSqsSchema<ActionableEventsConfig, typeof userCalendarFe
 export type Event = z.infer<typeof eventSchema>;
 export type Record = z.infer<typeof eventSchema.shape.Records.element>;
 
+export function recordProcessorCurried(
+  config: ActionableEventsConfig
+): (record: Record) => Promise<void> {
+  return (record: Record) => recordProcessor(record, config);
+}
+
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function lambdaHandler(event: Event, context: Context): Promise<PartialItemFailureResponse> {
   logger.info(`Processing sqs message in second lambda. Event: ${JSON.stringify(event)}`);
-  return processPartialResponse(event, recordProcessor, new BatchProcessor(EventType.SQS));
+  return processPartialResponse(
+    event,
+    recordProcessorCurried(event.lambdaConfig),
+    new BatchProcessor(EventType.SQS)
+  ).catch((error) => {
+    logger.error(`Failed to process event. Error: ${JSON.stringify(error)}`);
+    throw error;
+  });
 }
 export const handler = backgroundProcessingMiddleware(
   () => readActionableEventsConfig(),

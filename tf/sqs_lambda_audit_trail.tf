@@ -35,6 +35,17 @@ data "aws_iam_policy_document" "audit_trail_iam_policydoc" {
 
     resources = values(local.queue_sources)
   }
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "dynamodb:PutItem",
+    ]
+
+    resources = [
+      aws_dynamodb_table.audit_trail_events.arn
+    ]
+  }
 }
 
 module "audit_trail_lambda" {

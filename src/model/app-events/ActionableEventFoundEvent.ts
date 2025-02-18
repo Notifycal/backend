@@ -11,11 +11,6 @@ export const actionableEventFoundEventSchema = baseEventSchema.extend({
     receiverDetails: contactDetailsSchema,
     senderDetails: contactDetailsSchema,
     message: z.string()
-  }),
-  sensitiveData: z.object({
-    idpAuthorization: z.object({
-      refreshToken: z.string()
-    })
   })
 });
 

@@ -1,3 +1,4 @@
+import type { GaxiosResponse } from 'gaxios';
 /* eslint-disable camelcase */
 import type { GoogleOAuthConfig } from '@model/Config';
 import { ParsingError } from '@model/Errors';
@@ -81,9 +82,11 @@ export class GoogleCalendar extends BaseGoogle {
       const calendarEvent: Partial<CalendarEvent> = {
         id: item.id ?? undefined,
         description: item.summary ?? undefined,
-        attendees: (item.attendees || []).map((attendee) => ({
-          id: attendee.email as string // if null or undefined it will be caught later on parsing
-        })),
+        attendees: (item.attendees || [])
+          .filter((attendee) => !attendee.organizer)
+          .map((attendee) => ({
+            id: attendee.email as string // if null or undefined it will be caught later on parsing
+          })),
         timeZone: timeZone,
         ...this.extractDateTime(item.start)
       };
@@ -154,22 +157,40 @@ export class GoogleCalendar extends BaseGoogle {
   ): Promise<calendar_v3.Schema$Events> {
     const baseMsg = 'GET Events List';
     const calendar = google.calendar({ version: 'v3', auth: this._client });
-    return calendar.events
-      .list({
-        calendarId: calendarId,
-        timeMax: lowerBoundEndTime,
-        timeMin: upperBoundStartTime,
-        timeZone: 'UTC'
-      })
-      .then((response) => {
-        if (response.status >= 200 && response.status <= 299) {
-          return response.data;
-        } else {
-          throwError(`${baseMsg}. Error in response: ${JSON.stringify(response)}`);
-        }
-      })
-      .catch((error) => {
-        throwError(`${baseMsg}. ${error}`);
-      });
+    const pageNumber = 0;
+
+    function handleResponse(
+      response: GaxiosResponse<calendar_v3.Schema$Events>
+    ): calendar_v3.Schema$Events {
+      if (response.status >= 200 && response.status <= 299) {
+        return response.data;
+      }
+      throwError(
+        `${baseMsg}. Error in response page number ${pageNumber}. Response: ${JSON.stringify(response)}`
+      );
+    }
+
+    function fetchEvents(currentPageToken?: string): Promise<calendar_v3.Schema$Events> {
+      return calendar.events
+        .list({
+          calendarId,
+          timeMax: lowerBoundEndTime,
+          timeMin: upperBoundStartTime,
+          timeZone: 'UTC',
+          pageToken: currentPageToken
+        })
+        .then(handleResponse)
+        .then((events) => {
+          if (!events.nextPageToken) {
+            return events;
+          }
+          return fetchEvents(events.nextPageToken).then((newEvents) => {
+            events.items = (events.items || []).concat(newEvents.items || []);
+            return events;
+          });
+        });
+    }
+
+    return fetchEvents();
   }
 }

@@ -22,7 +22,7 @@ export const baseEventSchema = z.object({
   eventId: eventIdSchema,
   correlationId: z.string().uuid().brand('CorrelationId'),
   data: z.object({}).passthrough(),
-  sensitiveData: z.object({}).passthrough()
+  sensitiveData: z.object({}).passthrough().optional()
 });
 
 export type BaseEvent = z.infer<typeof baseEventSchema>;
