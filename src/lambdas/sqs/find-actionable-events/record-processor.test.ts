@@ -53,6 +53,26 @@ describe('Find actionable events record processor', () => {
     await testit(validRecord(eventInRecord), eventsStartTimeWithinFn, phoneNumberByEmailFn);
 
     expect(publishSpy).toHaveBeenCalledTimes(1);
+    expect(publishSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userId: eventInRecord.userId,
+        idp: eventInRecord.idp,
+        idpId: eventInRecord.idpId,
+        correlationId: eventInRecord.correlationId,
+        eventType: 'ActionableEventFound',
+        data: {
+          run: eventInRecord.data.run,
+          calendar: eventInRecord.data.calendar,
+          event: validEvents[0],
+          contactDetails: {
+            type: 'phone',
+            number: validPhoneNumber
+          },
+          message:
+            'Tienes una cita con SomeBusinessName en SomeBusinessAddress el dia 02/01/2024 a las 16:05. En caso de no poder asistir, pongase en contacto con nosotros. Este mensaje ha sido enviado con Notifycal.es'
+        }
+      })
+    );
     expect(dlqSpy).not.toHaveBeenCalled();
     expect(eventsStartTimeWithin).toHaveBeenCalledWith(
       eventInRecord.data.calendar.id,
