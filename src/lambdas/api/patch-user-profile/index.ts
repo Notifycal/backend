@@ -25,7 +25,8 @@ function lambdaHandler(
   const reminderConfig = {
     businessName: body.businessName,
     businessAddress: body.businessAddress,
-    calendars: body.calendars
+    calendars: body.calendars,
+    templateId: body.templateId
   };
   return userProvider
     .updateUser(userId, 'live', reminderConfig)

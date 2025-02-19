@@ -1,4 +1,5 @@
 import type { OurAccessTokenClaims } from '@model/Jwt';
+import { templateMap } from '@notifycal/shared/templates';
 import type {
   BusinessAddress,
   BusinessName,
@@ -8,6 +9,7 @@ import type {
   IdpId,
   IdpName,
   ReminderConfig,
+  TemplateId,
   UserId
 } from '@notifycal/shared/types';
 import { UserBaseStore } from '@services/stores/user-base-store';
@@ -45,7 +47,8 @@ describe('PATCH User profile', () => {
         id: 'aCalendarId' as CalendarId,
         name: 'aCalendarName' as CalendarName
       }
-    ]
+    ],
+    templateId: templateMap['formal-en-01'].id
   };
 
   it('patch a user', async () => {
@@ -65,7 +68,8 @@ describe('PATCH User profile', () => {
     const invalidBody = {
       businessName: '' as BusinessName,
       businessAddress: '' as BusinessAddress,
-      calendars: []
+      calendars: [],
+      templateId: 666 as unknown as TemplateId
     } as ReminderConfig;
     const event = (await testAuthedEvent(
       invalidBody,

@@ -9,6 +9,7 @@ import type {
   Email,
   IdpId,
   IdpName,
+  TemplateId,
   UnixTimestamp,
   UserId,
   UserStatus
@@ -47,7 +48,8 @@ async function* validLiveUsers(): AsyncGenerator<
       Config: {
         calendars: [validCalendar],
         businessName: 'businessName1' as BusinessName,
-        businessAddress: 'businessNameAddress1' as BusinessAddress
+        businessAddress: 'businessNameAddress1' as BusinessAddress,
+        templateId: 'some-template-id' as TemplateId
       },
       UserStatus: 'live' as UserStatus,
       IdpAuthorization: {
@@ -64,7 +66,8 @@ async function* validLiveUsers(): AsyncGenerator<
       Config: {
         calendars: [validCalendar, validCalendar],
         businessName: 'businessName2' as BusinessName,
-        businessAddress: 'businessNameAddress2' as BusinessAddress
+        businessAddress: 'businessNameAddress2' as BusinessAddress,
+        templateId: 'some-template-id' as TemplateId
       },
       UserStatus: 'live' as UserStatus,
       IdpAuthorization: {
@@ -84,7 +87,8 @@ async function* validLiveUsers(): AsyncGenerator<
       Config: {
         calendars: [validCalendar],
         businessName: 'businessName3' as BusinessName,
-        businessAddress: 'businessNameAddress3' as BusinessAddress
+        businessAddress: 'businessNameAddress3' as BusinessAddress,
+        templateId: 'some-template-id' as TemplateId
       },
       UserStatus: 'live' as UserStatus,
       IdpAuthorization: {
@@ -110,7 +114,8 @@ async function* oneRejectionInBetweenLiveUsers(): AsyncGenerator<
       Config: {
         calendars: [validCalendar],
         businessName: 'businessName4' as BusinessName,
-        businessAddress: 'businessNameAddress4' as BusinessAddress
+        businessAddress: 'businessNameAddress4' as BusinessAddress,
+        templateId: 'some-template-id' as TemplateId
       },
       UserStatus: 'live' as UserStatus,
       IdpAuthorization: {
@@ -132,7 +137,8 @@ async function* oneRejectionInBetweenLiveUsers(): AsyncGenerator<
       Config: {
         calendars: [validCalendar],
         businessName: 'businessName5' as BusinessName,
-        businessAddress: 'businessNameAddress5' as BusinessAddress
+        businessAddress: 'businessNameAddress5' as BusinessAddress,
+        templateId: 'some-template-id' as TemplateId
       },
       UserStatus: 'live' as UserStatus,
       IdpAuthorization: {
