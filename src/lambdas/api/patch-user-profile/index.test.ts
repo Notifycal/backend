@@ -45,10 +45,10 @@ describe('PATCH User profile', () => {
     calendars: [
       {
         id: 'aCalendarId' as CalendarId,
-        name: 'aCalendarName' as CalendarName
+        name: 'aCalendarName' as CalendarName,
+        templateId: templateMap['formal-en-01'].id
       }
-    ],
-    templateId: templateMap['formal-en-01'].id
+    ]
   };
 
   it('patch a user', async () => {

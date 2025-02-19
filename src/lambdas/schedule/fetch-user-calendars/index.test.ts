@@ -28,9 +28,10 @@ import { describe, expect, it, vi } from 'vitest';
 import type { FetchUserCalendarsConfig } from './config';
 import { handler, type Event } from './index';
 
-const validCalendar: Calendar = {
+const validCalendar: Calendar & { templateId: TemplateId } = {
   id: 'someCalendarId' as CalendarId,
-  name: 'Some Calendar Name' as CalendarName
+  name: 'Some Calendar Name' as CalendarName,
+  templateId: 'some-template-id' as TemplateId
 };
 async function* validLiveUsers(): AsyncGenerator<
   Array<LiveUserStoreRecord<'google.com'> & UserIdpAuthorizationStoreRecord<'google.com'>>,
@@ -48,8 +49,7 @@ async function* validLiveUsers(): AsyncGenerator<
       Config: {
         calendars: [validCalendar],
         businessName: 'businessName1' as BusinessName,
-        businessAddress: 'businessNameAddress1' as BusinessAddress,
-        templateId: 'some-template-id' as TemplateId
+        businessAddress: 'businessNameAddress1' as BusinessAddress
       },
       UserStatus: 'live' as UserStatus,
       IdpAuthorization: {
@@ -66,8 +66,7 @@ async function* validLiveUsers(): AsyncGenerator<
       Config: {
         calendars: [validCalendar, validCalendar],
         businessName: 'businessName2' as BusinessName,
-        businessAddress: 'businessNameAddress2' as BusinessAddress,
-        templateId: 'some-template-id' as TemplateId
+        businessAddress: 'businessNameAddress2' as BusinessAddress
       },
       UserStatus: 'live' as UserStatus,
       IdpAuthorization: {
@@ -87,8 +86,7 @@ async function* validLiveUsers(): AsyncGenerator<
       Config: {
         calendars: [validCalendar],
         businessName: 'businessName3' as BusinessName,
-        businessAddress: 'businessNameAddress3' as BusinessAddress,
-        templateId: 'some-template-id' as TemplateId
+        businessAddress: 'businessNameAddress3' as BusinessAddress
       },
       UserStatus: 'live' as UserStatus,
       IdpAuthorization: {
@@ -114,8 +112,7 @@ async function* oneRejectionInBetweenLiveUsers(): AsyncGenerator<
       Config: {
         calendars: [validCalendar],
         businessName: 'businessName4' as BusinessName,
-        businessAddress: 'businessNameAddress4' as BusinessAddress,
-        templateId: 'some-template-id' as TemplateId
+        businessAddress: 'businessNameAddress4' as BusinessAddress
       },
       UserStatus: 'live' as UserStatus,
       IdpAuthorization: {
@@ -137,8 +134,7 @@ async function* oneRejectionInBetweenLiveUsers(): AsyncGenerator<
       Config: {
         calendars: [validCalendar],
         businessName: 'businessName5' as BusinessName,
-        businessAddress: 'businessNameAddress5' as BusinessAddress,
-        templateId: 'some-template-id' as TemplateId
+        businessAddress: 'businessNameAddress5' as BusinessAddress
       },
       UserStatus: 'live' as UserStatus,
       IdpAuthorization: {

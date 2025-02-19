@@ -28,7 +28,7 @@ function toEvents(
     calendar: c,
     run: run,
     template: {
-      id: item.Config.templateId,
+      id: c.templateId,
       fields: {
         business: {
           name: item.Config.businessName,
