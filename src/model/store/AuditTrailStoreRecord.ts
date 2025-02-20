@@ -1,5 +1,4 @@
 import type { EventType } from '@model/app-events/BaseEvent';
-import type { Data } from '@model/app-events/common';
 import type {
   CorrelationId,
   DateTime,
