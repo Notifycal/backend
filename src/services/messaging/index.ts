@@ -26,7 +26,7 @@ export class MessagingService {
     senderNumber: PhoneNumber,
     receiverNumber: PhoneNumber,
     clientRef: string
-  ): Promise<Uuid | void> {
+  ): Promise<Uuid> {
     try {
       const { messageUUID } = await this._client.messages.send(
         new RCSText({

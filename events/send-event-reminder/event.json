@@ -1,0 +1,26 @@
+{
+  "Records": [
+    {
+      "messageId": "string;",
+      "receiptHandle": "string;",
+      "attributes": {
+        "AWSTraceHeader": "string | undefined",
+        "ApproximateReceiveCount": "string",
+        "SentTimestamp": "string",
+        "SenderId": "string",
+        "ApproximateFirstReceiveTimestamp": "string",
+        "SequenceNumber": "string | undefined",
+        "MessageGroupId": "string | undefined",
+        "MessageDeduplicationId": "string | undefined",
+        "DeadLetterQueueSourceArn": "string | undefined"
+      },
+      "messageAttributes": {},
+      "md5OfBody": "string;",
+      "md5OfMessageAttributes?": "string;",
+      "eventSource": "aws:sqs",
+      "eventSourceARN": "string;",
+      "awsRegion": "string;",
+      "body": "{\"eventId\":\"c1625a78-7337-4fd8-a6c4-a0afb9c0ceb9\",\"correlationId\":\"c1625a78-7337-4fd8-a6c4-a0afb9c0ceb9\",\"eventType\":\"ActionableEventFound\",\"happenedAt\":\"2023-01-01T00:00:00Z\",\"userId\":\"96f3d941-1155-4d50-ac5a-19345fb7e9ef\",\"idp\":\"google.com\",\"idpId\":\"google-123\",\"data\":{\"run\":{\"lowerBoundStartTime\":\"2023-01-01T00:00:00Z\",\"upperBoundStartTime\":\"2023-01-01T00:29:59Z\",\"slidingWindowInMinutes\":30},\"calendar\":{\"id\":\"someCalendarId\",\"name\":\"Some Calendar Name\"},\"calendarEvent\":{\"id\":\"event-1\",\"attendees\":[{\"id\":\"attendee@test.com\"}],\"isAllDayEvent\":false,\"startTime\":\"2024-01-02T15:05:00Z\",\"timeZone\":\"Europe/Madrid\"},\"receiverDetails\":{\"type\":\"phone\",\"number\":\"+34111222333\"},\"senderDetails\":{\"type\":\"phone\",\"number\":\"+34888666888\"},\"message\":\"I am a test message\"},\"sensitiveData\":{\"idpAuthorization\":{\"refreshToken\":\"some refresh token\"}}}"
+    }
+  ]
+}

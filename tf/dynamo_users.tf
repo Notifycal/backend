@@ -35,5 +35,12 @@ resource "aws_dynamodb_table" "users" {
     ]
   }
 
+  # DROP THIS BEFORE MERGING: https://github.com/hashicorp/terraform-provider-aws/issues/41110
+  lifecycle {
+    ignore_changes = [
+      global_secondary_index
+    ]
+  }
+
   deletion_protection_enabled = true
 }

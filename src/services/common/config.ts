@@ -13,7 +13,8 @@ import type {
   IdpEndpointConfig,
   UserCalendarFetchedTopicConfig,
   IdempotencyConfig,
-  VonageConfig
+  VonageConfig,
+  AuditTrailQueueConfig
 } from '@model/Config';
 import type { AwsArn, Environment, Url } from '@own-types/model';
 import type { VonageApplicationId } from '@services/messaging';
@@ -171,6 +172,14 @@ export function readIdpConfigs(env: Environment): IdpEndpointConfig {
   };
 }
 
+export function readAuditTrailQueueConfig(env: Environment): AuditTrailQueueConfig {
+  return {
+    auditTrailQueueConfig: {
+      queueUrl: env.get('AUDIT_TRAIL_QUEUE_URL').required().asString() as Url
+    }
+  };
+}
+
 export function readAuditTrailBaseStoreConfig(env: Environment): AuditTrailBaseStoreEndpointConfig {
   return {
     auditTrailBaseStoreConfig: {
@@ -181,10 +190,8 @@ export function readAuditTrailBaseStoreConfig(env: Environment): AuditTrailBaseS
 
 export function readIdempotencyConfig(env: Environment): IdempotencyConfig {
   return {
-    idempotencyConfig: {
-      tableName: env.get('IDEMPOTENCY_TABLE_NAME').asString()
-    }
-  };
+    idempotencyConfig: env.get('IDEMPOTENCY_CONFIG').required().asJsonObject()
+  } as IdempotencyConfig;
 }
 
 export function readVonageConfig(env: Environment): VonageConfig {

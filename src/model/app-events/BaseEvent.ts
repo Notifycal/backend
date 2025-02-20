@@ -5,7 +5,8 @@ const eventType = z.union([
   z.literal('UserCalendarFetched'),
   z.literal('ActionableEventFound'),
   z.literal('UserFetchedEventsParsingFailed'),
-  z.literal('NoPhoneNumberForAttendeeFound')
+  z.literal('NoPhoneNumberForAttendeeFound'),
+  z.literal('SendEventReminderAttempted')
 ]);
 export type EventType = z.infer<typeof eventType>;
 

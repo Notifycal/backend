@@ -42,6 +42,17 @@ data "aws_iam_policy_document" "send_event_reminder_iam_policydoc" {
       data.aws_ssm_parameter.vonage_private_key.arn
     ]
   }
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "sqs:SendMessage",
+    ]
+
+    resources = [
+      module.audit_trail_queue.sqs_queue_arn
+    ]
+  }
 }
 
 module "send_event_reminder_lambda" {
@@ -100,5 +111,17 @@ module "send_event_reminder_lambda" {
   environment_variables = merge({
     VONAGE_APPLICATION_ID       = var.vonage_auth_config.application_id
     VONAGE_SSM_PATH_PRIVATE_KEY = data.aws_ssm_parameter.vonage_private_key.name
+
+    AUDIT_TRAIL_QUEUE_URL = module.audit_trail_queue.sqs_queue_url
+
+    IDEMPOTENCY_CONFIG = jsonencode({
+      tableName            = aws_dynamodb_table.lambda_idempotency.name,
+      keyAttr              = local.lambda_idempotency_table_config.hash_attribute_name,
+      expiryAttr           = local.lambda_idempotency_table_config.expiration_attribute_name,
+      inProgressExpiryAttr = local.lambda_idempotency_table_config.in_progress_expiry_attribute,
+      statusAttr           = local.lambda_idempotency_table_config.status_attribute_name
+      dataAttr             = local.lambda_idempotency_table_config.data_attribute_name
+      validationKeyAttr    = local.lambda_idempotency_table_config.validation_attribute_name
+    })
   }, local.common_lambda_env_vars)
 }

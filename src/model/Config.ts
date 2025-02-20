@@ -1,3 +1,4 @@
+import type { DynamoDBPersistenceOptions } from '@aws-lambda-powertools/idempotency/dynamodb/types';
 import type { IdpName } from '@notifycal/shared/types';
 import type { AwsArn, Url } from '@own-types/model';
 import type { VonageApplicationId } from '@services/messaging';
@@ -77,10 +78,12 @@ export type DeadLetterQueueConfig = {
   deadLetterQueueConfig: SqsQueueConfig;
 };
 
+export type AuditTrailQueueConfig = {
+  auditTrailQueueConfig: SqsQueueConfig;
+};
+
 export type IdempotencyConfig = {
-  idempotencyConfig: {
-    tableName: string;
-  };
+  idempotencyConfig: DynamoDBPersistenceOptions;
 };
 
 export type VonageConfig = {

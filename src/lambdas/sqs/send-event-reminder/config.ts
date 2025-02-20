@@ -1,10 +1,17 @@
 import { getParameter } from '@aws-lambda-powertools/parameters/ssm';
-import type { IdempotencyConfig, VonageConfig } from '@model/Config';
-import { readEnv, readIdempotencyConfig, readVonageConfig } from '@services/common/config';
+import type { AuditTrailQueueConfig, IdempotencyConfig, VonageConfig } from '@model/Config';
+import {
+  readAuditTrailQueueConfig,
+  readEnv,
+  readIdempotencyConfig,
+  readVonageConfig
+} from '@services/common/config';
 
 import { extractErrorMessage, throwError } from '@services/common/error-handling';
 
-export type SendEventReminderConfig = VonageConfig & IdempotencyConfig & { ssmParameter: string };
+export type SendEventReminderConfig = VonageConfig &
+  IdempotencyConfig &
+  AuditTrailQueueConfig & { ssmParameter: string };
 
 export async function readSendEventReminderConfig(ssmParameterObject: {
   ssmParameter?: string;
@@ -15,7 +22,10 @@ export async function readSendEventReminderConfig(ssmParameterObject: {
     if (!ssmParameterObject || !ssmParameterObject.ssmParameter) {
       console.log('Retrieving SSM parameter from readSendEventReminderConfig.');
       const vonagePrivateKey = await getParameter(
-        env.get('VONAGE_SSM_PATH_PRIVATE_KEY').required().asString()
+        env.get('VONAGE_SSM_PATH_PRIVATE_KEY').required().asString(),
+        {
+          decrypt: true
+        }
       );
       if (vonagePrivateKey) {
         // eslint-disable-next-line require-atomic-updates
@@ -31,6 +41,7 @@ export async function readSendEventReminderConfig(ssmParameterObject: {
     return {
       ...readVonageConfig(env),
       ...readIdempotencyConfig(env),
+      ...readAuditTrailQueueConfig(env),
       ssmParameter: ssmParameterObject.ssmParameter
     };
   } catch (err) {
