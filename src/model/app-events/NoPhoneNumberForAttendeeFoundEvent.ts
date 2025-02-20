@@ -2,20 +2,22 @@ import { calendarEventSchema, calendarSchema } from '@notifycal/shared/schemas';
 import type { CalendarEvent, DateTime, EventId } from '@notifycal/shared/types';
 import { v4 } from 'uuid';
 import { z } from 'zod';
-import { baseErrorEventSchema } from './BaseErrorEvent';
-import { eventIdSchema } from './BaseEvent';
+import { errorEventSchemaGenerator } from './BaseEvent';
 import type { UserCalendarFetchedEvent } from './UserCalendarFetchedEvent';
-import { runSchema } from './common';
+import { eventIdSchema, runSchema } from './common';
 
-export const noPhoneNumberForAttendeeFoundEventSchema = baseErrorEventSchema.extend({
-  data: z.object({
-    eventIdCause: eventIdSchema,
-    run: runSchema,
-    calendar: calendarSchema,
-    calendarEvent: calendarEventSchema,
-    attendeeId: z.string()
-  })
+const data = z.object({
+  eventIdCause: eventIdSchema,
+  run: runSchema,
+  calendar: calendarSchema,
+  calendarEvent: calendarEventSchema,
+  attendeeId: z.string()
 });
+export const noPhoneNumberForAttendeeFoundEventSchema = errorEventSchemaGenerator(
+  'NoPhoneNumberForAttendeeFound',
+  data,
+  z.object({}).strict()
+);
 
 export type NoPhoneNumberForAttendeeFoundEvent = z.infer<
   typeof noPhoneNumberForAttendeeFoundEventSchema

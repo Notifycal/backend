@@ -1,12 +1,11 @@
 import { logger } from '@common/powertools';
-import type { BaseEvent } from '@model/app-events/BaseEvent';
 import type { AuditTrailStoreRecord } from '@model/store/AuditTrailStoreRecord';
 import { extractErrorMessage, throwError } from '@services/common/error-handling';
 import { AuditTrailBaseStore } from '@services/stores/audit-trail-base-store';
 import type { Record } from '.';
 import type { AuditTrailConfig } from './config';
 
-function toStoreRecord<TEvent extends BaseEvent>(event: TEvent): AuditTrailStoreRecord {
+function toStoreRecord<TEvent extends Record['body']>(event: TEvent): AuditTrailStoreRecord {
   return {
     EventId: event.eventId,
     CorrelationId: event.correlationId,

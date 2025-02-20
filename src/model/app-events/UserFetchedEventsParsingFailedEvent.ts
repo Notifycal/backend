@@ -3,19 +3,21 @@ import { calendarSchema } from '@notifycal/shared/schemas';
 import type { DateTime, EventId } from '@notifycal/shared/types';
 import { v4 } from 'uuid';
 import { z } from 'zod';
-import { baseErrorEventSchema } from './BaseErrorEvent';
-import { eventIdSchema } from './BaseEvent';
+import { errorEventSchemaGenerator } from './BaseEvent';
 import type { UserCalendarFetchedEvent } from './UserCalendarFetchedEvent';
-import { errorSchema, runSchema } from './common';
+import { errorSchema, eventIdSchema, runSchema } from './common';
 
-export const userFetchedEventsParsingFailedEventSchema = baseErrorEventSchema.extend({
-  data: z.object({
-    eventIdCause: eventIdSchema,
-    run: runSchema,
-    calendar: calendarSchema,
-    error: errorSchema
-  })
+const data = z.object({
+  eventIdCause: eventIdSchema,
+  run: runSchema,
+  calendar: calendarSchema,
+  error: errorSchema
 });
+export const userFetchedEventsParsingFailedEventSchema = errorEventSchemaGenerator(
+  'UserFetchedEventsParsingFailed',
+  data,
+  z.object({}).strict()
+);
 
 export type UserFetchedEventsParsingFailedEvent = z.infer<
   typeof userFetchedEventsParsingFailedEventSchema

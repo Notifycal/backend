@@ -1,8 +1,8 @@
 import { PublishCommand, type PublishCommandOutput, type SNSClient } from '@aws-sdk/client-sns';
 import { snsClient } from '@clients/sns';
 import { logger } from '@common/powertools';
-import type { SnsTopicConfig } from '@model/Config';
 import type { BaseEvent } from '@model/app-events/BaseEvent';
+import type { SnsTopicConfig } from '@model/Config';
 import { BaseAwsMessagingService } from './common/base-aws-messaging-service';
 import { extractErrorMessage, throwError } from './common/error-handling';
 

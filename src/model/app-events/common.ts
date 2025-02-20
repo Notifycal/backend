@@ -10,3 +10,5 @@ export const runSchema = z.object({
   upperBoundStartTime: z.string().brand('DateTime'),
   slidingWindowInMinutes: z.number().int().positive()
 });
+
+export const eventIdSchema = z.string().uuid().brand('EventId');

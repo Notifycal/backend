@@ -1,15 +1,20 @@
-import { dateTimeSchema, idpIdSchema, userIdSchema } from '@notifycal/shared/schemas';
 import { z } from 'zod';
 
-const eventType = z.union([
+import { dateTimeSchema, idpIdSchema, userIdSchema } from '@notifycal/shared/schemas';
+import { eventIdSchema } from './common';
+
+export const successEventTypeSchema = z.union([
   z.literal('UserCalendarFetched'),
-  z.literal('ActionableEventFound'),
+  z.literal('ActionableEventFound')
+]);
+export type SuccessEventType = z.infer<typeof successEventTypeSchema>;
+export const errorEventTypeSchema = z.union([
   z.literal('UserFetchedEventsParsingFailed'),
   z.literal('NoPhoneNumberForAttendeeFound')
 ]);
-export type EventType = z.infer<typeof eventType>;
-
-export const eventIdSchema = z.string().uuid().brand('EventId');
+export type ErrorEventType = z.infer<typeof errorEventTypeSchema>;
+export const eventTypeSchema = z.union([successEventTypeSchema, errorEventTypeSchema]);
+export type EventType = SuccessEventType | ErrorEventType;
 export const dataSchema = z.object({}).passthrough();
 export type Data = z.infer<typeof dataSchema>;
 
@@ -17,12 +22,43 @@ export const baseEventSchema = z.object({
   userId: userIdSchema,
   idpId: idpIdSchema,
   idp: z.literal('google.com'),
-  eventType: eventType,
+  eventType: eventTypeSchema,
   happenedAt: dateTimeSchema,
   eventId: eventIdSchema,
   correlationId: z.string().uuid().brand('CorrelationId'),
-  data: z.object({}).passthrough(),
-  sensitiveData: z.object({}).passthrough().optional()
+  data: dataSchema,
+  sensitiveData: dataSchema
 });
-
+export const baseErrorEvent = baseEventSchema.extend({
+  eventType: errorEventTypeSchema
+});
+export type BaseErrorEvent = z.infer<typeof baseErrorEvent>;
 export type BaseEvent = z.infer<typeof baseEventSchema>;
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type, @typescript-eslint/explicit-module-boundary-types
+export function eventSchemaGenerator<
+  TData extends z.AnyZodObject,
+  TSensitiveData extends z.AnyZodObject
+>(
+  eventType: SuccessEventType | ErrorEventType,
+  dataSchema: TData,
+  sensitiveDataSchema: TSensitiveData
+) {
+  return baseEventSchema.extend({
+    eventType: z.literal(eventType),
+    data: dataSchema,
+    sensitiveData: sensitiveDataSchema
+  });
+}
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type, @typescript-eslint/explicit-module-boundary-types
+export function errorEventSchemaGenerator<
+  TData extends z.AnyZodObject,
+  TSensitiveData extends z.AnyZodObject
+>(eventType: ErrorEventType, dataSchema: TData, sensitiveDataSchema: TSensitiveData) {
+  return baseEventSchema.extend({
+    eventType: z.literal(eventType),
+    data: dataSchema,
+    sensitiveData: sensitiveDataSchema
+  });
+}
