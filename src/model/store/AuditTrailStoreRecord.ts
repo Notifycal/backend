@@ -1,4 +1,4 @@
-import type { Data, EventType } from '@model/app-events/BaseEvent';
+import type { EventType } from '@model/app-events/BaseEvent';
 import type {
   CorrelationId,
   DateTime,
@@ -7,6 +7,10 @@ import type {
   IdpName,
   UserId
 } from '@notifycal/shared/types';
+import { z } from 'zod';
+
+export const dataSchema = z.object({}).passthrough();
+export type Data = z.infer<typeof dataSchema>;
 
 export interface AuditTrailStoreRecord {
   EventId: EventId;

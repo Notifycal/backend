@@ -51,7 +51,7 @@ export const userCalendarFetchedEvent: UserCalendarFetchedEvent = {
 
 export const noPhoneNumberForAttendeeFoundEvent: NoPhoneNumberForAttendeeFoundEvent = {
   eventId: 'some-event-id' as EventId,
-  eventType: 'UserCalendarFetched',
+  eventType: 'NoPhoneNumberForAttendeeFound',
   happenedAt: '2024-01-01T15:00:00Z' as DateTime,
   correlationId: 'test-correlation-id' as CorrelationId,
   userId: 'test-user-id' as UserId,

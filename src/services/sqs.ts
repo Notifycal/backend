@@ -5,8 +5,8 @@ import {
 } from '@aws-sdk/client-sqs';
 import { sqsClient } from '@clients/sqs';
 import { logger } from '@common/powertools';
-import type { SqsQueueConfig } from '@model/Config';
 import type { BaseEvent } from '@model/app-events/BaseEvent';
+import type { SqsQueueConfig } from '@model/Config';
 import { BaseAwsMessagingService } from './common/base-aws-messaging-service';
 import { extractErrorMessage, throwError } from './common/error-handling';
 

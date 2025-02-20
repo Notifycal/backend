@@ -1,5 +1,5 @@
 import type { SendMessageCommandOutput } from '@aws-sdk/client-sqs';
-import type { BaseErrorEvent } from '@model/app-events/BaseErrorEvent';
+import type { BaseErrorEvent } from '@model/app-events/BaseEvent';
 import type { SqsQueueConfig } from '@model/Config';
 import { SqsService } from './sqs';
 

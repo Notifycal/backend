@@ -120,7 +120,8 @@ function buildActionableEvents(
           calendarEvent.startTime,
           calendarEvent.timeZone
         )
-      }
+      },
+      sensitiveData: {}
     };
     return actionableEvent;
   });
