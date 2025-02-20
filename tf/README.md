@@ -108,5 +108,4 @@
 |------|-------------|
 | <a name="output_global_dlq_lambdas"></a> [global\_dlq\_lambdas](#output\_global\_dlq\_lambdas) | n/a |
 | <a name="output_global_dlq_sqs"></a> [global\_dlq\_sqs](#output\_global\_dlq\_sqs) | n/a |
-| <a name="output_rendered_openapi_spec"></a> [rendered\_openapi\_spec](#output\_rendered\_openapi\_spec) | for debugging purposes mostly |
 <!-- END_TF_DOCS -->
