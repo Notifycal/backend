@@ -40,7 +40,7 @@ const validLoginTokenPayload: TokenPayload = {
   iss: 'some issuer',
   sub: 'some subject'
 };
-type LoginTicketWithoutUnusedValues = Omit<Omit<LoginTicket, 'getEnvelope'>, 'getAttributes'>;
+type LoginTicketWithoutUnusedValues = Omit<LoginTicket, 'getEnvelope' | 'getAttributes'>;
 const validVerifyIdTokenResponse: LoginTicketWithoutUnusedValues = {
   getUserId: () => validUserId,
   getPayload: () => validLoginTokenPayload
@@ -159,7 +159,7 @@ describe('GoogleOAuth Service verifyIdentity', () => {
 
 function testIt(
   getTokenFn: () => Promise<GetTokenResponse>,
-  verifyIdTokenFn: () => Promise<Omit<Omit<LoginTicket, 'getEnvelope'>, 'getAttributes'>>,
+  verifyIdTokenFn: () => Promise<Omit<LoginTicket, 'getEnvelope' | 'getAttributes'>>,
   mockIdGenerated: Uuid = validUserId
 ): Promise<[Identity<'google.com'>, AuthorizationForIdp<'google.com'>]> {
   vi.mock('google-auth-library');
