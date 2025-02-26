@@ -14,6 +14,7 @@ import type {
   Email,
   EventId,
   PhoneNumber,
+  RCSSenderId,
   TemplateId,
   TimeZone
 } from '@notifycal/shared/types';
@@ -113,7 +114,11 @@ function buildActionableEvents(
         calendarEvent,
         receiverDetails: {
           type: 'phone',
-          number: attendeePhoneNumber
+          identifier: attendeePhoneNumber
+        },
+        senderDetails: {
+          type: 'rcs_sender_id',
+          identifier: 'Notifycal testing' as RCSSenderId
         },
         message: interpolateMessage(
           event.data.template.id,
