@@ -56,7 +56,9 @@ const validAccessTokenPayload = {
 
 describe('Jwt builder', () => {
   it('should build a jwt', () => {
-    return expect(testit(validAccessTokenPayload, validEncodeConfig)).resolves.toBeTruthy();
+    return expect(testit(validAccessTokenPayload, validEncodeConfig)).resolves.toStrictEqual(
+      expect.any(Object)
+    );
   });
 
   it('should fail to build a jwt', () => {
@@ -90,7 +92,9 @@ describe('Jwts builder', () => {
   };
 
   it('should build a jwts', () => {
-    return expect(testit(identity, validEncodeConfig, validEncodeConfig)).resolves.toBeTruthy();
+    return expect(testit(identity, validEncodeConfig, validEncodeConfig)).resolves.toStrictEqual(
+      expect.any(Object)
+    );
   });
 
   it('should fail to build access jwt', () => {
@@ -138,7 +142,7 @@ describe('Jwt decoder/verifier with signature', () => {
       validSubject,
       validEncodeConfig
     ).then((testJwt) => testit(testJwt.encoded, accessTokenSchema, validDecodeConfig));
-    return expect(result).resolves.toBeTruthy();
+    return expect(result).resolves.toStrictEqual(expect.any(Object));
   });
 
   it('should fail to verify a jwt when public key is invalid', () => {
@@ -249,7 +253,7 @@ describe('Jwt decoder without signature check', () => {
       validSubject,
       validEncodeConfig
     ).then((testJwt) => testit(testJwt.encoded, accessTokenSchema));
-    return expect(result).resolves.toBeTruthy();
+    return expect(result).resolves.toStrictEqual(expect.any(Object));
   });
 
   it('should fail to decode an invalid jwt', () => {
