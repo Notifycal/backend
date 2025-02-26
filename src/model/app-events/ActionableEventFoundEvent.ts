@@ -6,8 +6,8 @@ import { runSchema } from './common';
 const dataSchema = z.object({
   run: runSchema,
   calendar: calendarSchema,
-  event: calendarEventSchema,
-  contactDetails: z.object({
+  calendarEvent: calendarEventSchema,
+  senderDetails: z.object({
     type: z.literal('phone'),
     number: z.string().brand('PhoneNumber')
   }),
