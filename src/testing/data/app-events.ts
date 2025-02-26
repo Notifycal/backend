@@ -1,5 +1,6 @@
 import type { NoPhoneNumberForAttendeeFoundEvent } from '@model/app-events/NoPhoneNumberForAttendeeFoundEvent';
 import type { UserCalendarFetchedEvent } from '@model/app-events/UserCalendarFetchedEvent';
+import { templateMap } from '@notifycal/shared/templates';
 import type {
   BusinessAddress,
   BusinessName,
@@ -9,7 +10,6 @@ import type {
   DateTime,
   EventId,
   IdpId,
-  TemplateId,
   TimeZone,
   UserId
 } from '@notifycal/shared/types';
@@ -33,7 +33,7 @@ export const userCalendarFetchedEvent: UserCalendarFetchedEvent = {
       name: 'Some Calendar Name' as CalendarName
     },
     template: {
-      id: 'some-template-id' as TemplateId,
+      id: templateMap['formal-en-01'].id,
       fields: {
         business: {
           name: 'SomeBusinessName' as BusinessName,

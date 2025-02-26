@@ -5,6 +5,7 @@ import { userFetchedEventsParsingFailed } from '@model/app-events/UserFetchedEve
 import type { IdpConfigs } from '@model/Config';
 import type { ParsingError } from '@model/Errors';
 import type { ServiceResponse } from '@model/ServiceResponse';
+import { templateMap } from '@notifycal/shared/templates';
 import type {
   BusinessAddress,
   BusinessName,
@@ -13,6 +14,7 @@ import type {
   Email,
   EventId,
   PhoneNumber,
+  TemplateId,
   TimeZone
 } from '@notifycal/shared/types';
 import { eventsStartTimeWithin } from '@services/calendar-events';
@@ -26,15 +28,14 @@ import type { Record } from '.';
 import type { ActionableEventsConfig } from './config';
 
 function interpolateMessage(
+  templateId: TemplateId,
   businessName: BusinessName,
   businessAddress: BusinessAddress,
   startTime: DateTime,
   timeZone: TimeZone
 ): string {
-  const dateTime = DT.fromISO(startTime, { zone: timeZone });
-  const formattedDate = dateTime.toFormat('dd/MM/yyyy');
-  const formattedTime = dateTime.toFormat('HH:mm');
-  return `Tienes una cita con ${businessName} en ${businessAddress} el dia ${formattedDate} a las ${formattedTime}. En caso de no poder asistir, pongase en contacto con nosotros. Este mensaje ha sido enviado con Notifycal.es`;
+  const localDateTime = DT.fromISO(startTime, { zone: timeZone });
+  return templateMap[templateId].interpolate(businessName, businessAddress, localDateTime);
 }
 
 function fetchCalendarEvents(
@@ -115,6 +116,7 @@ function buildActionableEvents(
           number: attendeePhoneNumber
         },
         message: interpolateMessage(
+          event.data.template.id,
           event.data.template.fields.business.name,
           event.data.template.fields.business.address,
           calendarEvent.startTime,

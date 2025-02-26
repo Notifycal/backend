@@ -9,6 +9,7 @@ import type {
   Email,
   IdpId,
   IdpName,
+  TemplateId,
   UnixTimestamp,
   UserId,
   UserStatus
@@ -27,9 +28,10 @@ import { describe, expect, it, vi } from 'vitest';
 import type { FetchUserCalendarsConfig } from './config';
 import { handler, type Event } from './index';
 
-const validCalendar: Calendar = {
+const validCalendar: Calendar & { templateId: TemplateId } = {
   id: 'someCalendarId' as CalendarId,
-  name: 'Some Calendar Name' as CalendarName
+  name: 'Some Calendar Name' as CalendarName,
+  templateId: 'some-template-id' as TemplateId
 };
 async function* validLiveUsers(): AsyncGenerator<
   Array<LiveUserStoreRecord<'google.com'> & UserIdpAuthorizationStoreRecord<'google.com'>>,
