@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.15.12](https://github.com/Notifycal/backend/compare/v0.15.11...v0.15.12) (2025-02-20)
+
+
+### Bug Fixes
+
+* app events refactoring ([#381](https://github.com/Notifycal/backend/issues/381)) ([0154d64](https://github.com/Notifycal/backend/commit/0154d6453d3cae41f38e0ac64969276eef442376))
+
 ## [0.15.11](https://github.com/Notifycal/backend/compare/v0.15.10...v0.15.11) (2025-02-18)
 
 
