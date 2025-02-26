@@ -25,7 +25,7 @@ export abstract class IndexStore<TConfig extends IndexStoreConfig> {
   }
 
   protected async *queryCommandRunner<T>(
-    cmdInput: Omit<Omit<QueryCommandInput, 'TableName'>, 'IndexName'> & Partial<QueryCommandInput>
+    cmdInput: Omit<QueryCommandInput, 'TableName' | 'IndexName'> & Partial<QueryCommandInput>
   ): AsyncGenerator<T, void, void> {
     const paginatorConfig = {
       client: this._dynamoDbClient,
