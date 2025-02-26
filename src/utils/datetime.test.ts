@@ -38,7 +38,7 @@ describe('Working with datetimes', () => {
     const input = '2024-01-01T15:00:00.000Z';
     const result = dateTimeSchema.safeParse(input);
 
-    expect(result.success).toBeTruthy();
+    expect(result.success).toBe(true);
     expect(result.data?.toISO()).toBe(input);
   });
 });

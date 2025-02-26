@@ -10,7 +10,7 @@ describe('Id generator', () => {
     const input = 'test-input';
     const generatedId = idGenerator(input, idpName);
 
-    expect(validateUuid(generatedId)).toBeTruthy();
+    expect(validateUuid(generatedId)).toBe(true);
   });
 
   it('should generate the same UUID for the same input string and Idp', () => {
@@ -51,14 +51,14 @@ describe('Id generator', () => {
     const input = '';
     const generatedId = idGenerator(input, idpName);
 
-    expect(validateUuid(generatedId)).toBeTruthy();
+    expect(validateUuid(generatedId)).toBe(true);
   });
 
   it('should handle large input strings', () => {
     const input = 'a'.repeat(10_000);
     const generatedId = idGenerator(input, idpName);
 
-    expect(validateUuid(generatedId)).toBeTruthy();
+    expect(validateUuid(generatedId)).toBe(true);
   });
 
   it('should not produce collisions for a large number of unique inputs', () => {
@@ -75,7 +75,7 @@ describe('Hash string', () => {
     const input = 'test-input';
     const generatedId = hashString(input);
 
-    expect(validateUuid(generatedId)).toBeTruthy();
+    expect(validateUuid(generatedId)).toBe(true);
   });
 
   it('should generate the same UUID for the same input string', () => {
@@ -99,14 +99,14 @@ describe('Hash string', () => {
     const input = '';
     const generatedId = hashString(input);
 
-    expect(validateUuid(generatedId)).toBeTruthy();
+    expect(validateUuid(generatedId)).toBe(true);
   });
 
   it('should handle large input strings', () => {
     const input = 'a'.repeat(10_000);
     const generatedId = hashString(input);
 
-    expect(validateUuid(generatedId)).toBeTruthy();
+    expect(validateUuid(generatedId)).toBe(true);
   });
 
   it('should not produce collisions for a large number of unique inputs', () => {
