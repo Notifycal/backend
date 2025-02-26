@@ -64,7 +64,7 @@ describe('Find actionable events record processor', () => {
           run: eventInRecord.data.run,
           calendar: eventInRecord.data.calendar,
           calendarEvent: validEvents[0],
-          senderDetails: {
+          receiverDetails: {
             type: 'phone',
             number: validPhoneNumber
           },

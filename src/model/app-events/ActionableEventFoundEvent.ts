@@ -7,7 +7,7 @@ const dataSchema = z.object({
   run: runSchema,
   calendar: calendarSchema,
   calendarEvent: calendarEventSchema,
-  senderDetails: z.object({
+  receiverDetails: z.object({
     type: z.literal('phone'),
     number: z.string().brand('PhoneNumber')
   }),
