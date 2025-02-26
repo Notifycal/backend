@@ -10,6 +10,7 @@ import type {
   DateTime,
   EventId,
   IdpId,
+  RCSSenderId,
   TimeZone,
   UserId
 } from '@notifycal/shared/types';
@@ -27,6 +28,10 @@ export const userCalendarFetchedEvent: UserCalendarFetchedEvent = {
       lowerBoundStartTime: '2023-01-01T00:00:00Z' as DateTime,
       upperBoundStartTime: '2023-01-01T00:29:59Z' as DateTime,
       slidingWindowInMinutes: 30
+    },
+    senderDetails: {
+      type: 'rcs_sender_id',
+      identifier: 'Notifycal testing' as RCSSenderId
     },
     calendar: {
       id: 'someCalendarId' as CalendarId,
