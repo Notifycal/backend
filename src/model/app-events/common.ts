@@ -26,3 +26,6 @@ const rcsSenderSchema = z.object({
 const smsSenderSchema = receiverSchema;
 
 export const senderSchema = z.discriminatedUnion('type', [rcsSenderSchema, smsSenderSchema]);
+
+export type MessageReceiver = z.infer<typeof receiverSchema>;
+export type MessageSender = z.infer<typeof senderSchema>;

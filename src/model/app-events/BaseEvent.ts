@@ -5,7 +5,8 @@ import { eventIdSchema } from './common';
 
 export const successEventTypeSchema = z.union([
   z.literal('UserCalendarFetched'),
-  z.literal('ActionableEventFound')
+  z.literal('ActionableEventFound'),
+  z.literal('SendEventReminderAttempted')
 ]);
 export type SuccessEventType = z.infer<typeof successEventTypeSchema>;
 export const errorEventTypeSchema = z.union([
