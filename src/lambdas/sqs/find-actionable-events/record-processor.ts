@@ -113,8 +113,9 @@ function buildActionableEvents(
         calendarEvent,
         receiverDetails: {
           type: 'phone',
-          number: attendeePhoneNumber
+          identifier: attendeePhoneNumber
         },
+        senderDetails: event.data.senderDetails,
         message: interpolateMessage(
           event.data.template.id,
           event.data.template.fields.business.name,
