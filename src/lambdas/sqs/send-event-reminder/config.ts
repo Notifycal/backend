@@ -20,7 +20,7 @@ export async function readSendEventReminderConfig(vonagePrivateKeyCache: {
 
   try {
     if (!vonagePrivateKeyCache || !vonagePrivateKeyCache.ssmParameter) {
-      console.log('Retrieving SSM parameter from readSendEventReminderConfig.');
+      logger.info('Retrieving SSM parameter from readSendEventReminderConfig.');
       const vonagePrivateKey = await getParameter(
         env.get('VONAGE_SSM_PATH_PRIVATE_KEY').required().asString(),
         {
@@ -33,9 +33,9 @@ export async function readSendEventReminderConfig(vonagePrivateKeyCache: {
       } else {
         throwError(`Vonage Private key not found`);
       }
-      console.log('SSM parameter retrieved.');
+      logger.info('SSM parameter retrieved.');
     } else {
-      console.log('Using cached parameter, not retrieving anything.');
+      logger.info('Using cached parameter, not retrieving anything.');
     }
 
     return {
