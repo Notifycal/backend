@@ -13,13 +13,13 @@ export type SendEventReminderConfig = VonageConfig &
   IdempotencyConfig &
   AuditTrailQueueConfig & { ssmParameter: string };
 
-export async function readSendEventReminderConfig(ssmParameterObject: {
+export async function readSendEventReminderConfig(vonagePrivateKeyCache: {
   ssmParameter?: string;
 }): Promise<SendEventReminderConfig> {
   const env = readEnv();
 
   try {
-    if (!ssmParameterObject || !ssmParameterObject.ssmParameter) {
+    if (!vonagePrivateKeyCache || !vonagePrivateKeyCache.ssmParameter) {
       console.log('Retrieving SSM parameter from readSendEventReminderConfig.');
       const vonagePrivateKey = await getParameter(
         env.get('VONAGE_SSM_PATH_PRIVATE_KEY').required().asString(),
@@ -29,7 +29,7 @@ export async function readSendEventReminderConfig(ssmParameterObject: {
       );
       if (vonagePrivateKey) {
         // eslint-disable-next-line require-atomic-updates
-        ssmParameterObject.ssmParameter = vonagePrivateKey;
+        vonagePrivateKeyCache.ssmParameter = vonagePrivateKey;
       } else {
         throwError(`Vonage Private key not found`);
       }
@@ -42,7 +42,7 @@ export async function readSendEventReminderConfig(ssmParameterObject: {
       ...readVonageConfig(env),
       ...readIdempotencyConfig(env),
       ...readAuditTrailQueueConfig(env),
-      ssmParameter: ssmParameterObject.ssmParameter
+      ssmParameter: vonagePrivateKeyCache.ssmParameter
     };
   } catch (err) {
     throwError(`Couldn't access SSM parameter. Error: ${extractErrorMessage(err)}`);
