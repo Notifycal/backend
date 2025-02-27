@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.16.0](https://github.com/Notifycal/backend/compare/v0.15.12...v0.16.0) (2025-02-26)
+
+
+### Features
+
+* make reminder template configurable ([#380](https://github.com/Notifycal/backend/issues/380)) ([c2e5d5f](https://github.com/Notifycal/backend/commit/c2e5d5f331383704a5e5664f314193e49354e6c0))
+
+
+### Bug Fixes
+
+* rename senderDetails to receiverDetails ([#393](https://github.com/Notifycal/backend/issues/393)) ([27dca63](https://github.com/Notifycal/backend/commit/27dca6308913d20dbc61f61c82d21f73c76186a7))
+
 ## [0.15.12](https://github.com/Notifycal/backend/compare/v0.15.11...v0.15.12) (2025-02-20)
 
 

@@ -111,10 +111,11 @@ function buildActionableEvents(
         run: event.data.run,
         calendar: event.data.calendar,
         calendarEvent,
-        senderDetails: {
+        receiverDetails: {
           type: 'phone',
-          number: attendeePhoneNumber
+          identifier: attendeePhoneNumber
         },
+        senderDetails: event.data.senderDetails,
         message: interpolateMessage(
           event.data.template.id,
           event.data.template.fields.business.name,

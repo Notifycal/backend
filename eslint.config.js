@@ -140,7 +140,8 @@ const vitestConfig = {
     'vitest/prefer-expect-assertions': 'off',
     'vitest/no-test-return-statement': 'off',
     'vitest/prefer-spy-on': 'off',
-    'vitest/prefer-lowercase-title': 'off'
+    'vitest/prefer-lowercase-title': 'off',
+    'vitest/require-mock-type-parameters': 'off'
   },
   settings: {
     vitest: {

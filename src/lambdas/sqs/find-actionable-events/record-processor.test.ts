@@ -2,7 +2,13 @@ import type { PublishCommandOutput } from '@aws-sdk/client-sns';
 import type { SendMessageCommandOutput } from '@aws-sdk/client-sqs';
 import { ParsingError } from '@model/Errors';
 import type { ServiceResponse } from '@model/ServiceResponse';
-import type { CalendarEvent, DateTime, PhoneNumber, TimeZone } from '@notifycal/shared/types';
+import type {
+  CalendarEvent,
+  DateTime,
+  PhoneNumber,
+  TimeZone,
+  RCSSenderId
+} from '@notifycal/shared/types';
 import type { AwsArn, Url } from '@own-types/model';
 import { eventsStartTimeWithin } from '@services/calendar-events';
 import { phoneNumberByEmail } from '@services/contacts';
@@ -37,6 +43,7 @@ const validEvents: Array<CalendarEvent> = [
 ];
 
 const validPhoneNumber: PhoneNumber = '+34666888999' as PhoneNumber;
+const validRCSSenderId: RCSSenderId = 'Notifycal testing' as RCSSenderId;
 
 describe('Find actionable events record processor', () => {
   it('should process an event successfully and publish to SNS', async () => {
@@ -64,9 +71,13 @@ describe('Find actionable events record processor', () => {
           run: eventInRecord.data.run,
           calendar: eventInRecord.data.calendar,
           calendarEvent: validEvents[0],
-          senderDetails: {
+          receiverDetails: {
             type: 'phone',
-            number: validPhoneNumber
+            identifier: validPhoneNumber
+          },
+          senderDetails: {
+            type: 'rcs_sender_id',
+            identifier: validRCSSenderId
           },
           message:
             'Dear customer, you have an appointment at SomeBusinessName on 02/01/2024 at 16:05, located at SomeBusinessAddress. If you cannot attend, please notify us in advance. Sent with Notifycal®'
