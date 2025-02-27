@@ -7,17 +7,18 @@ import {
   readUserBaseStoreConfig
 } from '@services/common/config';
 import type { UserBaseStoreEndpointConfig } from '@services/stores/user-base-store';
+import { promiseTry } from '@utils/promises';
 
 export type GetUserCalendarsConfig = AuthedEndpointConfig &
   IdpEndpointConfig &
   UserBaseStoreEndpointConfig;
 
-export function readGetUserCalendarListConfig(): GetUserCalendarsConfig {
+export function readGetUserCalendarListConfig(): Promise<GetUserCalendarsConfig> {
   const env = readEnv();
-  return {
+  return promiseTry(() => ({
     ...readIdpConfigs(env),
     ...readUserBaseStoreConfig(env),
     ...readDecodeAccessJwtConfig(env),
     ...readBaseConfig(env)
-  };
+  }));
 }

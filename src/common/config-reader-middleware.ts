@@ -7,7 +7,7 @@ import { extractErrorMessage } from '@services/common/error-handling';
 import type { Context } from 'aws-lambda';
 import { logger } from './powertools';
 
-function configReader<TConfig, TResult>(
+async function configReader<TConfig, TResult>(
   request: Request<EventWithConfig<TConfig>, TResult, Error, Context>,
   configReaderFn: () => Promise<TConfig>,
   isApiRequest: boolean = true

@@ -1,7 +1,7 @@
 import { JSONStringified } from '@aws-lambda-powertools/parser/helpers';
 import { protectedEndpointMiddleware } from '@common/lambda-middleware';
-import { authedEventSchema } from '@model/lambda-events/ApiGatewayEvents';
 import type { AuthedEndpointConfig } from '@model/Config';
+import { authedEventSchema } from '@model/lambda-events/ApiGatewayEvents';
 import { responseSuccess } from '@services/common/api-response-handlers';
 import type { APIGatewayProxyResult, Context } from 'aws-lambda';
 import { z } from 'zod';
@@ -28,14 +28,14 @@ function lambdaHandler(
   return responseSuccess({ result: { afield: 'OK' } });
 }
 
-function testingConfigReader(): TestingWhiteApiConfig {
-  return {
+function testingConfigReader(): Promise<TestingWhiteApiConfig> {
+  return Promise.resolve({
     config1: 'blah',
     decodeAccessJwtConfig: getDefaultDecodeAccessJwtConfig(),
     baseConfig: {
       frontendDomain: 'http://localhost:5173'
     }
-  };
+  });
 }
 
 function claimChecker(): boolean {

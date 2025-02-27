@@ -13,3 +13,11 @@ export function allSettledAllOrErrorHandler<T>(
     `There were ${rejectionList.length} failures to ${attemptedAction}. Successes: ${successList.length}. Total: ${results.length}. All results: ${JSON.stringify(results)}`
   );
 }
+
+export function promiseTry<T>(fn: () => T | Promise<T>): Promise<T> {
+  try {
+    return Promise.resolve(fn());
+  } catch (error) {
+    return Promise.reject(error instanceof Error ? error : new Error(String(error)));
+  }
+}

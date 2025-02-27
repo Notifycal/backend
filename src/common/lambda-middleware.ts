@@ -31,19 +31,19 @@ function baseConfigMiddleware<TConfig, TResult>(
 }
 
 export function backgroundProcessingMiddleware<TConfig, T extends z.AnyZodObject>(
-  configReaderFn: ConfigReaderFn<TConfig>,
+  configReaderFn: ConfigReaderFn<Promise<TConfig>>,
   eventSchema: T
 ): middy.MiddyfiedHandler {
-  return baseConfigMiddleware(() => Promise.resolve(configReaderFn()), false).use(
+  return baseConfigMiddleware(() => configReaderFn(), false).use(
     eventParserMiddleware(eventSchema, false)
   );
 }
 
 export function unprotectedEndpointMiddleware<TConfig, T extends z.AnyZodObject>(
-  configReaderFn: ConfigReaderFn<TConfig>,
+  configReaderFn: ConfigReaderFn<Promise<TConfig>>,
   eventSchema: T
 ): middy.MiddyfiedHandler<APIGatewayProxyEvent, APIGatewayProxyResult> {
-  return baseConfigMiddleware(() => Promise.resolve(configReaderFn()), true)
+  return baseConfigMiddleware(() => configReaderFn(), true)
     .use(corsMiddleware())
     .use(eventParserMiddleware(eventSchema, true)) as unknown as middy.MiddyfiedHandler<
     APIGatewayProxyEvent,
@@ -55,11 +55,11 @@ export function protectedEndpointMiddleware<
   TConfig extends AuthedEndpointConfig,
   T extends z.AnyZodObject
 >(
-  configReaderFn: ConfigReaderFn<TConfig>,
+  configReaderFn: ConfigReaderFn<Promise<TConfig>>,
   eventSchema: T,
   claimCheckerFn: JwtClaimCheckerFn = checkClaims
 ): middy.MiddyfiedHandler<APIGatewayProxyEvent, APIGatewayProxyResult> {
-  return baseConfigMiddleware(() => Promise.resolve(configReaderFn()), true)
+  return baseConfigMiddleware(() => configReaderFn(), true)
     .use(corsMiddleware())
     .use(jwtVerificationMiddleware(claimCheckerFn))
     .use(eventParserMiddleware(eventSchema, true)) as unknown as middy.MiddyfiedHandler<
