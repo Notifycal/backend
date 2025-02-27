@@ -14,6 +14,7 @@ import {
 } from '@services/common/config';
 import type { RefreshTokenBaseStoreConfig } from '@services/stores/refresh-token-base-store';
 import type { UserBaseStoreEndpointConfig } from '@services/stores/user-base-store';
+import { promiseTry } from '@utils/promises';
 export interface BaseRefreshConfig {
   encodeAccessJwtConfig: EncodeAccessJwtConfig;
   encodeRefreshJwtConfig: EncodeRefreshJwtConfig;
@@ -22,13 +23,13 @@ export interface BaseRefreshConfig {
 }
 export type RefreshConfig = BaseRefreshConfig & BaseEndpointConfig & UserBaseStoreEndpointConfig;
 
-export function readRefreshConfig(): RefreshConfig {
+export function readRefreshConfig(): Promise<RefreshConfig> {
   const env = readEnv();
-  return {
+  return promiseTry(() => ({
     ...readEncodeJwtsConfig(env),
     decodeRefreshJwtConfig: readDecodeRefreshJwtConfig(env),
     ...readRefreshTokenStoreConfig(env),
     ...readUserBaseStoreConfig(env),
     ...readBaseConfig(env)
-  };
+  }));
 }
