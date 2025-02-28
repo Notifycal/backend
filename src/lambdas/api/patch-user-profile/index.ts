@@ -22,13 +22,12 @@ function lambdaHandler(
   const body = event.body;
   const userProvider = UserBaseStore.withConfig(config.userBaseStoreConfig);
   const userId = event.requestContext.authorizer.payload.userId;
-  const reminderConfig = {
-    businessName: body.businessName,
-    businessAddress: body.businessAddress,
+  const reminderConfigStoreRecord = {
+    business: body.business,
     calendars: body.calendars
   };
   return userProvider
-    .updateUser(userId, 'live', reminderConfig)
+    .updateUser(userId, 'live', reminderConfigStoreRecord)
     .then(() => successHandler(204)(), errorHandler(500));
 }
 
