@@ -12,17 +12,3 @@ export const runSchema = z.object({
 });
 
 export const eventIdSchema = z.string().uuid().brand('EventId');
-
-export const receiverSchema = z.object({
-  type: z.literal('phone'),
-  identifier: z.string().brand('PhoneNumber')
-});
-
-const rcsSenderSchema = z.object({
-  type: z.literal('rcs_sender_id'),
-  identifier: z.string().brand('RCSSenderId')
-});
-
-const smsSenderSchema = receiverSchema;
-
-export const senderSchema = z.discriminatedUnion('type', [rcsSenderSchema, smsSenderSchema]);

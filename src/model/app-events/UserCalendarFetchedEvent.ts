@@ -1,12 +1,12 @@
-import { calendarSchema } from '@notifycal/shared/schemas';
+import { calendarSchema, contactSchema } from '@notifycal/shared/schemas';
 import { z } from 'zod';
 import { eventSchemaGenerator } from './BaseEvent';
-import { runSchema, senderSchema } from './common';
+import { runSchema } from './common';
 
 const data = z.object({
   run: runSchema,
   calendar: calendarSchema,
-  senderDetails: senderSchema,
+  senderDetails: contactSchema,
   template: z.object({
     id: z.string().brand('TemplateId'),
     fields: z.object({
