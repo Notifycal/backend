@@ -23,7 +23,8 @@
     "test": "vitest --watch=false",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "checkCircularDeps": "madge --ts-config tsconfig.json --extensions ts --circular ."
   },
   "author": "",
   "license": "ISC",
@@ -75,6 +76,7 @@
     "express": "^4.21.2",
     "glob": "^11.0.1",
     "globals": "^16.0.0",
+    "madge": "^8.0.0",
     "pm2": "^5.4.3",
     "prettier": "^3.5.1",
     "spectral-aws-apigateway-ruleset": "^2.2.0",
