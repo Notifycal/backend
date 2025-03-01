@@ -12,7 +12,7 @@ import type {
   EncodeRefreshJwtConfig,
   IdpEndpointConfig,
   UserCalendarFetchedTopicConfig,
-  IdempotencyConfig,
+  IdempotencyPersistenceConfig,
   VonageConfig,
   AuditTrailQueueConfig
 } from '@model/Config';
@@ -188,10 +188,13 @@ export function readAuditTrailBaseStoreConfig(env: Environment): AuditTrailBaseS
   };
 }
 
-export function readIdempotencyConfig(env: Environment): IdempotencyConfig {
+export function readIdempotencyPersistenceConfig(env: Environment): IdempotencyPersistenceConfig {
   return {
-    idempotencyConfig: env.get('IDEMPOTENCY_CONFIG').required().asJsonObject()
-  } as IdempotencyConfig;
+    idempotencyPersistenceConfig: env
+      .get('IDEMPOTENCY_PERSISTENCE_CONFIG')
+      .required()
+      .asJsonObject()
+  } as IdempotencyPersistenceConfig;
 }
 
 export function readVonageConfig(env: Environment): VonageConfig {

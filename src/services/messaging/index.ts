@@ -39,7 +39,7 @@ export class MessagingService {
       });
       const { messageUUID } = await this._client.messages.send(messageObject);
 
-      return messageUUID as unknown as Uuid;
+      return messageUUID as Uuid;
     } catch (error) {
       throwError(
         `Vonage API failed to send the reminder: ${clientRef}. Error: ${extractErrorMessage(error)}`

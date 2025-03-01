@@ -13,10 +13,12 @@ const dataSchema = z.object({
   messageUUID: uuidSchema
 });
 
-export const sendEventReminderAttemptedEventSchema = eventSchemaGenerator(
-  'ActionableEventFound',
+export const calendarEventReminderAttemptSentEventSchema = eventSchemaGenerator(
+  'CalendarEventReminderAttemptSent',
   dataSchema,
   z.object({}).strict()
 );
 
-export type SendEventReminderAttemptedEvent = z.infer<typeof sendEventReminderAttemptedEventSchema>;
+export type CalendarEventReminderAttemptSentEvent = z.infer<
+  typeof calendarEventReminderAttemptSentEventSchema
+>;

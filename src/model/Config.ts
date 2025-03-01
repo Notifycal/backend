@@ -1,6 +1,6 @@
+import type { DynamoDBPersistenceOptions } from '@aws-lambda-powertools/idempotency/dynamodb/types';
 import type { IdpName } from '@notifycal/shared/types';
 import type { AwsArn, Url } from '@own-types/model';
-import type { DynamoDBPersistenceOptions } from '@aws-lambda-powertools/idempotency/dynamodb/types';
 import type { VonageApplicationId } from '@services/messaging';
 
 export interface DecodeAccessJwtConfig {
@@ -82,8 +82,8 @@ export type AuditTrailQueueConfig = {
   auditTrailQueueConfig: SqsQueueConfig;
 };
 
-export type IdempotencyConfig = {
-  idempotencyConfig: DynamoDBPersistenceOptions;
+export type IdempotencyPersistenceConfig = {
+  idempotencyPersistenceConfig: DynamoDBPersistenceOptions;
 };
 
 export type VonageConfig = {

@@ -114,7 +114,7 @@ module "send_event_reminder_lambda" {
 
     AUDIT_TRAIL_QUEUE_URL = module.audit_trail_queue.sqs_queue_url
 
-    IDEMPOTENCY_CONFIG = jsonencode({
+    IDEMPOTENCY_PERSISTENCE_CONFIG = jsonencode({
       tableName            = aws_dynamodb_table.lambda_idempotency.name,
       keyAttr              = local.lambda_idempotency_table_config.hash_attribute_name,
       expiryAttr           = local.lambda_idempotency_table_config.expiration_attribute_name,
