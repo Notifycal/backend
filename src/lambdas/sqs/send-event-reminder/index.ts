@@ -28,11 +28,9 @@ async function lambdaHandler(event: Event, context: Context): Promise<Uuid> {
 
   const messageProcessor = new MessageProcessor(config);
   const idempotencyConfig = new IdempotencyConfig({
-    // Does it make sense to provide some of this as config (env var?). cannot provide it all.
-    eventKeyJmesPath:
-      '["body.data.message", "body.data.senderDetails", "body.data.receiverDetails"]',
+    eventKeyJmesPath: '[body.data.message, body.data.senderDetails, body.data.receiverDetails]',
     expiresAfterSeconds: 86400,
-    // throwOnNoIdempotencyKey: true,
+    throwOnNoIdempotencyKey: true,
     responseHook: (response, idempotencyRecord): JSONValue => {
       // TODO: audit-trail duplicate attempt
       // Which data is available on record? Not a lot
