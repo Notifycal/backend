@@ -31,12 +31,9 @@ async function lambdaHandler(event: Event, context: Context): Promise<Uuid> {
     eventKeyJmesPath: '[body.data.message, body.data.senderDetails, body.data.receiverDetails]',
     expiresAfterSeconds: 86400,
     throwOnNoIdempotencyKey: true,
-    responseHook: (response, idempotencyRecord): JSONValue => {
-      // TODO: audit-trail duplicate attempt
-      // Which data is available on record? Not a lot
-      logger.info(`Response: ${JSON.stringify(response)}`);
-      // await messageProcessor.onIdempotencyHit(record, response);
-      return response;
+    responseHook: async (messageUUIDResponse): Promise<JSONValue> => {
+      await messageProcessor.onIdempotencyHit(record, messageUUIDResponse as Uuid);
+      return messageUUIDResponse;
     }
   });
   idempotencyConfig.registerLambdaContext(context);
