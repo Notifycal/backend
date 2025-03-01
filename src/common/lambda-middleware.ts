@@ -22,24 +22,28 @@ function baseMiddleware(): middy.MiddyfiedHandler {
 }
 
 function baseConfigMiddleware<TConfig, TResult>(
-  configReader: ConfigReaderFn<TConfig>,
+  configReaderFn: ConfigReaderFn<Promise<TConfig>>,
   isApiRequest: boolean
 ): middy.MiddyfiedHandler {
-  return baseMiddleware().use(configReaderMiddleware<TConfig, TResult>(configReader, isApiRequest));
+  return baseMiddleware().use(
+    configReaderMiddleware<TConfig, TResult>(configReaderFn, isApiRequest)
+  );
 }
 
 export function backgroundProcessingMiddleware<TConfig, T extends z.AnyZodObject>(
-  configReader: ConfigReaderFn<TConfig>,
+  configReaderFn: ConfigReaderFn<Promise<TConfig>>,
   eventSchema: T
 ): middy.MiddyfiedHandler {
-  return baseConfigMiddleware(configReader, false).use(eventParserMiddleware(eventSchema, false));
+  return baseConfigMiddleware(() => configReaderFn(), false).use(
+    eventParserMiddleware(eventSchema, false)
+  );
 }
 
 export function unprotectedEndpointMiddleware<TConfig, T extends z.AnyZodObject>(
-  configReader: ConfigReaderFn<TConfig>,
+  configReaderFn: ConfigReaderFn<Promise<TConfig>>,
   eventSchema: T
 ): middy.MiddyfiedHandler<APIGatewayProxyEvent, APIGatewayProxyResult> {
-  return baseConfigMiddleware(configReader, true)
+  return baseConfigMiddleware(() => configReaderFn(), true)
     .use(corsMiddleware())
     .use(eventParserMiddleware(eventSchema, true)) as unknown as middy.MiddyfiedHandler<
     APIGatewayProxyEvent,
@@ -51,11 +55,11 @@ export function protectedEndpointMiddleware<
   TConfig extends AuthedEndpointConfig,
   T extends z.AnyZodObject
 >(
-  configReaderFn: ConfigReaderFn<TConfig>,
+  configReaderFn: ConfigReaderFn<Promise<TConfig>>,
   eventSchema: T,
   claimCheckerFn: JwtClaimCheckerFn = checkClaims
 ): middy.MiddyfiedHandler<APIGatewayProxyEvent, APIGatewayProxyResult> {
-  return baseConfigMiddleware(configReaderFn, true)
+  return baseConfigMiddleware(() => configReaderFn(), true)
     .use(corsMiddleware())
     .use(jwtVerificationMiddleware(claimCheckerFn))
     .use(eventParserMiddleware(eventSchema, true)) as unknown as middy.MiddyfiedHandler<

@@ -14,6 +14,7 @@ import {
 } from '@services/common/config';
 import type { RefreshTokenBaseStoreConfig } from '@services/stores/refresh-token-base-store';
 import type { UserBaseStoreConfig } from '@services/stores/user-base-store';
+import { promiseTry } from '@utils/promises';
 
 interface BaseLoginConfig {
   encodeAccessJwtConfig: EncodeAccessJwtConfig;
@@ -24,13 +25,13 @@ interface BaseLoginConfig {
 
 export type LoginConfig = BaseLoginConfig & BaseEndpointConfig & IdpEndpointConfig;
 
-export function readLoginConfig(): LoginConfig {
+export function readLoginConfig(): Promise<LoginConfig> {
   const env = readEnv();
-  return {
+  return promiseTry(() => ({
     ...readEncodeJwtsConfig(env),
     ...readIdpConfigs(env),
     ...readUserBaseStoreConfig(env),
     ...readRefreshTokenStoreConfig(env),
     ...readBaseConfig(env)
-  };
+  }));
 }

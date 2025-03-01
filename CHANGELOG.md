@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.17.0](https://github.com/Notifycal/backend/compare/v0.16.0...v0.17.0) (2025-02-27)
+
+
+### Features
+
+* async config-reader for SSM parameter retrieval ([#391](https://github.com/Notifycal/backend/issues/391)) ([db7b874](https://github.com/Notifycal/backend/commit/db7b8744ec95a77d13677e7539a74357d36b641f))
+* handle senderDetails so it can be both SMS or RCS ([#394](https://github.com/Notifycal/backend/issues/394)) ([d3042d5](https://github.com/Notifycal/backend/commit/d3042d5a6e7a87de6aee2f26065c663968205565))
+
 ## [0.16.0](https://github.com/Notifycal/backend/compare/v0.15.12...v0.16.0) (2025-02-26)
 
 

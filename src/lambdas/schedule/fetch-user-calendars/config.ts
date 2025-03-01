@@ -6,6 +6,7 @@ import {
   readUserLiveIndexConfig
 } from '@services/common/config';
 import type { UserLiveIndexStoreEndpointConfig } from '@services/stores/user-live-index-store';
+import { promiseTry } from '@utils/promises';
 
 export interface CronRunConfig {
   windowInMinutes: number;
@@ -18,11 +19,11 @@ export type FetchUserCalendarsConfig = UserLiveIndexStoreEndpointConfig &
   UserCalendarFetchedTopicConfig &
   CronRunEndpointConfig;
 
-export function readFetchUserCalendarsConfig(): FetchUserCalendarsConfig {
+export function readFetchUserCalendarsConfig(): Promise<FetchUserCalendarsConfig> {
   const env = readEnv();
-  return {
+  return promiseTry(() => ({
     ...readUserLiveIndexConfig(env),
     ...readUserCalendarFetchedTopicConfig(env),
     ...readCronRunConfig(env)
-  };
+  }));
 }

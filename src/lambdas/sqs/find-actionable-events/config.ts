@@ -9,16 +9,17 @@ import {
   readEnv,
   readIdpConfigs
 } from '@services/common/config';
+import { promiseTry } from '@utils/promises';
 
 export type ActionableEventsConfig = ActionableEventFoundTopicConfig &
   DeadLetterQueueConfig &
   IdpEndpointConfig;
 
-export function readActionableEventsConfig(): ActionableEventsConfig {
+export function readActionableEventsConfig(): Promise<ActionableEventsConfig> {
   const env = readEnv();
-  return {
+  return promiseTry(() => ({
     ...readActionableEventFoundTopicConfig(env),
     ...readDeadLetterQueueConfig(env),
     ...readIdpConfigs(env)
-  };
+  }));
 }
