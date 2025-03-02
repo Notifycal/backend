@@ -16,6 +16,7 @@ import { DateTime as DT } from 'luxon';
 import { v4 } from 'uuid';
 import type { z } from 'zod';
 import { readFetchUserCalendarsConfig, type FetchUserCalendarsConfig } from './config';
+import { MetricUnit } from '@aws-lambda-powertools/metrics';
 
 const eventSchema = eventBridgeEventSchema<FetchUserCalendarsConfig>();
 export type Event = z.infer<typeof eventSchema>;
@@ -24,6 +25,7 @@ function toEvents(
   item: LiveUserStoreRecord<'google.com'> & UserIdpAuthorizationStoreRecord<'google.com'>,
   run: z.infer<typeof userCalendarFetchedEventSchema.shape.data.shape.run>
 ): Array<UserCalendarFetchedEvent> {
+  metrics.addMetric('calendarsRetrieved', MetricUnit.Count, item.Config.calendars.length);
   const pageData = item.Config.calendars.map((c) => ({
     calendar: c,
     run: run,
@@ -89,7 +91,10 @@ async function lambdaHandler(event: Event, context: Context): Promise<void> {
 
       await Promise.allSettled(
         liveUsersPage
-          .flatMap((user) => toEvents(user, run))
+          .flatMap((user) => {
+            metrics.addMetric('liveUsersFetched', MetricUnit.Count, 1);
+            return toEvents(user, run);
+          })
           .map((event) =>
             snsService.publish(event).catch((error) => {
               const msg = `Error publishing an event to SNS with id ${event.eventId}. Error: ${JSON.stringify(error)}. Extracted error: ${extractErrorMessage(error)}`;
