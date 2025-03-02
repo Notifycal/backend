@@ -3,14 +3,20 @@ import { Logger } from '@aws-lambda-powertools/logger';
 import { Metrics } from '@aws-lambda-powertools/metrics';
 import { Tracer } from '@aws-lambda-powertools/tracer';
 
+const environment = process.env.ENVIRONMENT || 'N/A';
+const serviceName = 'notifycal-backend';
+const metricsNamespace = `${serviceName}-${environment}`;
+
 const defaultValues = {
   appVersion: process.env.APP_VERSION || 'N/A',
-  awsRegion: process.env.AWS_REGION || 'eu-west-1'
+  awsRegion: process.env.AWS_REGION || 'eu-west-1',
+  environment
 };
 
 const logger = new Logger({
   // TODO: https://docs.powertools.aws.dev/lambda/typescript/latest/core/logger/#sampling-debug-logs
   // sampleRateValue: 0,
+  serviceName,
   persistentLogAttributes: {
     ...defaultValues,
     logger: {
@@ -21,14 +27,12 @@ const logger = new Logger({
 });
 
 const metrics = new Metrics({
+  namespace: metricsNamespace,
+  serviceName,
   defaultDimensions: {
     ...defaultValues,
-    environment: process.env.ENVIRONMENT || 'N/A',
-    appName: 'notifycal-backend',
     runtime: process.env.AWS_EXECUTION_ENV || 'N/A'
-  },
-  //TODO
-  namespace: 'to_avoid_warnings'
+  }
 });
 
 const tracer = new Tracer();
