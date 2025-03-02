@@ -1,5 +1,5 @@
 import { backgroundProcessingMiddleware } from '@common/lambda-middleware';
-import { logger } from '@common/powertools';
+import { logger, metrics } from '@common/powertools';
 import type {
   UserCalendarFetchedEvent,
   userCalendarFetchedEventSchema

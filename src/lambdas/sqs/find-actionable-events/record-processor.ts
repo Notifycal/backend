@@ -1,4 +1,4 @@
-import { logger } from '@common/powertools';
+import { logger, metrics } from '@common/powertools';
 import type { ActionableEventFoundEvent } from '@model/app-events/ActionableEventFoundEvent';
 import { noPhoneNumberForAttendeeFound } from '@model/app-events/NoPhoneNumberForAttendeeFoundEvent';
 import { userFetchedEventsParsingFailed } from '@model/app-events/UserFetchedEventsParsingFailedEvent';
@@ -26,6 +26,7 @@ import { DateTime as DT } from 'luxon';
 import { v4 } from 'uuid';
 import type { Record } from '.';
 import type { ActionableEventsConfig } from './config';
+import { MetricUnit } from '@aws-lambda-powertools/metrics';
 
 function interpolateMessage(
   templateId: TemplateId,
@@ -152,13 +153,14 @@ export function recordProcessor(record: Record, config: ActionableEventsConfig):
         return Promise.resolve([]);
       }
     })
-    .then((calendarEvents) =>
-      Promise.allSettled(
+    .then((calendarEvents) => {
+      metrics.addMetric('actionableCalendarEvents', MetricUnit.Count, calendarEvents.length);
+      return Promise.allSettled(
         calendarEvents.map((calendarEvent) =>
           fetchAttendeePhoneNumbers(calendarEvent, event, dlqService, config.idpConfigs)
         )
-      )
-    )
+      );
+    })
     .then((results) =>
       allSettledAllOrErrorHandler(
         results,
