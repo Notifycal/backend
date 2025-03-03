@@ -10,7 +10,7 @@
     "dev-build": "$npm_execpath run clean && node esbuild.js",
     "dev": "pm2 start --no-daemon ecosystem.dev.config.cjs",
     "package": "bin/package.sh",
-    "lint": "spectral lint tf/openapi/spec.yaml && eslint -c ./eslint.config.js",
+    "lint": "spectral lint openapi/spec.yaml && eslint -c ./eslint.config.js",
     "lint:fix": "$npm_execpath run lint -- --fix",
     "prettier": "prettier . --check",
     "prettier:fix": "$npm_execpath run prettier -- --write",
