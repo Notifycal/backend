@@ -23,6 +23,8 @@ let ssmParameterObj: { ssmParameter?: string } = {};
 async function lambdaHandler(event: Event, context: Context): Promise<Uuid> {
   logger.info(`Processing sqs message in third lambda. Event: ${JSON.stringify(event)}`);
 
+  let isIdempotencyHit = false;
+
   const config = event.lambdaConfig;
   const record = event.Records[0];
 
@@ -31,8 +33,9 @@ async function lambdaHandler(event: Event, context: Context): Promise<Uuid> {
     eventKeyJmesPath: '[body.data.message, body.data.senderDetails, body.data.receiverDetails]',
     expiresAfterSeconds: 86400,
     throwOnNoIdempotencyKey: true,
-    responseHook: async (messageUUIDResponse): Promise<JSONValue> => {
-      await messageProcessor.onIdempotencyHit(record, messageUUIDResponse as Uuid);
+    responseHook: (messageUUIDResponse): JSONValue => {
+      isIdempotencyHit = true;
+
       return messageUUIDResponse;
     }
   });
@@ -48,6 +51,10 @@ async function lambdaHandler(event: Event, context: Context): Promise<Uuid> {
   });
 
   const messageUUID = await messageProcessorIdempotent(record);
+
+  if (isIdempotencyHit) {
+    await messageProcessor.onIdempotencyHit(record, messageUUID);
+  }
 
   return messageUUID;
 }
