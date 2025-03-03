@@ -187,7 +187,6 @@ paths:
                   description: Business address
                   type: string
                 calendars:
-                  description: List of calendars the system will be integrating with
                   $ref: '#/components/schemas/CalendarList'
       responses:
         '204':
