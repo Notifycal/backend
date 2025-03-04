@@ -190,7 +190,8 @@ paths:
     options:
       $ref: './aws-stuff.yaml#/components/x-notifycal/CORS_OPTIONS'
 
-
+  /api/v1/webhook/reminder-status:
+    $ref: './messaging-webhook-vonage.yaml#/paths/~1api~1v1~1webhook~1reminder-status'
 
 tags:
   - name: user
@@ -199,3 +200,7 @@ tags:
     description: idp proxy operations
   - name: auth
     description: authentication operations
+  - name: webhook
+    description: webhooks
+  - name: messaging
+    description: integration with messaging provider
