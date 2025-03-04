@@ -6,7 +6,7 @@ extends:
 
 overrides:
   - files:
-      - 'tf/openapi/spec.yaml'
+      - 'dist/spec.rendered.yaml'
     rules:
       # Disabling these rules for OPTIONS methods
       operation-description:

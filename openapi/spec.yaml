@@ -25,7 +25,7 @@ servers:
 
 x-amazon-apigateway-gateway-responses:
   DEFAULT_4XX:
-    responseParameters: &CORS_HEADERS
+    responseParameters:
       gatewayresponse.header.Access-Control-Allow-Origin: "'${cors_origin}'"
       gatewayresponse.header.Access-Control-Allow-Methods: "'GET,POST,OPTIONS,PUT,DELETE,PATCH'"
       gatewayresponse.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
@@ -34,7 +34,10 @@ x-amazon-apigateway-gateway-responses:
     statusCode: 400
 
   DEFAULT_5XX:
-    responseParameters: *CORS_HEADERS
+    responseParameters:
+      gatewayresponse.header.Access-Control-Allow-Origin: "'${cors_origin}'"
+      gatewayresponse.header.Access-Control-Allow-Methods: "'GET,POST,OPTIONS,PUT,DELETE,PATCH'"
+      gatewayresponse.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
     responseTemplates:
       application/json: '{"message":"Server Error"}'
     statusCode: 500
@@ -72,50 +75,11 @@ paths:
         '400': { $ref: '#/components/responses/BadRequest' }
         '401': { $ref: '#/components/responses/Unauthorised' }
         '500': { $ref: '#/components/responses/InternalServerError' }
-      x-amazon-apigateway-integration: &AWS_LAMBDA_PROXY
-        type: 'aws_proxy'
-        httpMethod: 'POST' # Always POST
-        uri: 'arn:aws:apigateway:${aws_region}:lambda:path/2015-03-31/functions/${lambda_functions.post_login_arn}/invocations'
-    options: &CORS_OPTIONS
-      summary: CORS Preflight
-      responses:
-        '200': { $ref: '#/components/responses/CORSResponse' }
       x-amazon-apigateway-integration:
-        type: mock
-        passthroughBehavior: never # APIGW doesn't process the request beyond returning a response from below.
-        requestTemplates:
-          # Origin validation in API GW
-          application/json: |
-            #set($origin = $input.params("Origin"))
-            #if($origin && $origin == "${cors_origin}")
-              {
-                "statusCode": 200
-              }
-            #elseif(!$origin)
-              {
-                "statusCode": 400
-              }
-            #else
-              {
-                "statusCode": 403
-              }
-            #end
-        responses:
-          default:
-            statusCode: '200'
-            responseParameters:
-              method.response.header.Access-Control-Allow-Origin: "'${cors_origin}'"
-              method.response.header.Access-Control-Allow-Methods: "'GET,POST,OPTIONS,PUT,DELETE,PATCH'" # TODO: Review methods
-              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'" # TODO: Review headers
-              method.response.header.Access-Control-Max-Age: "'86400'" # 24h. Browsers might ignore it and cap it a 5 mins (Chrome I think)
-          '400':
-            statusCode: '400'
-            responseParameters:
-              method.response.header.Access-Control-Allow-Origin: "'null'"
-          '403':
-            statusCode: '403'
-            responseParameters:
-              method.response.header.Access-Control-Allow-Origin: "'null'"
+        $ref: './aws-stuff.yaml#/components/x-notifycal/AWS_LAMBDA_PROXY'
+        uri: 'arn:aws:apigateway:${aws_region}:lambda:path/2015-03-31/functions/${lambda_functions.post_login_arn}/invocations'
+    options:
+      $ref: './aws-stuff.yaml#/components/x-notifycal/CORS_OPTIONS'
 
   /api/v1/refresh:
     post:
@@ -141,9 +105,10 @@ paths:
         '403': { $ref: '#/components/responses/Forbidden' }
         '500': { $ref: '#/components/responses/InternalServerError' }
       x-amazon-apigateway-integration:
-        <<: *AWS_LAMBDA_PROXY
+        $ref: './aws-stuff.yaml#/components/x-notifycal/AWS_LAMBDA_PROXY'
         uri: 'arn:aws:apigateway:${aws_region}:lambda:path/2015-03-31/functions/${lambda_functions.post_refresh_arn}/invocations'
-    options: *CORS_OPTIONS
+    options:
+      $ref: './aws-stuff.yaml#/components/x-notifycal/CORS_OPTIONS'
 
   /api/v1/user-profile:
     get:
@@ -166,7 +131,7 @@ paths:
         '404': { $ref: '#/components/responses/NotFound' }
         '500': { $ref: '#/components/responses/InternalServerError' }
       x-amazon-apigateway-integration:
-        <<: *AWS_LAMBDA_PROXY
+        $ref: './aws-stuff.yaml#/components/x-notifycal/AWS_LAMBDA_PROXY'
         uri: 'arn:aws:apigateway:${aws_region}:lambda:path/2015-03-31/functions/${lambda_functions.get_user_profile_arn}/invocations'
     patch:
       summary: Patch User profile
@@ -187,7 +152,6 @@ paths:
                   description: Business address
                   type: string
                 calendars:
-                  description: List of calendars the system will be integrating with
                   $ref: '#/components/schemas/CalendarList'
       responses:
         '204':
@@ -196,9 +160,10 @@ paths:
         '401': { $ref: '#/components/responses/Unauthorised' }
         '500': { $ref: '#/components/responses/InternalServerError' }
       x-amazon-apigateway-integration:
-        <<: *AWS_LAMBDA_PROXY
+        $ref: './aws-stuff.yaml#/components/x-notifycal/AWS_LAMBDA_PROXY'
         uri: 'arn:aws:apigateway:${aws_region}:lambda:path/2015-03-31/functions/${lambda_functions.patch_user_profile_arn}/invocations'
-    options: *CORS_OPTIONS
+    options:
+      $ref: './aws-stuff.yaml#/components/x-notifycal/CORS_OPTIONS'
 
   /api/v1/idp/user-calendars:
     get:
@@ -220,9 +185,10 @@ paths:
         '401': { $ref: '#/components/responses/Unauthorised' }
         '500': { $ref: '#/components/responses/InternalServerError' }
       x-amazon-apigateway-integration:
-        <<: *AWS_LAMBDA_PROXY
+        $ref: './aws-stuff.yaml#/components/x-notifycal/AWS_LAMBDA_PROXY'
         uri: 'arn:aws:apigateway:${aws_region}:lambda:path/2015-03-31/functions/${lambda_functions.get_idp_user_calendars_arn}/invocations'
-    options: *CORS_OPTIONS
+    options:
+      $ref: './aws-stuff.yaml#/components/x-notifycal/CORS_OPTIONS'
 
 components:
   schemas:
@@ -255,7 +221,7 @@ components:
         - idp
         - idpId
         - lastSignInAt
-        - signUpAt
+        - signedUpAt
         - userStatus
       # Additionalproperties are allowed by default in OpenAPI. To enforce maximum strictness use additionalProperties: false to block all arbitrary data.
       additionalProperties: false
