@@ -112,6 +112,8 @@ module "send_event_reminder_lambda" {
     VONAGE_APPLICATION_ID       = var.vonage_auth_config.application_id
     VONAGE_SSM_PATH_PRIVATE_KEY = data.aws_ssm_parameter.vonage_private_key.name
 
+    MESSAGING_ENABLED = "false"
+
     AUDIT_TRAIL_QUEUE_URL = module.audit_trail_queue.sqs_queue_url
 
     IDEMPOTENCY_PERSISTENCE_CONFIG = jsonencode({

@@ -33,7 +33,7 @@ export default class MessageProcessor {
     logger.info(`Sending a message through Vonage. correlationId: ${correlationId}`);
 
     let messageUUID;
-    if (false) {
+    if (process.env.MESSAGING_ENABLED === 'true') {
       messageUUID = await this._messagingService.sendMessage(
         message,
         senderDetails,
