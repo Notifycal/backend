@@ -15,9 +15,8 @@ paths:
           content:
             application/json:
               schema:
-                oneOf:
-                  - $ref: "./vendor/vonage.yaml#/components/schemas/messageStatusSMS"
-                  - $ref: "./vendor/vonage.yaml#/components/schemas/messageStatusRCS"
+                $ref: "#/components/schemas/MessageDeliveryWebhookPayload"
+
       responses:
         '200':
           description: 'OK'
@@ -29,3 +28,11 @@ paths:
         uri: 'arn:aws:apigateway:${aws_region}:lambda:path/2015-03-31/functions/${lambda_functions.webhook_reminder_status}/invocations'
     options:
       $ref: './aws-stuff.yaml#/components/x-notifycal/CORS_OPTIONS'
+
+components:
+  schemas:
+    MessageDeliveryWebhookPayload:
+      # Not a fan of this, but AWS APIGW has selective support for `oneOf`
+      oneOf:
+        - $ref: "./vendor/vonage.yaml#/components/schemas/messageStatusSMS"
+        - $ref: "./vendor/vonage.yaml#/components/schemas/messageStatusRCS"
