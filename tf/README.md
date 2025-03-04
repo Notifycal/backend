@@ -25,6 +25,8 @@
 | <a name="module_apigateway_custom_domain"></a> [apigateway\_custom\_domain](#module\_apigateway\_custom\_domain) | ./modules/api_gateway_external_domain | n/a |
 | <a name="module_audit_trail_lambda"></a> [audit\_trail\_lambda](#module\_audit\_trail\_lambda) | terraform-aws-modules/lambda/aws | ~> 7.17 |
 | <a name="module_audit_trail_queue"></a> [audit\_trail\_queue](#module\_audit\_trail\_queue) | ./modules/sqs | n/a |
+| <a name="module_event_reminder_status_change_webhook_lambda"></a> [event\_reminder\_status\_change\_webhook\_lambda](#module\_event\_reminder\_status\_change\_webhook\_lambda) | terraform-aws-modules/lambda/aws | ~> 7.17 |
+| <a name="module_event_reminder_status_change_webhook_lambda_alias"></a> [event\_reminder\_status\_change\_webhook\_lambda\_alias](#module\_event\_reminder\_status\_change\_webhook\_lambda\_alias) | terraform-aws-modules/lambda/aws//modules/alias | ~> 7.17 |
 | <a name="module_fetch_user_calendars_lambda"></a> [fetch\_user\_calendars\_lambda](#module\_fetch\_user\_calendars\_lambda) | terraform-aws-modules/lambda/aws | ~> 7.17 |
 | <a name="module_find_actionable_events_lambda"></a> [find\_actionable\_events\_lambda](#module\_find\_actionable\_events\_lambda) | terraform-aws-modules/lambda/aws | ~> 7.17 |
 | <a name="module_get_idp_user_calendars_lambda"></a> [get\_idp\_user\_calendars\_lambda](#module\_get\_idp\_user\_calendars\_lambda) | terraform-aws-modules/lambda/aws | ~> 7.17 |
@@ -67,6 +69,7 @@
 | [tls_private_key.jwt_refresh_key](https://registry.terraform.io/providers/hashicorp/tls/latest/docs/resources/private_key) | resource |
 | [aws_caller_identity.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/caller_identity) | data source |
 | [aws_iam_policy_document.audit_trail_iam_policydoc](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
+| [aws_iam_policy_document.event_reminder_status_change_webhook_iam_policydoc](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
 | [aws_iam_policy_document.fetch_user_calendars_iam_policydoc](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
 | [aws_iam_policy_document.find_actionable_events_iam_policydoc](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
 | [aws_iam_policy_document.get_idp_user_calendars_iam_policydoc](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
