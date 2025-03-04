@@ -221,7 +221,7 @@ components:
         - idp
         - idpId
         - lastSignInAt
-        - signUpAt
+        - signedUpAt
         - userStatus
       # Additionalproperties are allowed by default in OpenAPI. To enforce maximum strictness use additionalProperties: false to block all arbitrary data.
       additionalProperties: false
