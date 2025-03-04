@@ -71,10 +71,10 @@ paths:
                   type: string
       security: [] # This overrides global definition since this endpoint is unprotected
       responses:
-        '200': { $ref: '#/components/responses/AuthenticationOK' }
-        '400': { $ref: '#/components/responses/BadRequest' }
-        '401': { $ref: '#/components/responses/Unauthorised' }
-        '500': { $ref: '#/components/responses/InternalServerError' }
+        '200': { $ref: './component-definitions.yaml#/components/responses/AuthenticationOK' }
+        '400': { $ref: './component-definitions.yaml#/components/responses/BadRequest' }
+        '401': { $ref: './component-definitions.yaml#/components/responses/Unauthorised' }
+        '500': { $ref: './component-definitions.yaml#/components/responses/InternalServerError' }
       x-amazon-apigateway-integration:
         $ref: './aws-stuff.yaml#/components/x-notifycal/AWS_LAMBDA_PROXY'
         uri: 'arn:aws:apigateway:${aws_region}:lambda:path/2015-03-31/functions/${lambda_functions.post_login_arn}/invocations'
@@ -99,11 +99,11 @@ paths:
                   type: string
       security: [] # This overrides global definition since this endpoint is unprotected
       responses:
-        '200': { $ref: '#/components/responses/AuthenticationOK' }
-        '400': { $ref: '#/components/responses/BadRequest' }
-        '401': { $ref: '#/components/responses/Unauthorised' }
-        '403': { $ref: '#/components/responses/Forbidden' }
-        '500': { $ref: '#/components/responses/InternalServerError' }
+        '200': { $ref: './component-definitions.yaml#/components/responses/AuthenticationOK' }
+        '400': { $ref: './component-definitions.yaml#/components/responses/BadRequest' }
+        '401': { $ref: './component-definitions.yaml#/components/responses/Unauthorised' }
+        '403': { $ref: './component-definitions.yaml#/components/responses/Forbidden' }
+        '500': { $ref: './component-definitions.yaml#/components/responses/InternalServerError' }
       x-amazon-apigateway-integration:
         $ref: './aws-stuff.yaml#/components/x-notifycal/AWS_LAMBDA_PROXY'
         uri: 'arn:aws:apigateway:${aws_region}:lambda:path/2015-03-31/functions/${lambda_functions.post_refresh_arn}/invocations'
@@ -124,12 +124,12 @@ paths:
               schema:
                 type: object
                 properties:
-                  result: { $ref: '#/components/schemas/User' }
+                  result: { $ref: './component-definitions.yaml#/components/schemas/User' }
                 required: [result]
                 additionalProperties: false
-        '401': { $ref: '#/components/responses/Unauthorised' }
-        '404': { $ref: '#/components/responses/NotFound' }
-        '500': { $ref: '#/components/responses/InternalServerError' }
+        '401': { $ref: './component-definitions.yaml#/components/responses/Unauthorised' }
+        '404': { $ref: './component-definitions.yaml#/components/responses/NotFound' }
+        '500': { $ref: './component-definitions.yaml#/components/responses/InternalServerError' }
       x-amazon-apigateway-integration:
         $ref: './aws-stuff.yaml#/components/x-notifycal/AWS_LAMBDA_PROXY'
         uri: 'arn:aws:apigateway:${aws_region}:lambda:path/2015-03-31/functions/${lambda_functions.get_user_profile_arn}/invocations'
@@ -152,13 +152,13 @@ paths:
                   description: Business address
                   type: string
                 calendars:
-                  $ref: '#/components/schemas/CalendarList'
+                  $ref: './component-definitions.yaml#/components/schemas/CalendarList'
       responses:
         '204':
           description: 'No Content'
-        '400': { $ref: '#/components/responses/BadRequest' }
-        '401': { $ref: '#/components/responses/Unauthorised' }
-        '500': { $ref: '#/components/responses/InternalServerError' }
+        '400': { $ref: './component-definitions.yaml#/components/responses/BadRequest' }
+        '401': { $ref: './component-definitions.yaml#/components/responses/Unauthorised' }
+        '500': { $ref: './component-definitions.yaml#/components/responses/InternalServerError' }
       x-amazon-apigateway-integration:
         $ref: './aws-stuff.yaml#/components/x-notifycal/AWS_LAMBDA_PROXY'
         uri: 'arn:aws:apigateway:${aws_region}:lambda:path/2015-03-31/functions/${lambda_functions.patch_user_profile_arn}/invocations'
@@ -179,159 +179,18 @@ paths:
               schema:
                 type: object
                 properties:
-                  result: { $ref: '#/components/schemas/CalendarList' }
+                  result: { $ref: './component-definitions.yaml#/components/schemas/CalendarList' }
                 required: [result]
                 additionalProperties: false
-        '401': { $ref: '#/components/responses/Unauthorised' }
-        '500': { $ref: '#/components/responses/InternalServerError' }
+        '401': { $ref: './component-definitions.yaml#/components/responses/Unauthorised' }
+        '500': { $ref: './component-definitions.yaml#/components/responses/InternalServerError' }
       x-amazon-apigateway-integration:
         $ref: './aws-stuff.yaml#/components/x-notifycal/AWS_LAMBDA_PROXY'
         uri: 'arn:aws:apigateway:${aws_region}:lambda:path/2015-03-31/functions/${lambda_functions.get_idp_user_calendars_arn}/invocations'
     options:
       $ref: './aws-stuff.yaml#/components/x-notifycal/CORS_OPTIONS'
 
-components:
-  schemas:
-    User:
-      type: object
-      properties:
-        userId:
-          type: string
-          format: uuid
-        email:
-          type: string
-          format: uuid
-        idp:
-          type: string
-        idpId:
-          type: string
-        lastSignInAt:
-          $ref: '#/components/schemas/UnixTimestamp'
-        signedUpAt:
-          $ref: '#/components/schemas/UnixTimestamp'
-        userStatus:
-          type: string
-          enum:
-            - live
-            - onboarding
-            - banned
-      required:
-        - userId
-        - email
-        - idp
-        - idpId
-        - lastSignInAt
-        - signedUpAt
-        - userStatus
-      # Additionalproperties are allowed by default in OpenAPI. To enforce maximum strictness use additionalProperties: false to block all arbitrary data.
-      additionalProperties: false
 
-    CalendarList:
-      type: array
-      items:
-        type: object
-        properties:
-          id:
-            type: string
-          name:
-            type: string
-        required:
-          - id
-          - name
-        # Additionalproperties are allowed by default in OpenAPI. To enforce maximum strictness use additionalProperties: false to block all arbitrary data.
-        additionalProperties: false
-
-    UnixTimestamp:
-      type: number
-      format: int64
-      description: Unix timestamp in seconds
-
-    ErrorResponse:
-      type: object
-      properties:
-        message:
-          type: string
-          # This will limit us in case we want to send dynamic/custom error messages. But it's ok for now
-          enum:
-            - Bad Request
-            - Unauthorised
-            - Not Found
-            - Forbidden
-            - KO
-      required:
-        - message
-      additionalProperties: false
-
-  responses:
-    AuthenticationOK:
-      description: OK
-      content:
-        application/json:
-          schema:
-            type: object
-            description: Response payload containing authorization
-            properties:
-              accessToken:
-                description: jwt to use as an authorization against all system APIs. It contains the following claims userId, email, idp and idpId
-                type: string
-              tokenType:
-                type: string
-                enum:
-                  - Bearer
-              refreshToken:
-                description: jwt to refresh authorization for system APIs
-                type: string
-            required:
-              - accessToken
-              - tokenType
-              - refreshToken
-
-    BadRequest:
-      description: Bad Request response payload
-      content:
-        application/json:
-          schema: { $ref: '#/components/schemas/ErrorResponse' }
-
-    Unauthorised:
-      description: Unauthorised response payload
-      content:
-        application/json:
-          schema: { $ref: '#/components/schemas/ErrorResponse' }
-
-    Forbidden:
-      description: Forbidden response payload
-      content:
-        application/json:
-          schema: { $ref: '#/components/schemas/ErrorResponse' }
-
-    NotFound:
-      description: NotFound response payload
-      content:
-        application/json:
-          schema: { $ref: '#/components/schemas/ErrorResponse' }
-
-    InternalServerError:
-      description: Internal Server Error response payload
-      content:
-        application/json:
-          schema: { $ref: '#/components/schemas/ErrorResponse' }
-
-    CORSResponse:
-      description: CORS Preflight Response
-      headers:
-        Access-Control-Allow-Origin:
-          schema:
-            type: string
-        Access-Control-Allow-Methods:
-          schema:
-            type: string
-        Access-Control-Allow-Headers:
-          schema:
-            type: string
-        Access-Control-Max-Age:
-          schema:
-            type: integer
-            example: 86400
 
 tags:
   - name: user

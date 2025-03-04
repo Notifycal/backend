@@ -1,0 +1,142 @@
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        userId:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: uuid
+        idp:
+          type: string
+        idpId:
+          type: string
+        lastSignInAt:
+          $ref: '#/components/schemas/UnixTimestamp'
+        signedUpAt:
+          $ref: '#/components/schemas/UnixTimestamp'
+        userStatus:
+          type: string
+          enum:
+            - live
+            - onboarding
+            - banned
+      required:
+        - userId
+        - email
+        - idp
+        - idpId
+        - lastSignInAt
+        - signedUpAt
+        - userStatus
+      # Additionalproperties are allowed by default in OpenAPI. To enforce maximum strictness use additionalProperties: false to block all arbitrary data.
+      additionalProperties: false
+
+    CalendarList:
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            type: string
+          name:
+            type: string
+        required:
+          - id
+          - name
+        # Additionalproperties are allowed by default in OpenAPI. To enforce maximum strictness use additionalProperties: false to block all arbitrary data.
+        additionalProperties: false
+
+    UnixTimestamp:
+      type: number
+      format: int64
+      description: Unix timestamp in seconds
+
+    ErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          # This will limit us in case we want to send dynamic/custom error messages. But it's ok for now
+          enum:
+            - Bad Request
+            - Unauthorised
+            - Not Found
+            - Forbidden
+            - KO
+      required:
+        - message
+      additionalProperties: false
+
+  responses:
+    AuthenticationOK:
+      description: OK
+      content:
+        application/json:
+          schema:
+            type: object
+            description: Response payload containing authorization
+            properties:
+              accessToken:
+                description: jwt to use as an authorization against all system APIs. It contains the following claims userId, email, idp and idpId
+                type: string
+              tokenType:
+                type: string
+                enum:
+                  - Bearer
+              refreshToken:
+                description: jwt to refresh authorization for system APIs
+                type: string
+            required:
+              - accessToken
+              - tokenType
+              - refreshToken
+
+    BadRequest:
+      description: Bad Request response payload
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+
+    Unauthorised:
+      description: Unauthorised response payload
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+
+    Forbidden:
+      description: Forbidden response payload
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+
+    NotFound:
+      description: NotFound response payload
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+
+    InternalServerError:
+      description: Internal Server Error response payload
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+
+    CORSResponse:
+      description: CORS Preflight Response
+      headers:
+        Access-Control-Allow-Origin:
+          schema:
+            type: string
+        Access-Control-Allow-Methods:
+          schema:
+            type: string
+        Access-Control-Allow-Headers:
+          schema:
+            type: string
+        Access-Control-Max-Age:
+          schema:
+            type: integer
+            example: 86400
