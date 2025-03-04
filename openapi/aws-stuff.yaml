@@ -62,4 +62,3 @@ components:
           schema:
             type: integer
             example: 86400
-

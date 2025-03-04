@@ -78,7 +78,7 @@ paths:
       x-amazon-apigateway-integration:
         $ref: './aws-stuff.yaml#/components/x-notifycal/AWS_LAMBDA_PROXY'
         uri: 'arn:aws:apigateway:${aws_region}:lambda:path/2015-03-31/functions/${lambda_functions.post_login_arn}/invocations'
-    options: 
+    options:
       $ref: './aws-stuff.yaml#/components/x-notifycal/CORS_OPTIONS'
 
   /api/v1/refresh:
@@ -107,7 +107,7 @@ paths:
       x-amazon-apigateway-integration:
         $ref: './aws-stuff.yaml#/components/x-notifycal/AWS_LAMBDA_PROXY'
         uri: 'arn:aws:apigateway:${aws_region}:lambda:path/2015-03-31/functions/${lambda_functions.post_refresh_arn}/invocations'
-    options: 
+    options:
       $ref: './aws-stuff.yaml#/components/x-notifycal/CORS_OPTIONS'
 
   /api/v1/user-profile:
@@ -162,7 +162,7 @@ paths:
       x-amazon-apigateway-integration:
         $ref: './aws-stuff.yaml#/components/x-notifycal/AWS_LAMBDA_PROXY'
         uri: 'arn:aws:apigateway:${aws_region}:lambda:path/2015-03-31/functions/${lambda_functions.patch_user_profile_arn}/invocations'
-    options: 
+    options:
       $ref: './aws-stuff.yaml#/components/x-notifycal/CORS_OPTIONS'
 
   /api/v1/idp/user-calendars:
@@ -187,7 +187,7 @@ paths:
       x-amazon-apigateway-integration:
         $ref: './aws-stuff.yaml#/components/x-notifycal/AWS_LAMBDA_PROXY'
         uri: 'arn:aws:apigateway:${aws_region}:lambda:path/2015-03-31/functions/${lambda_functions.get_idp_user_calendars_arn}/invocations'
-    options: 
+    options:
       $ref: './aws-stuff.yaml#/components/x-notifycal/CORS_OPTIONS'
 
 components:
