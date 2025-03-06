@@ -111,7 +111,7 @@ module "send_event_reminder_lambda" {
   environment_variables = merge({
     VONAGE_APPLICATION_ID       = var.vonage_auth_config.application_id
     VONAGE_SSM_PATH_PRIVATE_KEY = data.aws_ssm_parameter.vonage_private_key.name
-    VONAGE_WEBHOOK_BASE_URL = "${local.api_url}/api/v1/webhook/reminder-status"
+    VONAGE_WEBHOOK_BASE_URL     = "${local.api_url}/api/v1/webhook/reminder-status"
 
     MESSAGING_ENABLED = "false"
 
