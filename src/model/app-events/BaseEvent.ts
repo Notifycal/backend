@@ -39,13 +39,10 @@ export type BaseEvent = z.infer<typeof baseEventSchema>;
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, @typescript-eslint/explicit-module-boundary-types
 export function eventSchemaGenerator<
+  TEventType extends SuccessEventType | ErrorEventType,
   TData extends z.AnyZodObject,
   TSensitiveData extends z.AnyZodObject
->(
-  eventType: SuccessEventType | ErrorEventType,
-  dataSchema: TData,
-  sensitiveDataSchema: TSensitiveData
-) {
+>(eventType: TEventType, dataSchema: TData, sensitiveDataSchema: TSensitiveData) {
   return baseEventSchema.extend({
     eventType: z.literal(eventType),
     data: dataSchema,
