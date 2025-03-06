@@ -15,8 +15,7 @@ const data = z.object({
 });
 export const userFetchedEventsParsingFailedEventSchema = errorEventSchemaGenerator(
   'UserFetchedEventsParsingFailed',
-  data,
-  z.object({}).strict()
+  data
 );
 
 export type UserFetchedEventsParsingFailedEvent = z.infer<
@@ -43,7 +42,6 @@ export function userFetchedEventsParsingFailed(
         message: error.message,
         cause: error.item
       }
-    },
-    sensitiveData: {}
+    }
   };
 }

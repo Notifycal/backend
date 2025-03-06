@@ -15,8 +15,7 @@ const data = z.object({
 });
 export const noPhoneNumberForAttendeeFoundEventSchema = errorEventSchemaGenerator(
   'NoPhoneNumberForAttendeeFound',
-  data,
-  z.object({}).strict()
+  data
 );
 
 export type NoPhoneNumberForAttendeeFoundEvent = z.infer<
@@ -42,7 +41,6 @@ export function noPhoneNumberForAttendeeFound(
       calendar: origin.data.calendar,
       calendarEvent: calendarEvent,
       attendeeId: attendeeId
-    },
-    sensitiveData: {}
+    }
   };
 }

@@ -13,8 +13,7 @@ const dataSchema = z.object({
 });
 export const actionableEventFoundEventSchema = eventSchemaGenerator(
   'ActionableEventFound',
-  dataSchema,
-  z.object({}).strict()
+  dataSchema
 );
 
 export type ActionableEventFoundEvent = z.infer<typeof actionableEventFoundEventSchema>;

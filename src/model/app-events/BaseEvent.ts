@@ -26,8 +26,7 @@ export const baseEventSchema = z.object({
   happenedAt: dateTimeSchema,
   eventId: eventIdSchema,
   correlationId: z.string().uuid().brand('CorrelationId'),
-  data: dataSchema,
-  sensitiveData: dataSchema
+  data: dataSchema
 });
 export const baseErrorEvent = baseEventSchema.extend({
   eventType: errorEventTypeSchema
@@ -36,29 +35,23 @@ export type BaseErrorEvent = z.infer<typeof baseErrorEvent>;
 export type BaseEvent = z.infer<typeof baseEventSchema>;
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, @typescript-eslint/explicit-module-boundary-types
-export function eventSchemaGenerator<
-  TData extends z.AnyZodObject,
-  TSensitiveData extends z.AnyZodObject
->(
-  eventType: SuccessEventType | ErrorEventType,
-  dataSchema: TData,
-  sensitiveDataSchema: TSensitiveData
+export function eventSchemaGenerator<TData extends z.AnyZodObject>(
+  eventType: SuccessEventType,
+  dataSchema: TData
 ) {
   return baseEventSchema.extend({
     eventType: z.literal(eventType),
-    data: dataSchema,
-    sensitiveData: sensitiveDataSchema
+    data: dataSchema
   });
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, @typescript-eslint/explicit-module-boundary-types
-export function errorEventSchemaGenerator<
-  TData extends z.AnyZodObject,
-  TSensitiveData extends z.AnyZodObject
->(eventType: ErrorEventType, dataSchema: TData, sensitiveDataSchema: TSensitiveData) {
+export function errorEventSchemaGenerator<TData extends z.AnyZodObject>(
+  eventType: ErrorEventType,
+  dataSchema: TData
+) {
   return baseEventSchema.extend({
     eventType: z.literal(eventType),
-    data: dataSchema,
-    sensitiveData: sensitiveDataSchema
+    data: dataSchema
   });
 }
