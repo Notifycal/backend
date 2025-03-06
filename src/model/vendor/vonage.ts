@@ -29,12 +29,14 @@ const messageStatusUsageSchema = z.object({
   })
 });
 
+export const messageStatusSchema = z.enum(['submitted', 'delivered', 'rejected', 'undeliverable']);
+
 const messageStatusBaseSchema = z.object({
   message_uuid: uuidSchema,
   to: toNumberSchema,
   from: fromNumberSchema,
   timestamp: timestampSchema,
-  status: z.enum(['submitted', 'delivered', 'rejected', 'undeliverable']),
+  status: messageStatusSchema,
   error: messageStatusErrorSchema.optional(),
   client_ref: z.string().max(100)
 });

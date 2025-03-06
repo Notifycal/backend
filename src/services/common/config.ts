@@ -201,7 +201,8 @@ export function readVonageConfig(env: Environment): VonageConfig {
   return {
     vonageConfig: {
       privateKeySSMPath: env.get('VONAGE_SSM_PATH_PRIVATE_KEY').required().asString(),
-      applicationId: env.get('VONAGE_APPLICATION_ID').required().asString() as VonageApplicationId
+      applicationId: env.get('VONAGE_APPLICATION_ID').required().asString() as VonageApplicationId,
+      webhookBaseURL: env.get('VONAGE_WEBHOOK_BASE_URL').required().asString() as Url
     }
   };
 }

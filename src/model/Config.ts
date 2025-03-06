@@ -90,5 +90,6 @@ export type VonageConfig = {
   vonageConfig: {
     privateKeySSMPath: string;
     applicationId: VonageApplicationId;
+    webhookBaseURL: Url;
   };
 };

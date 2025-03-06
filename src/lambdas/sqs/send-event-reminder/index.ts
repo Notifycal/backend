@@ -11,6 +11,8 @@ import type { z } from 'zod';
 import { readSendEventReminderConfig, type SendEventReminderConfig } from './config';
 import MessageProcessor from './message-idempotent-processor';
 
+import { objectToQueryString } from '@utils/queryString';
+
 const eventSchema = eventSqsSchema<SendEventReminderConfig, typeof actionableEventFoundEventSchema>(
   actionableEventFoundEventSchema
 );
@@ -49,6 +51,26 @@ async function lambdaHandler(event: Event, context: Context): Promise<Uuid> {
     persistenceStore: idempotencyPersistence,
     config: idempotencyConfig
   });
+
+
+  /*
+  - new eventId? (uuid)
+  - keep correlationId (uuid)
+  - eventType?
+  - set happenedAt?
+  - keep userId
+  - keep idp, idpId?
+  - data:
+    - keep run
+    - keep calendar
+    - keep calendar event (id only, or everything?)
+    - keep senderDetails and receiverDetails
+  */
+  const recordQs = objectToQueryString(record.body);
+  const fullURL = `${config.vonageConfig.webhookBaseURL}?${recordQs}`;
+
+  logger.info(`recordBody: ${JSON.stringify(record.body, null, 2)}`);
+  logger.info(`fullWebhookUrl: ${fullURL}`);
 
   const messageUUID = await messageProcessorIdempotent(record);
 

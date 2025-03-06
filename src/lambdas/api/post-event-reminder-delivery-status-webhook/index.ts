@@ -28,6 +28,8 @@ function lambdaHandler(
   const { body } = event;
   logger.info(`Body: ${JSON.stringify(body)}`);
 
+  logger.info(`QPS: ${JSON.stringify(event.queryStringParameters)}`);
+
   // Send whatever status update to audit-trail
 
   return Promise.resolve(successHandler()());
