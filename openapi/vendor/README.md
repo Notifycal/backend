@@ -1,4 +1,4 @@
-This folder is meant to contain any 3rd party/vendor OpenAPI definition that we might reference from our own OpenAPI Spec. 
+This folder is meant to contain any 3rd party/vendor OpenAPI definition that we might reference from our own OpenAPI Spec.
 
 We could reference any URL in a `$ref` like this: `$ref: "https://url/to/openapi/spec/yaml/file.yaml#/components/schemas/schemaName"`. But storing them locally solves 2 problems (and creates some more):
 

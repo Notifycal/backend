@@ -2,21 +2,17 @@ import { JSONStringified } from '@aws-lambda-powertools/parser/helpers';
 import { unprotectedEndpointMiddleware } from '@common/lambda-middleware';
 import { apiEventSchema } from '@model/lambda-events/ApiGatewayEvents';
 import type { APIGatewayProxyResult, Context } from 'aws-lambda';
-import { z } from 'zod';
+import type { z } from 'zod';
 import {
   readReminderDeliveryStatusWebhookConfig,
   type ReminderDeliveryStatusWebhookConfig
 } from './config';
 import { successHandler } from '@services/common/api-response-handlers';
-import { uuidSchema } from '@notifycal/shared/schemas';
 import { logger } from '@common/powertools';
-
-export const bodySchema = z.object({
-  messageUUID: uuidSchema
-});
+import { VonageMessageStatusWebhookSchema } from '@model/vendor/vonage';
 
 const schema = apiEventSchema<ReminderDeliveryStatusWebhookConfig>().extend({
-  body: JSONStringified(bodySchema)
+  body: JSONStringified(VonageMessageStatusWebhookSchema)
 });
 export type Event = z.infer<typeof schema>;
 
@@ -27,7 +23,12 @@ function lambdaHandler(
 ): Promise<APIGatewayProxyResult> {
   logger.info(`Processing API call in messaging-webhook lambda. Event: ${JSON.stringify(event)}`);
   const config = event.lambdaConfig;
-  console.log(config);
+  logger.info(`Config: ${JSON.stringify(config)}`);
+
+  const { body } = event;
+  logger.info(`Body: ${JSON.stringify(body)}`);
+
+  // Send whatever status update to audit-trail
 
   return Promise.resolve(successHandler()());
 }

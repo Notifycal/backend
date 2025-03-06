@@ -11,11 +11,11 @@ paths:
       description: Receives status updates about reminders
       tags: [webhook, messaging]
       requestBody:
-          required: true
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/MessageDeliveryWebhookPayload"
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MessageDeliveryWebhookPayload'
 
       responses:
         '200':
@@ -34,5 +34,5 @@ components:
     MessageDeliveryWebhookPayload:
       # Not a fan of this, but AWS APIGW has selective support for `oneOf`
       oneOf:
-        - $ref: "./vendor/vonage.yaml#/components/schemas/messageStatusSMS"
-        - $ref: "./vendor/vonage.yaml#/components/schemas/messageStatusRCS"
+        - $ref: './vendor/vonage.yaml#/components/schemas/messageStatusSMS'
+        - $ref: './vendor/vonage.yaml#/components/schemas/messageStatusRCS'
