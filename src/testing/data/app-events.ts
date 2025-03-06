@@ -81,6 +81,5 @@ export const noPhoneNumberForAttendeeFoundEvent: NoPhoneNumberForAttendeeFoundEv
       timeZone: 'Europe/Madrid' as TimeZone
     },
     attendeeId: 'some-ateendee-id'
-  },
-  sensitiveData: {}
+  }
 };
