@@ -52,7 +52,6 @@ async function lambdaHandler(event: Event, context: Context): Promise<Uuid> {
     config: idempotencyConfig
   });
 
-
   /*
   - new eventId? (uuid)
   - keep correlationId (uuid)
