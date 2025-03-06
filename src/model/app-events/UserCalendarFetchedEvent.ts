@@ -24,8 +24,9 @@ const sensitiveData = z.object({
 });
 export const userCalendarFetchedEventSchema = eventSchemaGenerator(
   'UserCalendarFetched',
-  data,
-  sensitiveData
-);
+  data
+).extend({
+  sensitiveData: sensitiveData
+});
 
 export type UserCalendarFetchedEvent = z.infer<typeof userCalendarFetchedEventSchema>;
