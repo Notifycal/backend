@@ -76,7 +76,7 @@ describe('Find actionable events record processor', () => {
             identifier: validPhoneNumber
           },
           senderDetails: {
-            type: 'rcs_sender_id',
+            type: 'rcs',
             identifier: validRCSSenderId
           },
           message:

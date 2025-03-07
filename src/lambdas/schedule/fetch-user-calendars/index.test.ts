@@ -9,6 +9,7 @@ import type {
   Email,
   IdpId,
   IdpName,
+  PhoneNumber,
   TemplateId,
   UnixTimestamp,
   UserId,
@@ -48,8 +49,14 @@ async function* validLiveUsers(): AsyncGenerator<
       SignedUpAt: 1609459200 as UnixTimestamp,
       Config: {
         calendars: [validCalendar],
-        businessName: 'businessName1' as BusinessName,
-        businessAddress: 'businessNameAddress1' as BusinessAddress
+        business: {
+          name: 'businessName1' as BusinessName,
+          address: 'businessNameAddress1' as BusinessAddress,
+          contactDetails: {
+            type: 'phone',
+            identifier: '666777888' as PhoneNumber
+          }
+        }
       },
       UserStatus: 'live' as UserStatus,
       IdpAuthorization: {
@@ -64,9 +71,15 @@ async function* validLiveUsers(): AsyncGenerator<
       LastSignInAt: 1675622399 as UnixTimestamp,
       SignedUpAt: 1612137600 as UnixTimestamp,
       Config: {
-        calendars: [validCalendar, validCalendar],
-        businessName: 'businessName2' as BusinessName,
-        businessAddress: 'businessNameAddress2' as BusinessAddress
+        calendars: [validCalendar],
+        business: {
+          name: 'businessName2' as BusinessName,
+          address: 'businessNameAddress2' as BusinessAddress,
+          contactDetails: {
+            type: 'phone',
+            identifier: '666777888' as PhoneNumber
+          }
+        }
       },
       UserStatus: 'live' as UserStatus,
       IdpAuthorization: {
@@ -85,8 +98,14 @@ async function* validLiveUsers(): AsyncGenerator<
       SignedUpAt: 1619827200 as UnixTimestamp,
       Config: {
         calendars: [validCalendar],
-        businessName: 'businessName3' as BusinessName,
-        businessAddress: 'businessNameAddress3' as BusinessAddress
+        business: {
+          name: 'businessName3' as BusinessName,
+          address: 'businessNameAddress3' as BusinessAddress,
+          contactDetails: {
+            type: 'phone',
+            identifier: '666777888' as PhoneNumber
+          }
+        }
       },
       UserStatus: 'live' as UserStatus,
       IdpAuthorization: {
@@ -111,8 +130,14 @@ async function* oneRejectionInBetweenLiveUsers(): AsyncGenerator<
       SignedUpAt: 1609459200 as UnixTimestamp,
       Config: {
         calendars: [validCalendar],
-        businessName: 'businessName4' as BusinessName,
-        businessAddress: 'businessNameAddress4' as BusinessAddress
+        business: {
+          name: 'businessName4' as BusinessName,
+          address: 'businessNameAddress4' as BusinessAddress,
+          contactDetails: {
+            type: 'phone',
+            identifier: '666777888' as PhoneNumber
+          }
+        }
       },
       UserStatus: 'live' as UserStatus,
       IdpAuthorization: {
@@ -133,8 +158,14 @@ async function* oneRejectionInBetweenLiveUsers(): AsyncGenerator<
       SignedUpAt: 1619827200 as UnixTimestamp,
       Config: {
         calendars: [validCalendar],
-        businessName: 'businessName5' as BusinessName,
-        businessAddress: 'businessNameAddress5' as BusinessAddress
+        business: {
+          name: 'businessName5' as BusinessName,
+          address: 'businessNameAddress5' as BusinessAddress,
+          contactDetails: {
+            type: 'phone',
+            identifier: '666777888' as PhoneNumber
+          }
+        }
       },
       UserStatus: 'live' as UserStatus,
       IdpAuthorization: {
@@ -160,7 +191,7 @@ describe('Schedule fetch user calendars', () => {
     });
     await testit(getLiveUsersFn);
 
-    expect(publishSpy).toHaveBeenCalledTimes(4);
+    expect(publishSpy).toHaveBeenCalledTimes(3);
   });
 
   it('cannot resume processing if persistance pagination fails', async () => {
@@ -191,7 +222,7 @@ describe('Schedule fetch user calendars', () => {
       });
     await testit(getLiveUsersFn);
 
-    expect(publishSpy).toHaveBeenCalledTimes(4);
+    expect(publishSpy).toHaveBeenCalledTimes(3);
   });
 
   it('throw an error if live users cannot be fetched from persistance', () => {

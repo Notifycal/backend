@@ -7,7 +7,7 @@ import type {
 import { eventBridgeEventSchema } from '@model/lambda-events/EventBridgeEvents';
 import type { LiveUserStoreRecord } from '@model/store/LiveUserStoreRecord';
 import type { UserIdpAuthorizationStoreRecord } from '@model/store/UserIdpAuthorizationStoreRecord';
-import type { CorrelationId, DateTime, EventId, RCSSenderId } from '@notifycal/shared/types';
+import type { CorrelationId, DateTime, EventId } from '@notifycal/shared/types';
 import { extractErrorMessage } from '@services/common/error-handling';
 import { SnsService } from '@services/sns';
 import { UserLiveIndexStore } from '@services/stores/user-live-index-store';
@@ -27,17 +27,11 @@ function toEvents(
   const pageData = item.Config.calendars.map((c) => ({
     calendar: c,
     run: run,
-    senderDetails: {
-      type: 'rcs_sender_id' as const,
-      identifier: 'Notifycal testing' as RCSSenderId
-    },
+    senderDetails: item.Config.business.contactDetails,
     template: {
       id: c.templateId,
       fields: {
-        business: {
-          name: item.Config.businessName,
-          address: item.Config.businessAddress
-        }
+        business: item.Config.business
       }
     }
   }));
