@@ -15,8 +15,7 @@ const dataSchema = z.object({
 
 export const calendarEventReminderAttemptSkippedEventSchema = eventSchemaGenerator(
   'CalendarEventReminderAttemptSkipped',
-  dataSchema,
-  z.object({}).strict()
+  dataSchema
 );
 
 export type CalendarEventReminderAttemptSkippedEvent = z.infer<
