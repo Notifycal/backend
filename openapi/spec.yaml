@@ -200,7 +200,7 @@ components:
           format: uuid
         email:
           type: string
-          format: uuid
+          format: email
         idp:
           type: string
         idpId:
