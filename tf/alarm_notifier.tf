@@ -1,6 +1,7 @@
 module "notify_slack" {
   source  = "terraform-aws-modules/notify-slack/aws"
   version = "~> 5.0"
+  count   = local.observability_count
 
   sns_topic_name = "${var.environment}-alarms"
 

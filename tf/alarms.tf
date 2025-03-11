@@ -1,8 +1,8 @@
 locals {
-  alarm_actions             = [module.notify_slack.slack_topic_arn]
-  ok_actions                = [module.notify_slack.slack_topic_arn]
-  insufficient_data_actions = [module.notify_slack.slack_topic_arn]
-  observability_count       = can(var.observability) ? 1 : 0
+  alarm_actions             = [module.notify_slack[0].slack_topic_arn]
+  ok_actions                = [module.notify_slack[0].slack_topic_arn]
+  insufficient_data_actions = [module.notify_slack[0].slack_topic_arn]
+  observability_count       = var.observability != null ? 1 : 0
 }
 
 resource "aws_cloudwatch_metric_alarm" "lambda_concurrent_executions" {
@@ -12,9 +12,9 @@ resource "aws_cloudwatch_metric_alarm" "lambda_concurrent_executions" {
   alarm_name                = "AWS/Lambda ConcurrentExecutions"
   alarm_description         = "This alarm helps to monitor if the concurrency of the function is approaching the Region-level concurrency limit of your account. A function starts to be throttled if it reaches the concurrency limit. You can take the following actions to avoid throttling. 1) Request a concurrency increase from AWS Support in this Region. 2) Identify performance issues in the function to improve the speed of processing and therefore improve throughput. 3) Increase the batch size of the function, so that more messages are processed by each function invocation. To get better visibility on reserved concurrency and provisioned concurrency utilization, set an alarm on the new metric ClaimedAccountConcurrency instead."
   actions_enabled           = true
-  ok_actions                = [local.alarm_actions]
-  alarm_actions             = [local.alarm_actions]
-  insufficient_data_actions = [local.alarm_actions]
+  ok_actions                = local.alarm_actions
+  alarm_actions             = local.alarm_actions
+  insufficient_data_actions = local.alarm_actions
   metric_name               = "ConcurrentExecutions"
   namespace                 = "AWS/Lambda"
   statistic                 = "Maximum"
@@ -34,9 +34,9 @@ resource "aws_cloudwatch_metric_alarm" "lambda_duration" {
   alarm_name                = "AWS/Lambda Duration"
   alarm_description         = "This alarm detects long duration times for processing an event by a Lambda function. Long durations might be because of changes in function code making the function take longer to execute, or the function's dependencies taking longer."
   actions_enabled           = true
-  ok_actions                = [local.alarm_actions]
-  alarm_actions             = [local.alarm_actions]
-  insufficient_data_actions = [local.alarm_actions]
+  ok_actions                = local.alarm_actions
+  alarm_actions             = local.alarm_actions
+  insufficient_data_actions = local.alarm_actions
   metric_name               = "Duration"
   namespace                 = "AWS/Lambda"
   extended_statistic        = "p90"
@@ -44,7 +44,7 @@ resource "aws_cloudwatch_metric_alarm" "lambda_duration" {
   dimensions                = {}
   evaluation_periods        = 15
   datapoints_to_alarm       = 15
-  threshold                 = 5
+  threshold                 = 5000
   comparison_operator       = "GreaterThanThreshold"
   treat_missing_data        = "missing"
 }
@@ -56,9 +56,9 @@ resource "aws_cloudwatch_metric_alarm" "lambda_errors" {
   alarm_name                = "AWS/Lambda Errors"
   alarm_description         = "This alarm detects high error counts. Errors includes the exceptions thrown by the code as well as exceptions thrown by the Lambda runtime. You can check the logs related to the function to diagnose the issue."
   actions_enabled           = true
-  ok_actions                = [local.alarm_actions]
-  alarm_actions             = [local.alarm_actions]
-  insufficient_data_actions = [local.alarm_actions]
+  ok_actions                = local.alarm_actions
+  alarm_actions             = local.alarm_actions
+  insufficient_data_actions = local.alarm_actions
   metric_name               = "Errors"
   namespace                 = "AWS/Lambda"
   statistic                 = "Sum"
@@ -78,9 +78,9 @@ resource "aws_cloudwatch_metric_alarm" "lambda_throttles" {
   alarm_name                = "AWS/Lambda Throttles"
   alarm_description         = "This alarm detects a high number of throttled invocation requests. Throttling occurs when there is no concurrency is available for scale up. There are several approaches to resolve this issue. 1) Request a concurrency increase from AWS Support in this Region. 2) Identify performance issues in the function to improve the speed of processing and therefore improve throughput. 3) Increase the batch size of the function, so that more messages are processed by each function invocation."
   actions_enabled           = true
-  ok_actions                = [local.alarm_actions]
-  alarm_actions             = [local.alarm_actions]
-  insufficient_data_actions = [local.alarm_actions]
+  ok_actions                = local.alarm_actions
+  alarm_actions             = local.alarm_actions
+  insufficient_data_actions = local.alarm_actions
   metric_name               = "Throttles"
   namespace                 = "AWS/Lambda"
   statistic                 = "Sum"
