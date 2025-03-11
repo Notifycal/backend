@@ -109,6 +109,6 @@ variable "enable_xray_active_tracing" {
 variable "observability" {
   type = optional(object({
     slack_webhook_url = string
-    slack_channel = string
+    slack_channel     = string
   }))
 }
