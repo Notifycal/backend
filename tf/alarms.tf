@@ -68,7 +68,7 @@ resource "aws_cloudwatch_metric_alarm" "lambda_errors" {
   datapoints_to_alarm       = 3
   threshold                 = 0
   comparison_operator       = "GreaterThanThreshold"
-  treat_missing_data        = "missing"
+  treat_missing_data        = "ignore"
 }
 
 resource "aws_cloudwatch_metric_alarm" "lambda_throttles" {
