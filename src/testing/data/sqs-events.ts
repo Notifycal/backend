@@ -1,3 +1,4 @@
+import type { EventBridgeEvent } from '@aws-lambda-powertools/parser/types';
 import type { BaseEvent } from '@model/app-events/BaseEvent';
 import type { SQSMessageAttributes, SQSRecordAttributes } from 'aws-lambda';
 
@@ -36,7 +37,9 @@ const recordBodyOmitted: Omit<TestingSQSRecord<unknown>, 'body'> = {
   eventSourceARN: '',
   awsRegion: ''
 };
-export function validRecord<TRecord extends BaseEvent>(event: TRecord): TestingSQSRecord<TRecord> {
+export function validRecord<TRecord extends BaseEvent | EventBridgeEvent>(
+  event: TRecord
+): TestingSQSRecord<TRecord> {
   return {
     body: event,
     ...recordBodyOmitted

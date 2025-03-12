@@ -15,9 +15,9 @@ export type Data = z.infer<typeof dataSchema>;
 export interface AuditTrailStoreRecord {
   EventId: EventId;
   CorrelationId: CorrelationId;
-  UserId: UserId;
-  IdpId: IdpId;
-  Idp: IdpName;
+  UserId: UserId | 'System';
+  IdpId: IdpId | 'N/A';
+  Idp: IdpName | 'N/A';
   EventType: EventType;
   HappenedAt: DateTime;
   Data: Data;
