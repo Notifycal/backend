@@ -22,7 +22,7 @@ resource "aws_cloudwatch_metric_alarm" "lambda_concurrent_executions" {
   dimensions                = {}
   evaluation_periods        = 10
   datapoints_to_alarm       = 10
-  threshold                 = 2
+  threshold                 = 600
   comparison_operator       = "GreaterThanThreshold"
   treat_missing_data        = "ignore"
 }
@@ -39,7 +39,7 @@ resource "aws_cloudwatch_metric_alarm" "lambda_invocations" {
   insufficient_data_actions = local.alarm_actions
   metric_name               = "Invocations"
   namespace                 = "AWS/Lambda"
-  statistic                 = "Maximum"
+  statistic                 = "Sum"
   period                    = 60
   dimensions                = {}
   evaluation_periods        = 10
