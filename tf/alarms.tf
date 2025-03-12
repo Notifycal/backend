@@ -27,6 +27,28 @@ resource "aws_cloudwatch_metric_alarm" "lambda_concurrent_executions" {
   treat_missing_data        = "ignore"
 }
 
+resource "aws_cloudwatch_metric_alarm" "lambda_invocations" {
+  count = local.observability_count
+  # Intent            : "This alarm can proactively detect the number of invocations is higher than usual"
+  # Threshold Justification : "The threshold needs to allow for a high number of invocation if busy day - not a number that suggest that the system is operating in infite loop though"
+  alarm_name                = "AWS/Lambda Invocations"
+  alarm_description         = "This alarm helps to monitor if the number of invocations is higher than usual"
+  actions_enabled           = true
+  ok_actions                = local.alarm_actions
+  alarm_actions             = local.alarm_actions
+  insufficient_data_actions = local.alarm_actions
+  metric_name               = "Invocations"
+  namespace                 = "AWS/Lambda"
+  statistic                 = "Maximum"
+  period                    = 60
+  dimensions                = {}
+  evaluation_periods        = 10
+  datapoints_to_alarm       = 10
+  threshold                 = 250
+  comparison_operator       = "GreaterThanThreshold"
+  treat_missing_data        = "ignore"
+}
+
 resource "aws_cloudwatch_metric_alarm" "lambda_duration" {
   count = local.observability_count
   # Intent            : "This alarm can detect a long running duration of a Lambda function. High runtime duration indicates that a function is taking a longer time for invocation, and can also impact the concurrency capacity of invocation if Lambda is handling a higher number of events. It is critical to know if the Lambda function is constantly taking longer execution time than expected."
@@ -64,8 +86,8 @@ resource "aws_cloudwatch_metric_alarm" "lambda_errors" {
   statistic                 = "Sum"
   period                    = 60
   dimensions                = {}
-  evaluation_periods        = 3
-  datapoints_to_alarm       = 3
+  evaluation_periods        = 2
+  datapoints_to_alarm       = 2
   threshold                 = 0
   comparison_operator       = "GreaterThanThreshold"
   treat_missing_data        = "ignore"
