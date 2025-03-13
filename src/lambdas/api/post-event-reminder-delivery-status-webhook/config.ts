@@ -1,12 +1,13 @@
-import type { BaseEndpointConfig } from '@model/Config';
-import { readBaseConfig, readEnv } from '@services/common/config';
+import type { AuditTrailQueueConfig, BaseEndpointConfig } from '@model/Config';
+import { readAuditTrailQueueConfig, readBaseConfig, readEnv } from '@services/common/config';
 import { promiseTry } from '@utils/promises';
 
-export type ReminderDeliveryStatusWebhookConfig = BaseEndpointConfig;
+export type ReminderDeliveryStatusWebhookConfig = BaseEndpointConfig & AuditTrailQueueConfig;
 
 export function readReminderDeliveryStatusWebhookConfig(): Promise<ReminderDeliveryStatusWebhookConfig> {
   const env = readEnv();
   return promiseTry(() => ({
-    ...readBaseConfig(env)
+    ...readBaseConfig(env),
+    ...readAuditTrailQueueConfig(env)
   }));
 }

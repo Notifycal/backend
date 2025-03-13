@@ -6,6 +6,7 @@ import type { ReminderDeliveryStatusWebhookConfig } from './config';
 import { setEnvBaseConfig } from '@testing/utils/config';
 import { handler, type Event } from './index';
 import { responseError, responseSuccess } from '@testing/utils/api-response-handlers';
+import type { Url } from '@own-types/model';
 
 /* eslint-disable camelcase */
 const invalidBodies = [
@@ -117,6 +118,9 @@ describe('POST Event reminder delivery status webhook', () => {
   const defaultEnv = {
     baseConfig: {
       frontendDomain: 'http://localhost:5173'
+    },
+    auditTrailQueueConfig: {
+      queueUrl: 'https://fake-queue-url' as Url
     }
   };
 

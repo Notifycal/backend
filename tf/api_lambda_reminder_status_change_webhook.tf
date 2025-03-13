@@ -3,11 +3,11 @@ data "aws_iam_policy_document" "event_reminder_status_change_webhook_iam_policyd
     effect = "Allow"
 
     actions = [
-      "dynamodb:UpdateItem",
+      "sqs:SendMessage",
     ]
 
     resources = [
-      aws_dynamodb_table.users.arn
+      module.audit_trail_queue.sqs_queue_arn
     ]
   }
 }
@@ -40,7 +40,8 @@ module "event_reminder_status_change_webhook_lambda" {
   policy_json        = data.aws_iam_policy_document.event_reminder_status_change_webhook_iam_policydoc.json
 
   environment_variables = merge({
-  }, local.protected_endpoint_env_vars, local.users_persistance_env_vars)
+    AUDIT_TRAIL_QUEUE_URL = module.audit_trail_queue.sqs_queue_url
+  }, local.common_lambda_env_vars)
 }
 
 module "event_reminder_status_change_webhook_lambda_alias" {
