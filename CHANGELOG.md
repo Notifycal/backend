@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.18.0](https://github.com/Notifycal/backend/compare/v0.17.0...v0.18.0) (2025-03-13)
+
+
+### Features
+
+* advanced openapi spec bundling with redocly ([#418](https://github.com/Notifycal/backend/issues/418)) ([a3ea3f1](https://github.com/Notifycal/backend/commit/a3ea3f1783da4796d0e2a363cf49689968a02465))
+* observability first pass. Slack notifier. Global lambda alarms … ([#428](https://github.com/Notifycal/backend/issues/428)) ([dcf6f09](https://github.com/Notifycal/backend/commit/dcf6f09fe2da7e50556fb06c4420131f2195f397))
+
+
+### Bug Fixes
+
+* EventBridge events could end up in audit trail, therefore it nee… ([#429](https://github.com/Notifycal/backend/issues/429)) ([96d4949](https://github.com/Notifycal/backend/commit/96d4949324fcc9b58e4943012473a58ab20e4187))
+* extract `sensitiveData` out of `baseEvent` / `eventSchemaGenerator` ([#420](https://github.com/Notifycal/backend/issues/420)) ([64b9ffd](https://github.com/Notifycal/backend/commit/64b9ffd28d91022a4309841d03d87e26728f0fad))
+* mistake in field format of openapi spec ([#421](https://github.com/Notifycal/backend/issues/421)) ([3971fd6](https://github.com/Notifycal/backend/commit/3971fd661e0e11bebfdd7cd363250bbcf726ee29))
+* set serviceName and namespace for metrics and logger ([#411](https://github.com/Notifycal/backend/issues/411)) ([eb19e3d](https://github.com/Notifycal/backend/commit/eb19e3d26ff9e01f69eb44d251fee0c30e5df40d))
+
 ## [0.17.0](https://github.com/Notifycal/backend/compare/v0.16.0...v0.17.0) (2025-02-27)
 
 
