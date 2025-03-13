@@ -16,41 +16,32 @@ import type { Record } from '.';
 import type { AuditTrailConfig } from './config';
 
 function toStoreRecord(r: Record['body']): Promise<AuditTrailStoreRecord> {
-  return (
-    match(r)
-      .with({ eventType: P.any, eventId: P.string, happenedAt: P.string }, (event) =>
-        Promise.resolve({
-          EventId: event.eventId,
-          CorrelationId: event.correlationId,
-          UserId: event.userId,
-          IdpId: event.idpId,
-          Idp: event.idp,
-          EventType: event.eventType,
-          HappenedAt: event.happenedAt,
-          Data: event.data
-        })
-      )
-      .with({ 'detail-type': P.string, time: P.string, id: P.string }, (event) =>
-        Promise.resolve({
-          EventId: event.id as EventId,
-          CorrelationId: event.id as CorrelationId,
-          UserId: 'System' as UserId,
-          IdpId: 'N/A' as IdpId,
-          Idp: 'N/A' as IdpName,
-          EventType: event['detail-type'] as EventType,
-          HappenedAt: event.time as DateTime,
-          Data: event
-        })
-      )
-      // this should not ever happen because there is validation in the middleware
-      .otherwise((error) =>
-        Promise.reject(
-          new Error(
-            `Unable to process this record. Record: ${JSON.stringify(r)}. Error: ${extractErrorMessage(error)}`
-          )
-        )
-      )
-  );
+  return match(r)
+    .with({ eventType: P.any, eventId: P.string, happenedAt: P.string }, (event) =>
+      Promise.resolve({
+        EventId: event.eventId,
+        CorrelationId: event.correlationId,
+        UserId: event.userId,
+        IdpId: event.idpId,
+        Idp: event.idp,
+        EventType: event.eventType,
+        HappenedAt: event.happenedAt,
+        Data: event.data
+      })
+    )
+    .with({ 'detail-type': P.string, time: P.string, id: P.string }, (event) =>
+      Promise.resolve({
+        EventId: event.id as EventId,
+        CorrelationId: event.id as CorrelationId,
+        UserId: 'System' as UserId,
+        IdpId: 'N/A' as IdpId,
+        Idp: 'N/A' as IdpName,
+        EventType: event['detail-type'] as EventType,
+        HappenedAt: event.time as DateTime,
+        Data: event
+      })
+    )
+    .exhaustive();
 }
 
 export function recordProcessor(record: Record, config: AuditTrailConfig): Promise<void> {
