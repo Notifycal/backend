@@ -20,7 +20,7 @@ export default class MessageProcessor {
     );
   }
 
-  public sendReminder = async (record: Record): Promise<Uuid> => {
+  public sendReminder = async (record: Record, webhookUrl: Url): Promise<Uuid> => {
     const { body } = record;
 
     logger.info(`Message: ${body.data.message}`);
@@ -39,7 +39,8 @@ export default class MessageProcessor {
         message,
         senderDetails,
         receiverDetails,
-        correlationId
+        correlationId,
+        webhookUrl
       );
     } else {
       messageUUID = await Promise.resolve('fake-uuid' as Uuid);

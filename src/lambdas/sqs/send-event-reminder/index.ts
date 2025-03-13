@@ -3,15 +3,15 @@ import { IdempotencyConfig, makeIdempotent } from '@aws-lambda-powertools/idempo
 import { DynamoDBPersistenceLayer } from '@aws-lambda-powertools/idempotency/dynamodb';
 import { backgroundProcessingMiddleware } from '@common/lambda-middleware';
 import { logger } from '@common/powertools';
-import { actionableEventFoundEventSchema } from '@model/app-events/ActionableEventFoundEvent';
+import { type ActionableEventFoundEvent, actionableEventFoundEventSchema } from '@model/app-events/ActionableEventFoundEvent';
 import { eventSqsSchema } from '@model/lambda-events/SqsEvents';
 import type { Uuid } from '@notifycal/shared/types';
+import type { Url } from '@own-types/model';
+import { objectToQueryString } from '@utils/queryString';
 import type { Context } from 'aws-lambda';
 import type { z } from 'zod';
 import { readSendEventReminderConfig, type SendEventReminderConfig } from './config';
 import MessageProcessor from './message-idempotent-processor';
-
-import { objectToQueryString } from '@utils/queryString';
 
 const eventSchema = eventSqsSchema<SendEventReminderConfig, typeof actionableEventFoundEventSchema>(
   actionableEventFoundEventSchema
@@ -52,26 +52,21 @@ async function lambdaHandler(event: Event, context: Context): Promise<Uuid> {
     config: idempotencyConfig
   });
 
-  /*
-  - new eventId? (uuid)
-  - keep correlationId (uuid)
-  - eventType?
-  - set happenedAt?
-  - keep userId
-  - keep idp, idpId?
-  - data:
-    - keep run
-    - keep calendar
-    - keep calendar event (id only, or everything?)
-    - keep senderDetails and receiverDetails
-  */
-  const recordQs = objectToQueryString(record.body);
-  const fullURL = `${config.vonageConfig.webhookBaseURL}?${recordQs}`;
+ const queryStringEventData: Omit<ActionableEventFoundEvent, 'eventType' | 'eventId' | 'happenedAt'> = {
+   correlationId: record.body.correlationId,
+   userId: record.body.userId,
+   idp: record.body.idp,
+   idpId: record.body.idpId,
+   data: record.body.data
+ };
+
+  const recordQs = objectToQueryString(queryStringEventData);
+  const webhookURL = `${config.vonageConfig.webhookBaseURL}?${recordQs}` as Url;
 
   logger.info(`recordBody: ${JSON.stringify(record.body, null, 2)}`);
-  logger.info(`fullWebhookUrl: ${fullURL}`);
+  logger.info(`fullWebhookUrl: ${webhookURL}`);
 
-  const messageUUID = await messageProcessorIdempotent(record);
+  const messageUUID = await messageProcessorIdempotent(record, webhookURL);
 
   if (isIdempotencyHit) {
     await messageProcessor.onIdempotencyHit(record, messageUUID);

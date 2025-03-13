@@ -6,6 +6,7 @@ import { extractErrorMessage, throwError } from '@services/common/error-handling
 
 import type { Brand, Uuid } from '@notifycal/shared/types';
 import type { MessageReceiver, MessageSender } from '@model/app-events/common';
+import type { Url } from '@own-types/model';
 
 export type VonageApplicationId = Brand<string, 'ApplicationId'>;
 export type VonagePrivateKey = Brand<string, 'PrivateKey'>;
@@ -26,7 +27,8 @@ export class MessagingService {
     messageBody: string,
     sender: MessageSender,
     receiver: MessageReceiver,
-    clientRef: string
+    clientRef: string,
+    webhookUrl: Url
   ): Promise<Uuid> {
     const MessageBuilder = sender.type === 'phone' ? SMS : RCSText;
 
@@ -35,7 +37,8 @@ export class MessagingService {
         to: receiver.identifier,
         from: sender.identifier,
         clientRef,
-        text: messageBody
+        text: messageBody,
+        webhookUrl
       });
       const { messageUUID } = await this._client.messages.send(messageObject);
 
