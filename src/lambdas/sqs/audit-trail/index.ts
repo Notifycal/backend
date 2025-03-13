@@ -1,15 +1,17 @@
 import { BatchProcessor, EventType, processPartialResponse } from '@aws-lambda-powertools/batch';
 import type { PartialItemFailureResponse } from '@aws-lambda-powertools/batch/types';
+import { EventBridgeSchema } from '@aws-lambda-powertools/parser/schemas';
 import { backgroundProcessingMiddleware } from '@common/lambda-middleware';
 import { logger } from '@common/powertools';
 import { baseEventSchema } from '@model/app-events/BaseEvent';
 import { eventSqsSchema } from '@model/lambda-events/SqsEvents';
 import type { Context } from 'aws-lambda';
-import type { z } from 'zod';
+import { z } from 'zod';
 import { type AuditTrailConfig, readAuditTrailConfig } from './config';
 import { recordProcessor } from './record-processor';
 
-const eventSchema = eventSqsSchema<AuditTrailConfig, typeof baseEventSchema>(baseEventSchema);
+const schemas = z.union([baseEventSchema, EventBridgeSchema]);
+const eventSchema = eventSqsSchema<AuditTrailConfig, typeof schemas>(schemas);
 export type Event = z.infer<typeof eventSchema>;
 export type Record = z.infer<typeof eventSchema.shape.Records.element>;
 

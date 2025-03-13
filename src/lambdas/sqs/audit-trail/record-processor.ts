@@ -1,33 +1,61 @@
 import { logger } from '@common/powertools';
+import type { EventType } from '@model/app-events/BaseEvent';
 import type { AuditTrailStoreRecord } from '@model/store/AuditTrailStoreRecord';
+import type {
+  CorrelationId,
+  DateTime,
+  EventId,
+  IdpId,
+  IdpName,
+  UserId
+} from '@notifycal/shared/types';
 import { extractErrorMessage, throwError } from '@services/common/error-handling';
 import { AuditTrailBaseStore } from '@services/stores/audit-trail-base-store';
+import { match, P } from 'ts-pattern';
 import type { Record } from '.';
 import type { AuditTrailConfig } from './config';
 
-function toStoreRecord<TEvent extends Record['body']>(event: TEvent): AuditTrailStoreRecord {
-  return {
-    EventId: event.eventId,
-    CorrelationId: event.correlationId,
-    UserId: event.userId,
-    IdpId: event.idpId,
-    Idp: event.idp,
-    EventType: event.eventType,
-    HappenedAt: event.happenedAt,
-    Data: event.data
-  };
+function toStoreRecord(r: Record['body']): Promise<AuditTrailStoreRecord> {
+  return match(r)
+    .with({ eventType: P.any, eventId: P.string, happenedAt: P.string }, (event) =>
+      Promise.resolve({
+        EventId: event.eventId,
+        CorrelationId: event.correlationId,
+        UserId: event.userId,
+        IdpId: event.idpId,
+        Idp: event.idp,
+        EventType: event.eventType,
+        HappenedAt: event.happenedAt,
+        Data: event.data
+      })
+    )
+    .with({ 'detail-type': P.string, time: P.string, id: P.string }, (event) =>
+      Promise.resolve({
+        EventId: event.id as EventId,
+        CorrelationId: event.id as CorrelationId,
+        UserId: 'System' as UserId,
+        IdpId: 'N/A' as IdpId,
+        Idp: 'N/A' as IdpName,
+        EventType: event['detail-type'] as EventType,
+        HappenedAt: event.time as DateTime,
+        Data: event
+      })
+    )
+    .exhaustive();
 }
 
 export function recordProcessor(record: Record, config: AuditTrailConfig): Promise<void> {
   const auditTrailBaseStore = AuditTrailBaseStore.withConfig(config.auditTrailBaseStoreConfig);
   const event = record.body;
-  return auditTrailBaseStore.put(toStoreRecord(event)).then(
-    () => {
-      logger.info(`Event has been successfully processed. Event id: ${event.eventId}`);
-    },
-    (error) =>
-      throwError(
-        `Failed to process event. Event id: ${event.eventId}. Error: ${extractErrorMessage(error)}`
-      )
-  );
+  return toStoreRecord(event)
+    .then((storeRecord) => auditTrailBaseStore.put(storeRecord).then(() => storeRecord))
+    .then(
+      (storeRecord) => {
+        logger.info(`Event has been successfully processed. Event id: ${storeRecord.EventId}`);
+      },
+      (error) =>
+        throwError(
+          `Failed to process event. Event: ${JSON.stringify(record.body)}. Error: ${extractErrorMessage(error)}`
+        )
+    );
 }
