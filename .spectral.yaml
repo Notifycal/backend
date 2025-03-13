@@ -24,3 +24,15 @@ overrides:
         then:
           function: truthy
         severity: off
+      # The example tag is not supported by API gateway, but there is no harm in including it
+      aws-example-tag:
+        given: '$.*'
+        then:
+          function: truthy
+        severity: off
+      # Format not supported by JSONSchema4, therefore may be ignored
+      aws-supported-formats:
+        given: '$.*'
+        then:
+          function: truthy
+        severity: off
