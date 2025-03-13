@@ -1,7 +1,9 @@
 locals {
-  alarm_actions             = [module.notify_slack[0].slack_topic_arn]
-  ok_actions                = [module.notify_slack[0].slack_topic_arn]
-  insufficient_data_actions = [module.notify_slack[0].slack_topic_arn]
+  default_action = var.observability != null ? [module.notify_slack[0].slack_topic_arn] : []
+
+  alarm_actions             = local.default_action
+  ok_actions                = local.default_action
+  insufficient_data_actions = local.default_action
   observability_count       = var.observability != null ? 1 : 0
 }
 
