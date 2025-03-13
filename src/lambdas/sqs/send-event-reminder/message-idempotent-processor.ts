@@ -1,18 +1,19 @@
 import { logger } from '@common/powertools';
 import type { Record } from './index';
-import { SqsService } from '@services/sqs';
 import type { SendEventReminderConfig } from './config';
 import { MessagingService } from '@services/messaging';
 import type { CalendarEventReminderAttemptSentEvent } from '@model/app-events/CalendarEventReminderAttemptSentEvent';
 import type { CalendarEventReminderAttemptSkippedEvent } from '@model/app-events/CalendarEventReminderAttemptSkippedEvent';
 import type { Uuid } from '@notifycal/shared/types';
+import type { Url } from '@own-types/model';
+import { AuditTrailService } from '@services/audit-trail';
 
 export default class MessageProcessor {
-  private readonly _auditTrailService: SqsService;
+  private readonly _auditTrailService: AuditTrailService;
   private readonly _messagingService: MessagingService;
 
   public constructor(config: SendEventReminderConfig) {
-    this._auditTrailService = SqsService.withConfig(config.auditTrailQueueConfig);
+    this._auditTrailService = AuditTrailService.withConfig(config.auditTrailQueueConfig);
     this._messagingService = new MessagingService(
       config.vonageConfig.applicationId,
       config.vonageConfig.vonagePrivateKey
