@@ -1,12 +1,12 @@
+import type { Url } from '@own-types/model';
 import { c, testEvent } from '@testing/data/apigateway';
+import { responseError, responseSuccess } from '@testing/utils/api-response-handlers';
+import { assert } from '@testing/utils/assertions';
+import { setEnvAuditTrailQueueConfig, setEnvBaseConfig } from '@testing/utils/config';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { describe, it } from 'vitest';
-import { assert } from '@testing/utils/assertions';
 import type { ReminderDeliveryStatusWebhookConfig } from './config';
-import { setEnvAuditTrailQueueConfig, setEnvBaseConfig } from '@testing/utils/config';
 import { handler, type Event } from './index';
-import { responseError, responseSuccess } from '@testing/utils/api-response-handlers';
-import type { Url } from '@own-types/model';
 
 /* eslint-disable camelcase */
 const invalidBodies = [
@@ -117,12 +117,20 @@ describe('POST Event reminder delivery status webhook', () => {
   });
 
   const defaultEnv = {
+    baseConfig: {
+      frontendDomain: 'http://localhost:5177'
+    },
     auditTrailQueueConfig: {
       queueUrl: 'https://fake-queue-url' as Url
+    },
+    decodeAccessJwtConfig: {
+      publicKey: 'fake-public-key',
+      issuer: 'Vonage'
     }
   };
 
   function setEnv(config: ReminderDeliveryStatusWebhookConfig) {
+    setEnvBaseConfig(config.baseConfig);
     setEnvAuditTrailQueueConfig(config.auditTrailQueueConfig);
   }
 

@@ -1,5 +1,9 @@
 import { JSONStringified } from '@aws-lambda-powertools/parser/helpers';
-import { webhookEndpointMiddleware } from '@common/lambda-middleware';
+<<<<<<< HEAD
+import { protectedEndpointMiddlewareCustom, protectedEndpointMiddlewareCustom, webhookEndpointMiddleware } from '@common/lambda-middleware';
+=======
+import { protectedEndpointMiddlewareCustom } from '@common/lambda-middleware';
+>>>>>>> 803bee1 (protect webhook by reusing the recently created middleware. A bit of refactoring around JwtConfig types to accomodate this feature)
 import { logger } from '@common/powertools';
 import type { ActionableEventFoundEvent } from '@model/app-events/ActionableEventFoundEvent';
 import type { CalendarEventReminderStatusUpdatedEvent } from '@model/app-events/CalendarEventReminderStatusUpdatedEvent';
@@ -11,7 +15,7 @@ import { successHandler } from '@services/common/api-response-handlers';
 import { queryStringObjectToObject } from '@utils/queryString';
 import type { APIGatewayProxyResult, Context } from 'aws-lambda';
 import { v4 } from 'uuid';
-import type { z } from 'zod';
+import { z } from 'zod';
 import {
   readReminderDeliveryStatusWebhookConfig,
   type ReminderDeliveryStatusWebhookConfig
@@ -74,7 +78,24 @@ async function lambdaHandler(
   return Promise.resolve(successHandler()());
 }
 
-export const handler = webhookEndpointMiddleware(
+const vonageAccessTokenSchema = z.object({
+  header: z.object({}),
+  payload: z.object({
+    jti: z.string(),
+    iat: z.number(),
+    issuer: z.string()
+  })
+});
+
+function vonageAccessTokenClaimChecker(
+  jwt: z.infer<typeof vonageAccessTokenSchema>
+): jwt is z.infer<typeof vonageAccessTokenSchema> {
+  return jwt.payload.issuer === 'Vonage';
+}
+
+export const handler = protectedEndpointMiddlewareCustom(
   () => readReminderDeliveryStatusWebhookConfig(),
-  schema
+  schema,
+  vonageAccessTokenSchema,
+  vonageAccessTokenClaimChecker
 ).handler<Event>(lambdaHandler);

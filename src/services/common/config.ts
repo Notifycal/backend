@@ -1,6 +1,7 @@
 import type { CronRunEndpointConfig } from '@lambdas/schedule/fetch-user-calendars/config';
 import type {
   ActionableEventFoundTopicConfig,
+  AuditTrailQueueConfig,
   AuthedEndpointConfig,
   BaseEndpointConfig,
   DeadLetterQueueConfig,
@@ -10,11 +11,10 @@ import type {
   EncodeAccessJwtConfig,
   EncodeJwtsEndpointConfig,
   EncodeRefreshJwtConfig,
+  IdempotencyPersistenceConfig,
   IdpEndpointConfig,
   UserCalendarFetchedTopicConfig,
-  IdempotencyPersistenceConfig,
-  VonageConfig,
-  AuditTrailQueueConfig
+  VonageConfig
 } from '@model/Config';
 import type { AwsArn, Environment, Url } from '@own-types/model';
 import type { VonageApplicationId } from '@services/messaging';
@@ -28,16 +28,20 @@ export function readEnv(): Environment {
   return from(process.env, {});
 }
 
-const readJwtConfig = (
-  env: Environment,
-  prefix: 'ACCESS' | 'REFRESH',
-  expiresInDefault: string
-): Omit<EncodeAccessJwtConfig, 'privateKey'> => ({
-  algorithm: env.get(`${prefix}_JWT_ALGORITHM`).required().default('RS256').asString(),
-  issuer: env.get(`${prefix}_JWT_ISSUER`).required().default('notifycal.com').asString(),
-  audience: env.get(`${prefix}_JWT_AUDIENCE`).required().default('notifycal.com').asString(),
-  expiresIn: env.get(`${prefix}_JWT_EXPIRATION`).required().default(expiresInDefault).asString()
-});
+function readJwtConfig<
+  TResult extends
+    | Omit<EncodeAccessJwtConfig, 'privateKey'>
+    | Omit<DecodeAccessJwtConfig, 'publicKey'>
+>(env: Environment, prefix: 'ACCESS' | 'REFRESH', expiresInDefault?: string): TResult {
+  return {
+    algorithm: env.get(`${prefix}_JWT_ALGORITHM`).required().default('RS256').asString(),
+    issuer: env.get(`${prefix}_JWT_ISSUER`).required().default('notifycal.com').asString(),
+    audience: env.get(`${prefix}_JWT_AUDIENCE`).asString(),
+    expiresIn: expiresInDefault
+      ? env.get(`${prefix}_JWT_EXPIRATION`).required().default(expiresInDefault).asString()
+      : env.get(`${prefix}_JWT_EXPIRATION`).asString()
+  } as TResult;
+}
 
 export function readBaseConfig(env: Environment): BaseEndpointConfig {
   return {
@@ -50,14 +54,14 @@ export function readBaseConfig(env: Environment): BaseEndpointConfig {
 function readEncodeAccessJwtConfig(env: Environment): EncodeAccessJwtConfig {
   return {
     privateKey: env.get(`ACCESS_JWT_PRIVATE_KEY`).required().asString(),
-    ...readJwtConfig(env, 'ACCESS', '5m')
+    ...readJwtConfig<Omit<EncodeAccessJwtConfig, 'privateKey'>>(env, 'ACCESS', '5m')
   };
 }
 
 function readEncodeRefreshJwtConfig(env: Environment): EncodeRefreshJwtConfig {
   return {
     privateKey: env.get(`REFRESH_JWT_PRIVATE_KEY`).required().asString(),
-    ...readJwtConfig(env, 'REFRESH', '7d')
+    ...readJwtConfig<Omit<EncodeAccessJwtConfig, 'privateKey'>>(env, 'REFRESH', '7d')
   };
 }
 
@@ -71,7 +75,7 @@ export function readEncodeJwtsConfig(env: Environment): EncodeJwtsEndpointConfig
 function _readDecodeAccessJwtConfig(env: Environment): DecodeAccessJwtConfig {
   return {
     publicKey: env.get('ACCESS_JWT_PUBLIC_KEY').required().asString(),
-    ...readJwtConfig(env, 'ACCESS', '5m')
+    ...readJwtConfig<Omit<DecodeAccessJwtConfig, 'publicKey'>>(env, 'ACCESS', '5m')
   };
 }
 
@@ -91,7 +95,7 @@ export function readAuthedEndpointConfig(env: Environment): AuthedEndpointConfig
 export function readDecodeRefreshJwtConfig(env: Environment): DecodeRefreshJwtConfig {
   return {
     publicKey: env.get('REFRESH_JWT_PUBLIC_KEY').required().asString(),
-    ...readJwtConfig(env, 'REFRESH', '7d')
+    ...readJwtConfig<Omit<DecodeAccessJwtConfig, 'publicKey'>>(env, 'REFRESH', '7d')
   };
 }
 

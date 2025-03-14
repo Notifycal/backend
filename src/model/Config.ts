@@ -1,13 +1,16 @@
 import type { DynamoDBPersistenceOptions } from '@aws-lambda-powertools/idempotency/dynamodb/types';
 import type { IdpName } from '@notifycal/shared/types';
-import type { AwsArn, Url } from '@own-types/model';
+import type { AwsArn, Optional, Url } from '@own-types/model';
 import type { VonageApplicationId } from '@services/messaging';
 
-export interface DecodeAccessJwtConfig {
-  publicKey: string;
+export interface CommonJwtConfig {
   issuer: string;
-  audience?: string;
-  expiresIn?: string;
+  audience: string;
+  expiresIn: string;
+}
+
+export interface DecodeAccessJwtConfig extends Optional<CommonJwtConfig, 'expiresIn' | 'audience'> {
+  publicKey: string;
 }
 
 export type DecodeRefreshJwtConfig = DecodeAccessJwtConfig;
@@ -25,12 +28,9 @@ export interface DecodeAccessJwtEndpointConfig {
 
 export type AuthedEndpointConfig = BaseEndpointConfig & DecodeAccessJwtEndpointConfig;
 
-export interface EncodeAccessJwtConfig {
+export interface EncodeAccessJwtConfig extends CommonJwtConfig {
   privateKey: string;
   algorithm: string;
-  issuer: string;
-  audience: string;
-  expiresIn: string;
 }
 export type EncodeRefreshJwtConfig = EncodeAccessJwtConfig;
 

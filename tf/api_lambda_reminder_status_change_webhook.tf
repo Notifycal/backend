@@ -40,7 +40,10 @@ module "event_reminder_status_change_webhook_lambda" {
   policy_json        = data.aws_iam_policy_document.event_reminder_status_change_webhook_iam_policydoc.json
 
   environment_variables = merge({
-    AUDIT_TRAIL_QUEUE_URL = module.audit_trail_queue.sqs_queue_url
+    AUDIT_TRAIL_QUEUE_URL = module.audit_trail_queue.sqs_queue_url,
+    ACCESS_JWT_PUBLIC_KEY = "Vonage JWT public key/secret" //TODO
+    ACCESS_JWT_ALGORITHM  = "Vonage algorithm" //TODO
+    ACCESS_JWT_ISSUER     = "Vonage" 
   }, local.common_lambda_env_vars)
 }
 
