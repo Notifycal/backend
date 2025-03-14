@@ -126,7 +126,7 @@ describe('POST Event reminder delivery status webhook', () => {
 
   function setEnv(config: ReminderDeliveryStatusWebhookConfig) {
     setEnvBaseConfig(config.baseConfig);
-    setEnvAuditTrailQueueConfig(config);
+    setEnvAuditTrailQueueConfig(config); // TODO: I don't get this. Why just `config` and not `config.auditTrailQueueConfig`?!
   }
 
   async function testit(
