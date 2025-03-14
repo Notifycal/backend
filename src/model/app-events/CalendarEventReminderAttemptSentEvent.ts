@@ -1,21 +1,13 @@
-import { calendarEventSchema, calendarSchema, uuidSchema } from '@notifycal/shared/schemas';
-import { z } from 'zod';
+import { uuidSchema } from '@notifycal/shared/schemas';
+import type { z } from 'zod';
+import { actionableEventFoundEventSchema } from './ActionableEventFoundEvent';
 import { eventSchemaGenerator } from './BaseEvent';
-import { runSchema, receiverSchema, senderSchema } from './common';
-
-const dataSchema = z.object({
-  run: runSchema,
-  calendar: calendarSchema,
-  calendarEvent: calendarEventSchema,
-  receiverDetails: receiverSchema,
-  senderDetails: senderSchema,
-  message: z.string(),
-  messageUUID: uuidSchema
-});
 
 export const calendarEventReminderAttemptSentEventSchema = eventSchemaGenerator(
   'CalendarEventReminderAttemptSent',
-  dataSchema
+  actionableEventFoundEventSchema.shape.data.extend({
+    messageUUID: uuidSchema
+  })
 );
 
 export type CalendarEventReminderAttemptSentEvent = z.infer<
