@@ -22,16 +22,18 @@ export default class MessageProcessor {
 
   public sendReminder = async (record: Record, webhookUrl: Url): Promise<Uuid> => {
     const { body } = record;
-
-    logger.info(`Message: ${body.data.message}`);
-    logger.info(`Sender: ${JSON.stringify(body.data.senderDetails.identifier)}`);
-    logger.info(`Receiver: ${JSON.stringify(body.data.receiverDetails.identifier)}`);
-
     const { correlationId } = body;
     const { message } = body.data;
     const { senderDetails, receiverDetails } = body.data;
 
-    logger.info(`Sending a message through Vonage. correlationId: ${correlationId}`);
+    logger.appendKeys({
+      reminderMessage: message,
+      senderDetails,
+      receiverDetails,
+      correlationId
+    });
+
+    logger.info('Sending a message through Vonage');
 
     let messageUUID;
     if (process.env.MESSAGING_ENABLED === 'true') {
@@ -46,7 +48,7 @@ export default class MessageProcessor {
       messageUUID = await Promise.resolve('fake-uuid' as Uuid);
     }
 
-    logger.info(`Sending message attempt to audit trail. correlationId: ${correlationId}`);
+    logger.info('Sending message attempt to audit trail');
     try {
       await this._auditTrailService.send<CalendarEventReminderAttemptSentEvent>({
         ...body,
@@ -56,12 +58,12 @@ export default class MessageProcessor {
           messageUUID
         }
       });
-      logger.info(`Message attempt sent to audit trail. correlationId: ${correlationId}`);
-    } catch (err) {
+      logger.info('Message attempt sent to audit trail');
+    } catch (error) {
       // Not throwing an error if sending to audit trail fails as we wouldn't want the lambda to fail (and retry) because of it.
-      logger.error(
-        `Could not send Message attempt to audit trail. correlationId: ${correlationId}. Cause: ${JSON.stringify(err)}`
-      );
+      logger.error('Could not send message attempt to audit trail', {
+        error
+      });
     }
 
     return messageUUID;
@@ -70,6 +72,10 @@ export default class MessageProcessor {
   public async onIdempotencyHit(record: Record, messageUUID: Uuid): Promise<void> {
     const { body } = record;
     const { correlationId } = body;
+
+    logger.appendKeys({
+      correlationId
+    });
 
     try {
       await this._auditTrailService.send<CalendarEventReminderAttemptSkippedEvent>({
@@ -80,10 +86,10 @@ export default class MessageProcessor {
           messageUUID
         }
       });
-    } catch (err) {
-      logger.error(
-        `Could not send duplicated message attempt to audit trail. correlationId: ${correlationId}. Cause: ${JSON.stringify(err)}`
-      );
+    } catch (error) {
+      logger.error('Could not send duplicated message attempt to audit trail', {
+        error
+      });
     }
   }
 }

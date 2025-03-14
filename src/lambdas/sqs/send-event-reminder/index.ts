@@ -3,7 +3,10 @@ import { IdempotencyConfig, makeIdempotent } from '@aws-lambda-powertools/idempo
 import { DynamoDBPersistenceLayer } from '@aws-lambda-powertools/idempotency/dynamodb';
 import { backgroundProcessingMiddleware } from '@common/lambda-middleware';
 import { logger } from '@common/powertools';
-import { type ActionableEventFoundEvent, actionableEventFoundEventSchema } from '@model/app-events/ActionableEventFoundEvent';
+import {
+  type ActionableEventFoundEvent,
+  actionableEventFoundEventSchema
+} from '@model/app-events/ActionableEventFoundEvent';
 import { eventSqsSchema } from '@model/lambda-events/SqsEvents';
 import type { Uuid } from '@notifycal/shared/types';
 import type { Url } from '@own-types/model';
@@ -12,6 +15,8 @@ import type { Context } from 'aws-lambda';
 import type { z } from 'zod';
 import { readSendEventReminderConfig, type SendEventReminderConfig } from './config';
 import MessageProcessor from './message-idempotent-processor';
+import { AuditTrailService } from '@services/audit-trail';
+import type { CalendarEventReminderAttemptFailedEvent } from '@model/app-events/CalendarEventReminderAttemptFailedEvent';
 
 const eventSchema = eventSqsSchema<SendEventReminderConfig, typeof actionableEventFoundEventSchema>(
   actionableEventFoundEventSchema
@@ -52,21 +57,36 @@ async function lambdaHandler(event: Event, context: Context): Promise<Uuid> {
     config: idempotencyConfig
   });
 
- const queryStringEventData: Omit<ActionableEventFoundEvent, 'eventType' | 'eventId' | 'happenedAt'> = {
-   correlationId: record.body.correlationId,
-   userId: record.body.userId,
-   idp: record.body.idp,
-   idpId: record.body.idpId,
-   data: record.body.data
- };
+  const queryStringEventData: Omit<
+    ActionableEventFoundEvent,
+    'eventType' | 'eventId' | 'happenedAt'
+  > = {
+    correlationId: record.body.correlationId,
+    userId: record.body.userId,
+    idp: record.body.idp,
+    idpId: record.body.idpId,
+    data: record.body.data
+  };
 
   const recordQs = objectToQueryString(queryStringEventData);
   const webhookURL = `${config.vonageConfig.webhookBaseURL}?${recordQs}` as Url;
 
-  logger.info(`recordBody: ${JSON.stringify(record.body, null, 2)}`);
-  logger.info(`fullWebhookUrl: ${webhookURL}`);
+  logger.info('Body', { body: record.body });
+  logger.info('FullWebhookUrl', { webhookURL });
 
-  const messageUUID = await messageProcessorIdempotent(record, webhookURL);
+  let messageUUID;
+
+  try {
+    messageUUID = await messageProcessorIdempotent(record, webhookURL);
+  } catch (err) {
+    const auditTrailService = AuditTrailService.withConfig(config.auditTrailQueueConfig);
+    await auditTrailService.send<CalendarEventReminderAttemptFailedEvent>({
+      ...record.body,
+      eventType: 'CalendarEventReminderAttemptFailed'
+    });
+
+    throw err;
+  }
 
   if (isIdempotencyHit) {
     await messageProcessor.onIdempotencyHit(record, messageUUID);
