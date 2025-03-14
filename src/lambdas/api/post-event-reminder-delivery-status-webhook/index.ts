@@ -32,7 +32,7 @@ async function lambdaHandler(
   logger.info('Config', { config });
 
   const { body } = event;
-  logger.info('Body', body);
+  logger.info('Body', { body });
 
   const queryStringParameterObject = event.queryStringParameters || {};
   logger.info('Rebuild object from query string parameters', {
