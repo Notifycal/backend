@@ -17,6 +17,15 @@ const isJSONString = (string) => {
   }
 };
 
+const normalizeQueryParams = (query) => {
+  return Object.keys(query).reduce((acc, key) => {
+    acc[key] = Array.isArray(query[key])
+      ? query[key].map(String) // Convert array elements to strings
+      : String(query[key]); // Convert everything to a string
+    return acc;
+  }, {});
+};
+
 const initialize = (router) => {
   const respond = (promise, response) => {
     promise
@@ -52,7 +61,7 @@ const initialize = (router) => {
 
   const respondParam = (endpoint, method) => (req, res) => {
     // TODO: only valid while all endpoints are of type APIGatewayProxyEvent.
-    const event = unsafeTestEvent(req.body || {}, req.headers, req.query);
+    const event = unsafeTestEvent(req.body || {}, req.headers, normalizeQueryParams(req.query));
     const responsePromise = routes[endpoint][method](event, testingContext);
     respond(responsePromise, res);
   };
