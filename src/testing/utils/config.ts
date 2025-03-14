@@ -1,5 +1,6 @@
 import type { CronRunConfig } from '@lambdas/schedule/fetch-user-calendars/config';
 import type {
+  AuditTrailQueueConfig,
   BaseConfig,
   DecodeAccessJwtConfig,
   DecodeRefreshJwtConfig,
@@ -85,6 +86,10 @@ export function setEnvRefreshTokenBaseStoreConfig(config: RefreshTokenBaseStoreC
 
 export function setEnvAuditTrailBaseStoreConfig(config: AuditTrailBaseStoreConfig): void {
   process.env.AUDIT_TRAIL_TABLE_NAME = config.tableName;
+}
+
+export function setEnvAuditTrailQueueConfig(config: AuditTrailQueueConfig): void {
+  process.env.AUDIT_TRAIL_QUEUE_URL = config.auditTrailQueueConfig.queueUrl;
 }
 
 export function setEnvBaseConfig(config: BaseConfig): void {

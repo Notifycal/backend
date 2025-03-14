@@ -3,7 +3,7 @@ import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { describe, it } from 'vitest';
 import { assert } from '@testing/utils/assertions';
 import type { ReminderDeliveryStatusWebhookConfig } from './config';
-import { setEnvBaseConfig } from '@testing/utils/config';
+import { setEnvAuditTrailQueueConfig, setEnvBaseConfig } from '@testing/utils/config';
 import { handler, type Event } from './index';
 import { responseError, responseSuccess } from '@testing/utils/api-response-handlers';
 import type { Url } from '@own-types/model';
@@ -126,6 +126,7 @@ describe('POST Event reminder delivery status webhook', () => {
 
   function setEnv(config: ReminderDeliveryStatusWebhookConfig) {
     setEnvBaseConfig(config.baseConfig);
+    setEnvAuditTrailQueueConfig(config);
   }
 
   async function testit(
