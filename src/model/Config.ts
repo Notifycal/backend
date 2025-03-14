@@ -6,8 +6,8 @@ import type { VonageApplicationId } from '@services/messaging';
 export interface DecodeAccessJwtConfig {
   publicKey: string;
   issuer: string;
-  audience: string;
-  expiresIn: string;
+  audience?: string;
+  expiresIn?: string;
 }
 
 export type DecodeRefreshJwtConfig = DecodeAccessJwtConfig;

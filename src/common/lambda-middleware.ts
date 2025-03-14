@@ -4,6 +4,7 @@ import { captureLambdaHandler } from '@aws-lambda-powertools/tracer/middleware';
 import { logger, metrics, tracer } from '@common/powertools';
 import middy from '@middy/core';
 import type { AuthedEndpointConfig } from '@model/Config';
+import { accessTokenSchema } from '@model/Jwt';
 import type { ConfigReaderFn, JwtClaimCheckerFn } from '@own-types/model';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import type { z } from 'zod';
@@ -51,28 +52,36 @@ export function unprotectedEndpointMiddleware<TConfig, T extends z.AnyZodObject>
   >;
 }
 
-export function protectedEndpointMiddleware<
+export function protectedEndpointMiddlewareCustom<
   TConfig extends AuthedEndpointConfig,
-  T extends z.AnyZodObject
+  TEventSchema extends z.AnyZodObject,
+  TAccessTokenSchema extends z.AnyZodObject
 >(
   configReaderFn: ConfigReaderFn<Promise<TConfig>>,
-  eventSchema: T,
-  claimCheckerFn: JwtClaimCheckerFn = checkClaims
+  eventSchema: TEventSchema,
+  accessTokenSchema: TAccessTokenSchema,
+  claimCheckerFn: JwtClaimCheckerFn<z.infer<typeof accessTokenSchema>>
 ): middy.MiddyfiedHandler<APIGatewayProxyEvent, APIGatewayProxyResult> {
   return baseConfigMiddleware(() => configReaderFn(), true)
     .use(corsMiddleware())
-    .use(jwtVerificationMiddleware(claimCheckerFn))
+    .use(jwtVerificationMiddleware(accessTokenSchema, claimCheckerFn))
     .use(eventParserMiddleware(eventSchema, true)) as unknown as middy.MiddyfiedHandler<
     APIGatewayProxyEvent,
     APIGatewayProxyResult
   >;
 }
 
-export function webhookEndpointMiddleware<TConfig, T extends z.AnyZodObject>(
+export function protectedEndpointMiddleware<
+  TConfig extends AuthedEndpointConfig,
+  TEventSchema extends z.AnyZodObject
+>(
   configReaderFn: ConfigReaderFn<Promise<TConfig>>,
-  eventSchema: T
+  eventSchema: TEventSchema
 ): middy.MiddyfiedHandler<APIGatewayProxyEvent, APIGatewayProxyResult> {
-  return baseConfigMiddleware(() => configReaderFn(), true).use(
-    eventParserMiddleware(eventSchema, true)
-  ) as unknown as middy.MiddyfiedHandler<APIGatewayProxyEvent, APIGatewayProxyResult>;
+  return protectedEndpointMiddlewareCustom(
+    configReaderFn,
+    eventSchema,
+    accessTokenSchema,
+    checkClaims
+  );
 }

@@ -1,19 +1,29 @@
 import type { MiddlewareObj, Request } from '@middy/core';
 /* eslint-disable-next-line no-duplicate-imports */
 import type middy from '@middy/core';
-import type { AuthedAPIEventWithConfig } from '@model/lambda-events/ApiGatewayEvents';
 import type { AuthedEndpointConfig } from '@model/Config';
-import { type AccessToken, accessTokenSchema } from '@model/Jwt';
+import type { AccessToken } from '@model/Jwt';
+import type { AuthedAPIEventWithConfig } from '@model/lambda-events/ApiGatewayEvents';
 import type { Jwt } from '@notifycal/shared/types';
 import type { JwtClaimCheckerFn } from '@own-types/model';
 import { headers as _headers, errorHandler } from '@services/common/api-response-handlers';
 import { extractErrorMessage } from '@services/common/error-handling';
 import { decodeAndVerifyJwtSignature } from '@services/jwt';
 import type { APIGatewayProxyResult, Context } from 'aws-lambda';
+import type { z } from 'zod';
 
-function jwtVerification<TConfig extends AuthedEndpointConfig>(
-  request: Request<AuthedAPIEventWithConfig<TConfig>, APIGatewayProxyResult, Error, Context>,
-  claimChecker: JwtClaimCheckerFn
+function jwtVerification<
+  TConfig extends AuthedEndpointConfig,
+  TAccessTokenSchema extends z.ZodTypeAny
+>(
+  accessTokenSchema: TAccessTokenSchema,
+  request: Request<
+    AuthedAPIEventWithConfig<TConfig, z.infer<typeof accessTokenSchema>>,
+    APIGatewayProxyResult,
+    Error,
+    Context
+  >,
+  claimChecker: JwtClaimCheckerFn<z.infer<typeof accessTokenSchema>>
 ): Promise<APIGatewayProxyResult | void> {
   const headers = request.event.headers ?? {};
   const authorization = headers['Authorization'] || headers['authorization'];
@@ -52,17 +62,25 @@ function jwtVerification<TConfig extends AuthedEndpointConfig>(
   );
 }
 
-export function jwtVerificationMiddleware<TConfig extends AuthedEndpointConfig>(
-  claimChecker: JwtClaimCheckerFn
-): MiddlewareObj<AuthedAPIEventWithConfig<TConfig>, APIGatewayProxyResult> {
-  const before: middy.MiddlewareFn<AuthedAPIEventWithConfig<TConfig>, APIGatewayProxyResult> = (
-    req
-  ) => jwtVerification(req, claimChecker);
+export function jwtVerificationMiddleware<
+  TConfig extends AuthedEndpointConfig,
+  TAccessTokenSchema extends z.ZodTypeAny
+>(
+  accessTokenSchema: TAccessTokenSchema,
+  claimChecker: JwtClaimCheckerFn<z.infer<typeof accessTokenSchema>>
+): MiddlewareObj<
+  AuthedAPIEventWithConfig<TConfig, z.infer<typeof accessTokenSchema>>,
+  APIGatewayProxyResult
+> {
+  const before: middy.MiddlewareFn<
+    AuthedAPIEventWithConfig<TConfig, z.infer<typeof accessTokenSchema>>,
+    APIGatewayProxyResult
+  > = (req) => jwtVerification(accessTokenSchema, req, claimChecker);
   return {
     before
   };
 }
 
-export function checkClaims(jwt: AccessToken): boolean {
+export function checkClaims<TAccessToken extends AccessToken>(jwt: TAccessToken): boolean {
   return jwt.payload.role === 'user';
 }

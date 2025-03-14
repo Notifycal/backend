@@ -145,6 +145,21 @@ describe('Jwt decoder/verifier with signature', () => {
     return expect(result).resolves.toStrictEqual(expect.any(Object));
   });
 
+  it('should verify a jwt - it ignores audience and maxAge if config for it is missing', () => {
+    const result = buildJwt(
+      validAccessTokenPayload,
+      accessTokenSchema,
+      validSubject,
+      validEncodeConfig
+    ).then((testJwt) =>
+      testit(testJwt.encoded, accessTokenSchema, {
+        publicKey: validDecodeConfig.publicKey,
+        issuer: validDecodeConfig.issuer
+      })
+    );
+    return expect(result).resolves.toStrictEqual(expect.any(Object));
+  });
+
   it('should fail to verify a jwt when public key is invalid', () => {
     const decodeConfig = {
       ...validDecodeConfig,

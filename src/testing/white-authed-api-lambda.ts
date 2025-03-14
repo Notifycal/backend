@@ -1,6 +1,7 @@
 import { JSONStringified } from '@aws-lambda-powertools/parser/helpers';
-import { protectedEndpointMiddleware } from '@common/lambda-middleware';
+import { protectedEndpointMiddlewareCustom } from '@common/lambda-middleware';
 import type { AuthedEndpointConfig } from '@model/Config';
+import { accessTokenSchema } from '@model/Jwt';
 import { authedEventSchema } from '@model/lambda-events/ApiGatewayEvents';
 import { responseSuccess } from '@services/common/api-response-handlers';
 import type { APIGatewayProxyResult, Context } from 'aws-lambda';
@@ -42,8 +43,9 @@ function claimChecker(): boolean {
   return true;
 }
 
-export const handler = protectedEndpointMiddleware(
+export const handler = protectedEndpointMiddlewareCustom(
   testingConfigReader,
   eventSchema,
+  accessTokenSchema,
   claimChecker
 ).handler<Event>(lambdaHandler);
