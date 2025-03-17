@@ -1,13 +1,14 @@
-import type { PhoneNumber, RCSSenderId } from '@notifycal/shared/types';
+import type { CountryCode, PhoneNumber, RCSId } from '@notifycal/shared/types';
 
 export interface PhoneContactStoreRecord {
   type: 'phone';
-  identifier: PhoneNumber;
+  countryCode: CountryCode;
+  phoneNumber: PhoneNumber;
 }
 
 export interface RcsContactStoreRecord {
   type: 'rcs';
-  identifier: RCSSenderId;
+  identifier: RCSId;
 }
 
 export type ContactStoreRecord = PhoneContactStoreRecord | RcsContactStoreRecord;

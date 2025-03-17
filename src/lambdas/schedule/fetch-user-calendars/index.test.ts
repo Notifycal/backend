@@ -54,7 +54,8 @@ async function* validLiveUsers(): AsyncGenerator<
           address: 'businessNameAddress1' as BusinessAddress,
           contactDetails: {
             type: 'phone',
-            identifier: '666777888' as PhoneNumber
+            countryCode: 'ES',
+            phoneNumber: '666777888' as PhoneNumber
           }
         }
       },
@@ -77,7 +78,8 @@ async function* validLiveUsers(): AsyncGenerator<
           address: 'businessNameAddress2' as BusinessAddress,
           contactDetails: {
             type: 'phone',
-            identifier: '666777888' as PhoneNumber
+            countryCode: 'ES',
+            phoneNumber: '666777888' as PhoneNumber
           }
         }
       },
@@ -103,7 +105,8 @@ async function* validLiveUsers(): AsyncGenerator<
           address: 'businessNameAddress3' as BusinessAddress,
           contactDetails: {
             type: 'phone',
-            identifier: '666777888' as PhoneNumber
+            countryCode: 'ES',
+            phoneNumber: '666777888' as PhoneNumber
           }
         }
       },
@@ -135,7 +138,8 @@ async function* oneRejectionInBetweenLiveUsers(): AsyncGenerator<
           address: 'businessNameAddress4' as BusinessAddress,
           contactDetails: {
             type: 'phone',
-            identifier: '666777888' as PhoneNumber
+            countryCode: 'ES',
+            phoneNumber: '666777888' as PhoneNumber
           }
         }
       },
@@ -163,7 +167,8 @@ async function* oneRejectionInBetweenLiveUsers(): AsyncGenerator<
           address: 'businessNameAddress5' as BusinessAddress,
           contactDetails: {
             type: 'phone',
-            identifier: '666777888' as PhoneNumber
+            countryCode: 'ES',
+            phoneNumber: '666777888' as PhoneNumber
           }
         }
       },

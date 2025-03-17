@@ -6,8 +6,8 @@ import type {
   CalendarEvent,
   DateTime,
   PhoneNumber,
-  TimeZone,
-  RCSSenderId
+  RCSId,
+  TimeZone
 } from '@notifycal/shared/types';
 import type { AwsArn, Url } from '@own-types/model';
 import { eventsStartTimeWithin } from '@services/calendar-events';
@@ -19,8 +19,8 @@ import { validRecord } from '@testing/data/sqs-events';
 import { fakeIdpConfigs } from '@testing/utils/config';
 import { describe, expect, it, vi } from 'vitest';
 import type { ActionableEventsConfig } from './config';
-import type { Record } from './index';
 import { recordProcessor } from './record-processor';
+import type { Record } from './schema';
 
 const defaultConfig: ActionableEventsConfig = {
   actionableEventFoundTopicConfig: {
@@ -42,8 +42,8 @@ const validEvents: Array<CalendarEvent> = [
   }
 ];
 
-const validPhoneNumber: PhoneNumber = '+34666888999' as PhoneNumber;
-const validRCSSenderId: RCSSenderId = 'Notifycal testing' as RCSSenderId;
+const validPhoneNumber = '666888999' as PhoneNumber;
+const validRcsId = 'Notifycal testing' as RCSId;
 
 describe('Find actionable events record processor', () => {
   it('should process an event successfully and publish to SNS', async () => {
@@ -73,11 +73,12 @@ describe('Find actionable events record processor', () => {
           calendarEvent: validEvents[0],
           receiverDetails: {
             type: 'phone',
-            identifier: validPhoneNumber
+            countryCode: 'INCLUDED',
+            phoneNumber: validPhoneNumber
           },
           senderDetails: {
             type: 'rcs',
-            identifier: validRCSSenderId
+            identifier: validRcsId
           },
           message:
             'Dear customer, you have an appointment at SomeBusinessName on 02/01/2024 at 16:05, located at SomeBusinessAddress. If you cannot attend, please notify us in advance. Sent with Notifycal®'

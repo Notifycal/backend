@@ -1,8 +1,8 @@
-import type { CronRunEndpointConfig } from '@lambdas/schedule/fetch-user-calendars/config';
 import type {
   ActionableEventFoundTopicConfig,
   AuthedEndpointConfig,
   BaseEndpointConfig,
+  CronRunEndpointConfig,
   DeadLetterQueueConfig,
   DecodeAccessJwtConfig,
   DecodeAccessJwtEndpointConfig,

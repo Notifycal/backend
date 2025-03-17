@@ -10,6 +10,7 @@ import type {
   BusinessAddress,
   BusinessName,
   CalendarEvent,
+  CountryCode,
   DateTime,
   Email,
   EventId,
@@ -24,8 +25,8 @@ import { SnsService } from '@services/sns';
 import { allSettledAllOrErrorHandler } from '@utils/promises';
 import { DateTime as DT } from 'luxon';
 import { v4 } from 'uuid';
-import type { Record } from '.';
 import type { ActionableEventsConfig } from './config';
+import type { Record } from './schema';
 
 function interpolateMessage(
   templateId: TemplateId,
@@ -113,7 +114,8 @@ function buildActionableEvents(
         calendarEvent,
         receiverDetails: {
           type: 'phone',
-          identifier: attendeePhoneNumber
+          countryCode: 'INCLUDED' as CountryCode, //TODO - nasty hack. It assumes attendeePhoneNumber is already in E.164 format
+          phoneNumber: attendeePhoneNumber
         },
         senderDetails: event.data.senderDetails,
         message: interpolateMessage(

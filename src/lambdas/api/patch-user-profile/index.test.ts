@@ -45,7 +45,8 @@ describe('PATCH User profile', () => {
       address: 'someBusinessAddress' as BusinessAddress,
       contactDetails: {
         type: 'phone',
-        identifier: '+34666888999' as PhoneNumber
+        countryCode: 'ES',
+        phoneNumber: '666888999' as PhoneNumber
       }
     },
     calendars: [
