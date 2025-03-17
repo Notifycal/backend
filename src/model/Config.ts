@@ -1,16 +1,24 @@
 import type { DynamoDBPersistenceOptions } from '@aws-lambda-powertools/idempotency/dynamodb/types';
 import type { IdpName } from '@notifycal/shared/types';
-import type { AwsArn, Optional, Url } from '@own-types/model';
-import type { VonageApplicationId } from '@services/messaging';
+import type { AwsArn, PublicKey, Url } from '@own-types/model';
+import type { VonageApiKey, VonageApplicationId, VonagePublicKey } from '@services/messaging';
+import type {
+  Algorithm as jsonwebtokenAlgorithm,
+  SignOptions as jsonwebtokenSignOptions
+} from 'jsonwebtoken';
+
+export type SignOptions = jsonwebtokenSignOptions;
+export type Algorithm = jsonwebtokenAlgorithm;
+export type Duration = SignOptions['expiresIn'];
 
 export interface CommonJwtConfig {
   issuer: string;
   audience: string;
-  expiresIn: string;
+  expiresIn: Duration;
 }
 
-export interface DecodeAccessJwtConfig extends Optional<CommonJwtConfig, 'expiresIn' | 'audience'> {
-  publicKey: string;
+export interface DecodeAccessJwtConfig extends CommonJwtConfig {
+  publicKey: PublicKey;
 }
 
 export type DecodeRefreshJwtConfig = DecodeAccessJwtConfig;
@@ -22,15 +30,16 @@ export interface BaseEndpointConfig {
   baseConfig: BaseConfig;
 }
 
-export interface DecodeAccessJwtEndpointConfig {
-  decodeAccessJwtConfig: DecodeAccessJwtConfig;
+export interface DecodeAccessJwtEndpointConfig<TDecodeAccessJwtConfig = DecodeAccessJwtConfig> {
+  decodeAccessJwtConfig: TDecodeAccessJwtConfig;
 }
 
-export type AuthedEndpointConfig = BaseEndpointConfig & DecodeAccessJwtEndpointConfig;
+export type AuthedEndpointConfig<TDecodeAccessJwtConfig = DecodeAccessJwtConfig> =
+  BaseEndpointConfig & DecodeAccessJwtEndpointConfig<TDecodeAccessJwtConfig>;
 
 export interface EncodeAccessJwtConfig extends CommonJwtConfig {
   privateKey: string;
-  algorithm: string;
+  algorithm: Algorithm;
 }
 export type EncodeRefreshJwtConfig = EncodeAccessJwtConfig;
 
@@ -86,10 +95,18 @@ export type IdempotencyPersistenceConfig = {
   idempotencyPersistenceConfig: DynamoDBPersistenceOptions;
 };
 
-export type VonageConfig = {
-  vonageConfig: {
-    privateKeySSMPath: string;
-    applicationId: VonageApplicationId;
-    webhookBaseURL: Url;
-  };
-};
+export interface VonageConfig {
+  privateKeySSMPath: string;
+  applicationId: VonageApplicationId;
+  webhookBaseURL: Url;
+}
+export interface DecodeVonageAccessJwtConfig {
+  applicationId: VonageApplicationId;
+  apiKey: VonageApiKey;
+  publicKey: VonagePublicKey;
+  algorithm: Algorithm;
+  issuer: string;
+}
+
+export type DecodeVonageAccessJwtEndpointConfig =
+  DecodeAccessJwtEndpointConfig<DecodeVonageAccessJwtConfig>;

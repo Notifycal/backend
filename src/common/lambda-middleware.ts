@@ -3,9 +3,14 @@ import { logMetrics } from '@aws-lambda-powertools/metrics/middleware';
 import { captureLambdaHandler } from '@aws-lambda-powertools/tracer/middleware';
 import { logger, metrics, tracer } from '@common/powertools';
 import middy from '@middy/core';
-import type { AuthedEndpointConfig } from '@model/Config';
+import type { AuthedEndpointConfig, DecodeAccessJwtConfig } from '@model/Config';
 import { accessTokenSchema } from '@model/Jwt';
-import type { ConfigReaderFn, JwtClaimCheckerFn } from '@own-types/model';
+import type {
+  ConfigReaderFn,
+  JwtClaimCheckerFn,
+  JwtDecoderAndSignatureVerifierFn
+} from '@own-types/model';
+import { decodeAndVerifyJwtSignature } from '@services/jwt';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import type { z } from 'zod';
 import { configReaderMiddleware } from './config-reader-middleware';
@@ -53,18 +58,25 @@ export function unprotectedEndpointMiddleware<TConfig, T extends z.AnyZodObject>
 }
 
 export function protectedEndpointMiddlewareCustom<
-  TConfig extends AuthedEndpointConfig,
+  TDecodeAccessJwtConfig,
+  TConfig extends AuthedEndpointConfig<TDecodeAccessJwtConfig>,
   TEventSchema extends z.AnyZodObject,
   TAccessTokenSchema extends z.AnyZodObject
 >(
   configReaderFn: ConfigReaderFn<Promise<TConfig>>,
   eventSchema: TEventSchema,
   accessTokenSchema: TAccessTokenSchema,
-  claimCheckerFn: JwtClaimCheckerFn<z.infer<typeof accessTokenSchema>>
+  jwtDecoderAndSignatureVerifierFn: JwtDecoderAndSignatureVerifierFn<
+    TAccessTokenSchema,
+    TDecodeAccessJwtConfig
+  >,
+  claimCheckerFn: JwtClaimCheckerFn<z.infer<typeof accessTokenSchema>, TConfig>
 ): middy.MiddyfiedHandler<APIGatewayProxyEvent, APIGatewayProxyResult> {
   return baseConfigMiddleware(() => configReaderFn(), true)
     .use(corsMiddleware())
-    .use(jwtVerificationMiddleware(accessTokenSchema, claimCheckerFn))
+    .use(
+      jwtVerificationMiddleware(accessTokenSchema, jwtDecoderAndSignatureVerifierFn, claimCheckerFn)
+    )
     .use(eventParserMiddleware(eventSchema, true)) as unknown as middy.MiddyfiedHandler<
     APIGatewayProxyEvent,
     APIGatewayProxyResult
@@ -72,16 +84,23 @@ export function protectedEndpointMiddlewareCustom<
 }
 
 export function protectedEndpointMiddleware<
-  TConfig extends AuthedEndpointConfig,
+  TDecodeAccessJwtConfig extends DecodeAccessJwtConfig,
+  TConfig extends AuthedEndpointConfig<TDecodeAccessJwtConfig>,
   TEventSchema extends z.AnyZodObject
 >(
   configReaderFn: ConfigReaderFn<Promise<TConfig>>,
   eventSchema: TEventSchema
 ): middy.MiddyfiedHandler<APIGatewayProxyEvent, APIGatewayProxyResult> {
-  return protectedEndpointMiddlewareCustom(
+  return protectedEndpointMiddlewareCustom<
+    TDecodeAccessJwtConfig,
+    AuthedEndpointConfig<TDecodeAccessJwtConfig>,
+    TEventSchema,
+    typeof accessTokenSchema
+  >(
     configReaderFn,
     eventSchema,
     accessTokenSchema,
+    decodeAndVerifyJwtSignature<typeof accessTokenSchema, TDecodeAccessJwtConfig>,
     checkClaims
   );
 }

@@ -1,15 +1,17 @@
-import { Vonage } from '@vonage/server-sdk';
 import { Auth } from '@vonage/auth';
 import { RCSText, SMS } from '@vonage/messages';
+import { Vonage } from '@vonage/server-sdk';
 
 import { extractErrorMessage, throwError } from '@services/common/error-handling';
 
-import type { Brand, Uuid } from '@notifycal/shared/types';
 import type { MessageReceiver, MessageSender } from '@model/app-events/common';
-import type { Url } from '@own-types/model';
+import type { Brand, Uuid } from '@notifycal/shared/types';
+import type { PublicKey, Url } from '@own-types/model';
 
-export type VonageApplicationId = Brand<string, 'ApplicationId'>;
+export type VonageApiKey = Brand<string, 'VonageApiKey'>;
+export type VonageApplicationId = Brand<string, 'VonageApplicationId'>;
 export type VonagePrivateKey = Brand<string, 'PrivateKey'>;
+export type VonagePublicKey = Brand<string, 'PublicKey'> | PublicKey;
 
 export class MessagingService {
   protected _client: Vonage;

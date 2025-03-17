@@ -1,3 +1,4 @@
+import type { Algorithm } from '@model/Config';
 import type { AuthorizationForIdp } from '@model/IdpAuthorization';
 import type { UserStoreRecord } from '@model/store/UserStoreRecord';
 import type {
@@ -349,7 +350,7 @@ async function testit<T extends IdpName>(
 const defaultEnv: LoginConfig = {
   encodeAccessJwtConfig: {
     privateKey: `some_fake_private_key`,
-    algorithm: 'ES256',
+    algorithm: 'ES256' as Algorithm,
     issuer: 'test@notifycal.com',
     audience: 'test@notifycal.com',
     expiresIn: '5m'

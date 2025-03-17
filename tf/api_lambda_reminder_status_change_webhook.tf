@@ -12,6 +12,10 @@ data "aws_iam_policy_document" "event_reminder_status_change_webhook_iam_policyd
   }
 }
 
+data "aws_ssm_parameter" "vonage_public_key" {
+  name = var.vonage_auth_config.public_key_secret_path
+}
+
 module "event_reminder_status_change_webhook_lambda" {
   source  = "terraform-aws-modules/lambda/aws"
   version = "~> 7.17"
@@ -41,9 +45,11 @@ module "event_reminder_status_change_webhook_lambda" {
 
   environment_variables = merge({
     AUDIT_TRAIL_QUEUE_URL = module.audit_trail_queue.sqs_queue_url,
-    ACCESS_JWT_PUBLIC_KEY = "Vonage JWT public key/secret" //TODO
-    ACCESS_JWT_ALGORITHM  = "Vonage algorithm" //TODO
-    ACCESS_JWT_ISSUER     = "Vonage" 
+    VONAGE_APPLICATION_ID = var.vonage_auth_config.application_id
+    VONAGE_API_KEY        = var.vonage_auth_config.api_key
+    VONAGE_JWT_PUBLIC_KEY = data.aws_ssm_parameter.vonage_public_key.value
+    VONAGE_JWT_ALGORITHM  = "HS256"
+    VONAGE_JWT_ISSUER     = "Vonage"
   }, local.common_lambda_env_vars)
 }
 

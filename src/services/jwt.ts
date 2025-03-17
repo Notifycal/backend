@@ -1,18 +1,18 @@
 import type {
   DecodeAccessJwtConfig,
-  EncodeAccessJwtConfig,
-  EncodeRefreshJwtConfig
+  DecodeVonageAccessJwtConfig,
+  SignOptions
 } from '@model/Config';
 import {
+  accessTokenSchema,
+  refreshTokenSchema,
   type AccessToken,
   type OurAccessTokenClaims,
   type OurRefreshTokenClaims,
-  type RefreshToken,
-  accessTokenSchema,
-  refreshTokenSchema
+  type RefreshToken
 } from '@model/Jwt';
 import type { Identity, IdpName, Jwt, UserId } from '@notifycal/shared/types';
-import jwtBuilder, { type SignOptions } from 'jsonwebtoken';
+import jwtBuilder from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
 import type { z } from 'zod';
 import { rejectWithErrorMessage } from './common/error-handling';
@@ -54,21 +54,27 @@ export function decodeJwt<T extends z.ZodTypeAny>(jwt: Jwt, jwtSchema: T): Promi
   }
 }
 
-export function buildJwt<T extends z.ZodTypeAny>(
+export function buildJwt<
+  T extends z.ZodTypeAny,
+  TConfig extends SignOptions & { privateKey: string }
+>(
   payload: OurAccessTokenClaims | OurRefreshTokenClaims,
   jwtSchema: T,
   subject: UserId,
-  config: EncodeAccessJwtConfig
+  config: TConfig
 ): Promise<EncodedAndDecodedJwt<z.infer<T>>> {
   try {
+    console.warn('payload', payload);
+    console.warn('config', config);
     const encoded = jwtBuilder.sign(payload, config.privateKey, {
       jwtid: uuidv4(),
       algorithm: config.algorithm,
       issuer: config.issuer,
-      audience: config.audience,
+      audience: config.audience || [],
       subject: subject,
       expiresIn: config.expiresIn
     } as SignOptions) as Jwt;
+    console.warn('encoded', encoded);
     return decodeJwt(encoded, jwtSchema).then((decoded) => ({
       encoded: encoded,
       decoded: decoded
@@ -78,10 +84,13 @@ export function buildJwt<T extends z.ZodTypeAny>(
   }
 }
 
-export function buildJwts<TIdpName extends IdpName>(
+export function buildJwts<
+  TIdpName extends IdpName,
+  TConfig extends SignOptions & { privateKey: string }
+>(
   identity: Identity<TIdpName>,
-  encodeJwtConfig: EncodeAccessJwtConfig,
-  encodeRefreshJwtConfig: EncodeRefreshJwtConfig
+  encodeJwtConfig: TConfig,
+  encodeRefreshJwtConfig: TConfig
 ): Promise<EncodedAndDecodedJwts> {
   function prependJwtType(type: string): (error: Error) => Promise<EncodedAndDecodedJwt<never>> {
     return (error: Error) => Promise.reject(new Error(`${type} ${error.message}`));
@@ -100,17 +109,31 @@ export function buildJwts<TIdpName extends IdpName>(
   }));
 }
 
-export function decodeAndVerifyJwtSignature<T extends z.ZodTypeAny>(
-  jwt: Jwt,
-  schema: T,
-  config: DecodeAccessJwtConfig
-): Promise<z.infer<T>> {
+export function decodeAndVerifyJwtSignature<
+  T extends z.AnyZodObject,
+  TConfig extends DecodeAccessJwtConfig = DecodeAccessJwtConfig
+>(jwt: Jwt, schema: T, config: TConfig): Promise<z.infer<T>> {
   try {
     const token = jwtBuilder.verify(jwt, config.publicKey, {
       complete: true,
       issuer: config.issuer,
       audience: config.audience,
       maxAge: config.expiresIn
+    });
+    return Promise.resolve(schema.parse(token));
+  } catch (error: unknown) {
+    return rejectWithErrorMessage('JWT verification failed', error);
+  }
+}
+
+export function vonageDecodeAndVerifyJwtSignature<
+  T extends z.AnyZodObject,
+  TConfig extends DecodeVonageAccessJwtConfig = DecodeVonageAccessJwtConfig
+>(jwt: Jwt, schema: T, config: TConfig): Promise<z.infer<T>> {
+  try {
+    const token = jwtBuilder.verify(jwt, config.publicKey, {
+      complete: true,
+      issuer: config.issuer
     });
     return Promise.resolve(schema.parse(token));
   } catch (error: unknown) {

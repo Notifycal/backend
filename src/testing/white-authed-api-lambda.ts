@@ -1,9 +1,10 @@
 import { JSONStringified } from '@aws-lambda-powertools/parser/helpers';
 import { protectedEndpointMiddlewareCustom } from '@common/lambda-middleware';
-import type { AuthedEndpointConfig } from '@model/Config';
+import type { AuthedEndpointConfig, DecodeAccessJwtConfig } from '@model/Config';
 import { accessTokenSchema } from '@model/Jwt';
 import { authedEventSchema } from '@model/lambda-events/ApiGatewayEvents';
 import { responseSuccess } from '@services/common/api-response-handlers';
+import { decodeAndVerifyJwtSignature } from '@services/jwt';
 import type { APIGatewayProxyResult, Context } from 'aws-lambda';
 import { z } from 'zod';
 import { getDefaultDecodeAccessJwtConfig } from './utils/jwt';
@@ -47,5 +48,6 @@ export const handler = protectedEndpointMiddlewareCustom(
   testingConfigReader,
   eventSchema,
   accessTokenSchema,
+  decodeAndVerifyJwtSignature<typeof accessTokenSchema, DecodeAccessJwtConfig>,
   claimChecker
 ).handler<Event>(lambdaHandler);

@@ -1,5 +1,7 @@
-import type { Url } from '@own-types/model';
-import { c, testEvent } from '@testing/data/apigateway';
+import type { Algorithm, DecodeVonageAccessJwtConfig, Duration } from '@model/Config';
+import type { PublicKey, Url } from '@own-types/model';
+import type { VonageApiKey, VonageApplicationId } from '@services/messaging';
+import { c, testAuthedEvent } from '@testing/data/apigateway';
 import { responseError, responseSuccess } from '@testing/utils/api-response-handlers';
 import { assert } from '@testing/utils/assertions';
 import { setEnvAuditTrailQueueConfig, setEnvBaseConfig } from '@testing/utils/config';
@@ -7,6 +9,7 @@ import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { describe, it } from 'vitest';
 import type { ReminderDeliveryStatusWebhookConfig } from './config';
 import { handler, type Event } from './index';
+import { vonageAccessTokenSchema } from './schema';
 
 /* eslint-disable camelcase */
 const invalidBodies = [
@@ -97,19 +100,56 @@ const validBodies = [
   }
 ];
 
+export interface EncodeVonageAccessJwtConfig {
+  privateKey: string;
+  algorithm: Algorithm;
+  issuer: string;
+  audience?: Array<string>;
+  expiresIn?: Duration;
+}
+
+const validJwtPayload = {
+  payload_hash: '<somehash>',
+  application_id: 'fake-application-id' as VonageApplicationId,
+  api_key: 'fake-api-key' as VonageApiKey
+};
+
+const validVonageEncodeJwtConfig: EncodeVonageAccessJwtConfig = {
+  privateKey: 'secret',
+  algorithm: 'HS256',
+  issuer: 'Vonage',
+  audience: [], // Real tokens don't have audience
+  expiresIn: 3600 // Real tokens don't have expiration - yes, for real they are doing that
+};
+
 /* eslint-enable camelcase */
 
 describe('POST Event reminder delivery status webhook', () => {
-  it.each(invalidBodies)('should fail validation if the body is invalid', (invalidCaseBody) => {
-    const event = testEvent(invalidCaseBody) as APIGatewayProxyEvent;
+  it.each(invalidBodies)(
+    'should fail validation if the body is invalid',
+    async (invalidCaseBody) => {
+      const event = (await testAuthedEvent(
+        invalidCaseBody,
+        {},
+        vonageAccessTokenSchema as never,
+        validJwtPayload,
+        validVonageEncodeJwtConfig
+      )) as APIGatewayProxyEvent;
 
-    return testit(event).then((resp) => {
-      assert(resp, responseError(400));
-    });
-  });
+      return testit(event).then((resp) => {
+        assert(resp, responseError(400));
+      });
+    }
+  );
 
-  it.each(validBodies)('should pass validation if the body is valid', (validCaseBody) => {
-    const event = testEvent(validCaseBody) as APIGatewayProxyEvent;
+  it.each(validBodies)('should pass validation if the body is valid', async (validCaseBody) => {
+    const event = (await testAuthedEvent(
+      validCaseBody,
+      {},
+      vonageAccessTokenSchema as never,
+      validJwtPayload,
+      validVonageEncodeJwtConfig
+    )) as APIGatewayProxyEvent;
 
     return testit(event).then((resp) => {
       assert(resp, responseSuccess());
@@ -124,14 +164,26 @@ describe('POST Event reminder delivery status webhook', () => {
       queueUrl: 'https://fake-queue-url' as Url
     },
     decodeAccessJwtConfig: {
-      publicKey: 'fake-public-key',
+      publicKey: validVonageEncodeJwtConfig.privateKey as PublicKey, // Webhook uses symmetric criptography
+      applicationId: validJwtPayload.application_id,
+      apiKey: validJwtPayload.api_key,
+      algorithm: 'HS256' as Algorithm,
       issuer: 'Vonage'
     }
   };
 
+  function setEnvDecodeVonageJwtConfig(config: DecodeVonageAccessJwtConfig): void {
+    process.env.VONAGE_APPLICATION_ID = config.applicationId;
+    process.env.VONAGE_API_KEY = config.apiKey;
+    process.env.VONAGE_JWT_ISSUER = config.issuer;
+    process.env.VONAGE_JWT_ALGORITHM = config.algorithm;
+    process.env.VONAGE_JWT_PUBLIC_KEY = config.publicKey;
+  }
+
   function setEnv(config: ReminderDeliveryStatusWebhookConfig) {
     setEnvBaseConfig(config.baseConfig);
     setEnvAuditTrailQueueConfig(config.auditTrailQueueConfig);
+    setEnvDecodeVonageJwtConfig(config.decodeAccessJwtConfig);
   }
 
   async function testit(

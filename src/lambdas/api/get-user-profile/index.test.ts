@@ -1,4 +1,4 @@
-import type { OurAccessTokenClaims } from '@model/Jwt';
+import { accessTokenSchema, type OurAccessTokenClaims } from '@model/Jwt';
 import type { UserStoreRecord } from '@model/store/UserStoreRecord';
 import type { Email, IdpId, IdpName, UserId } from '@notifycal/shared/types';
 import { UserBaseStore } from '@services/stores/user-base-store';
@@ -34,6 +34,7 @@ describe('GET User profile', () => {
     const event = (await testAuthedEvent(
       {},
       {},
+      accessTokenSchema,
       validAccessToken
     )) as unknown as APIGatewayProxyEvent;
     const getUserByEmailFn = () => Promise.resolve(validUserStoreRecord(validAccessToken.userId));
@@ -53,11 +54,10 @@ describe('GET User profile', () => {
   });
 
   it('fail to return a user with 404 if not present in system', async () => {
-    const event = (await testAuthedEvent(
-      {},
-      {},
-      { ...validAccessToken, userId: 'afaa8471-aaaa-44da-bc22-ddc4b735a847' as UserId }
-    )) as unknown as APIGatewayProxyEvent;
+    const event = (await testAuthedEvent({}, {}, accessTokenSchema, {
+      ...validAccessToken,
+      userId: 'afaa8471-aaaa-44da-bc22-ddc4b735a847' as UserId
+    })) as unknown as APIGatewayProxyEvent;
     const getUserByEmailFn = () => Promise.resolve(undefined);
 
     return testit(event, getUserByEmailFn).then((resp) => {
@@ -69,6 +69,7 @@ describe('GET User profile', () => {
     const event = (await testAuthedEvent(
       {},
       {},
+      accessTokenSchema,
       validAccessToken
     )) as unknown as APIGatewayProxyEvent;
     const getUserByEmailFn = () => Promise.reject(new Error('Boom!'));

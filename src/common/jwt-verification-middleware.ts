@@ -5,15 +5,15 @@ import type { AuthedEndpointConfig } from '@model/Config';
 import type { AccessToken } from '@model/Jwt';
 import type { AuthedAPIEventWithConfig } from '@model/lambda-events/ApiGatewayEvents';
 import type { Jwt } from '@notifycal/shared/types';
-import type { JwtClaimCheckerFn } from '@own-types/model';
+import type { JwtClaimCheckerFn, JwtDecoderAndSignatureVerifierFn } from '@own-types/model';
 import { headers as _headers, errorHandler } from '@services/common/api-response-handlers';
 import { extractErrorMessage } from '@services/common/error-handling';
-import { decodeAndVerifyJwtSignature } from '@services/jwt';
 import type { APIGatewayProxyResult, Context } from 'aws-lambda';
 import type { z } from 'zod';
 
 function jwtVerification<
-  TConfig extends AuthedEndpointConfig,
+  TDecodeAccessJwtConfig,
+  TConfig extends AuthedEndpointConfig<TDecodeAccessJwtConfig>,
   TAccessTokenSchema extends z.ZodTypeAny
 >(
   accessTokenSchema: TAccessTokenSchema,
@@ -23,7 +23,11 @@ function jwtVerification<
     Error,
     Context
   >,
-  claimChecker: JwtClaimCheckerFn<z.infer<typeof accessTokenSchema>>
+  jwtDecoderAndSignatureVerifierFn: JwtDecoderAndSignatureVerifierFn<
+    TAccessTokenSchema,
+    TDecodeAccessJwtConfig
+  >,
+  claimCheckerFn: JwtClaimCheckerFn<z.infer<typeof accessTokenSchema>, TConfig>
 ): Promise<APIGatewayProxyResult | void> {
   const headers = request.event.headers ?? {};
   const authorization = headers['Authorization'] || headers['authorization'];
@@ -35,9 +39,13 @@ function jwtVerification<
     );
   }
   const token = authorization.trim().replace('Bearer ', '') as Jwt;
-  return decodeAndVerifyJwtSignature(token, accessTokenSchema, config.decodeAccessJwtConfig).then(
+  return jwtDecoderAndSignatureVerifierFn(
+    token,
+    accessTokenSchema,
+    config.decodeAccessJwtConfig
+  ).then(
     (jwt) => {
-      if (claimChecker(jwt)) {
+      if (claimCheckerFn(jwt, config)) {
         request.event.requestContext = {
           ...requestContext,
           authorizer: jwt
@@ -63,11 +71,16 @@ function jwtVerification<
 }
 
 export function jwtVerificationMiddleware<
-  TConfig extends AuthedEndpointConfig,
+  TDecodeAccessJwtConfig,
+  TConfig extends AuthedEndpointConfig<TDecodeAccessJwtConfig>,
   TAccessTokenSchema extends z.ZodTypeAny
 >(
   accessTokenSchema: TAccessTokenSchema,
-  claimChecker: JwtClaimCheckerFn<z.infer<typeof accessTokenSchema>>
+  jwtDecoderAndSignatureVerifierFn: JwtDecoderAndSignatureVerifierFn<
+    TAccessTokenSchema,
+    TDecodeAccessJwtConfig
+  >,
+  claimCheckerFn: JwtClaimCheckerFn<z.infer<typeof accessTokenSchema>, TConfig>
 ): MiddlewareObj<
   AuthedAPIEventWithConfig<TConfig, z.infer<typeof accessTokenSchema>>,
   APIGatewayProxyResult
@@ -75,7 +88,8 @@ export function jwtVerificationMiddleware<
   const before: middy.MiddlewareFn<
     AuthedAPIEventWithConfig<TConfig, z.infer<typeof accessTokenSchema>>,
     APIGatewayProxyResult
-  > = (req) => jwtVerification(accessTokenSchema, req, claimChecker);
+  > = (req) =>
+    jwtVerification(accessTokenSchema, req, jwtDecoderAndSignatureVerifierFn, claimCheckerFn);
   return {
     before
   };

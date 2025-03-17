@@ -1,13 +1,14 @@
 import type { APIGatewayProxyEvent } from '@aws-lambda-powertools/parser/types';
-import type { EncodeAccessJwtConfig } from '@model/Config';
-import { type OurAccessTokenClaims, accessTokenSchema } from '@model/Jwt';
+import type { SignOptions } from '@model/Config';
+import { accessTokenSchema } from '@model/Jwt';
 import {
   getDefaultAccessTokenPayload,
   getDefaultEncodeAccessJwtConfig,
-  testJwt
+  testJwt,
+  type tokenSchemaSkeleton
 } from '@testing/utils/jwt';
 import type { Context } from 'aws-lambda/handler';
-import type { ZodSchema } from 'zod';
+import type { z } from 'zod';
 
 function ttestEvent(
   body: string,
@@ -115,22 +116,26 @@ export function unsafeTestEvent(
   return ttestEvent(JSON.stringify(body), headers, queryStringParameters);
 }
 
-export function testEvent<T>(
-  body: T,
+export function testEvent<TEventBody>(
+  body: TEventBody,
   headers: Record<string, string> = {},
   queryStringParameters: Record<string, string> = {}
 ): APIGatewayProxyEvent {
   return ttestEvent(JSON.stringify(body), headers, queryStringParameters);
 }
 
-export function testAuthedEvent<T>(
-  body: T,
+export function testAuthedEvent<
+  TEventBody,
+  TSchema extends typeof tokenSchemaSkeleton,
+  TConfig extends SignOptions & { privateKey: string }
+>(
+  body: TEventBody,
   headers: Record<string, string> = {},
-  jwtPayload: OurAccessTokenClaims = getDefaultAccessTokenPayload(),
-  jwtSchema: ZodSchema = accessTokenSchema,
-  encodeJwtConfig: EncodeAccessJwtConfig = getDefaultEncodeAccessJwtConfig()
+  jwtSchema: TSchema = accessTokenSchema as unknown as TSchema,
+  jwtPayload: z.infer<typeof jwtSchema.shape.payload> = getDefaultAccessTokenPayload(),
+  encodeJwtConfig: TConfig = getDefaultEncodeAccessJwtConfig() as unknown as TConfig
 ): Promise<APIGatewayProxyEvent> {
-  return testJwt(jwtPayload, jwtSchema, encodeJwtConfig).then((jwt) =>
+  return testJwt(jwtSchema, jwtPayload, encodeJwtConfig).then((jwt) =>
     ttestEvent(JSON.stringify(body), { ...headers, Authorization: `Bearer ${jwt}` })
   );
 }

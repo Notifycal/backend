@@ -1,11 +1,19 @@
-import type { DecodeAccessJwtConfig, EncodeAccessJwtConfig } from '@model/Config';
+import type {
+  Algorithm,
+  DecodeAccessJwtConfig,
+  Duration,
+  EncodeAccessJwtConfig
+} from '@model/Config';
 import { accessTokenSchema, type OurAccessTokenClaims } from '@model/Jwt';
 import type { Email, Identity, IdpId, Jwt, UnixTimestamp, Uuid } from '@notifycal/shared/types';
+import type { PublicKey } from '@own-types/model';
 import { buildJwt, type EncodedAndDecodedJwts } from '@services/jwt';
 import dotenv from 'dotenv';
 import * as fs from 'fs';
+import type { SignOptions } from 'jsonwebtoken';
 import path from 'path';
-import type { ZodSchema } from 'zod';
+import { z } from 'zod';
+
 // Lazy evaluation all over the place so express doesn't attempt to load what it mustn't
 const loadDevConfig: () => Record<string, string> = (() => {
   let devConfig: Record<string, string>;
@@ -38,27 +46,36 @@ export const getDefaultEncodeAccessJwtConfig: () => EncodeAccessJwtConfig = () =
   const devConfig = loadDevConfig();
   return {
     privateKey: devConfig.ACCESS_JWT_PRIVATE_KEY,
-    algorithm: devConfig.ACCESS_JWT_ALGORITHM,
+    algorithm: devConfig.ACCESS_JWT_ALGORITHM as unknown as Algorithm,
     issuer: devConfig.ACCESS_JWT_ISSUER,
     audience: devConfig.ACCESS_JWT_AUDIENCE,
-    expiresIn: devConfig.ACCESS_JWT_EXPIRATION
+    expiresIn: devConfig.ACCESS_JWT_EXPIRATION as Duration
   };
 };
 
 export const getDefaultDecodeAccessJwtConfig: () => DecodeAccessJwtConfig = () => {
   const devConfig = loadDevConfig();
   return {
-    publicKey: devConfig.ACCESS_JWT_PUBLIC_KEY,
+    publicKey: devConfig.ACCESS_JWT_PUBLIC_KEY as PublicKey,
     issuer: devConfig.ACCESS_JWT_ISSUER,
     audience: devConfig.ACCESS_JWT_AUDIENCE,
-    expiresIn: devConfig.ACCESS_JWT_EXPIRATION
+    expiresIn: devConfig.ACCESS_JWT_EXPIRATION as Duration
   };
 };
 
-export function testJwt(
-  payload: object = getDefaultAccessTokenPayload(),
-  jwtSchema: ZodSchema = accessTokenSchema,
-  config: EncodeAccessJwtConfig = getDefaultEncodeAccessJwtConfig()
+export const tokenSchemaSkeleton = z.object({
+  header: z.object({}),
+  payload: z.object({}),
+  signature: z.string()
+});
+
+export function testJwt<
+  TSchema extends typeof tokenSchemaSkeleton,
+  TConfig extends SignOptions & { privateKey: string }
+>(
+  jwtSchema: TSchema = accessTokenSchema as unknown as TSchema,
+  payload: z.infer<typeof jwtSchema.shape.payload> = getDefaultAccessTokenPayload(),
+  config: TConfig = getDefaultEncodeAccessJwtConfig() as unknown as TConfig
 ): Promise<string> {
   return buildJwt(payload, jwtSchema, userId, config).then((jwts) => jwts.encoded);
 }

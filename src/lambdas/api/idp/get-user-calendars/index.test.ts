@@ -1,4 +1,4 @@
-import type { OurAccessTokenClaims } from '@model/Jwt';
+import { accessTokenSchema, type OurAccessTokenClaims } from '@model/Jwt';
 import type {
   Calendar,
   CalendarId,
@@ -42,6 +42,7 @@ describe('GET User calendars', () => {
     const event = (await testAuthedEvent(
       {},
       {},
+      accessTokenSchema,
       validAccessToken
     )) as unknown as APIGatewayProxyEvent;
     const validCalendarList = [
@@ -61,6 +62,7 @@ describe('GET User calendars', () => {
     const event = (await testAuthedEvent(
       {},
       {},
+      accessTokenSchema,
       validAccessToken
     )) as unknown as APIGatewayProxyEvent;
     const validCalendarList: Array<Calendar> = [];
@@ -75,6 +77,7 @@ describe('GET User calendars', () => {
     const event = (await testAuthedEvent(
       {},
       {},
+      accessTokenSchema,
       validAccessToken
     )) as unknown as APIGatewayProxyEvent;
     const calendarListFn = () => Promise.reject(new Error('Booom!'));

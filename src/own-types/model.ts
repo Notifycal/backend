@@ -1,8 +1,18 @@
-import type { Brand } from '@notifycal/shared/types';
+import type { Brand, Jwt } from '@notifycal/shared/types';
 import type { ExtenderTypeOptional, IEnv, IOptionalVariable } from 'env-var';
+import type { z } from 'zod';
 
 export type ConfigReaderFn<TConfig> = () => TConfig;
-export type JwtClaimCheckerFn<TAccessToken> = (jwt: TAccessToken) => boolean;
+export type JwtDecoderAndSignatureVerifierFn<T extends z.ZodTypeAny, TJwtConfig> = (
+  jwt: Jwt,
+  schema: T,
+  config: TJwtConfig
+) => Promise<z.infer<T>>;
+export type JwtClaimCheckerFn<TAccessToken, TConfig> = (
+  jwt: TAccessToken,
+  config: TConfig
+) => boolean;
+export type PublicKey = Brand<string, 'PublicKey'>;
 /* eslint-disable-next-line @typescript-eslint/no-empty-object-type */
 export type Environment = IEnv<IOptionalVariable<{}> & ExtenderTypeOptional<{}>, NodeJS.ProcessEnv>;
 

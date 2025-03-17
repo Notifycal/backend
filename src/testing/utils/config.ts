@@ -28,7 +28,7 @@ export function setEnvEncodeAccessJwtConfig(config: EncodeAccessJwtConfig): void
   process.env.ACCESS_JWT_ALGORITHM = config.algorithm;
   process.env.ACCESS_JWT_ISSUER = config.issuer;
   process.env.ACCESS_JWT_AUDIENCE = config.audience;
-  process.env.ACCESS_JWT_EXPIRATION = config.expiresIn;
+  process.env.ACCESS_JWT_EXPIRATION = config.expiresIn?.toString();
 }
 
 export function setEnvEncodeRefreshJwtConfig(config: EncodeRefreshJwtConfig): void {
@@ -36,21 +36,21 @@ export function setEnvEncodeRefreshJwtConfig(config: EncodeRefreshJwtConfig): vo
   process.env.REFRESH_JWT_ALGORITHM = config.algorithm;
   process.env.REFRESH_JWT_ISSUER = config.issuer;
   process.env.REFRESH_JWT_AUDIENCE = config.audience;
-  process.env.REFRESH_JWT_EXPIRATION = config.expiresIn;
+  process.env.REFRESH_JWT_EXPIRATION = config.expiresIn?.toString();
 }
 
 export function setEnvDecodeAccessJwtConfig(config: DecodeAccessJwtConfig): void {
   process.env.ACCESS_JWT_PUBLIC_KEY = config.publicKey;
   process.env.ACCESS_JWT_AUDIENCE = config.audience;
   process.env.ACCESS_JWT_ISSUER = config.issuer;
-  process.env.ACCESS_JWT_EXPIRATION = config.expiresIn;
+  process.env.ACCESS_JWT_EXPIRATION = config.expiresIn?.toString();
 }
 
 export function setEnvDecodeRefreshJwtConfig(config: DecodeRefreshJwtConfig): void {
   process.env.REFRESH_JWT_PUBLIC_KEY = config.publicKey;
   process.env.REFRESH_JWT_AUDIENCE = config.audience;
   process.env.REFRESH_JWT_ISSUER = config.issuer;
-  process.env.REFRESH_JWT_EXPIRATION = config.expiresIn;
+  process.env.REFRESH_JWT_EXPIRATION = config.expiresIn?.toString();
 }
 
 export function setEnvUserBaseStoreConfig(config: UserBaseStoreConfig): void {

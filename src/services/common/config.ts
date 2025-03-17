@@ -1,6 +1,7 @@
 import type { CronRunEndpointConfig } from '@lambdas/schedule/fetch-user-calendars/config';
 import type {
   ActionableEventFoundTopicConfig,
+  Algorithm,
   AuditTrailQueueConfig,
   AuthedEndpointConfig,
   BaseEndpointConfig,
@@ -8,6 +9,7 @@ import type {
   DecodeAccessJwtConfig,
   DecodeAccessJwtEndpointConfig,
   DecodeRefreshJwtConfig,
+  DecodeVonageAccessJwtEndpointConfig,
   EncodeAccessJwtConfig,
   EncodeJwtsEndpointConfig,
   EncodeRefreshJwtConfig,
@@ -16,8 +18,8 @@ import type {
   UserCalendarFetchedTopicConfig,
   VonageConfig
 } from '@model/Config';
-import type { AwsArn, Environment, Url } from '@own-types/model';
-import type { VonageApplicationId } from '@services/messaging';
+import type { AwsArn, Environment, PublicKey, Url } from '@own-types/model';
+import type { VonageApiKey, VonageApplicationId, VonagePublicKey } from '@services/messaging';
 import type { AuditTrailBaseStoreEndpointConfig } from '@services/stores/audit-trail-base-store';
 import type { RefreshTokenBaseStoreConfigEndpointConfig } from '@services/stores/refresh-token-base-store';
 import type { UserBaseStoreEndpointConfig } from '@services/stores/user-base-store';
@@ -32,14 +34,12 @@ function readJwtConfig<
   TResult extends
     | Omit<EncodeAccessJwtConfig, 'privateKey'>
     | Omit<DecodeAccessJwtConfig, 'publicKey'>
->(env: Environment, prefix: 'ACCESS' | 'REFRESH', expiresInDefault?: string): TResult {
+>(env: Environment, prefix: 'ACCESS' | 'REFRESH', expiresInDefault: string): TResult {
   return {
     algorithm: env.get(`${prefix}_JWT_ALGORITHM`).required().default('RS256').asString(),
     issuer: env.get(`${prefix}_JWT_ISSUER`).required().default('notifycal.com').asString(),
-    audience: env.get(`${prefix}_JWT_AUDIENCE`).asString(),
-    expiresIn: expiresInDefault
-      ? env.get(`${prefix}_JWT_EXPIRATION`).required().default(expiresInDefault).asString()
-      : env.get(`${prefix}_JWT_EXPIRATION`).asString()
+    audience: env.get(`${prefix}_JWT_AUDIENCE`).required().asString(),
+    expiresIn: env.get(`${prefix}_JWT_EXPIRATION`).required().default(expiresInDefault).asString()
   } as TResult;
 }
 
@@ -74,7 +74,7 @@ export function readEncodeJwtsConfig(env: Environment): EncodeJwtsEndpointConfig
 
 function _readDecodeAccessJwtConfig(env: Environment): DecodeAccessJwtConfig {
   return {
-    publicKey: env.get('ACCESS_JWT_PUBLIC_KEY').required().asString(),
+    publicKey: env.get('ACCESS_JWT_PUBLIC_KEY').required().asString() as PublicKey,
     ...readJwtConfig<Omit<DecodeAccessJwtConfig, 'publicKey'>>(env, 'ACCESS', '5m')
   };
 }
@@ -94,7 +94,7 @@ export function readAuthedEndpointConfig(env: Environment): AuthedEndpointConfig
 
 export function readDecodeRefreshJwtConfig(env: Environment): DecodeRefreshJwtConfig {
   return {
-    publicKey: env.get('REFRESH_JWT_PUBLIC_KEY').required().asString(),
+    publicKey: env.get('REFRESH_JWT_PUBLIC_KEY').required().asString() as PublicKey,
     ...readJwtConfig<Omit<DecodeAccessJwtConfig, 'publicKey'>>(env, 'REFRESH', '7d')
   };
 }
@@ -203,10 +203,24 @@ export function readIdempotencyPersistenceConfig(env: Environment): IdempotencyP
 
 export function readVonageConfig(env: Environment): VonageConfig {
   return {
-    vonageConfig: {
-      privateKeySSMPath: env.get('VONAGE_SSM_PATH_PRIVATE_KEY').required().asString(),
+    privateKeySSMPath: env.get('VONAGE_SSM_PATH_PRIVATE_KEY').required().asString(),
+    applicationId: env.get('VONAGE_APPLICATION_ID').required().asString() as VonageApplicationId,
+    webhookBaseURL: env.get('VONAGE_WEBHOOK_BASE_URL').required().asString() as Url
+  };
+}
+
+export function readDecodeVonageJwtConfig(env: Environment): DecodeVonageAccessJwtEndpointConfig {
+  return {
+    decodeAccessJwtConfig: {
       applicationId: env.get('VONAGE_APPLICATION_ID').required().asString() as VonageApplicationId,
-      webhookBaseURL: env.get('VONAGE_WEBHOOK_BASE_URL').required().asString() as Url
+      apiKey: env.get('VONAGE_API_KEY').required().asString() as VonageApiKey,
+      publicKey: env.get('VONAGE_JWT_PUBLIC_KEY').required().asString() as VonagePublicKey,
+      algorithm: env
+        .get('VONAGE_JWT_ALGORITHM')
+        .required()
+        .default('HS256')
+        .asString() as Algorithm,
+      issuer: env.get('VONAGE_JWT_ISSUER').required().default('Vonage').asString()
     }
   };
 }
