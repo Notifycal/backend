@@ -6,7 +6,7 @@ import type {
   CalendarEvent,
   DateTime,
   PhoneNumber,
-  RCSId,
+  RCSSenderId,
   TimeZone
 } from '@notifycal/shared/types';
 import type { AwsArn, Url } from '@own-types/model';
@@ -43,7 +43,7 @@ const validEvents: Array<CalendarEvent> = [
 ];
 
 const validPhoneNumber = '666888999' as PhoneNumber;
-const validRcsId = 'Notifycal testing' as RCSId;
+const validRCSSenderId = 'Notifycal testing' as RCSSenderId;
 
 describe('Find actionable events record processor', () => {
   it('should process an event successfully and publish to SNS', async () => {
@@ -78,7 +78,7 @@ describe('Find actionable events record processor', () => {
           },
           senderDetails: {
             type: 'rcs',
-            identifier: validRcsId
+            identifier: validRCSSenderId
           },
           message:
             'Dear customer, you have an appointment at SomeBusinessName on 02/01/2024 at 16:05, located at SomeBusinessAddress. If you cannot attend, please notify us in advance. Sent with Notifycal®'

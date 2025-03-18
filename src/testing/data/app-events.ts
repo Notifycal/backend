@@ -10,7 +10,7 @@ import type {
   DateTime,
   EventId,
   IdpId,
-  RCSId,
+  RCSSenderId,
   TimeZone,
   UserId
 } from '@notifycal/shared/types';
@@ -31,7 +31,7 @@ export const userCalendarFetchedEvent: UserCalendarFetchedEvent = {
     },
     senderDetails: {
       type: 'rcs',
-      identifier: 'Notifycal testing' as RCSId
+      identifier: 'Notifycal testing' as RCSSenderId
     },
     calendar: {
       id: 'someCalendarId' as CalendarId,
