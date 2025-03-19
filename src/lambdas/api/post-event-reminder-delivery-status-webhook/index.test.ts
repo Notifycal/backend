@@ -1,5 +1,7 @@
+import type { SendMessageCommandOutput } from '@aws-sdk/client-sqs';
 import type { Algorithm, DecodeVonageAccessJwtConfig, Duration } from '@model/Config';
 import type { Url } from '@own-types/model';
+import { AuditTrailService } from '@services/audit-trail';
 import type {
   VonageApiKey,
   VonageApplicationId,
@@ -11,9 +13,9 @@ import {
   responseSuccessNoCorsHeaders
 } from '@testing/utils/api-response-handlers';
 import { assert } from '@testing/utils/assertions';
-import { setEnvAuditTrailQueueConfig, setEnvBaseConfig } from '@testing/utils/config';
+import { setEnvAuditTrailQueueConfig } from '@testing/utils/config';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import { describe, it } from 'vitest';
+import { describe, it, vi } from 'vitest';
 import type { ReminderDeliveryStatusWebhookConfig } from './config';
 import { handler, type Event } from './index';
 import { vonageAccessTokenSchema } from './schema';
@@ -135,6 +137,7 @@ describe('POST Event reminder delivery status webhook', () => {
   it.each(invalidBodies)(
     'should fail validation if the body is invalid',
     async (invalidCaseBody) => {
+      console.warn(invalidCaseBody.message_uuid);
       const event = (await testAuthedEvent(
         invalidCaseBody,
         {},
@@ -164,9 +167,7 @@ describe('POST Event reminder delivery status webhook', () => {
   });
 
   const defaultEnv = {
-    baseConfig: {
-      frontendDomain: 'http://localhost:5177'
-    },
+    baseConfig: {},
     auditTrailQueueConfig: {
       queueUrl: 'https://fake-queue-url' as Url
     },
@@ -188,16 +189,25 @@ describe('POST Event reminder delivery status webhook', () => {
   }
 
   function setEnv(config: ReminderDeliveryStatusWebhookConfig) {
-    setEnvBaseConfig(config.baseConfig);
     setEnvAuditTrailQueueConfig(config.auditTrailQueueConfig);
     setEnvDecodeVonageJwtConfig(config.decodeAccessJwtConfig);
   }
 
   async function testit(
     event: APIGatewayProxyEvent,
+    auditTrailSendResultFn: () => Promise<SendMessageCommandOutput> = () =>
+      Promise.resolve({} as SendMessageCommandOutput),
     env: ReminderDeliveryStatusWebhookConfig = defaultEnv
   ): Promise<APIGatewayProxyResult> {
     setEnv(env);
+    vi.mock('@services/audit-trail');
+    const auditTrailServiceMock = {
+      send: vi.fn().mockImplementation(auditTrailSendResultFn)
+    };
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    vi.mocked(AuditTrailService.withConfig).mockReturnValue(
+      auditTrailServiceMock as unknown as AuditTrailService
+    );
     return handler(event as unknown as Event, c);
   }
 });

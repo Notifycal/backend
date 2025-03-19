@@ -64,11 +64,12 @@ export function buildJwt<
   config: TConfig
 ): Promise<EncodedAndDecodedJwt<z.infer<T>>> {
   try {
+    console.warn(config);
     const encoded = jwtBuilder.sign(payload, config.secretOrPrivateKey, {
       jwtid: uuidv4(),
       algorithm: config.algorithm,
       issuer: config.issuer,
-      audience: config.audience || [],
+      audience: config.audience,
       subject: subject,
       expiresIn: config.expiresIn
     } as SignOptions) as Jwt;

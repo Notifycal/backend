@@ -5,7 +5,6 @@ import type {
 } from '@model/Config';
 import {
   readAuditTrailQueueConfig,
-  readBaseConfig,
   readDecodeVonageJwtConfig,
   readEnv
 } from '@services/common/config';
@@ -18,7 +17,9 @@ export type ReminderDeliveryStatusWebhookConfig = BaseEndpointConfig &
 export function readReminderDeliveryStatusWebhookConfig(): Promise<ReminderDeliveryStatusWebhookConfig> {
   const env = readEnv();
   return promiseTry(() => ({
-    ...readBaseConfig(env),
+    ...{
+      baseConfig: {}
+    },
     ...readAuditTrailQueueConfig(env),
     ...readDecodeVonageJwtConfig(env)
   }));

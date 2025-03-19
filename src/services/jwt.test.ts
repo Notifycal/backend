@@ -67,7 +67,7 @@ describe('Jwt builder', () => {
   it('should fail to build a jwt', () => {
     const config = {
       ...validEncodeConfig,
-      privateKey: `invalid_es256_private_key`
+      secretOrPrivateKey: `invalid_es256_private_key` as PrivateKey
     };
     return expect(testit(validAccessTokenPayload, config)).rejects.toStrictEqual(
       new Error(
@@ -103,7 +103,7 @@ describe('Jwts builder', () => {
   it('should fail to build access jwt', () => {
     const invalidEncodeJwtConfig = {
       ...validEncodeConfig,
-      privateKey: `invalid_es256_private_key`
+      secretOrPrivateKey: `invalid_es256_private_key` as PrivateKey
     };
     return expect(
       testit(identity, invalidEncodeJwtConfig, validEncodeConfig)
@@ -117,7 +117,7 @@ describe('Jwts builder', () => {
   it('should fail to build refresh jwt', () => {
     const invalidEncodeRefreshJwtConfig = {
       ...validEncodeConfig,
-      privateKey: `invalid_es256_private_key`
+      secretOrPrivateKey: `invalid_es256_private_key` as PrivateKey
     };
     return expect(
       testit(identity, validEncodeConfig, invalidEncodeRefreshJwtConfig)
@@ -151,7 +151,7 @@ describe('Jwt decoder/verifier with signature', () => {
   it('should fail to verify a jwt when public key is invalid', () => {
     const decodeConfig = {
       ...validDecodeConfig,
-      publicKey: `INVALID_PUBLIC_KEY` as PublicKey
+      secretOrPublicKey: `INVALID_PUBLIC_KEY` as PublicKey
     };
 
     const result = buildJwt(

@@ -4,7 +4,7 @@ import type { MiddlewareObj, Request } from '@middy/core';
 import type middy from '@middy/core';
 import type { BaseEndpointConfig } from '@model/Config';
 import type { EventWithConfig } from '@model/lambda-events/Event';
-import { errorHandler, headers } from '@services/common/api-response-handlers';
+import { baseHeaders, errorHandler, headers } from '@services/common/api-response-handlers';
 import { extractErrorMessage } from '@services/common/error-handling';
 import type { Context } from 'aws-lambda';
 import type { z } from 'zod';
@@ -24,7 +24,9 @@ function eventParser<TConfig extends BaseEndpointConfig, TSchema extends z.AnyZo
       if (isApiRequest) {
         return errorHandler(
           400,
-          headers(request.event.lambdaConfig.baseConfig.frontendDomain)
+          request.event.lambdaConfig.baseConfig.frontendDomain
+            ? headers(request.event.lambdaConfig.baseConfig.frontendDomain)
+            : baseHeaders()
         )(`Request ${baseMsg}`) as TResult;
       } else {
         const errorMsg = `Lambda ${baseMsg}`;

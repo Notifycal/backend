@@ -6,7 +6,11 @@ import type { AccessToken } from '@model/Jwt';
 import type { AuthedAPIEventWithConfig } from '@model/lambda-events/ApiGatewayEvents';
 import type { Jwt } from '@notifycal/shared/types';
 import type { JwtClaimCheckerFn, JwtDecoderAndSignatureVerifierFn } from '@own-types/model';
-import { headers as _headers, errorHandler } from '@services/common/api-response-handlers';
+import {
+  headers as _headers,
+  baseHeaders,
+  errorHandler
+} from '@services/common/api-response-handlers';
 import { extractErrorMessage } from '@services/common/error-handling';
 import type { APIGatewayProxyResult, Context } from 'aws-lambda';
 import type { z } from 'zod';
@@ -29,14 +33,15 @@ function jwtVerification<
   >,
   claimCheckerFn: JwtClaimCheckerFn<z.infer<typeof accessTokenSchema>, TConfig>
 ): Promise<APIGatewayProxyResult | void> {
-  const headers = request.event.headers ?? {};
-  const authorization = headers['Authorization'] || headers['authorization'];
+  const requestHeaders = request.event.headers ?? {};
+  const authorization = requestHeaders['Authorization'] || requestHeaders['authorization'];
   const requestContext = request.event.requestContext;
   const config = request.event.lambdaConfig;
+  const earlyResponseHeaders = config.baseConfig.frontendDomain
+    ? _headers(config.baseConfig.frontendDomain)
+    : baseHeaders();
   if (!authorization) {
-    return Promise.resolve(
-      errorHandler(401, _headers(config.baseConfig.frontendDomain))('Missing Authorization')
-    );
+    return Promise.resolve(errorHandler(401, earlyResponseHeaders)('Missing Authorization'));
   }
   const token = authorization.trim().replace('Bearer ', '') as Jwt;
   return jwtDecoderAndSignatureVerifierFn(
@@ -53,7 +58,7 @@ function jwtVerification<
       } else {
         return errorHandler(
           401,
-          _headers(config.baseConfig.frontendDomain)
+          earlyResponseHeaders
         )(
           `Missing permissions to hit the API. Provided info: header = '${JSON.stringify(
             jwt.header
@@ -64,7 +69,7 @@ function jwtVerification<
     (err: unknown) => {
       return errorHandler(
         401,
-        _headers(config.baseConfig.frontendDomain)
+        earlyResponseHeaders
       )(`Invalid Signature. Error: ${extractErrorMessage(err)}`);
     }
   );

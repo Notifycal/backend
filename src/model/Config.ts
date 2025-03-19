@@ -28,7 +28,7 @@ export interface DecodeAccessJwtConfig extends CommonJwtConfig {
 export type DecodeRefreshJwtConfig = DecodeAccessJwtConfig;
 
 export interface BaseConfig {
-  frontendDomain: string;
+  frontendDomain?: string;
 }
 export interface BaseEndpointConfig {
   baseConfig: BaseConfig;
