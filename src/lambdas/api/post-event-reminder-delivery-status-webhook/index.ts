@@ -1,5 +1,5 @@
 import { JSONStringified } from '@aws-lambda-powertools/parser/helpers';
-import { unprotectedEndpointMiddleware } from '@common/lambda-middleware';
+import { webhookEndpointMiddleware } from '@common/lambda-middleware';
 import { logger } from '@common/powertools';
 import type { ActionableEventFoundEvent } from '@model/app-events/ActionableEventFoundEvent';
 import type { CalendarEventReminderStatusUpdatedEvent } from '@model/app-events/CalendarEventReminderStatusUpdatedEvent';
@@ -74,7 +74,7 @@ async function lambdaHandler(
   return Promise.resolve(successHandler()());
 }
 
-export const handler = unprotectedEndpointMiddleware(
+export const handler = webhookEndpointMiddleware(
   () => readReminderDeliveryStatusWebhookConfig(),
   schema
 ).handler<Event>(lambdaHandler);
