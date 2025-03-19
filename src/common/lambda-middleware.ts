@@ -50,11 +50,8 @@ export function unprotectedEndpointMiddleware<TConfig, T extends z.AnyZodObject>
   eventSchema: T
 ): middy.MiddyfiedHandler<APIGatewayProxyEvent, APIGatewayProxyResult> {
   return baseConfigMiddleware(() => configReaderFn(), true)
-    .use(corsMiddleware())
-    .use(eventParserMiddleware(eventSchema, true)) as unknown as middy.MiddyfiedHandler<
-    APIGatewayProxyEvent,
-    APIGatewayProxyResult
-  >;
+    .use(eventParserMiddleware(eventSchema, true))
+    .use(corsMiddleware()) as middy.MiddyfiedHandler<APIGatewayProxyEvent, APIGatewayProxyResult>;
 }
 
 export function protectedEndpointMiddlewareCustom<
@@ -73,14 +70,12 @@ export function protectedEndpointMiddlewareCustom<
   claimCheckerFn: JwtClaimCheckerFn<z.infer<typeof accessTokenSchema>, TConfig>
 ): middy.MiddyfiedHandler<APIGatewayProxyEvent, APIGatewayProxyResult> {
   return baseConfigMiddleware(() => configReaderFn(), true)
-    .use(corsMiddleware())
     .use(
       jwtVerificationMiddleware(accessTokenSchema, jwtDecoderAndSignatureVerifierFn, claimCheckerFn)
     )
-    .use(eventParserMiddleware(eventSchema, true)) as unknown as middy.MiddyfiedHandler<
-    APIGatewayProxyEvent,
-    APIGatewayProxyResult
-  >;
+    .use(
+      eventParserMiddleware<TConfig, TEventSchema, APIGatewayProxyResult>(eventSchema, true)
+    ) as middy.MiddyfiedHandler<APIGatewayProxyEvent, APIGatewayProxyResult>;
 }
 
 export function protectedEndpointMiddleware<
@@ -102,5 +97,8 @@ export function protectedEndpointMiddleware<
     accessTokenSchema,
     decodeAndVerifyJwtSignature<typeof accessTokenSchema, TDecodeAccessJwtConfig>,
     checkClaims
-  );
+  ).use(corsMiddleware()) as unknown as middy.MiddyfiedHandler<
+    APIGatewayProxyEvent,
+    APIGatewayProxyResult
+  >;
 }

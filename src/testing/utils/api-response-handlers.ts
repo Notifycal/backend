@@ -30,6 +30,19 @@ export function responseError(
   };
 }
 
+export function responseSuccessNoCorsHeaders(
+  body?: SuccessResponseBody | AuthenticationResponse,
+  statusCode = 200
+): APIGatewayProxyResult {
+  return {
+    statusCode,
+    body: JSON.stringify(body),
+    headers: {
+      ...baseHeaders()
+    }
+  };
+}
+
 export function responseErrorNoCorsHeaders(
   statusCode: keyof typeof errorMessages
 ): APIGatewayProxyResult {

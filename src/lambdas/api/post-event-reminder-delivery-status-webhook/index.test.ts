@@ -6,7 +6,10 @@ import type {
   VonageJwtSigningSecret
 } from '@services/messaging';
 import { c, testAuthedEvent } from '@testing/data/apigateway';
-import { responseError, responseSuccess } from '@testing/utils/api-response-handlers';
+import {
+  responseErrorNoCorsHeaders,
+  responseSuccessNoCorsHeaders
+} from '@testing/utils/api-response-handlers';
 import { assert } from '@testing/utils/assertions';
 import { setEnvAuditTrailQueueConfig, setEnvBaseConfig } from '@testing/utils/config';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
@@ -141,7 +144,7 @@ describe('POST Event reminder delivery status webhook', () => {
       )) as APIGatewayProxyEvent;
 
       return testit(event).then((resp) => {
-        assert(resp, responseError(400));
+        assert(resp, responseErrorNoCorsHeaders(400));
       });
     }
   );
@@ -158,7 +161,7 @@ describe('POST Event reminder delivery status webhook', () => {
       )) as APIGatewayProxyEvent;
 
       return testit(event).then((resp) => {
-        assert(resp, responseSuccess());
+        assert(resp, responseSuccessNoCorsHeaders());
       });
     }
   );

@@ -64,8 +64,6 @@ export function buildJwt<
   config: TConfig
 ): Promise<EncodedAndDecodedJwt<z.infer<T>>> {
   try {
-    console.warn('payload', payload);
-    console.warn('config', config);
     const encoded = jwtBuilder.sign(payload, config.privateKey, {
       jwtid: uuidv4(),
       algorithm: config.algorithm,
@@ -74,7 +72,6 @@ export function buildJwt<
       subject: subject,
       expiresIn: config.expiresIn
     } as SignOptions) as Jwt;
-    console.warn('encoded', encoded);
     return decodeJwt(encoded, jwtSchema).then((decoded) => ({
       encoded: encoded,
       decoded: decoded
