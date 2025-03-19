@@ -15,8 +15,7 @@ import { extractErrorMessage, throwError } from '@services/common/error-handling
 import type { VonagePrivateKey } from '@services/messaging';
 
 export type SendEventReminderConfig = {
-  vonageConfig: VonageConfig;
-  vonagePrivateKey: VonagePrivateKey;
+  vonageConfig: VonageConfig & { privateKey: VonagePrivateKey };
 } & IdempotencyPersistenceConfig &
   AuditTrailQueueConfig;
 
@@ -46,8 +45,10 @@ export async function readSendEventReminderConfig(vonagePrivateKeyCache: {
     }
 
     return {
-      vonageConfig: readVonageConfig(env),
-      vonagePrivateKey: vonagePrivateKeyCache.ssmParameter as VonagePrivateKey,
+      vonageConfig: {
+        ...readVonageConfig(env),
+        privateKey: vonagePrivateKeyCache.ssmParameter as VonagePrivateKey
+      },
       ...readIdempotencyPersistenceConfig(env),
       ...readAuditTrailQueueConfig(env)
     };

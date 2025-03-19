@@ -16,7 +16,7 @@ export default class MessageProcessor {
     this._auditTrailService = AuditTrailService.withConfig(config.auditTrailQueueConfig);
     this._messagingService = new MessagingService(
       config.vonageConfig.applicationId,
-      config.vonagePrivateKey
+      config.vonageConfig.privateKey
     );
   }
 
