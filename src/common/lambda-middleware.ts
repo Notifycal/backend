@@ -67,3 +67,12 @@ export function protectedEndpointMiddleware<
     APIGatewayProxyResult
   >;
 }
+
+export function webhookEndpointMiddleware<TConfig, T extends z.AnyZodObject>(
+  configReaderFn: ConfigReaderFn<Promise<TConfig>>,
+  eventSchema: T
+): middy.MiddyfiedHandler<APIGatewayProxyEvent, APIGatewayProxyResult> {
+  return baseConfigMiddleware(() => configReaderFn(), true).use(
+    eventParserMiddleware(eventSchema, true)
+  ) as unknown as middy.MiddyfiedHandler<APIGatewayProxyEvent, APIGatewayProxyResult>;
+}
