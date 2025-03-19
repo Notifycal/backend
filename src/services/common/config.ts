@@ -19,7 +19,11 @@ import type {
   VonageConfig
 } from '@model/Config';
 import type { AwsArn, Environment, PublicKey, Url } from '@own-types/model';
-import type { VonageApiKey, VonageApplicationId, VonagePublicKey } from '@services/messaging';
+import type {
+  VonageApiKey,
+  VonageApplicationId,
+  VonageJwtSigningSecret
+} from '@services/messaging';
 import type { AuditTrailBaseStoreEndpointConfig } from '@services/stores/audit-trail-base-store';
 import type { RefreshTokenBaseStoreConfigEndpointConfig } from '@services/stores/refresh-token-base-store';
 import type { UserBaseStoreEndpointConfig } from '@services/stores/user-base-store';
@@ -214,7 +218,10 @@ export function readDecodeVonageJwtConfig(env: Environment): DecodeVonageAccessJ
     decodeAccessJwtConfig: {
       applicationId: env.get('VONAGE_APPLICATION_ID').required().asString() as VonageApplicationId,
       apiKey: env.get('VONAGE_API_KEY').required().asString() as VonageApiKey,
-      publicKey: env.get('VONAGE_JWT_PUBLIC_KEY').required().asString() as VonagePublicKey,
+      publicKey: env
+        .get('VONAGE_WEBHOOK_JWT_SIGNING_SECRET')
+        .required()
+        .asString() as VonageJwtSigningSecret,
       algorithm: env
         .get('VONAGE_JWT_ALGORITHM')
         .required()

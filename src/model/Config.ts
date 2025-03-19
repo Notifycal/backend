@@ -1,7 +1,11 @@
 import type { DynamoDBPersistenceOptions } from '@aws-lambda-powertools/idempotency/dynamodb/types';
 import type { IdpName } from '@notifycal/shared/types';
 import type { AwsArn, PublicKey, Url } from '@own-types/model';
-import type { VonageApiKey, VonageApplicationId, VonagePublicKey } from '@services/messaging';
+import type {
+  VonageApiKey,
+  VonageApplicationId,
+  VonageJwtSigningSecret
+} from '@services/messaging';
 import type {
   Algorithm as jsonwebtokenAlgorithm,
   SignOptions as jsonwebtokenSignOptions
@@ -103,7 +107,7 @@ export interface VonageConfig {
 export interface DecodeVonageAccessJwtConfig {
   applicationId: VonageApplicationId;
   apiKey: VonageApiKey;
-  publicKey: VonagePublicKey;
+  publicKey: VonageJwtSigningSecret;
   algorithm: Algorithm;
   issuer: string;
 }

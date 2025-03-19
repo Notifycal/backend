@@ -6,12 +6,12 @@ import { extractErrorMessage, throwError } from '@services/common/error-handling
 
 import type { MessageReceiver, MessageSender } from '@model/app-events/common';
 import type { Brand, Uuid } from '@notifycal/shared/types';
-import type { PublicKey, Url } from '@own-types/model';
+import type { Url } from '@own-types/model';
 
 export type VonageApiKey = Brand<string, 'VonageApiKey'>;
 export type VonageApplicationId = Brand<string, 'VonageApplicationId'>;
 export type VonagePrivateKey = Brand<string, 'PrivateKey'>;
-export type VonagePublicKey = Brand<string, 'PublicKey'> | PublicKey;
+export type VonageJwtSigningSecret = Brand<string, 'JwtSigningSecret'>;
 
 export class MessagingService {
   protected _client: Vonage;
