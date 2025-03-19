@@ -28,7 +28,7 @@ export type Record = z.infer<typeof eventSchema.shape.Records.element>;
 // eslint-disable-next-line prefer-const
 let ssmParameterObj: { ssmParameter?: string } = {};
 
-async function lambdaHandler(event: Event, context: Context): Promise<Uuid | null> {
+async function lambdaHandler(event: Event, context: Context): Promise<Uuid | 'MessageNotSentOutsideOfSpain'> {
   logger.info(`Processing sqs message in third lambda. Event: ${JSON.stringify(event)}`);
 
   let isIdempotencyHit = false;
@@ -45,7 +45,7 @@ async function lambdaHandler(event: Event, context: Context): Promise<Uuid | nul
     metrics.addMetadata('correlationId', record.body.correlationId);
     metrics.addMetadata('eventId', record.body.eventId);
 
-    return null;
+    return 'MessageNotSentOutsideOfSpain';
   }
 
   const messageProcessor = new MessageProcessor(config);
