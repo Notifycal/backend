@@ -2,7 +2,7 @@ import type { JSONValue } from '@aws-lambda-powertools/commons/types';
 import { IdempotencyConfig, makeIdempotent } from '@aws-lambda-powertools/idempotency';
 import { DynamoDBPersistenceLayer } from '@aws-lambda-powertools/idempotency/dynamodb';
 import { backgroundProcessingMiddleware } from '@common/lambda-middleware';
-import { logger } from '@common/powertools';
+import { logger, metrics } from '@common/powertools';
 import {
   type ActionableEventFoundEvent,
   actionableEventFoundEventSchema
@@ -17,6 +17,7 @@ import { readSendEventReminderConfig, type SendEventReminderConfig } from './con
 import MessageProcessor from './message-idempotent-processor';
 import { AuditTrailService } from '@services/audit-trail';
 import type { CalendarEventReminderAttemptFailedEvent } from '@model/app-events/CalendarEventReminderAttemptFailedEvent';
+import { MetricUnit } from '@aws-lambda-powertools/metrics';
 
 const eventSchema = eventSqsSchema<SendEventReminderConfig, typeof actionableEventFoundEventSchema>(
   actionableEventFoundEventSchema
@@ -27,13 +28,25 @@ export type Record = z.infer<typeof eventSchema.shape.Records.element>;
 // eslint-disable-next-line prefer-const
 let ssmParameterObj: { ssmParameter?: string } = {};
 
-async function lambdaHandler(event: Event, context: Context): Promise<Uuid> {
+async function lambdaHandler(event: Event, context: Context): Promise<Uuid | null> {
   logger.info(`Processing sqs message in third lambda. Event: ${JSON.stringify(event)}`);
 
   let isIdempotencyHit = false;
 
   const config = event.lambdaConfig;
   const record = event.Records[0];
+
+  if (!record.body.data.receiverDetails.identifier.startsWith('+34')) {
+    logger.warn('Not sending event reminder because the number does not start with +34', {
+      record
+    });
+
+    metrics.addMetric('MessageNotSentOutsideOfSpain', MetricUnit.Count, 1);
+    metrics.addMetadata('correlationId', record.body.correlationId);
+    metrics.addMetadata('eventId', record.body.eventId);
+
+    return null;
+  }
 
   const messageProcessor = new MessageProcessor(config);
   const idempotencyConfig = new IdempotencyConfig({
