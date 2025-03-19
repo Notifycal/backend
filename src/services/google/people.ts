@@ -1,6 +1,7 @@
 /* eslint-disable camelcase */
 import type { GoogleOAuthConfig } from '@model/Config';
-import type { Email, PhoneNumber } from '@notifycal/shared/types';
+import type { Email } from '@notifycal/shared/types';
+import type { PhoneNumberE164 } from '@own-types/model';
 import { throwError } from '@services/common/error-handling';
 import { google, type people_v1 } from 'googleapis';
 import { BaseGoogle } from './base-service';
@@ -10,15 +11,15 @@ export class GooglePeople extends BaseGoogle {
     return new this(config, refreshToken);
   }
 
-  public getPhoneNumbersBy(email: Email): Promise<Array<PhoneNumber>> {
+  public getPhoneNumbersBy(email: Email): Promise<Array<PhoneNumberE164>> {
     return this.getContactByEmail(email).then((list) => this.toPhoneNumber(list));
   }
 
-  private extractPhoneNumber(item: people_v1.Schema$PhoneNumber): PhoneNumber | undefined {
-    return ((item.canonicalForm || item.value) as PhoneNumber) || undefined;
+  private extractPhoneNumber(item: people_v1.Schema$PhoneNumber): PhoneNumberE164 | undefined {
+    return ((item.canonicalForm || item.value) as PhoneNumberE164) || undefined;
   }
 
-  private toPhoneNumber(item: people_v1.Schema$SearchResponse): Array<PhoneNumber> {
+  private toPhoneNumber(item: people_v1.Schema$SearchResponse): Array<PhoneNumberE164> {
     const phoneNumbers = (item.results || []).flatMap((r) => {
       if (r.person && r.person.phoneNumbers) {
         const order = [

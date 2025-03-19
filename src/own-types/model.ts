@@ -13,3 +13,5 @@ export type Url = Brand<string, 'Url'>;
 // eslint-disable-next-line no-use-before-define
 export type Json = string | number | boolean | null | Array<Json> | JsonObject;
 export type JsonObject = { [key: string]: Json };
+
+export type PhoneNumberE164 = Brand<string, 'PhoneNumberE164'>;

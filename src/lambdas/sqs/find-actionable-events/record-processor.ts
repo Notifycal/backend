@@ -10,14 +10,13 @@ import type {
   BusinessAddress,
   BusinessName,
   CalendarEvent,
-  CountryCode,
   DateTime,
   Email,
   EventId,
-  PhoneNumber,
   TemplateId,
   TimeZone
 } from '@notifycal/shared/types';
+import type { PhoneNumberE164 } from '@own-types/model';
 import { eventsStartTimeWithin } from '@services/calendar-events';
 import { phoneNumberByEmail } from '@services/contacts';
 import { DeadLetteringService } from '@services/dead-lettering';
@@ -64,7 +63,7 @@ function fetchAttendeePhoneNumbers(
   event: Record['body'],
   dqlService: DeadLetteringService,
   idpConfigs: IdpConfigs
-): Promise<Array<{ calendarEvent: CalendarEvent; attendeePhoneNumber: PhoneNumber }>> {
+): Promise<Array<{ calendarEvent: CalendarEvent; attendeePhoneNumber: PhoneNumberE164 }>> {
   return Promise.allSettled(
     calendarEvent.attendees.map((attendee) =>
       phoneNumberByEmail(
@@ -96,7 +95,7 @@ function fetchAttendeePhoneNumbers(
 }
 
 function buildActionableEvents(
-  attendeePhoneData: Array<{ calendarEvent: CalendarEvent; attendeePhoneNumber: PhoneNumber }>,
+  attendeePhoneData: Array<{ calendarEvent: CalendarEvent; attendeePhoneNumber: PhoneNumberE164 }>,
   event: Record['body']
 ): Array<ActionableEventFoundEvent> {
   return attendeePhoneData.map(({ calendarEvent: calendarEvent, attendeePhoneNumber }) => {
@@ -114,7 +113,6 @@ function buildActionableEvents(
         calendarEvent,
         receiverDetails: {
           type: 'phone',
-          countryCode: 'INCLUDED' as CountryCode, //TODO - nasty hack. It assumes attendeePhoneNumber is already in E.164 format
           phoneNumber: attendeePhoneNumber
         },
         senderDetails: event.data.senderDetails,

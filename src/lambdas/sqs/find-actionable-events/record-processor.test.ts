@@ -2,14 +2,8 @@ import type { PublishCommandOutput } from '@aws-sdk/client-sns';
 import type { SendMessageCommandOutput } from '@aws-sdk/client-sqs';
 import { ParsingError } from '@model/Errors';
 import type { ServiceResponse } from '@model/ServiceResponse';
-import type {
-  CalendarEvent,
-  DateTime,
-  PhoneNumber,
-  RCSSenderId,
-  TimeZone
-} from '@notifycal/shared/types';
-import type { AwsArn, Url } from '@own-types/model';
+import type { CalendarEvent, DateTime, RCSSenderId, TimeZone } from '@notifycal/shared/types';
+import type { AwsArn, PhoneNumberE164, Url } from '@own-types/model';
 import { eventsStartTimeWithin } from '@services/calendar-events';
 import { phoneNumberByEmail } from '@services/contacts';
 import { DeadLetteringService } from '@services/dead-lettering';
@@ -42,7 +36,7 @@ const validEvents: Array<CalendarEvent> = [
   }
 ];
 
-const validPhoneNumber = '666888999' as PhoneNumber;
+const validPhoneNumber = '+34666888999' as PhoneNumberE164;
 const validRCSSenderId = 'Notifycal testing' as RCSSenderId;
 
 describe('Find actionable events record processor', () => {
@@ -73,7 +67,6 @@ describe('Find actionable events record processor', () => {
           calendarEvent: validEvents[0],
           receiverDetails: {
             type: 'phone',
-            countryCode: 'INCLUDED',
             phoneNumber: validPhoneNumber
           },
           senderDetails: {
@@ -236,7 +229,7 @@ describe('Find actionable events record processor', () => {
     const eventsStartTimeWithinFn = () =>
       Promise.resolve({ successList: validEvents, failureList: [] });
     const phoneNumberByEmailFn = () =>
-      Promise.resolve(['+34666888999' as PhoneNumber, '+34666111222' as PhoneNumber]);
+      Promise.resolve(['+34666888999' as PhoneNumberE164, '+34666111222' as PhoneNumberE164]);
     await testit(
       validRecord(userCalendarFetchedEvent),
       eventsStartTimeWithinFn,
@@ -397,7 +390,7 @@ describe('Find actionable events record processor', () => {
 function testit(
   record: Record,
   getEventsFn: () => Promise<ServiceResponse<CalendarEvent, ParsingError>>,
-  getPhoneNumbersFn: () => Promise<Array<PhoneNumber>>,
+  getPhoneNumbersFn: () => Promise<Array<PhoneNumberE164>>,
   config: ActionableEventsConfig = defaultConfig
 ): Promise<void> {
   vi.mock('@services/calendar-events');

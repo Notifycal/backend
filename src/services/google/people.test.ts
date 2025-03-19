@@ -1,5 +1,6 @@
 /* eslint-disable camelcase */
 import type { Email, PhoneNumber } from '@notifycal/shared/types';
+import type { PhoneNumberE164 } from '@own-types/model';
 import { fakeIdpConfigs } from '@testing/utils/config';
 import { google, type people_v1 } from 'googleapis';
 import type { GaxiosResponse } from 'googleapis-common';
@@ -86,7 +87,7 @@ describe('GooglePeople Service', () => {
   function testit(
     searchContactsFn: () => Promise<GaxiosResponse<people_v1.Schema$SearchResponse>>,
     config = fakeIdpConfigs['google.com']
-  ): Promise<Array<PhoneNumber>> {
+  ): Promise<Array<PhoneNumberE164>> {
     vi.mock('googleapis');
     vi.mocked(google.people).mockReturnValue({
       people: {

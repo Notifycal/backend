@@ -1,3 +1,4 @@
+import { rcsContactSchema } from '@notifycal/shared/schemas';
 import { z } from 'zod';
 
 export const errorSchema = z.object({
@@ -12,3 +13,10 @@ export const runSchema = z.object({
 });
 
 export const eventIdSchema = z.string().uuid().brand('EventId');
+
+export const phoneSchema = z.object({
+  type: z.literal('phone'),
+  phoneNumber: z.string().describe('Standard E.164').brand('PhoneNumberE164')
+});
+
+export const contactE164Schema = z.discriminatedUnion('type', [rcsContactSchema, phoneSchema]);

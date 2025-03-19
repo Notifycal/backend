@@ -1,5 +1,6 @@
 import type { AuthorizationForIdp } from '@model/IdpAuthorization';
 import type { Email, IdpName, PhoneNumber } from '@notifycal/shared/types';
+import type { PhoneNumberE164 } from '@own-types/model';
 import { phoneNumberByEmail } from '@services/contacts';
 import { fakeIdpConfigs } from '@testing/utils/config';
 import { describe, expect, it, vi } from 'vitest';
@@ -38,7 +39,7 @@ describe('Contacts Service', () => {
     idp: IdpName,
     googlePhoneNumbersFn: () => Promise<Array<PhoneNumber>>,
     idpConfigs = fakeIdpConfigs
-  ): Promise<Array<PhoneNumber>> {
+  ): Promise<Array<PhoneNumberE164>> {
     vi.mock('@services/google/people');
     const mockInstance2 = {
       getPhoneNumbersBy: vi.fn().mockImplementation(googlePhoneNumbersFn)
