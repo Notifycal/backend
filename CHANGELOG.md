@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.18.1](https://github.com/Notifycal/backend/compare/v0.18.0...v0.18.1) (2025-03-19)
+
+
+### Bug Fixes
+
+* add `function_name` default dimension to Powertools metrics ([#444](https://github.com/Notifycal/backend/issues/444)) ([a8c4ea8](https://github.com/Notifycal/backend/commit/a8c4ea8a317465bf696848e6a47fea0332bbf1e3))
+* deploy into local env without observability ([#432](https://github.com/Notifycal/backend/issues/432)) ([52a61db](https://github.com/Notifycal/backend/commit/52a61db27d54f776c65b311caefd42ac515b6196))
+* **local:** tweak query parameters so express understands them ([#437](https://github.com/Notifycal/backend/issues/437)) ([c069fbf](https://github.com/Notifycal/backend/commit/c069fbf8e5041e603842820e1a9fa751f93983bd))
+
 ## [0.18.0](https://github.com/Notifycal/backend/compare/v0.17.0...v0.18.0) (2025-03-13)
 
 
