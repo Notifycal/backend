@@ -65,7 +65,8 @@ const invalidBodies = [
       currency: 'EUR',
       price: 'not-a-number'
     }
-  }
+  },
+  {}
 ];
 
 const validBodies = [
@@ -116,16 +117,12 @@ describe('POST Event reminder delivery status webhook', () => {
   });
 
   const defaultEnv = {
-    baseConfig: {
-      frontendDomain: 'http://localhost:5173'
-    },
     auditTrailQueueConfig: {
       queueUrl: 'https://fake-queue-url' as Url
     }
   };
 
   function setEnv(config: ReminderDeliveryStatusWebhookConfig) {
-    setEnvBaseConfig(config.baseConfig);
     setEnvAuditTrailQueueConfig(config); // TODO: I don't get this. Why just `config` and not `config.auditTrailQueueConfig`?!
   }
 
