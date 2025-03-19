@@ -31,7 +31,9 @@ const metrics = new Metrics({
   serviceName,
   defaultDimensions: {
     ...defaultValues,
-    runtime: process.env.AWS_EXECUTION_ENV || 'N/A'
+    runtime: process.env.AWS_EXECUTION_ENV || 'N/A',
+    // eslint-disable-next-line camelcase
+    function_name: process.env.AWS_LAMBDA_FUNCTION_NAME || 'N/A'
   }
 });
 
