@@ -3,7 +3,7 @@ import type { RefreshToken } from '@model/Jwt';
 import type { RefreshTokenStoreRecord } from '@model/store/RefreshTokenStoreRecord';
 import type { UserStoreRecord } from '@model/store/UserStoreRecord';
 import type { IdpName, Jwt, UnixTimestamp, Uuid } from '@notifycal/shared/types';
-import type { PublicKey } from '@own-types/model';
+import type { PrivateKey, PublicKey } from '@own-types/model';
 import { decodeAndVerifyJwtSignature, type EncodedAndDecodedJwts } from '@services/jwt';
 import { buildJwtsAndStoreRefreshJwt } from '@services/login';
 import { RefreshTokenBaseStore } from '@services/stores/refresh-token-base-store';
@@ -270,21 +270,21 @@ describe('POST Refresh', () => {
 
   const defaultEnv: RefreshConfig = {
     encodeAccessJwtConfig: {
-      privateKey: `some_fake_private_key`,
+      secretOrPrivateKey: `some_fake_private_key` as PrivateKey,
       algorithm: 'ES256' as Algorithm,
       issuer: 'test@notifycal.com',
       audience: 'test@notifycal.com',
       expiresIn: '5m'
     },
     encodeRefreshJwtConfig: {
-      privateKey: `some_other_fake_private_key`,
+      secretOrPrivateKey: `some_other_fake_private_key` as PrivateKey,
       algorithm: 'ES256',
       issuer: 'test@notifycal.com',
       audience: 'test@notifycal.com',
       expiresIn: '7d'
     },
     decodeRefreshJwtConfig: {
-      publicKey: `some_other_fake_public_key` as PublicKey,
+      secretOrPublicKey: `some_other_fake_public_key` as PublicKey,
       issuer: 'test@notifycal.com',
       audience: 'test@notifycal.com',
       expiresIn: '7d'

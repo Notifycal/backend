@@ -6,7 +6,7 @@ import type {
 } from '@model/Config';
 import { accessTokenSchema, type OurAccessTokenClaims } from '@model/Jwt';
 import type { Email, Identity, IdpId, Jwt, UnixTimestamp, Uuid } from '@notifycal/shared/types';
-import type { PublicKey } from '@own-types/model';
+import type { PrivateKey, PublicKey } from '@own-types/model';
 import { buildJwt, type EncodedAndDecodedJwts } from '@services/jwt';
 import dotenv from 'dotenv';
 import * as fs from 'fs';
@@ -45,7 +45,7 @@ export const getDefaultAccessTokenPayload: () => OurAccessTokenClaims = () => ({
 export const getDefaultEncodeAccessJwtConfig: () => EncodeAccessJwtConfig = () => {
   const devConfig = loadDevConfig();
   return {
-    privateKey: devConfig.ACCESS_JWT_PRIVATE_KEY,
+    secretOrPrivateKey: devConfig.ACCESS_JWT_PRIVATE_KEY as PrivateKey,
     algorithm: devConfig.ACCESS_JWT_ALGORITHM as unknown as Algorithm,
     issuer: devConfig.ACCESS_JWT_ISSUER,
     audience: devConfig.ACCESS_JWT_AUDIENCE,
@@ -56,7 +56,7 @@ export const getDefaultEncodeAccessJwtConfig: () => EncodeAccessJwtConfig = () =
 export const getDefaultDecodeAccessJwtConfig: () => DecodeAccessJwtConfig = () => {
   const devConfig = loadDevConfig();
   return {
-    publicKey: devConfig.ACCESS_JWT_PUBLIC_KEY as PublicKey,
+    secretOrPublicKey: devConfig.ACCESS_JWT_PUBLIC_KEY as PublicKey,
     issuer: devConfig.ACCESS_JWT_ISSUER,
     audience: devConfig.ACCESS_JWT_AUDIENCE,
     expiresIn: devConfig.ACCESS_JWT_EXPIRATION as Duration
@@ -71,7 +71,7 @@ export const tokenSchemaSkeleton = z.object({
 
 export function testJwt<
   TSchema extends typeof tokenSchemaSkeleton,
-  TConfig extends SignOptions & { privateKey: string }
+  TConfig extends SignOptions & { secretOrPrivateKey: string }
 >(
   jwtSchema: TSchema = accessTokenSchema as unknown as TSchema,
   payload: z.infer<typeof jwtSchema.shape.payload> = getDefaultAccessTokenPayload(),

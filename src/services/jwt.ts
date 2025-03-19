@@ -56,7 +56,7 @@ export function decodeJwt<T extends z.ZodTypeAny>(jwt: Jwt, jwtSchema: T): Promi
 
 export function buildJwt<
   T extends z.ZodTypeAny,
-  TConfig extends SignOptions & { privateKey: string }
+  TConfig extends SignOptions & { secretOrPrivateKey: string }
 >(
   payload: OurAccessTokenClaims | OurRefreshTokenClaims,
   jwtSchema: T,
@@ -64,7 +64,7 @@ export function buildJwt<
   config: TConfig
 ): Promise<EncodedAndDecodedJwt<z.infer<T>>> {
   try {
-    const encoded = jwtBuilder.sign(payload, config.privateKey, {
+    const encoded = jwtBuilder.sign(payload, config.secretOrPrivateKey, {
       jwtid: uuidv4(),
       algorithm: config.algorithm,
       issuer: config.issuer,
@@ -83,7 +83,7 @@ export function buildJwt<
 
 export function buildJwts<
   TIdpName extends IdpName,
-  TConfig extends SignOptions & { privateKey: string }
+  TConfig extends SignOptions & { secretOrPrivateKey: string }
 >(
   identity: Identity<TIdpName>,
   encodeJwtConfig: TConfig,
@@ -111,7 +111,7 @@ export function decodeAndVerifyJwtSignature<
   TConfig extends DecodeAccessJwtConfig = DecodeAccessJwtConfig
 >(jwt: Jwt, schema: T, config: TConfig): Promise<z.infer<T>> {
   try {
-    const token = jwtBuilder.verify(jwt, config.publicKey, {
+    const token = jwtBuilder.verify(jwt, config.secretOrPublicKey, {
       complete: true,
       issuer: config.issuer,
       audience: config.audience,

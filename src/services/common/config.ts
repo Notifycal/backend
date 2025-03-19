@@ -18,7 +18,7 @@ import type {
   UserCalendarFetchedTopicConfig,
   VonageConfig
 } from '@model/Config';
-import type { AwsArn, Environment, PublicKey, Url } from '@own-types/model';
+import type { AwsArn, Environment, PrivateKey, PublicKey, Url } from '@own-types/model';
 import type {
   VonageApiKey,
   VonageApplicationId,
@@ -36,8 +36,8 @@ export function readEnv(): Environment {
 
 function readJwtConfig<
   TResult extends
-    | Omit<EncodeAccessJwtConfig, 'privateKey'>
-    | Omit<DecodeAccessJwtConfig, 'publicKey'>
+    | Omit<EncodeAccessJwtConfig, 'secretOrPrivateKey'>
+    | Omit<DecodeAccessJwtConfig, 'secretOrPublicKey'>
 >(env: Environment, prefix: 'ACCESS' | 'REFRESH', expiresInDefault: string): TResult {
   return {
     algorithm: env.get(`${prefix}_JWT_ALGORITHM`).required().default('RS256').asString(),
@@ -57,15 +57,15 @@ export function readBaseConfig(env: Environment): BaseEndpointConfig {
 
 function readEncodeAccessJwtConfig(env: Environment): EncodeAccessJwtConfig {
   return {
-    privateKey: env.get(`ACCESS_JWT_PRIVATE_KEY`).required().asString(),
-    ...readJwtConfig<Omit<EncodeAccessJwtConfig, 'privateKey'>>(env, 'ACCESS', '5m')
+    secretOrPrivateKey: env.get(`ACCESS_JWT_PRIVATE_KEY`).required().asString() as PrivateKey,
+    ...readJwtConfig<Omit<EncodeAccessJwtConfig, 'secretOrPrivateKey'>>(env, 'ACCESS', '5m')
   };
 }
 
 function readEncodeRefreshJwtConfig(env: Environment): EncodeRefreshJwtConfig {
   return {
-    privateKey: env.get(`REFRESH_JWT_PRIVATE_KEY`).required().asString(),
-    ...readJwtConfig<Omit<EncodeAccessJwtConfig, 'privateKey'>>(env, 'REFRESH', '7d')
+    secretOrPrivateKey: env.get(`REFRESH_JWT_PRIVATE_KEY`).required().asString() as PrivateKey,
+    ...readJwtConfig<Omit<EncodeAccessJwtConfig, 'secretOrPrivateKey'>>(env, 'REFRESH', '7d')
   };
 }
 
@@ -78,8 +78,8 @@ export function readEncodeJwtsConfig(env: Environment): EncodeJwtsEndpointConfig
 
 function _readDecodeAccessJwtConfig(env: Environment): DecodeAccessJwtConfig {
   return {
-    publicKey: env.get('ACCESS_JWT_PUBLIC_KEY').required().asString() as PublicKey,
-    ...readJwtConfig<Omit<DecodeAccessJwtConfig, 'publicKey'>>(env, 'ACCESS', '5m')
+    secretOrPublicKey: env.get('ACCESS_JWT_PUBLIC_KEY').required().asString() as PublicKey,
+    ...readJwtConfig<Omit<DecodeAccessJwtConfig, 'secretOrPublicKey'>>(env, 'ACCESS', '5m')
   };
 }
 
@@ -98,8 +98,8 @@ export function readAuthedEndpointConfig(env: Environment): AuthedEndpointConfig
 
 export function readDecodeRefreshJwtConfig(env: Environment): DecodeRefreshJwtConfig {
   return {
-    publicKey: env.get('REFRESH_JWT_PUBLIC_KEY').required().asString() as PublicKey,
-    ...readJwtConfig<Omit<DecodeAccessJwtConfig, 'publicKey'>>(env, 'REFRESH', '7d')
+    secretOrPublicKey: env.get('REFRESH_JWT_PUBLIC_KEY').required().asString() as PublicKey,
+    ...readJwtConfig<Omit<DecodeAccessJwtConfig, 'secretOrPublicKey'>>(env, 'REFRESH', '7d')
   };
 }
 

@@ -7,7 +7,7 @@ import type {
 } from '@model/Config';
 import { type AccessToken, accessTokenSchema } from '@model/Jwt';
 import type { Email, Identity, IdpId, IdpName, Jwt, Uuid } from '@notifycal/shared/types';
-import type { PublicKey } from '@own-types/model';
+import type { PrivateKey, PublicKey } from '@own-types/model';
 import { sleep } from '@testing/utils/utils';
 import { describe, expect, it } from 'vitest';
 import type { ZodSchema } from 'zod';
@@ -24,7 +24,7 @@ const validPrivateKey = `-----BEGIN EC PRIVATE KEY-----
 MHcCAQEEIEF6NI6CascYRtOFXEQrbsbsi7ZzTsKaktkDRZ/PSZ8hoAoGCCqGSM49
 AwEHoUQDQgAEcLLFj6lOjORJHlCT4+2QrxNyq5AkbBnPn6rRLeuDhGwhClRkg5tp
 0/r2oWst8tDiUNK9w3+3d7n8HGaP49b6WQ==
------END EC PRIVATE KEY-----`;
+-----END EC PRIVATE KEY-----` as PrivateKey;
 const validPublicKey = `-----BEGIN PUBLIC KEY-----
 MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEcLLFj6lOjORJHlCT4+2QrxNyq5Ak
 bBnPn6rRLeuDhGwhClRkg5tp0/r2oWst8tDiUNK9w3+3d7n8HGaP49b6WQ==
@@ -34,14 +34,14 @@ const validIssuer = 'issuer.notifycal.com';
 const validAudience = 'api.notifycal.com';
 
 const validEncodeConfig = {
-  privateKey: validPrivateKey,
+  secretOrPrivateKey: validPrivateKey,
   algorithm: 'ES256' as Algorithm,
   issuer: validIssuer,
   audience: validAudience,
   expiresIn: '5m' as Duration
 };
 const validDecodeConfig = {
-  publicKey: validPublicKey,
+  secretOrPublicKey: validPublicKey,
   expiresIn: '5m' as Duration,
   issuer: validIssuer,
   audience: validAudience

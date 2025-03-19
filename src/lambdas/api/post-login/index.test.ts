@@ -10,6 +10,7 @@ import type {
   UnixTimestamp,
   Uuid
 } from '@notifycal/shared/types';
+import type { PrivateKey } from '@own-types/model';
 import { GoogleOAuth } from '@services/google/oauth';
 import type { EncodedAndDecodedJwts } from '@services/jwt';
 import { buildJwtsAndStoreRefreshJwt, signInOrUpUser } from '@services/login';
@@ -349,14 +350,14 @@ async function testit<T extends IdpName>(
 
 const defaultEnv: LoginConfig = {
   encodeAccessJwtConfig: {
-    privateKey: `some_fake_private_key`,
+    secretOrPrivateKey: `some_fake_private_key` as PrivateKey,
     algorithm: 'ES256' as Algorithm,
     issuer: 'test@notifycal.com',
     audience: 'test@notifycal.com',
     expiresIn: '5m'
   },
   encodeRefreshJwtConfig: {
-    privateKey: `some_other_fake_private_key`,
+    secretOrPrivateKey: `some_other_fake_private_key` as PrivateKey,
     algorithm: 'ES256',
     issuer: 'test@notifycal.com',
     audience: 'test@notifycal.com',

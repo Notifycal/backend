@@ -127,7 +127,7 @@ export function testEvent<TEventBody>(
 export function testAuthedEvent<
   TEventBody,
   TSchema extends typeof tokenSchemaSkeleton,
-  TConfig extends SignOptions & { privateKey: string }
+  TConfig extends SignOptions & { secretOrPrivateKey: string }
 >(
   body: TEventBody,
   headers: Record<string, string> = {},

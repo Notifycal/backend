@@ -95,20 +95,20 @@ const validBodies = [
       count_total: '2'
     },
     client_ref: 'foobar1234'
+  },
+  {
+    message_uuid: 'bbbbbbbb-cccc-4ddd-8eee-0123456789ab',
+    channel: 'rcs',
+    to: '447700900002',
+    from: 'Vonage',
+    timestamp: '2025-02-03T14:20:00Z',
+    status: 'read',
+    client_ref: 'foobar1234'
   }
-  // {
-  //   message_uuid: 'bbbbbbbb-cccc-4ddd-8eee-0123456789ab',
-  //   channel: 'rcs',
-  //   to: '447700900002',
-  //   from: 'Vonage',
-  //   timestamp: '2025-02-03T14:20:00Z',
-  //   status: 'read',
-  //   client_ref: 'foobar1234'
-  // }
 ];
 
 export interface EncodeVonageAccessJwtConfig {
-  privateKey: string;
+  secretOrPrivateKey: string;
   algorithm: Algorithm;
   issuer: string;
   audience?: Array<string>;
@@ -122,7 +122,7 @@ const validJwtPayload = {
 };
 
 const validVonageEncodeJwtConfig: EncodeVonageAccessJwtConfig = {
-  privateKey: 'secret',
+  secretOrPrivateKey: 'secret',
   algorithm: 'HS256',
   issuer: 'Vonage',
   audience: [], // Real tokens don't have audience
@@ -149,22 +149,19 @@ describe('POST Event reminder delivery status webhook', () => {
     }
   );
 
-  it.only.each(validBodies)(
-    'should pass validation if the body is valid',
-    async (validCaseBody) => {
-      const event = (await testAuthedEvent(
-        validCaseBody,
-        {},
-        vonageAccessTokenSchema as never,
-        validJwtPayload,
-        validVonageEncodeJwtConfig
-      )) as APIGatewayProxyEvent;
+  it.each(validBodies)('should pass validation if the body is valid', async (validCaseBody) => {
+    const event = (await testAuthedEvent(
+      validCaseBody,
+      {},
+      vonageAccessTokenSchema as never,
+      validJwtPayload,
+      validVonageEncodeJwtConfig
+    )) as APIGatewayProxyEvent;
 
-      return testit(event).then((resp) => {
-        assert(resp, responseSuccessNoCorsHeaders());
-      });
-    }
-  );
+    return testit(event).then((resp) => {
+      assert(resp, responseSuccessNoCorsHeaders());
+    });
+  });
 
   const defaultEnv = {
     baseConfig: {
@@ -174,7 +171,7 @@ describe('POST Event reminder delivery status webhook', () => {
       queueUrl: 'https://fake-queue-url' as Url
     },
     decodeAccessJwtConfig: {
-      publicKey: validVonageEncodeJwtConfig.privateKey as VonageJwtSigningSecret, // Webhook uses symmetric criptography
+      publicKey: validVonageEncodeJwtConfig.secretOrPrivateKey as VonageJwtSigningSecret, // Webhook uses symmetric criptography
       applicationId: validJwtPayload.application_id,
       apiKey: validJwtPayload.api_key,
       algorithm: 'HS256' as Algorithm,

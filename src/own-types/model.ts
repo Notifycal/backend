@@ -12,6 +12,8 @@ export type JwtClaimCheckerFn<TAccessToken, TConfig> = (
   jwt: TAccessToken,
   config: TConfig
 ) => boolean;
+export type SigningSecret = Brand<string, 'SigningSecret'>;
+export type PrivateKey = Brand<string, 'PrivateKey'>;
 export type PublicKey = Brand<string, 'PublicKey'>;
 /* eslint-disable-next-line @typescript-eslint/no-empty-object-type */
 export type Environment = IEnv<IOptionalVariable<{}> & ExtenderTypeOptional<{}>, NodeJS.ProcessEnv>;

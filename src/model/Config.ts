@@ -1,6 +1,6 @@
 import type { DynamoDBPersistenceOptions } from '@aws-lambda-powertools/idempotency/dynamodb/types';
 import type { IdpName } from '@notifycal/shared/types';
-import type { AwsArn, PublicKey, Url } from '@own-types/model';
+import type { AwsArn, PrivateKey, PublicKey, SigningSecret, Url } from '@own-types/model';
 import type {
   VonageApiKey,
   VonageApplicationId,
@@ -22,7 +22,7 @@ export interface CommonJwtConfig {
 }
 
 export interface DecodeAccessJwtConfig extends CommonJwtConfig {
-  publicKey: PublicKey;
+  secretOrPublicKey: PublicKey | SigningSecret;
 }
 
 export type DecodeRefreshJwtConfig = DecodeAccessJwtConfig;
@@ -42,7 +42,7 @@ export type AuthedEndpointConfig<TDecodeAccessJwtConfig = DecodeAccessJwtConfig>
   BaseEndpointConfig & DecodeAccessJwtEndpointConfig<TDecodeAccessJwtConfig>;
 
 export interface EncodeAccessJwtConfig extends CommonJwtConfig {
-  privateKey: string;
+  secretOrPrivateKey: PrivateKey | SigningSecret;
   algorithm: Algorithm;
 }
 export type EncodeRefreshJwtConfig = EncodeAccessJwtConfig;
