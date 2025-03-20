@@ -161,7 +161,6 @@ describe('POST Event reminder delivery status webhook', () => {
   );
 
   const defaultEnv = {
-    baseConfig: {},
     auditTrailQueueConfig: {
       queueUrl: 'https://fake-queue-url' as Url
     },

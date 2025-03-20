@@ -4,7 +4,7 @@ import type {
   Algorithm,
   AuditTrailQueueConfig,
   AuthedEndpointConfig,
-  BaseEndpointConfig,
+  CorsEndpointConfig,
   DeadLetterQueueConfig,
   DecodeAccessJwtConfig,
   DecodeAccessJwtEndpointConfig,
@@ -47,9 +47,9 @@ function readJwtConfig<
   } as TResult;
 }
 
-export function readBaseConfig(env: Environment): BaseEndpointConfig {
+export function readBaseConfig(env: Environment): CorsEndpointConfig {
   return {
-    baseConfig: {
+    corsConfig: {
       frontendDomain: env.get(`FRONTEND_DOMAIN`).required().asString()
     }
   };

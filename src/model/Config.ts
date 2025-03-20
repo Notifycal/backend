@@ -27,19 +27,25 @@ export interface DecodeAccessJwtConfig extends CommonJwtConfig {
 
 export type DecodeRefreshJwtConfig = DecodeAccessJwtConfig;
 
-export interface BaseConfig {
-  frontendDomain?: string;
+export interface CorsConfig {
+  frontendDomain: string;
 }
-export interface BaseEndpointConfig {
-  baseConfig: BaseConfig;
+export interface CorsEndpointConfig {
+  corsConfig: CorsConfig;
 }
 
 export interface DecodeAccessJwtEndpointConfig<TDecodeAccessJwtConfig = DecodeAccessJwtConfig> {
   decodeAccessJwtConfig: TDecodeAccessJwtConfig;
 }
 
-export type AuthedEndpointConfig<TDecodeAccessJwtConfig = DecodeAccessJwtConfig> =
-  BaseEndpointConfig & DecodeAccessJwtEndpointConfig<TDecodeAccessJwtConfig>;
+export type OptionalCorsEndpointConfig =
+  | CorsEndpointConfig
+  | Omit<CorsEndpointConfig, 'corsConfig'>;
+
+export type AuthedEndpointConfig<
+  TPotentialCorsEndpointConfig = CorsEndpointConfig,
+  TDecodeAccessJwtConfig = DecodeAccessJwtConfig
+> = DecodeAccessJwtEndpointConfig<TDecodeAccessJwtConfig> & TPotentialCorsEndpointConfig;
 
 export interface EncodeAccessJwtConfig extends CommonJwtConfig {
   secretOrPrivateKey: PrivateKey | SigningSecret;

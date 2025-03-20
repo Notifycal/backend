@@ -295,7 +295,7 @@ describe('POST Refresh', () => {
     userBaseStoreConfig: {
       tableName: 'Users-local'
     },
-    baseConfig: {
+    corsConfig: {
       frontendDomain: 'http://localhost:5173'
     }
   };
@@ -306,7 +306,7 @@ describe('POST Refresh', () => {
     setEnvDecodeRefreshJwtConfig(config.decodeRefreshJwtConfig);
     setEnvRefreshTokenBaseStoreConfig(config.refreshTokenBaseStoreConfig);
     setEnvUserBaseStoreConfig(config.userBaseStoreConfig);
-    setEnvBaseConfig(config.baseConfig);
+    setEnvBaseConfig(config.corsConfig);
   }
 });
 

@@ -1,8 +1,4 @@
-import type {
-  AuditTrailQueueConfig,
-  BaseEndpointConfig,
-  DecodeVonageAccessJwtEndpointConfig
-} from '@model/Config';
+import type { AuditTrailQueueConfig, DecodeVonageAccessJwtEndpointConfig } from '@model/Config';
 import {
   readAuditTrailQueueConfig,
   readDecodeVonageJwtConfig,
@@ -10,16 +6,12 @@ import {
 } from '@services/common/config';
 import { promiseTry } from '@utils/promises';
 
-export type ReminderDeliveryStatusWebhookConfig = BaseEndpointConfig &
-  AuditTrailQueueConfig &
+export type ReminderDeliveryStatusWebhookConfig = AuditTrailQueueConfig &
   DecodeVonageAccessJwtEndpointConfig;
 
 export function readReminderDeliveryStatusWebhookConfig(): Promise<ReminderDeliveryStatusWebhookConfig> {
   const env = readEnv();
   return promiseTry(() => ({
-    ...{
-      baseConfig: {}
-    },
     ...readAuditTrailQueueConfig(env),
     ...readDecodeVonageJwtConfig(env)
   }));

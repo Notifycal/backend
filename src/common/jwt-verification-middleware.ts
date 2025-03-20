@@ -1,7 +1,11 @@
 import type { MiddlewareObj, Request } from '@middy/core';
 /* eslint-disable-next-line no-duplicate-imports */
 import type middy from '@middy/core';
-import type { AuthedEndpointConfig } from '@model/Config';
+import type {
+  AuthedEndpointConfig,
+  CorsEndpointConfig,
+  OptionalCorsEndpointConfig
+} from '@model/Config';
 import type { AccessToken } from '@model/Jwt';
 import type { AuthedAPIEventWithConfig } from '@model/lambda-events/ApiGatewayEvents';
 import type { Jwt } from '@notifycal/shared/types';
@@ -17,7 +21,7 @@ import type { z } from 'zod';
 
 function jwtVerification<
   TDecodeAccessJwtConfig,
-  TConfig extends AuthedEndpointConfig<TDecodeAccessJwtConfig>,
+  TConfig extends AuthedEndpointConfig<OptionalCorsEndpointConfig, TDecodeAccessJwtConfig>,
   TAccessTokenSchema extends z.ZodTypeAny
 >(
   accessTokenSchema: TAccessTokenSchema,
@@ -33,12 +37,18 @@ function jwtVerification<
   >,
   claimCheckerFn: JwtClaimCheckerFn<z.infer<typeof accessTokenSchema>, TConfig>
 ): Promise<APIGatewayProxyResult | void> {
+  function hasCorsConfig(
+    config: TConfig
+  ): config is TConfig & { corsConfig: CorsEndpointConfig['corsConfig'] } {
+    return 'corsConfig' in config;
+  }
+
   const requestHeaders = request.event.headers ?? {};
   const authorization = requestHeaders['Authorization'] || requestHeaders['authorization'];
   const requestContext = request.event.requestContext;
   const config = request.event.lambdaConfig;
-  const earlyResponseHeaders = config.baseConfig.frontendDomain
-    ? _headers(config.baseConfig.frontendDomain)
+  const earlyResponseHeaders = hasCorsConfig(config)
+    ? _headers(config.corsConfig.frontendDomain)
     : baseHeaders();
   if (!authorization) {
     return Promise.resolve(errorHandler(401, earlyResponseHeaders)('Missing Authorization'));
@@ -77,7 +87,7 @@ function jwtVerification<
 
 export function jwtVerificationMiddleware<
   TDecodeAccessJwtConfig,
-  TConfig extends AuthedEndpointConfig<TDecodeAccessJwtConfig>,
+  TConfig extends AuthedEndpointConfig<OptionalCorsEndpointConfig, TDecodeAccessJwtConfig>,
   TAccessTokenSchema extends z.ZodTypeAny
 >(
   accessTokenSchema: TAccessTokenSchema,

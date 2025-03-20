@@ -131,7 +131,7 @@ const defaultEnv = {
   userBaseStoreConfig: {
     tableName: 'Users-local'
   },
-  baseConfig: {
+  corsConfig: {
     frontendDomain: 'http://localhost:5173'
   }
 };
@@ -139,5 +139,5 @@ const defaultEnv = {
 function setEnv(config: PatchUserProfileConfig): void {
   setEnvDecodeAccessJwtConfig(config.decodeAccessJwtConfig);
   setEnvUserBaseStoreConfig(config.userBaseStoreConfig);
-  setEnvBaseConfig(config.baseConfig);
+  setEnvBaseConfig(config.corsConfig);
 }

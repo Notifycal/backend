@@ -370,7 +370,7 @@ const defaultEnv: LoginConfig = {
   refreshTokenBaseStoreConfig: {
     tableName: 'RefreshTokens-local'
   },
-  baseConfig: {
+  corsConfig: {
     frontendDomain: 'http://localhost:5173'
   }
 };
@@ -381,5 +381,5 @@ function setEnv(config: LoginConfig) {
   setEnvIdpConfigs(config.idpConfigs);
   setEnvUserBaseStoreConfig(config.userBaseStoreConfig);
   setEnvRefreshTokenBaseStoreConfig(config.refreshTokenBaseStoreConfig);
-  setEnvBaseConfig(config.baseConfig);
+  setEnvBaseConfig(config.corsConfig);
 }

@@ -105,7 +105,7 @@ const defaultEnv = {
     tableName: 'Users-local'
   },
   idpConfigs: fakeIdpConfigs,
-  baseConfig: {
+  corsConfig: {
     frontendDomain: 'http://localhost:5173'
   }
 };
@@ -114,5 +114,5 @@ function setEnv(config: GetUserCalendarsConfig) {
   setEnvDecodeAccessJwtConfig(config.decodeAccessJwtConfig);
   setEnvIdpConfigs(config.idpConfigs);
   setEnvUserBaseStoreConfig(config.userBaseStoreConfig);
-  setEnvBaseConfig(config.baseConfig);
+  setEnvBaseConfig(config.corsConfig);
 }

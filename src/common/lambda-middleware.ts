@@ -3,7 +3,11 @@ import { logMetrics } from '@aws-lambda-powertools/metrics/middleware';
 import { captureLambdaHandler } from '@aws-lambda-powertools/tracer/middleware';
 import { logger, metrics, tracer } from '@common/powertools';
 import middy, { type MiddlewareObj } from '@middy/core';
-import type { AuthedEndpointConfig, DecodeAccessJwtConfig } from '@model/Config';
+import type {
+  AuthedEndpointConfig,
+  CorsEndpointConfig,
+  DecodeAccessJwtConfig
+} from '@model/Config';
 import { accessTokenSchema } from '@model/Jwt';
 import type {
   ConfigReaderFn,
@@ -13,6 +17,7 @@ import type {
 import { decodeAndVerifyJwtSignature } from '@services/jwt';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import type { z } from 'zod';
+import type { OptionalCorsEndpointConfig } from './../model/Config';
 import { configReaderMiddleware } from './config-reader-middleware';
 import { corsMiddleware } from './cors-middleware';
 import { checkClaims, jwtVerificationMiddleware } from './jwt-verification-middleware';
@@ -72,7 +77,7 @@ export function unprotectedNotifycalEndpointMiddleware<TConfig, T extends z.AnyZ
 
 export function protectedEndpointMiddleware<
   TDecodeAccessJwtConfig,
-  TConfig extends AuthedEndpointConfig<TDecodeAccessJwtConfig>,
+  TConfig extends AuthedEndpointConfig<OptionalCorsEndpointConfig, TDecodeAccessJwtConfig>,
   TEventSchema extends z.AnyZodObject,
   TAccessTokenSchema extends z.AnyZodObject
 >(
@@ -99,7 +104,7 @@ export function protectedEndpointMiddleware<
 
 export function protectedNotifycalEndpointMiddleware<
   TDecodeAccessJwtConfig extends DecodeAccessJwtConfig,
-  TConfig extends AuthedEndpointConfig<TDecodeAccessJwtConfig>,
+  TConfig extends AuthedEndpointConfig<CorsEndpointConfig, TDecodeAccessJwtConfig>,
   TEventSchema extends z.AnyZodObject
 >(
   configReaderFn: ConfigReaderFn<Promise<TConfig>>,
@@ -108,7 +113,7 @@ export function protectedNotifycalEndpointMiddleware<
   const enableCors = true;
   return protectedEndpointMiddleware<
     TDecodeAccessJwtConfig,
-    AuthedEndpointConfig<TDecodeAccessJwtConfig>,
+    AuthedEndpointConfig<CorsEndpointConfig, TDecodeAccessJwtConfig>,
     TEventSchema,
     typeof accessTokenSchema
   >(

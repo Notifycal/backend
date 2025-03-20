@@ -1,6 +1,6 @@
 import type { CronRunConfig } from '@lambdas/schedule/fetch-user-calendars/config';
 import type {
-  BaseConfig,
+  CorsConfig,
   DecodeAccessJwtConfig,
   DecodeRefreshJwtConfig,
   EncodeAccessJwtConfig,
@@ -91,7 +91,7 @@ export function setEnvAuditTrailQueueConfig(config: SqsQueueConfig): void {
   process.env.AUDIT_TRAIL_QUEUE_URL = config.queueUrl;
 }
 
-export function setEnvBaseConfig(config: BaseConfig): void {
+export function setEnvBaseConfig(config: CorsConfig): void {
   process.env.FRONTEND_DOMAIN = config.frontendDomain;
 }
 
