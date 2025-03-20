@@ -95,6 +95,32 @@ describe('PATCH User profile', () => {
     });
   });
 
+  it('fail to patch a user with 400 if phone number in payload is invalid', async () => {
+    const invalidBody = {
+      business: {
+        name: 'Some business name',
+        address: 'Some address',
+        contactDetails: {
+          type: 'phone',
+          countryCode: 'ES',
+          phoneNumber: '111222333' as PhoneNumber
+        }
+      },
+      calendars: validBody.calendars
+    };
+    const event = (await testAuthedEvent(
+      invalidBody,
+      {},
+      validAccessToken
+    )) as unknown as APIGatewayProxyEvent;
+    const updateUserFn = () => Promise.resolve(null);
+
+    return testit(event, updateUserFn).then((resp) => {
+      console.warn(resp.body);
+      assert(resp, responseError(400));
+    });
+  });
+
   it('fail to return a user with 401 if no authorization present', async () => {
     const event = testEvent({}, {}) as unknown as APIGatewayProxyEvent;
     const updateUserFn = () => Promise.resolve(null);

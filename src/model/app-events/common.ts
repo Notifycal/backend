@@ -19,4 +19,4 @@ export const phoneSchema = z.object({
   phoneNumber: z.string().describe('Standard E.164').brand('PhoneNumberE164')
 });
 
-export const contactE164Schema = z.discriminatedUnion('type', [rcsContactSchema, phoneSchema]);
+export const contactE164Schema = z.union([rcsContactSchema, phoneSchema]);

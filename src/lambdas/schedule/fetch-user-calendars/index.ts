@@ -8,7 +8,7 @@ import type {
 import { eventBridgeEventSchema } from '@model/lambda-events/EventBridgeEvents';
 import type { LiveUserStoreRecord } from '@model/store/LiveUserStoreRecord';
 import type { UserIdpAuthorizationStoreRecord } from '@model/store/UserIdpAuthorizationStoreRecord';
-import { phoneData } from '@notifycal/shared/i18n';
+import { phoneByCountry } from '@notifycal/shared/i18n';
 import type { contactSchema } from '@notifycal/shared/schemas';
 import type { CorrelationId, DateTime, EventId } from '@notifycal/shared/types';
 import type { PhoneNumberE164 } from '@own-types/model';
@@ -33,7 +33,7 @@ function toCanonicalForm(
     .with({ type: 'phone', countryCode: P.any, phoneNumber: P.string }, (phone) => ({
       type: phone.type,
       phoneNumber:
-        `${phoneData[phone.countryCode].phoneDetails.dialCode}${phone.phoneNumber.toString()}` as PhoneNumberE164
+        `${phoneByCountry[phone.countryCode].phoneDetails.dialCode}${phone.phoneNumber.toString()}` as PhoneNumberE164
     }))
     .exhaustive();
 }
