@@ -1,4 +1,5 @@
-import type { AuditTrailQueueConfig, DecodeVonageAccessJwtEndpointConfig } from '@model/Config';
+import type { AuditTrailQueueConfig } from '@model/Config';
+import type { DecodeVonageAccessJwtEndpointConfig } from '@model/vendor/vonage';
 import {
   readAuditTrailQueueConfig,
   readDecodeVonageJwtConfig,

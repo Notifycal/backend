@@ -1,10 +1,7 @@
 import { getParameter } from '@aws-lambda-powertools/parameters/ssm';
 import { logger } from '@common/powertools';
-import type {
-  AuditTrailQueueConfig,
-  IdempotencyPersistenceConfig,
-  VonageConfig
-} from '@model/Config';
+import type { AuditTrailQueueConfig, IdempotencyPersistenceConfig } from '@model/Config';
+import type { VonageConfig } from '@model/vendor/vonage';
 import {
   readAuditTrailQueueConfig,
   readEnv,

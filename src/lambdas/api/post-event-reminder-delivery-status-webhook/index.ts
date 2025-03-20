@@ -3,9 +3,11 @@ import { protectedEndpointMiddleware } from '@common/lambda-middleware';
 import { logger } from '@common/powertools';
 import type { ActionableEventFoundEvent } from '@model/app-events/ActionableEventFoundEvent';
 import type { CalendarEventReminderStatusUpdatedEvent } from '@model/app-events/CalendarEventReminderStatusUpdatedEvent';
-import type { DecodeVonageAccessJwtConfig } from '@model/Config';
 import { authedEventSchema } from '@model/lambda-events/ApiGatewayEvents';
-import { VonageMessageStatusWebhookSchema } from '@model/vendor/vonage';
+import {
+  type DecodeVonageAccessJwtConfig,
+  VonageMessageStatusWebhookSchema
+} from '@model/vendor/vonage';
 import type { DateTime, EventId } from '@notifycal/shared/types';
 import { AuditTrailService } from '@services/audit-trail';
 import { successHandler } from '@services/common/api-response-handlers';

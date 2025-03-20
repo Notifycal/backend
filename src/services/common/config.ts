@@ -9,15 +9,14 @@ import type {
   DecodeAccessJwtConfig,
   DecodeAccessJwtEndpointConfig,
   DecodeRefreshJwtConfig,
-  DecodeVonageAccessJwtEndpointConfig,
   EncodeAccessJwtConfig,
   EncodeJwtsEndpointConfig,
   EncodeRefreshJwtConfig,
   IdempotencyPersistenceConfig,
   IdpEndpointConfig,
-  UserCalendarFetchedTopicConfig,
-  VonageConfig
+  UserCalendarFetchedTopicConfig
 } from '@model/Config';
+import type { DecodeVonageAccessJwtEndpointConfig, VonageConfig } from '@model/vendor/vonage';
 import type { AwsArn, Environment, PrivateKey, PublicKey, Url } from '@own-types/model';
 import type {
   VonageApiKey,

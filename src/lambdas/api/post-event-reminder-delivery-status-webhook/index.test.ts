@@ -1,5 +1,6 @@
 import type { SendMessageCommandOutput } from '@aws-sdk/client-sqs';
-import type { Algorithm, DecodeVonageAccessJwtConfig, Duration } from '@model/Config';
+import type { Algorithm, Duration } from '@model/Config';
+import type { DecodeVonageAccessJwtConfig } from '@model/vendor/vonage';
 import type { Jwt } from '@notifycal/shared/types';
 import type { Url } from '@own-types/model';
 import { AuditTrailService } from '@services/audit-trail';
