@@ -1,5 +1,6 @@
 import type { SendMessageCommandOutput } from '@aws-sdk/client-sqs';
 import type { Algorithm, DecodeVonageAccessJwtConfig, Duration } from '@model/Config';
+import type { Jwt } from '@notifycal/shared/types';
 import type { Url } from '@own-types/model';
 import { AuditTrailService } from '@services/audit-trail';
 import type {
@@ -7,7 +8,7 @@ import type {
   VonageApplicationId,
   VonageJwtSigningSecret
 } from '@services/messaging';
-import { c, testAuthedEvent } from '@testing/data/apigateway';
+import { c, testVonageAuthedEvent } from '@testing/data/apigateway';
 import {
   responseErrorNoCorsHeaders,
   responseSuccessNoCorsHeaders
@@ -18,7 +19,6 @@ import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { describe, it, vi } from 'vitest';
 import type { ReminderDeliveryStatusWebhookConfig } from './config';
 import { handler, type Event } from './index';
-import { vonageAccessTokenSchema } from './schema';
 
 /* eslint-disable camelcase */
 const invalidBodies = [
@@ -117,18 +117,21 @@ export interface EncodeVonageAccessJwtConfig {
   expiresIn?: Duration;
 }
 
-const validJwtPayload = {
-  payload_hash: '<somehash>',
-  application_id: 'fake-application-id' as VonageApplicationId,
-  api_key: 'fake-api-key' as VonageApiKey
+const validVonageJwt =
+  `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJWb25hZ2UiLCJpYXQiOjE3NDE4OTI3ODQsImp0aSI6ImI5MzYwOGNmLWQzZjYtNGZlYi1iNDI2LTUyMjM3N2YwOWViNCIsImFwaV9rZXkiOiIxMjM0NTY3OCIsImFwcGxpY2F0aW9uX2lkIjoiODc2NTQzMjEtMTIzNC00MzIxLTEyMzQtYjM3ZTcxNWFlYmI1IiwicGF5bG9hZF9oYXNoIjoiZDRmNTM0YjQzMzdmOTQzMWUwZTRjYzEwNDgxOGFlNjE3ZGRhMWVjNDQ2YWVkZDkxMzU5ODNjMjQ0YmVhNWM5MCJ9.MEKK7PtsxMTDBywOTfXFIB2x1lUx3Yqcgp7uUFgCHew` as Jwt;
+const validDecodedVonageJwt = {
+  iss: 'Vonage',
+  iat: 1741892784,
+  jti: 'b93608cf-d3f6-4feb-b426-522377f09eb4',
+  api_key: '12345678',
+  application_id: '87654321-1234-4321-1234-b37e715aebb5',
+  payload_hash: 'd4f534b4337f9431e0e4cc104818ae617dda1ec446aedd9135983c244bea5c90'
 };
 
 const validVonageEncodeJwtConfig: EncodeVonageAccessJwtConfig = {
-  secretOrPrivateKey: 'secret',
+  secretOrPrivateKey: 'this-is-a-fake-secret',
   algorithm: 'HS256',
-  issuer: 'Vonage',
-  audience: [], // Real tokens don't have audience
-  expiresIn: 3600 // Real tokens don't have expiration - yes, for real they are doing that
+  issuer: 'Vonage'
 };
 
 /* eslint-enable camelcase */
@@ -138,13 +141,7 @@ describe('POST Event reminder delivery status webhook', () => {
     'should fail validation if the body is invalid',
     async (invalidCaseBody) => {
       console.warn(invalidCaseBody.message_uuid);
-      const event = (await testAuthedEvent(
-        invalidCaseBody,
-        {},
-        vonageAccessTokenSchema as never,
-        validJwtPayload,
-        validVonageEncodeJwtConfig
-      )) as APIGatewayProxyEvent;
+      const event = testVonageAuthedEvent(invalidCaseBody, validVonageJwt) as APIGatewayProxyEvent;
 
       return testit(event).then((resp) => {
         assert(resp, responseErrorNoCorsHeaders(400));
@@ -153,13 +150,7 @@ describe('POST Event reminder delivery status webhook', () => {
   );
 
   it.each(validBodies)('should pass validation if the body is valid', async (validCaseBody) => {
-    const event = (await testAuthedEvent(
-      validCaseBody,
-      {},
-      vonageAccessTokenSchema as never,
-      validJwtPayload,
-      validVonageEncodeJwtConfig
-    )) as APIGatewayProxyEvent;
+    const event = testVonageAuthedEvent(validCaseBody, validVonageJwt) as APIGatewayProxyEvent;
 
     return testit(event).then((resp) => {
       assert(resp, responseSuccessNoCorsHeaders());
@@ -172,9 +163,9 @@ describe('POST Event reminder delivery status webhook', () => {
       queueUrl: 'https://fake-queue-url' as Url
     },
     decodeAccessJwtConfig: {
-      publicKey: validVonageEncodeJwtConfig.secretOrPrivateKey as VonageJwtSigningSecret, // Webhook uses symmetric criptography
-      applicationId: validJwtPayload.application_id,
-      apiKey: validJwtPayload.api_key,
+      publicKey: validVonageEncodeJwtConfig.secretOrPrivateKey as VonageJwtSigningSecret,
+      applicationId: validDecodedVonageJwt.application_id as VonageApplicationId,
+      apiKey: validDecodedVonageJwt.api_key as VonageApiKey,
       algorithm: 'HS256' as Algorithm,
       issuer: 'Vonage'
     }

@@ -1,6 +1,7 @@
 import type { APIGatewayProxyEvent } from '@aws-lambda-powertools/parser/types';
 import type { SignOptions } from '@model/Config';
 import { accessTokenSchema } from '@model/Jwt';
+import type { Jwt } from '@notifycal/shared/types';
 import {
   getDefaultAccessTokenPayload,
   getDefaultEncodeAccessJwtConfig,
@@ -138,6 +139,13 @@ export function testAuthedEvent<
   return testJwt(jwtSchema, jwtPayload, encodeJwtConfig).then((jwt) =>
     ttestEvent(JSON.stringify(body), { ...headers, Authorization: `Bearer ${jwt}` })
   );
+}
+
+export function testVonageAuthedEvent<TEventBody>(
+  body: TEventBody,
+  authorization: Jwt
+): APIGatewayProxyEvent {
+  return ttestEvent(JSON.stringify(body), { Authorization: `Bearer ${authorization}` });
 }
 
 export const c: Context = {
