@@ -1,8 +1,8 @@
 import { JSONStringified } from '@aws-lambda-powertools/parser/helpers';
-import { unprotectedEndpointMiddleware } from '@common/lambda-middleware';
-import { apiEventSchema } from '@model/lambda-events/ApiGatewayEvents';
+import { unprotectedNotifycalEndpointMiddleware } from '@common/lambda-middleware';
 import type { IdpConfigs } from '@model/Config';
 import type { AuthorizationForIdp } from '@model/IdpAuthorization';
+import { apiEventSchema } from '@model/lambda-events/ApiGatewayEvents';
 import { extractIdentity } from '@model/UserIdentity';
 import type { Identity, IdpName } from '@notifycal/shared/types';
 import { errorHandler } from '@services/common/api-response-handlers';
@@ -64,7 +64,7 @@ function lambdaHandler(
     .catch(errorHandler(401));
 }
 
-export const handler = unprotectedEndpointMiddleware(
+export const handler = unprotectedNotifycalEndpointMiddleware(
   () => readLoginConfig(),
   schema
 ).handler<Event>(lambdaHandler);

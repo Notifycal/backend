@@ -1,5 +1,5 @@
 import { JSONStringified } from '@aws-lambda-powertools/parser/helpers';
-import { protectedEndpointMiddleware } from '@common/lambda-middleware';
+import { protectedNotifycalEndpointMiddleware } from '@common/lambda-middleware';
 import { authedEventSchema } from '@model/lambda-events/ApiGatewayEvents';
 import { reminderConfigSchema } from '@notifycal/shared/schemas';
 import { errorHandler, successHandler } from '@services/common/api-response-handlers';
@@ -32,7 +32,7 @@ function lambdaHandler(
     .then(() => successHandler(204)(), errorHandler(500));
 }
 
-export const handler = protectedEndpointMiddleware(
+export const handler = protectedNotifycalEndpointMiddleware(
   () => readPatchUserConfig(),
   eventSchema
 ).handler<Event>(lambdaHandler);

@@ -2,7 +2,7 @@ import { injectLambdaContext } from '@aws-lambda-powertools/logger/middleware';
 import { logMetrics } from '@aws-lambda-powertools/metrics/middleware';
 import { captureLambdaHandler } from '@aws-lambda-powertools/tracer/middleware';
 import { logger, metrics, tracer } from '@common/powertools';
-import middy from '@middy/core';
+import middy, { type MiddlewareObj } from '@middy/core';
 import type { AuthedEndpointConfig, DecodeAccessJwtConfig } from '@model/Config';
 import { accessTokenSchema } from '@model/Jwt';
 import type {
@@ -45,16 +45,32 @@ export function backgroundProcessingMiddleware<TConfig, T extends z.AnyZodObject
   );
 }
 
+const noOpMiddleware: MiddlewareObj = {
+  before: () => {}
+};
+
 export function unprotectedEndpointMiddleware<TConfig, T extends z.AnyZodObject>(
   configReaderFn: ConfigReaderFn<Promise<TConfig>>,
-  eventSchema: T
+  eventSchema: T,
+  enableCors: boolean
 ): middy.MiddyfiedHandler<APIGatewayProxyEvent, APIGatewayProxyResult> {
   return baseConfigMiddleware(() => configReaderFn(), true)
     .use(eventParserMiddleware(eventSchema, true))
-    .use(corsMiddleware()) as middy.MiddyfiedHandler<APIGatewayProxyEvent, APIGatewayProxyResult>;
+    .use(enableCors ? corsMiddleware() : noOpMiddleware) as middy.MiddyfiedHandler<
+    APIGatewayProxyEvent,
+    APIGatewayProxyResult
+  >;
 }
 
-export function protectedEndpointMiddlewareCustom<
+export function unprotectedNotifycalEndpointMiddleware<TConfig, T extends z.AnyZodObject>(
+  configReaderFn: ConfigReaderFn<Promise<TConfig>>,
+  eventSchema: T
+): middy.MiddyfiedHandler<APIGatewayProxyEvent, APIGatewayProxyResult> {
+  const enableCors = true;
+  return unprotectedEndpointMiddleware(configReaderFn, eventSchema, enableCors);
+}
+
+export function protectedEndpointMiddleware<
   TDecodeAccessJwtConfig,
   TConfig extends AuthedEndpointConfig<TDecodeAccessJwtConfig>,
   TEventSchema extends z.AnyZodObject,
@@ -67,18 +83,21 @@ export function protectedEndpointMiddlewareCustom<
     TAccessTokenSchema,
     TDecodeAccessJwtConfig
   >,
-  claimCheckerFn: JwtClaimCheckerFn<z.infer<typeof accessTokenSchema>, TConfig>
+  claimCheckerFn: JwtClaimCheckerFn<z.infer<typeof accessTokenSchema>, TConfig>,
+  enableCors: boolean
 ): middy.MiddyfiedHandler<APIGatewayProxyEvent, APIGatewayProxyResult> {
   return baseConfigMiddleware(() => configReaderFn(), true)
     .use(
       jwtVerificationMiddleware(accessTokenSchema, jwtDecoderAndSignatureVerifierFn, claimCheckerFn)
     )
-    .use(
-      eventParserMiddleware<TConfig, TEventSchema, APIGatewayProxyResult>(eventSchema, true)
-    ) as middy.MiddyfiedHandler<APIGatewayProxyEvent, APIGatewayProxyResult>;
+    .use(eventParserMiddleware<TConfig, TEventSchema, APIGatewayProxyResult>(eventSchema, true))
+    .use(enableCors ? corsMiddleware() : noOpMiddleware) as middy.MiddyfiedHandler<
+    APIGatewayProxyEvent,
+    APIGatewayProxyResult
+  >;
 }
 
-export function protectedEndpointMiddleware<
+export function protectedNotifycalEndpointMiddleware<
   TDecodeAccessJwtConfig extends DecodeAccessJwtConfig,
   TConfig extends AuthedEndpointConfig<TDecodeAccessJwtConfig>,
   TEventSchema extends z.AnyZodObject
@@ -86,7 +105,8 @@ export function protectedEndpointMiddleware<
   configReaderFn: ConfigReaderFn<Promise<TConfig>>,
   eventSchema: TEventSchema
 ): middy.MiddyfiedHandler<APIGatewayProxyEvent, APIGatewayProxyResult> {
-  return protectedEndpointMiddlewareCustom<
+  const enableCors = true;
+  return protectedEndpointMiddleware<
     TDecodeAccessJwtConfig,
     AuthedEndpointConfig<TDecodeAccessJwtConfig>,
     TEventSchema,
@@ -96,9 +116,7 @@ export function protectedEndpointMiddleware<
     eventSchema,
     accessTokenSchema,
     decodeAndVerifyJwtSignature<typeof accessTokenSchema, TDecodeAccessJwtConfig>,
-    checkClaims
-  ).use(corsMiddleware()) as unknown as middy.MiddyfiedHandler<
-    APIGatewayProxyEvent,
-    APIGatewayProxyResult
-  >;
+    checkClaims,
+    enableCors
+  ) as unknown as middy.MiddyfiedHandler<APIGatewayProxyEvent, APIGatewayProxyResult>;
 }

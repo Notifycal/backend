@@ -1,5 +1,5 @@
 import { JSONStringified } from '@aws-lambda-powertools/parser/helpers';
-import { protectedEndpointMiddlewareCustom } from '@common/lambda-middleware';
+import { protectedEndpointMiddleware } from '@common/lambda-middleware';
 import { logger } from '@common/powertools';
 import type { ActionableEventFoundEvent } from '@model/app-events/ActionableEventFoundEvent';
 import type { CalendarEventReminderStatusUpdatedEvent } from '@model/app-events/CalendarEventReminderStatusUpdatedEvent';
@@ -87,11 +87,13 @@ function vonageAccessTokenClaimChecker(
     jwt.payload.api_key === config.decodeAccessJwtConfig.apiKey
   );
 }
+const enableCors = false;
 
-export const handler = protectedEndpointMiddlewareCustom(
+export const handler = protectedEndpointMiddleware(
   () => readReminderDeliveryStatusWebhookConfig(),
   schema,
   vonageAccessTokenSchema,
   vonageDecodeAndVerifyJwtSignature<typeof vonageAccessTokenSchema, DecodeVonageAccessJwtConfig>,
-  vonageAccessTokenClaimChecker
+  vonageAccessTokenClaimChecker,
+  enableCors
 ).handler<Event>(lambdaHandler);
