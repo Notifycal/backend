@@ -1,11 +1,7 @@
 import type { MiddlewareObj, Request } from '@middy/core';
 /* eslint-disable-next-line no-duplicate-imports */
 import type middy from '@middy/core';
-import type {
-  AuthedEndpointConfig,
-  CorsEndpointConfig,
-  OptionalCorsEndpointConfig
-} from '@model/Config';
+import type { AuthedEndpointConfig, OptionalCorsEndpointConfig } from '@model/Config';
 import type { AccessToken } from '@model/Jwt';
 import type { AuthedAPIEventWithConfig } from '@model/lambda-events/ApiGatewayEvents';
 import type { Jwt } from '@notifycal/shared/types';
@@ -18,6 +14,7 @@ import {
 import { extractErrorMessage } from '@services/common/error-handling';
 import type { APIGatewayProxyResult, Context } from 'aws-lambda';
 import type { z } from 'zod';
+import { hasCorsConfig } from './utils-middleware';
 
 function jwtVerification<
   TDecodeAccessJwtConfig,
@@ -37,12 +34,6 @@ function jwtVerification<
   >,
   claimCheckerFn: JwtClaimCheckerFn<z.infer<typeof accessTokenSchema>, TConfig>
 ): Promise<APIGatewayProxyResult | void> {
-  function hasCorsConfig(
-    config: TConfig
-  ): config is TConfig & { corsConfig: CorsEndpointConfig['corsConfig'] } {
-    return 'corsConfig' in config;
-  }
-
   const requestHeaders = request.event.headers ?? {};
   const authorization = requestHeaders['Authorization'] || requestHeaders['authorization'];
   const requestContext = request.event.requestContext;

@@ -6,7 +6,8 @@ import middy, { type MiddlewareObj } from '@middy/core';
 import type {
   AuthedEndpointConfig,
   CorsEndpointConfig,
-  DecodeAccessJwtConfig
+  DecodeAccessJwtConfig,
+  OptionalCorsEndpointConfig
 } from '@model/Config';
 import { accessTokenSchema } from '@model/Jwt';
 import type {
@@ -17,7 +18,6 @@ import type {
 import { decodeAndVerifyJwtSignature } from '@services/jwt';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import type { z } from 'zod';
-import type { OptionalCorsEndpointConfig } from './../model/Config';
 import { configReaderMiddleware } from './config-reader-middleware';
 import { corsMiddleware } from './cors-middleware';
 import { checkClaims, jwtVerificationMiddleware } from './jwt-verification-middleware';

@@ -2,13 +2,14 @@ import { parser } from '@aws-lambda-powertools/parser/middleware';
 import type { MiddlewareObj, Request } from '@middy/core';
 /* eslint-disable-next-line no-duplicate-imports */
 import type middy from '@middy/core';
-import type { CorsEndpointConfig, OptionalCorsEndpointConfig } from '@model/Config';
+import type { OptionalCorsEndpointConfig } from '@model/Config';
 import type { EventWithConfig } from '@model/lambda-events/Event';
 import { baseHeaders, errorHandler, headers } from '@services/common/api-response-handlers';
 import { extractErrorMessage } from '@services/common/error-handling';
 import type { Context } from 'aws-lambda';
 import type { z } from 'zod';
 import { logger } from './powertools';
+import { hasCorsConfig } from './utils-middleware';
 
 function eventParser<
   TConfig extends OptionalCorsEndpointConfig,
@@ -26,11 +27,6 @@ function eventParser<
     } catch (error: unknown) {
       const baseMsg = `payload does not satisfy the schema. Error: ${extractErrorMessage(error)}. Schema: ${JSON.stringify(schema.shape)}`;
       if (isApiRequest) {
-        function hasCorsConfig(
-          config: TConfig
-        ): config is TConfig & { corsConfig: CorsEndpointConfig['corsConfig'] } {
-          return 'corsConfig' in config;
-        }
         return errorHandler(
           400,
           hasCorsConfig(request.event.lambdaConfig)
