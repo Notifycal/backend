@@ -1,5 +1,5 @@
 import { JSONStringified } from '@aws-lambda-powertools/parser/helpers';
-import { unprotectedNotifycalEndpointMiddleware } from '@common/lambda-middleware';
+import { unprotectedCrossDomainEndpointMiddleware } from '@common/lambda-middleware';
 import { refreshTokenSchema } from '@model/Jwt';
 import { apiEventSchema } from '@model/lambda-events/ApiGatewayEvents';
 import { extractIdentity } from '@model/UserIdentity';
@@ -62,7 +62,7 @@ function lambdaHandler(
     .catch(errorHandler(401));
 }
 
-export const handler = unprotectedNotifycalEndpointMiddleware(
+export const handler = unprotectedCrossDomainEndpointMiddleware(
   () => readRefreshConfig(),
   schema
 ).handler<Event>(lambdaHandler);

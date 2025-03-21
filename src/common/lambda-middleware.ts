@@ -67,7 +67,7 @@ export function unprotectedEndpointMiddleware<TConfig, T extends z.AnyZodObject>
   >;
 }
 
-export function unprotectedNotifycalEndpointMiddleware<TConfig, T extends z.AnyZodObject>(
+export function unprotectedCrossDomainEndpointMiddleware<TConfig, T extends z.AnyZodObject>(
   configReaderFn: ConfigReaderFn<Promise<TConfig>>,
   eventSchema: T
 ): middy.MiddyfiedHandler<APIGatewayProxyEvent, APIGatewayProxyResult> {
