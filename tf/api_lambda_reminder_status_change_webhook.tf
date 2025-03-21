@@ -11,9 +11,6 @@ data "aws_iam_policy_document" "event_reminder_status_change_webhook_iam_policyd
     ]
   }
 }
-data "aws_ssm_parameter" "vonage_webhook_jwt_signing_secret" {
-  name = var.vonage_auth_config.webhook_jwt_signing_secret_secret_path
-}
 
 module "event_reminder_status_change_webhook_lambda" {
   source  = "terraform-aws-modules/lambda/aws"
@@ -46,7 +43,7 @@ module "event_reminder_status_change_webhook_lambda" {
     AUDIT_TRAIL_QUEUE_URL             = module.audit_trail_queue.sqs_queue_url,
     VONAGE_APPLICATION_ID             = var.vonage_auth_config.application_id
     VONAGE_API_KEY                    = var.vonage_auth_config.api_key
-    VONAGE_WEBHOOK_JWT_SIGNING_SECRET = data.aws_ssm_parameter.vonage_webhook_jwt_signing_secret.value
+    VONAGE_WEBHOOK_JWT_SIGNING_SECRET = var.vonage_auth_config.webhook_jwt_signing_secret
     VONAGE_JWT_ALGORITHM              = "HS256"
     VONAGE_JWT_ISSUER                 = "Vonage"
   }, local.common_lambda_env_vars)
