@@ -79,7 +79,7 @@ export interface VonageConfig {
 export interface DecodeVonageAccessJwtConfig {
   applicationId: VonageApplicationId;
   apiKey: VonageApiKey;
-  publicKey: VonageJwtSigningSecret;
+  signingSecret: VonageJwtSigningSecret;
   algorithm: Algorithm;
   issuer: string;
 }

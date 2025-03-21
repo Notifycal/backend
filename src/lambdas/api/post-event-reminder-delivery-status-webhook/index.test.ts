@@ -111,7 +111,7 @@ const validBodies = [
 ];
 
 export interface EncodeVonageAccessJwtConfig {
-  secretOrPrivateKey: string;
+  signingSecret: string;
   algorithm: Algorithm;
   issuer: string;
   audience?: Array<string>;
@@ -130,7 +130,7 @@ const validDecodedVonageJwt = {
 };
 
 const validVonageEncodeJwtConfig: EncodeVonageAccessJwtConfig = {
-  secretOrPrivateKey: 'this-is-a-fake-secret',
+  signingSecret: 'this-is-a-fake-secret',
   algorithm: 'HS256',
   issuer: 'Vonage'
 };
@@ -163,7 +163,7 @@ describe('POST Event reminder delivery status webhook', () => {
       queueUrl: 'https://fake-queue-url' as Url
     },
     decodeAccessJwtConfig: {
-      publicKey: validVonageEncodeJwtConfig.secretOrPrivateKey as VonageJwtSigningSecret,
+      signingSecret: validVonageEncodeJwtConfig.signingSecret as VonageJwtSigningSecret,
       applicationId: validDecodedVonageJwt.application_id as VonageApplicationId,
       apiKey: validDecodedVonageJwt.api_key as VonageApiKey,
       algorithm: 'HS256' as Algorithm,
@@ -176,7 +176,7 @@ describe('POST Event reminder delivery status webhook', () => {
     process.env.VONAGE_API_KEY = config.apiKey;
     process.env.VONAGE_JWT_ISSUER = config.issuer;
     process.env.VONAGE_JWT_ALGORITHM = config.algorithm;
-    process.env.VONAGE_WEBHOOK_JWT_SIGNING_SECRET = config.publicKey;
+    process.env.VONAGE_WEBHOOK_JWT_SIGNING_SECRET = config.signingSecret;
   }
 
   function setEnv(config: ReminderDeliveryStatusWebhookConfig) {

@@ -125,7 +125,7 @@ export function vonageDecodeAndVerifyJwtSignature<
   TConfig extends DecodeVonageAccessJwtConfig = DecodeVonageAccessJwtConfig
 >(jwt: Jwt, schema: T, config: TConfig): Promise<z.infer<T>> {
   try {
-    const token = jwtBuilder.verify(jwt, config.publicKey, {
+    const token = jwtBuilder.verify(jwt, config.signingSecret, {
       complete: true,
       issuer: config.issuer
     });

@@ -217,7 +217,7 @@ export function readDecodeVonageJwtConfig(env: Environment): DecodeVonageAccessJ
     decodeAccessJwtConfig: {
       applicationId: env.get('VONAGE_APPLICATION_ID').required().asString() as VonageApplicationId,
       apiKey: env.get('VONAGE_API_KEY').required().asString() as VonageApiKey,
-      publicKey: env
+      signingSecret: env
         .get('VONAGE_WEBHOOK_JWT_SIGNING_SECRET')
         .required()
         .asString() as VonageJwtSigningSecret,
