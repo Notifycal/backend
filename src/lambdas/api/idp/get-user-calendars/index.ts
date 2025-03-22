@@ -1,4 +1,4 @@
-import { protectedNotifycalEndpointMiddleware } from '@common/lambda-middleware';
+import { protectedEndpointMiddleware } from '@common/lambda-middleware';
 import { authedEventSchema } from '@model/lambda-events/ApiGatewayEvents';
 import { calendarList } from '@services/calendar';
 import { errorHandler, successHandler } from '@services/common/api-response-handlers';
@@ -23,7 +23,7 @@ function lambdaHandler(
   );
 }
 
-export const handler = protectedNotifycalEndpointMiddleware(
+export const handler = protectedEndpointMiddleware(
   () => readGetUserCalendarListConfig(),
   eventSchema
 ).handler<Event>(lambdaHandler);

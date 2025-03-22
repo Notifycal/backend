@@ -75,7 +75,7 @@ export function unprotectedCrossDomainEndpointMiddleware<TConfig, T extends z.An
   return unprotectedEndpointMiddleware(configReaderFn, eventSchema, enableCors);
 }
 
-export function protectedEndpointMiddleware<
+export function protectedEndpointMiddlewareCustom<
   TDecodeAccessJwtConfig,
   TConfig extends AuthedEndpointConfig<OptionalCorsEndpointConfig, TDecodeAccessJwtConfig>,
   TEventSchema extends z.AnyZodObject,
@@ -102,7 +102,7 @@ export function protectedEndpointMiddleware<
   >;
 }
 
-export function protectedNotifycalEndpointMiddleware<
+export function protectedEndpointMiddleware<
   TDecodeAccessJwtConfig extends DecodeAccessJwtConfig,
   TConfig extends AuthedEndpointConfig<CorsEndpointConfig, TDecodeAccessJwtConfig>,
   TEventSchema extends z.AnyZodObject
@@ -111,7 +111,7 @@ export function protectedNotifycalEndpointMiddleware<
   eventSchema: TEventSchema
 ): middy.MiddyfiedHandler<APIGatewayProxyEvent, APIGatewayProxyResult> {
   const enableCors = true;
-  return protectedEndpointMiddleware<
+  return protectedEndpointMiddlewareCustom<
     TDecodeAccessJwtConfig,
     AuthedEndpointConfig<CorsEndpointConfig, TDecodeAccessJwtConfig>,
     TEventSchema,

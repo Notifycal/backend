@@ -1,4 +1,4 @@
-import { protectedNotifycalEndpointMiddleware } from '@common/lambda-middleware';
+import { protectedEndpointMiddleware } from '@common/lambda-middleware';
 import { authedEventSchema } from '@model/lambda-events/ApiGatewayEvents';
 import { extractUser } from '@model/store/UserStoreRecord';
 import { errorHandler, successHandler } from '@services/common/api-response-handlers';
@@ -27,7 +27,7 @@ function lambdaHandler(
   }, errorHandler(500));
 }
 
-export const handler = protectedNotifycalEndpointMiddleware(
+export const handler = protectedEndpointMiddleware(
   () => readGetUserConfig(),
   eventSchema
 ).handler<Event>(lambdaHandler);
