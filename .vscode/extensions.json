@@ -1,0 +1,11 @@
+{
+  "recommendations": [
+    "hashicorp.terraform",
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "emeraldwalk.runonsave",
+    "steoates.autoimport",
+    "yoavbls.pretty-ts-errors",
+    "wayou.vscode-todo-highlight"
+  ]
+}

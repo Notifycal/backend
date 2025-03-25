@@ -1,0 +1,37 @@
+{
+  "files.autoSave": "afterDelay",
+  "editor.codeActionsOnSave": [
+    "source.addMissingImports",
+    "source.organizeImports",
+    "source.fixAll.eslint"
+  ],
+  "prettier.configPath": ".prettierrc",
+  "eslint.useFlatConfig": true,
+  "editor.formatOnSave": true,
+  "editor.formatOnSaveMode": "modificationsIfAvailable",
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "[terraform]": {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "hashicorp.terraform"
+  },
+  "emeraldwalk.runonsave": {
+    "commands": [
+      {
+          "cmd": "terragrunt hclfmt --terragrunt-hclfmt-file ${file}",
+          "isAsync": true,
+          "match": "\\.hcl$"
+      }
+    ]
+  },
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "files.saveConflictResolution": "overwriteFileOnDisk",
+  "git.autofetch": true
+}
