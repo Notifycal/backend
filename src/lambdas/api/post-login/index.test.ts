@@ -1,3 +1,4 @@
+import type { Algorithm } from '@model/Config';
 import type { AuthorizationForIdp } from '@model/IdpAuthorization';
 import type { UserStoreRecord } from '@model/store/UserStoreRecord';
 import type {
@@ -9,6 +10,7 @@ import type {
   UnixTimestamp,
   Uuid
 } from '@notifycal/shared/types';
+import type { PrivateKey } from '@own-types/model';
 import { GoogleOAuth } from '@services/google/oauth';
 import type { EncodedAndDecodedJwts } from '@services/jwt';
 import { buildJwtsAndStoreRefreshJwt, signInOrUpUser } from '@services/login';
@@ -348,14 +350,14 @@ async function testit<T extends IdpName>(
 
 const defaultEnv: LoginConfig = {
   encodeAccessJwtConfig: {
-    privateKey: `some_fake_private_key`,
-    algorithm: 'ES256',
+    secretOrPrivateKey: `some_fake_private_key` as PrivateKey,
+    algorithm: 'ES256' as Algorithm,
     issuer: 'test@notifycal.com',
     audience: 'test@notifycal.com',
     expiresIn: '5m'
   },
   encodeRefreshJwtConfig: {
-    privateKey: `some_other_fake_private_key`,
+    secretOrPrivateKey: `some_other_fake_private_key` as PrivateKey,
     algorithm: 'ES256',
     issuer: 'test@notifycal.com',
     audience: 'test@notifycal.com',
@@ -368,7 +370,7 @@ const defaultEnv: LoginConfig = {
   refreshTokenBaseStoreConfig: {
     tableName: 'RefreshTokens-local'
   },
-  baseConfig: {
+  corsConfig: {
     frontendDomain: 'http://localhost:5173'
   }
 };
@@ -379,5 +381,5 @@ function setEnv(config: LoginConfig) {
   setEnvIdpConfigs(config.idpConfigs);
   setEnvUserBaseStoreConfig(config.userBaseStoreConfig);
   setEnvRefreshTokenBaseStoreConfig(config.refreshTokenBaseStoreConfig);
-  setEnvBaseConfig(config.baseConfig);
+  setEnvBaseConfig(config.corsConfig);
 }

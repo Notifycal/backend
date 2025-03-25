@@ -1,5 +1,5 @@
 import type {
-  BaseEndpointConfig,
+  CorsEndpointConfig,
   DecodeRefreshJwtConfig,
   EncodeAccessJwtConfig,
   EncodeRefreshJwtConfig
@@ -21,7 +21,7 @@ export interface BaseRefreshConfig {
   decodeRefreshJwtConfig: DecodeRefreshJwtConfig;
   refreshTokenBaseStoreConfig: RefreshTokenBaseStoreConfig;
 }
-export type RefreshConfig = BaseRefreshConfig & BaseEndpointConfig & UserBaseStoreEndpointConfig;
+export type RefreshConfig = BaseRefreshConfig & CorsEndpointConfig & UserBaseStoreEndpointConfig;
 
 export function readRefreshConfig(): Promise<RefreshConfig> {
   const env = readEnv();

@@ -1,23 +1,18 @@
 import { getParameter } from '@aws-lambda-powertools/parameters/ssm';
-import type {
-  AuditTrailQueueConfig,
-  IdempotencyPersistenceConfig,
-  VonageConfig
-} from '@model/Config';
+import { logger } from '@common/powertools';
+import type { AuditTrailQueueConfig, IdempotencyPersistenceConfig } from '@model/Config';
+import type { VonageConfig } from '@model/vendor/vonage';
 import {
   readAuditTrailQueueConfig,
   readEnv,
   readIdempotencyPersistenceConfig,
   readVonageConfig
 } from '@services/common/config';
-import { logger } from '@common/powertools';
 import { extractErrorMessage, throwError } from '@services/common/error-handling';
 import type { VonagePrivateKey } from '@services/messaging';
 
 export type SendEventReminderConfig = {
-  vonageConfig: VonageConfig['vonageConfig'] & {
-    vonagePrivateKey: VonagePrivateKey;
-  };
+  vonageConfig: VonageConfig & { privateKey: VonagePrivateKey };
 } & IdempotencyPersistenceConfig &
   AuditTrailQueueConfig;
 
@@ -48,8 +43,8 @@ export async function readSendEventReminderConfig(vonagePrivateKeyCache: {
 
     return {
       vonageConfig: {
-        ...readVonageConfig(env).vonageConfig,
-        vonagePrivateKey: vonagePrivateKeyCache.ssmParameter as VonagePrivateKey
+        ...readVonageConfig(env),
+        privateKey: vonagePrivateKeyCache.ssmParameter as VonagePrivateKey
       },
       ...readIdempotencyPersistenceConfig(env),
       ...readAuditTrailQueueConfig(env)

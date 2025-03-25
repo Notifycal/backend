@@ -1,8 +1,10 @@
 import type { CronRunEndpointConfig } from '@lambdas/schedule/fetch-user-calendars/config';
 import type {
   ActionableEventFoundTopicConfig,
+  Algorithm,
+  AuditTrailQueueConfig,
   AuthedEndpointConfig,
-  BaseEndpointConfig,
+  CorsEndpointConfig,
   DeadLetterQueueConfig,
   DecodeAccessJwtConfig,
   DecodeAccessJwtEndpointConfig,
@@ -10,14 +12,17 @@ import type {
   EncodeAccessJwtConfig,
   EncodeJwtsEndpointConfig,
   EncodeRefreshJwtConfig,
-  IdpEndpointConfig,
-  UserCalendarFetchedTopicConfig,
   IdempotencyPersistenceConfig,
-  VonageConfig,
-  AuditTrailQueueConfig
+  IdpEndpointConfig,
+  UserCalendarFetchedTopicConfig
 } from '@model/Config';
-import type { AwsArn, Environment, Url } from '@own-types/model';
-import type { VonageApplicationId } from '@services/messaging';
+import type { DecodeVonageAccessJwtEndpointConfig, VonageConfig } from '@model/vendor/vonage';
+import type { AwsArn, Environment, PrivateKey, PublicKey, Url } from '@own-types/model';
+import type {
+  VonageApiKey,
+  VonageApplicationId,
+  VonageJwtSigningSecret
+} from '@services/messaging';
 import type { AuditTrailBaseStoreEndpointConfig } from '@services/stores/audit-trail-base-store';
 import type { RefreshTokenBaseStoreConfigEndpointConfig } from '@services/stores/refresh-token-base-store';
 import type { UserBaseStoreEndpointConfig } from '@services/stores/user-base-store';
@@ -28,20 +33,22 @@ export function readEnv(): Environment {
   return from(process.env, {});
 }
 
-const readJwtConfig = (
-  env: Environment,
-  prefix: 'ACCESS' | 'REFRESH',
-  expiresInDefault: string
-): Omit<EncodeAccessJwtConfig, 'privateKey'> => ({
-  algorithm: env.get(`${prefix}_JWT_ALGORITHM`).required().default('RS256').asString(),
-  issuer: env.get(`${prefix}_JWT_ISSUER`).required().default('notifycal.com').asString(),
-  audience: env.get(`${prefix}_JWT_AUDIENCE`).required().default('notifycal.com').asString(),
-  expiresIn: env.get(`${prefix}_JWT_EXPIRATION`).required().default(expiresInDefault).asString()
-});
-
-export function readBaseConfig(env: Environment): BaseEndpointConfig {
+function readJwtConfig<
+  TResult extends
+    | Omit<EncodeAccessJwtConfig, 'secretOrPrivateKey'>
+    | Omit<DecodeAccessJwtConfig, 'secretOrPublicKey'>
+>(env: Environment, prefix: 'ACCESS' | 'REFRESH', expiresInDefault: string): TResult {
   return {
-    baseConfig: {
+    algorithm: env.get(`${prefix}_JWT_ALGORITHM`).required().default('RS256').asString(),
+    issuer: env.get(`${prefix}_JWT_ISSUER`).required().default('notifycal.com').asString(),
+    audience: env.get(`${prefix}_JWT_AUDIENCE`).required().asString(),
+    expiresIn: env.get(`${prefix}_JWT_EXPIRATION`).required().default(expiresInDefault).asString()
+  } as TResult;
+}
+
+export function readBaseConfig(env: Environment): CorsEndpointConfig {
+  return {
+    corsConfig: {
       frontendDomain: env.get(`FRONTEND_DOMAIN`).required().asString()
     }
   };
@@ -49,15 +56,15 @@ export function readBaseConfig(env: Environment): BaseEndpointConfig {
 
 function readEncodeAccessJwtConfig(env: Environment): EncodeAccessJwtConfig {
   return {
-    privateKey: env.get(`ACCESS_JWT_PRIVATE_KEY`).required().asString(),
-    ...readJwtConfig(env, 'ACCESS', '5m')
+    secretOrPrivateKey: env.get(`ACCESS_JWT_PRIVATE_KEY`).required().asString() as PrivateKey,
+    ...readJwtConfig<Omit<EncodeAccessJwtConfig, 'secretOrPrivateKey'>>(env, 'ACCESS', '5m')
   };
 }
 
 function readEncodeRefreshJwtConfig(env: Environment): EncodeRefreshJwtConfig {
   return {
-    privateKey: env.get(`REFRESH_JWT_PRIVATE_KEY`).required().asString(),
-    ...readJwtConfig(env, 'REFRESH', '7d')
+    secretOrPrivateKey: env.get(`REFRESH_JWT_PRIVATE_KEY`).required().asString() as PrivateKey,
+    ...readJwtConfig<Omit<EncodeAccessJwtConfig, 'secretOrPrivateKey'>>(env, 'REFRESH', '7d')
   };
 }
 
@@ -70,8 +77,8 @@ export function readEncodeJwtsConfig(env: Environment): EncodeJwtsEndpointConfig
 
 function _readDecodeAccessJwtConfig(env: Environment): DecodeAccessJwtConfig {
   return {
-    publicKey: env.get('ACCESS_JWT_PUBLIC_KEY').required().asString(),
-    ...readJwtConfig(env, 'ACCESS', '5m')
+    secretOrPublicKey: env.get('ACCESS_JWT_PUBLIC_KEY').required().asString() as PublicKey,
+    ...readJwtConfig<Omit<DecodeAccessJwtConfig, 'secretOrPublicKey'>>(env, 'ACCESS', '5m')
   };
 }
 
@@ -90,8 +97,8 @@ export function readAuthedEndpointConfig(env: Environment): AuthedEndpointConfig
 
 export function readDecodeRefreshJwtConfig(env: Environment): DecodeRefreshJwtConfig {
   return {
-    publicKey: env.get('REFRESH_JWT_PUBLIC_KEY').required().asString(),
-    ...readJwtConfig(env, 'REFRESH', '7d')
+    secretOrPublicKey: env.get('REFRESH_JWT_PUBLIC_KEY').required().asString() as PublicKey,
+    ...readJwtConfig<Omit<DecodeAccessJwtConfig, 'secretOrPublicKey'>>(env, 'REFRESH', '7d')
   };
 }
 
@@ -199,10 +206,27 @@ export function readIdempotencyPersistenceConfig(env: Environment): IdempotencyP
 
 export function readVonageConfig(env: Environment): VonageConfig {
   return {
-    vonageConfig: {
-      privateKeySSMPath: env.get('VONAGE_SSM_PATH_PRIVATE_KEY').required().asString(),
+    privateKeySSMPath: env.get('VONAGE_SSM_PATH_PRIVATE_KEY').required().asString(),
+    applicationId: env.get('VONAGE_APPLICATION_ID').required().asString() as VonageApplicationId,
+    webhookBaseURL: env.get('VONAGE_WEBHOOK_BASE_URL').required().asString() as Url
+  };
+}
+
+export function readDecodeVonageJwtConfig(env: Environment): DecodeVonageAccessJwtEndpointConfig {
+  return {
+    decodeAccessJwtConfig: {
       applicationId: env.get('VONAGE_APPLICATION_ID').required().asString() as VonageApplicationId,
-      webhookBaseURL: env.get('VONAGE_WEBHOOK_BASE_URL').required().asString() as Url
+      apiKey: env.get('VONAGE_API_KEY').required().asString() as VonageApiKey,
+      signingSecret: env
+        .get('VONAGE_WEBHOOK_JWT_SIGNING_SECRET')
+        .required()
+        .asString() as VonageJwtSigningSecret,
+      algorithm: env
+        .get('VONAGE_JWT_ALGORITHM')
+        .required()
+        .default('HS256')
+        .asString() as Algorithm,
+      issuer: env.get('VONAGE_JWT_ISSUER').required().default('Vonage').asString()
     }
   };
 }

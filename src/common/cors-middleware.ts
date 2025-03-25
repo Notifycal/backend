@@ -2,13 +2,13 @@ import type { MiddlewareObj, Request } from '@middy/core';
 import type { AuthedAPIEventWithConfig } from '@model/lambda-events/ApiGatewayEvents';
 
 import httpCors from '@middy/http-cors';
-import type { AuthedEndpointConfig } from '@model/Config';
+import type { CorsEndpointConfig } from '@model/Config';
 import type { APIGatewayProxyResult, Context } from 'aws-lambda';
 
-function configureMiddleware<TConfig extends AuthedEndpointConfig>(
+function configureMiddleware<TConfig extends CorsEndpointConfig>(
   request: Request<AuthedAPIEventWithConfig<TConfig>, APIGatewayProxyResult, Error, Context>
 ): MiddlewareObj {
-  const frontendDomain = request.event.lambdaConfig.baseConfig.frontendDomain;
+  const frontendDomain = request.event.lambdaConfig.corsConfig.frontendDomain;
   const options = {
     headers: 'GET,POST,OPTIONS,PUT,DELETE,PATCH',
     methods: 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token',
@@ -18,7 +18,7 @@ function configureMiddleware<TConfig extends AuthedEndpointConfig>(
   return httpCors(options);
 }
 
-export function corsMiddleware<TConfig extends AuthedEndpointConfig>(): MiddlewareObj<
+export function corsMiddleware<TConfig extends CorsEndpointConfig>(): MiddlewareObj<
   AuthedAPIEventWithConfig<TConfig>,
   APIGatewayProxyResult
 > {

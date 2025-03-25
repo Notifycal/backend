@@ -1,13 +1,17 @@
 import { JSONStringified } from '@aws-lambda-powertools/parser/helpers';
-import { webhookEndpointMiddleware } from '@common/lambda-middleware';
+import { protectedEndpointMiddlewareCustom } from '@common/lambda-middleware';
 import { logger } from '@common/powertools';
 import type { ActionableEventFoundEvent } from '@model/app-events/ActionableEventFoundEvent';
 import type { CalendarEventReminderStatusUpdatedEvent } from '@model/app-events/CalendarEventReminderStatusUpdatedEvent';
-import { apiEventSchema } from '@model/lambda-events/ApiGatewayEvents';
-import { VonageMessageStatusWebhookSchema } from '@model/vendor/vonage';
+import { authedEventSchema } from '@model/lambda-events/ApiGatewayEvents';
+import {
+  type DecodeVonageAccessJwtConfig,
+  VonageMessageStatusWebhookSchema
+} from '@model/vendor/vonage';
 import type { DateTime, EventId } from '@notifycal/shared/types';
 import { AuditTrailService } from '@services/audit-trail';
 import { successHandler } from '@services/common/api-response-handlers';
+import { vonageDecodeAndVerifyJwtSignature } from '@services/jwt';
 import { queryStringObjectToObject } from '@utils/queryString';
 import type { APIGatewayProxyResult, Context } from 'aws-lambda';
 import { v4 } from 'uuid';
@@ -16,8 +20,9 @@ import {
   readReminderDeliveryStatusWebhookConfig,
   type ReminderDeliveryStatusWebhookConfig
 } from './config';
+import { vonageAccessTokenSchema } from './schema';
 
-const schema = apiEventSchema<ReminderDeliveryStatusWebhookConfig>().extend({
+const schema = authedEventSchema<ReminderDeliveryStatusWebhookConfig>().extend({
   body: JSONStringified(VonageMessageStatusWebhookSchema)
 });
 export type Event = z.infer<typeof schema>;
@@ -74,7 +79,23 @@ async function lambdaHandler(
   return Promise.resolve(successHandler()());
 }
 
-export const handler = webhookEndpointMiddleware(
+function vonageAccessTokenClaimChecker(
+  jwt: z.infer<typeof vonageAccessTokenSchema>,
+  config: ReminderDeliveryStatusWebhookConfig
+): jwt is z.infer<typeof vonageAccessTokenSchema> {
+  return (
+    jwt.payload.iss === config.decodeAccessJwtConfig.issuer &&
+    jwt.payload.application_id === config.decodeAccessJwtConfig.applicationId &&
+    jwt.payload.api_key === config.decodeAccessJwtConfig.apiKey
+  );
+}
+const enableCors = false;
+
+export const handler = protectedEndpointMiddlewareCustom(
   () => readReminderDeliveryStatusWebhookConfig(),
-  schema
+  schema,
+  vonageAccessTokenSchema,
+  vonageDecodeAndVerifyJwtSignature<typeof vonageAccessTokenSchema, DecodeVonageAccessJwtConfig>,
+  vonageAccessTokenClaimChecker,
+  enableCors
 ).handler<Event>(lambdaHandler);

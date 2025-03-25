@@ -1,4 +1,11 @@
+import type { Algorithm, DecodeAccessJwtEndpointConfig } from '@model/Config';
 import { uuidSchema } from '@notifycal/shared/schemas';
+import type { Url } from '@own-types/model';
+import type {
+  VonageApiKey,
+  VonageApplicationId,
+  VonageJwtSigningSecret
+} from '@services/messaging';
 import { z } from 'zod';
 
 /* eslint-disable camelcase */
@@ -63,3 +70,19 @@ export const VonageMessageStatusWebhookSchema = z.discriminatedUnion('channel', 
   messageStatusRCSSchema
 ]);
 /* eslint-enable camelcase */
+
+export interface VonageConfig {
+  privateKeySSMPath: string;
+  applicationId: VonageApplicationId;
+  webhookBaseURL: Url;
+}
+export interface DecodeVonageAccessJwtConfig {
+  applicationId: VonageApplicationId;
+  apiKey: VonageApiKey;
+  signingSecret: VonageJwtSigningSecret;
+  algorithm: Algorithm;
+  issuer: string;
+}
+
+export type DecodeVonageAccessJwtEndpointConfig =
+  DecodeAccessJwtEndpointConfig<DecodeVonageAccessJwtConfig>;

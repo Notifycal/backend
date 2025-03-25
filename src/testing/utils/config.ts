@@ -1,6 +1,6 @@
 import type { CronRunConfig } from '@lambdas/schedule/fetch-user-calendars/config';
 import type {
-  BaseConfig,
+  CorsConfig,
   DecodeAccessJwtConfig,
   DecodeRefreshJwtConfig,
   EncodeAccessJwtConfig,
@@ -23,34 +23,40 @@ export const fakeIdpConfigs: IdpConfigs = {
   }
 };
 
+function setEnvVar(envVar: string | undefined, value: string | undefined): void {
+  if (value) {
+    envVar = value;
+  }
+}
+
 export function setEnvEncodeAccessJwtConfig(config: EncodeAccessJwtConfig): void {
-  process.env.ACCESS_JWT_PRIVATE_KEY = config.privateKey;
+  process.env.ACCESS_JWT_PRIVATE_KEY = config.secretOrPrivateKey;
   process.env.ACCESS_JWT_ALGORITHM = config.algorithm;
   process.env.ACCESS_JWT_ISSUER = config.issuer;
   process.env.ACCESS_JWT_AUDIENCE = config.audience;
-  process.env.ACCESS_JWT_EXPIRATION = config.expiresIn;
+  setEnvVar(process.env.ACCESS_JWT_EXPIRATION, config.expiresIn?.toString());
 }
 
 export function setEnvEncodeRefreshJwtConfig(config: EncodeRefreshJwtConfig): void {
-  process.env.REFRESH_JWT_PRIVATE_KEY = config.privateKey;
+  process.env.REFRESH_JWT_PRIVATE_KEY = config.secretOrPrivateKey;
   process.env.REFRESH_JWT_ALGORITHM = config.algorithm;
   process.env.REFRESH_JWT_ISSUER = config.issuer;
   process.env.REFRESH_JWT_AUDIENCE = config.audience;
-  process.env.REFRESH_JWT_EXPIRATION = config.expiresIn;
+  setEnvVar(process.env.REFRESH_JWT_EXPIRATION, config.expiresIn?.toString());
 }
 
 export function setEnvDecodeAccessJwtConfig(config: DecodeAccessJwtConfig): void {
-  process.env.ACCESS_JWT_PUBLIC_KEY = config.publicKey;
+  process.env.ACCESS_JWT_PUBLIC_KEY = config.secretOrPublicKey;
   process.env.ACCESS_JWT_AUDIENCE = config.audience;
   process.env.ACCESS_JWT_ISSUER = config.issuer;
-  process.env.ACCESS_JWT_EXPIRATION = config.expiresIn;
+  setEnvVar(process.env.ACCESS_JWT_EXPIRATION, config.expiresIn?.toString());
 }
 
 export function setEnvDecodeRefreshJwtConfig(config: DecodeRefreshJwtConfig): void {
-  process.env.REFRESH_JWT_PUBLIC_KEY = config.publicKey;
+  process.env.REFRESH_JWT_PUBLIC_KEY = config.secretOrPublicKey;
   process.env.REFRESH_JWT_AUDIENCE = config.audience;
   process.env.REFRESH_JWT_ISSUER = config.issuer;
-  process.env.REFRESH_JWT_EXPIRATION = config.expiresIn;
+  setEnvVar(process.env.REFRESH_JWT_EXPIRATION, config.expiresIn?.toString());
 }
 
 export function setEnvUserBaseStoreConfig(config: UserBaseStoreConfig): void {
@@ -91,7 +97,7 @@ export function setEnvAuditTrailQueueConfig(config: SqsQueueConfig): void {
   process.env.AUDIT_TRAIL_QUEUE_URL = config.queueUrl;
 }
 
-export function setEnvBaseConfig(config: BaseConfig): void {
+export function setEnvBaseConfig(config: CorsConfig): void {
   process.env.FRONTEND_DOMAIN = config.frontendDomain;
 }
 
