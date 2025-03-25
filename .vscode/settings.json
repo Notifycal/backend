@@ -1,0 +1,33 @@
+{
+  "files.autoSave": "afterDelay",
+  "editor.codeActionsOnSave": [
+    "source.addMissingImports",
+    "source.organizeImports",
+    "source.fixAll.eslint"
+  ],
+  "prettier.configPath": ".prettierrc",
+  "eslint.useFlatConfig": true,
+  "editor.formatOnSave": true,
+  "editor.formatOnSaveMode": "modificationsIfAvailable",
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "emeraldwalk.runonsave": {
+    "commands": [
+      {
+          "cmd": "tofu fmt ${file}",
+          "isAsync": true,
+          "match": "\\.tf$"
+      }
+    ]
+  },
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "files.saveConflictResolution": "overwriteFileOnDisk",
+  "git.autofetch": true
+}
