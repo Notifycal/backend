@@ -143,9 +143,16 @@ export function testAuthedEvent<
 
 export function testVonageAuthedEvent<TEventBody>(
   body: TEventBody,
-  authorization: Jwt
+  authorization: Jwt,
+  queryStringParameters: Record<string, string> = {}
 ): APIGatewayProxyEvent {
-  return ttestEvent(JSON.stringify(body), { Authorization: `Bearer ${authorization}` });
+  return ttestEvent(
+    JSON.stringify(body),
+    {
+      Authorization: `Bearer ${authorization}`
+    },
+    queryStringParameters
+  );
 }
 
 export const c: Context = {

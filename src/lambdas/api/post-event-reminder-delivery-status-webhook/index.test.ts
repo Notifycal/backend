@@ -1,4 +1,4 @@
-import type { SendMessageCommandOutput } from '@aws-sdk/client-sqs';
+import type { CalendarEventReminderStatusUpdatedEvent } from '@model/app-events/CalendarEventReminderStatusUpdatedEvent';
 import type { Algorithm, Duration } from '@model/Config';
 import type { DecodeVonageAccessJwtConfig } from '@model/vendor/vonage';
 import type { Jwt } from '@notifycal/shared/types';
@@ -9,17 +9,20 @@ import type {
   VonageApplicationId,
   VonageJwtSigningSecret
 } from '@services/messaging';
-import { c, testVonageAuthedEvent } from '@testing/data/apigateway';
+import { c, testEvent, testVonageAuthedEvent } from '@testing/data/apigateway';
 import {
   responseErrorNoCorsHeaders,
+  responseSuccess,
   responseSuccessNoCorsHeaders
 } from '@testing/utils/api-response-handlers';
 import { assert } from '@testing/utils/assertions';
 import { setEnvAuditTrailQueueConfig } from '@testing/utils/config';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import { describe, it, vi } from 'vitest';
+import { describe, expect, it, vi, type Mock } from 'vitest';
 import type { ReminderDeliveryStatusWebhookConfig } from './config';
 import { handler, type Event } from './index';
+
+import { v4 as uuidv4 } from 'uuid';
 
 /* eslint-disable camelcase */
 const invalidBodies = [
@@ -128,6 +131,7 @@ const validDecodedVonageJwt = {
   application_id: '87654321-1234-4321-1234-b37e715aebb5',
   payload_hash: 'd4f534b4337f9431e0e4cc104818ae617dda1ec446aedd9135983c244bea5c90'
 };
+/* eslint-enable camelcase */
 
 const validVonageEncodeJwtConfig: EncodeVonageAccessJwtConfig = {
   signingSecret: 'this-is-a-fake-secret',
@@ -135,14 +139,42 @@ const validVonageEncodeJwtConfig: EncodeVonageAccessJwtConfig = {
   issuer: 'Vonage'
 };
 
-/* eslint-enable camelcase */
+const validQSPObject = {
+  userId: '96f3d941-1155-4d50-ac5a-19345fb7e9ef',
+  idpId: 'google-123',
+  idp: 'google.com',
+  correlationId: 'c1625a78-7337-4fd8-a6c4-a0afb9c0ceb9',
+  'data[run][slidingWindowInMinutes]': '30',
+  'data[run][lowerBoundStartTime]': '2023-01-01T00:00:00Z',
+  'data[run][upperBoundStartTime]': '2023-01-01T00:29:59Z',
+
+  'data[message]': 'This is a test message!',
+
+  'data[receiverDetails][identifier]': '+34654321987',
+  'data[receiverDetails][type]': 'phone',
+
+  'data[senderDetails][identifier]': '+34654321987',
+  'data[senderDetails][type]': 'phone',
+
+  'data[calendar][id]': 'someCalendarId',
+  'data[calendar][name]': 'Some Calendar Name',
+
+  'data[calendarEvent][attendees][0][id]': 'attendee@test.com',
+  'data[calendarEvent][id]': 'event-1',
+  'data[calendarEvent][isAllDayEvent]': 'false',
+  'data[calendarEvent][startTime]': '2024-01-02T15:05:00Z',
+  'data[calendarEvent][timeZone]': 'Europe/Madrid'
+};
 
 describe('POST Event reminder delivery status webhook', () => {
   it.each(invalidBodies)(
     'should fail validation if the body is invalid',
     async (invalidCaseBody) => {
-      console.warn(invalidCaseBody.message_uuid);
-      const event = testVonageAuthedEvent(invalidCaseBody, validVonageJwt) as APIGatewayProxyEvent;
+      const event = testVonageAuthedEvent(
+        invalidCaseBody,
+        validVonageJwt,
+        validQSPObject
+      ) as APIGatewayProxyEvent;
 
       return testit(event).then((resp) => {
         assert(resp, responseErrorNoCorsHeaders(400));
@@ -151,12 +183,128 @@ describe('POST Event reminder delivery status webhook', () => {
   );
 
   it.each(validBodies)('should pass validation if the body is valid', async (validCaseBody) => {
-    const event = testVonageAuthedEvent(validCaseBody, validVonageJwt) as APIGatewayProxyEvent;
+    const event = testVonageAuthedEvent(
+      validCaseBody,
+      validVonageJwt,
+      validQSPObject
+    ) as APIGatewayProxyEvent;
 
     return testit(event).then((resp) => {
       assert(resp, responseSuccessNoCorsHeaders());
     });
   });
+
+  it('should fail with 401 Unauthorized if the JWT token is invalid', async () => {
+    const chosenBody = validBodies[0];
+    const event = testVonageAuthedEvent(
+      chosenBody,
+      'invalid-jwt-token' as Jwt,
+      validQSPObject
+    ) as APIGatewayProxyEvent;
+
+    return testit(event).then((resp) => {
+      assert(resp, responseErrorNoCorsHeaders(401));
+    });
+  });
+
+  it.todo('should fail silently if the QueryParameters cannot be parsed', () => {});
+
+  it('should send a CalendarEventReminderStatusUpdated event to audit trail service', async () => {
+    const sendMock = vi.fn();
+    const fixedDate = new Date('2025-03-26T08:20:53.240Z');
+    vi.setSystemTime(fixedDate);
+
+    const fixedUUID = '0de651ef-535e-4d2e-b9ff-7bf43f5a01ac';
+    vi.mocked(uuidv4).mockReturnValue(fixedUUID);
+
+    const chosenBody = validBodies[0];
+
+    const event = testVonageAuthedEvent(chosenBody, validVonageJwt, validQSPObject);
+
+    await testit(event as APIGatewayProxyEvent, sendMock);
+
+    const eventQSP = event.queryStringParameters || {};
+
+    expect(event.queryStringParameters).not.toBeNull();
+    expect(sendMock).toHaveBeenCalledTimes(1);
+    expect(sendMock).toHaveBeenCalledWith({
+      eventType: 'CalendarEventReminderStatusUpdated',
+      correlationId: eventQSP.correlationId,
+      userId: eventQSP.userId,
+      idpId: eventQSP.idpId,
+      idp: eventQSP.idp,
+      data: {
+        messageStatusPayload: {
+          ...chosenBody,
+          usage: {
+            ...chosenBody.usage,
+            price: parseFloat(chosenBody.usage?.price || '')
+          },
+          sms: {
+            ...chosenBody.sms,
+            // eslint-disable-next-line camelcase
+            count_total: parseInt(chosenBody.sms?.count_total || '')
+          }
+        },
+        messageUUID: chosenBody.message_uuid,
+        message: eventQSP['data[message]'],
+        run: {
+          lowerBoundStartTime: eventQSP['data[run][lowerBoundStartTime]'],
+          upperBoundStartTime: eventQSP['data[run][upperBoundStartTime]'],
+          slidingWindowInMinutes: parseInt(eventQSP['data[run][slidingWindowInMinutes]'])
+        },
+        senderDetails: {
+          identifier: eventQSP['data[senderDetails][identifier]'],
+          type: eventQSP['data[senderDetails][type]']
+        },
+        receiverDetails: {
+          identifier: eventQSP['data[receiverDetails][identifier]'],
+          type: eventQSP['data[receiverDetails][type]']
+        },
+        calendar: {
+          id: eventQSP['data[calendar][id]'],
+          name: eventQSP['data[calendar][name]']
+        },
+        calendarEvent: {
+          attendees: [{ id: 'attendee@test.com' }],
+          id: eventQSP['data[calendarEvent][id]'],
+          isAllDayEvent: eventQSP['data[calendarEvent][isAllDayEvent]'] === 'true',
+          startTime: eventQSP['data[calendarEvent][startTime]'],
+          timeZone: eventQSP['data[calendarEvent][timeZone]']
+        }
+      },
+      happenedAt: fixedDate.toISOString(),
+      eventId: fixedUUID
+    } as CalendarEventReminderStatusUpdatedEvent);
+
+    // Cleanup
+    vi.useRealTimers();
+  });
+
+  it.todo(
+    'should log an error and success if it cannot rebuild the ActionableEventFound event from query string',
+    async () => {}
+  );
+
+  it.todo(
+    'should log an error and success if it cannot send the event to audit trail service',
+    async () => {
+      const chosenBody = validBodies[1];
+      const event = testEvent(chosenBody) as APIGatewayProxyEvent;
+
+      const sendMock = vi.fn().mockRejectedValue(new Error('Failed to send'));
+      vi.spyOn(AuditTrailService, 'withConfig').mockReturnValue({
+        send: sendMock
+      } as unknown as AuditTrailService);
+
+      const resp = await testit(event);
+      assert(resp, responseSuccess());
+
+      // expect(logger.error).toHaveBeenCalledExactlyOnceWith(
+      //   expect.stringContaining('Could not send message status update to audit trail')
+      // );
+    }
+  );
 
   const defaultEnv = {
     auditTrailQueueConfig: {
@@ -186,19 +334,27 @@ describe('POST Event reminder delivery status webhook', () => {
 
   async function testit(
     event: APIGatewayProxyEvent,
-    auditTrailSendResultFn: () => Promise<SendMessageCommandOutput> = () =>
-      Promise.resolve({} as SendMessageCommandOutput),
+    sendMock: Mock = vi.fn(),
     env: ReminderDeliveryStatusWebhookConfig = defaultEnv
   ): Promise<APIGatewayProxyResult> {
     setEnv(env);
     vi.mock('@services/audit-trail');
     const auditTrailServiceMock = {
-      send: vi.fn().mockImplementation(auditTrailSendResultFn)
+      send: sendMock
     };
     // eslint-disable-next-line @typescript-eslint/unbound-method
     vi.mocked(AuditTrailService.withConfig).mockReturnValue(
       auditTrailServiceMock as unknown as AuditTrailService
     );
+
+    vi.mock('uuid', async () => {
+      const actual = await vi.importActual<typeof import('uuid')>('uuid');
+      return {
+        ...actual,
+        v4: vi.fn(() => actual.v4()) // default behavior: call real v4
+      };
+    });
+
     return handler(event as unknown as Event, c);
   }
 });
