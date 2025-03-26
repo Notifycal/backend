@@ -10,8 +10,6 @@ locals {
       event_source_arn = queue_arn
       scaling_config   = { maximum_concurrency = 20 }
       metrics_config   = { metrics = ["EventCount"] }
-      # TODO: RESEARCH
-      # function_response_types = ["ReportBatchItemFailures"]
     }
   }
 

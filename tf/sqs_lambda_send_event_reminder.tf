@@ -95,9 +95,6 @@ module "send_event_reminder_lambda" {
       metrics_config = {
         metrics = ["EventCount"]
       }
-
-      # TODO: RESEARCH
-      # function_response_types = ["ReportBatchItemFailures"]
     }
   }
 
