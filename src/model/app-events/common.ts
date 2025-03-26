@@ -8,7 +8,7 @@ export const errorSchema = z.object({
 export const runSchema = z.object({
   lowerBoundStartTime: z.string().brand('DateTime'),
   upperBoundStartTime: z.string().brand('DateTime'),
-  slidingWindowInMinutes: z.number().int().positive()
+  slidingWindowInMinutes: z.coerce.number().int().positive()
 });
 
 export const eventIdSchema = z.string().uuid().brand('EventId');

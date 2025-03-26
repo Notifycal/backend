@@ -32,7 +32,7 @@ const messageStatusErrorSchema = z.object({
 const messageStatusUsageSchema = z.object({
   usage: z.object({
     currency: z.enum(['EUR']),
-    price: z.string().transform(parseFloat)
+    price: z.coerce.number()
   })
 });
 
@@ -53,7 +53,7 @@ const messageStatusSMSSchema = messageStatusBaseSchema.merge(messageStatusUsageS
   destination: destinationSchema.optional(),
   sms: z
     .object({
-      count_total: z.string().transform((val) => parseInt(val))
+      count_total: z.coerce.number()
     })
     .optional()
 });
