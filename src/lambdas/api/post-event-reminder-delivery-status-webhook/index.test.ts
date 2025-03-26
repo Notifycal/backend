@@ -9,10 +9,9 @@ import type {
   VonageApplicationId,
   VonageJwtSigningSecret
 } from '@services/messaging';
-import { c, testEvent, testVonageAuthedEvent } from '@testing/data/apigateway';
+import { c, testVonageAuthedEvent } from '@testing/data/apigateway';
 import {
   responseErrorNoCorsHeaders,
-  responseSuccess,
   responseSuccessNoCorsHeaders
 } from '@testing/utils/api-response-handlers';
 import { assert } from '@testing/utils/assertions';
@@ -207,8 +206,6 @@ describe('POST Event reminder delivery status webhook', () => {
     });
   });
 
-  it.todo('should fail silently if the QueryParameters cannot be parsed', () => {});
-
   it('should send a CalendarEventReminderStatusUpdated event to audit trail service', async () => {
     const sendMock = vi.fn();
     const fixedDate = new Date('2025-03-26T08:20:53.240Z');
@@ -281,30 +278,46 @@ describe('POST Event reminder delivery status webhook', () => {
     vi.useRealTimers();
   });
 
-  it.todo(
-    'should log an error and success if it cannot rebuild the ActionableEventFound event from query string',
-    async () => {}
-  );
+  it('should log an error and success if it cannot rebuild the ActionableEventFound event from query string', async () => {
+    const chosenBody = validBodies[1];
+    const incompleteQueryStringObject = {
+      userId: '96f3d941-1155-4d50-ac5a-19345fb7e9ef',
+      idpId: 'google-123',
+      idp: 'google.com'
+    };
+    const event = testVonageAuthedEvent(
+      chosenBody,
+      validVonageJwt,
+      incompleteQueryStringObject
+    ) as APIGatewayProxyEvent;
 
-  it.todo(
-    'should log an error and success if it cannot send the event to audit trail service',
-    async () => {
-      const chosenBody = validBodies[1];
-      const event = testEvent(chosenBody) as APIGatewayProxyEvent;
+    const resp = await testit(event);
+    assert(resp, responseSuccessNoCorsHeaders());
 
-      const sendMock = vi.fn().mockRejectedValue(new Error('Failed to send'));
-      vi.spyOn(AuditTrailService, 'withConfig').mockReturnValue({
-        send: sendMock
-      } as unknown as AuditTrailService);
+    // TODO: check logger call
+  });
 
-      const resp = await testit(event);
-      assert(resp, responseSuccess());
+  it('should log an error and success if it cannot send the event to audit trail service', async () => {
+    const chosenBody = validBodies[1];
+    const event = testVonageAuthedEvent(
+      chosenBody,
+      validVonageJwt,
+      validQSPObject
+    ) as APIGatewayProxyEvent;
 
-      // expect(logger.error).toHaveBeenCalledExactlyOnceWith(
-      //   expect.stringContaining('Could not send message status update to audit trail')
-      // );
-    }
-  );
+    const sendMock = vi.fn().mockRejectedValue(new Error('Failed to send'));
+    vi.spyOn(AuditTrailService, 'withConfig').mockReturnValue({
+      send: sendMock
+    } as unknown as AuditTrailService);
+
+    const resp = await testit(event);
+    assert(resp, responseSuccessNoCorsHeaders());
+
+    // TODO: check logger call
+    // expect(logger.error).toHaveBeenCalledExactlyOnceWith(
+    //   expect.stringContaining('Could not send message status update to audit trail')
+    // );
+  });
 
   const defaultEnv = {
     auditTrailQueueConfig: {
@@ -348,7 +361,7 @@ describe('POST Event reminder delivery status webhook', () => {
     );
 
     vi.mock('uuid', async () => {
-      const actual = await vi.importActual<typeof import('uuid')>('uuid');
+      const actual = await vi.importActual('uuid');
       return {
         ...actual,
         v4: vi.fn(() => actual.v4()) // default behavior: call real v4

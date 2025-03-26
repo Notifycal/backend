@@ -64,11 +64,12 @@ async function lambdaHandler(
 
   const auditTrailService = AuditTrailService.withConfig(config.auditTrailQueueConfig);
 
-  const rebuiltEventObject: Omit<
-    ActionableEventFoundEvent,
-    'eventType' | 'eventId' | 'happenedAt'
-  > = queryStringObjectToTypedObject(queryStringParameterObject, actionableEventQuerySchema);
   try {
+    const rebuiltEventObject: Omit<
+      ActionableEventFoundEvent,
+      'eventType' | 'eventId' | 'happenedAt'
+    > = queryStringObjectToTypedObject(queryStringParameterObject, actionableEventQuerySchema);
+
     logger.info('Rebuilt object', {
       rebuiltEventObject
     });
