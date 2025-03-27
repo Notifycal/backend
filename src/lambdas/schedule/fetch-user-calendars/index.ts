@@ -1,6 +1,6 @@
 import { backgroundProcessingMiddleware } from '@common/lambda-middleware';
 import { logger } from '@common/powertools';
-import type { contactE164Schema } from '@model/app-events/common';
+import type { senderSchema } from '@model/app-events/common';
 import type {
   UserCalendarFetchedEvent,
   userCalendarFetchedEventSchema
@@ -27,7 +27,7 @@ export type Event = z.infer<typeof eventSchema>;
 
 function toCanonicalForm(
   contactDetails: z.infer<typeof contactSchema>
-): z.infer<typeof contactE164Schema> {
+): z.infer<typeof senderSchema> {
   return match(contactDetails)
     .with({ type: 'rcs', identifier: P.string }, (rcsPhone) => rcsPhone)
     .with({ type: 'phone', countryCode: P.any, phoneNumber: P.string }, (phone) => ({

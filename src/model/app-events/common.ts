@@ -14,9 +14,9 @@ export const runSchema = z.object({
 
 export const eventIdSchema = z.string().uuid().brand('EventId');
 
-export const phoneSchema = z.object({
+export const phoneE164Schema = z.object({
   type: z.literal('phone'),
   phoneNumber: z.string().describe('Standard E.164').brand('PhoneNumberE164')
 });
 
-export const contactE164Schema = z.union([rcsContactSchema, phoneSchema]);
+export const senderSchema = z.union([rcsContactSchema, phoneE164Schema]);
