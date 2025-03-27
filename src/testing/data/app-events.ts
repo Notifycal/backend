@@ -30,7 +30,7 @@ export const userCalendarFetchedEvent: UserCalendarFetchedEvent = {
       slidingWindowInMinutes: 30
     },
     senderDetails: {
-      type: 'rcs_sender_id',
+      type: 'rcs',
       identifier: 'Notifycal testing' as RCSSenderId
     },
     calendar: {

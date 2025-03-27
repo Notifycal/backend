@@ -12,8 +12,8 @@ import type {
 import { extractErrorMessage, throwError } from '@services/common/error-handling';
 import { AuditTrailBaseStore } from '@services/stores/audit-trail-base-store';
 import { match, P } from 'ts-pattern';
-import type { Record } from '.';
 import type { AuditTrailConfig } from './config';
+import type { Record } from './schema';
 
 function toStoreRecord(r: Record['body']): Promise<AuditTrailStoreRecord> {
   return match(r)

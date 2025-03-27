@@ -99,3 +99,9 @@ export type AuditTrailQueueConfig = {
 export type IdempotencyPersistenceConfig = {
   idempotencyPersistenceConfig: DynamoDBPersistenceOptions;
 };
+export interface CronRunConfig {
+  windowInMinutes: number;
+}
+export interface CronRunEndpointConfig {
+  cronRunConfig: CronRunConfig;
+}

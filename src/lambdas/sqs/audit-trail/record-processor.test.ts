@@ -11,8 +11,8 @@ import { fakeScheduledEventBridgeEvent } from '@testing/data/event-bridge-event'
 import { validRecord } from '@testing/data/sqs-events';
 import { describe, expect, it, vi } from 'vitest';
 import type { AuditTrailConfig } from './config';
-import type { Record } from './index';
 import { recordProcessor } from './record-processor';
+import type { Record } from './schema';
 
 const validEvent = userCalendarFetchedEvent;
 

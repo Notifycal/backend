@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.19.0](https://github.com/Notifycal/backend/compare/v0.18.1...v0.19.0) (2025-03-27)
+
+
+### Features
+
+* accept sender number patch endpoint ([#409](https://github.com/Notifycal/backend/issues/409)) ([8949ee1](https://github.com/Notifycal/backend/commit/8949ee13432d576bfd9a7a103176cb48b9888d58))
+
 ## [0.18.1](https://github.com/Notifycal/backend/compare/v0.18.0...v0.18.1) (2025-03-19)
 
 

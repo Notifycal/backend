@@ -13,10 +13,10 @@ import type {
   DateTime,
   Email,
   EventId,
-  PhoneNumber,
   TemplateId,
   TimeZone
 } from '@notifycal/shared/types';
+import type { PhoneNumberE164 } from '@own-types/model';
 import { eventsStartTimeWithin } from '@services/calendar-events';
 import { phoneNumberByEmail } from '@services/contacts';
 import { DeadLetteringService } from '@services/dead-lettering';
@@ -24,8 +24,8 @@ import { SnsService } from '@services/sns';
 import { allSettledAllOrErrorHandler } from '@utils/promises';
 import { DateTime as DT } from 'luxon';
 import { v4 } from 'uuid';
-import type { Record } from '.';
 import type { ActionableEventsConfig } from './config';
+import type { Record } from './schema';
 
 function interpolateMessage(
   templateId: TemplateId,
@@ -63,7 +63,7 @@ function fetchAttendeePhoneNumbers(
   event: Record['body'],
   dqlService: DeadLetteringService,
   idpConfigs: IdpConfigs
-): Promise<Array<{ calendarEvent: CalendarEvent; attendeePhoneNumber: PhoneNumber }>> {
+): Promise<Array<{ calendarEvent: CalendarEvent; attendeePhoneNumber: PhoneNumberE164 }>> {
   return Promise.allSettled(
     calendarEvent.attendees.map((attendee) =>
       phoneNumberByEmail(
@@ -95,7 +95,7 @@ function fetchAttendeePhoneNumbers(
 }
 
 function buildActionableEvents(
-  attendeePhoneData: Array<{ calendarEvent: CalendarEvent; attendeePhoneNumber: PhoneNumber }>,
+  attendeePhoneData: Array<{ calendarEvent: CalendarEvent; attendeePhoneNumber: PhoneNumberE164 }>,
   event: Record['body']
 ): Array<ActionableEventFoundEvent> {
   return attendeePhoneData.map(({ calendarEvent: calendarEvent, attendeePhoneNumber }) => {
@@ -113,7 +113,7 @@ function buildActionableEvents(
         calendarEvent,
         receiverDetails: {
           type: 'phone',
-          identifier: attendeePhoneNumber
+          phoneNumber: attendeePhoneNumber
         },
         senderDetails: event.data.senderDetails,
         message: interpolateMessage(

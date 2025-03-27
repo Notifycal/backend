@@ -1,23 +1,23 @@
 import type { JSONValue } from '@aws-lambda-powertools/commons/types';
 import { IdempotencyConfig, makeIdempotent } from '@aws-lambda-powertools/idempotency';
 import { DynamoDBPersistenceLayer } from '@aws-lambda-powertools/idempotency/dynamodb';
+import { MetricUnit } from '@aws-lambda-powertools/metrics';
 import { backgroundProcessingMiddleware } from '@common/lambda-middleware';
 import { logger, metrics } from '@common/powertools';
 import {
   type ActionableEventFoundEvent,
   actionableEventFoundEventSchema
 } from '@model/app-events/ActionableEventFoundEvent';
+import type { CalendarEventReminderAttemptFailedEvent } from '@model/app-events/CalendarEventReminderAttemptFailedEvent';
 import { eventSqsSchema } from '@model/lambda-events/SqsEvents';
 import type { Uuid } from '@notifycal/shared/types';
 import type { Url } from '@own-types/model';
+import { AuditTrailService } from '@services/audit-trail';
 import { objectToQueryString } from '@utils/queryString';
 import type { Context } from 'aws-lambda';
 import type { z } from 'zod';
 import { readSendEventReminderConfig, type SendEventReminderConfig } from './config';
 import MessageProcessor from './message-idempotent-processor';
-import { AuditTrailService } from '@services/audit-trail';
-import type { CalendarEventReminderAttemptFailedEvent } from '@model/app-events/CalendarEventReminderAttemptFailedEvent';
-import { MetricUnit } from '@aws-lambda-powertools/metrics';
 
 const eventSchema = eventSqsSchema<SendEventReminderConfig, typeof actionableEventFoundEventSchema>(
   actionableEventFoundEventSchema
@@ -39,7 +39,7 @@ async function lambdaHandler(
   const config = event.lambdaConfig;
   const record = event.Records[0];
 
-  if (!record.body.data.receiverDetails.identifier.startsWith('+34')) {
+  if (!record.body.data.receiverDetails.phoneNumber.startsWith('+34')) {
     logger.warn('Not sending event reminder because the number does not start with +34', {
       record
     });

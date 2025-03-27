@@ -2,14 +2,8 @@ import type { PublishCommandOutput } from '@aws-sdk/client-sns';
 import type { SendMessageCommandOutput } from '@aws-sdk/client-sqs';
 import { ParsingError } from '@model/Errors';
 import type { ServiceResponse } from '@model/ServiceResponse';
-import type {
-  CalendarEvent,
-  DateTime,
-  PhoneNumber,
-  TimeZone,
-  RCSSenderId
-} from '@notifycal/shared/types';
-import type { AwsArn, Url } from '@own-types/model';
+import type { CalendarEvent, DateTime, RCSSenderId, TimeZone } from '@notifycal/shared/types';
+import type { AwsArn, PhoneNumberE164, Url } from '@own-types/model';
 import { eventsStartTimeWithin } from '@services/calendar-events';
 import { phoneNumberByEmail } from '@services/contacts';
 import { DeadLetteringService } from '@services/dead-lettering';
@@ -19,8 +13,8 @@ import { validRecord } from '@testing/data/sqs-events';
 import { fakeIdpConfigs } from '@testing/utils/config';
 import { describe, expect, it, vi } from 'vitest';
 import type { ActionableEventsConfig } from './config';
-import type { Record } from './index';
 import { recordProcessor } from './record-processor';
+import type { Record } from './schema';
 
 const defaultConfig: ActionableEventsConfig = {
   actionableEventFoundTopicConfig: {
@@ -42,8 +36,8 @@ const validEvents: Array<CalendarEvent> = [
   }
 ];
 
-const validPhoneNumber: PhoneNumber = '+34666888999' as PhoneNumber;
-const validRCSSenderId: RCSSenderId = 'Notifycal testing' as RCSSenderId;
+const validPhoneNumber = '+34666888999' as PhoneNumberE164;
+const validRCSSenderId = 'Notifycal testing' as RCSSenderId;
 
 describe('Find actionable events record processor', () => {
   it('should process an event successfully and publish to SNS', async () => {
@@ -73,10 +67,10 @@ describe('Find actionable events record processor', () => {
           calendarEvent: validEvents[0],
           receiverDetails: {
             type: 'phone',
-            identifier: validPhoneNumber
+            phoneNumber: validPhoneNumber
           },
           senderDetails: {
-            type: 'rcs_sender_id',
+            type: 'rcs',
             identifier: validRCSSenderId
           },
           message:
@@ -235,7 +229,7 @@ describe('Find actionable events record processor', () => {
     const eventsStartTimeWithinFn = () =>
       Promise.resolve({ successList: validEvents, failureList: [] });
     const phoneNumberByEmailFn = () =>
-      Promise.resolve(['+34666888999' as PhoneNumber, '+34666111222' as PhoneNumber]);
+      Promise.resolve(['+34666888999' as PhoneNumberE164, '+34666111222' as PhoneNumberE164]);
     await testit(
       validRecord(userCalendarFetchedEvent),
       eventsStartTimeWithinFn,
@@ -396,7 +390,7 @@ describe('Find actionable events record processor', () => {
 function testit(
   record: Record,
   getEventsFn: () => Promise<ServiceResponse<CalendarEvent, ParsingError>>,
-  getPhoneNumbersFn: () => Promise<Array<PhoneNumber>>,
+  getPhoneNumbersFn: () => Promise<Array<PhoneNumberE164>>,
   config: ActionableEventsConfig = defaultConfig
 ): Promise<void> {
   vi.mock('@services/calendar-events');

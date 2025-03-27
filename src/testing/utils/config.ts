@@ -1,6 +1,6 @@
-import type { CronRunConfig } from '@lambdas/schedule/fetch-user-calendars/config';
 import type {
   CorsConfig,
+  CronRunConfig,
   DecodeAccessJwtConfig,
   DecodeRefreshJwtConfig,
   EncodeAccessJwtConfig,

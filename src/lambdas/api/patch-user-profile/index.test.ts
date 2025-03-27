@@ -1,4 +1,5 @@
 import { accessTokenSchema, type OurAccessTokenClaims } from '@model/Jwt';
+import type { ReminderConfig } from '@notifycal/shared/schemas';
 import { templateMap } from '@notifycal/shared/templates';
 import type {
   BusinessAddress,
@@ -8,8 +9,7 @@ import type {
   Email,
   IdpId,
   IdpName,
-  ReminderConfig,
-  TemplateId,
+  PhoneNumber,
   UserId
 } from '@notifycal/shared/types';
 import { UserBaseStore } from '@services/stores/user-base-store';
@@ -40,13 +40,23 @@ describe('PATCH User profile', () => {
     permissions: {}
   };
   const validBody: ReminderConfig = {
-    businessName: 'someBusinessName' as BusinessName,
-    businessAddress: 'someBusinessAddress' as BusinessAddress,
+    business: {
+      name: 'someBusinessName' as BusinessName,
+      address: 'someBusinessAddress' as BusinessAddress,
+      senderContact: {
+        type: 'phone',
+        countryCode: 'ES',
+        phoneNumber: '666888999' as PhoneNumber
+      }
+    },
     calendars: [
       {
         id: 'aCalendarId' as CalendarId,
         name: 'aCalendarName' as CalendarName,
-        templateId: templateMap['formal-en-01'].id
+        template: {
+          id: templateMap['formal-en-01'].id,
+          language: templateMap['formal-en-01'].language
+        }
       }
     ]
   };
@@ -67,11 +77,42 @@ describe('PATCH User profile', () => {
 
   it('fail to patch a user with 400 if payload is invalid', async () => {
     const invalidBody = {
-      businessName: '' as BusinessName,
-      businessAddress: '' as BusinessAddress,
-      calendars: [],
-      templateId: 666 as unknown as TemplateId
-    } as ReminderConfig;
+      business: {
+        name: '' as BusinessName,
+        address: '' as BusinessAddress,
+        contactDetails: {
+          type: 'something that invalidates the whole thing',
+          identifier: '666777999' as PhoneNumber
+        }
+      },
+      calendars: []
+    } as unknown as ReminderConfig;
+    const event = (await testAuthedEvent(
+      invalidBody,
+      {},
+      accessTokenSchema,
+      validAccessToken
+    )) as unknown as APIGatewayProxyEvent;
+    const updateUserFn = () => Promise.resolve(null);
+
+    return testit(event, updateUserFn).then((resp) => {
+      assert(resp, responseError(400));
+    });
+  });
+
+  it('fail to patch a user with 400 if phone number in payload is invalid', async () => {
+    const invalidBody = {
+      business: {
+        name: 'Some business name',
+        address: 'Some address',
+        contactDetails: {
+          type: 'phone',
+          countryCode: 'ES',
+          phoneNumber: '111222333' as PhoneNumber
+        }
+      },
+      calendars: validBody.calendars
+    };
     const event = (await testAuthedEvent(
       invalidBody,
       {},

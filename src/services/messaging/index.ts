@@ -7,6 +7,7 @@ import { extractErrorMessage, throwError } from '@services/common/error-handling
 import type { MessageReceiver, MessageSender } from '@model/app-events/common';
 import type { Brand, Uuid } from '@notifycal/shared/types';
 import type { Url } from '@own-types/model';
+import { match } from 'ts-pattern';
 
 export type VonageApiKey = Brand<string, 'VonageApiKey'>;
 export type VonageApplicationId = Brand<string, 'VonageApplicationId'>;
@@ -36,8 +37,11 @@ export class MessagingService {
 
     try {
       const messageObject = new MessageBuilder({
-        to: receiver.identifier,
-        from: sender.identifier,
+        to: receiver.phoneNumber,
+        from: match(sender)
+          .with({ type: 'phone' }, (phone) => phone.phoneNumber)
+          .with({ type: 'rcs' }, (rcs) => rcs.identifier)
+          .exhaustive(),
         clientRef,
         text: messageBody,
         webhookUrl

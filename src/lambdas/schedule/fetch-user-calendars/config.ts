@@ -1,4 +1,4 @@
-import type { UserCalendarFetchedTopicConfig } from '@model/Config';
+import type { CronRunEndpointConfig, UserCalendarFetchedTopicConfig } from '@model/Config';
 import {
   readCronRunConfig,
   readEnv,
@@ -7,13 +7,6 @@ import {
 } from '@services/common/config';
 import type { UserLiveIndexStoreEndpointConfig } from '@services/stores/user-live-index-store';
 import { promiseTry } from '@utils/promises';
-
-export interface CronRunConfig {
-  windowInMinutes: number;
-}
-export interface CronRunEndpointConfig {
-  cronRunConfig: CronRunConfig;
-}
 
 export type FetchUserCalendarsConfig = UserLiveIndexStoreEndpointConfig &
   UserCalendarFetchedTopicConfig &

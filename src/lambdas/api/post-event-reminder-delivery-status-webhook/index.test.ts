@@ -17,11 +17,10 @@ import {
 import { assert } from '@testing/utils/assertions';
 import { setEnvAuditTrailQueueConfig } from '@testing/utils/config';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
+import { v4 as uuidv4, type Version4Options } from 'uuid';
 import { describe, expect, it, vi, type Mock } from 'vitest';
 import type { ReminderDeliveryStatusWebhookConfig } from './config';
 import { handler, type Event } from './index';
-
-import { v4 as uuidv4 } from 'uuid';
 
 /* eslint-disable camelcase */
 const invalidBodies = [
@@ -149,10 +148,10 @@ const validQSPObject = {
 
   'data[message]': 'This is a test message!',
 
-  'data[receiverDetails][identifier]': '+34654321987',
+  'data[receiverDetails][phoneNumber]': '+34654321987',
   'data[receiverDetails][type]': 'phone',
 
-  'data[senderDetails][identifier]': '+34654321987',
+  'data[senderDetails][phoneNumber]': '+34654321987',
   'data[senderDetails][type]': 'phone',
 
   'data[calendar][id]': 'someCalendarId',
@@ -212,7 +211,9 @@ describe('POST Event reminder delivery status webhook', () => {
     vi.setSystemTime(fixedDate);
 
     const fixedUUID = '0de651ef-535e-4d2e-b9ff-7bf43f5a01ac';
-    vi.mocked(uuidv4).mockReturnValue(fixedUUID);
+    vi.mocked<(options?: Version4Options, buf?: undefined, offset?: number) => string>(
+      uuidv4
+    ).mockReturnValue(fixedUUID);
 
     const chosenBody = validBodies[0];
 
@@ -251,11 +252,11 @@ describe('POST Event reminder delivery status webhook', () => {
           slidingWindowInMinutes: parseInt(eventQSP['data[run][slidingWindowInMinutes]'])
         },
         senderDetails: {
-          identifier: eventQSP['data[senderDetails][identifier]'],
+          phoneNumber: eventQSP['data[senderDetails][phoneNumber]'],
           type: eventQSP['data[senderDetails][type]']
         },
         receiverDetails: {
-          identifier: eventQSP['data[receiverDetails][identifier]'],
+          phoneNumber: eventQSP['data[receiverDetails][phoneNumber]'],
           type: eventQSP['data[receiverDetails][type]']
         },
         calendar: {
@@ -361,10 +362,11 @@ describe('POST Event reminder delivery status webhook', () => {
     );
 
     vi.mock('uuid', async () => {
-      const actual = await vi.importActual('uuid');
+      // eslint-disable-next-line @typescript-eslint/consistent-type-imports
+      const actual = await vi.importActual<typeof import('uuid')>('uuid');
       return {
         ...actual,
-        v4: vi.fn(() => actual.v4()) // default behavior: call real v4
+        v4: vi.fn(() => actual.v4())
       };
     });
 
