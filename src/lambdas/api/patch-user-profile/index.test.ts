@@ -53,7 +53,10 @@ describe('PATCH User profile', () => {
       {
         id: 'aCalendarId' as CalendarId,
         name: 'aCalendarName' as CalendarName,
-        templateId: templateMap['formal-en-01'].id
+        template: {
+          id: templateMap['formal-en-01'].id,
+          language: templateMap['formal-en-01'].language
+        }
       }
     ]
   };
@@ -116,7 +119,6 @@ describe('PATCH User profile', () => {
     const updateUserFn = () => Promise.resolve(null);
 
     return testit(event, updateUserFn).then((resp) => {
-      console.warn(resp.body);
       assert(resp, responseError(400));
     });
   });

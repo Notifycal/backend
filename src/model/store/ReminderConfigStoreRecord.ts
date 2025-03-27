@@ -3,6 +3,7 @@ import type {
   BusinessName,
   CalendarId,
   CalendarName,
+  LanguageCode,
   TemplateId
 } from '@notifycal/shared/types';
 import type { ContactStoreRecord } from './ContactDetailsRecordStore';
@@ -10,7 +11,10 @@ import type { ContactStoreRecord } from './ContactDetailsRecordStore';
 interface CalendarStoreRecord {
   id: CalendarId;
   name: CalendarName;
-  templateId: TemplateId;
+  template: {
+    id: TemplateId;
+    language: LanguageCode;
+  };
 }
 
 export interface ReminderConfigStoreRecord {

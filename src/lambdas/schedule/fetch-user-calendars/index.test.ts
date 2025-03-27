@@ -9,6 +9,7 @@ import type {
   Email,
   IdpId,
   IdpName,
+  LanguageCode,
   PhoneNumber,
   TemplateId,
   UnixTimestamp,
@@ -29,10 +30,13 @@ import { describe, expect, it, vi } from 'vitest';
 import type { FetchUserCalendarsConfig } from './config';
 import { handler, type Event } from './index';
 
-const validCalendar: Calendar & { templateId: TemplateId } = {
+const validCalendar: Calendar & { template: { id: TemplateId; language: LanguageCode } } = {
   id: 'someCalendarId' as CalendarId,
   name: 'Some Calendar Name' as CalendarName,
-  templateId: 'some-template-id' as TemplateId
+  template: {
+    id: 'some-template-id' as TemplateId,
+    language: 'es' as LanguageCode
+  }
 };
 async function* validLiveUsers(): AsyncGenerator<
   Array<LiveUserStoreRecord<'google.com'> & UserIdpAuthorizationStoreRecord<'google.com'>>,

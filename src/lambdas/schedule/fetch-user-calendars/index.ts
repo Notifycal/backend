@@ -47,7 +47,7 @@ function toEvents(
     run: run,
     senderDetails: toCanonicalForm(item.Config.business.contactDetails),
     template: {
-      id: c.templateId,
+      id: c.template.id,
       fields: {
         business: item.Config.business
       }
