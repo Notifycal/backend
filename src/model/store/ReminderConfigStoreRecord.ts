@@ -6,7 +6,7 @@ import type {
   LanguageCode,
   TemplateId
 } from '@notifycal/shared/types';
-import type { ContactStoreRecord } from './ContactDetailsRecordStore';
+import type { SenderContactStoreRecord } from './ContactDetailsRecordStore';
 
 interface CalendarStoreRecord {
   id: CalendarId;
@@ -22,6 +22,6 @@ export interface ReminderConfigStoreRecord {
   business: {
     name: BusinessName;
     address: BusinessAddress;
-    contactDetails: ContactStoreRecord;
+    senderContact: SenderContactStoreRecord;
   };
 }

@@ -56,7 +56,7 @@ async function* validLiveUsers(): AsyncGenerator<
         business: {
           name: 'businessName1' as BusinessName,
           address: 'businessNameAddress1' as BusinessAddress,
-          contactDetails: {
+          senderContact: {
             type: 'phone',
             countryCode: 'ES',
             phoneNumber: '666777888' as PhoneNumber
@@ -80,7 +80,7 @@ async function* validLiveUsers(): AsyncGenerator<
         business: {
           name: 'businessName2' as BusinessName,
           address: 'businessNameAddress2' as BusinessAddress,
-          contactDetails: {
+          senderContact: {
             type: 'phone',
             countryCode: 'ES',
             phoneNumber: '666777888' as PhoneNumber
@@ -107,7 +107,7 @@ async function* validLiveUsers(): AsyncGenerator<
         business: {
           name: 'businessName3' as BusinessName,
           address: 'businessNameAddress3' as BusinessAddress,
-          contactDetails: {
+          senderContact: {
             type: 'phone',
             countryCode: 'ES',
             phoneNumber: '666777888' as PhoneNumber
@@ -140,7 +140,7 @@ async function* oneRejectionInBetweenLiveUsers(): AsyncGenerator<
         business: {
           name: 'businessName4' as BusinessName,
           address: 'businessNameAddress4' as BusinessAddress,
-          contactDetails: {
+          senderContact: {
             type: 'phone',
             countryCode: 'ES',
             phoneNumber: '666777888' as PhoneNumber
@@ -169,7 +169,7 @@ async function* oneRejectionInBetweenLiveUsers(): AsyncGenerator<
         business: {
           name: 'businessName5' as BusinessName,
           address: 'businessNameAddress5' as BusinessAddress,
-          contactDetails: {
+          senderContact: {
             type: 'phone',
             countryCode: 'ES',
             phoneNumber: '666777888' as PhoneNumber

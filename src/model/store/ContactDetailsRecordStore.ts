@@ -6,9 +6,9 @@ export interface PhoneContactStoreRecord {
   phoneNumber: PhoneNumber;
 }
 
-export interface RcsContactStoreRecord {
+export interface RcsSenderContactStoreRecord {
   type: 'rcs';
   identifier: RCSSenderId;
 }
 
-export type ContactStoreRecord = PhoneContactStoreRecord | RcsContactStoreRecord;
+export type SenderContactStoreRecord = PhoneContactStoreRecord | RcsSenderContactStoreRecord;

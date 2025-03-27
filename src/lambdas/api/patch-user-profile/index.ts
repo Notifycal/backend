@@ -11,7 +11,7 @@ import { z } from 'zod';
 import { type PatchUserProfileConfig, readPatchUserConfig } from './config';
 
 const contactDetailsWithValidator =
-  reminderConfigSchema.shape.business.shape.contactDetails.superRefine((data, context) => {
+  reminderConfigSchema.shape.business.shape.senderContact.superRefine((data, context) => {
     match(data)
       .with({ type: 'rcs' }, () => {})
       .with({ type: 'phone', countryCode: P.any, phoneNumber: P.string }, (phone) => {
@@ -32,7 +32,7 @@ const contactDetailsWithValidator =
   });
 
 const updatedBusinessSchema = reminderConfigSchema.shape.business.extend({
-  contactDetails: contactDetailsWithValidator
+  senderContact: contactDetailsWithValidator
 });
 const bodySchema = reminderConfigSchema.extend({
   business: updatedBusinessSchema

@@ -43,7 +43,7 @@ describe('PATCH User profile', () => {
     business: {
       name: 'someBusinessName' as BusinessName,
       address: 'someBusinessAddress' as BusinessAddress,
-      contactDetails: {
+      senderContact: {
         type: 'phone',
         countryCode: 'ES',
         phoneNumber: '666888999' as PhoneNumber

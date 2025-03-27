@@ -1,6 +1,6 @@
 import { backgroundProcessingMiddleware } from '@common/lambda-middleware';
 import { logger } from '@common/powertools';
-import type { senderSchema } from '@model/app-events/common';
+import type { senderStandardSchema } from '@model/app-events/common';
 import type {
   UserCalendarFetchedEvent,
   userCalendarFetchedEventSchema
@@ -9,7 +9,7 @@ import { eventBridgeEventSchema } from '@model/lambda-events/EventBridgeEvents';
 import type { LiveUserStoreRecord } from '@model/store/LiveUserStoreRecord';
 import type { UserIdpAuthorizationStoreRecord } from '@model/store/UserIdpAuthorizationStoreRecord';
 import { phoneByCountry } from '@notifycal/shared/i18n';
-import type { contactSchema } from '@notifycal/shared/schemas';
+import type { senderSchema } from '@notifycal/shared/schemas';
 import type { CorrelationId, DateTime, EventId } from '@notifycal/shared/types';
 import type { PhoneNumberE164 } from '@own-types/model';
 import { extractErrorMessage } from '@services/common/error-handling';
@@ -26,9 +26,9 @@ const eventSchema = eventBridgeEventSchema<FetchUserCalendarsConfig>();
 export type Event = z.infer<typeof eventSchema>;
 
 function toCanonicalForm(
-  contactDetails: z.infer<typeof contactSchema>
-): z.infer<typeof senderSchema> {
-  return match(contactDetails)
+  senderContact: z.infer<typeof senderSchema>
+): z.infer<typeof senderStandardSchema> {
+  return match(senderContact)
     .with({ type: 'rcs', identifier: P.string }, (rcsPhone) => rcsPhone)
     .with({ type: 'phone', countryCode: P.any, phoneNumber: P.string }, (phone) => ({
       type: phone.type,
@@ -45,7 +45,7 @@ function toEvents(
   const pageData = item.Config.calendars.map((c) => ({
     calendar: c,
     run: run,
-    senderDetails: toCanonicalForm(item.Config.business.contactDetails),
+    senderDetails: toCanonicalForm(item.Config.business.senderContact),
     template: {
       id: c.template.id,
       fields: {
