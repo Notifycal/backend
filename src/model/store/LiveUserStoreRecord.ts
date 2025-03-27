@@ -1,8 +1,9 @@
 import { type UserIdentity, extractIdentity } from '@model/UserIdentity';
 
-import type { LiveUser } from '@model/LiveUser';
 import type { AuthorizationForIdp } from '@model/IdpAuthorization';
-import type { IdpName, ReminderConfig, UserStatus } from '@notifycal/shared/types';
+import type { LiveUser } from '@model/LiveUser';
+import type { ReminderConfig } from '@notifycal/shared/schemas';
+import type { IdpName, UserStatus } from '@notifycal/shared/types';
 
 export interface LiveUserStoreRecord<TIdpName> extends UserIdentity<TIdpName> {
   Config: ReminderConfig;

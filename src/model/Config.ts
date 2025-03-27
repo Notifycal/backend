@@ -75,3 +75,10 @@ export type ActionableEventFoundTopicConfig = {
 export type DeadLetterQueueConfig = {
   deadLetterQueueConfig: SqsQueueConfig;
 };
+
+export interface CronRunConfig {
+  windowInMinutes: number;
+}
+export interface CronRunEndpointConfig {
+  cronRunConfig: CronRunConfig;
+}

@@ -1,7 +1,8 @@
 import type { AuthorizationForIdp } from '@model/IdpAuthorization';
+import type { ReminderConfigStoreRecord } from '@model/store/ReminderConfigStoreRecord';
 import type { UserIdpAuthorizationStoreRecord } from '@model/store/UserIdpAuthorizationStoreRecord';
 import type { UserStoreRecord } from '@model/store/UserStoreRecord';
-import type { IdpName, ReminderConfig, UserId, UserStatus } from '@notifycal/shared/types';
+import type { IdpName, UserId, UserStatus } from '@notifycal/shared/types';
 import { BaseStore, type BaseStoreConfig } from '../common/base-store';
 
 export type UserBaseStoreConfig = BaseStoreConfig;
@@ -79,7 +80,11 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
     });
   }
 
-  public updateUser(id: UserId, status: UserStatus, config: ReminderConfig): Promise<null> {
+  public updateUser(
+    id: UserId,
+    status: UserStatus,
+    config: ReminderConfigStoreRecord
+  ): Promise<null> {
     return this.updateCommandRunner({
       Key: {
         UserId: id

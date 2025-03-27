@@ -1,5 +1,6 @@
 import { backgroundProcessingMiddleware } from '@common/lambda-middleware';
 import { logger } from '@common/powertools';
+import type { senderStandardSchema } from '@model/app-events/common';
 import type {
   UserCalendarFetchedEvent,
   userCalendarFetchedEventSchema
@@ -7,18 +8,35 @@ import type {
 import { eventBridgeEventSchema } from '@model/lambda-events/EventBridgeEvents';
 import type { LiveUserStoreRecord } from '@model/store/LiveUserStoreRecord';
 import type { UserIdpAuthorizationStoreRecord } from '@model/store/UserIdpAuthorizationStoreRecord';
-import type { CorrelationId, DateTime, EventId, RCSSenderId } from '@notifycal/shared/types';
+import { phoneByCountry } from '@notifycal/shared/i18n';
+import type { senderSchema } from '@notifycal/shared/schemas';
+import type { CorrelationId, DateTime, EventId } from '@notifycal/shared/types';
+import type { PhoneNumberE164 } from '@own-types/model';
 import { extractErrorMessage } from '@services/common/error-handling';
 import { SnsService } from '@services/sns';
 import { UserLiveIndexStore } from '@services/stores/user-live-index-store';
 import type { Context } from 'aws-lambda';
 import { DateTime as DT } from 'luxon';
+import { match, P } from 'ts-pattern';
 import { v4 } from 'uuid';
 import type { z } from 'zod';
 import { readFetchUserCalendarsConfig, type FetchUserCalendarsConfig } from './config';
 
 const eventSchema = eventBridgeEventSchema<FetchUserCalendarsConfig>();
 export type Event = z.infer<typeof eventSchema>;
+
+function toCanonicalForm(
+  senderContact: z.infer<typeof senderSchema>
+): z.infer<typeof senderStandardSchema> {
+  return match(senderContact)
+    .with({ type: 'rcs', identifier: P.string }, (rcsPhone) => rcsPhone)
+    .with({ type: 'phone', countryCode: P.any, phoneNumber: P.string }, (phone) => ({
+      type: phone.type,
+      phoneNumber:
+        `${phoneByCountry[phone.countryCode].phoneDetails.dialCode}${phone.phoneNumber.toString()}` as PhoneNumberE164
+    }))
+    .exhaustive();
+}
 
 function toEvents(
   item: LiveUserStoreRecord<'google.com'> & UserIdpAuthorizationStoreRecord<'google.com'>,
@@ -27,17 +45,11 @@ function toEvents(
   const pageData = item.Config.calendars.map((c) => ({
     calendar: c,
     run: run,
-    senderDetails: {
-      type: 'rcs_sender_id' as const,
-      identifier: 'Notifycal testing' as RCSSenderId
-    },
+    senderDetails: toCanonicalForm(item.Config.business.senderContact),
     template: {
-      id: c.templateId,
+      id: c.template.id,
       fields: {
-        business: {
-          name: item.Config.businessName,
-          address: item.Config.businessAddress
-        }
+        business: item.Config.business
       }
     }
   }));
