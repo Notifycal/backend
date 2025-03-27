@@ -8,7 +8,7 @@ import {
   type ActionableEventFoundEvent,
   actionableEventFoundEventSchema
 } from '@model/app-events/ActionableEventFoundEvent';
-import type { CalendarEventReminderAttemptFailedEvent } from '@model/app-events/CalendarEventReminderAttemptFailedEvent';
+import type { ActionableEventReminderAttemptFailedEvent } from '@model/app-events/ActionableEventReminderAttemptFailedEvent';
 import { eventSqsSchema } from '@model/lambda-events/SqsEvents';
 import type { Uuid } from '@notifycal/shared/types';
 import type { Url } from '@own-types/model';
@@ -96,9 +96,9 @@ async function lambdaHandler(
     messageUUID = await messageProcessorIdempotent(record, webhookURL);
   } catch (err) {
     const auditTrailService = AuditTrailService.withConfig(config.auditTrailQueueConfig);
-    await auditTrailService.send<CalendarEventReminderAttemptFailedEvent>({
+    await auditTrailService.send<ActionableEventReminderAttemptFailedEvent>({
       ...record.body,
-      eventType: 'CalendarEventReminderAttemptFailed'
+      eventType: 'ActionableEventReminderAttemptFailed'
     });
 
     throw err;

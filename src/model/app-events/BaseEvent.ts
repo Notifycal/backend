@@ -6,10 +6,10 @@ import { eventIdSchema } from './common';
 export const successEventTypeSchema = z.union([
   z.literal('UserCalendarFetched'),
   z.literal('ActionableEventFound'),
-  z.literal('CalendarEventReminderAttemptFailed'),
-  z.literal('CalendarEventReminderAttemptSent'),
-  z.literal('CalendarEventReminderAttemptSkipped'),
-  z.literal('CalendarEventReminderStatusUpdated')
+  z.literal('ActionableEventReminderAttemptFailed'),
+  z.literal('ActionableEventReminderAttemptSent'),
+  z.literal('ActionableEventReminderAttemptSkipped'),
+  z.literal('ActionableEventReminderStatusUpdated')
 ]);
 export type SuccessEventType = z.infer<typeof successEventTypeSchema>;
 export const errorEventTypeSchema = z.union([

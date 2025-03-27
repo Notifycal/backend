@@ -3,13 +3,13 @@ import type { z } from 'zod';
 import { actionableEventFoundEventSchema } from './ActionableEventFoundEvent';
 import { eventSchemaGenerator } from './BaseEvent';
 
-export const calendarEventReminderAttemptSentEventSchema = eventSchemaGenerator(
-  'CalendarEventReminderAttemptSent',
+export const actionableEventReminderAttemptSentEventSchema = eventSchemaGenerator(
+  'ActionableEventReminderAttemptSent',
   actionableEventFoundEventSchema.shape.data.extend({
     messageUUID: uuidSchema
   })
 );
 
-export type CalendarEventReminderAttemptSentEvent = z.infer<
-  typeof calendarEventReminderAttemptSentEventSchema
+export type ActionableEventReminderAttemptSentEvent = z.infer<
+  typeof actionableEventReminderAttemptSentEventSchema
 >;

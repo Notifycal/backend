@@ -5,7 +5,7 @@ import {
   actionableEventFoundEventSchema,
   type ActionableEventFoundEvent
 } from '@model/app-events/ActionableEventFoundEvent';
-import type { CalendarEventReminderStatusUpdatedEvent } from '@model/app-events/CalendarEventReminderStatusUpdatedEvent';
+import type { ActionableEventReminderStatusUpdatedEvent } from '@model/app-events/ActionableEventReminderStatusUpdatedEvent';
 import { authedEventSchema } from '@model/lambda-events/ApiGatewayEvents';
 import {
   VonageMessageStatusWebhookSchema,
@@ -74,9 +74,9 @@ async function lambdaHandler(
       rebuiltEventObject
     });
 
-    await auditTrailService.send<CalendarEventReminderStatusUpdatedEvent>({
+    await auditTrailService.send<ActionableEventReminderStatusUpdatedEvent>({
       ...rebuiltEventObject,
-      eventType: 'CalendarEventReminderStatusUpdated',
+      eventType: 'ActionableEventReminderStatusUpdated',
       eventId: v4() as EventId,
       happenedAt: new Date().toISOString() as DateTime,
       data: {

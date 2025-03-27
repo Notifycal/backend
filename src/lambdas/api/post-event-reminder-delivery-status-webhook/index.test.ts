@@ -1,4 +1,4 @@
-import type { CalendarEventReminderStatusUpdatedEvent } from '@model/app-events/CalendarEventReminderStatusUpdatedEvent';
+import type { ActionableEventReminderStatusUpdatedEvent } from '@model/app-events/ActionableEventReminderStatusUpdatedEvent';
 import type { Algorithm, Duration } from '@model/Config';
 import type { DecodeVonageAccessJwtConfig } from '@model/vendor/vonage';
 import type { Jwt } from '@notifycal/shared/types';
@@ -205,7 +205,7 @@ describe('POST Event reminder delivery status webhook', () => {
     });
   });
 
-  it('should send a CalendarEventReminderStatusUpdated event to audit trail service', async () => {
+  it('should send a ActionableEventReminderStatusUpdated event to audit trail service', async () => {
     const sendMock = vi.fn();
     const fixedDate = new Date('2025-03-26T08:20:53.240Z');
     vi.setSystemTime(fixedDate);
@@ -226,7 +226,7 @@ describe('POST Event reminder delivery status webhook', () => {
     expect(event.queryStringParameters).not.toBeNull();
     expect(sendMock).toHaveBeenCalledTimes(1);
     expect(sendMock).toHaveBeenCalledWith({
-      eventType: 'CalendarEventReminderStatusUpdated',
+      eventType: 'ActionableEventReminderStatusUpdated',
       correlationId: eventQSP.correlationId,
       userId: eventQSP.userId,
       idpId: eventQSP.idpId,
@@ -273,7 +273,7 @@ describe('POST Event reminder delivery status webhook', () => {
       },
       happenedAt: fixedDate.toISOString(),
       eventId: fixedUUID
-    } as CalendarEventReminderStatusUpdatedEvent);
+    } as ActionableEventReminderStatusUpdatedEvent);
 
     // Cleanup
     vi.useRealTimers();

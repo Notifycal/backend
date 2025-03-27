@@ -1,6 +1,6 @@
 import { logger } from '@common/powertools';
-import type { CalendarEventReminderAttemptSentEvent } from '@model/app-events/CalendarEventReminderAttemptSentEvent';
-import type { CalendarEventReminderAttemptSkippedEvent } from '@model/app-events/CalendarEventReminderAttemptSkippedEvent';
+import type { ActionableEventReminderAttemptSentEvent } from '@model/app-events/ActionableEventReminderAttemptSentEvent';
+import type { ActionableEventReminderAttemptSkippedEvent } from '@model/app-events/ActionableEventReminderAttemptSkippedEvent';
 import type { Uuid } from '@notifycal/shared/types';
 import type { Url } from '@own-types/model';
 import { AuditTrailService } from '@services/audit-trail';
@@ -50,9 +50,9 @@ export default class MessageProcessor {
 
     logger.info('Sending message attempt to audit trail');
     try {
-      await this._auditTrailService.send<CalendarEventReminderAttemptSentEvent>({
+      await this._auditTrailService.send<ActionableEventReminderAttemptSentEvent>({
         ...body,
-        eventType: 'CalendarEventReminderAttemptSent',
+        eventType: 'ActionableEventReminderAttemptSent',
         data: {
           ...body.data,
           messageUUID
@@ -78,9 +78,9 @@ export default class MessageProcessor {
     });
 
     try {
-      await this._auditTrailService.send<CalendarEventReminderAttemptSkippedEvent>({
+      await this._auditTrailService.send<ActionableEventReminderAttemptSkippedEvent>({
         ...body,
-        eventType: 'CalendarEventReminderAttemptSkipped',
+        eventType: 'ActionableEventReminderAttemptSkipped',
         data: {
           ...body.data,
           messageUUID
