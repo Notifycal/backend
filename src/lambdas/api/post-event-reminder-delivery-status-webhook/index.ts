@@ -1,10 +1,7 @@
 import { JSONStringified } from '@aws-lambda-powertools/parser/helpers';
 import { protectedEndpointMiddlewareCustom } from '@common/lambda-middleware';
 import { logger } from '@common/powertools';
-import {
-  actionableEventFoundEventSchema,
-  type ActionableEventFoundEvent
-} from '@model/app-events/ActionableEventFoundEvent';
+import type { ActionableEventFoundEvent } from '@model/app-events/ActionableEventFoundEvent';
 import type { ActionableEventReminderStatusUpdatedEvent } from '@model/app-events/ActionableEventReminderStatusUpdatedEvent';
 import { authedEventSchema } from '@model/lambda-events/ApiGatewayEvents';
 import {
@@ -18,12 +15,12 @@ import { vonageDecodeAndVerifyJwtSignature } from '@services/jwt';
 import { queryStringObjectToTypedObject } from '@utils/queryString';
 import type { APIGatewayProxyResult, Context } from 'aws-lambda';
 import { v4 } from 'uuid';
-import { z } from 'zod';
+import type { z } from 'zod';
 import {
   readReminderDeliveryStatusWebhookConfig,
   type ReminderDeliveryStatusWebhookConfig
 } from './config';
-import { vonageAccessTokenSchema } from './schema';
+import { actionableEventQuerySchema, vonageAccessTokenSchema } from './schema';
 
 const schema = authedEventSchema<ReminderDeliveryStatusWebhookConfig>().extend({
   body: JSONStringified(VonageMessageStatusWebhookSchema)
@@ -37,34 +34,11 @@ async function lambdaHandler(
 ): Promise<APIGatewayProxyResult> {
   logger.info('Processing API call in messaging-webhook lambda', { event });
   const config = event.lambdaConfig;
-  logger.info('Config', { config });
-
-  const { body } = event;
-  logger.info('Body', { body });
 
   const queryStringParameterObject = event.queryStringParameters || {};
-  logger.info('Rebuild object from query string parameters', {
+  logger.info('Attempting to rebuild object from query string parameters', {
     queryStringParameterObject
   });
-
-  const actionableEventFoundEventDataSchema = actionableEventFoundEventSchema.shape.data;
-  const actionableEventQuerySchema = actionableEventFoundEventSchema
-    .omit({
-      eventId: true,
-      eventType: true,
-      happenedAt: true
-    })
-    // I hate this, but writing something generic to coerce specific schema paths proved quite challenging
-    .extend({
-      data: actionableEventFoundEventDataSchema.extend({
-        calendarEvent: actionableEventFoundEventDataSchema.shape.calendarEvent.extend({
-          isAllDayEvent: z.string().transform((val) => val === 'true')
-        }),
-        run: actionableEventFoundEventDataSchema.shape.run.extend({
-          slidingWindowInMinutes: z.coerce.number().int().positive()
-        })
-      })
-    });
 
   const auditTrailService = AuditTrailService.withConfig(config.auditTrailQueueConfig);
 
@@ -85,9 +59,9 @@ async function lambdaHandler(
       happenedAt: new Date().toISOString() as DateTime,
       data: {
         ...rebuiltEventObject.data,
-        messageUUID: body.message_uuid,
+        messageUUID: event.body.message_uuid,
         messageStatusPayload: {
-          ...body
+          ...event.body
         }
       }
     });

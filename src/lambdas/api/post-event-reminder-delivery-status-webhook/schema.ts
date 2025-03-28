@@ -1,3 +1,4 @@
+import { actionableEventFoundEventSchema } from '@model/app-events/ActionableEventFoundEvent';
 import { z } from 'zod';
 
 export const vonageAccessTokenSchema = z.object({
@@ -18,3 +19,22 @@ export const vonageAccessTokenSchema = z.object({
   }),
   signature: z.string()
 });
+
+const actionableEventFoundEventDataSchema = actionableEventFoundEventSchema.shape.data;
+export const actionableEventQuerySchema = actionableEventFoundEventSchema
+  .omit({
+    eventId: true,
+    eventType: true,
+    happenedAt: true
+  })
+  // I hate this, but writing something generic to coerce specific schema paths proved quite challenging
+  .extend({
+    data: actionableEventFoundEventDataSchema.extend({
+      calendarEvent: actionableEventFoundEventDataSchema.shape.calendarEvent.extend({
+        isAllDayEvent: z.string().transform((val) => val === 'true')
+      }),
+      run: actionableEventFoundEventDataSchema.shape.run.extend({
+        slidingWindowInMinutes: z.coerce.number().int().positive()
+      })
+    })
+  });
