@@ -5,10 +5,12 @@ import type {
   DecodeRefreshJwtConfig,
   EncodeAccessJwtConfig,
   EncodeRefreshJwtConfig,
+  IdempotencyPersistenceConfig,
   IdpConfigs,
   SnsTopicConfig,
   SqsQueueConfig
 } from '@model/Config';
+import type { VonageConfig } from '@model/vendor/vonage';
 import type { AuditTrailBaseStoreConfig } from '@services/stores/audit-trail-base-store';
 import type { RefreshTokenBaseStoreConfig } from '@services/stores/refresh-token-base-store';
 import type { UserBaseStoreConfig } from '@services/stores/user-base-store';
@@ -113,4 +115,14 @@ export function setEnvIdpConfigs(configs: IdpConfigs): void {
         throw new Error(`Environment could not be set for all Idps. Missing idp: ${v}`);
       });
   });
+}
+
+export function setEnvIdempotencyPersistanceConfig(config: IdempotencyPersistenceConfig): void {
+  process.env.IDEMPOTENCY_PERSISTENCE_CONFIG = JSON.stringify(config.idempotencyPersistenceConfig);
+}
+
+export function setEnvVonageConfig(config: VonageConfig): void {
+  process.env.VONAGE_SSM_PATH_PRIVATE_KEY = config.privateKeySSMPath;
+  process.env.VONAGE_APPLICATION_ID = config.applicationId;
+  process.env.VONAGE_WEBHOOK_BASE_URL = config.webhookBaseURL;
 }

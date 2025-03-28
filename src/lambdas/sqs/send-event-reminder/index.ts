@@ -67,7 +67,9 @@ async function lambdaHandler(
   const idempotencyPersistence = new DynamoDBPersistenceLayer(config.idempotencyPersistenceConfig);
 
   logger.info('Before running idempotency. Will attempt to send a message if not sent yet');
-  const messageProcessorIdempotent = makeIdempotent(messageProcessor.sendReminder, {
+  const messageProcessorIdempotent = makeIdempotent<
+    (record: Record, webhookUrl: Url) => Promise<Uuid>
+  >((record, webhookUrl) => messageProcessor.sendReminder(record, webhookUrl), {
     dataIndexArgument: 0, // Which argument will be used as a PK for idempotency in the store
     persistenceStore: idempotencyPersistence,
     config: idempotencyConfig
@@ -100,7 +102,6 @@ async function lambdaHandler(
       ...record.body,
       eventType: 'ActionableEventReminderAttemptFailed'
     });
-
     throw err;
   }
 

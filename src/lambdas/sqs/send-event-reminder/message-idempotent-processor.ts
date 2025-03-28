@@ -20,7 +20,7 @@ export default class MessageProcessor {
     );
   }
 
-  public sendReminder = async (record: Record, webhookUrl: Url): Promise<Uuid> => {
+  public async sendReminder(record: Record, webhookUrl: Url): Promise<Uuid> {
     const { body } = record;
     const { correlationId } = body;
     const { message } = body.data;
@@ -67,7 +67,7 @@ export default class MessageProcessor {
     }
 
     return messageUUID;
-  };
+  }
 
   public async onIdempotencyHit(record: Record, messageUUID: Uuid): Promise<void> {
     const { body } = record;
