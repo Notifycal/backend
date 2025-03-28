@@ -26,7 +26,7 @@ export type Event = z.infer<typeof eventSchema>;
 export type Record = z.infer<typeof eventSchema.shape.Records.element>;
 
 // eslint-disable-next-line prefer-const
-let ssmParameterObj: { ssmParameter?: string } = {};
+let ssmCache: { vonagePrivateKey?: string } = {};
 
 async function lambdaHandler(
   event: Event,
@@ -112,6 +112,6 @@ async function lambdaHandler(
 }
 
 export const handler = backgroundProcessingMiddleware(
-  () => readSendEventReminderConfig(ssmParameterObj),
+  () => readSendEventReminderConfig(ssmCache),
   eventSchema
 ).handler<Event>(lambdaHandler);

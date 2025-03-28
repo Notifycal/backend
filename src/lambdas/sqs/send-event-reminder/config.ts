@@ -17,12 +17,12 @@ export type SendEventReminderConfig = {
   AuditTrailQueueConfig;
 
 export async function readSendEventReminderConfig(vonagePrivateKeyCache: {
-  ssmParameter?: string;
+  vonagePrivateKey?: string;
 }): Promise<SendEventReminderConfig> {
   const env = readEnv();
 
   try {
-    if (!vonagePrivateKeyCache || !vonagePrivateKeyCache.ssmParameter) {
+    if (!vonagePrivateKeyCache || !vonagePrivateKeyCache.vonagePrivateKey) {
       logger.info('Retrieving SSM parameter from readSendEventReminderConfig.');
       const vonagePrivateKey = await getParameter(
         env.get('VONAGE_SSM_PATH_PRIVATE_KEY').required().asString(),
@@ -32,7 +32,7 @@ export async function readSendEventReminderConfig(vonagePrivateKeyCache: {
       );
       if (vonagePrivateKey) {
         // eslint-disable-next-line require-atomic-updates
-        vonagePrivateKeyCache.ssmParameter = vonagePrivateKey;
+        vonagePrivateKeyCache.vonagePrivateKey = vonagePrivateKey;
       } else {
         throwError(`Vonage Private key not found`);
       }
@@ -44,7 +44,7 @@ export async function readSendEventReminderConfig(vonagePrivateKeyCache: {
     return {
       vonageConfig: {
         ...readVonageConfig(env),
-        privateKey: vonagePrivateKeyCache.ssmParameter as VonagePrivateKey
+        privateKey: vonagePrivateKeyCache.vonagePrivateKey as VonagePrivateKey
       },
       ...readIdempotencyPersistenceConfig(env),
       ...readAuditTrailQueueConfig(env)
