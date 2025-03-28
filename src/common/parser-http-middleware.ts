@@ -2,15 +2,20 @@ import { parser } from '@aws-lambda-powertools/parser/middleware';
 import type { MiddlewareObj, Request } from '@middy/core';
 /* eslint-disable-next-line no-duplicate-imports */
 import type middy from '@middy/core';
-import type { BaseEndpointConfig } from '@model/Config';
+import type { OptionalCorsEndpointConfig } from '@model/Config';
 import type { EventWithConfig } from '@model/lambda-events/Event';
-import { errorHandler, headers } from '@services/common/api-response-handlers';
+import { baseHeaders, errorHandler, headers } from '@services/common/api-response-handlers';
 import { extractErrorMessage } from '@services/common/error-handling';
 import type { Context } from 'aws-lambda';
 import type { z } from 'zod';
 import { logger } from './powertools';
+import { hasCorsConfig } from './utils-middleware';
 
-function eventParser<TConfig extends BaseEndpointConfig, TSchema extends z.AnyZodObject, TResult>(
+function eventParser<
+  TConfig extends OptionalCorsEndpointConfig,
+  TSchema extends z.AnyZodObject,
+  TResult
+>(
   request: Request<EventWithConfig<TConfig>, TResult, Error, Context>,
   schema: TSchema,
   isApiRequest: boolean
@@ -24,7 +29,9 @@ function eventParser<TConfig extends BaseEndpointConfig, TSchema extends z.AnyZo
       if (isApiRequest) {
         return errorHandler(
           400,
-          headers(request.event.lambdaConfig.baseConfig.frontendDomain)
+          hasCorsConfig(request.event.lambdaConfig)
+            ? headers(request.event.lambdaConfig.corsConfig.frontendDomain)
+            : baseHeaders()
         )(`Request ${baseMsg}`) as TResult;
       } else {
         const errorMsg = `Lambda ${baseMsg}`;
@@ -36,7 +43,7 @@ function eventParser<TConfig extends BaseEndpointConfig, TSchema extends z.AnyZo
 }
 
 export function eventParserMiddleware<
-  TConfig extends BaseEndpointConfig,
+  TConfig extends OptionalCorsEndpointConfig,
   TSchema extends z.AnyZodObject,
   TResult
 >(schema: TSchema, isApiRequest: boolean): MiddlewareObj<EventWithConfig<TConfig>, TResult> {

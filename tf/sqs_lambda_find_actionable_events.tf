@@ -64,9 +64,6 @@ module "find_actionable_events_lambda" {
       metrics_config = {
         metrics = ["EventCount"]
       }
-
-      # TODO: RESEARCH
-      # function_response_types = ["ReportBatchItemFailures"]
     }
   }
 

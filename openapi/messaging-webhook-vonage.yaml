@@ -1,0 +1,38 @@
+---
+openapi: '3.0.1'
+info:
+  title: Vendor-specific message delivery webhook
+
+paths:
+  /api/v1/webhook/reminder-status:
+    post:
+      summary: Webhook Reminder status
+      operationId: webhookReminderStatus
+      description: Receives status updates about reminders
+      tags: [webhook, messaging]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MessageDeliveryWebhookPayload'
+
+      responses:
+        '200':
+          description: 'OK'
+        '401': { $ref: './component-definitions.yaml#/components/responses/Unauthorised' }
+        '404': { $ref: './component-definitions.yaml#/components/responses/NotFound' }
+        '500': { $ref: './component-definitions.yaml#/components/responses/InternalServerError' }
+      x-amazon-apigateway-integration:
+        $ref: './aws-stuff.yaml#/components/x-notifycal/AWS_LAMBDA_PROXY'
+        uri: 'arn:aws:apigateway:${aws_region}:lambda:path/2015-03-31/functions/${lambda_functions.webhook_reminder_status}/invocations'
+    options:
+      $ref: './aws-stuff.yaml#/components/x-notifycal/CORS_OPTIONS'
+
+components:
+  schemas:
+    MessageDeliveryWebhookPayload:
+      # Not a fan of this, but AWS APIGW has selective support for `oneOf`
+      oneOf:
+        - $ref: './vendor/vonage.yaml#/components/schemas/messageStatusSMS'
+        - $ref: './vendor/vonage.yaml#/components/schemas/messageStatusRCS'

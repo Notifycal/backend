@@ -2,9 +2,20 @@ import { injectLambdaContext } from '@aws-lambda-powertools/logger/middleware';
 import { logMetrics } from '@aws-lambda-powertools/metrics/middleware';
 import { captureLambdaHandler } from '@aws-lambda-powertools/tracer/middleware';
 import { logger, metrics, tracer } from '@common/powertools';
-import middy from '@middy/core';
-import type { AuthedEndpointConfig } from '@model/Config';
-import type { ConfigReaderFn, JwtClaimCheckerFn } from '@own-types/model';
+import middy, { type MiddlewareObj } from '@middy/core';
+import type {
+  AuthedEndpointConfig,
+  CorsEndpointConfig,
+  DecodeAccessJwtConfig,
+  OptionalCorsEndpointConfig
+} from '@model/Config';
+import { accessTokenSchema } from '@model/Jwt';
+import type {
+  ConfigReaderFn,
+  JwtClaimCheckerFn,
+  JwtDecoderAndSignatureVerifierFn
+} from '@own-types/model';
+import { decodeAndVerifyJwtSignature } from '@services/jwt';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import type { z } from 'zod';
 import { configReaderMiddleware } from './config-reader-middleware';
@@ -39,31 +50,78 @@ export function backgroundProcessingMiddleware<TConfig, T extends z.AnyZodObject
   );
 }
 
+const noOpMiddleware: MiddlewareObj = {
+  before: () => {}
+};
+
 export function unprotectedEndpointMiddleware<TConfig, T extends z.AnyZodObject>(
+  configReaderFn: ConfigReaderFn<Promise<TConfig>>,
+  eventSchema: T,
+  enableCors: boolean
+): middy.MiddyfiedHandler<APIGatewayProxyEvent, APIGatewayProxyResult> {
+  return baseConfigMiddleware(() => configReaderFn(), true)
+    .use(eventParserMiddleware(eventSchema, true))
+    .use(enableCors ? corsMiddleware() : noOpMiddleware) as middy.MiddyfiedHandler<
+    APIGatewayProxyEvent,
+    APIGatewayProxyResult
+  >;
+}
+
+export function unprotectedCrossDomainEndpointMiddleware<TConfig, T extends z.AnyZodObject>(
   configReaderFn: ConfigReaderFn<Promise<TConfig>>,
   eventSchema: T
 ): middy.MiddyfiedHandler<APIGatewayProxyEvent, APIGatewayProxyResult> {
+  const enableCors = true;
+  return unprotectedEndpointMiddleware(configReaderFn, eventSchema, enableCors);
+}
+
+export function protectedEndpointMiddlewareCustom<
+  TDecodeAccessJwtConfig,
+  TConfig extends AuthedEndpointConfig<OptionalCorsEndpointConfig, TDecodeAccessJwtConfig>,
+  TEventSchema extends z.AnyZodObject,
+  TAccessTokenSchema extends z.AnyZodObject
+>(
+  configReaderFn: ConfigReaderFn<Promise<TConfig>>,
+  eventSchema: TEventSchema,
+  accessTokenSchema: TAccessTokenSchema,
+  jwtDecoderAndSignatureVerifierFn: JwtDecoderAndSignatureVerifierFn<
+    TAccessTokenSchema,
+    TDecodeAccessJwtConfig
+  >,
+  claimCheckerFn: JwtClaimCheckerFn<z.infer<typeof accessTokenSchema>, TConfig>,
+  enableCors: boolean
+): middy.MiddyfiedHandler<APIGatewayProxyEvent, APIGatewayProxyResult> {
   return baseConfigMiddleware(() => configReaderFn(), true)
-    .use(corsMiddleware())
-    .use(eventParserMiddleware(eventSchema, true)) as unknown as middy.MiddyfiedHandler<
+    .use(
+      jwtVerificationMiddleware(accessTokenSchema, jwtDecoderAndSignatureVerifierFn, claimCheckerFn)
+    )
+    .use(eventParserMiddleware<TConfig, TEventSchema, APIGatewayProxyResult>(eventSchema, true))
+    .use(enableCors ? corsMiddleware() : noOpMiddleware) as middy.MiddyfiedHandler<
     APIGatewayProxyEvent,
     APIGatewayProxyResult
   >;
 }
 
 export function protectedEndpointMiddleware<
-  TConfig extends AuthedEndpointConfig,
-  T extends z.AnyZodObject
+  TDecodeAccessJwtConfig extends DecodeAccessJwtConfig,
+  TConfig extends AuthedEndpointConfig<CorsEndpointConfig, TDecodeAccessJwtConfig>,
+  TEventSchema extends z.AnyZodObject
 >(
   configReaderFn: ConfigReaderFn<Promise<TConfig>>,
-  eventSchema: T,
-  claimCheckerFn: JwtClaimCheckerFn = checkClaims
+  eventSchema: TEventSchema
 ): middy.MiddyfiedHandler<APIGatewayProxyEvent, APIGatewayProxyResult> {
-  return baseConfigMiddleware(() => configReaderFn(), true)
-    .use(corsMiddleware())
-    .use(jwtVerificationMiddleware(claimCheckerFn))
-    .use(eventParserMiddleware(eventSchema, true)) as unknown as middy.MiddyfiedHandler<
-    APIGatewayProxyEvent,
-    APIGatewayProxyResult
-  >;
+  const enableCors = true;
+  return protectedEndpointMiddlewareCustom<
+    TDecodeAccessJwtConfig,
+    AuthedEndpointConfig<CorsEndpointConfig, TDecodeAccessJwtConfig>,
+    TEventSchema,
+    typeof accessTokenSchema
+  >(
+    configReaderFn,
+    eventSchema,
+    accessTokenSchema,
+    decodeAndVerifyJwtSignature<typeof accessTokenSchema, TDecodeAccessJwtConfig>,
+    checkClaims,
+    enableCors
+  ) as unknown as middy.MiddyfiedHandler<APIGatewayProxyEvent, APIGatewayProxyResult>;
 }

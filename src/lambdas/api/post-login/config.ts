@@ -1,5 +1,5 @@
 import type {
-  BaseEndpointConfig,
+  CorsEndpointConfig,
   EncodeAccessJwtConfig,
   EncodeRefreshJwtConfig,
   IdpEndpointConfig
@@ -23,7 +23,7 @@ interface BaseLoginConfig {
   refreshTokenBaseStoreConfig: RefreshTokenBaseStoreConfig;
 }
 
-export type LoginConfig = BaseLoginConfig & BaseEndpointConfig & IdpEndpointConfig;
+export type LoginConfig = BaseLoginConfig & CorsEndpointConfig & IdpEndpointConfig;
 
 export function readLoginConfig(): Promise<LoginConfig> {
   const env = readEnv();

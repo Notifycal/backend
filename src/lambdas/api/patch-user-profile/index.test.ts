@@ -1,4 +1,4 @@
-import type { OurAccessTokenClaims } from '@model/Jwt';
+import { accessTokenSchema, type OurAccessTokenClaims } from '@model/Jwt';
 import type { ReminderConfig } from '@notifycal/shared/schemas';
 import { templateMap } from '@notifycal/shared/templates';
 import type {
@@ -65,6 +65,7 @@ describe('PATCH User profile', () => {
     const event = (await testAuthedEvent(
       validBody,
       {},
+      accessTokenSchema,
       validAccessToken
     )) as unknown as APIGatewayProxyEvent;
     const updateUserFn = () => Promise.resolve(null);
@@ -89,6 +90,7 @@ describe('PATCH User profile', () => {
     const event = (await testAuthedEvent(
       invalidBody,
       {},
+      accessTokenSchema,
       validAccessToken
     )) as unknown as APIGatewayProxyEvent;
     const updateUserFn = () => Promise.resolve(null);
@@ -114,6 +116,7 @@ describe('PATCH User profile', () => {
     const event = (await testAuthedEvent(
       invalidBody,
       {},
+      accessTokenSchema,
       validAccessToken
     )) as unknown as APIGatewayProxyEvent;
     const updateUserFn = () => Promise.resolve(null);
@@ -136,6 +139,7 @@ describe('PATCH User profile', () => {
     const event = (await testAuthedEvent(
       validBody,
       {},
+      accessTokenSchema,
       validAccessToken
     )) as unknown as APIGatewayProxyEvent;
     const updateUserFn = () => Promise.reject(new Error('Boom!'));
@@ -168,7 +172,7 @@ const defaultEnv = {
   userBaseStoreConfig: {
     tableName: 'Users-local'
   },
-  baseConfig: {
+  corsConfig: {
     frontendDomain: 'http://localhost:5173'
   }
 };
@@ -176,5 +180,5 @@ const defaultEnv = {
 function setEnv(config: PatchUserProfileConfig): void {
   setEnvDecodeAccessJwtConfig(config.decodeAccessJwtConfig);
   setEnvUserBaseStoreConfig(config.userBaseStoreConfig);
-  setEnvBaseConfig(config.baseConfig);
+  setEnvBaseConfig(config.corsConfig);
 }

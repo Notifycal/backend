@@ -1,34 +1,50 @@
+import type { DynamoDBPersistenceOptions } from '@aws-lambda-powertools/idempotency/dynamodb/types';
 import type { IdpName } from '@notifycal/shared/types';
-import type { AwsArn, Url } from '@own-types/model';
+import type { AwsArn, PrivateKey, PublicKey, SigningSecret, Url } from '@own-types/model';
+import type {
+  Algorithm as jsonwebtokenAlgorithm,
+  SignOptions as jsonwebtokenSignOptions
+} from 'jsonwebtoken';
 
-export interface DecodeAccessJwtConfig {
-  publicKey: string;
+export type SignOptions = jsonwebtokenSignOptions;
+export type Algorithm = jsonwebtokenAlgorithm;
+export type Duration = SignOptions['expiresIn'];
+
+export interface CommonJwtConfig {
   issuer: string;
   audience: string;
-  expiresIn: string;
+  expiresIn: Duration;
+}
+
+export interface DecodeAccessJwtConfig extends CommonJwtConfig {
+  secretOrPublicKey: PublicKey | SigningSecret;
 }
 
 export type DecodeRefreshJwtConfig = DecodeAccessJwtConfig;
 
-export interface BaseConfig {
+export interface CorsConfig {
   frontendDomain: string;
 }
-export interface BaseEndpointConfig {
-  baseConfig: BaseConfig;
+export interface CorsEndpointConfig {
+  corsConfig: CorsConfig;
 }
 
-export interface DecodeAccessJwtEndpointConfig {
-  decodeAccessJwtConfig: DecodeAccessJwtConfig;
+export interface DecodeAccessJwtEndpointConfig<TDecodeAccessJwtConfig = DecodeAccessJwtConfig> {
+  decodeAccessJwtConfig: TDecodeAccessJwtConfig;
 }
 
-export type AuthedEndpointConfig = BaseEndpointConfig & DecodeAccessJwtEndpointConfig;
+export type OptionalCorsEndpointConfig =
+  | CorsEndpointConfig
+  | Omit<CorsEndpointConfig, 'corsConfig'>;
 
-export interface EncodeAccessJwtConfig {
-  privateKey: string;
-  algorithm: string;
-  issuer: string;
-  audience: string;
-  expiresIn: string;
+export type AuthedEndpointConfig<
+  TPotentialCorsEndpointConfig = CorsEndpointConfig,
+  TDecodeAccessJwtConfig = DecodeAccessJwtConfig
+> = DecodeAccessJwtEndpointConfig<TDecodeAccessJwtConfig> & TPotentialCorsEndpointConfig;
+
+export interface EncodeAccessJwtConfig extends CommonJwtConfig {
+  secretOrPrivateKey: PrivateKey | SigningSecret;
+  algorithm: Algorithm;
 }
 export type EncodeRefreshJwtConfig = EncodeAccessJwtConfig;
 
@@ -76,9 +92,22 @@ export type DeadLetterQueueConfig = {
   deadLetterQueueConfig: SqsQueueConfig;
 };
 
+export type AuditTrailQueueConfig = {
+  auditTrailQueueConfig: SqsQueueConfig;
+};
+
+export type IdempotencyPersistenceConfig = {
+  idempotencyPersistenceConfig: DynamoDBPersistenceOptions;
+};
 export interface CronRunConfig {
   windowInMinutes: number;
 }
 export interface CronRunEndpointConfig {
   cronRunConfig: CronRunConfig;
+}
+export interface MessagingConfig {
+  enabled: boolean;
+}
+export interface MessagingEndpointConfig {
+  messagingConfig: MessagingConfig;
 }

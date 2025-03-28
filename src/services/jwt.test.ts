@@ -1,10 +1,13 @@
 import type {
+  Algorithm,
   DecodeAccessJwtConfig,
+  Duration,
   EncodeAccessJwtConfig,
   EncodeRefreshJwtConfig
 } from '@model/Config';
 import { type AccessToken, accessTokenSchema } from '@model/Jwt';
 import type { Email, Identity, IdpId, IdpName, Jwt, Uuid } from '@notifycal/shared/types';
+import type { PrivateKey, PublicKey } from '@own-types/model';
 import { sleep } from '@testing/utils/utils';
 import { describe, expect, it } from 'vitest';
 import type { ZodSchema } from 'zod';
@@ -21,25 +24,25 @@ const validPrivateKey = `-----BEGIN EC PRIVATE KEY-----
 MHcCAQEEIEF6NI6CascYRtOFXEQrbsbsi7ZzTsKaktkDRZ/PSZ8hoAoGCCqGSM49
 AwEHoUQDQgAEcLLFj6lOjORJHlCT4+2QrxNyq5AkbBnPn6rRLeuDhGwhClRkg5tp
 0/r2oWst8tDiUNK9w3+3d7n8HGaP49b6WQ==
------END EC PRIVATE KEY-----`;
+-----END EC PRIVATE KEY-----` as PrivateKey;
 const validPublicKey = `-----BEGIN PUBLIC KEY-----
 MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEcLLFj6lOjORJHlCT4+2QrxNyq5Ak
 bBnPn6rRLeuDhGwhClRkg5tp0/r2oWst8tDiUNK9w3+3d7n8HGaP49b6WQ==
------END PUBLIC KEY-----`;
+-----END PUBLIC KEY-----` as PublicKey;
 
 const validIssuer = 'issuer.notifycal.com';
 const validAudience = 'api.notifycal.com';
 
 const validEncodeConfig = {
-  privateKey: validPrivateKey,
-  algorithm: 'ES256',
+  secretOrPrivateKey: validPrivateKey,
+  algorithm: 'ES256' as Algorithm,
   issuer: validIssuer,
   audience: validAudience,
-  expiresIn: '5m'
+  expiresIn: '5m' as Duration
 };
 const validDecodeConfig = {
-  publicKey: validPublicKey,
-  expiresIn: '5m',
+  secretOrPublicKey: validPublicKey,
+  expiresIn: '5m' as Duration,
   issuer: validIssuer,
   audience: validAudience
 };
@@ -64,7 +67,7 @@ describe('Jwt builder', () => {
   it('should fail to build a jwt', () => {
     const config = {
       ...validEncodeConfig,
-      privateKey: `invalid_es256_private_key`
+      secretOrPrivateKey: `invalid_es256_private_key` as PrivateKey
     };
     return expect(testit(validAccessTokenPayload, config)).rejects.toStrictEqual(
       new Error(
@@ -100,7 +103,7 @@ describe('Jwts builder', () => {
   it('should fail to build access jwt', () => {
     const invalidEncodeJwtConfig = {
       ...validEncodeConfig,
-      privateKey: `invalid_es256_private_key`
+      secretOrPrivateKey: `invalid_es256_private_key` as PrivateKey
     };
     return expect(
       testit(identity, invalidEncodeJwtConfig, validEncodeConfig)
@@ -114,7 +117,7 @@ describe('Jwts builder', () => {
   it('should fail to build refresh jwt', () => {
     const invalidEncodeRefreshJwtConfig = {
       ...validEncodeConfig,
-      privateKey: `invalid_es256_private_key`
+      secretOrPrivateKey: `invalid_es256_private_key` as PrivateKey
     };
     return expect(
       testit(identity, validEncodeConfig, invalidEncodeRefreshJwtConfig)
@@ -141,14 +144,14 @@ describe('Jwt decoder/verifier with signature', () => {
       accessTokenSchema,
       validSubject,
       validEncodeConfig
-    ).then((testJwt) => testit(testJwt.encoded, accessTokenSchema, validDecodeConfig));
+    ).then((testJwt) => testit(testJwt.encoded, validDecodeConfig));
     return expect(result).resolves.toStrictEqual(expect.any(Object));
   });
 
   it('should fail to verify a jwt when public key is invalid', () => {
     const decodeConfig = {
       ...validDecodeConfig,
-      publicKey: `INVALID_PUBLIC_KEY`
+      secretOrPublicKey: `INVALID_PUBLIC_KEY` as PublicKey
     };
 
     const result = buildJwt(
@@ -156,7 +159,7 @@ describe('Jwt decoder/verifier with signature', () => {
       accessTokenSchema,
       validSubject,
       validEncodeConfig
-    ).then((testJwt) => testit(testJwt.encoded, accessTokenSchema, decodeConfig));
+    ).then((testJwt) => testit(testJwt.encoded, decodeConfig));
     return expect(result).rejects.toStrictEqual(
       new Error('JWT verification failed. Error: invalid algorithm')
     );
@@ -165,7 +168,7 @@ describe('Jwt decoder/verifier with signature', () => {
   it('should fail to verify a jwt when jwt is invalid', () => {
     const testJwt = 'invalid_jwt' as Jwt;
 
-    const result = testit(testJwt, accessTokenSchema, validDecodeConfig);
+    const result = testit(testJwt, validDecodeConfig);
     return expect(result).rejects.toStrictEqual(
       new Error('JWT verification failed. Error: jwt malformed')
     );
@@ -178,7 +181,7 @@ describe('Jwt decoder/verifier with signature', () => {
       accessTokenSchema,
       validSubject,
       validEncodeConfig
-    ).then((testJwt) => testit(testJwt.encoded, accessTokenSchema, validDecodeConfig));
+    ).then((testJwt) => testit(testJwt.encoded, validDecodeConfig));
 
     return expect(result).toRejectWithErrorContainingMessageParts([
       'JWT decoding failed. Error:',
@@ -204,7 +207,7 @@ describe('Jwt decoder/verifier with signature', () => {
         accessTokenSchema,
         validSubject,
         encodeConfig
-      ).then((testJwt) => testit(testJwt.encoded, accessTokenSchema, validDecodeConfig));
+      ).then((testJwt) => testit(testJwt.encoded, validDecodeConfig));
       return expect(result).rejects.toStrictEqual(
         new Error(
           `JWT verification failed. Error: jwt ${jwtClaimKeyUnderTest} invalid. expected: ${expectedClaimValue}`
@@ -215,11 +218,11 @@ describe('Jwt decoder/verifier with signature', () => {
     it(`should fail to verify a an expired jwt`, async () => {
       const encodeConfig = {
         ...validEncodeConfig,
-        expiresIn: '1s'
+        expiresIn: '1s' as Duration
       };
       const decodeConfig = {
         ...validDecodeConfig,
-        maxAge: '1s'
+        maxAge: '1s' as Duration
       };
 
       const result = buildJwt(
@@ -229,19 +232,15 @@ describe('Jwt decoder/verifier with signature', () => {
         encodeConfig
       )
         .then((testJwt) => sleep(2000).then(() => testJwt))
-        .then((testJwt) => testit(testJwt.encoded, accessTokenSchema, decodeConfig));
+        .then((testJwt) => testit(testJwt.encoded, decodeConfig));
       return expect(result).rejects.toStrictEqual(
         new Error(`JWT verification failed. Error: jwt expired`)
       );
     });
   });
 
-  function testit(
-    jwt: Jwt,
-    schema: ZodSchema,
-    config: DecodeAccessJwtConfig
-  ): Promise<AccessToken> {
-    return decodeAndVerifyJwtSignature(jwt, schema, config);
+  function testit(jwt: Jwt, config: DecodeAccessJwtConfig): Promise<AccessToken> {
+    return decodeAndVerifyJwtSignature<typeof accessTokenSchema>(jwt, accessTokenSchema, config);
   }
 });
 

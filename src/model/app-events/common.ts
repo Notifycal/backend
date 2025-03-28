@@ -20,3 +20,7 @@ export const phoneE164Schema = z.object({
 });
 
 export const senderStandardSchema = z.union([rcsSenderSchema, phoneE164Schema]);
+export const receiverStandardSchema = phoneE164Schema;
+
+export type MessageReceiver = z.infer<typeof receiverStandardSchema>;
+export type MessageSender = z.infer<typeof senderStandardSchema>;

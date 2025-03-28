@@ -70,6 +70,16 @@ variable "google_oauth_config" {
   sensitive = true
 }
 
+variable "vonage_auth_config" {
+  type = object({
+    api_key                    = string
+    application_id             = string
+    private_key_secret_path    = string
+    webhook_jwt_signing_secret = string
+  })
+  sensitive = true
+}
+
 variable "jwt_config" {
   type = object({
     access = object({
