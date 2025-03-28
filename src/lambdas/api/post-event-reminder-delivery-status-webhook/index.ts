@@ -47,6 +47,7 @@ async function lambdaHandler(
     queryStringParameterObject
   });
 
+  const actionableEventFoundEventDataSchema = actionableEventFoundEventSchema.shape.data;
   const actionableEventQuerySchema = actionableEventFoundEventSchema
     .omit({
       eventId: true,
@@ -55,9 +56,12 @@ async function lambdaHandler(
     })
     // I hate this, but writing something generic to coerce specific schema paths proved quite challenging
     .extend({
-      data: actionableEventFoundEventSchema.shape.data.extend({
-        calendarEvent: actionableEventFoundEventSchema.shape.data.shape.calendarEvent.extend({
+      data: actionableEventFoundEventDataSchema.extend({
+        calendarEvent: actionableEventFoundEventDataSchema.shape.calendarEvent.extend({
           isAllDayEvent: z.string().transform((val) => val === 'true')
+        }),
+        run: actionableEventFoundEventDataSchema.shape.run.extend({
+          slidingWindowInMinutes: z.coerce.number().int().positive()
         })
       })
     });
