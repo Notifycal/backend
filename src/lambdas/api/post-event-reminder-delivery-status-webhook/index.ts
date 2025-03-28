@@ -41,17 +41,23 @@ async function lambdaHandler(
   });
 
   const auditTrailService = AuditTrailService.withConfig(config.auditTrailQueueConfig);
+  let rebuiltEventObject: Omit<ActionableEventFoundEvent, 'eventType' | 'eventId' | 'happenedAt'>;
 
   try {
-    const rebuiltEventObject: Omit<
-      ActionableEventFoundEvent,
-      'eventType' | 'eventId' | 'happenedAt'
-    > = queryStringObjectToTypedObject(queryStringParameterObject, actionableEventQuerySchema);
+    rebuiltEventObject = queryStringObjectToTypedObject(
+      queryStringParameterObject,
+      actionableEventQuerySchema
+    );
 
     logger.info('Rebuilt object', {
       rebuiltEventObject
     });
+  } catch (err) {
+    logger.error(`Could not rebuild event from query string. Cause: ${JSON.stringify(err)}`);
+    return Promise.resolve(successHandler()());
+  }
 
+  try {
     await auditTrailService.send<ActionableEventReminderStatusUpdatedEvent>({
       ...rebuiltEventObject,
       eventType: 'ActionableEventReminderStatusUpdated',
@@ -70,8 +76,9 @@ async function lambdaHandler(
     );
   } catch (err) {
     logger.error(
-      `Could not rebuild event from query string or send message status update to audit trail. Cause: ${JSON.stringify(err)}`
+      `Could not send message status update to audit trail. Cause: ${JSON.stringify(err)}`
     );
+    return Promise.resolve(successHandler()());
   }
 
   return Promise.resolve(successHandler()());

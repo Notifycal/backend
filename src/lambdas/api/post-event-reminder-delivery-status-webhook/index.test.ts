@@ -300,9 +300,7 @@ describe('POST Event reminder delivery status webhook', () => {
     assert(resp, responseSuccessNoCorsHeaders());
 
     expect(errorLoggerSpy).toHaveBeenCalledWith(
-      expect.stringContaining(
-        'Could not rebuild event from query string or send message status update to audit trail.'
-      )
+      expect.stringContaining('Could not rebuild event from query string.')
     );
   });
 
@@ -322,9 +320,7 @@ describe('POST Event reminder delivery status webhook', () => {
     assert(resp, responseSuccessNoCorsHeaders());
 
     expect(errorLoggerSpy).toHaveBeenCalledWith(
-      expect.stringContaining(
-        'Could not rebuild event from query string or send message status update to audit trail.'
-      )
+      expect.stringContaining('Could not send message status update to audit trail.')
     );
   });
 
