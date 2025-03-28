@@ -33,7 +33,10 @@ export class MessagingService {
     clientRef: string,
     webhookUrl: Url
   ): Promise<Uuid> {
-    const MessageBuilder = sender.type === 'phone' ? SMS : RCSText;
+    const MessageBuilder = match(sender)
+      .with({ type: 'phone' }, () => SMS)
+      .with({ type: 'rcs' }, () => RCSText)
+      .exhaustive();
 
     try {
       const messageObject = new MessageBuilder({
