@@ -19,7 +19,6 @@ export const phoneE164Schema = z.object({
   phoneNumber: z.string().describe('Standard E.164').brand('PhoneNumberE164')
 });
 
-// export const senderSchema = z.discriminatedUnion('type', [rcsSenderSchema, smsSenderSchema]);
 export const senderStandardSchema = z.union([rcsSenderSchema, phoneE164Schema]);
 export const receiverStandardSchema = phoneE164Schema;
 
