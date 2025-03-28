@@ -1,6 +1,7 @@
 import type { JSONValue } from '@aws-lambda-powertools/commons/types';
 import { IdempotencyConfig, makeIdempotent } from '@aws-lambda-powertools/idempotency';
 import { DynamoDBPersistenceLayer } from '@aws-lambda-powertools/idempotency/dynamodb';
+import type { DynamoDBPersistenceOptions } from '@aws-lambda-powertools/idempotency/dynamodb/types';
 import { MetricUnit } from '@aws-lambda-powertools/metrics';
 import { backgroundProcessingMiddleware } from '@common/lambda-middleware';
 import { logger, metrics } from '@common/powertools';
@@ -11,7 +12,7 @@ import {
 import type { ActionableEventReminderAttemptFailedEvent } from '@model/app-events/ActionableEventReminderAttemptFailedEvent';
 import { eventSqsSchema } from '@model/lambda-events/SqsEvents';
 import type { Uuid } from '@notifycal/shared/types';
-import type { Url } from '@own-types/model';
+import type { PhoneNumberE164, Url } from '@own-types/model';
 import { AuditTrailService } from '@services/audit-trail';
 import { objectToQueryString } from '@utils/queryString';
 import type { Context } from 'aws-lambda';
@@ -28,53 +29,21 @@ export type Record = z.infer<typeof eventSchema.shape.Records.element>;
 // eslint-disable-next-line prefer-const
 let ssmCache: { vonagePrivateKey?: string } = {};
 
-async function lambdaHandler(
-  event: Event,
-  context: Context
-): Promise<Uuid | 'MessageNotSentOutsideOfSpain'> {
-  logger.info(`Processing sqs message in third lambda. Event: ${JSON.stringify(event)}`);
-
-  let isIdempotencyHit = false;
-
-  const config = event.lambdaConfig;
-  const record = event.Records[0];
-
-  if (!record.body.data.receiverDetails.phoneNumber.startsWith('+34')) {
-    logger.warn('Not sending event reminder because the number does not start with +34', {
-      record
-    });
-
-    metrics.addMetric('MessageNotSentOutsideOfSpain', MetricUnit.Count, 1);
-    metrics.addMetadata('correlationId', record.body.correlationId);
-    metrics.addMetadata('eventId', record.body.eventId);
-
-    return 'MessageNotSentOutsideOfSpain';
-  }
-
-  const messageProcessor = new MessageProcessor(config);
-  const idempotencyConfig = new IdempotencyConfig({
-    eventKeyJmesPath: '[body.data.message, body.data.senderDetails, body.data.receiverDetails]',
-    expiresAfterSeconds: 86400,
-    throwOnNoIdempotencyKey: true,
-    responseHook: (messageUUIDResponse): JSONValue => {
-      isIdempotencyHit = true;
-
-      return messageUUIDResponse;
-    }
+function nonSpanishPhoneReceiverHandler(record: Record): 'MessageNotSentOutsideOfSpain' {
+  logger.warn('Not sending event reminder because the number does not start with +34', {
+    record
   });
-  idempotencyConfig.registerLambdaContext(context);
+  metrics.addMetric('MessageNotSentOutsideOfSpain', MetricUnit.Count, 1);
+  metrics.addMetadata('correlationId', record.body.correlationId);
+  metrics.addMetadata('eventId', record.body.eventId);
+  return 'MessageNotSentOutsideOfSpain';
+}
 
-  const idempotencyPersistence = new DynamoDBPersistenceLayer(config.idempotencyPersistenceConfig);
+function isSpanishPhoneNumber(number: PhoneNumberE164): boolean {
+  return number.startsWith('+34');
+}
 
-  logger.info('Before running idempotency. Will attempt to send a message if not sent yet');
-  const messageProcessorIdempotent = makeIdempotent<
-    (record: Record, webhookUrl: Url) => Promise<Uuid>
-  >((record, webhookUrl) => messageProcessor.sendReminder(record, webhookUrl), {
-    dataIndexArgument: 0, // Which argument will be used as a PK for idempotency in the store
-    persistenceStore: idempotencyPersistence,
-    config: idempotencyConfig
-  });
-
+function buildWebhookUrl(record: Record, baseWebhookUrl: Url): Url {
   const queryStringEventData: Omit<
     ActionableEventFoundEvent,
     'eventType' | 'eventId' | 'happenedAt'
@@ -85,31 +54,102 @@ async function lambdaHandler(
     idpId: record.body.idpId,
     data: record.body.data
   };
-
   const recordQs = objectToQueryString(queryStringEventData);
-  const webhookURL = `${config.vonageConfig.webhookBaseURL}?${recordQs}` as Url;
-
+  const webhookUrl = `${baseWebhookUrl}?${recordQs}` as Url;
   logger.info('Body', { body: record.body });
-  logger.info('FullWebhookUrl', { webhookURL });
+  logger.info('FullWebhookUrl', { webhookUrl });
+  return webhookUrl;
+}
 
-  let messageUUID;
+function buildSendMessageIdempotentlyFn(
+  processor: MessageProcessor,
+  config: DynamoDBPersistenceOptions,
+  responseHook: (messageUUIDResponse: JSONValue) => JSONValue,
+  context: Context
+): (record: Record, webhookUrl: Url) => Promise<Uuid> {
+  const idempotencyConfig = new IdempotencyConfig({
+    eventKeyJmesPath: '[body.data.message, body.data.senderDetails, body.data.receiverDetails]',
+    expiresAfterSeconds: 86400,
+    throwOnNoIdempotencyKey: true,
+    responseHook: responseHook
+  });
+  idempotencyConfig.registerLambdaContext(context);
 
+  const idempotencyPersistence = new DynamoDBPersistenceLayer(config);
+  return makeIdempotent<(record: Record, webhookUrl: Url) => Promise<Uuid>>(
+    (record, webhookUrl) => processor.sendReminder(record, webhookUrl),
+    {
+      dataIndexArgument: 0, // Which argument will be used as a PK for idempotency in the store
+      persistenceStore: idempotencyPersistence,
+      config: idempotencyConfig
+    }
+  );
+}
+
+async function handleReminderAttemptFailure(
+  record: Record,
+  config: SendEventReminderConfig['auditTrailQueueConfig']
+): Promise<void> {
+  const auditTrailService = AuditTrailService.withConfig(config);
+  await auditTrailService.send<ActionableEventReminderAttemptFailedEvent>({
+    ...record.body,
+    eventType: 'ActionableEventReminderAttemptFailed'
+  });
+}
+
+async function sendMessageIdempotently(
+  record: Record,
+  config: SendEventReminderConfig,
+  sendMessageIdempotentlyFn: (record: Record, webhookUrl: Url) => Promise<Uuid>,
+  isIdempotencyHit: boolean,
+  messageProcessor: MessageProcessor
+): Promise<Uuid> {
+  const webhookURL = buildWebhookUrl(record, config.vonageConfig.webhookBaseURL);
+  let messageUUID: Uuid;
   try {
-    messageUUID = await messageProcessorIdempotent(record, webhookURL);
+    messageUUID = await sendMessageIdempotentlyFn(record, webhookURL);
   } catch (err) {
-    const auditTrailService = AuditTrailService.withConfig(config.auditTrailQueueConfig);
-    await auditTrailService.send<ActionableEventReminderAttemptFailedEvent>({
-      ...record.body,
-      eventType: 'ActionableEventReminderAttemptFailed'
-    });
+    await handleReminderAttemptFailure(record, config.auditTrailQueueConfig);
     throw err;
   }
-
   if (isIdempotencyHit) {
     await messageProcessor.onIdempotencyHit(record, messageUUID);
   }
-
   return messageUUID;
+}
+
+async function lambdaHandler(
+  event: Event,
+  context: Context
+): Promise<Uuid | 'MessageNotSentOutsideOfSpain'> {
+  logger.info(`Processing sqs message in third lambda. Event: ${JSON.stringify(event)}`);
+  const config = event.lambdaConfig;
+  const record = event.Records[0];
+
+  if (!isSpanishPhoneNumber(record.body.data.receiverDetails.phoneNumber)) {
+    return nonSpanishPhoneReceiverHandler(record);
+  }
+
+  logger.info('Before running idempotency. Will attempt to send a message if not sent yet');
+  const messageProcessor = new MessageProcessor(config);
+  let isIdempotencyHit = false;
+  const sendMessageIdempotentlyFn = buildSendMessageIdempotentlyFn(
+    messageProcessor,
+    config.idempotencyPersistenceConfig,
+    (messageUUIDResponse: JSONValue) => {
+      isIdempotencyHit = true;
+      return messageUUIDResponse;
+    },
+    context
+  );
+
+  return sendMessageIdempotently(
+    record,
+    config,
+    sendMessageIdempotentlyFn,
+    isIdempotencyHit,
+    messageProcessor
+  );
 }
 
 export const handler = backgroundProcessingMiddleware(

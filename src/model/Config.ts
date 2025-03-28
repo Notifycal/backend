@@ -110,4 +110,4 @@ export interface MessagingConfig {
 }
 export interface MessagingEndpointConfig {
   messagingConfig: MessagingConfig;
-};
+}
