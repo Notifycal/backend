@@ -307,6 +307,9 @@ describe('POST Event reminder delivery status webhook', () => {
   });
 
   it('should log an error and success if it cannot send the event to audit trail service', async () => {
+    const sendMock = vi.fn().mockRejectedValue(new Error('Failed to send'));
+    const errorLoggerSpy = vi.spyOn(logger, 'error');
+
     const chosenBody = validBodies[1];
     const event = testVonageAuthedEvent(
       chosenBody,
@@ -314,18 +317,15 @@ describe('POST Event reminder delivery status webhook', () => {
       validQSPObject
     ) as APIGatewayProxyEvent;
 
-    const sendMock = vi.fn().mockRejectedValue(new Error('Failed to send'));
-    vi.spyOn(AuditTrailService, 'withConfig').mockReturnValue({
-      send: sendMock
-    } as unknown as AuditTrailService);
+    const resp = await testit(event, sendMock);
 
-    const resp = await testit(event);
     assert(resp, responseSuccessNoCorsHeaders());
 
-    // TODO: check logger call
-    // expect(logger.error).toHaveBeenCalledExactlyOnceWith(
-    //   expect.stringContaining('Could not send message status update to audit trail')
-    // );
+    expect(errorLoggerSpy).toHaveBeenCalledWith(
+      expect.stringContaining(
+        'Could not rebuild event from query string or send message status update to audit trail.'
+      )
+    );
   });
 
   const defaultEnv = {
