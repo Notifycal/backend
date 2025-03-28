@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.20.0](https://github.com/Notifycal/backend/compare/v0.19.0...v0.20.0) (2025-03-28)
+
+
+### Features
+
+* messaging service (and webhook) ([039f122](https://github.com/Notifycal/backend/commit/039f1220f9a948d945ec24e52e5c67edfcf550b8))
+
 ## [0.19.0](https://github.com/Notifycal/backend/compare/v0.18.1...v0.19.0) (2025-03-27)
 
 
