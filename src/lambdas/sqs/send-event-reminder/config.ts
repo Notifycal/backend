@@ -1,11 +1,16 @@
 import { getParameter } from '@aws-lambda-powertools/parameters/ssm';
 import { logger } from '@common/powertools';
-import type { AuditTrailQueueConfig, IdempotencyPersistenceConfig } from '@model/Config';
+import type {
+  AuditTrailQueueConfig,
+  IdempotencyPersistenceConfig,
+  MessagingEndpointConfig
+} from '@model/Config';
 import type { VonageConfig } from '@model/vendor/vonage';
 import {
   readAuditTrailQueueConfig,
   readEnv,
   readIdempotencyPersistenceConfig,
+  readMessagingConfig,
   readVonageConfig
 } from '@services/common/config';
 import { extractErrorMessage, throwError } from '@services/common/error-handling';
@@ -14,7 +19,8 @@ import type { VonagePrivateKey } from '@services/messaging';
 export type SendEventReminderConfig = {
   vonageConfig: VonageConfig & { privateKey: VonagePrivateKey };
 } & IdempotencyPersistenceConfig &
-  AuditTrailQueueConfig;
+  AuditTrailQueueConfig &
+  MessagingEndpointConfig;
 
 export async function readSendEventReminderConfig(vonagePrivateKeyCache: {
   ssmParameter?: string;
@@ -47,7 +53,8 @@ export async function readSendEventReminderConfig(vonagePrivateKeyCache: {
         privateKey: vonagePrivateKeyCache.ssmParameter as VonagePrivateKey
       },
       ...readIdempotencyPersistenceConfig(env),
-      ...readAuditTrailQueueConfig(env)
+      ...readAuditTrailQueueConfig(env),
+      ...readMessagingConfig(env)
     };
   } catch (err) {
     throwError(`Couldn't access SSM parameter. Error: ${extractErrorMessage(err)}`);

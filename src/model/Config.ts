@@ -105,3 +105,9 @@ export interface CronRunConfig {
 export interface CronRunEndpointConfig {
   cronRunConfig: CronRunConfig;
 }
+export interface MessagingConfig {
+  enabled: boolean;
+}
+export interface MessagingEndpointConfig {
+  messagingConfig: MessagingConfig;
+};

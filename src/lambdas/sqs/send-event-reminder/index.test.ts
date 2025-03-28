@@ -212,6 +212,9 @@ const defaultConfig: EndpointConfig = {
   },
   auditTrailQueueConfig: {
     queueUrl: 'some queue url' as Url
+  },
+  messagingConfig: {
+    enabled: true
   }
 };
 

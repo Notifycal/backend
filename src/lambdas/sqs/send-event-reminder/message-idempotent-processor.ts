@@ -11,6 +11,7 @@ import type { Record } from './index';
 export default class MessageProcessor {
   private readonly _auditTrailService: AuditTrailService;
   private readonly _messagingService: MessagingService;
+  private readonly _isMessagingEnabled: boolean;
 
   public constructor(config: SendEventReminderConfig) {
     this._auditTrailService = AuditTrailService.withConfig(config.auditTrailQueueConfig);
@@ -18,6 +19,7 @@ export default class MessageProcessor {
       config.vonageConfig.applicationId,
       config.vonageConfig.privateKey
     );
+    this._isMessagingEnabled = config.messagingConfig.enabled;
   }
 
   public async sendReminder(record: Record, webhookUrl: Url): Promise<Uuid> {
@@ -36,7 +38,7 @@ export default class MessageProcessor {
     logger.info('Sending a message through Vonage');
 
     let messageUUID;
-    if (process.env.MESSAGING_ENABLED === 'true') {
+    if (this._isMessagingEnabled) {
       messageUUID = await this._messagingService.sendMessage(
         message,
         senderDetails,

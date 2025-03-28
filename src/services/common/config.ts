@@ -14,6 +14,7 @@ import type {
   EncodeRefreshJwtConfig,
   IdempotencyPersistenceConfig,
   IdpEndpointConfig,
+  MessagingEndpointConfig,
   UserCalendarFetchedTopicConfig
 } from '@model/Config';
 import type { DecodeVonageAccessJwtEndpointConfig, VonageConfig } from '@model/vendor/vonage';
@@ -202,6 +203,14 @@ export function readIdempotencyPersistenceConfig(env: Environment): IdempotencyP
       .required()
       .asJsonObject()
   } as IdempotencyPersistenceConfig;
+}
+
+export function readMessagingConfig(env: Environment): MessagingEndpointConfig {
+  return {
+    messagingConfig: {
+      enabled: env.get('MESSAGING_ENABLED').required().default('true').asBool()
+    }
+  };
 }
 
 export function readVonageConfig(env: Environment): VonageConfig {
