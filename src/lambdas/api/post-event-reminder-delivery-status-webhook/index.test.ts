@@ -22,6 +22,8 @@ import { describe, expect, it, vi, type Mock } from 'vitest';
 import type { ReminderDeliveryStatusWebhookConfig } from './config';
 import { handler, type Event } from './index';
 
+import { logger } from '@common/powertools';
+
 /* eslint-disable camelcase */
 const invalidBodies = [
   {
@@ -280,6 +282,8 @@ describe('POST Event reminder delivery status webhook', () => {
   });
 
   it('should log an error and success if it cannot rebuild the ActionableEventFound event from query string', async () => {
+    const errorLoggerSpy = vi.spyOn(logger, 'error');
+
     const chosenBody = validBodies[1];
     const incompleteQueryStringObject = {
       userId: '96f3d941-1155-4d50-ac5a-19345fb7e9ef',
@@ -295,7 +299,11 @@ describe('POST Event reminder delivery status webhook', () => {
     const resp = await testit(event);
     assert(resp, responseSuccessNoCorsHeaders());
 
-    // TODO: check logger call
+    expect(errorLoggerSpy).toHaveBeenCalledWith(
+      expect.stringContaining(
+        'Could not rebuild event from query string or send message status update to audit trail.'
+      )
+    );
   });
 
   it('should log an error and success if it cannot send the event to audit trail service', async () => {
