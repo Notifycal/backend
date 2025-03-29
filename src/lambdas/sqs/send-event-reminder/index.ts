@@ -122,7 +122,7 @@ async function lambdaHandler(
   event: Event,
   context: Context
 ): Promise<Uuid | 'MessageNotSentOutsideOfSpain'> {
-  logger.info(`Processing sqs message in third lambda. Event: ${JSON.stringify(event)}`);
+  logger.info(`Processing sqs message in third lambda`, { event });
   const config = event.lambdaConfig;
   const record = event.Records[0];
 

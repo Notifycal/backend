@@ -35,12 +35,15 @@ describe('SnsService.publish', () => {
     );
     spy.mockRejectedValue(snsSendResponse);
     const loggerErrorSpy = vi.spyOn(logger, 'error').mockReturnValue();
-    const expectedErrorMsg = `Error publishing an event to SNS with id c1625a78-7337-4fd8-a6c4-a0afb9c0ceb9. Error: {}. Extracted error: Booom!`;
+    const expectedErrorMsg = `Error publishing an event to SNS`;
 
     await expect(testit(validEvent)).rejects.toThrow(expectedErrorMsg);
 
     expect(spy).toHaveBeenCalledTimes(1);
-    expect(loggerErrorSpy).toHaveBeenCalledWith(expectedErrorMsg);
+    expect(loggerErrorSpy).toHaveBeenCalledWith(expectedErrorMsg, {
+      '0': { eventId: validEvent.eventId },
+      error: snsSendResponse
+    });
   });
 });
 

@@ -15,13 +15,13 @@ export function recordProcessorCurried(
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function lambdaHandler(event: Event, context: Context): Promise<PartialItemFailureResponse> {
-  logger.info(`Processing sqs message in audit trail lambda. Event: ${JSON.stringify(event)}`);
+  logger.info(`Processing sqs message in audit trail lambda`, { event });
   return processPartialResponse(
     event,
     recordProcessorCurried(event.lambdaConfig),
     new BatchProcessor(EventType.SQS)
   ).catch((error) => {
-    logger.error(`Failed to process event. Error: ${JSON.stringify(error)}`);
+    logger.error(`Failed to process event`, { error });
     throw error;
   });
 }

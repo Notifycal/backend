@@ -16,12 +16,16 @@ export class GoogleOAuth extends BaseGoogle {
     return this._client.getToken(userGoogleCode).then((tokenResponse) => {
       if (!tokenResponse.tokens.id_token) {
         throwError(
-          `Google token id was not present in token obtained from Google using user's google code`
+          `Google token id was not present in token obtained from Google using user's google code`,
+          {},
+          { tokenResponse }
         );
       }
       if (!tokenResponse.tokens.refresh_token) {
         throwError(
-          `Google refresh token was not present in token obtained from Google using user's google code`
+          `Google refresh token was not present in token obtained from Google using user's google code`,
+          {},
+          { tokenResponse }
         );
       }
       return this._client
@@ -34,17 +38,23 @@ export class GoogleOAuth extends BaseGoogle {
           const email = ticket.getPayload()?.['email'];
           if (!id) {
             throwError(
-              `Id could not be extracted out of Google token id. Extracted id: '${id}' and email: '${email}'`
+              `Id could not be extracted out of Google token id. Extracted id: '${id}' and email: '${email}'`,
+              {},
+              { ticket }
             );
           }
           if (!email) {
             throwError(
-              `Email could not be extracted out of Google token id. Extracted id: '${id}' and email: '${email}'`
+              `Email could not be extracted out of Google token id. Extracted id: '${id}' and email: '${email}'`,
+              {},
+              { ticket }
             );
           }
           if (!ticket.getPayload()?.email_verified) {
             throwError(
-              `Google user with id: '${id}' and email: '${email}' isn't verified at google. We cannot let them in.`
+              `Google user with id: '${id}' and email: '${email}' isn't verified at google. We cannot let them in.`,
+              {},
+              { ticket }
             );
           }
           const identity: Identity<'google.com'> = {

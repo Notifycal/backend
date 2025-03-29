@@ -10,7 +10,9 @@ export function allSettledAllOrErrorHandler<T>(
   }
   const rejectionList = results.filter((r) => r.status === 'rejected');
   throwError(
-    `There were ${rejectionList.length} failures to ${attemptedAction}. Successes: ${successList.length}. Total: ${results.length}. All results: ${JSON.stringify(results)}`
+    `There were ${rejectionList.length} failures to ${attemptedAction}. Successes: ${successList.length}. Total: ${results.length}. All results:`,
+    {},
+    { results }
   );
 }
 

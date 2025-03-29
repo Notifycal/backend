@@ -124,9 +124,9 @@ export class GoogleCalendar extends BaseGoogle {
       return Promise.resolve(parsingResult.data);
     } else {
       return Promise.reject(
-        new Error(
-          `Failed to parse Google Calendar List items with error. Error: ${parsingResult.error.toString()}`
-        )
+        new Error(`Failed to parse Google Calendar List items with error`, {
+          cause: parsingResult.error
+        })
       );
     }
   }
@@ -141,11 +141,11 @@ export class GoogleCalendar extends BaseGoogle {
         if (response.status >= 200 && response.status <= 299) {
           return response.data.items || [];
         } else {
-          throwError(`${baseMsg}. Error in response: ${JSON.stringify(response)}`);
+          throwError(`${baseMsg}. Error in response`, {}, { response });
         }
       })
       .catch((error) => {
-        throwError(`${baseMsg}. ${error}`);
+        throwError(`Error in ` + baseMsg, error);
       });
   }
 
@@ -166,7 +166,9 @@ export class GoogleCalendar extends BaseGoogle {
         return response.data;
       }
       throwError(
-        `${baseMsg}. Error in response page number ${pageNumber}. Response: ${JSON.stringify(response)}`
+        `${baseMsg}. Error in response page number ${pageNumber}. Response:`,
+        {},
+        { response }
       );
     }
 

@@ -48,7 +48,7 @@ describe('GoogleCalendar Service calendarList', () => {
 
     const result = testit(calendarListFn);
 
-    return expect(result).rejects.toThrow(error.message);
+    return expect(result).rejects.toThrow(`Error in GET Calendar List`);
   });
 
   it('should throw a custom error if parsing fails', () => {
@@ -68,29 +68,7 @@ describe('GoogleCalendar Service calendarList', () => {
 
     const result = testit(calendarListFn);
 
-    return expect(result).rejects
-      .toThrow(`Failed to parse Google Calendar List items with error. Error: [
-  {
-    "code": "invalid_type",
-    "expected": "string",
-    "received": "undefined",
-    "path": [
-      0,
-      "id"
-    ],
-    "message": "Required"
-  },
-  {
-    "code": "invalid_type",
-    "expected": "string",
-    "received": "undefined",
-    "path": [
-      1,
-      "name"
-    ],
-    "message": "Required"
-  }
-]`);
+    return expect(result).rejects.toThrow(`Failed to parse Google Calendar List items with error`);
   });
 
   function testit(
@@ -259,7 +237,7 @@ describe('GoogleCalendar Service eventsWithinPeriod', () => {
       .mockResolvedValue({ status: 400 } as GaxiosResponse<calendar_v3.Schema$Events>);
 
     return expect(testit(eventsListFn)).rejects.toThrow(
-      'GET Events List. Error in response page number 0. Response: {"status":400}'
+      'GET Events List. Error in response page number 0. Response:'
     );
   });
 

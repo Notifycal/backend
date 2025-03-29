@@ -3,7 +3,6 @@ import type { MiddlewareObj, Request } from '@middy/core';
 import type middy from '@middy/core';
 import type { EventWithConfig } from '@model/lambda-events/Event';
 import { errorHandler } from '@services/common/api-response-handlers';
-import { extractErrorMessage } from '@services/common/error-handling';
 import type { Context } from 'aws-lambda';
 import { logger } from './powertools';
 
@@ -18,13 +17,11 @@ async function configReader<TConfig, TResult>(
     },
     (error) => {
       if (isApiRequest) {
-        return errorHandler(500)(
-          `Endpoint config could not be loaded. Error: ${extractErrorMessage(error)}`
-        ) as TResult;
+        return errorHandler(500)(`Endpoint config could not be loaded`, { error }) as TResult;
       } else {
-        const errorMsg = `Lambda config could not be loaded. Error: ${extractErrorMessage(error)}`;
-        logger.error(errorMsg);
-        return Promise.reject(new Error(errorMsg));
+        const errorMsg = `Lambda config could not be loaded`;
+        logger.error(errorMsg, { error });
+        return Promise.reject(new Error(errorMsg, { cause: error }));
       }
     }
   );

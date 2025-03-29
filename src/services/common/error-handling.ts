@@ -1,3 +1,4 @@
+import type { LogItemExtraInput } from '@aws-lambda-powertools/logger/types';
 import { logger } from '@common/powertools';
 
 export function extractErrorMessage(error: unknown): string {
@@ -11,15 +12,24 @@ export function extractErrorMessage(error: unknown): string {
 }
 
 export function rejectWithErrorMessage(baseMsg: string, error: unknown): Promise<never> {
-  const message = extractErrorMessage(error);
-  return Promise.reject(new Error(`${baseMsg}. Error: ${message}`));
+  return Promise.reject(new Error(baseMsg, { cause: error }));
 }
 
-export function throwError(msg: string, severity?: 'warning' | 'error'): never {
+function _throwError(
+  msg: string,
+  error?: unknown,
+  severity: 'warning' | 'error' = 'error',
+  ...extraInput: LogItemExtraInput
+): never {
+  const logAttributes = { error: error, ...extraInput };
   if (severity && severity === 'warning') {
-    logger.warn(msg);
+    logger.warn(msg, logAttributes);
   } else {
-    logger.error(msg);
+    logger.error(msg, logAttributes);
   }
-  throw new Error(msg.toString());
+  throw new Error(msg, { cause: error, ...extraInput });
+}
+
+export function throwError(msg: string, error?: unknown, ...extraInput: LogItemExtraInput): never {
+  _throwError(msg, error, 'error', ...[...extraInput]);
 }

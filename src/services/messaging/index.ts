@@ -2,7 +2,7 @@ import { Auth } from '@vonage/auth';
 import { RCSText, SMS } from '@vonage/messages';
 import { Vonage } from '@vonage/server-sdk';
 
-import { extractErrorMessage, throwError } from '@services/common/error-handling';
+import { throwError } from '@services/common/error-handling';
 
 import type { MessageReceiver, MessageSender } from '@model/app-events/common';
 import type { Brand, Uuid } from '@notifycal/shared/types';
@@ -53,9 +53,7 @@ export class MessagingService {
 
       return messageUUID as Uuid;
     } catch (error) {
-      throwError(
-        `Vonage API failed to send the reminder: ${clientRef}. Error: ${extractErrorMessage(error)}`
-      );
+      throwError(`Vonage API failed to send the reminder: ${clientRef}`, error);
     }
   }
 }

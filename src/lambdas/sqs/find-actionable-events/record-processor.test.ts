@@ -358,7 +358,7 @@ describe('Find actionable events record processor', () => {
     await expect(
       testit(validRecord(userCalendarFetchedEvent), eventsStartTimeWithinFn, phoneNumberByEmailFn)
     ).rejects.toThrow(
-      'There were 1 failures to fetch all atteendee phone number for every calendar event. Successes: 0. Total: 1. All results: [{"status":"rejected","reason":{}}]'
+      'There were 1 failures to fetch all atteendee phone number for every calendar event. Successes: 0. Total: 1. All results:'
     );
 
     expect(publishSpy).not.toHaveBeenCalled();
@@ -379,7 +379,7 @@ describe('Find actionable events record processor', () => {
     await expect(
       testit(validRecord(userCalendarFetchedEvent), eventsStartTimeWithinFn, phoneNumberByEmailFn)
     ).rejects.toThrow(
-      'There were 1 failures to publish actionable events. Successes: 0. Total: 1. All results: [{"status":"rejected","reason":{}}]'
+      'There were 1 failures to publish actionable events. Successes: 0. Total: 1. All results:'
     );
 
     expect(publishSpy).toHaveBeenCalledTimes(1);

@@ -59,11 +59,11 @@ export class GooglePeople extends BaseGoogle {
         if (response.status >= 200 && response.status <= 299) {
           return response.data;
         } else {
-          throwError(`${baseMsg}. Error in response: ${JSON.stringify(response)}`);
+          throwError(`Error in ${baseMsg}. Error in response:`, {}, { response });
         }
       })
       .catch((error) => {
-        throwError(`${baseMsg}. ${error}`);
+        throwError(`Error in ` + baseMsg, error);
       });
   }
 }

@@ -29,9 +29,9 @@ describe('Audit trail record processor', () => {
     await testit(validRecord(event), defaultConfig);
 
     expect(putSpy).toHaveBeenCalledTimes(1);
-    expect(loggerSpy).toHaveBeenCalledWith(
-      `Event has been successfully processed. Event id: ${event ? ('eventId' in event ? event.eventId : event.id) : ''}`
-    );
+    expect(loggerSpy).toHaveBeenCalledWith(`Event has been successfully processed`, {
+      eventId: event ? ('eventId' in event ? event.eventId : event.id) : ''
+    });
   }
 
   // eslint-disable-next-line vitest/expect-expect
@@ -55,7 +55,7 @@ describe('Audit trail record processor', () => {
     const putSpy = vi.spyOn(AuditTrailBaseStore.prototype, 'put').mockRejectedValue(error);
 
     await expect(testit(validRecord(validEvent), defaultConfig)).rejects.toThrow(
-      `Failed to process event. Event: ${JSON.stringify(validEvent)}. Error: Boom!`
+      `Failed to process event`
     );
 
     expect(putSpy).toHaveBeenCalledTimes(1);
