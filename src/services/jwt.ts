@@ -87,7 +87,8 @@ export function buildJwts<
   encodeRefreshJwtConfig: TConfig
 ): Promise<EncodedAndDecodedJwts> {
   function prependJwtType(type: string): (error: Error) => Promise<EncodedAndDecodedJwt<never>> {
-    return (error: Error) => Promise.reject(new Error(`${type} ${error.message}`));
+    return (error: Error) =>
+      Promise.reject(new Error(`${type} ${error.message}`, { cause: error }));
   }
 
   return Promise.all([

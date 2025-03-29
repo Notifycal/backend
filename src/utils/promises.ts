@@ -20,6 +20,8 @@ export function promiseTry<T>(fn: () => T | Promise<T>): Promise<T> {
   try {
     return Promise.resolve(fn());
   } catch (error) {
-    return Promise.reject(error instanceof Error ? error : new Error(String(error)));
+    return Promise.reject(
+      error instanceof Error ? error : new Error(String(error), { cause: error })
+    );
   }
 }

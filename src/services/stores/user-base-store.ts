@@ -46,7 +46,7 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
         }
       },
       (error) =>
-        Promise.reject(new Error(`User with id '${id}' could not be retrieved. Error: ${error}`))
+        Promise.reject(new Error(`User with id '${id}' could not be retrieved`, { cause: error }))
     );
   }
 
@@ -66,7 +66,9 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
       .then((record) => record?.IdpAuthorization)
       .catch((error) =>
         Promise.reject(
-          new Error(`Idp authorization for user id '${id}' could not be retrieved. Error: ${error}`)
+          new Error(`Idp authorization for user id '${id}' could not be retrieved`, {
+            cause: error
+          })
         )
       );
   }
