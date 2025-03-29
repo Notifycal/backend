@@ -1,14 +1,5 @@
 import { logger } from '@common/powertools';
-import type { EventType } from '@model/app-events/BaseEvent';
 import type { AuditTrailStoreRecord } from '@model/store/AuditTrailStoreRecord';
-import type {
-  CorrelationId,
-  DateTime,
-  EventId,
-  IdpId,
-  IdpName,
-  UserId
-} from '@notifycal/shared/types';
 import { extractErrorMessage, throwError } from '@services/common/error-handling';
 import { AuditTrailBaseStore } from '@services/stores/audit-trail-base-store';
 import { match, P } from 'ts-pattern';
@@ -29,17 +20,12 @@ function toStoreRecord(r: Record['body']): Promise<AuditTrailStoreRecord> {
         Data: event.data
       })
     )
-    .with({ 'detail-type': P.string, time: P.string, id: P.string }, (event) =>
-      Promise.resolve({
-        EventId: event.id as EventId,
-        CorrelationId: event.id as CorrelationId,
-        UserId: 'System' as UserId,
-        IdpId: 'N/A' as IdpId,
-        Idp: 'N/A' as IdpName,
-        EventType: event['detail-type'] as EventType,
-        HappenedAt: event.time as DateTime,
-        Data: event
-      })
+    .with({ 'detail-type': P.string, time: P.string, id: P.string }, () =>
+      Promise.reject(
+        new Error(
+          `We are provoking this error on purpose to reproduce the cockup that took place on 20250303. Revert this commit as soon as testing is complete`
+        )
+      )
     )
     .exhaustive();
 }
