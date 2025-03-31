@@ -9,7 +9,7 @@ import type {
   IdpName,
   UserId
 } from '@notifycal/shared/types';
-import { extractErrorMessage, throwError } from '@services/common/error-handling';
+import { throwError } from '@services/common/error-handling';
 import { AuditTrailBaseStore } from '@services/stores/audit-trail-base-store';
 import { match, P } from 'ts-pattern';
 import type { AuditTrailConfig } from './config';
@@ -51,11 +51,8 @@ export function recordProcessor(record: Record, config: AuditTrailConfig): Promi
     .then((storeRecord) => auditTrailBaseStore.put(storeRecord).then(() => storeRecord))
     .then(
       (storeRecord) => {
-        logger.info(`Event has been successfully processed. Event id: ${storeRecord.EventId}`);
+        logger.info(`Event has been successfully processed`, { eventId: storeRecord.EventId });
       },
-      (error) =>
-        throwError(
-          `Failed to process event. Event: ${JSON.stringify(record.body)}. Error: ${extractErrorMessage(error)}`
-        )
+      (error) => throwError(`Failed to process event`, error, { event: event })
     );
 }

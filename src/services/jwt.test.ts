@@ -70,9 +70,7 @@ describe('Jwt builder', () => {
       secretOrPrivateKey: `invalid_es256_private_key` as PrivateKey
     };
     return expect(testit(validAccessTokenPayload, config)).rejects.toStrictEqual(
-      new Error(
-        'JWT could not be generated. Error: secretOrPrivateKey must be an asymmetric key when using ES256'
-      )
+      new Error('JWT could not be generated')
     );
   });
 
@@ -107,11 +105,7 @@ describe('Jwts builder', () => {
     };
     return expect(
       testit(identity, invalidEncodeJwtConfig, validEncodeConfig)
-    ).rejects.toStrictEqual(
-      new Error(
-        'Access JWT could not be generated. Error: secretOrPrivateKey must be an asymmetric key when using ES256'
-      )
-    );
+    ).rejects.toStrictEqual(new Error('Access JWT could not be generated'));
   });
 
   it('should fail to build refresh jwt', () => {
@@ -121,11 +115,7 @@ describe('Jwts builder', () => {
     };
     return expect(
       testit(identity, validEncodeConfig, invalidEncodeRefreshJwtConfig)
-    ).rejects.toStrictEqual(
-      new Error(
-        'Refresh JWT could not be generated. Error: secretOrPrivateKey must be an asymmetric key when using ES256'
-      )
-    );
+    ).rejects.toStrictEqual(new Error('Refresh JWT could not be generated'));
   });
 
   function testit(
@@ -160,18 +150,14 @@ describe('Jwt decoder/verifier with signature', () => {
       validSubject,
       validEncodeConfig
     ).then((testJwt) => testit(testJwt.encoded, decodeConfig));
-    return expect(result).rejects.toStrictEqual(
-      new Error('JWT verification failed. Error: invalid algorithm')
-    );
+    return expect(result).rejects.toStrictEqual(new Error('JWT verification failed'));
   });
 
   it('should fail to verify a jwt when jwt is invalid', () => {
     const testJwt = 'invalid_jwt' as Jwt;
 
     const result = testit(testJwt, validDecodeConfig);
-    return expect(result).rejects.toStrictEqual(
-      new Error('JWT verification failed. Error: jwt malformed')
-    );
+    return expect(result).rejects.toStrictEqual(new Error('JWT verification failed'));
   });
 
   it('should fail to decode a jwt if payload does not satisfy the schema', () => {
@@ -183,19 +169,11 @@ describe('Jwt decoder/verifier with signature', () => {
       validEncodeConfig
     ).then((testJwt) => testit(testJwt.encoded, validDecodeConfig));
 
-    return expect(result).toRejectWithErrorContainingMessageParts([
-      'JWT decoding failed. Error:',
-      // eslint-disable-next-line no-useless-escape
-      'Invalid literal value, expected \\\"user\\\"\"',
-      'Invalid uuid'
-    ]);
+    return expect(result).rejects.toThrow(`JWT decoding failed`);
   });
 
   // eslint-disable-next-line vitest/require-hook
-  [
-    ['issuer', validIssuer],
-    ['audience', validAudience]
-  ].forEach(([jwtClaimKeyUnderTest, expectedClaimValue]) => {
+  [['issuer'], ['audience']].forEach(([jwtClaimKeyUnderTest]) => {
     it(`should fail to verify a jwt when ${jwtClaimKeyUnderTest} does not match`, () => {
       const encodeConfig = {
         ...validEncodeConfig,
@@ -208,11 +186,7 @@ describe('Jwt decoder/verifier with signature', () => {
         validSubject,
         encodeConfig
       ).then((testJwt) => testit(testJwt.encoded, validDecodeConfig));
-      return expect(result).rejects.toStrictEqual(
-        new Error(
-          `JWT verification failed. Error: jwt ${jwtClaimKeyUnderTest} invalid. expected: ${expectedClaimValue}`
-        )
-      );
+      return expect(result).rejects.toStrictEqual(new Error(`JWT verification failed`));
     });
 
     it(`should fail to verify a an expired jwt`, async () => {
@@ -233,9 +207,7 @@ describe('Jwt decoder/verifier with signature', () => {
       )
         .then((testJwt) => sleep(2000).then(() => testJwt))
         .then((testJwt) => testit(testJwt.encoded, decodeConfig));
-      return expect(result).rejects.toStrictEqual(
-        new Error(`JWT verification failed. Error: jwt expired`)
-      );
+      return expect(result).rejects.toStrictEqual(new Error(`JWT verification failed`));
     });
   });
 
@@ -273,12 +245,7 @@ describe('Jwt decoder without signature check', () => {
       validEncodeConfig
     ).then((testJwt) => testit(testJwt.encoded, accessTokenSchema));
 
-    return expect(result).toRejectWithErrorContainingMessageParts([
-      'JWT decoding failed. Error:',
-      // eslint-disable-next-line no-useless-escape
-      'Invalid literal value, expected \\\"user\\\"\"',
-      'admin'
-    ]);
+    return expect(result).rejects.toThrow('JWT decoding failed');
   });
 
   function testit(jwt: Jwt, schema: ZodSchema): Promise<AccessToken> {

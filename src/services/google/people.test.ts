@@ -81,7 +81,7 @@ describe('GooglePeople Service', () => {
 
     const result = testit(searchContactsFn);
 
-    return expect(result).rejects.toThrow(error.message);
+    return expect(result).rejects.toThrow(`Error in GET People Search contacts`);
   });
 
   function testit(

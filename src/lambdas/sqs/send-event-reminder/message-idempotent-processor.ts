@@ -35,10 +35,9 @@ export default class MessageProcessor {
       correlationId
     });
 
-    logger.info('Sending a message through Vonage');
-
     let messageUUID;
     if (this._isMessagingEnabled) {
+      logger.info('Sending a message through Vonage');
       messageUUID = await this._messagingService.sendMessage(
         message,
         senderDetails,
@@ -47,6 +46,7 @@ export default class MessageProcessor {
         webhookUrl
       );
     } else {
+      logger.info('Simulating a message is being sent');
       messageUUID = await Promise.resolve('fake-uuid' as Uuid);
     }
 

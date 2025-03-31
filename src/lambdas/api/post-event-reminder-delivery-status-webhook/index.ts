@@ -53,7 +53,7 @@ async function lambdaHandler(
       rebuiltEventObject
     });
   } catch (err) {
-    logger.error(`Could not rebuild event from query string. Cause: ${JSON.stringify(err)}`);
+    logger.error(`Could not rebuild event from query string`, { error: err });
     return Promise.resolve(successHandler()());
   }
 
@@ -75,9 +75,7 @@ async function lambdaHandler(
       `Message status update sent to audit trail. correlationId: ${rebuiltEventObject.correlationId}`
     );
   } catch (err) {
-    logger.error(
-      `Could not send message status update to audit trail. Cause: ${JSON.stringify(err)}`
-    );
+    logger.error(`Could not send message status update to audit trail`, { error: err });
     return Promise.resolve(successHandler()());
   }
 

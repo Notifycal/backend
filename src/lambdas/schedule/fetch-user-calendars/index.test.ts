@@ -210,7 +210,7 @@ describe('Schedule fetch user calendars', () => {
     });
 
     await expect(testit(getLiveUsersFn)).rejects.toThrow(
-      'An error happened while processing live users. Error: Boom!'
+      'An error happened while processing live users'
     );
     expect(publishSpy).toHaveBeenCalledTimes(1);
   });
@@ -238,7 +238,7 @@ describe('Schedule fetch user calendars', () => {
     const getLiveUsersFn = () => rejectedLiveUsers();
 
     return expect(testit(getLiveUsersFn)).rejects.toThrow(
-      'An error happened while processing live users. Error: Boom!'
+      'An error happened while processing live users'
     );
   });
 });

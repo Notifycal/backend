@@ -11,7 +11,6 @@ import {
   baseHeaders,
   errorHandler
 } from '@services/common/api-response-handlers';
-import { extractErrorMessage } from '@services/common/error-handling';
 import type { APIGatewayProxyResult, Context } from 'aws-lambda';
 import type { z } from 'zod';
 import { hasCorsConfig } from './utils-middleware';
@@ -57,21 +56,14 @@ function jwtVerification<
           authorizer: jwt
         };
       } else {
-        return errorHandler(
-          401,
-          earlyResponseHeaders
-        )(
-          `Missing permissions to hit the API. Provided info: header = '${JSON.stringify(
-            jwt.header
-          )}' payload = '${JSON.stringify(jwt.payload)}'`
-        );
+        return errorHandler(401, earlyResponseHeaders)(`Missing permissions to hit the API`, {
+          header: jwt.header,
+          payload: jwt.payload
+        });
       }
     },
     (err: unknown) => {
-      return errorHandler(
-        401,
-        earlyResponseHeaders
-      )(`Invalid Signature. Error: ${extractErrorMessage(err)}`);
+      return errorHandler(401, earlyResponseHeaders)(`Invalid Signature`, { error: err });
     }
   );
 }

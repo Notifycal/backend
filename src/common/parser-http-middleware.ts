@@ -5,7 +5,6 @@ import type middy from '@middy/core';
 import type { OptionalCorsEndpointConfig } from '@model/Config';
 import type { EventWithConfig } from '@model/lambda-events/Event';
 import { baseHeaders, errorHandler, headers } from '@services/common/api-response-handlers';
-import { extractErrorMessage } from '@services/common/error-handling';
 import type { Context } from 'aws-lambda';
 import type { z } from 'zod';
 import { logger } from './powertools';
@@ -25,18 +24,18 @@ function eventParser<
     try {
       parserFn(request);
     } catch (error: unknown) {
-      const baseMsg = `payload does not satisfy the schema. Error: ${extractErrorMessage(error)}. Schema: ${JSON.stringify(schema.shape)}`;
+      const baseMsg = `payload does not satisfy the schema`;
+      const errorMsg = `Lambda ${baseMsg}`;
       if (isApiRequest) {
         return errorHandler(
           400,
           hasCorsConfig(request.event.lambdaConfig)
             ? headers(request.event.lambdaConfig.corsConfig.frontendDomain)
             : baseHeaders()
-        )(`Request ${baseMsg}`) as TResult;
+        )(`Request ${baseMsg}`, { error: error, schema: schema.shape }) as TResult;
       } else {
-        const errorMsg = `Lambda ${baseMsg}`;
-        logger.error(errorMsg);
-        throw new Error(errorMsg);
+        logger.error(errorMsg, { error: error, schema: schema.shape });
+        throw new Error(errorMsg, { cause: error });
       }
     }
   }

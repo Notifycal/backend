@@ -4,7 +4,7 @@ import { logger } from '@common/powertools';
 import type { BaseEvent } from '@model/app-events/BaseEvent';
 import type { SnsTopicConfig } from '@model/Config';
 import { BaseAwsMessagingService } from './common/base-aws-messaging-service';
-import { extractErrorMessage, throwError } from './common/error-handling';
+import { throwError } from './common/error-handling';
 
 export class SnsService extends BaseAwsMessagingService {
   private readonly _client: SNSClient;
@@ -29,14 +29,12 @@ export class SnsService extends BaseAwsMessagingService {
     });
     return this._client.send(publishCommand).then(
       (result) => {
-        logger.info(
-          `SNS publish result. Event id: ${event.eventId}. Result: ${JSON.stringify(result)}`
-        );
+        logger.info(`SNS publish result`, { eventId: event.eventId, result: result });
         return result;
       },
       (error) => {
-        const msg = `Error publishing an event to SNS with id ${event.eventId}. Error: ${JSON.stringify(error)}. Extracted error: ${extractErrorMessage(error)}`;
-        throwError(msg);
+        const msg = `Error publishing an event to SNS`;
+        throwError(msg, error, { eventId: event.eventId });
       }
     );
   }

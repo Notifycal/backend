@@ -10,7 +10,9 @@ export function allSettledAllOrErrorHandler<T>(
   }
   const rejectionList = results.filter((r) => r.status === 'rejected');
   throwError(
-    `There were ${rejectionList.length} failures to ${attemptedAction}. Successes: ${successList.length}. Total: ${results.length}. All results: ${JSON.stringify(results)}`
+    `There were ${rejectionList.length} failures to ${attemptedAction}. Successes: ${successList.length}. Total: ${results.length}. All results:`,
+    {},
+    { results }
   );
 }
 
@@ -18,6 +20,8 @@ export function promiseTry<T>(fn: () => T | Promise<T>): Promise<T> {
   try {
     return Promise.resolve(fn());
   } catch (error) {
-    return Promise.reject(error instanceof Error ? error : new Error(String(error)));
+    return Promise.reject(
+      error instanceof Error ? error : new Error(String(error), { cause: error })
+    );
   }
 }

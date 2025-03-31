@@ -23,6 +23,7 @@ import type { ReminderDeliveryStatusWebhookConfig } from './config';
 import { handler, type Event } from './index';
 
 import { logger } from '@common/powertools';
+import { ZodError } from 'zod';
 
 /* eslint-disable camelcase */
 const invalidBodies = [
@@ -300,7 +301,11 @@ describe('POST Event reminder delivery status webhook', () => {
     assert(resp, responseSuccessNoCorsHeaders());
 
     expect(errorLoggerSpy).toHaveBeenCalledWith(
-      expect.stringContaining('Could not rebuild event from query string.')
+      'Could not rebuild event from query string',
+      expect.objectContaining({
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        error: expect.any(ZodError)
+      })
     );
   });
 
@@ -320,7 +325,10 @@ describe('POST Event reminder delivery status webhook', () => {
     assert(resp, responseSuccessNoCorsHeaders());
 
     expect(errorLoggerSpy).toHaveBeenCalledWith(
-      expect.stringContaining('Could not send message status update to audit trail.')
+      expect.stringContaining('Could not send message status update to audit trail'),
+      {
+        error: new Error(`Failed to send`)
+      }
     );
   });
 

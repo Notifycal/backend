@@ -12,7 +12,6 @@ import { phoneByCountry } from '@notifycal/shared/i18n';
 import type { senderSchema } from '@notifycal/shared/schemas';
 import type { CorrelationId, DateTime, EventId } from '@notifycal/shared/types';
 import type { PhoneNumberE164 } from '@own-types/model';
-import { extractErrorMessage } from '@services/common/error-handling';
 import { SnsService } from '@services/sns';
 import { UserLiveIndexStore } from '@services/stores/user-live-index-store';
 import type { Context } from 'aws-lambda';
@@ -104,8 +103,8 @@ async function lambdaHandler(event: Event, context: Context): Promise<void> {
           .flatMap((user) => toEvents(user, run))
           .map((event) =>
             snsService.publish(event).catch((error) => {
-              const msg = `Error publishing an event to SNS with id ${event.eventId}. Error: ${JSON.stringify(error)}. Extracted error: ${extractErrorMessage(error)}`;
-              logger.error(msg);
+              const msg = `Error publishing an event to SNS`;
+              logger.error(msg, { error, eventId: event.eventId });
               logger.info(`Moving on after error...`);
               return;
             })
@@ -116,9 +115,7 @@ async function lambdaHandler(event: Event, context: Context): Promise<void> {
     }
   } catch (error) {
     await Promise.reject(
-      new Error(
-        `An error happened while processing live users. Error: ${extractErrorMessage(error)}`
-      )
+      new Error(`An error happened while processing live users`, { cause: error })
     );
   } finally {
     logger.info(

@@ -68,8 +68,6 @@ export const createSqsHandlerTestSuite =
       const invalidEvent = { Records: [{ someField: 'someValue' }] };
       return expect(
         testit(invalidEvent as unknown as SQSEvent)
-      ).toRejectWithErrorContainingMessageParts([
-        'Lambda payload does not satisfy the schema. Error: Failed to parse schema. This error was caused by:'
-      ]);
+      ).toRejectWithErrorContainingMessageParts(['Lambda payload does not satisfy the schema']);
     });
   };

@@ -1,4 +1,4 @@
-import type { LogItemMessage } from '@aws-lambda-powertools/logger/types';
+import type { LogItemExtraInput, LogItemMessage } from '@aws-lambda-powertools/logger/types';
 import { logger } from '@common/powertools';
 import type {
   ErrorResponseBody,
@@ -64,11 +64,11 @@ export const successHandler =
 
 export const errorHandler =
   (statusCode: keyof typeof errorMessages, headers: ResponseHeaders = baseHeaders()) =>
-  (reason: LogItemMessage): APIGatewayProxyResult => {
+  (reason: LogItemMessage, ...extraInput: LogItemExtraInput): APIGatewayProxyResult => {
     if (statusCode < 500) {
-      logger.warn(reason);
+      logger.warn(reason, ...extraInput);
     } else {
-      logger.error(reason);
+      logger.error(reason, ...extraInput);
     }
     return responseError(statusCode, headers);
   };
