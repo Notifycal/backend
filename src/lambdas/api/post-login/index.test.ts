@@ -10,7 +10,7 @@ import type {
   UnixTimestamp,
   Uuid
 } from '@notifycal/shared/types';
-import type { PrivateKey } from '@own-types/model';
+import type { PrivateKey, Url } from '@own-types/model';
 import { GoogleOAuth } from '@services/google/oauth';
 import type { EncodedAndDecodedJwts } from '@services/jwt';
 import { buildJwtsAndStoreRefreshJwt, signInOrUpUser } from '@services/login';
@@ -24,6 +24,7 @@ import {
 import { assert } from '@testing/utils/assertions';
 import {
   fakeIdpConfigs,
+  setEnvAuditTrailQueueConfig,
   setEnvBaseConfig,
   setEnvEncodeAccessJwtConfig,
   setEnvEncodeRefreshJwtConfig,
@@ -370,6 +371,9 @@ const defaultEnv: LoginConfig = {
   refreshTokenBaseStoreConfig: {
     tableName: 'RefreshTokens-local'
   },
+  auditTrailQueueConfig: {
+    queueUrl: 'https://fake-queue-url' as Url
+  },
   corsConfig: {
     frontendDomain: 'http://localhost:5173'
   }
@@ -381,5 +385,6 @@ function setEnv(config: LoginConfig) {
   setEnvIdpConfigs(config.idpConfigs);
   setEnvUserBaseStoreConfig(config.userBaseStoreConfig);
   setEnvRefreshTokenBaseStoreConfig(config.refreshTokenBaseStoreConfig);
+  setEnvAuditTrailQueueConfig(config.auditTrailQueueConfig);
   setEnvBaseConfig(config.corsConfig);
 }

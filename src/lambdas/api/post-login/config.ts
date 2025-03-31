@@ -1,10 +1,12 @@
 import type {
+  AuditTrailQueueConfig,
   CorsEndpointConfig,
   EncodeAccessJwtConfig,
   EncodeRefreshJwtConfig,
   IdpEndpointConfig
 } from '@model/Config';
 import {
+  readAuditTrailQueueConfig,
   readBaseConfig,
   readEncodeJwtsConfig,
   readEnv,
@@ -23,7 +25,10 @@ interface BaseLoginConfig {
   refreshTokenBaseStoreConfig: RefreshTokenBaseStoreConfig;
 }
 
-export type LoginConfig = BaseLoginConfig & CorsEndpointConfig & IdpEndpointConfig;
+export type LoginConfig = BaseLoginConfig &
+  CorsEndpointConfig &
+  IdpEndpointConfig &
+  AuditTrailQueueConfig;
 
 export function readLoginConfig(): Promise<LoginConfig> {
   const env = readEnv();
@@ -32,6 +37,7 @@ export function readLoginConfig(): Promise<LoginConfig> {
     ...readIdpConfigs(env),
     ...readUserBaseStoreConfig(env),
     ...readRefreshTokenStoreConfig(env),
+    ...readAuditTrailQueueConfig(env),
     ...readBaseConfig(env)
   }));
 }

@@ -49,7 +49,12 @@ function lambdaHandler(
   const store = new RefreshTokenBaseStore(config.refreshTokenBaseStoreConfig);
   return verifyIdentity(event, idpQueryPath, config.idpConfigs)
     .then(([identity, idpAuthorization]) =>
-      signInOrUpUser(identity, idpAuthorization, config.userBaseStoreConfig)
+      signInOrUpUser(
+        identity,
+        idpAuthorization,
+        config.userBaseStoreConfig,
+        config.auditTrailQueueConfig
+      )
         .then((user) =>
           buildJwtsAndStoreRefreshJwt(
             extractIdentity(user),
