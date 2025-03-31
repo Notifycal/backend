@@ -250,7 +250,7 @@ describe('Find actionable events record processor', () => {
     const dlqSpy = vi
       .spyOn(DeadLetteringService.prototype, 'send')
       .mockResolvedValue({} as SendMessageCommandOutput);
-    const audiTrailSpy = vi
+    const auditTrailSpy = vi
       .spyOn(AuditTrailService.prototype, 'send')
       .mockResolvedValue({} as SendMessageCommandOutput);
     const eventsStartTimeWithinFn = () => Promise.resolve({ successList: [], failureList: [] });
@@ -263,7 +263,7 @@ describe('Find actionable events record processor', () => {
 
     expect(publishSpy).not.toHaveBeenCalled();
     expect(dlqSpy).not.toHaveBeenCalled();
-    expect(audiTrailSpy).toHaveBeenCalledOnce();
+    expect(auditTrailSpy).toHaveBeenCalledOnce();
   });
 
   it('should finish processing sucessfully and send an event to audit trail if no attendees are found in calendar event', async () => {
@@ -276,7 +276,7 @@ describe('Find actionable events record processor', () => {
     const dlqSpy = vi
       .spyOn(DeadLetteringService.prototype, 'send')
       .mockResolvedValue({} as SendMessageCommandOutput);
-    const audiTrailSpy = vi
+    const auditTrailSpy = vi
       .spyOn(AuditTrailService.prototype, 'send')
       .mockResolvedValue({} as SendMessageCommandOutput);
     const eventsStartTimeWithinFn = () =>
@@ -290,7 +290,7 @@ describe('Find actionable events record processor', () => {
 
     expect(publishSpy).not.toHaveBeenCalled();
     expect(dlqSpy).not.toHaveBeenCalled();
-    expect(audiTrailSpy).toHaveBeenCalledOnce();
+    expect(auditTrailSpy).toHaveBeenCalledOnce();
   });
 
   it('should throw an error if eventsStartTimeWithin fails. Retrying the whole record relying on idempotence', async () => {

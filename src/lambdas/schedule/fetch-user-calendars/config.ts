@@ -1,5 +1,10 @@
-import type { CronRunEndpointConfig, UserCalendarFetchedTopicConfig } from '@model/Config';
+import type {
+  AuditTrailQueueConfig,
+  CronRunEndpointConfig,
+  UserCalendarFetchedTopicConfig
+} from '@model/Config';
 import {
+  readAuditTrailQueueConfig,
   readCronRunConfig,
   readEnv,
   readUserCalendarFetchedTopicConfig,
@@ -10,13 +15,15 @@ import { promiseTry } from '@utils/promises';
 
 export type FetchUserCalendarsConfig = UserLiveIndexStoreEndpointConfig &
   UserCalendarFetchedTopicConfig &
-  CronRunEndpointConfig;
+  CronRunEndpointConfig &
+  AuditTrailQueueConfig;
 
 export function readFetchUserCalendarsConfig(): Promise<FetchUserCalendarsConfig> {
   const env = readEnv();
   return promiseTry(() => ({
     ...readUserLiveIndexConfig(env),
     ...readUserCalendarFetchedTopicConfig(env),
-    ...readCronRunConfig(env)
+    ...readCronRunConfig(env),
+    ...readAuditTrailQueueConfig(env)
   }));
 }

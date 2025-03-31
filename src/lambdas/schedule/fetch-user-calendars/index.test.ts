@@ -1,3 +1,4 @@
+import type { SendMessageCommandOutput } from '@aws-sdk/client-sqs';
 import type { LiveUserStoreRecord } from '@model/store/LiveUserStoreRecord';
 import type { UserIdpAuthorizationStoreRecord } from '@model/store/UserIdpAuthorizationStoreRecord';
 import type {
@@ -16,11 +17,13 @@ import type {
   UserId,
   UserStatus
 } from '@notifycal/shared/types';
-import type { AwsArn } from '@own-types/model';
+import type { AwsArn, Url } from '@own-types/model';
+import { AuditTrailService } from '@services/audit-trail';
 import * as snsService from '@services/sns';
 import { UserLiveIndexStore } from '@services/stores/user-live-index-store';
 import { fakeScheduledEventBridgeEvent } from '@testing/data/event-bridge-event';
 import {
+  setEnvAuditTrailQueueConfig,
   setEnvCronRunConfig,
   setEnvUserCalendarFetchedTopicConfig,
   setEnvUserLiveStoreConfig
@@ -122,6 +125,63 @@ async function* validLiveUsers(): AsyncGenerator<
   ]);
 }
 
+async function* validLiveUsersWithoutACalendar(): AsyncGenerator<
+  Array<LiveUserStoreRecord<'google.com'> & UserIdpAuthorizationStoreRecord<'google.com'>>,
+  void,
+  void
+> {
+  yield await Promise.resolve([
+    {
+      UserId: 'user123' as UserId,
+      Email: 'testuser1@gmail.com' as Email,
+      Idp: 'google.com',
+      IdpId: 'google123' as IdpId,
+      LastSignInAt: 1672531199 as UnixTimestamp,
+      SignedUpAt: 1609459200 as UnixTimestamp,
+      Config: {
+        calendars: [],
+        business: {
+          name: 'businessName1' as BusinessName,
+          address: 'businessNameAddress1' as BusinessAddress,
+          senderContact: {
+            type: 'phone',
+            countryCode: 'ES',
+            phoneNumber: '666777888' as PhoneNumber
+          }
+        }
+      },
+      UserStatus: 'live' as UserStatus,
+      IdpAuthorization: {
+        refreshToken: 'mock_refresh_token_94534'
+      }
+    },
+    {
+      UserId: 'user456' as UserId,
+      Email: 'testuser2@gmail.com' as Email,
+      Idp: 'google.com',
+      IdpId: 'google456' as IdpId,
+      LastSignInAt: 1675622399 as UnixTimestamp,
+      SignedUpAt: 1612137600 as UnixTimestamp,
+      Config: {
+        calendars: [validCalendar],
+        business: {
+          name: 'businessName2' as BusinessName,
+          address: 'businessNameAddress2' as BusinessAddress,
+          senderContact: {
+            type: 'phone',
+            countryCode: 'ES',
+            phoneNumber: '666777888' as PhoneNumber
+          }
+        }
+      },
+      UserStatus: 'live' as UserStatus,
+      IdpAuthorization: {
+        refreshToken: 'mock_refresh_token_087976'
+      }
+    }
+  ]);
+}
+
 async function* oneRejectionInBetweenLiveUsers(): AsyncGenerator<
   Array<LiveUserStoreRecord<'google.com'> & UserIdpAuthorizationStoreRecord<'google.com'>>,
   void,
@@ -198,9 +258,13 @@ describe('Schedule fetch user calendars', () => {
     const publishSpy = vi.spyOn(snsService.SnsService.prototype, 'publish').mockResolvedValue({
       $metadata: {}
     });
+    const auditTrailSpy = vi
+      .spyOn(AuditTrailService.prototype, 'send')
+      .mockResolvedValue({} as SendMessageCommandOutput);
     await testit(getLiveUsersFn);
 
     expect(publishSpy).toHaveBeenCalledTimes(3);
+    expect(auditTrailSpy).toHaveBeenCalledTimes(0);
   });
 
   it('cannot resume processing if persistance pagination fails', async () => {
@@ -213,6 +277,20 @@ describe('Schedule fetch user calendars', () => {
       'An error happened while processing live users'
     );
     expect(publishSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('should not stop processing current page or the rest of the pages even if an no user calendar event cannot be sent to audit trail service', async () => {
+    const getLiveUsersFn = () => validLiveUsersWithoutACalendar();
+    const publishSpy = vi.spyOn(snsService.SnsService.prototype, 'publish').mockResolvedValue({
+      $metadata: {}
+    });
+    const auditTrailSpy = vi
+      .spyOn(AuditTrailService.prototype, 'send')
+      .mockResolvedValue({} as SendMessageCommandOutput);
+    await testit(getLiveUsersFn);
+
+    expect(publishSpy).toHaveBeenCalledTimes(1);
+    expect(auditTrailSpy).toHaveBeenCalledTimes(1);
   });
 
   it('should not stop processing current page or the rest of the pages even if a message cannot be published', async () => {
@@ -274,11 +352,15 @@ const defaultEnv: FetchUserCalendarsConfig = {
   },
   cronRunConfig: {
     windowInMinutes: 30
+  },
+  auditTrailQueueConfig: {
+    queueUrl: 'https://fake-queue-url' as Url
   }
 };
 
 function setEnv(config: FetchUserCalendarsConfig) {
   setEnvUserLiveStoreConfig(config.userLiveIndexStoreConfig);
   setEnvUserCalendarFetchedTopicConfig(config.userCalendarFetchedTopicConfig);
+  setEnvAuditTrailQueueConfig(config.auditTrailQueueConfig);
   setEnvCronRunConfig(config.cronRunConfig);
 }
