@@ -9,7 +9,8 @@ export const successEventTypeSchema = z.union([
   z.literal('ActionableEventReminderAttemptFailed'),
   z.literal('ActionableEventReminderAttemptSent'),
   z.literal('ActionableEventReminderAttemptSkipped'),
-  z.literal('ActionableEventReminderStatusUpdated')
+  z.literal('ActionableEventReminderStatusUpdated'),
+  z.literal('ScheduledFetchUserCalendarEventFired')
 ]);
 export type SuccessEventType = z.infer<typeof successEventTypeSchema>;
 export const errorEventTypeSchema = z.union([
@@ -25,10 +26,11 @@ export type EventType = SuccessEventType | ErrorEventType;
 export const dataSchema = z.object({}).passthrough();
 export type Data = z.infer<typeof dataSchema>;
 
+const notApplicableSchema = z.literal('N/A');
 export const baseEventSchema = z.object({
-  userId: userIdSchema,
-  idpId: idpIdSchema,
-  idp: z.literal('google.com'),
+  userId: z.union([userIdSchema, z.literal('System')]),
+  idpId: z.union([idpIdSchema, notApplicableSchema]),
+  idp: z.union([z.literal('google.com'), notApplicableSchema]),
   eventType: eventTypeSchema,
   happenedAt: dateTimeSchema,
   eventId: eventIdSchema,

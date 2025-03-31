@@ -251,9 +251,10 @@ async function* rejectedLiveUsers(): AsyncGenerator<
 > {
   yield await Promise.reject(new Error('Boom!'));
 }
+const systemEventCount = 1;
 
 describe('Schedule fetch user calendars', () => {
-  it('publish as many events as live users times calendars exist in persistance', async () => {
+  it('publish as many events as live users times calendars exist in persistance and produce a system event', async () => {
     const getLiveUsersFn = () => validLiveUsers();
     const publishSpy = vi.spyOn(snsService.SnsService.prototype, 'publish').mockResolvedValue({
       $metadata: {}
@@ -264,7 +265,7 @@ describe('Schedule fetch user calendars', () => {
     await testit(getLiveUsersFn);
 
     expect(publishSpy).toHaveBeenCalledTimes(3);
-    expect(auditTrailSpy).toHaveBeenCalledTimes(0);
+    expect(auditTrailSpy).toHaveBeenCalledTimes(systemEventCount);
   });
 
   it('cannot resume processing if persistance pagination fails', async () => {
@@ -290,7 +291,7 @@ describe('Schedule fetch user calendars', () => {
     await testit(getLiveUsersFn);
 
     expect(publishSpy).toHaveBeenCalledTimes(1);
-    expect(auditTrailSpy).toHaveBeenCalledTimes(1);
+    expect(auditTrailSpy).toHaveBeenCalledTimes(1 + systemEventCount);
   });
 
   it('should not stop processing current page or the rest of the pages even if a message cannot be published', async () => {

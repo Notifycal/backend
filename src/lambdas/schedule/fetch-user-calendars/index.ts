@@ -2,6 +2,7 @@ import { backgroundProcessingMiddleware } from '@common/lambda-middleware';
 import { logger } from '@common/powertools';
 import type { senderStandardSchema } from '@model/app-events/common';
 import { noUserCalendarFound } from '@model/app-events/NoUserCalendarFound';
+import { scheduledFetchUserCalendarEventFired } from '@model/app-events/ScheduledFetchUserCalendarEventFired';
 import type {
   UserCalendarFetchedEvent,
   userCalendarFetchedEventSchema
@@ -103,6 +104,13 @@ async function lambdaHandler(event: Event, context: Context): Promise<void> {
   const userLiveProvider = UserLiveIndexStore.withConfig(userLiveIndexStoreConfig);
   const snsService = SnsService.withConfig(userCalendarFetchedTopicConfig);
   const auditTrailService = AuditTrailService.withConfig(auditTrailQueueConfig);
+
+  const systemEvent = scheduledFetchUserCalendarEventFired(event);
+  await auditTrailService.send(systemEvent).catch((error) => {
+    const msg = `Error publishing an ScheduledFetchUserCalendarEventFired event to Audit Trail`;
+    logger.error(msg, { error, systemEvent: systemEvent });
+    logger.info(`Moving on after error...`);
+  });
 
   const run = runDataFromConfig(cronRunConfig, event);
   logger.info(
