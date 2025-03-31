@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.20.1](https://github.com/Notifycal/backend/compare/v0.20.0...v0.20.1) (2025-03-31)
+
+
+### Bug Fixes
+
+* review logging. Replace json stringify by log with attributes. T… ([#464](https://github.com/Notifycal/backend/issues/464)) ([543fbfa](https://github.com/Notifycal/backend/commit/543fbfab12350191a31ee8bd48914361a74cc86f))
+
 ## [0.20.0](https://github.com/Notifycal/backend/compare/v0.19.0...v0.20.0) (2025-03-28)
 
 
