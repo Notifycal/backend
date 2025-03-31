@@ -42,6 +42,10 @@ locals {
     DEAD_LETTER_QUEUE_URL = aws_sqs_queue.global_dlq_lambda.url
   }
 
+  audit_trail_queue_env_vars = {
+    AUDIT_TRAIL_QUEUE_URL = module.audit_trail_queue.sqs_queue_url
+  }
+
   common_tags = {}
 
   # Timeout for API Lambdas. API Gateway will timeout after 30s in any case

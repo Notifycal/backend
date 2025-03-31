@@ -4,6 +4,7 @@ import { ParsingError } from '@model/Errors';
 import type { ServiceResponse } from '@model/ServiceResponse';
 import type { CalendarEvent, DateTime, RCSSenderId, TimeZone } from '@notifycal/shared/types';
 import type { AwsArn, PhoneNumberE164, Url } from '@own-types/model';
+import { AuditTrailService } from '@services/audit-trail';
 import { eventsStartTimeWithin } from '@services/calendar-events';
 import { phoneNumberByEmail } from '@services/contacts';
 import { DeadLetteringService } from '@services/dead-lettering';
@@ -22,6 +23,9 @@ const defaultConfig: ActionableEventsConfig = {
   },
   deadLetterQueueConfig: {
     queueUrl: 'http://aws.com/dlq' as Url
+  },
+  auditTrailQueueConfig: {
+    queueUrl: 'https://fake-queue-url' as Url
   },
   idpConfigs: fakeIdpConfigs
 };
@@ -247,6 +251,9 @@ describe('Find actionable events record processor', () => {
     const dlqSpy = vi
       .spyOn(DeadLetteringService.prototype, 'send')
       .mockResolvedValue({} as SendMessageCommandOutput);
+    const audiTrailSpy = vi
+      .spyOn(AuditTrailService.prototype, 'send')
+      .mockResolvedValue({} as SendMessageCommandOutput);
     const eventsStartTimeWithinFn = () => Promise.resolve({ successList: [], failureList: [] });
     const phoneNumberByEmailFn = () => Promise.resolve([]);
     await testit(
@@ -257,6 +264,7 @@ describe('Find actionable events record processor', () => {
 
     expect(publishSpy).not.toHaveBeenCalled();
     expect(dlqSpy).not.toHaveBeenCalled();
+    expect(audiTrailSpy).toHaveBeenCalledOnce();
   });
 
   it('should throw an error if eventsStartTimeWithin fails. Retrying the whole record relying on idempotence', async () => {

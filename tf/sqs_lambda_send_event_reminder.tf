@@ -109,11 +109,7 @@ module "send_event_reminder_lambda" {
     VONAGE_APPLICATION_ID       = var.vonage_auth_config.application_id
     VONAGE_SSM_PATH_PRIVATE_KEY = data.aws_ssm_parameter.vonage_private_key.name
     VONAGE_WEBHOOK_BASE_URL     = "${local.api_url}/api/v1/webhook/reminder-status"
-
-    MESSAGING_ENABLED = "false"
-
-    AUDIT_TRAIL_QUEUE_URL = module.audit_trail_queue.sqs_queue_url
-
+    MESSAGING_ENABLED           = "false"
     IDEMPOTENCY_PERSISTENCE_CONFIG = jsonencode({
       tableName            = aws_dynamodb_table.lambda_idempotency.name,
       keyAttr              = local.lambda_idempotency_table_config.hash_attribute_name,
@@ -123,5 +119,5 @@ module "send_event_reminder_lambda" {
       dataAttr             = local.lambda_idempotency_table_config.data_attribute_name
       validationKeyAttr    = local.lambda_idempotency_table_config.validation_attribute_name
     })
-  }, local.common_lambda_env_vars)
+  }, local.audit_trail_queue_env_vars, local.common_lambda_env_vars)
 }

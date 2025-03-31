@@ -1,10 +1,12 @@
 import type {
   ActionableEventFoundTopicConfig,
+  AuditTrailQueueConfig,
   DeadLetterQueueConfig,
   IdpEndpointConfig
 } from '@model/Config';
 import {
   readActionableEventFoundTopicConfig,
+  readAuditTrailQueueConfig,
   readDeadLetterQueueConfig,
   readEnv,
   readIdpConfigs
@@ -13,13 +15,15 @@ import { promiseTry } from '@utils/promises';
 
 export type ActionableEventsConfig = ActionableEventFoundTopicConfig &
   DeadLetterQueueConfig &
-  IdpEndpointConfig;
+  IdpEndpointConfig &
+  AuditTrailQueueConfig;
 
 export function readActionableEventsConfig(): Promise<ActionableEventsConfig> {
   const env = readEnv();
   return promiseTry(() => ({
     ...readActionableEventFoundTopicConfig(env),
     ...readDeadLetterQueueConfig(env),
-    ...readIdpConfigs(env)
+    ...readIdpConfigs(env),
+    ...readAuditTrailQueueConfig(env)
   }));
 }

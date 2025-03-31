@@ -1,5 +1,5 @@
-import { logger } from '@common/powertools';
 import type { ActionableEventFoundEvent } from '@model/app-events/ActionableEventFoundEvent';
+import { noActionableEventsFound } from '@model/app-events/NoActionableEventsFound';
 import { noPhoneNumberForAttendeeFound } from '@model/app-events/NoPhoneNumberForAttendeeFoundEvent';
 import { userFetchedEventsParsingFailed } from '@model/app-events/UserFetchedEventsParsingFailedEvent';
 import type { IdpConfigs } from '@model/Config';
@@ -17,6 +17,7 @@ import type {
   TimeZone
 } from '@notifycal/shared/types';
 import type { PhoneNumberE164 } from '@own-types/model';
+import { AuditTrailService } from '@services/audit-trail';
 import { eventsStartTimeWithin } from '@services/calendar-events';
 import { phoneNumberByEmail } from '@services/contacts';
 import { DeadLetteringService } from '@services/dead-lettering';
@@ -147,8 +148,8 @@ export function recordProcessor(record: Record, config: ActionableEventsConfig):
           )
           .then(() => successList);
       } else {
-        logger.info(`NoActionableEventsFound`);
-        return Promise.resolve([]);
+        const auditTrailService = AuditTrailService.withConfig(config.auditTrailQueueConfig);
+        return auditTrailService.send(noActionableEventsFound(event)).then(() => []);
       }
     })
     .then((calendarEvents) =>

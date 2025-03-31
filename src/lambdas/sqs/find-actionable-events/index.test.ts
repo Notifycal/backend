@@ -4,6 +4,7 @@ import { validRawRecord } from '@testing/data/sqs-events';
 import {
   fakeIdpConfigs,
   setEnvActionableEventFoundTopicConfig,
+  setEnvAuditTrailQueueConfig,
   setEnvDeadLetterQueueConfig,
   setEnvIdpConfigs
 } from '@testing/utils/config';
@@ -28,10 +29,14 @@ function setEnv(): void {
     deadLetterQueueConfig: {
       queueUrl: 'http://aws.com/dql' as Url
     },
+    auditTrailQueueConfig: {
+      queueUrl: 'https://fake-queue-url' as Url
+    },
     idpConfigs: fakeIdpConfigs
   };
   setEnvActionableEventFoundTopicConfig(config.actionableEventFoundTopicConfig);
   setEnvDeadLetterQueueConfig(config.deadLetterQueueConfig);
+  setEnvAuditTrailQueueConfig(config.auditTrailQueueConfig);
   setEnvIdpConfigs(config.idpConfigs);
 }
 

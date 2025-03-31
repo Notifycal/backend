@@ -23,6 +23,17 @@ data "aws_iam_policy_document" "find_actionable_events_iam_policydoc" {
       module.user_calendar_fetched_queue.sqs_queue_arn
     ]
   }
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "sqs:SendMessage",
+    ]
+
+    resources = [
+      module.audit_trail_queue.sqs_queue_arn
+    ]
+  }
 }
 
 module "find_actionable_events_lambda" {
@@ -76,5 +87,5 @@ module "find_actionable_events_lambda" {
 
   environment_variables = merge({
     ACTIONABLE_EVENT_FOUND_TOPIC_ARN = module.actionable_event_found_topic.sns_topic_arn
-  }, local.idps_configs_env_vars, local.dead_letter_queue_env_vars, local.common_lambda_env_vars)
+  }, local.audit_trail_queue_env_vars, local.idps_configs_env_vars, local.dead_letter_queue_env_vars, local.common_lambda_env_vars)
 }
