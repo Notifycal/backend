@@ -1,5 +1,6 @@
 import type { ActionableEventFoundEvent } from '@model/app-events/ActionableEventFoundEvent';
 import { noActionableEventsFound } from '@model/app-events/NoActionableEventsFound';
+import { noAttendeesInCalendarEventFound } from '@model/app-events/NoAttendeesInCalendarEventFoundEvent';
 import { noPhoneNumberForAttendeeFound } from '@model/app-events/NoPhoneNumberForAttendeeFoundEvent';
 import { userFetchedEventsParsingFailed } from '@model/app-events/UserFetchedEventsParsingFailedEvent';
 import type { IdpConfigs } from '@model/Config';
@@ -27,6 +28,11 @@ import { DateTime as DT } from 'luxon';
 import { v4 } from 'uuid';
 import type { ActionableEventsConfig } from './config';
 import type { Record } from './schema';
+
+interface CalendarEventWithAnAttendeePhoneNumber {
+  calendarEvent: CalendarEvent;
+  attendeePhoneNumber: PhoneNumberE164;
+}
 
 function interpolateMessage(
   templateId: TemplateId,
@@ -64,7 +70,7 @@ function fetchAttendeePhoneNumbers(
   event: Record['body'],
   dqlService: DeadLetteringService,
   idpConfigs: IdpConfigs
-): Promise<Array<{ calendarEvent: CalendarEvent; attendeePhoneNumber: PhoneNumberE164 }>> {
+): Promise<Array<CalendarEventWithAnAttendeePhoneNumber>> {
   return Promise.allSettled(
     calendarEvent.attendees.map((attendee) =>
       phoneNumberByEmail(
@@ -96,7 +102,7 @@ function fetchAttendeePhoneNumbers(
 }
 
 function buildActionableEvents(
-  attendeePhoneData: Array<{ calendarEvent: CalendarEvent; attendeePhoneNumber: PhoneNumberE164 }>,
+  attendeePhoneData: Array<CalendarEventWithAnAttendeePhoneNumber>,
   event: Record['body']
 ): Array<ActionableEventFoundEvent> {
   return attendeePhoneData.map(({ calendarEvent: calendarEvent, attendeePhoneNumber }) => {
@@ -130,49 +136,86 @@ function buildActionableEvents(
   });
 }
 
-export function recordProcessor(record: Record, config: ActionableEventsConfig): Promise<void> {
-  const snsService = SnsService.withConfig(config.actionableEventFoundTopicConfig);
-  const dlqService = DeadLetteringService.withConfig(config.deadLetterQueueConfig);
-  const event = record.body;
+function handleFetchedCalendarEvents(
+  successList: Array<CalendarEvent>,
+  failureList: Array<ParsingError>,
+  event: Record['body'],
+  dlqService: DeadLetteringService,
+  auditTrailService: AuditTrailService
+): Promise<Array<CalendarEvent>> {
+  if ((successList && successList?.length > 0) || (failureList && failureList?.length > 0)) {
+    return Promise.allSettled(
+      failureList.map((failure) => dlqService.send(userFetchedEventsParsingFailed(event, failure)))
+    )
+      .then((results) =>
+        allSettledAllOrErrorHandler(results, 'send calendar event fetch failures to DLQ')
+      )
+      .then(() => successList);
+  } else {
+    return auditTrailService.send(noActionableEventsFound(event)).then(() => []);
+  }
+}
 
-  return fetchCalendarEvents(event, config.idpConfigs)
-    .then(({ successList, failureList }) => {
-      if ((successList && successList?.length > 0) || (failureList && failureList?.length > 0)) {
-        return Promise.allSettled(
-          failureList.map((failure) =>
-            dlqService.send(userFetchedEventsParsingFailed(event, failure))
-          )
-        )
-          .then((results) =>
-            allSettledAllOrErrorHandler(results, 'send calendar event fetch failures to DLQ')
-          )
-          .then(() => successList);
+function handleCalendarEventAttendees(
+  calendarEvents: Array<CalendarEvent>,
+  event: Record['body'],
+  idpConfigs: IdpConfigs,
+  dlqService: DeadLetteringService,
+  auditTrailService: AuditTrailService
+): Promise<Array<CalendarEventWithAnAttendeePhoneNumber>> {
+  return Promise.allSettled(
+    calendarEvents.map((calendarEvent) => {
+      if (calendarEvent.attendees.length > 0) {
+        return fetchAttendeePhoneNumbers(calendarEvent, event, dlqService, idpConfigs);
       } else {
-        const auditTrailService = AuditTrailService.withConfig(config.auditTrailQueueConfig);
-        return auditTrailService.send(noActionableEventsFound(event)).then(() => []);
+        return auditTrailService
+          .send(noAttendeesInCalendarEventFound(event, calendarEvent))
+          .then(() => []);
       }
     })
-    .then((calendarEvents) =>
-      Promise.allSettled(
-        calendarEvents.map((calendarEvent) =>
-          fetchAttendeePhoneNumbers(calendarEvent, event, dlqService, config.idpConfigs)
-        )
-      )
-    )
-    .then((results) =>
-      allSettledAllOrErrorHandler(
-        results,
-        'fetch all atteendee phone number for every calendar event'
-      )
-    )
-    .then((eventWithAttendeePhoneNumbers) => {
-      const actionableEvents = buildActionableEvents(eventWithAttendeePhoneNumbers.flat(), event);
-      return Promise.allSettled(
-        actionableEvents.map((actionableEvent) => snsService.publish(actionableEvent))
-      );
-    })
+  ).then((results) => {
+    return allSettledAllOrErrorHandler(
+      results,
+      'fetch all atteendee phone number for every calendar event'
+    ).flat();
+  });
+}
+
+function buildAndPublishActionableEvents(
+  eventWithAttendeePhoneNumbers: Array<CalendarEventWithAnAttendeePhoneNumber>,
+  event: Record['body'],
+  snsService: SnsService
+): Promise<void> {
+  const actionableEvents = buildActionableEvents(eventWithAttendeePhoneNumbers, event);
+  return Promise.allSettled(
+    actionableEvents.map((actionableEvent) => snsService.publish(actionableEvent))
+  )
     .then((results) => allSettledAllOrErrorHandler(results, 'publish actionable events'))
     .then(() => {
       return;
+    });
+}
+
+export function recordProcessor(record: Record, config: ActionableEventsConfig): Promise<void> {
+  const snsService = SnsService.withConfig(config.actionableEventFoundTopicConfig);
+  const dlqService = DeadLetteringService.withConfig(config.deadLetterQueueConfig);
+  const auditTrailService = AuditTrailService.withConfig(config.auditTrailQueueConfig);
+  const event = record.body;
+
+  return fetchCalendarEvents(event, config.idpConfigs)
+    .then(({ successList, failureList }) =>
+      handleFetchedCalendarEvents(successList, failureList, event, dlqService, auditTrailService)
+    )
+    .then((calendarEvents) =>
+      handleCalendarEventAttendees(
+        calendarEvents,
+        event,
+        config.idpConfigs,
+        dlqService,
+        auditTrailService
+      )
+    )
+    .then((eventWithAttendeePhoneNumbers) => {
+      return buildAndPublishActionableEvents(eventWithAttendeePhoneNumbers, event, snsService);
     });
 }

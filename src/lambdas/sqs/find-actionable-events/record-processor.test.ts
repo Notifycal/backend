@@ -30,15 +30,14 @@ const defaultConfig: ActionableEventsConfig = {
   idpConfigs: fakeIdpConfigs
 };
 
-const validEvents: Array<CalendarEvent> = [
-  {
-    id: 'event-1',
-    attendees: [{ id: 'attendee@test.com' }],
-    isAllDayEvent: false,
-    startTime: '2024-01-02T15:05:00Z' as DateTime,
-    timeZone: 'Europe/Madrid' as TimeZone
-  }
-];
+const validCalendarEvent: CalendarEvent = {
+  id: 'event-1',
+  attendees: [{ id: 'attendee@test.com' }],
+  isAllDayEvent: false,
+  startTime: '2024-01-02T15:05:00Z' as DateTime,
+  timeZone: 'Europe/Madrid' as TimeZone
+};
+const validEvents: Array<CalendarEvent> = [validCalendarEvent];
 
 const validPhoneNumber = '+34666888999' as PhoneNumberE164;
 const validRCSSenderId = 'Notifycal testing' as RCSSenderId;
@@ -244,7 +243,7 @@ describe('Find actionable events record processor', () => {
     expect(dlqSpy).not.toHaveBeenCalled();
   });
 
-  it('should finish processing sucessfully if no valid events are found', async () => {
+  it('should finish processing sucessfully and send an event to audit trail if no valid events are found', async () => {
     const publishSpy = vi
       .spyOn(SnsService.prototype, 'publish')
       .mockResolvedValue({} as PublishCommandOutput);
@@ -255,6 +254,33 @@ describe('Find actionable events record processor', () => {
       .spyOn(AuditTrailService.prototype, 'send')
       .mockResolvedValue({} as SendMessageCommandOutput);
     const eventsStartTimeWithinFn = () => Promise.resolve({ successList: [], failureList: [] });
+    const phoneNumberByEmailFn = () => Promise.resolve([]);
+    await testit(
+      validRecord(userCalendarFetchedEvent),
+      eventsStartTimeWithinFn,
+      phoneNumberByEmailFn
+    );
+
+    expect(publishSpy).not.toHaveBeenCalled();
+    expect(dlqSpy).not.toHaveBeenCalled();
+    expect(audiTrailSpy).toHaveBeenCalledOnce();
+  });
+
+  it('should finish processing sucessfully and send an event to audit trail if no attendees are found in calendar event', async () => {
+    const validEventsWithNoAttendees: Array<CalendarEvent> = [
+      { ...validCalendarEvent, attendees: [] }
+    ];
+    const publishSpy = vi
+      .spyOn(SnsService.prototype, 'publish')
+      .mockResolvedValue({} as PublishCommandOutput);
+    const dlqSpy = vi
+      .spyOn(DeadLetteringService.prototype, 'send')
+      .mockResolvedValue({} as SendMessageCommandOutput);
+    const audiTrailSpy = vi
+      .spyOn(AuditTrailService.prototype, 'send')
+      .mockResolvedValue({} as SendMessageCommandOutput);
+    const eventsStartTimeWithinFn = () =>
+      Promise.resolve({ successList: validEventsWithNoAttendees, failureList: [] });
     const phoneNumberByEmailFn = () => Promise.resolve([]);
     await testit(
       validRecord(userCalendarFetchedEvent),

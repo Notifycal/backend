@@ -15,7 +15,8 @@ export type SuccessEventType = z.infer<typeof successEventTypeSchema>;
 export const errorEventTypeSchema = z.union([
   z.literal('UserFetchedEventsParsingFailed'),
   z.literal('NoPhoneNumberForAttendeeFound'),
-  z.literal('NoActionableEventsFound')
+  z.literal('NoActionableEventsFound'),
+  z.literal('NoAttendeesInCalendarEventFound')
 ]);
 export type ErrorEventType = z.infer<typeof errorEventTypeSchema>;
 export const eventTypeSchema = z.union([successEventTypeSchema, errorEventTypeSchema]);
