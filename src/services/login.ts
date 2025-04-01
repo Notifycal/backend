@@ -90,7 +90,10 @@ export function signInOrUpUser<TIdpName extends IdpName>(
     },
     (error) =>
       Promise.reject(
-        new Error(`User with id '${identity.userId}' could not sign in/up`, { cause: error })
+        new Error(
+          `Failed to fetch '${identity.userId}' out of persistance. Unable to say if the user was signing in or up as the call to persistance failed`,
+          { cause: error }
+        )
       )
   );
 }
