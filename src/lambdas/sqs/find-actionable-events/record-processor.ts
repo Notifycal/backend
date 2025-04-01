@@ -1,6 +1,6 @@
 import { logger } from '@common/powertools';
 import type { ActionableEventFoundEvent } from '@model/app-events/ActionableEventFoundEvent';
-import { noActionableEventsFound } from '@model/app-events/NoActionableEventsFound';
+import { noActionableEventsFound } from '@model/app-events/NoActionableEventsFoundEvent';
 import { noAttendeesInCalendarEventFound } from '@model/app-events/NoAttendeesInCalendarEventFoundEvent';
 import { noPhoneNumberForAttendeeFound } from '@model/app-events/NoPhoneNumberForAttendeeFoundEvent';
 import { userFetchedEventsParsingFailed } from '@model/app-events/UserFetchedEventsParsingFailedEvent';

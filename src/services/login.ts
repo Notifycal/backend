@@ -1,6 +1,6 @@
 import { logger } from '@common/powertools';
-import { userSignedIn } from '@model/app-events/UserSignedIn';
-import { userSignedUp } from '@model/app-events/UserSignedUp';
+import { userSignedIn } from '@model/app-events/UserSignedInEvent';
+import { userSignedUp } from '@model/app-events/UserSignedUpEvent';
 import type { EncodeAccessJwtConfig, EncodeRefreshJwtConfig, SqsQueueConfig } from '@model/Config';
 import type { AuthorizationForIdp } from '@model/IdpAuthorization';
 import type { UserStoreRecord } from '@model/store/UserStoreRecord';

@@ -1,8 +1,8 @@
 import { backgroundProcessingMiddleware } from '@common/lambda-middleware';
 import { logger } from '@common/powertools';
 import type { senderStandardSchema } from '@model/app-events/common';
-import { noUserCalendarFound } from '@model/app-events/NoUserCalendarFound';
-import { scheduledFetchUserCalendarEventFired } from '@model/app-events/ScheduledFetchUserCalendarEventFired';
+import { noUserCalendarFound } from '@model/app-events/NoUserCalendarFoundEvent';
+import { scheduledFetchUserCalendarEventFired } from '@model/app-events/ScheduledFetchUserCalendarEventFiredEvent';
 import type {
   UserCalendarFetchedEvent,
   userCalendarFetchedEventSchema

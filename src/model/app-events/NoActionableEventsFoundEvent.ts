@@ -12,19 +12,19 @@ const data = z.object({
   calendar: calendarSchema
 });
 export const noActionableEventsFoundEventSchema = errorEventSchemaGenerator(
-  'NoUserCalendarFound',
+  'NoActionableEventsFound',
   data
 );
 
-export type noActionableEventsFoundEvent = z.infer<typeof noActionableEventsFoundEventSchema>;
+export type NoActionableEventsFoundEvent = z.infer<typeof noActionableEventsFoundEventSchema>;
 
 export function noActionableEventsFound(
   origin: UserCalendarFetchedEvent
-): noActionableEventsFoundEvent {
+): NoActionableEventsFoundEvent {
   return {
     eventId: v4() as EventId,
     correlationId: origin.correlationId,
-    eventType: 'NoUserCalendarFound',
+    eventType: 'NoActionableEventsFound',
     happenedAt: new Date().toISOString() as DateTime,
     userId: origin.userId,
     idp: origin.idp,

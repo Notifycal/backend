@@ -46,10 +46,10 @@ export type BaseErrorEvent = z.infer<typeof baseErrorEvent>;
 export type BaseEvent = z.infer<typeof baseEventSchema>;
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, @typescript-eslint/explicit-module-boundary-types
-export function eventSchemaGenerator<TData extends z.AnyZodObject>(
-  eventType: SuccessEventType,
-  dataSchema: TData
-) {
+export function eventSchemaGenerator<
+  TData extends z.AnyZodObject,
+  TEventType extends SuccessEventType
+>(eventType: TEventType, dataSchema: TData) {
   return baseEventSchema.extend({
     eventType: z.literal(eventType),
     data: dataSchema
@@ -57,10 +57,10 @@ export function eventSchemaGenerator<TData extends z.AnyZodObject>(
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, @typescript-eslint/explicit-module-boundary-types
-export function errorEventSchemaGenerator<TData extends z.AnyZodObject>(
-  eventType: ErrorEventType,
-  dataSchema: TData
-) {
+export function errorEventSchemaGenerator<
+  TData extends z.AnyZodObject,
+  TEventType extends ErrorEventType
+>(eventType: TEventType, dataSchema: TData) {
   return baseEventSchema.extend({
     eventType: z.literal(eventType),
     data: dataSchema
