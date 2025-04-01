@@ -350,8 +350,8 @@ describe('Find actionable events record processor', () => {
     const publishSpy = vi
       .spyOn(SnsService.prototype, 'publish')
       .mockResolvedValue({} as PublishCommandOutput);
-    const dlqSpy = vi
-      .spyOn(DeadLetteringService.prototype, 'send')
+    const auditTrailSpy = vi
+      .spyOn(AuditTrailService.prototype, 'send')
       .mockResolvedValue({} as SendMessageCommandOutput);
     const eventsStartTimeWithinFn = () =>
       Promise.resolve({ successList: validEvents, failureList: [] });
@@ -360,7 +360,7 @@ describe('Find actionable events record processor', () => {
     await testit(record, eventsStartTimeWithinFn, phoneNumberByEmailFn);
 
     expect(publishSpy).not.toHaveBeenCalled();
-    expect(dlqSpy).toHaveBeenCalledWith(
+    expect(auditTrailSpy).toHaveBeenCalledWith(
       expect.objectContaining({
         correlationId: record.body.correlationId,
         userId: record.body.userId,

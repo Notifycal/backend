@@ -3,6 +3,13 @@ import { z } from 'zod';
 import { dateTimeSchema, idpIdSchema, userIdSchema } from '@notifycal/shared/schemas';
 import { eventIdSchema } from './common';
 
+// Docs: take your time to decide what type of event you are defining and what is aimed at. Pay attention to these silver bullets:
+// SuccessEvent: 
+//  - informing the next step of the process to achieve an overarching goal.
+//  - flagging out of ordinary happen that cannot be considered a failure given the input data. Is the intention behind flagging it informing the end user?
+// ErrorEvent:
+//  - something unexpected happened and the error was caught
+//  - wrong user data
 export const successEventTypeSchema = z.union([
   z.literal('UserCalendarFetched'),
   z.literal('ActionableEventFound'),
@@ -12,16 +19,14 @@ export const successEventTypeSchema = z.union([
   z.literal('ActionableEventReminderStatusUpdated'),
   z.literal('ScheduledFetchUserCalendarEventFired'),
   z.literal('UserSignedIn'),
-  z.literal('UserSignedUp')
-]);
-export type SuccessEventType = z.infer<typeof successEventTypeSchema>;
-export const errorEventTypeSchema = z.union([
-  z.literal('UserFetchedEventsParsingFailed'),
+  z.literal('UserSignedUp'),
   z.literal('NoPhoneNumberForAttendeeFound'),
   z.literal('NoActionableEventsFound'),
   z.literal('NoAttendeesInCalendarEventFound'),
   z.literal('NoUserCalendarFound')
 ]);
+export const errorEventTypeSchema = z.literal('UserFetchedEventsParsingFailed');
+export type SuccessEventType = z.infer<typeof successEventTypeSchema>;
 export type ErrorEventType = z.infer<typeof errorEventTypeSchema>;
 export const eventTypeSchema = z.union([successEventTypeSchema, errorEventTypeSchema]);
 export type EventType = SuccessEventType | ErrorEventType;

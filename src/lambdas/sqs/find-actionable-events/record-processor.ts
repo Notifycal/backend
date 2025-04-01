@@ -73,7 +73,7 @@ function fetchCalendarEvents(
 function fetchAttendeePhoneNumbers(
   calendarEvent: CalendarEvent,
   event: NoSystemEvent,
-  dqlService: DeadLetteringService,
+  auditTrailService: AuditTrailService,
   idpConfigs: IdpConfigs
 ): Promise<Array<CalendarEventWithAnAttendeePhoneNumber>> {
   return Promise.allSettled(
@@ -92,7 +92,7 @@ function fetchAttendeePhoneNumbers(
             }
           ]);
         } else {
-          return dqlService
+          return auditTrailService
             .send(noPhoneNumberForAttendeeFound(event, calendarEvent, attendee.id))
             .then(() => []);
         }
@@ -165,13 +165,12 @@ function handleCalendarEventAttendees(
   calendarEvents: Array<CalendarEvent>,
   event: NoSystemEvent,
   idpConfigs: IdpConfigs,
-  dlqService: DeadLetteringService,
   auditTrailService: AuditTrailService
 ): Promise<Array<CalendarEventWithAnAttendeePhoneNumber>> {
   return Promise.allSettled(
     calendarEvents.map((calendarEvent) => {
       if (calendarEvent.attendees.length > 0) {
-        return fetchAttendeePhoneNumbers(calendarEvent, event, dlqService, idpConfigs);
+        return fetchAttendeePhoneNumbers(calendarEvent, event, auditTrailService, idpConfigs);
       } else {
         return auditTrailService
           .send(noAttendeesInCalendarEventFound(event, calendarEvent))
@@ -212,13 +211,7 @@ export function recordProcessor(record: Record, config: ActionableEventsConfig):
         handleFetchedCalendarEvents(successList, failureList, event, dlqService, auditTrailService)
       )
       .then((calendarEvents) =>
-        handleCalendarEventAttendees(
-          calendarEvents,
-          event,
-          idpConfigs,
-          dlqService,
-          auditTrailService
-        )
+        handleCalendarEventAttendees(calendarEvents, event, idpConfigs, auditTrailService)
       )
       .then((eventWithAttendeePhoneNumbers) => {
         return buildAndPublishActionableEvents(eventWithAttendeePhoneNumbers, event, snsService);

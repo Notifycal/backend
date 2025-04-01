@@ -2,7 +2,7 @@ import { calendarEventSchema, calendarSchema } from '@notifycal/shared/schemas';
 import type { CalendarEvent, DateTime, EventId } from '@notifycal/shared/types';
 import { v4 } from 'uuid';
 import { z } from 'zod';
-import { errorEventSchemaGenerator } from './BaseEvent';
+import { eventSchemaGenerator } from './BaseEvent';
 import type { UserCalendarFetchedEvent } from './UserCalendarFetchedEvent';
 import { eventIdSchema, runSchema } from './common';
 
@@ -12,7 +12,7 @@ const data = z.object({
   calendar: calendarSchema,
   calendarEvent: calendarEventSchema
 });
-export const noAttendeesInCalendarEventFoundEventSchema = errorEventSchemaGenerator(
+export const noAttendeesInCalendarEventFoundEventSchema = eventSchemaGenerator(
   'NoAttendeesInCalendarEventFound',
   data
 );
