@@ -1,18 +1,24 @@
 import { logger } from '@common/powertools';
+import type { BaseLoginConfig } from '@lambdas/api/post-login/config';
 import { userSignedIn } from '@model/app-events/UserSignedInEvent';
 import { userSignedUp } from '@model/app-events/UserSignedUpEvent';
-import type { EncodeAccessJwtConfig, EncodeRefreshJwtConfig, SqsQueueConfig } from '@model/Config';
+import type {
+  AuditTrailQueueConfig,
+  EncodeAccessJwtConfig,
+  EncodeRefreshJwtConfig
+} from '@model/Config';
 import type { AuthorizationForIdp } from '@model/IdpAuthorization';
 import type { UserStoreRecord } from '@model/store/UserStoreRecord';
+import { extractIdentity } from '@model/UserIdentity';
 import type { Identity, IdpName, UnixTimestamp } from '@notifycal/shared/types';
 import type { APIGatewayProxyResult } from 'aws-lambda';
 import { AuditTrailService } from './audit-trail';
 import { successHandler } from './common/api-response-handlers';
 import { type EncodedAndDecodedJwts, buildJwts } from './jwt';
-import type { RefreshTokenBaseStore } from './stores/refresh-token-base-store';
-import { UserBaseStore, type UserBaseStoreConfig } from './stores/user-base-store';
+import { RefreshTokenBaseStore } from './stores/refresh-token-base-store';
+import { UserBaseStore } from './stores/user-base-store';
 
-function signInUser<TIdpName extends IdpName>(
+function signIn<TIdpName extends IdpName>(
   user: UserStoreRecord<TIdpName>,
   identity: Identity<TIdpName>,
   authorization: AuthorizationForIdp<TIdpName>,
@@ -44,7 +50,7 @@ function signInUser<TIdpName extends IdpName>(
   }
 }
 
-function signUpUser<TIdpName extends IdpName>(
+function signUp<TIdpName extends IdpName>(
   identity: Identity<TIdpName>,
   authorization: AuthorizationForIdp<TIdpName>,
   userProvider: UserBaseStore<TIdpName>,
@@ -72,47 +78,71 @@ function signUpUser<TIdpName extends IdpName>(
   });
 }
 
-export function signInOrUpUser<TIdpName extends IdpName>(
-  identity: Identity<TIdpName>,
-  authorization: AuthorizationForIdp<TIdpName>,
-  config: UserBaseStoreConfig,
-  auditTrailQueueConfig: SqsQueueConfig
-): Promise<UserStoreRecord<IdpName>> {
-  const userProvider = UserBaseStore.withConfig(config);
-  const auditTrailService = AuditTrailService.withConfig(auditTrailQueueConfig);
-  return userProvider.getUserById(identity.userId).then(
-    (userOrNot) => {
-      if (userOrNot) {
-        return signInUser(userOrNot, identity, authorization, userProvider, auditTrailService);
-      } else {
-        return signUpUser(identity, authorization, userProvider, auditTrailService);
-      }
-    },
-    (error) =>
-      Promise.reject(
-        new Error(
-          `Failed to fetch '${identity.userId}' out of persistance. Unable to say if the user was signing in or up as the call to persistance failed`,
-          { cause: error }
-        )
-      )
-  );
-}
-
 export function buildJwtsAndStoreRefreshJwt<TIdpName extends IdpName>(
   identity: Identity<TIdpName>,
   encodeAccessJwtConfig: EncodeAccessJwtConfig,
   encodeRefreshJwtConfig: EncodeRefreshJwtConfig,
   store: RefreshTokenBaseStore
 ): Promise<EncodedAndDecodedJwts> {
-  return buildJwts(identity, encodeAccessJwtConfig, encodeRefreshJwtConfig).then((jwts) =>
-    store
+  return buildJwts(identity, encodeAccessJwtConfig, encodeRefreshJwtConfig).then((jwts) => {
+    return store
       .putToken({
         UserId: jwts.refreshToken.decoded.payload.sub,
         RefreshToken: jwts.refreshToken.encoded,
         RefreshTokenId: jwts.refreshToken.decoded.payload.jti,
         ExpiresAt: (jwts.refreshToken.decoded.payload.exp + 1) as UnixTimestamp // +1 just in case...
       })
-      .then(() => jwts)
+      .then(() => jwts);
+  });
+}
+
+function handleFailureToGetUserById<TIdpName extends IdpName>(
+  identity: Identity<TIdpName>
+): (reason: unknown) => PromiseLike<never> {
+  return (error) =>
+    Promise.reject(
+      new Error(
+        `Failed to fetch '${identity.userId}' out of persistance. Unable to say if the user was signing in or up as the call to persistance failed`,
+        { cause: error }
+      )
+    );
+}
+
+function signInOrUpAgainstPersistance<TIdpName extends IdpName>(
+  userProvider: UserBaseStore<TIdpName>,
+  identity: Identity<TIdpName>,
+  authorization: AuthorizationForIdp<TIdpName>,
+  auditTrailService: AuditTrailService
+): Promise<UserStoreRecord<TIdpName>> {
+  return userProvider.getUserById(identity.userId).then((userOrNot) => {
+    if (userOrNot) {
+      return signIn(userOrNot, identity, authorization, userProvider, auditTrailService);
+    } else {
+      return signUp(identity, authorization, userProvider, auditTrailService);
+    }
+  }, handleFailureToGetUserById<TIdpName>(identity));
+}
+
+export function signInOrUp<TIdpName extends IdpName>(
+  identity: Identity<TIdpName>,
+  authorization: AuthorizationForIdp<TIdpName>,
+  config: BaseLoginConfig & AuditTrailQueueConfig
+): Promise<EncodedAndDecodedJwts> {
+  const userProvider = UserBaseStore.withConfig<TIdpName>(config.userBaseStoreConfig);
+  const auditTrailService = AuditTrailService.withConfig(config.auditTrailQueueConfig);
+  const store = new RefreshTokenBaseStore(config.refreshTokenBaseStoreConfig);
+  return signInOrUpAgainstPersistance<TIdpName>(
+    userProvider,
+    identity,
+    authorization,
+    auditTrailService
+  ).then((user) =>
+    buildJwtsAndStoreRefreshJwt(
+      extractIdentity(user),
+      config.encodeAccessJwtConfig,
+      config.encodeRefreshJwtConfig,
+      store
+    )
   );
 }
 

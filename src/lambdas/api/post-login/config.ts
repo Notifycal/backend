@@ -18,7 +18,7 @@ import type { RefreshTokenBaseStoreConfig } from '@services/stores/refresh-token
 import type { UserBaseStoreConfig } from '@services/stores/user-base-store';
 import { promiseTry } from '@utils/promises';
 
-interface BaseLoginConfig {
+export interface BaseLoginConfig {
   encodeAccessJwtConfig: EncodeAccessJwtConfig;
   encodeRefreshJwtConfig: EncodeRefreshJwtConfig;
   userBaseStoreConfig: UserBaseStoreConfig;

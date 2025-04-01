@@ -1,6 +1,5 @@
 import type { Algorithm } from '@model/Config';
 import type { AuthorizationForIdp } from '@model/IdpAuthorization';
-import type { UserStoreRecord } from '@model/store/UserStoreRecord';
 import type {
   Email,
   Identity,
@@ -11,9 +10,9 @@ import type {
   Uuid
 } from '@notifycal/shared/types';
 import type { PrivateKey, Url } from '@own-types/model';
+import { signInOrUp } from '@services/auth';
 import { GoogleOAuth } from '@services/google/oauth';
 import type { EncodedAndDecodedJwts } from '@services/jwt';
-import { buildJwtsAndStoreRefreshJwt, signInOrUpUser } from '@services/login';
 import { c, testEvent, unsafeTestEvent } from '@testing/data/apigateway';
 import { resetTestingContext } from '@testing/setup-tests';
 import {
@@ -33,7 +32,6 @@ import {
   setEnvUserBaseStoreConfig
 } from '@testing/utils/config';
 import { validJwts } from '@testing/utils/jwt';
-import { validUserStoreRecord } from '@testing/utils/model';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { describe, it, vi } from 'vitest';
 import type { LoginConfig } from './config';
@@ -67,10 +65,9 @@ describe('POST Login', () => {
       validQueryParams
     ) as unknown as APIGatewayProxyEvent;
     const verifyGoogleIdentityFn = validVerifyGoogleIdentityFn;
-    const signInOrUpUserFn = () => Promise.resolve(validUserStoreRecord(validIdentity.userId));
-    const buildJwtsFn = () => Promise.resolve(validJwts);
+    const signInOrUpUserFn = () => Promise.resolve(validJwts);
 
-    return testit(event, verifyGoogleIdentityFn, signInOrUpUserFn, buildJwtsFn).then((resp) => {
+    return testit(event, verifyGoogleIdentityFn, signInOrUpUserFn).then((resp) => {
       assert(
         resp,
         responseSuccess({
@@ -91,7 +88,7 @@ describe('POST Login', () => {
       validQueryParams
     ) as unknown as APIGatewayProxyEvent;
     const verifyGoogleIdentityFn = validVerifyGoogleIdentityFn;
-    const buildJwtsAndStoreRefreshJwtFn1 = () => Promise.resolve(validJwts);
+    const signInOrUpUserFn1 = () => Promise.resolve(validJwts);
     const validJwts2: EncodedAndDecodedJwts = {
       accessToken: {
         encoded: 'some_valid_access_jwt2' as Jwt,
@@ -133,22 +130,11 @@ describe('POST Login', () => {
         }
       }
     };
-    const buildJwtsAndStoreRefreshJwtFn2 = () => Promise.resolve(validJwts2);
-    const signInOrUpUserFn = () => Promise.resolve(validUserStoreRecord(validUserId));
+    const signInOrUpUserFn2 = () => Promise.resolve(validJwts2);
 
-    return testit(
-      event,
-      verifyGoogleIdentityFn,
-      signInOrUpUserFn,
-      buildJwtsAndStoreRefreshJwtFn1
-    ).then(() => {
+    return testit(event, verifyGoogleIdentityFn, signInOrUpUserFn1).then(() => {
       resetTestingContext();
-      return testit(
-        event,
-        verifyGoogleIdentityFn,
-        signInOrUpUserFn,
-        buildJwtsAndStoreRefreshJwtFn2
-      ).then((resp) => {
+      return testit(event, verifyGoogleIdentityFn, signInOrUpUserFn2).then((resp) => {
         assert(
           resp,
           responseSuccess({
@@ -170,15 +156,9 @@ describe('POST Login', () => {
       validQueryParams
     ) as unknown as APIGatewayProxyEvent;
     const verifyGoogleIdentityFn = () => Promise.reject(new Error('The identity was not valid'));
-    const signInOrUpUserFn = () => Promise.resolve(validUserStoreRecord(validUserId));
-    const buildJwtsAndStoreRefreshJwtFn = () => Promise.resolve(validJwts);
+    const signInOrUpUserFn = () => Promise.resolve(validJwts);
 
-    return testit(
-      event,
-      verifyGoogleIdentityFn,
-      signInOrUpUserFn,
-      buildJwtsAndStoreRefreshJwtFn
-    ).then((resp) => {
+    return testit(event, verifyGoogleIdentityFn, signInOrUpUserFn).then((resp) => {
       assert(resp, responseError(401));
     });
   });
@@ -192,38 +172,10 @@ describe('POST Login', () => {
       validQueryParams
     ) as unknown as APIGatewayProxyEvent;
     const verifyGoogleIdentityFn = validVerifyGoogleIdentityFn;
-    const signInOrUpUserFn = () => Promise.resolve(validUserStoreRecord(validUserId));
-    const buildJwtsAndStoreRefreshJwtFn = () => Promise.resolve(validJwts);
+    const signInOrUpUserFn = () => Promise.resolve(validJwts);
 
-    return testit(
-      event,
-      verifyGoogleIdentityFn,
-      signInOrUpUserFn,
-      buildJwtsAndStoreRefreshJwtFn
-    ).then((resp) => {
+    return testit(event, verifyGoogleIdentityFn, signInOrUpUserFn).then((resp) => {
       assert(resp, responseError(400));
-    });
-  });
-
-  it('should fail to generate JWT or store it with 500', () => {
-    const event = testEvent(
-      {
-        googleCode: '<SOME-FAKE-GOOGLE-ID-TOKEN>'
-      },
-      {},
-      validQueryParams
-    ) as unknown as APIGatewayProxyEvent;
-    const verifyGoogleIdentityFn = validVerifyGoogleIdentityFn;
-    const signInOrUpUserFn = () => Promise.resolve(validUserStoreRecord(validUserId));
-    const buildJwtsAndStoreRefreshJwtFn = () => Promise.reject(new Error('Boooom!'));
-
-    return testit(
-      event,
-      verifyGoogleIdentityFn,
-      signInOrUpUserFn,
-      buildJwtsAndStoreRefreshJwtFn
-    ).then((resp) => {
-      assert(resp, responseError(500));
     });
   });
 
@@ -236,18 +188,11 @@ describe('POST Login', () => {
       validQueryParams
     ) as unknown as APIGatewayProxyEvent;
     const verifyGoogleIdentityFn = validVerifyGoogleIdentityFn;
-    const signInOrUpUserFn = () => Promise.resolve(validUserStoreRecord(validUserId));
-    const buildJwtsAndStoreRefreshJwtFn = () => Promise.resolve(validJwts);
+    const signInOrUpUserFn = () => Promise.resolve(validJwts);
     const env = structuredClone(defaultEnv);
     env.idpConfigs['google.com'].clientId = undefined as unknown as string;
 
-    return testit(
-      event,
-      verifyGoogleIdentityFn,
-      signInOrUpUserFn,
-      buildJwtsAndStoreRefreshJwtFn,
-      env
-    ).then((resp) => {
+    return testit(event, verifyGoogleIdentityFn, signInOrUpUserFn, env).then((resp) => {
       assert(resp, responseErrorNoCorsHeaders(500));
     });
   });
@@ -262,14 +207,8 @@ describe('POST Login', () => {
     ) as unknown as APIGatewayProxyEvent;
     const verifyGoogleIdentityFn = validVerifyGoogleIdentityFn;
     const signInOrUpUserFn = () => Promise.reject(new Error('Error to sign in or up a user'));
-    const buildJwtsAndStoreRefreshJwtFn = () => Promise.resolve(validJwts);
 
-    return testit(
-      event,
-      verifyGoogleIdentityFn,
-      signInOrUpUserFn,
-      buildJwtsAndStoreRefreshJwtFn
-    ).then((resp) => {
+    return testit(event, verifyGoogleIdentityFn, signInOrUpUserFn).then((resp) => {
       assert(resp, responseError(500));
     });
   });
@@ -285,15 +224,9 @@ describe('POST Login', () => {
       }
     ) as unknown as APIGatewayProxyEvent;
     const verifyGoogleIdentityFn = validVerifyGoogleIdentityFn;
-    const signInOrUpUserFn = () => Promise.resolve(validUserStoreRecord(validUserId));
-    const buildJwtsAndStoreRefreshJwtFn = () => Promise.resolve(validJwts);
+    const signInOrUpUserFn = () => Promise.resolve(validJwts);
 
-    return testit(
-      event,
-      verifyGoogleIdentityFn,
-      signInOrUpUserFn,
-      buildJwtsAndStoreRefreshJwtFn
-    ).then((resp) => {
+    return testit(event, verifyGoogleIdentityFn, signInOrUpUserFn).then((resp) => {
       assert(resp, responseError(401));
     });
   });
@@ -307,15 +240,9 @@ describe('POST Login', () => {
       {}
     ) as unknown as APIGatewayProxyEvent;
     const verifyGoogleIdentityFn = validVerifyGoogleIdentityFn;
-    const signInOrUpUserFn = () => Promise.resolve(validUserStoreRecord(validUserId));
-    const buildJwtsAndStoreRefreshJwtFn = () => Promise.resolve(validJwts);
+    const signInOrUpUserFn = () => Promise.resolve(validJwts);
 
-    return testit(
-      event,
-      verifyGoogleIdentityFn,
-      signInOrUpUserFn,
-      buildJwtsAndStoreRefreshJwtFn
-    ).then((resp) => {
+    return testit(event, verifyGoogleIdentityFn, signInOrUpUserFn).then((resp) => {
       assert(resp, responseError(401));
     });
   });
@@ -324,8 +251,7 @@ describe('POST Login', () => {
 async function testit<T extends IdpName>(
   event: APIGatewayProxyEvent,
   verifyGoogleIdentityFn: () => Promise<[Identity<T>, AuthorizationForIdp<T>]>,
-  signInOrUpUserFn: () => Promise<UserStoreRecord<T>>,
-  buildJwtsAndStoreRefreshJwtFn: () => Promise<EncodedAndDecodedJwts>,
+  signInOrUpUserFn: () => Promise<EncodedAndDecodedJwts>,
   env: LoginConfig = defaultEnv
 ): Promise<APIGatewayProxyResult> {
   setEnv(env);
@@ -336,16 +262,15 @@ async function testit<T extends IdpName>(
   // eslint-disable-next-line @typescript-eslint/unbound-method
   vi.mocked(GoogleOAuth.withConfig).mockReturnValue(mockInstance as unknown as GoogleOAuth);
 
-  vi.mock('@services/login', async () => {
-    const realImport = await vi.importActual('@services/login');
+  vi.mock('@services/auth', async () => {
+    const realImport = await vi.importActual('@services/auth');
     return {
-      signInOrUpUser: vi.fn(),
+      signInOrUp: vi.fn(),
       buildJwtsAndStoreRefreshJwt: vi.fn(),
       _successHandler: realImport._successHandler
     };
   });
-  vi.mocked(signInOrUpUser).mockImplementation(signInOrUpUserFn);
-  vi.mocked(buildJwtsAndStoreRefreshJwt).mockImplementation(buildJwtsAndStoreRefreshJwtFn);
+  vi.mocked(signInOrUp).mockImplementation(signInOrUpUserFn);
   return handler(event as unknown as Event, c);
 }
 
