@@ -1,4 +1,5 @@
-import { logger, withEventMetric } from '@common/powertools';
+import { MetricUnit } from '@aws-lambda-powertools/metrics';
+import { logger, metrics } from '@common/powertools';
 import type { EventType } from '@model/app-events/BaseEvent';
 import type { AuditTrailStoreRecord } from '@model/store/AuditTrailStoreRecord';
 import type {
@@ -44,22 +45,31 @@ function toStoreRecord(r: Record['body']): Promise<AuditTrailStoreRecord> {
     .exhaustive();
 }
 
+function withEventMetric(event: AuditTrailStoreRecord): AuditTrailStoreRecord {
+  try {
+    metrics.addMetric(event.EventType, MetricUnit.Count, 1);
+    metrics.addMetadata('eventId', event.EventId);
+    metrics.addMetadata('correlationId', event.CorrelationId);
+    if (event.HappenedAt) {
+      metrics.setTimestamp(new Date(event.HappenedAt));
+    }
+  } catch (error) {
+    logger.info('Could not add EventType Cloudwatch Metric.', {
+      error,
+      event
+    });
+  }
+
+  return event;
+}
+
 export function recordProcessor(record: Record, config: AuditTrailConfig): Promise<void> {
   const auditTrailBaseStore = AuditTrailBaseStore.withConfig(config.auditTrailBaseStoreConfig);
   const event = record.body;
 
   return toStoreRecord(event)
     .then((storeRecord) => auditTrailBaseStore.put(storeRecord).then(() => storeRecord))
-    .then((storeRecord) => {
-      withEventMetric(
-        storeRecord.EventType,
-        storeRecord.EventId,
-        storeRecord.CorrelationId,
-        storeRecord.HappenedAt
-      );
-
-      return storeRecord;
-    })
+    .then((storeRecord) => withEventMetric(storeRecord))
     .then(
       (storeRecord) => {
         logger.info(`Event has been successfully processed`, { eventId: storeRecord.EventId });
