@@ -1,7 +1,9 @@
 import { PT_VERSION as version } from '@aws-lambda-powertools/commons';
 import { Logger } from '@aws-lambda-powertools/logger';
-import { Metrics } from '@aws-lambda-powertools/metrics';
+import { Metrics, MetricUnit } from '@aws-lambda-powertools/metrics';
 import { Tracer } from '@aws-lambda-powertools/tracer';
+import type { EventType } from '@model/app-events/BaseEvent';
+import type { CorrelationId, DateTime, EventId } from '@notifycal/shared/types';
 
 const environment = process.env.ENVIRONMENT || 'N/A';
 const serviceName = 'notifycal-backend';
@@ -39,4 +41,28 @@ const metrics = new Metrics({
 
 const tracer = new Tracer();
 
-export { logger, metrics, tracer };
+function withEventMetric(
+  eventType: EventType,
+  eventId: EventId,
+  correlationId: CorrelationId,
+  happenedAt?: DateTime
+): void {
+  try {
+    metrics.addMetric(eventType, MetricUnit.Count, 1);
+    metrics.addMetadata('eventId', eventId);
+    metrics.addMetadata('correlationId', correlationId);
+    if (happenedAt) {
+      metrics.setTimestamp(new Date(happenedAt));
+    }
+  } catch (error) {
+    logger.info('Could not add EventType Cloudwatch Metric.', {
+      error,
+      eventType,
+      eventId,
+      correlationId,
+      happenedAt
+    });
+  }
+}
+
+export { logger, metrics, tracer, withEventMetric };

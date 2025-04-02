@@ -1,4 +1,4 @@
-import { logger } from '@common/powertools';
+import { logger, withEventMetric } from '@common/powertools';
 import type { EventType } from '@model/app-events/BaseEvent';
 import type { AuditTrailStoreRecord } from '@model/store/AuditTrailStoreRecord';
 import type {
@@ -47,8 +47,19 @@ function toStoreRecord(r: Record['body']): Promise<AuditTrailStoreRecord> {
 export function recordProcessor(record: Record, config: AuditTrailConfig): Promise<void> {
   const auditTrailBaseStore = AuditTrailBaseStore.withConfig(config.auditTrailBaseStoreConfig);
   const event = record.body;
+
   return toStoreRecord(event)
     .then((storeRecord) => auditTrailBaseStore.put(storeRecord).then(() => storeRecord))
+    .then((storeRecord) => {
+      withEventMetric(
+        storeRecord.EventType,
+        storeRecord.EventId,
+        storeRecord.CorrelationId,
+        storeRecord.HappenedAt
+      );
+
+      return storeRecord;
+    })
     .then(
       (storeRecord) => {
         logger.info(`Event has been successfully processed`, { eventId: storeRecord.EventId });
