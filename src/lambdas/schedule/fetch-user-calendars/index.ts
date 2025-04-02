@@ -105,7 +105,7 @@ async function lambdaHandler(event: Event, context: Context): Promise<void> {
   const snsService = SnsService.withConfig(userCalendarFetchedTopicConfig);
   const auditTrailService = AuditTrailService.withConfig(auditTrailQueueConfig);
 
-  const systemEvent = scheduledFetchUserCalendarEventFired(event);
+  const systemEvent = scheduledFetchUserCalendarEventFired(event, cronRunConfig);
   await auditTrailService.safeSend(systemEvent);
 
   const run = runDataFromConfig(cronRunConfig, event);
