@@ -4,10 +4,9 @@ import { v4 } from 'uuid';
 import { z } from 'zod';
 import { eventSchemaGenerator } from './BaseEvent';
 import type { UserCalendarFetchedEvent } from './UserCalendarFetchedEvent';
-import { eventIdSchema, runSchema } from './common';
+import { runSchema } from './common';
 
 const data = z.object({
-  eventIdCause: eventIdSchema,
   run: runSchema,
   calendar: calendarSchema
 });
@@ -30,7 +29,6 @@ export function noActionableEventsFound(
     idp: origin.idp,
     idpId: origin.idpId,
     data: {
-      eventIdCause: origin.eventId,
       run: origin.data.run,
       calendar: origin.data.calendar
     }
