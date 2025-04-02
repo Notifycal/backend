@@ -1,4 +1,6 @@
+import { MetricUnit } from '@aws-lambda-powertools/metrics';
 import type { SendMessageCommandOutput } from '@aws-sdk/client-sqs';
+import { metrics } from '@common/powertools';
 import type { BaseEvent } from '@model/app-events/BaseEvent';
 import type { SqsQueueConfig } from '@model/Config';
 import { SqsService } from './sqs';
@@ -15,6 +17,10 @@ export class AuditTrailService {
   }
 
   public send<TEvent extends BaseEvent>(event: TEvent): Promise<SendMessageCommandOutput> {
+    metrics.addMetric(event.eventType, MetricUnit.Count, 1);
+    metrics.addMetadata('eventId', event.eventId);
+    metrics.addMetadata('correlationId', event.correlationId);
+
     return this._sqsService.send(event);
   }
 }
