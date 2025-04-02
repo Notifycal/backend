@@ -1,4 +1,3 @@
-import { logger } from '@common/powertools';
 import type { ActionableEventFoundEvent } from '@model/app-events/ActionableEventFoundEvent';
 import { noActionableEventsFound } from '@model/app-events/NoActionableEventsFoundEvent';
 import { noAttendeesInCalendarEventFound } from '@model/app-events/NoAttendeesInCalendarEventFoundEvent';
@@ -15,7 +14,6 @@ import type {
   DateTime,
   Email,
   EventId,
-  IdpName,
   TemplateId,
   TimeZone
 } from '@notifycal/shared/types';
@@ -27,12 +25,9 @@ import { DeadLetteringService } from '@services/dead-lettering';
 import { SnsService } from '@services/sns';
 import { allSettledAllOrErrorHandler } from '@utils/promises';
 import { DateTime as DT } from 'luxon';
-import { match } from 'ts-pattern';
 import { v4 } from 'uuid';
 import type { ActionableEventsConfig } from './config';
 import type { Record } from './schema';
-
-type NoSystemEvent = Omit<Record['body'], 'idp'> & { idp: IdpName };
 
 interface CalendarEventWithAnAttendeePhoneNumber {
   calendarEvent: CalendarEvent;
@@ -51,7 +46,7 @@ function interpolateMessage(
 }
 
 function fetchCalendarEvents(
-  event: NoSystemEvent,
+  event: Record['body'],
   idpConfigs: IdpConfigs
 ): Promise<ServiceResponse<CalendarEvent, ParsingError>> {
   const { idpAuthorization } = event.sensitiveData;
@@ -72,7 +67,7 @@ function fetchCalendarEvents(
 
 function fetchAttendeePhoneNumbers(
   calendarEvent: CalendarEvent,
-  event: NoSystemEvent,
+  event: Record['body'],
   auditTrailService: AuditTrailService,
   idpConfigs: IdpConfigs
 ): Promise<Array<CalendarEventWithAnAttendeePhoneNumber>> {
@@ -163,7 +158,7 @@ function handleFetchedCalendarEvents(
 
 function handleCalendarEventAttendees(
   calendarEvents: Array<CalendarEvent>,
-  event: NoSystemEvent,
+  event: Record['body'],
   idpConfigs: IdpConfigs,
   auditTrailService: AuditTrailService
 ): Promise<Array<CalendarEventWithAnAttendeePhoneNumber>> {
@@ -204,26 +199,15 @@ export function recordProcessor(record: Record, config: ActionableEventsConfig):
   const snsService = SnsService.withConfig(config.actionableEventFoundTopicConfig);
   const dlqService = DeadLetteringService.withConfig(config.deadLetterQueueConfig);
   const auditTrailService = AuditTrailService.withConfig(config.auditTrailQueueConfig);
-
-  function _fetchCalendarEvents(event: NoSystemEvent, idpConfigs: IdpConfigs): Promise<void> {
-    return fetchCalendarEvents(event, idpConfigs)
-      .then(({ successList, failureList }) =>
-        handleFetchedCalendarEvents(successList, failureList, event, dlqService, auditTrailService)
-      )
-      .then((calendarEvents) =>
-        handleCalendarEventAttendees(calendarEvents, event, idpConfigs, auditTrailService)
-      )
-      .then((eventWithAttendeePhoneNumbers) => {
-        return buildAndPublishActionableEvents(eventWithAttendeePhoneNumbers, event, snsService);
-      });
-  }
-
-  return match(record.body)
-    .with({ idp: 'N/A' }, () => {
-      // TODO
-      logger.error(`A System event has been consumed unexpectedly. Something has gone wrong`);
-      return Promise.resolve();
-    })
-    .with({ idp: 'google.com' }, (eventX) => _fetchCalendarEvents(eventX, config.idpConfigs))
-    .exhaustive();
+  const event = record.body;
+  return fetchCalendarEvents(event, config.idpConfigs)
+    .then(({ successList, failureList }) =>
+      handleFetchedCalendarEvents(successList, failureList, event, dlqService, auditTrailService)
+    )
+    .then((calendarEvents) =>
+      handleCalendarEventAttendees(calendarEvents, event, config.idpConfigs, auditTrailService)
+    )
+    .then((eventWithAttendeePhoneNumbers) => {
+      return buildAndPublishActionableEvents(eventWithAttendeePhoneNumbers, event, snsService);
+    });
 }

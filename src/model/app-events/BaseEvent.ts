@@ -10,6 +10,8 @@ import { eventIdSchema } from './common';
 // ErrorEvent:
 //  - something unexpected happened and the error was caught
 //  - wrong user data
+// SystemEvent:
+//  - a priori, movements initiated by AWS. So, AWS wrappers in simple words.
 export const successEventTypeSchema = z.union([
   z.literal('UserCalendarFetched'),
   z.literal('ActionableEventFound'),
@@ -17,7 +19,6 @@ export const successEventTypeSchema = z.union([
   z.literal('ActionableEventReminderAttemptSent'),
   z.literal('ActionableEventReminderAttemptSkipped'),
   z.literal('ActionableEventReminderStatusUpdated'),
-  z.literal('ScheduledFetchUserCalendarEventFired'),
   z.literal('UserSignedIn'),
   z.literal('UserSignedUp'),
   z.literal('NoPhoneNumberForAttendeeFound'),
@@ -26,29 +27,38 @@ export const successEventTypeSchema = z.union([
   z.literal('NoUserCalendarFound')
 ]);
 export const errorEventTypeSchema = z.literal('UserFetchedEventsParsingFailed');
+export const systemEventTypeSchema = z.literal('ScheduledFetchUserCalendarEventFired');
 export type SuccessEventType = z.infer<typeof successEventTypeSchema>;
+export type SystemEventType = z.infer<typeof systemEventTypeSchema>;
 export type ErrorEventType = z.infer<typeof errorEventTypeSchema>;
 export const eventTypeSchema = z.union([successEventTypeSchema, errorEventTypeSchema]);
 export type EventType = SuccessEventType | ErrorEventType;
 export const dataSchema = z.object({}).passthrough();
 export type Data = z.infer<typeof dataSchema>;
 
-const notApplicableSchema = z.literal('N/A');
 export const baseEventSchema = z.object({
-  userId: z.union([userIdSchema, z.literal('System')]),
-  idpId: z.union([idpIdSchema, notApplicableSchema]),
-  idp: z.union([z.literal('google.com'), notApplicableSchema]),
+  userId: userIdSchema,
+  idpId: idpIdSchema,
+  idp: z.literal('google.com'),
   eventType: eventTypeSchema,
   happenedAt: dateTimeSchema,
   eventId: eventIdSchema,
   correlationId: z.string().uuid().brand('CorrelationId'),
   data: dataSchema
 });
+const notApplicableSchema = z.literal('N/A');
+export const baseSystemEventSchema = baseEventSchema.extend({
+  userId: z.literal('System'),
+  idpId: notApplicableSchema,
+  idp: notApplicableSchema,
+  eventType: systemEventTypeSchema
+});
 export const baseErrorEvent = baseEventSchema.extend({
   eventType: errorEventTypeSchema
 });
 export type BaseErrorEvent = z.infer<typeof baseErrorEvent>;
 export type BaseEvent = z.infer<typeof baseEventSchema>;
+export type BaseSystemEvent = z.infer<typeof baseSystemEventSchema>;
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, @typescript-eslint/explicit-module-boundary-types
 export function eventSchemaGenerator<
@@ -56,6 +66,17 @@ export function eventSchemaGenerator<
   TEventType extends SuccessEventType
 >(eventType: TEventType, dataSchema: TData) {
   return baseEventSchema.extend({
+    eventType: z.literal(eventType),
+    data: dataSchema
+  });
+}
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type, @typescript-eslint/explicit-module-boundary-types
+export function systemEventSchemaGenerator<
+  TData extends z.AnyZodObject,
+  TEventType extends SystemEventType
+>(eventType: TEventType, dataSchema: TData) {
+  return baseSystemEventSchema.extend({
     eventType: z.literal(eventType),
     data: dataSchema
   });

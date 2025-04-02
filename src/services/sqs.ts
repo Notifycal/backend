@@ -5,7 +5,7 @@ import {
 } from '@aws-sdk/client-sqs';
 import { sqsClient } from '@clients/sqs';
 import { logger } from '@common/powertools';
-import type { BaseEvent } from '@model/app-events/BaseEvent';
+import type { BaseEvent, BaseSystemEvent } from '@model/app-events/BaseEvent';
 import type { SqsQueueConfig } from '@model/Config';
 import { BaseAwsMessagingService } from './common/base-aws-messaging-service';
 import { throwError } from './common/error-handling';
@@ -23,7 +23,9 @@ export class SqsService extends BaseAwsMessagingService {
     return new this(config);
   }
 
-  public send<TEvent extends BaseEvent>(event: TEvent): Promise<SendMessageCommandOutput> {
+  public send<TEvent extends BaseEvent | BaseSystemEvent>(
+    event: TEvent
+  ): Promise<SendMessageCommandOutput> {
     const fifoParams = this._config.queueUrl.endsWith('.fifo')
       ? {
           MessageDeduplicationId: event.eventId,

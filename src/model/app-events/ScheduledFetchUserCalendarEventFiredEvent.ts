@@ -3,13 +3,13 @@ import type { CronRunConfig } from '@model/Config';
 import type { CorrelationId, DateTime, EventId } from '@notifycal/shared/types';
 import { v4 } from 'uuid';
 import { z } from 'zod';
-import { eventSchemaGenerator } from './BaseEvent';
+import { systemEventSchemaGenerator } from './BaseEvent';
 
 const data = z.object({
   originalAwsEvent: z.any(),
   cronRunConfig: z.any()
 });
-export const ScheduledFetchUserCalendarEventFiredEventSchema = eventSchemaGenerator(
+export const ScheduledFetchUserCalendarEventFiredEventSchema = systemEventSchemaGenerator(
   'ScheduledFetchUserCalendarEventFired',
   data
 );
