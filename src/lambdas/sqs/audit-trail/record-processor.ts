@@ -66,7 +66,6 @@ function withEventMetric(event: AuditTrailStoreRecord): AuditTrailStoreRecord {
 export function recordProcessor(record: Record, config: AuditTrailConfig): Promise<void> {
   const auditTrailBaseStore = AuditTrailBaseStore.withConfig(config.auditTrailBaseStoreConfig);
   const event = record.body;
-
   return toStoreRecord(event)
     .then((storeRecord) => auditTrailBaseStore.put(storeRecord).then(() => storeRecord))
     .then((storeRecord) => withEventMetric(storeRecord))
