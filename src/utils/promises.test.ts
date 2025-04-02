@@ -1,6 +1,13 @@
 import { sleep } from '@testing/utils/utils';
 import { describe, expect, it, vi } from 'vitest';
-import { allSettledAllOrErrorHandler, doSafely, promiseTry, safeTap, tap } from './promises';
+import {
+  allSettledAllOrErrorHandler,
+  doAndRethrow,
+  doSafely,
+  promiseTry,
+  safeTap,
+  tap
+} from './promises';
 
 describe('doSafely', () => {
   it('should call onSuccess when fn resolves', async () => {
@@ -274,5 +281,73 @@ describe('safeTap', () => {
       .then((value) => value + '-end');
 
     expect(result).toBe('start-middle-end');
+  });
+});
+
+describe('doAndRethrow', () => {
+  it('should execute the provided function in a promise chain', async () => {
+    const mockFn = vi.fn();
+
+    await expect(Promise.reject(new Error('boom!')).catch(doAndRethrow(mockFn))).rejects.toThrow(
+      'boom!'
+    );
+
+    expect(mockFn).toHaveBeenCalledTimes(1);
+  });
+
+  it('should preserve the original error message', async () => {
+    const mockFn = vi.fn();
+    const originalError = new Error('original error');
+
+    await expect(Promise.reject(originalError).catch(doAndRethrow(mockFn))).rejects.toBe(
+      originalError
+    );
+  });
+
+  it('should work with synchronous functions', async () => {
+    let sideEffect = false;
+    const syncFn = () => {
+      sideEffect = true;
+    };
+
+    await expect(
+      Promise.reject(new Error('test error')).catch(doAndRethrow(syncFn))
+    ).rejects.toThrow('test error');
+
+    expect(sideEffect).toBe(true);
+  });
+
+  it('should work with asynchronous functions', async () => {
+    let sideEffect = false;
+    const asyncFn = async () => {
+      await sleep(100);
+      sideEffect = true;
+    };
+
+    await expect(
+      Promise.reject(new Error('test error')).catch(doAndRethrow(asyncFn))
+    ).rejects.toThrow('test error');
+
+    expect(sideEffect).toBe(true);
+  });
+
+  it('should throw the function error if the provided function throws', async () => {
+    const fnError = new Error('function error');
+    const errorFn = () => {
+      throw fnError;
+    };
+
+    await expect(
+      Promise.reject(new Error('original error')).catch(doAndRethrow(errorFn))
+    ).rejects.toThrow(fnError);
+  });
+
+  it('should throw the function error if the provided function rejects', async () => {
+    const fnError = new Error('function promise error');
+    const rejectFn = () => Promise.reject(fnError);
+
+    await expect(
+      Promise.reject(new Error('original error')).catch(doAndRethrow(rejectFn))
+    ).rejects.toThrow(fnError);
   });
 });

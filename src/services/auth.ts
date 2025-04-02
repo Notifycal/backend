@@ -1,6 +1,8 @@
 import type { BaseLoginConfig } from '@lambdas/api/post-login/config';
 import { userSignedIn } from '@model/app-events/UserSignedInEvent';
 import { userSignedUp } from '@model/app-events/UserSignedUpEvent';
+import { userSignInFailed } from '@model/app-events/UserSignInFailedEvent';
+import { userSignUpFailed } from '@model/app-events/UserSignUpFailedEvent';
 import type {
   AuditTrailQueueConfig,
   EncodeAccessJwtConfig,
@@ -10,7 +12,7 @@ import type { AuthorizationForIdp } from '@model/IdpAuthorization';
 import type { UserStoreRecord } from '@model/store/UserStoreRecord';
 import { type UserIdentity, extractIdentity } from '@model/UserIdentity';
 import type { Identity, IdpName, UnixTimestamp } from '@notifycal/shared/types';
-import { tap } from '@utils/promises';
+import { doAndRethrow, tap } from '@utils/promises';
 import type { APIGatewayProxyResult } from 'aws-lambda';
 import { AuditTrailService } from './audit-trail';
 import { successHandler } from './common/api-response-handlers';
@@ -110,11 +112,17 @@ export function signInOrUp<TIdpName extends IdpName>(
     if (userOrNot) {
       return signIn(userOrNot, identity, authorization, userProvider)
         .then((user) => generateAuthentication(user, config))
-        .then(tap(() => auditTrailService.safeSend(userSignedIn(identity, userOrNot))));
+        .then(
+          tap(() => auditTrailService.safeSend(userSignedIn(identity, userOrNot))),
+          doAndRethrow(() => auditTrailService.safeSend(userSignInFailed(identity, userOrNot)))
+        );
     } else {
       return signUp(identity, authorization, userProvider)
         .then((user) => generateAuthentication(user, config))
-        .then(tap(() => auditTrailService.safeSend(userSignedUp(identity))));
+        .then(
+          tap(() => auditTrailService.safeSend(userSignedUp(identity))),
+          doAndRethrow(() => auditTrailService.safeSend(userSignUpFailed(identity)))
+        );
     }
   }, handleFailureToGetUserById<TIdpName>(identity));
 }

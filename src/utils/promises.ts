@@ -33,6 +33,13 @@ export function tap<T, Z>(fn: (value?: T) => Z | Promise<Z>): (value: T) => Prom
   };
 }
 
+export function doAndRethrow<T, Z>(fn: () => Z | Promise<Z>): (value: T) => Promise<T> {
+  return async (error: unknown): Promise<T> => {
+    await fn();
+    throw error;
+  };
+}
+
 export function safeTap<T, Z>(fn: (value?: T) => Z | Promise<Z>): (value: T) => Promise<T> {
   return async (value: T): Promise<T> => {
     try {

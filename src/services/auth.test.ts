@@ -1,6 +1,7 @@
 import type { BaseLoginConfig } from '@lambdas/api/post-login/config';
 import * as userSignedInModule from '@model/app-events/UserSignedInEvent';
 import * as userSignedUpModule from '@model/app-events/UserSignedUpEvent';
+import * as userSignInFailedModule from '@model/app-events/UserSignInFailedEvent';
 import type {
   AuditTrailQueueConfig,
   EncodeAccessJwtConfig,
@@ -142,6 +143,7 @@ describe('Auth Service', () => {
     it('should reject when trying to sign in a banned user', async () => {
       const bannedUser: UserStoreRecord<'google.com'> = { ...existingUser, UserStatus: 'banned' };
       const getUserByIdFn = vi.fn(() => Promise.resolve(bannedUser));
+      const userSignInFailedSpy = vi.spyOn(userSignInFailedModule, 'userSignInFailed');
       const putUserFn = vi.fn();
       const auditTrailSendFn = vi.fn();
       const buildJwtsFn = vi.fn();
@@ -161,8 +163,10 @@ describe('Auth Service', () => {
         `User with id '${validUserId}' is banned and login is prohibited`
       );
       expect(putUserFn).not.toHaveBeenCalled();
-      expect(auditTrailSendFn).not.toHaveBeenCalled();
+      expect(auditTrailSendFn).toHaveBeenCalledOnce();
+      expect(userSignInFailedSpy).toHaveBeenCalledOnce();
       expect(buildJwtsFn).not.toHaveBeenCalled();
+      // eslint-disable-next-line vitest/max-expects
       expect(putTokenFn).not.toHaveBeenCalled();
     });
 

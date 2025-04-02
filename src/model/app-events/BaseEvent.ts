@@ -26,7 +26,11 @@ export const successEventTypeSchema = z.union([
   z.literal('NoAttendeesInCalendarEventFound'),
   z.literal('NoUserCalendarFound')
 ]);
-export const errorEventTypeSchema = z.literal('UserFetchedEventsParsingFailed');
+export const errorEventTypeSchema = z.union([
+  z.literal('UserFetchedEventsParsingFailed'),
+  z.literal('UserSignInFailed'),
+  z.literal('UserSignUpFailed')
+]);
 export const systemEventTypeSchema = z.literal('ScheduledFetchUserCalendarEventFired');
 export type SuccessEventType = z.infer<typeof successEventTypeSchema>;
 export type SystemEventType = z.infer<typeof systemEventTypeSchema>;
