@@ -8,8 +8,9 @@ import type {
 } from '@model/Config';
 import type { AuthorizationForIdp } from '@model/IdpAuthorization';
 import type { UserStoreRecord } from '@model/store/UserStoreRecord';
-import { extractIdentity } from '@model/UserIdentity';
+import { type UserIdentity, extractIdentity } from '@model/UserIdentity';
 import type { Identity, IdpName, UnixTimestamp } from '@notifycal/shared/types';
+import { tap } from '@utils/promises';
 import type { APIGatewayProxyResult } from 'aws-lambda';
 import { AuditTrailService } from './audit-trail';
 import { successHandler } from './common/api-response-handlers';
@@ -21,24 +22,14 @@ function signIn<TIdpName extends IdpName>(
   user: UserStoreRecord<TIdpName>,
   identity: Identity<TIdpName>,
   authorization: AuthorizationForIdp<TIdpName>,
-  userProvider: UserBaseStore<TIdpName>,
-  auditTrailService: AuditTrailService
+  userProvider: UserBaseStore<TIdpName>
 ): Promise<UserStoreRecord<TIdpName>> {
   if (user.UserStatus !== 'banned') {
     const updatedUser = {
       ...user,
       LastSignInAt: Date.now() as UnixTimestamp
     };
-    return userProvider.putUser(updatedUser, authorization).then(() => {
-      const signInEvent = userSignedIn(identity, user);
-      console.log('antes dell boom');
-      return auditTrailService
-        .safeSend(signInEvent)
-        .then(() => {
-          console.log('despues del boom');
-        })
-        .then(() => updatedUser);
-    });
+    return userProvider.putUser(updatedUser, authorization).then(() => updatedUser);
   } else {
     return Promise.reject(
       new Error(`User with id '${identity.userId}' is banned and login is prohibited`)
@@ -49,8 +40,7 @@ function signIn<TIdpName extends IdpName>(
 function signUp<TIdpName extends IdpName>(
   identity: Identity<TIdpName>,
   authorization: AuthorizationForIdp<TIdpName>,
-  userProvider: UserBaseStore<TIdpName>,
-  auditTrailService: AuditTrailService
+  userProvider: UserBaseStore<TIdpName>
 ): Promise<UserStoreRecord<TIdpName>> {
   const now = Date.now() as UnixTimestamp;
   const newUser: UserStoreRecord<TIdpName> = {
@@ -62,10 +52,7 @@ function signUp<TIdpName extends IdpName>(
     SignedUpAt: now,
     UserStatus: 'onboarding'
   };
-  return userProvider.putUser(newUser, authorization).then(() => {
-    const signUpEvent = userSignedUp(identity);
-    return auditTrailService.safeSend(signUpEvent).then(() => newUser);
-  });
+  return userProvider.putUser(newUser, authorization).then(() => newUser);
 }
 
 export function buildJwtsAndStoreRefreshJwt<TIdpName extends IdpName>(
@@ -98,19 +85,17 @@ function handleFailureToGetUserById<TIdpName extends IdpName>(
     );
 }
 
-function signInOrUpAgainstPersistance<TIdpName extends IdpName>(
-  userProvider: UserBaseStore<TIdpName>,
-  identity: Identity<TIdpName>,
-  authorization: AuthorizationForIdp<TIdpName>,
-  auditTrailService: AuditTrailService
-): Promise<UserStoreRecord<TIdpName>> {
-  return userProvider.getUserById(identity.userId).then((userOrNot) => {
-    if (userOrNot) {
-      return signIn(userOrNot, identity, authorization, userProvider, auditTrailService);
-    } else {
-      return signUp(identity, authorization, userProvider, auditTrailService);
-    }
-  }, handleFailureToGetUserById<TIdpName>(identity));
+function generateAuthentication<TIdpName extends IdpName>(
+  user: UserIdentity<TIdpName>,
+  config: BaseLoginConfig & AuditTrailQueueConfig
+): Promise<EncodedAndDecodedJwts> {
+  const store = new RefreshTokenBaseStore(config.refreshTokenBaseStoreConfig);
+  return buildJwtsAndStoreRefreshJwt(
+    extractIdentity(user),
+    config.encodeAccessJwtConfig,
+    config.encodeRefreshJwtConfig,
+    store
+  );
 }
 
 export function signInOrUp<TIdpName extends IdpName>(
@@ -120,20 +105,18 @@ export function signInOrUp<TIdpName extends IdpName>(
 ): Promise<EncodedAndDecodedJwts> {
   const userProvider = UserBaseStore.withConfig<TIdpName>(config.userBaseStoreConfig);
   const auditTrailService = AuditTrailService.withConfig(config.auditTrailQueueConfig);
-  const store = new RefreshTokenBaseStore(config.refreshTokenBaseStoreConfig);
-  return signInOrUpAgainstPersistance<TIdpName>(
-    userProvider,
-    identity,
-    authorization,
-    auditTrailService
-  ).then((user) =>
-    buildJwtsAndStoreRefreshJwt(
-      extractIdentity(user),
-      config.encodeAccessJwtConfig,
-      config.encodeRefreshJwtConfig,
-      store
-    )
-  );
+
+  return userProvider.getUserById(identity.userId).then((userOrNot) => {
+    if (userOrNot) {
+      return signIn(userOrNot, identity, authorization, userProvider)
+        .then((user) => generateAuthentication(user, config))
+        .then(tap(() => auditTrailService.safeSend(userSignedIn(identity, userOrNot))));
+    } else {
+      return signUp(identity, authorization, userProvider)
+        .then((user) => generateAuthentication(user, config))
+        .then(tap(() => auditTrailService.safeSend(userSignedUp(identity))));
+    }
+  }, handleFailureToGetUserById<TIdpName>(identity));
 }
 
 export function _successHandler(jwts: EncodedAndDecodedJwts): APIGatewayProxyResult {
