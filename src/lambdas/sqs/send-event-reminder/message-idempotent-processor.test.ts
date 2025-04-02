@@ -96,7 +96,7 @@ describe('MessageProcessor', () => {
       const sendMessageSpy = vi.fn().mockResolvedValue(validReturnedUuid);
       // eslint-disable-next-line @typescript-eslint/unbound-method
       vi.mocked(AuditTrailService.withConfig).mockReturnValue({
-        send: auditTrailSpy
+        safeSend: auditTrailSpy
       } as unknown as AuditTrailService);
       vi.mocked(MessagingService).mockReturnValue({
         sendMessage: sendMessageSpy
@@ -131,8 +131,6 @@ describe('MessageProcessor', () => {
       expect(loggerInfoSpy).toHaveBeenCalledWith('Sending a message through Vonage');
       // eslint-disable-next-line vitest/max-expects
       expect(loggerInfoSpy).toHaveBeenCalledWith('Sending message attempt to audit trail');
-      // eslint-disable-next-line vitest/max-expects
-      expect(loggerInfoSpy).toHaveBeenCalledWith('Message attempt sent to audit trail');
     });
 
     it('should return a fake uuid when messaging is disabled', async () => {
@@ -147,7 +145,7 @@ describe('MessageProcessor', () => {
 
       // eslint-disable-next-line @typescript-eslint/unbound-method
       vi.mocked(AuditTrailService.withConfig).mockReturnValue({
-        send: auditTrailSpy
+        safeSend: auditTrailSpy
       } as unknown as AuditTrailService);
 
       vi.mocked(MessagingService).mockReturnValue({
@@ -168,30 +166,6 @@ describe('MessageProcessor', () => {
       });
     });
 
-    it('should log an error but not throw when audit trail fails', async () => {
-      const auditTrailError = new Error('Audit trail failure');
-      const auditTrailSpy = vi.fn().mockRejectedValue(auditTrailError);
-      const sendMessageSpy = vi.fn().mockResolvedValue(validReturnedUuid);
-      // eslint-disable-next-line @typescript-eslint/unbound-method
-      vi.mocked(AuditTrailService.withConfig).mockReturnValue({
-        send: auditTrailSpy
-      } as unknown as AuditTrailService);
-
-      vi.mocked(MessagingService).mockReturnValue({
-        sendMessage: sendMessageSpy
-      } as unknown as MessagingService);
-      const loggerErrorSpy = vi.spyOn(logger, 'error');
-
-      const result = await testIt(validRecord, validWebhookUrl);
-
-      expect(result).toStrictEqual(validReturnedUuid);
-      expect(sendMessageSpy).toHaveBeenCalledTimes(1);
-      expect(auditTrailSpy).toHaveBeenCalledTimes(1);
-      expect(loggerErrorSpy).toHaveBeenCalledWith('Could not send message attempt to audit trail', {
-        error: auditTrailError
-      });
-    });
-
     function testIt(
       record: Record,
       webhookUrl: Url,
@@ -207,7 +181,7 @@ describe('MessageProcessor', () => {
       const auditTrailSpy = vi.fn().mockResolvedValue({ $metadata: {} });
       // eslint-disable-next-line @typescript-eslint/unbound-method
       vi.mocked(AuditTrailService.withConfig).mockReturnValue({
-        send: auditTrailSpy
+        safeSend: auditTrailSpy
       } as unknown as AuditTrailService);
       vi.mocked(MessagingService).mockImplementation(
         () =>
@@ -230,32 +204,6 @@ describe('MessageProcessor', () => {
       expect(loggerAppendKeysSpy).toHaveBeenCalledWith({
         correlationId: validRecord.body.correlationId
       });
-    });
-
-    it('should log an error when audit trail fails', async () => {
-      const auditTrailError = new Error('Audit trail failure');
-      const auditTrailSpy = vi.fn().mockRejectedValue(auditTrailError);
-      // eslint-disable-next-line @typescript-eslint/unbound-method
-      vi.mocked(AuditTrailService.withConfig).mockReturnValue({
-        send: auditTrailSpy
-      } as unknown as AuditTrailService);
-      vi.mocked(MessagingService).mockImplementation(
-        () =>
-          ({
-            sendMessage: vi.fn()
-          }) as unknown as MessagingService
-      );
-      const loggerErrorSpy = vi.spyOn(logger, 'error');
-
-      await testIt(validRecord, validReturnedUuid);
-
-      expect(auditTrailSpy).toHaveBeenCalledTimes(1);
-      expect(loggerErrorSpy).toHaveBeenCalledWith(
-        'Could not send duplicated message attempt to audit trail',
-        {
-          error: auditTrailError
-        }
-      );
     });
 
     function testIt(

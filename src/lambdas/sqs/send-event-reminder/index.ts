@@ -91,7 +91,7 @@ async function handleReminderAttemptFailure(
   config: SendEventReminderConfig['auditTrailQueueConfig']
 ): Promise<void> {
   const auditTrailService = AuditTrailService.withConfig(config);
-  await auditTrailService.send<ActionableEventReminderAttemptFailedEvent>({
+  await auditTrailService.safeSend<ActionableEventReminderAttemptFailedEvent>({
     ...record.body,
     eventType: 'ActionableEventReminderAttemptFailed'
   });

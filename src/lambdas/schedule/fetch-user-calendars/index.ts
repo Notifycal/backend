@@ -106,11 +106,7 @@ async function lambdaHandler(event: Event, context: Context): Promise<void> {
   const auditTrailService = AuditTrailService.withConfig(auditTrailQueueConfig);
 
   const systemEvent = scheduledFetchUserCalendarEventFired(event);
-  await auditTrailService.send(systemEvent).catch((error) => {
-    const msg = `Error publishing an ScheduledFetchUserCalendarEventFired event to Audit Trail`;
-    logger.error(msg, { error, systemEvent: systemEvent });
-    logger.info(`Moving on after error...`);
-  });
+  await auditTrailService.safeSend(systemEvent);
 
   const run = runDataFromConfig(cronRunConfig, event);
   logger.info(
@@ -130,28 +126,12 @@ async function lambdaHandler(event: Event, context: Context): Promise<void> {
             return Promise.resolve(toEvents(user, run));
           } else {
             const errorEvent = noUserCalendarFound(event, run, user);
-            return auditTrailService.send(errorEvent).then(
-              () => [],
-              (error) => {
-                const msg = `Error publishing an NoUserCalendarFound event to Audit Trail`;
-                logger.error(msg, { error, errorEvent: errorEvent });
-                logger.info(`Moving on after error...`);
-                return [];
-              }
-            );
+            return auditTrailService.safeSend(errorEvent).then(() => []);
           }
         })
       ).then((events) => events.flat());
 
-      await Promise.allSettled(
-        events.map((event) =>
-          snsService.publish(event).catch((error) => {
-            const msg = `Error publishing an event to SNS`;
-            logger.error(msg, { error, eventId: event.eventId });
-            logger.info(`Moving on after error...`);
-          })
-        )
-      );
+      await Promise.allSettled(events.map((event) => snsService.safePublish(event)));
       totalPages += 1;
       totalItems += liveUsersPage.length;
     }

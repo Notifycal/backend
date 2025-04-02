@@ -25,3 +25,36 @@ export function promiseTry<T>(fn: () => T | Promise<T>): Promise<T> {
     );
   }
 }
+
+export function tap<T, Z>(fn: (value?: T) => Z | Promise<Z>): (value: T) => Promise<T> {
+  return async (value: T): Promise<T> => {
+    await fn(value);
+    return value;
+  };
+}
+
+export function safeTap<T, Z>(fn: (value?: T) => Z | Promise<Z>): (value: T) => Promise<T> {
+  return async (value: T): Promise<T> => {
+    try {
+      await fn(value);
+    } catch {
+      /* empty */
+    }
+    return value;
+  };
+}
+
+export function doSafely(
+  fn: () => Promise<unknown>,
+  onError: (error: unknown) => void,
+  onSuccess: () => void = () => {}
+): Promise<void> {
+  return promiseTry(fn).then(
+    () => {
+      onSuccess();
+    },
+    (error) => {
+      onError(error);
+    }
+  );
+}

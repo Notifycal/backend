@@ -1,4 +1,3 @@
-import type { SendMessageCommandOutput } from '@aws-sdk/client-sqs';
 import type { LiveUserStoreRecord } from '@model/store/LiveUserStoreRecord';
 import type { UserIdpAuthorizationStoreRecord } from '@model/store/UserIdpAuthorizationStoreRecord';
 import type {
@@ -259,9 +258,7 @@ describe('Schedule fetch user calendars', () => {
     const publishSpy = vi.spyOn(snsService.SnsService.prototype, 'publish').mockResolvedValue({
       $metadata: {}
     });
-    const auditTrailSpy = vi
-      .spyOn(AuditTrailService.prototype, 'send')
-      .mockResolvedValue({} as SendMessageCommandOutput);
+    const auditTrailSpy = vi.spyOn(AuditTrailService.prototype, 'safeSend').mockResolvedValue();
     await testit(getLiveUsersFn);
 
     expect(publishSpy).toHaveBeenCalledTimes(3);
@@ -285,9 +282,7 @@ describe('Schedule fetch user calendars', () => {
     const publishSpy = vi.spyOn(snsService.SnsService.prototype, 'publish').mockResolvedValue({
       $metadata: {}
     });
-    const auditTrailSpy = vi
-      .spyOn(AuditTrailService.prototype, 'send')
-      .mockResolvedValue({} as SendMessageCommandOutput);
+    const auditTrailSpy = vi.spyOn(AuditTrailService.prototype, 'safeSend').mockResolvedValue();
     await testit(getLiveUsersFn);
 
     expect(publishSpy).toHaveBeenCalledTimes(1);

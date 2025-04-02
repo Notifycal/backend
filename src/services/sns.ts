@@ -3,6 +3,7 @@ import { snsClient } from '@clients/sns';
 import { logger } from '@common/powertools';
 import type { BaseEvent } from '@model/app-events/BaseEvent';
 import type { SnsTopicConfig } from '@model/Config';
+import { doSafely } from '@utils/promises';
 import { BaseAwsMessagingService } from './common/base-aws-messaging-service';
 import { throwError } from './common/error-handling';
 
@@ -35,6 +36,15 @@ export class SnsService extends BaseAwsMessagingService {
       (error) => {
         const msg = `Error publishing an event to SNS`;
         throwError(msg, error, { eventId: event.eventId });
+      }
+    );
+  }
+
+  public safePublish<TEvent extends BaseEvent>(event: TEvent): Promise<void> {
+    return doSafely(
+      () => this.publish(event),
+      () => {
+        logger.info('Moving on after the error...');
       }
     );
   }

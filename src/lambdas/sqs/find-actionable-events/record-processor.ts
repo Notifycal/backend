@@ -93,7 +93,7 @@ function fetchAttendeePhoneNumbers(
           ]);
         } else {
           return auditTrailService
-            .send(noPhoneNumberForAttendeeFound(event, calendarEvent, attendee.id))
+            .safeSend(noPhoneNumberForAttendeeFound(event, calendarEvent, attendee.id))
             .then(() => []);
         }
       })
@@ -157,7 +157,7 @@ function handleFetchedCalendarEvents(
       )
       .then(() => successList);
   } else {
-    return auditTrailService.send(noActionableEventsFound(event)).then(() => []);
+    return auditTrailService.safeSend(noActionableEventsFound(event)).then(() => []);
   }
 }
 
@@ -173,7 +173,7 @@ function handleCalendarEventAttendees(
         return fetchAttendeePhoneNumbers(calendarEvent, event, auditTrailService, idpConfigs);
       } else {
         return auditTrailService
-          .send(noAttendeesInCalendarEventFound(event, calendarEvent))
+          .safeSend(noAttendeesInCalendarEventFound(event, calendarEvent))
           .then(() => []);
       }
     })
@@ -220,6 +220,7 @@ export function recordProcessor(record: Record, config: ActionableEventsConfig):
 
   return match(record.body)
     .with({ idp: 'N/A' }, () => {
+      // TODO
       logger.error(`A System event has been consumed unexpectedly. Something has gone wrong`);
       return Promise.resolve();
     })

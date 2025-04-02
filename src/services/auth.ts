@@ -1,4 +1,3 @@
-import { logger } from '@common/powertools';
 import type { BaseLoginConfig } from '@lambdas/api/post-login/config';
 import { userSignedIn } from '@model/app-events/UserSignedInEvent';
 import { userSignedUp } from '@model/app-events/UserSignedUpEvent';
@@ -32,16 +31,13 @@ function signIn<TIdpName extends IdpName>(
     };
     return userProvider.putUser(updatedUser, authorization).then(() => {
       const signInEvent = userSignedIn(identity, user);
-      return auditTrailService.send(signInEvent).then(
-        () => updatedUser,
-        (error) => {
-          logger.error(`UserSignedIn event failed to be sent`, {
-            cause: error,
-            event: signInEvent
-          });
-          return updatedUser;
-        }
-      );
+      console.log('antes dell boom');
+      return auditTrailService
+        .safeSend(signInEvent)
+        .then(() => {
+          console.log('despues del boom');
+        })
+        .then(() => updatedUser);
     });
   } else {
     return Promise.reject(
@@ -68,13 +64,7 @@ function signUp<TIdpName extends IdpName>(
   };
   return userProvider.putUser(newUser, authorization).then(() => {
     const signUpEvent = userSignedUp(identity);
-    return auditTrailService.send(signUpEvent).then(
-      () => newUser,
-      (error) => {
-        logger.error(`UserSignedUp event failed to be sent`, { cause: error, event: signUpEvent });
-        return newUser;
-      }
-    );
+    return auditTrailService.safeSend(signUpEvent).then(() => newUser);
   });
 }
 

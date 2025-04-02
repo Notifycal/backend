@@ -89,10 +89,10 @@ describe('Send event reminder', () => {
     const sendReminderSpy = vi
       .spyOn(MessageProcessor.prototype, 'sendReminder')
       .mockResolvedValue(returnedReminderId);
-    const auditTrailSpy = vi.fn().mockResolvedValue({ $metadata: {} });
+    const auditTrailSpy = vi.fn().mockResolvedValue({});
     // eslint-disable-next-line @typescript-eslint/unbound-method
     vi.mocked(AuditTrailService.withConfig).mockReturnValue({
-      send: auditTrailSpy
+      safeSend: auditTrailSpy
     } as unknown as AuditTrailService);
     const makeIdempotentSpy = vi
       .spyOn(makeIdempotentModule, 'makeIdempotent')
@@ -111,10 +111,10 @@ describe('Send event reminder', () => {
 
   it('should return "MessageNotSentOutsideOfSpain" for non-Spanish phone numbers', async () => {
     const sendReminderSpy = vi.spyOn(MessageProcessor.prototype, 'sendReminder');
-    const auditTrailSpy = vi.fn().mockResolvedValue({ $metadata: {} });
+    const auditTrailSpy = vi.fn().mockResolvedValue({});
     // eslint-disable-next-line @typescript-eslint/unbound-method
     vi.mocked(AuditTrailService.withConfig).mockReturnValue({
-      send: auditTrailSpy
+      safeSend: auditTrailSpy
     } as unknown as AuditTrailService);
     const makeIdempotentSpy = vi.spyOn(makeIdempotentModule, 'makeIdempotent');
     const onIdempotencyHitSpy = vi.spyOn(MessageProcessor.prototype, 'onIdempotencyHit');
@@ -134,10 +134,10 @@ describe('Send event reminder', () => {
       .spyOn(MessageProcessor.prototype, 'sendReminder')
       .mockRejectedValue(error);
 
-    const auditTrailSpy = vi.fn().mockResolvedValue({ $metadata: {} });
+    const auditTrailSpy = vi.fn().mockResolvedValue({});
     // eslint-disable-next-line @typescript-eslint/unbound-method
     vi.mocked(AuditTrailService.withConfig).mockReturnValue({
-      send: auditTrailSpy
+      safeSend: auditTrailSpy
     } as unknown as AuditTrailService);
     vi.spyOn(makeIdempotentModule, 'makeIdempotent').mockImplementation(
       () => sendReminderSpy.getMockImplementation()!

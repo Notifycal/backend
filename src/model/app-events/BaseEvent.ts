@@ -4,7 +4,7 @@ import { dateTimeSchema, idpIdSchema, userIdSchema } from '@notifycal/shared/sch
 import { eventIdSchema } from './common';
 
 // Docs: take your time to decide what type of event you are defining and what is aimed at. Pay attention to these silver bullets:
-// SuccessEvent: 
+// SuccessEvent:
 //  - informing the next step of the process to achieve an overarching goal.
 //  - flagging out of ordinary happen that cannot be considered a failure given the input data. Is the intention behind flagging it informing the end user?
 // ErrorEvent:

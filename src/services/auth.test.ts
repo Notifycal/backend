@@ -1,4 +1,3 @@
-import { logger } from '@common/powertools';
 import type { BaseLoginConfig } from '@lambdas/api/post-login/config';
 import * as userSignedInModule from '@model/app-events/UserSignedInEvent';
 import * as userSignedUpModule from '@model/app-events/UserSignedUpEvent';
@@ -193,33 +192,6 @@ describe('Auth Service', () => {
       expect(buildJwtsFn).not.toHaveBeenCalled();
       expect(putTokenFn).not.toHaveBeenCalled();
     });
-
-    it('should still complete sign in when audit trail event fails to send', async () => {
-      const getUserByIdFn = vi.fn(() => Promise.resolve(existingUser));
-      const putUserFn = vi.fn(() => Promise.resolve());
-      const auditError = new Error('Audit trail failure');
-      const auditTrailSendFn = vi.fn(() => Promise.reject(auditError));
-      const buildJwtsFn = vi.fn(() => Promise.resolve(validJwts));
-      const putTokenFn = vi.fn(() => Promise.resolve(null));
-      const loggerErrorSpy = vi.spyOn(logger, 'error');
-
-      const result = await testSignInOrUp(
-        validIdentity,
-        validAuthorization,
-        getUserByIdFn,
-        putUserFn,
-        auditTrailSendFn,
-        buildJwtsFn,
-        putTokenFn
-      );
-
-      expect(result).toStrictEqual(validJwts);
-
-      expect(loggerErrorSpy).toHaveBeenCalledWith(
-        'UserSignedIn event failed to be sent',
-        expect.objectContaining({ cause: auditError })
-      );
-    });
   });
 
   describe('buildJwtsAndStoreRefreshJwt', () => {
@@ -315,7 +287,7 @@ describe('Auth Service', () => {
 
     vi.mock('./audit-trail');
     const auditTrailServiceMock = {
-      send: vi.fn().mockImplementation(auditTrailSendFn)
+      safeSend: vi.fn().mockImplementation(auditTrailSendFn)
     };
     // eslint-disable-next-line @typescript-eslint/unbound-method
     vi.mocked(AuditTrailService.withConfig).mockReturnValue(

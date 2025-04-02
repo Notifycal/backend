@@ -51,22 +51,14 @@ export default class MessageProcessor {
     }
 
     logger.info('Sending message attempt to audit trail');
-    try {
-      await this._auditTrailService.send<ActionableEventReminderAttemptSentEvent>({
-        ...body,
-        eventType: 'ActionableEventReminderAttemptSent',
-        data: {
-          ...body.data,
-          messageUUID
-        }
-      });
-      logger.info('Message attempt sent to audit trail');
-    } catch (error) {
-      // Not throwing an error if sending to audit trail fails as we wouldn't want the lambda to fail (and retry) because of it.
-      logger.error('Could not send message attempt to audit trail', {
-        error
-      });
-    }
+    await this._auditTrailService.safeSend<ActionableEventReminderAttemptSentEvent>({
+      ...body,
+      eventType: 'ActionableEventReminderAttemptSent',
+      data: {
+        ...body.data,
+        messageUUID
+      }
+    });
 
     return messageUUID;
   }
@@ -79,19 +71,13 @@ export default class MessageProcessor {
       correlationId
     });
 
-    try {
-      await this._auditTrailService.send<ActionableEventReminderAttemptSkippedEvent>({
-        ...body,
-        eventType: 'ActionableEventReminderAttemptSkipped',
-        data: {
-          ...body.data,
-          messageUUID
-        }
-      });
-    } catch (error) {
-      logger.error('Could not send duplicated message attempt to audit trail', {
-        error
-      });
-    }
+    return this._auditTrailService.safeSend<ActionableEventReminderAttemptSkippedEvent>({
+      ...body,
+      eventType: 'ActionableEventReminderAttemptSkipped',
+      data: {
+        ...body.data,
+        messageUUID
+      }
+    });
   }
 }

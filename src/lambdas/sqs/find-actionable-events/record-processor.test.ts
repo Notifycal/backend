@@ -250,9 +250,7 @@ describe('Find actionable events record processor', () => {
     const dlqSpy = vi
       .spyOn(DeadLetteringService.prototype, 'send')
       .mockResolvedValue({} as SendMessageCommandOutput);
-    const auditTrailSpy = vi
-      .spyOn(AuditTrailService.prototype, 'send')
-      .mockResolvedValue({} as SendMessageCommandOutput);
+    const auditTrailSpy = vi.spyOn(AuditTrailService.prototype, 'safeSend').mockResolvedValue();
     const eventsStartTimeWithinFn = () => Promise.resolve({ successList: [], failureList: [] });
     const phoneNumberByEmailFn = () => Promise.resolve([]);
     await testit(
@@ -276,9 +274,7 @@ describe('Find actionable events record processor', () => {
     const dlqSpy = vi
       .spyOn(DeadLetteringService.prototype, 'send')
       .mockResolvedValue({} as SendMessageCommandOutput);
-    const auditTrailSpy = vi
-      .spyOn(AuditTrailService.prototype, 'send')
-      .mockResolvedValue({} as SendMessageCommandOutput);
+    const auditTrailSpy = vi.spyOn(AuditTrailService.prototype, 'safeSend').mockResolvedValue();
     const eventsStartTimeWithinFn = () =>
       Promise.resolve({ successList: validEventsWithNoAttendees, failureList: [] });
     const phoneNumberByEmailFn = () => Promise.resolve([]);
@@ -350,9 +346,7 @@ describe('Find actionable events record processor', () => {
     const publishSpy = vi
       .spyOn(SnsService.prototype, 'publish')
       .mockResolvedValue({} as PublishCommandOutput);
-    const auditTrailSpy = vi
-      .spyOn(AuditTrailService.prototype, 'send')
-      .mockResolvedValue({} as SendMessageCommandOutput);
+    const auditTrailSpy = vi.spyOn(AuditTrailService.prototype, 'safeSend').mockResolvedValue();
     const eventsStartTimeWithinFn = () =>
       Promise.resolve({ successList: validEvents, failureList: [] });
     const phoneNumberByEmailFn = () => Promise.resolve([]);

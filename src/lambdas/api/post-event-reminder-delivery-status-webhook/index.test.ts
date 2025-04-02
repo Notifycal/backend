@@ -18,7 +18,7 @@ import { assert } from '@testing/utils/assertions';
 import { setEnvAuditTrailQueueConfig } from '@testing/utils/config';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { v4 as uuidv4, type Version4Options } from 'uuid';
-import { describe, expect, it, vi, type Mock } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { ReminderDeliveryStatusWebhookConfig } from './config';
 import { handler, type Event } from './index';
 
@@ -309,29 +309,6 @@ describe('POST Event reminder delivery status webhook', () => {
     );
   });
 
-  it('should log an error and success if it cannot send the event to audit trail service', async () => {
-    const sendMock = vi.fn().mockRejectedValue(new Error('Failed to send'));
-    const errorLoggerSpy = vi.spyOn(logger, 'error');
-
-    const chosenBody = validBodies[1];
-    const event = testVonageAuthedEvent(
-      chosenBody,
-      validVonageJwt,
-      validQSPObject
-    ) as APIGatewayProxyEvent;
-
-    const resp = await testit(event, sendMock);
-
-    assert(resp, responseSuccessNoCorsHeaders());
-
-    expect(errorLoggerSpy).toHaveBeenCalledWith(
-      expect.stringContaining('Could not send message status update to audit trail'),
-      {
-        error: new Error(`Failed to send`)
-      }
-    );
-  });
-
   const defaultEnv = {
     auditTrailQueueConfig: {
       queueUrl: 'https://fake-queue-url' as Url
@@ -360,13 +337,13 @@ describe('POST Event reminder delivery status webhook', () => {
 
   async function testit(
     event: APIGatewayProxyEvent,
-    sendMock: Mock = vi.fn(),
+    safeSendFn: () => Promise<void> = vi.fn(),
     env: ReminderDeliveryStatusWebhookConfig = defaultEnv
   ): Promise<APIGatewayProxyResult> {
     setEnv(env);
     vi.mock('@services/audit-trail');
     const auditTrailServiceMock = {
-      send: sendMock
+      safeSend: safeSendFn
     };
     // eslint-disable-next-line @typescript-eslint/unbound-method
     vi.mocked(AuditTrailService.withConfig).mockReturnValue(

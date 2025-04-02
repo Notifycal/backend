@@ -27,6 +27,25 @@ const schema = authedEventSchema<ReminderDeliveryStatusWebhookConfig>().extend({
 });
 export type Event = z.infer<typeof schema>;
 
+function buildActionableEventReminderStatusUpdated(
+  rebuiltEventObject: Omit<ActionableEventFoundEvent, 'eventType' | 'eventId' | 'happenedAt'>,
+  event: Event['body']
+): ActionableEventReminderStatusUpdatedEvent {
+  return {
+    ...rebuiltEventObject,
+    eventType: 'ActionableEventReminderStatusUpdated',
+    eventId: v4() as EventId,
+    happenedAt: new Date().toISOString() as DateTime,
+    data: {
+      ...rebuiltEventObject.data,
+      messageUUID: event.message_uuid,
+      messageStatusPayload: {
+        ...event
+      }
+    }
+  };
+}
+
 async function lambdaHandler(
   event: Event,
   /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
@@ -56,28 +75,9 @@ async function lambdaHandler(
     logger.error(`Could not rebuild event from query string`, { error: err });
     return Promise.resolve(successHandler()());
   }
-
-  try {
-    await auditTrailService.send<ActionableEventReminderStatusUpdatedEvent>({
-      ...rebuiltEventObject,
-      eventType: 'ActionableEventReminderStatusUpdated',
-      eventId: v4() as EventId,
-      happenedAt: new Date().toISOString() as DateTime,
-      data: {
-        ...rebuiltEventObject.data,
-        messageUUID: event.body.message_uuid,
-        messageStatusPayload: {
-          ...event.body
-        }
-      }
-    });
-    logger.info(
-      `Message status update sent to audit trail. correlationId: ${rebuiltEventObject.correlationId}`
-    );
-  } catch (err) {
-    logger.error(`Could not send message status update to audit trail`, { error: err });
-    return Promise.resolve(successHandler()());
-  }
+  await auditTrailService.safeSend(
+    buildActionableEventReminderStatusUpdated(rebuiltEventObject, event.body)
+  );
 
   return Promise.resolve(successHandler()());
 }
