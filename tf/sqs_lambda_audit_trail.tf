@@ -64,8 +64,12 @@ module "audit_trail_lambda" {
   attach_tracing_policy = local.lambdas_attach_tracing_policy
   tracing_mode          = local.lambdas_tracing_mode
 
+  # These 2 go together, if create_async_event_config is set to false (its default),
+  # lambdas will retry up to 2 times
   create_async_event_config = true
   maximum_retry_attempts    = 0
+  attach_dead_letter_policy = true
+  dead_letter_target_arn    = aws_sqs_queue.global_unprocessable.arn
 
   tags = local.common_tags
 
