@@ -57,7 +57,8 @@ module "find_actionable_events_lambda" {
 
   event_source_mapping = {
     sqs = {
-      event_source_arn = module.user_calendar_fetched_queue.sqs_queue_arn
+      event_source_arn        = module.user_calendar_fetched_queue.sqs_queue_arn
+      function_response_types = ["ReportBatchItemFailures"]
       scaling_config = {
         maximum_concurrency = 20
       }
