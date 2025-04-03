@@ -23,17 +23,6 @@ data "aws_iam_policy_document" "find_actionable_events_iam_policydoc" {
       module.user_calendar_fetched_queue.sqs_queue_arn
     ]
   }
-  statement {
-    effect = "Allow"
-
-    actions = [
-      "sqs:SendMessage",
-    ]
-
-    resources = [
-      module.audit_trail_queue.sqs_queue_arn
-    ]
-  }
 }
 
 module "find_actionable_events_lambda" {

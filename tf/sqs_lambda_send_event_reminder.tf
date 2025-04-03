@@ -42,15 +42,16 @@ data "aws_iam_policy_document" "send_event_reminder_iam_policydoc" {
       data.aws_ssm_parameter.vonage_private_key.arn
     ]
   }
+
   statement {
     effect = "Allow"
 
     actions = [
-      "sqs:SendMessage",
+      "sns:Publish",
     ]
 
     resources = [
-      module.audit_trail_queue.sqs_queue_arn
+      module.messaging_topic.sns_topic_arn
     ]
   }
 }

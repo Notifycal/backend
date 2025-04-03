@@ -22,6 +22,17 @@ data "aws_iam_policy_document" "post_login_iam_policydoc" {
       aws_dynamodb_table.refresh_tokens.arn
     ]
   }
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "sns:Publish",
+    ]
+
+    resources = [
+      module.api_rest_topic.sns_topic_arn
+    ]
+  }
 }
 
 module "post_login_lambda" {
