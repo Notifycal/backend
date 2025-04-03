@@ -273,7 +273,7 @@ describe('Schedule fetch user calendars', () => {
     expect(safePublishSpy).toHaveBeenCalledTimes(1 + systemEventCount);
   });
 
-  it('should not stop processing current page or the rest of the pages even if an no user calendar event cannot be sent to audit trail service', async () => {
+  it('should not stop processing current page or the rest of the pages even if an no user calendar event cannot be published', async () => {
     const getLiveUsersFn = () => validLiveUsersWithoutACalendar();
     const safePublishSpy = vi
       .spyOn(snsService.SnsService.prototype, 'safePublish')

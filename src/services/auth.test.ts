@@ -28,7 +28,6 @@ import { RefreshTokenBaseStore } from './stores/refresh-token-base-store';
 import { UserBaseStore } from './stores/user-base-store';
 
 vi.mock('./stores/user-base-store');
-vi.mock('./audit-trail');
 vi.mock('@model/app-events/UserSignedInEvent');
 vi.mock('@model/app-events/UserSignedUpEvent');
 

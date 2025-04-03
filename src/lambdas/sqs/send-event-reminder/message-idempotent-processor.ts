@@ -50,7 +50,7 @@ export default class MessageProcessor {
       messageUUID = await Promise.resolve('fake-uuid' as Uuid);
     }
 
-    logger.info('Sending message attempt to audit trail');
+    logger.info('Attempt to publish an event');
     await this._snsService.safePublish<ActionableEventReminderAttemptSentEvent>({
       ...body,
       eventType: 'ActionableEventReminderAttemptSent',

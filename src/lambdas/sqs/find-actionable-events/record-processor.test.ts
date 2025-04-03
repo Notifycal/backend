@@ -214,7 +214,7 @@ describe('Find actionable events record processor', () => {
     expect(publishSpy).toHaveBeenCalledTimes(1);
   });
 
-  it('should finish processing sucessfully and send an event to audit trail if no valid events are found', async () => {
+  it('should finish processing sucessfully and publish an event if no valid events are found', async () => {
     const publishSpy = vi
       .spyOn(SnsService.prototype, 'publish')
       .mockResolvedValue({} as PublishCommandOutput);
@@ -231,7 +231,7 @@ describe('Find actionable events record processor', () => {
     expect(safePublishSpy).toHaveBeenCalledOnce();
   });
 
-  it('should finish processing sucessfully and send an event to audit trail if no attendees are found in calendar event', async () => {
+  it('should finish processing sucessfully and publish an event if no attendees are found in calendar event', async () => {
     const validEventsWithNoAttendees: Array<CalendarEvent> = [
       { ...validCalendarEvent, attendees: [] }
     ];
@@ -298,7 +298,7 @@ describe('Find actionable events record processor', () => {
     );
   });
 
-  it('should publish to DLQ if no phone number for an attendee and keep processing', async () => {
+  it('should publish an event if no phone number for an attendee and keep processing', async () => {
     const publishSpy = vi
       .spyOn(SnsService.prototype, 'publish')
       .mockResolvedValue({} as PublishCommandOutput);

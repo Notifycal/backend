@@ -127,7 +127,7 @@ describe('MessageProcessor', () => {
       });
       expect(loggerInfoSpy).toHaveBeenCalledWith('Sending a message through Vonage');
       // eslint-disable-next-line vitest/max-expects
-      expect(loggerInfoSpy).toHaveBeenCalledWith('Sending message attempt to audit trail');
+      expect(loggerInfoSpy).toHaveBeenCalledWith('Attempt to publish an event');
     });
 
     it('should return a fake uuid when messaging is disabled', async () => {
@@ -182,7 +182,7 @@ describe('MessageProcessor', () => {
   });
 
   describe('onIdempotencyHit', () => {
-    it('should send a skipped event to audit trail', async () => {
+    it('should publish a reminder attempt skipped event', async () => {
       const snsServiceSafeSendSpy = vi.fn().mockResolvedValue({});
       vi.mocked(MessagingService).mockImplementation(
         () =>

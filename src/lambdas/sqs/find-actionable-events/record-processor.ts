@@ -147,7 +147,7 @@ function handleFetchedCalendarEvents(
       )
     )
       .then((results) =>
-        allSettledAllOrErrorHandler(results, 'send calendar event fetch failures to DLQ')
+        allSettledAllOrErrorHandler(results, 'publish calendar event fetch failures')
       )
       .then(() => successList);
   } else {
