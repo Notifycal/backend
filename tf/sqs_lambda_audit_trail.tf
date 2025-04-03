@@ -7,9 +7,10 @@ locals {
 
   event_source_mappings = {
     for queue_name, queue_arn in local.queue_sources : queue_name => {
-      event_source_arn = queue_arn
-      scaling_config   = { maximum_concurrency = 20 }
-      metrics_config   = { metrics = ["EventCount"] }
+      event_source_arn        = queue_arn
+      scaling_config          = { maximum_concurrency = 20 }
+      metrics_config          = { metrics = ["EventCount"] }
+      function_response_types = ["ReportBatchItemFailures"]
     }
   }
 
