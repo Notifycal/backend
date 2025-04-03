@@ -87,5 +87,5 @@ module "find_actionable_events_lambda" {
 
   environment_variables = merge({
     ACTIONABLE_EVENT_FOUND_TOPIC_ARN = module.actionable_event_found_topic.sns_topic_arn
-  }, local.audit_trail_queue_env_vars, local.idps_configs_env_vars, local.dead_letter_queue_env_vars, local.common_lambda_env_vars)
+  }, local.idps_configs_env_vars, local.common_lambda_env_vars)
 }

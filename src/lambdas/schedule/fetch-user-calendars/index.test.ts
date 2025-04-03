@@ -16,13 +16,11 @@ import type {
   UserId,
   UserStatus
 } from '@notifycal/shared/types';
-import type { AwsArn, Url } from '@own-types/model';
-import { AuditTrailService } from '@services/audit-trail';
+import type { AwsArn } from '@own-types/model';
 import * as snsService from '@services/sns';
 import { UserLiveIndexStore } from '@services/stores/user-live-index-store';
 import { fakeScheduledEventBridgeEvent } from '@testing/data/event-bridge-event';
 import {
-  setEnvAuditTrailQueueConfig,
   setEnvCronRunConfig,
   setEnvUserCalendarFetchedTopicConfig,
   setEnvUserLiveStoreConfig
@@ -255,38 +253,34 @@ const systemEventCount = 1;
 describe('Schedule fetch user calendars', () => {
   it('publish as many events as live users times calendars exist in persistance and produce a system event', async () => {
     const getLiveUsersFn = () => validLiveUsers();
-    const publishSpy = vi.spyOn(snsService.SnsService.prototype, 'publish').mockResolvedValue({
-      $metadata: {}
-    });
-    const auditTrailSpy = vi.spyOn(AuditTrailService.prototype, 'safeSend').mockResolvedValue();
+    const safePublishSpy = vi
+      .spyOn(snsService.SnsService.prototype, 'safePublish')
+      .mockResolvedValue();
     await testit(getLiveUsersFn);
 
-    expect(publishSpy).toHaveBeenCalledTimes(3);
-    expect(auditTrailSpy).toHaveBeenCalledTimes(systemEventCount);
+    expect(safePublishSpy).toHaveBeenCalledTimes(3 + systemEventCount);
   });
 
   it('cannot resume processing if persistance pagination fails', async () => {
     const getLiveUsersFn = () => oneRejectionInBetweenLiveUsers();
-    const publishSpy = vi.spyOn(snsService.SnsService.prototype, 'publish').mockResolvedValue({
-      $metadata: {}
-    });
+    const safePublishSpy = vi
+      .spyOn(snsService.SnsService.prototype, 'safePublish')
+      .mockResolvedValue();
 
     await expect(testit(getLiveUsersFn)).rejects.toThrow(
       'An error happened while processing live users'
     );
-    expect(publishSpy).toHaveBeenCalledTimes(1);
+    expect(safePublishSpy).toHaveBeenCalledTimes(1 + systemEventCount);
   });
 
   it('should not stop processing current page or the rest of the pages even if an no user calendar event cannot be sent to audit trail service', async () => {
     const getLiveUsersFn = () => validLiveUsersWithoutACalendar();
-    const publishSpy = vi.spyOn(snsService.SnsService.prototype, 'publish').mockResolvedValue({
-      $metadata: {}
-    });
-    const auditTrailSpy = vi.spyOn(AuditTrailService.prototype, 'safeSend').mockResolvedValue();
+    const safePublishSpy = vi
+      .spyOn(snsService.SnsService.prototype, 'safePublish')
+      .mockResolvedValue();
     await testit(getLiveUsersFn);
 
-    expect(publishSpy).toHaveBeenCalledTimes(1);
-    expect(auditTrailSpy).toHaveBeenCalledTimes(1 + systemEventCount);
+    expect(safePublishSpy).toHaveBeenCalledTimes(2 + systemEventCount);
   });
 
   it('should not stop processing current page or the rest of the pages even if a message cannot be published', async () => {
@@ -305,7 +299,7 @@ describe('Schedule fetch user calendars', () => {
       });
     await testit(getLiveUsersFn);
 
-    expect(publishSpy).toHaveBeenCalledTimes(3);
+    expect(publishSpy).toHaveBeenCalledTimes(3 + systemEventCount);
   });
 
   it('throw an error if live users cannot be fetched from persistance', () => {
@@ -348,15 +342,11 @@ const defaultEnv: FetchUserCalendarsConfig = {
   },
   cronRunConfig: {
     windowInMinutes: 30
-  },
-  auditTrailQueueConfig: {
-    queueUrl: 'https://fake-queue-url' as Url
   }
 };
 
 function setEnv(config: FetchUserCalendarsConfig) {
   setEnvUserLiveStoreConfig(config.userLiveIndexStoreConfig);
   setEnvUserCalendarFetchedTopicConfig(config.userCalendarFetchedTopicConfig);
-  setEnvAuditTrailQueueConfig(config.auditTrailQueueConfig);
   setEnvCronRunConfig(config.cronRunConfig);
 }

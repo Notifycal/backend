@@ -8,11 +8,6 @@ variable "topic_display_name" {
   description = "SNS topic display name"
 }
 
-variable "publisher_arn" {
-  type        = string
-  description = "AWS arn of identity publishing messages to SNS topic"
-}
-
 variable "subscriber_arns" {
   type        = map(string)
   description = "Map containg keys representing the subscriber name and values representing the subscriber AWS arn"

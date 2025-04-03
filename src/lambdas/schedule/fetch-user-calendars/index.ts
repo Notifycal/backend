@@ -15,7 +15,6 @@ import { phoneByCountry } from '@notifycal/shared/i18n';
 import type { senderSchema } from '@notifycal/shared/schemas';
 import type { CorrelationId, DateTime, EventId } from '@notifycal/shared/types';
 import type { PhoneNumberE164 } from '@own-types/model';
-import { AuditTrailService } from '@services/audit-trail';
 import { SnsService } from '@services/sns';
 import { UserLiveIndexStore } from '@services/stores/user-live-index-store';
 import type { Context } from 'aws-lambda';
@@ -94,19 +93,14 @@ function runDataFromConfig(config: CronRunConfig, event: Event): CronRunForEvent
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function lambdaHandler(event: Event, context: Context): Promise<void> {
-  const {
-    userLiveIndexStoreConfig,
-    userCalendarFetchedTopicConfig,
-    cronRunConfig,
-    auditTrailQueueConfig
-  } = event.lambdaConfig;
+  const { userLiveIndexStoreConfig, userCalendarFetchedTopicConfig, cronRunConfig } =
+    event.lambdaConfig;
 
   const userLiveProvider = UserLiveIndexStore.withConfig(userLiveIndexStoreConfig);
   const snsService = SnsService.withConfig(userCalendarFetchedTopicConfig);
-  const auditTrailService = AuditTrailService.withConfig(auditTrailQueueConfig);
 
   const systemEvent = scheduledFetchUserCalendarEventFired(event, cronRunConfig);
-  await auditTrailService.safeSend(systemEvent);
+  await snsService.safePublish(systemEvent);
 
   const run = runDataFromConfig(cronRunConfig, event);
   logger.info(
@@ -126,7 +120,7 @@ async function lambdaHandler(event: Event, context: Context): Promise<void> {
             return Promise.resolve(toEvents(user, run));
           } else {
             const errorEvent = noUserCalendarFound(event, run, user);
-            return auditTrailService.safeSend(errorEvent).then(() => []);
+            return snsService.safePublish(errorEvent).then(() => []);
           }
         })
       ).then((events) => events.flat());

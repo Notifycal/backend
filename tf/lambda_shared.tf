@@ -31,20 +31,19 @@ locals {
     REFRESH_JWT_EXPIRATION  = var.jwt_config.refresh.expiration
   }, local.decode_access_jwt_env_vars, local.users_persistance_env_vars, local.refresh_token_persistance_env_vars)
 
+  messaging_topic_env_vars = {
+    MESSAGING_TOPIC_ARN = module.messaging_topic.sns_topic_arn
+  }
+
+  api_rest_topic_env_vars = {
+    API_REST_TOPIC_ARN = module.api_rest_topic.sns_topic_arn
+  }
   google_idp_config_env_vars = {
     GOOGLE_OAUTH_CLIENT_ID           = var.google_oauth_config.client_id
     GOOGLE_OAUTH_CLIENT_SECRET       = var.google_oauth_config.client_secret
     GOOGLE_OAUTH_CLIENT_REDIRECT_URI = var.google_oauth_config.redirect_url
   }
   idps_configs_env_vars = merge({}, local.google_idp_config_env_vars)
-
-  dead_letter_queue_env_vars = {
-    DEAD_LETTER_QUEUE_URL = aws_sqs_queue.global_dlq_lambda.url
-  }
-
-  audit_trail_queue_env_vars = {
-    AUDIT_TRAIL_QUEUE_URL = module.audit_trail_queue.sqs_queue_url
-  }
 
   common_tags = {}
 

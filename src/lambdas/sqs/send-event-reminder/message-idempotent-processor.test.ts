@@ -11,13 +11,13 @@ import type {
   UserId,
   Uuid
 } from '@notifycal/shared/types';
-import type { PhoneNumberE164, Url } from '@own-types/model';
-import { AuditTrailService } from '@services/audit-trail';
+import type { AwsArn, PhoneNumberE164, Url } from '@own-types/model';
 import {
   MessagingService,
   type VonageApplicationId,
   type VonagePrivateKey
 } from '@services/messaging';
+import { SnsService } from '@services/sns';
 import { validRecord as _validRecord } from '@testing/data/sqs-events';
 import type {} from 'aws-lambda';
 import { describe, expect, it, vi } from 'vitest';
@@ -25,8 +25,8 @@ import type { SendEventReminderConfig } from './config';
 import type { Record } from './index';
 import MessageProcessor from './message-idempotent-processor';
 
+vi.mock('@services/sns');
 vi.mock('@common/powertools');
-vi.mock('@services/audit-trail');
 vi.mock('@services/messaging');
 vi.mock('@aws-lambda-powertools/idempotency');
 
@@ -46,8 +46,8 @@ const defaultConfig: SendEventReminderConfig = {
     dataAttr: 'some data attr',
     validationKeyAttr: 'some validation key attr'
   },
-  auditTrailQueueConfig: {
-    queueUrl: 'some queue url' as Url
+  messagingTopicConfig: {
+    topicArn: 'some aws arn' as AwsArn
   },
   messagingConfig: {
     enabled: true
@@ -92,19 +92,16 @@ describe('MessageProcessor', () => {
 
   describe('sendReminder', () => {
     it('should send a message when messaging is enabled', async () => {
-      const auditTrailSpy = vi.fn().mockResolvedValue({ $metadata: {} });
+      const snsServiceSafeSendSpy = vi.fn().mockResolvedValue({ $metadata: {} });
       const sendMessageSpy = vi.fn().mockResolvedValue(validReturnedUuid);
-      // eslint-disable-next-line @typescript-eslint/unbound-method
-      vi.mocked(AuditTrailService.withConfig).mockReturnValue({
-        safeSend: auditTrailSpy
-      } as unknown as AuditTrailService);
+
       vi.mocked(MessagingService).mockReturnValue({
         sendMessage: sendMessageSpy
       } as unknown as MessagingService);
       const loggerAppendKeysSpy = vi.spyOn(logger, 'appendKeys');
       const loggerInfoSpy = vi.spyOn(logger, 'info');
 
-      const result = await testIt(validRecord, validWebhookUrl);
+      const result = await testIt(validRecord, validWebhookUrl, snsServiceSafeSendSpy);
 
       expect(result).toStrictEqual(validReturnedUuid);
       expect(sendMessageSpy).toHaveBeenCalledWith(
@@ -114,7 +111,7 @@ describe('MessageProcessor', () => {
         validRecord.body.correlationId,
         validWebhookUrl
       );
-      expect(auditTrailSpy).toHaveBeenCalledWith({
+      expect(snsServiceSafeSendSpy).toHaveBeenCalledWith({
         ...validRecord.body,
         eventType: 'ActionableEventReminderAttemptSent',
         data: {
@@ -140,23 +137,24 @@ describe('MessageProcessor', () => {
           enabled: false
         }
       };
-      const auditTrailSpy = vi.fn().mockResolvedValue({ $metadata: {} });
       const sendMessageSpy = vi.fn().mockResolvedValue(validReturnedUuid);
 
-      // eslint-disable-next-line @typescript-eslint/unbound-method
-      vi.mocked(AuditTrailService.withConfig).mockReturnValue({
-        safeSend: auditTrailSpy
-      } as unknown as AuditTrailService);
+      const snsServiceSafeSendSpy = vi.fn().mockResolvedValue({});
 
       vi.mocked(MessagingService).mockReturnValue({
         sendMessage: sendMessageSpy
       } as unknown as MessagingService);
 
-      const result = await testIt(validRecord, validWebhookUrl, disabledConfig);
+      const result = await testIt(
+        validRecord,
+        validWebhookUrl,
+        snsServiceSafeSendSpy,
+        disabledConfig
+      );
 
       expect(result).toBe('fake-uuid');
       expect(sendMessageSpy).not.toHaveBeenCalled();
-      expect(auditTrailSpy).toHaveBeenCalledWith({
+      expect(snsServiceSafeSendSpy).toHaveBeenCalledWith({
         ...validRecord.body,
         eventType: 'ActionableEventReminderAttemptSent',
         data: {
@@ -169,8 +167,15 @@ describe('MessageProcessor', () => {
     function testIt(
       record: Record,
       webhookUrl: Url,
+      safePublishFn: () => Promise<void>,
       config: SendEventReminderConfig = defaultConfig
     ): Promise<Uuid> {
+      const snsServiceMock = {
+        safePublish: safePublishFn
+      };
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      vi.mocked(SnsService.withConfig).mockReturnValue(snsServiceMock as unknown as SnsService);
+
       const messageProcessor = new MessageProcessor(config);
       return messageProcessor.sendReminder(record, webhookUrl);
     }
@@ -178,11 +183,7 @@ describe('MessageProcessor', () => {
 
   describe('onIdempotencyHit', () => {
     it('should send a skipped event to audit trail', async () => {
-      const auditTrailSpy = vi.fn().mockResolvedValue({ $metadata: {} });
-      // eslint-disable-next-line @typescript-eslint/unbound-method
-      vi.mocked(AuditTrailService.withConfig).mockReturnValue({
-        safeSend: auditTrailSpy
-      } as unknown as AuditTrailService);
+      const snsServiceSafeSendSpy = vi.fn().mockResolvedValue({});
       vi.mocked(MessagingService).mockImplementation(
         () =>
           ({
@@ -191,9 +192,9 @@ describe('MessageProcessor', () => {
       );
       const loggerAppendKeysSpy = vi.spyOn(logger, 'appendKeys');
 
-      await testIt(validRecord, validReturnedUuid);
+      await testIt(validRecord, validReturnedUuid, snsServiceSafeSendSpy);
 
-      expect(auditTrailSpy).toHaveBeenCalledWith({
+      expect(snsServiceSafeSendSpy).toHaveBeenCalledWith({
         ...validRecord.body,
         eventType: 'ActionableEventReminderAttemptSkipped',
         data: {
@@ -209,10 +210,15 @@ describe('MessageProcessor', () => {
     function testIt(
       record: Record,
       messageUUID: Uuid,
+      safePublishFn: () => Promise<void>,
       config: SendEventReminderConfig = defaultConfig
     ): Promise<void> {
+      const snsServiceMock = {
+        safePublish: safePublishFn
+      };
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      vi.mocked(SnsService.withConfig).mockReturnValue(snsServiceMock as unknown as SnsService);
       const messageProcessor = new MessageProcessor(config);
-
       return messageProcessor.onIdempotencyHit(record, messageUUID);
     }
   });

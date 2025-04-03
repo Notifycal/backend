@@ -119,5 +119,5 @@ module "send_event_reminder_lambda" {
       dataAttr             = local.lambda_idempotency_table_config.data_attribute_name
       validationKeyAttr    = local.lambda_idempotency_table_config.validation_attribute_name
     })
-  }, local.audit_trail_queue_env_vars, local.common_lambda_env_vars)
+  }, local.messaging_topic_env_vars, local.common_lambda_env_vars)
 }
