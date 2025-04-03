@@ -120,7 +120,7 @@ describe('Send event reminder', () => {
     expect(onIdempotencyHitSpy).toHaveBeenCalledTimes(0);
   });
 
-  it('should send an event when message sending fails', async () => {
+  it('should publish an event when message sending fails', async () => {
     const error = new Error('Failed to send message');
     const sendReminderSpy = vi
       .spyOn(MessageProcessor.prototype, 'sendReminder')

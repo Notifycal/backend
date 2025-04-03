@@ -92,7 +92,7 @@ describe('MessageProcessor', () => {
 
   describe('sendReminder', () => {
     it('should send a message when messaging is enabled', async () => {
-      const snsServiceSafeSendSpy = vi.fn().mockResolvedValue({ $metadata: {} });
+      const safePublishSpy = vi.fn().mockResolvedValue({ $metadata: {} });
       const sendMessageSpy = vi.fn().mockResolvedValue(validReturnedUuid);
 
       vi.mocked(MessagingService).mockReturnValue({
@@ -101,7 +101,7 @@ describe('MessageProcessor', () => {
       const loggerAppendKeysSpy = vi.spyOn(logger, 'appendKeys');
       const loggerInfoSpy = vi.spyOn(logger, 'info');
 
-      const result = await testIt(validRecord, validWebhookUrl, snsServiceSafeSendSpy);
+      const result = await testIt(validRecord, validWebhookUrl, safePublishSpy);
 
       expect(result).toStrictEqual(validReturnedUuid);
       expect(sendMessageSpy).toHaveBeenCalledWith(
@@ -111,7 +111,7 @@ describe('MessageProcessor', () => {
         validRecord.body.correlationId,
         validWebhookUrl
       );
-      expect(snsServiceSafeSendSpy).toHaveBeenCalledWith({
+      expect(safePublishSpy).toHaveBeenCalledWith({
         ...validRecord.body,
         eventType: 'ActionableEventReminderAttemptSent',
         data: {
@@ -138,23 +138,17 @@ describe('MessageProcessor', () => {
         }
       };
       const sendMessageSpy = vi.fn().mockResolvedValue(validReturnedUuid);
-
-      const snsServiceSafeSendSpy = vi.fn().mockResolvedValue({});
+      const safePublishSpy = vi.fn().mockResolvedValue({});
 
       vi.mocked(MessagingService).mockReturnValue({
         sendMessage: sendMessageSpy
       } as unknown as MessagingService);
 
-      const result = await testIt(
-        validRecord,
-        validWebhookUrl,
-        snsServiceSafeSendSpy,
-        disabledConfig
-      );
+      const result = await testIt(validRecord, validWebhookUrl, safePublishSpy, disabledConfig);
 
       expect(result).toBe('fake-uuid');
       expect(sendMessageSpy).not.toHaveBeenCalled();
-      expect(snsServiceSafeSendSpy).toHaveBeenCalledWith({
+      expect(safePublishSpy).toHaveBeenCalledWith({
         ...validRecord.body,
         eventType: 'ActionableEventReminderAttemptSent',
         data: {
@@ -183,7 +177,7 @@ describe('MessageProcessor', () => {
 
   describe('onIdempotencyHit', () => {
     it('should publish a reminder attempt skipped event', async () => {
-      const snsServiceSafeSendSpy = vi.fn().mockResolvedValue({});
+      const safePublishSpy = vi.fn().mockResolvedValue({});
       vi.mocked(MessagingService).mockImplementation(
         () =>
           ({
@@ -192,9 +186,9 @@ describe('MessageProcessor', () => {
       );
       const loggerAppendKeysSpy = vi.spyOn(logger, 'appendKeys');
 
-      await testIt(validRecord, validReturnedUuid, snsServiceSafeSendSpy);
+      await testIt(validRecord, validReturnedUuid, safePublishSpy);
 
-      expect(snsServiceSafeSendSpy).toHaveBeenCalledWith({
+      expect(safePublishSpy).toHaveBeenCalledWith({
         ...validRecord.body,
         eventType: 'ActionableEventReminderAttemptSkipped',
         data: {
