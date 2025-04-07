@@ -3,19 +3,37 @@ import { z } from 'zod';
 import { dateTimeSchema, idpIdSchema, userIdSchema } from '@notifycal/shared/schemas';
 import { eventIdSchema } from './common';
 
+// Docs: take your time to decide what type of event you are defining and what is aimed at. Pay attention to these silver bullets:
+// SuccessEvent:
+//  - informing the next step of the process to achieve an overarching goal.
+//  - flagging out of ordinary happen that cannot be considered a failure given the input data. Is the intention behind flagging it informing the end user?
+// ErrorEvent:
+//  - something unexpected happened and the error was caught
+//  - wrong user data
+// SystemEvent:
+//  - a priori, movements initiated by AWS. So, AWS wrappers in simple words.
 export const successEventTypeSchema = z.union([
   z.literal('UserCalendarFetched'),
   z.literal('ActionableEventFound'),
   z.literal('ActionableEventReminderAttemptFailed'),
   z.literal('ActionableEventReminderAttemptSent'),
   z.literal('ActionableEventReminderAttemptSkipped'),
-  z.literal('ActionableEventReminderStatusUpdated')
+  z.literal('ActionableEventReminderStatusUpdated'),
+  z.literal('UserSignedIn'),
+  z.literal('UserSignedUp'),
+  z.literal('NoPhoneNumberForAttendeeFound'),
+  z.literal('NoActionableEventsFound'),
+  z.literal('NoAttendeesInCalendarEventFound'),
+  z.literal('NoUserCalendarFound')
 ]);
-export type SuccessEventType = z.infer<typeof successEventTypeSchema>;
 export const errorEventTypeSchema = z.union([
   z.literal('UserFetchedEventsParsingFailed'),
-  z.literal('NoPhoneNumberForAttendeeFound')
+  z.literal('UserSignInFailed'),
+  z.literal('UserSignUpFailed')
 ]);
+export const systemEventTypeSchema = z.literal('ScheduledFetchUserCalendarEventFired');
+export type SuccessEventType = z.infer<typeof successEventTypeSchema>;
+export type SystemEventType = z.infer<typeof systemEventTypeSchema>;
 export type ErrorEventType = z.infer<typeof errorEventTypeSchema>;
 export const eventTypeSchema = z.union([successEventTypeSchema, errorEventTypeSchema]);
 export type EventType = SuccessEventType | ErrorEventType;
@@ -32,17 +50,25 @@ export const baseEventSchema = z.object({
   correlationId: z.string().uuid().brand('CorrelationId'),
   data: dataSchema
 });
+const notApplicableSchema = z.literal('N/A');
+export const baseSystemEventSchema = baseEventSchema.extend({
+  userId: z.literal('System'),
+  idpId: notApplicableSchema,
+  idp: notApplicableSchema,
+  eventType: systemEventTypeSchema
+});
 export const baseErrorEvent = baseEventSchema.extend({
   eventType: errorEventTypeSchema
 });
 export type BaseErrorEvent = z.infer<typeof baseErrorEvent>;
 export type BaseEvent = z.infer<typeof baseEventSchema>;
+export type BaseSystemEvent = z.infer<typeof baseSystemEventSchema>;
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, @typescript-eslint/explicit-module-boundary-types
-export function eventSchemaGenerator<TData extends z.AnyZodObject>(
-  eventType: SuccessEventType,
-  dataSchema: TData
-) {
+export function eventSchemaGenerator<
+  TData extends z.AnyZodObject,
+  TEventType extends SuccessEventType
+>(eventType: TEventType, dataSchema: TData) {
   return baseEventSchema.extend({
     eventType: z.literal(eventType),
     data: dataSchema
@@ -50,10 +76,21 @@ export function eventSchemaGenerator<TData extends z.AnyZodObject>(
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, @typescript-eslint/explicit-module-boundary-types
-export function errorEventSchemaGenerator<TData extends z.AnyZodObject>(
-  eventType: ErrorEventType,
-  dataSchema: TData
-) {
+export function systemEventSchemaGenerator<
+  TData extends z.AnyZodObject,
+  TEventType extends SystemEventType
+>(eventType: TEventType, dataSchema: TData) {
+  return baseSystemEventSchema.extend({
+    eventType: z.literal(eventType),
+    data: dataSchema
+  });
+}
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type, @typescript-eslint/explicit-module-boundary-types
+export function errorEventSchemaGenerator<
+  TData extends z.AnyZodObject,
+  TEventType extends ErrorEventType
+>(eventType: TEventType, dataSchema: TData) {
   return baseEventSchema.extend({
     eventType: z.literal(eventType),
     data: dataSchema

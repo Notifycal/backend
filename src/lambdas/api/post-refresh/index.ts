@@ -3,9 +3,9 @@ import { unprotectedCrossDomainEndpointMiddleware } from '@common/lambda-middlew
 import { refreshTokenSchema } from '@model/Jwt';
 import { apiEventSchema } from '@model/lambda-events/ApiGatewayEvents';
 import { extractIdentity } from '@model/UserIdentity';
+import { _successHandler, buildJwtsAndStoreRefreshJwt } from '@services/auth';
 import { errorHandler } from '@services/common/api-response-handlers';
 import { decodeAndVerifyJwtSignature } from '@services/jwt';
-import { _successHandler, buildJwtsAndStoreRefreshJwt } from '@services/login';
 import { RefreshTokenBaseStore } from '@services/stores/refresh-token-base-store';
 import { UserBaseStore } from '@services/stores/user-base-store';
 import type { APIGatewayProxyResult, Context } from 'aws-lambda';

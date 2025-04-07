@@ -122,6 +122,63 @@ async function* validLiveUsers(): AsyncGenerator<
   ]);
 }
 
+async function* validLiveUsersWithoutACalendar(): AsyncGenerator<
+  Array<LiveUserStoreRecord<'google.com'> & UserIdpAuthorizationStoreRecord<'google.com'>>,
+  void,
+  void
+> {
+  yield await Promise.resolve([
+    {
+      UserId: 'user123' as UserId,
+      Email: 'testuser1@gmail.com' as Email,
+      Idp: 'google.com',
+      IdpId: 'google123' as IdpId,
+      LastSignInAt: 1672531199 as UnixTimestamp,
+      SignedUpAt: 1609459200 as UnixTimestamp,
+      Config: {
+        calendars: [],
+        business: {
+          name: 'businessName1' as BusinessName,
+          address: 'businessNameAddress1' as BusinessAddress,
+          senderContact: {
+            type: 'phone',
+            countryCode: 'ES',
+            phoneNumber: '666777888' as PhoneNumber
+          }
+        }
+      },
+      UserStatus: 'live' as UserStatus,
+      IdpAuthorization: {
+        refreshToken: 'mock_refresh_token_94534'
+      }
+    },
+    {
+      UserId: 'user456' as UserId,
+      Email: 'testuser2@gmail.com' as Email,
+      Idp: 'google.com',
+      IdpId: 'google456' as IdpId,
+      LastSignInAt: 1675622399 as UnixTimestamp,
+      SignedUpAt: 1612137600 as UnixTimestamp,
+      Config: {
+        calendars: [validCalendar],
+        business: {
+          name: 'businessName2' as BusinessName,
+          address: 'businessNameAddress2' as BusinessAddress,
+          senderContact: {
+            type: 'phone',
+            countryCode: 'ES',
+            phoneNumber: '666777888' as PhoneNumber
+          }
+        }
+      },
+      UserStatus: 'live' as UserStatus,
+      IdpAuthorization: {
+        refreshToken: 'mock_refresh_token_087976'
+      }
+    }
+  ]);
+}
+
 async function* oneRejectionInBetweenLiveUsers(): AsyncGenerator<
   Array<LiveUserStoreRecord<'google.com'> & UserIdpAuthorizationStoreRecord<'google.com'>>,
   void,
@@ -191,28 +248,39 @@ async function* rejectedLiveUsers(): AsyncGenerator<
 > {
   yield await Promise.reject(new Error('Boom!'));
 }
+const systemEventCount = 1;
 
 describe('Schedule fetch user calendars', () => {
-  it('publish as many events as live users times calendars exist in persistance', async () => {
+  it('publish as many events as live users times calendars exist in persistance and produce a system event', async () => {
     const getLiveUsersFn = () => validLiveUsers();
-    const publishSpy = vi.spyOn(snsService.SnsService.prototype, 'publish').mockResolvedValue({
-      $metadata: {}
-    });
+    const safePublishSpy = vi
+      .spyOn(snsService.SnsService.prototype, 'safePublish')
+      .mockResolvedValue();
     await testit(getLiveUsersFn);
 
-    expect(publishSpy).toHaveBeenCalledTimes(3);
+    expect(safePublishSpy).toHaveBeenCalledTimes(3 + systemEventCount);
   });
 
   it('cannot resume processing if persistance pagination fails', async () => {
     const getLiveUsersFn = () => oneRejectionInBetweenLiveUsers();
-    const publishSpy = vi.spyOn(snsService.SnsService.prototype, 'publish').mockResolvedValue({
-      $metadata: {}
-    });
+    const safePublishSpy = vi
+      .spyOn(snsService.SnsService.prototype, 'safePublish')
+      .mockResolvedValue();
 
     await expect(testit(getLiveUsersFn)).rejects.toThrow(
       'An error happened while processing live users'
     );
-    expect(publishSpy).toHaveBeenCalledTimes(1);
+    expect(safePublishSpy).toHaveBeenCalledTimes(1 + systemEventCount);
+  });
+
+  it('should not stop processing current page or the rest of the pages even if an no user calendar event cannot be published', async () => {
+    const getLiveUsersFn = () => validLiveUsersWithoutACalendar();
+    const safePublishSpy = vi
+      .spyOn(snsService.SnsService.prototype, 'safePublish')
+      .mockResolvedValue();
+    await testit(getLiveUsersFn);
+
+    expect(safePublishSpy).toHaveBeenCalledTimes(2 + systemEventCount);
   });
 
   it('should not stop processing current page or the rest of the pages even if a message cannot be published', async () => {
@@ -231,7 +299,7 @@ describe('Schedule fetch user calendars', () => {
       });
     await testit(getLiveUsersFn);
 
-    expect(publishSpy).toHaveBeenCalledTimes(3);
+    expect(publishSpy).toHaveBeenCalledTimes(3 + systemEventCount);
   });
 
   it('throw an error if live users cannot be fetched from persistance', () => {

@@ -3,12 +3,10 @@ import { unprotectedCrossDomainEndpointMiddleware } from '@common/lambda-middlew
 import type { IdpConfigs } from '@model/Config';
 import type { AuthorizationForIdp } from '@model/IdpAuthorization';
 import { apiEventSchema } from '@model/lambda-events/ApiGatewayEvents';
-import { extractIdentity } from '@model/UserIdentity';
 import type { Identity, IdpName } from '@notifycal/shared/types';
+import { _successHandler, signInOrUp } from '@services/auth';
 import { errorHandler } from '@services/common/api-response-handlers';
 import { GoogleOAuth } from '@services/google/oauth';
-import { _successHandler, buildJwtsAndStoreRefreshJwt, signInOrUpUser } from '@services/login';
-import { RefreshTokenBaseStore } from '@services/stores/refresh-token-base-store';
 import type { APIGatewayProxyResult, Context } from 'aws-lambda';
 import { z } from 'zod';
 import { readLoginConfig, type LoginConfig } from './config';
@@ -46,20 +44,10 @@ function lambdaHandler(
 ): Promise<APIGatewayProxyResult> {
   const config = event.lambdaConfig;
   const idpQueryPath = event.queryStringParameters?.['idp'];
-  const store = new RefreshTokenBaseStore(config.refreshTokenBaseStoreConfig);
+
   return verifyIdentity(event, idpQueryPath, config.idpConfigs)
     .then(([identity, idpAuthorization]) =>
-      signInOrUpUser(identity, idpAuthorization, config.userBaseStoreConfig)
-        .then((user) =>
-          buildJwtsAndStoreRefreshJwt(
-            extractIdentity(user),
-            config.encodeAccessJwtConfig,
-            config.encodeRefreshJwtConfig,
-            store
-          )
-        )
-        .then(_successHandler)
-        .catch(errorHandler(500))
+      signInOrUp(identity, idpAuthorization, config).then(_successHandler).catch(errorHandler(500))
     )
     .catch(errorHandler(401));
 }

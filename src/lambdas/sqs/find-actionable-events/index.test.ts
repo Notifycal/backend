@@ -1,10 +1,9 @@
-import type { AwsArn, Url } from '@own-types/model';
+import type { AwsArn } from '@own-types/model';
 import { userCalendarFetchedEvent } from '@testing/data/app-events';
 import { validRawRecord } from '@testing/data/sqs-events';
 import {
   fakeIdpConfigs,
   setEnvActionableEventFoundTopicConfig,
-  setEnvDeadLetterQueueConfig,
   setEnvIdpConfigs
 } from '@testing/utils/config';
 import type { SQSEvent, SQSRecord } from 'aws-lambda';
@@ -25,13 +24,9 @@ function setEnv(): void {
     actionableEventFoundTopicConfig: {
       topicArn: 'someTopicArn' as AwsArn
     },
-    deadLetterQueueConfig: {
-      queueUrl: 'http://aws.com/dql' as Url
-    },
     idpConfigs: fakeIdpConfigs
   };
   setEnvActionableEventFoundTopicConfig(config.actionableEventFoundTopicConfig);
-  setEnvDeadLetterQueueConfig(config.deadLetterQueueConfig);
   setEnvIdpConfigs(config.idpConfigs);
 }
 

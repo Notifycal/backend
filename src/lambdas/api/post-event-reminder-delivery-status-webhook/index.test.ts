@@ -2,8 +2,7 @@ import type { ActionableEventReminderStatusUpdatedEvent } from '@model/app-event
 import type { Algorithm, Duration } from '@model/Config';
 import type { DecodeVonageAccessJwtConfig } from '@model/vendor/vonage';
 import type { Jwt } from '@notifycal/shared/types';
-import type { Url } from '@own-types/model';
-import { AuditTrailService } from '@services/audit-trail';
+import type { AwsArn } from '@own-types/model';
 import type {
   VonageApiKey,
   VonageApplicationId,
@@ -15,14 +14,15 @@ import {
   responseSuccessNoCorsHeaders
 } from '@testing/utils/api-response-handlers';
 import { assert } from '@testing/utils/assertions';
-import { setEnvAuditTrailQueueConfig } from '@testing/utils/config';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { v4 as uuidv4, type Version4Options } from 'uuid';
-import { describe, expect, it, vi, type Mock } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { ReminderDeliveryStatusWebhookConfig } from './config';
 import { handler, type Event } from './index';
 
 import { logger } from '@common/powertools';
+import { SnsService } from '@services/sns';
+import { setEnvMessagingTopicConfig } from '@testing/utils/config';
 import { ZodError } from 'zod';
 
 /* eslint-disable camelcase */
@@ -208,8 +208,8 @@ describe('POST Event reminder delivery status webhook', () => {
     });
   });
 
-  it('should send a ActionableEventReminderStatusUpdated event to audit trail service', async () => {
-    const sendMock = vi.fn();
+  it('should publish a ActionableEventReminderStatusUpdated event to sns service', async () => {
+    const safePublishMock = vi.fn();
     const fixedDate = new Date('2025-03-26T08:20:53.240Z');
     vi.setSystemTime(fixedDate);
 
@@ -222,13 +222,13 @@ describe('POST Event reminder delivery status webhook', () => {
 
     const event = testVonageAuthedEvent(chosenBody, validVonageJwt, validQSPObject);
 
-    await testit(event as APIGatewayProxyEvent, sendMock);
+    await testit(event as APIGatewayProxyEvent, safePublishMock);
 
     const eventQSP = event.queryStringParameters || {};
 
     expect(event.queryStringParameters).not.toBeNull();
-    expect(sendMock).toHaveBeenCalledTimes(1);
-    expect(sendMock).toHaveBeenCalledWith({
+    expect(safePublishMock).toHaveBeenCalledTimes(1);
+    expect(safePublishMock).toHaveBeenCalledWith({
       eventType: 'ActionableEventReminderStatusUpdated',
       correlationId: eventQSP.correlationId,
       userId: eventQSP.userId,
@@ -309,32 +309,9 @@ describe('POST Event reminder delivery status webhook', () => {
     );
   });
 
-  it('should log an error and success if it cannot send the event to audit trail service', async () => {
-    const sendMock = vi.fn().mockRejectedValue(new Error('Failed to send'));
-    const errorLoggerSpy = vi.spyOn(logger, 'error');
-
-    const chosenBody = validBodies[1];
-    const event = testVonageAuthedEvent(
-      chosenBody,
-      validVonageJwt,
-      validQSPObject
-    ) as APIGatewayProxyEvent;
-
-    const resp = await testit(event, sendMock);
-
-    assert(resp, responseSuccessNoCorsHeaders());
-
-    expect(errorLoggerSpy).toHaveBeenCalledWith(
-      expect.stringContaining('Could not send message status update to audit trail'),
-      {
-        error: new Error(`Failed to send`)
-      }
-    );
-  });
-
   const defaultEnv = {
-    auditTrailQueueConfig: {
-      queueUrl: 'https://fake-queue-url' as Url
+    messagingTopicConfig: {
+      topicArn: 'some-aws-arn' as AwsArn
     },
     decodeAccessJwtConfig: {
       signingSecret: validVonageEncodeJwtConfig.signingSecret as VonageJwtSigningSecret,
@@ -354,24 +331,22 @@ describe('POST Event reminder delivery status webhook', () => {
   }
 
   function setEnv(config: ReminderDeliveryStatusWebhookConfig) {
-    setEnvAuditTrailQueueConfig(config.auditTrailQueueConfig);
     setEnvDecodeVonageJwtConfig(config.decodeAccessJwtConfig);
+    setEnvMessagingTopicConfig(config.messagingTopicConfig);
   }
 
   async function testit(
     event: APIGatewayProxyEvent,
-    sendMock: Mock = vi.fn(),
+    safePublishFn: () => Promise<void> = vi.fn(),
     env: ReminderDeliveryStatusWebhookConfig = defaultEnv
   ): Promise<APIGatewayProxyResult> {
     setEnv(env);
-    vi.mock('@services/audit-trail');
-    const auditTrailServiceMock = {
-      send: sendMock
+    vi.mock('@services/sns');
+    const snsServiceMock = {
+      safePublish: safePublishFn
     };
     // eslint-disable-next-line @typescript-eslint/unbound-method
-    vi.mocked(AuditTrailService.withConfig).mockReturnValue(
-      auditTrailServiceMock as unknown as AuditTrailService
-    );
+    vi.mocked(SnsService.withConfig).mockReturnValue(snsServiceMock as unknown as SnsService);
 
     vi.mock('uuid', async () => {
       // eslint-disable-next-line @typescript-eslint/consistent-type-imports

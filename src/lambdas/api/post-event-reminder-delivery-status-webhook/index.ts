@@ -9,9 +9,9 @@ import {
   type DecodeVonageAccessJwtConfig
 } from '@model/vendor/vonage';
 import type { DateTime, EventId } from '@notifycal/shared/types';
-import { AuditTrailService } from '@services/audit-trail';
 import { successHandler } from '@services/common/api-response-handlers';
 import { vonageDecodeAndVerifyJwtSignature } from '@services/jwt';
+import { SnsService } from '@services/sns';
 import { queryStringObjectToTypedObject } from '@utils/queryString';
 import type { APIGatewayProxyResult, Context } from 'aws-lambda';
 import { v4 } from 'uuid';
@@ -27,6 +27,25 @@ const schema = authedEventSchema<ReminderDeliveryStatusWebhookConfig>().extend({
 });
 export type Event = z.infer<typeof schema>;
 
+function buildActionableEventReminderStatusUpdated(
+  rebuiltEventObject: Omit<ActionableEventFoundEvent, 'eventType' | 'eventId' | 'happenedAt'>,
+  event: Event['body']
+): ActionableEventReminderStatusUpdatedEvent {
+  return {
+    ...rebuiltEventObject,
+    eventType: 'ActionableEventReminderStatusUpdated',
+    eventId: v4() as EventId,
+    happenedAt: new Date().toISOString() as DateTime,
+    data: {
+      ...rebuiltEventObject.data,
+      messageUUID: event.message_uuid,
+      messageStatusPayload: {
+        ...event
+      }
+    }
+  };
+}
+
 async function lambdaHandler(
   event: Event,
   /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
@@ -40,7 +59,7 @@ async function lambdaHandler(
     queryStringParameterObject
   });
 
-  const auditTrailService = AuditTrailService.withConfig(config.auditTrailQueueConfig);
+  const snsService = SnsService.withConfig(config.messagingTopicConfig);
   let rebuiltEventObject: Omit<ActionableEventFoundEvent, 'eventType' | 'eventId' | 'happenedAt'>;
 
   try {
@@ -56,28 +75,9 @@ async function lambdaHandler(
     logger.error(`Could not rebuild event from query string`, { error: err });
     return Promise.resolve(successHandler()());
   }
-
-  try {
-    await auditTrailService.send<ActionableEventReminderStatusUpdatedEvent>({
-      ...rebuiltEventObject,
-      eventType: 'ActionableEventReminderStatusUpdated',
-      eventId: v4() as EventId,
-      happenedAt: new Date().toISOString() as DateTime,
-      data: {
-        ...rebuiltEventObject.data,
-        messageUUID: event.body.message_uuid,
-        messageStatusPayload: {
-          ...event.body
-        }
-      }
-    });
-    logger.info(
-      `Message status update sent to audit trail. correlationId: ${rebuiltEventObject.correlationId}`
-    );
-  } catch (err) {
-    logger.error(`Could not send message status update to audit trail`, { error: err });
-    return Promise.resolve(successHandler()());
-  }
+  await snsService.safePublish(
+    buildActionableEventReminderStatusUpdated(rebuiltEventObject, event.body)
+  );
 
   return Promise.resolve(successHandler()());
 }

@@ -4,8 +4,8 @@ import type { RefreshTokenStoreRecord } from '@model/store/RefreshTokenStoreReco
 import type { UserStoreRecord } from '@model/store/UserStoreRecord';
 import type { IdpName, Jwt, UnixTimestamp, Uuid } from '@notifycal/shared/types';
 import type { PrivateKey, PublicKey } from '@own-types/model';
+import { buildJwtsAndStoreRefreshJwt } from '@services/auth';
 import { decodeAndVerifyJwtSignature, type EncodedAndDecodedJwts } from '@services/jwt';
-import { buildJwtsAndStoreRefreshJwt } from '@services/login';
 import { RefreshTokenBaseStore } from '@services/stores/refresh-token-base-store';
 import { UserBaseStore } from '@services/stores/user-base-store';
 import { c, testEvent } from '@testing/data/apigateway';
@@ -256,10 +256,10 @@ describe('POST Refresh', () => {
     vi.mocked(UserBaseStore.withConfig).mockReturnValue(
       userBaseStoreMock as unknown as UserBaseStore<IdpName>
     );
-    vi.mock('@services/login', async () => {
-      const realImport = await vi.importActual('@services/login');
+    vi.mock('@services/auth', async () => {
+      const realImport = await vi.importActual('@services/auth');
       return {
-        signInOrUpUser: vi.fn(),
+        signInOrUp: vi.fn(),
         buildJwtsAndStoreRefreshJwt: vi.fn(),
         _successHandler: realImport._successHandler
       };

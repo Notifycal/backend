@@ -1,10 +1,13 @@
 import { backgroundProcessingMiddleware } from '@common/lambda-middleware';
 import { logger } from '@common/powertools';
 import type { senderStandardSchema } from '@model/app-events/common';
+import { noUserCalendarFound } from '@model/app-events/NoUserCalendarFoundEvent';
+import { scheduledFetchUserCalendarEventFired } from '@model/app-events/ScheduledFetchUserCalendarEventFiredEvent';
 import type {
   UserCalendarFetchedEvent,
   userCalendarFetchedEventSchema
 } from '@model/app-events/UserCalendarFetchedEvent';
+import type { CronRunConfig } from '@model/Config';
 import { eventBridgeEventSchema } from '@model/lambda-events/EventBridgeEvents';
 import type { LiveUserStoreRecord } from '@model/store/LiveUserStoreRecord';
 import type { UserIdpAuthorizationStoreRecord } from '@model/store/UserIdpAuthorizationStoreRecord';
@@ -23,6 +26,11 @@ import { readFetchUserCalendarsConfig, type FetchUserCalendarsConfig } from './c
 
 const eventSchema = eventBridgeEventSchema<FetchUserCalendarsConfig>();
 export type Event = z.infer<typeof eventSchema>;
+export interface CronRunForEvent {
+  lowerBoundStartTime: DateTime;
+  upperBoundStartTime: DateTime;
+  slidingWindowInMinutes: number;
+}
 
 function toCanonicalForm(
   senderContact: z.infer<typeof senderSchema>
@@ -71,22 +79,30 @@ function toEvents(
   });
 }
 
+function runDataFromConfig(config: CronRunConfig, event: Event): CronRunForEvent {
+  const windowStart = DT.fromISO(event.time).toUTC().plus({ hours: 24 });
+  return {
+    lowerBoundStartTime: windowStart.toISO() as DateTime,
+    upperBoundStartTime: windowStart
+      .plus({ minutes: config.windowInMinutes })
+      .minus({ millisecond: 1 })
+      .toISO() as DateTime,
+    slidingWindowInMinutes: config.windowInMinutes
+  };
+}
+
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function lambdaHandler(event: Event, context: Context): Promise<void> {
-  const { userLiveIndexStoreConfig, userCalendarFetchedTopicConfig } = event.lambdaConfig;
+  const { userLiveIndexStoreConfig, userCalendarFetchedTopicConfig, cronRunConfig } =
+    event.lambdaConfig;
 
   const userLiveProvider = UserLiveIndexStore.withConfig(userLiveIndexStoreConfig);
   const snsService = SnsService.withConfig(userCalendarFetchedTopicConfig);
 
-  const windowStart = DT.fromISO(event.time).toUTC().plus({ hours: 24 });
-  const run = {
-    lowerBoundStartTime: windowStart.toISO() as DateTime,
-    upperBoundStartTime: windowStart
-      .plus({ minutes: event.lambdaConfig.cronRunConfig.windowInMinutes })
-      .minus({ millisecond: 1 })
-      .toISO() as DateTime,
-    slidingWindowInMinutes: event.lambdaConfig.cronRunConfig.windowInMinutes
-  };
+  const systemEvent = scheduledFetchUserCalendarEventFired(event, cronRunConfig);
+  await snsService.safePublish(systemEvent);
+
+  const run = runDataFromConfig(cronRunConfig, event);
   logger.info(
     `Starting run corresponding to cron ${event.time}. Time window: [${run.lowerBoundStartTime}, ${run.upperBoundStartTime}]`
   );
@@ -98,18 +114,18 @@ async function lambdaHandler(event: Event, context: Context): Promise<void> {
         `Processing page of results number ${totalPages + 1}. Live users in page: ${liveUsersPage.length}`
       );
 
-      await Promise.allSettled(
-        liveUsersPage
-          .flatMap((user) => toEvents(user, run))
-          .map((event) =>
-            snsService.publish(event).catch((error) => {
-              const msg = `Error publishing an event to SNS`;
-              logger.error(msg, { error, eventId: event.eventId });
-              logger.info(`Moving on after error...`);
-              return;
-            })
-          )
-      );
+      const events = await Promise.all(
+        liveUsersPage.map((user) => {
+          if (user.Config.calendars && user.Config.calendars.length > 0) {
+            return Promise.resolve(toEvents(user, run));
+          } else {
+            const errorEvent = noUserCalendarFound(event, run, user);
+            return snsService.safePublish(errorEvent).then(() => []);
+          }
+        })
+      ).then((events) => events.flat());
+
+      await Promise.allSettled(events.map((event) => snsService.safePublish(event)));
       totalPages += 1;
       totalItems += liveUsersPage.length;
     }

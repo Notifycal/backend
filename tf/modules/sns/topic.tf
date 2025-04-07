@@ -19,11 +19,13 @@ resource "aws_sns_topic" "topic" {
 }
 
 resource "aws_sns_topic_subscription" "topic_subscriptions" {
-  for_each             = var.subscriber_arns
+  for_each             = var.subscribers
   topic_arn            = aws_sns_topic.topic.arn
+  filter_policy        = each.value.filter_policy
+  filter_policy_scope  = each.value.filter_policy_scope
   protocol             = "sqs"
   delivery_policy      = null // by default, there is a delivery policy https://docs.aws.amazon.com/sns/latest/dg/sns-message-delivery-retries.html
-  endpoint             = each.value
+  endpoint             = each.value.arn
   raw_message_delivery = true // by default it is false. If you want that be ready to desencapsulate the message several times.
   redrive_policy       = null // TODO: DLQ stuff https://docs.aws.amazon.com/sns/latest/dg/sns-dead-letter-queues.html#how-messages-moved-into-dead-letter-queue
 }

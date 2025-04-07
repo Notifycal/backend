@@ -1,19 +1,19 @@
-import type { AuditTrailQueueConfig } from '@model/Config';
+import type { MessagingTopicConfig } from '@model/Config';
 import type { DecodeVonageAccessJwtEndpointConfig } from '@model/vendor/vonage';
 import {
-  readAuditTrailQueueConfig,
   readDecodeVonageJwtConfig,
-  readEnv
+  readEnv,
+  readMessagingTopicConfig
 } from '@services/common/config';
 import { promiseTry } from '@utils/promises';
 
-export type ReminderDeliveryStatusWebhookConfig = AuditTrailQueueConfig &
-  DecodeVonageAccessJwtEndpointConfig;
+export type ReminderDeliveryStatusWebhookConfig = DecodeVonageAccessJwtEndpointConfig &
+  MessagingTopicConfig;
 
 export function readReminderDeliveryStatusWebhookConfig(): Promise<ReminderDeliveryStatusWebhookConfig> {
   const env = readEnv();
   return promiseTry(() => ({
-    ...readAuditTrailQueueConfig(env),
-    ...readDecodeVonageJwtConfig(env)
+    ...readDecodeVonageJwtConfig(env),
+    ...readMessagingTopicConfig(env)
   }));
 }

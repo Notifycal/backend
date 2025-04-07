@@ -40,7 +40,7 @@ describe('Audit trail record processor', () => {
   });
 
   // eslint-disable-next-line vitest/expect-expect
-  it('should process a DLQ event successfully and log the success message', async () => {
+  it('should process an AWS event (coming from DLQ) successfully and log the success message', async () => {
     return successTest(fakeScheduledEventBridgeEvent);
   });
 

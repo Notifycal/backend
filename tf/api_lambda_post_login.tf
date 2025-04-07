@@ -22,6 +22,17 @@ data "aws_iam_policy_document" "post_login_iam_policydoc" {
       aws_dynamodb_table.refresh_tokens.arn
     ]
   }
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "sns:Publish",
+    ]
+
+    resources = [
+      module.api_rest_topic.sns_topic_arn
+    ]
+  }
 }
 
 module "post_login_lambda" {
@@ -52,7 +63,8 @@ module "post_login_lambda" {
   policy_json        = data.aws_iam_policy_document.post_login_iam_policydoc.json
 
   environment_variables = merge({
-  }, local.login_and_refresh_env_vars, local.idps_configs_env_vars, local.common_lambda_env_vars)
+
+  }, local.login_and_refresh_env_vars, local.idps_configs_env_vars, local.api_rest_topic_env_vars, local.common_lambda_env_vars)
 }
 
 module "post_login_lambda_alias" {

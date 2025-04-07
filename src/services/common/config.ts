@@ -1,11 +1,10 @@
 import type {
   ActionableEventFoundTopicConfig,
   Algorithm,
-  AuditTrailQueueConfig,
+  ApiRestTopicConfig,
   AuthedEndpointConfig,
   CorsEndpointConfig,
   CronRunEndpointConfig,
-  DeadLetterQueueConfig,
   DecodeAccessJwtConfig,
   DecodeAccessJwtEndpointConfig,
   DecodeRefreshJwtConfig,
@@ -15,6 +14,7 @@ import type {
   IdempotencyPersistenceConfig,
   IdpEndpointConfig,
   MessagingEndpointConfig,
+  MessagingTopicConfig,
   UserCalendarFetchedTopicConfig
 } from '@model/Config';
 import type { DecodeVonageAccessJwtEndpointConfig, VonageConfig } from '@model/vendor/vonage';
@@ -150,14 +150,6 @@ export function readActionableEventFoundTopicConfig(
   };
 }
 
-export function readDeadLetterQueueConfig(env: Environment): DeadLetterQueueConfig {
-  return {
-    deadLetterQueueConfig: {
-      queueUrl: env.get('DEAD_LETTER_QUEUE_URL').required().asString() as Url
-    }
-  };
-}
-
 export function readRefreshTokenStoreConfig(
   env: Environment
 ): RefreshTokenBaseStoreConfigEndpointConfig {
@@ -180,14 +172,6 @@ export function readIdpConfigs(env: Environment): IdpEndpointConfig {
   };
 }
 
-export function readAuditTrailQueueConfig(env: Environment): AuditTrailQueueConfig {
-  return {
-    auditTrailQueueConfig: {
-      queueUrl: env.get('AUDIT_TRAIL_QUEUE_URL').required().asString() as Url
-    }
-  };
-}
-
 export function readAuditTrailBaseStoreConfig(env: Environment): AuditTrailBaseStoreEndpointConfig {
   return {
     auditTrailBaseStoreConfig: {
@@ -205,10 +189,26 @@ export function readIdempotencyPersistenceConfig(env: Environment): IdempotencyP
   } as IdempotencyPersistenceConfig;
 }
 
+export function readMessagingTopicConfig(env: Environment): MessagingTopicConfig {
+  return {
+    messagingTopicConfig: {
+      topicArn: env.get('MESSAGING_TOPIC_ARN').required().asString() as AwsArn
+    }
+  };
+}
+
 export function readMessagingConfig(env: Environment): MessagingEndpointConfig {
   return {
     messagingConfig: {
       enabled: env.get('MESSAGING_ENABLED').required().default('true').asBool()
+    }
+  };
+}
+
+export function readApiRestTopicConfig(env: Environment): ApiRestTopicConfig {
+  return {
+    apiRestTopicConfig: {
+      topicArn: env.get('API_REST_TOPIC_ARN').required().asString() as AwsArn
     }
   };
 }

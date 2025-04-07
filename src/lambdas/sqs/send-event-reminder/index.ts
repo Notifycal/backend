@@ -13,7 +13,7 @@ import type { ActionableEventReminderAttemptFailedEvent } from '@model/app-event
 import { eventSqsSchema } from '@model/lambda-events/SqsEvents';
 import type { Uuid } from '@notifycal/shared/types';
 import type { PhoneNumberE164, Url } from '@own-types/model';
-import { AuditTrailService } from '@services/audit-trail';
+import { SnsService } from '@services/sns';
 import { objectToQueryString } from '@utils/queryString';
 import type { Context } from 'aws-lambda';
 import type { z } from 'zod';
@@ -88,10 +88,10 @@ function buildSendMessageIdempotentlyFn(
 
 async function handleReminderAttemptFailure(
   record: Record,
-  config: SendEventReminderConfig['auditTrailQueueConfig']
+  config: SendEventReminderConfig['messagingTopicConfig']
 ): Promise<void> {
-  const auditTrailService = AuditTrailService.withConfig(config);
-  await auditTrailService.send<ActionableEventReminderAttemptFailedEvent>({
+  const snsService = SnsService.withConfig(config);
+  await snsService.safePublish<ActionableEventReminderAttemptFailedEvent>({
     ...record.body,
     eventType: 'ActionableEventReminderAttemptFailed'
   });
@@ -109,7 +109,7 @@ async function sendMessageIdempotently(
   try {
     messageUUID = await sendMessageIdempotentlyFn(record, webhookURL);
   } catch (err) {
-    await handleReminderAttemptFailure(record, config.auditTrailQueueConfig);
+    await handleReminderAttemptFailure(record, config.messagingTopicConfig);
     throw err;
   }
   if (isIdempotencyHit) {

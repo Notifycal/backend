@@ -3,18 +3,18 @@ import type { ActionableEventReminderAttemptSentEvent } from '@model/app-events/
 import type { ActionableEventReminderAttemptSkippedEvent } from '@model/app-events/ActionableEventReminderAttemptSkippedEvent';
 import type { Uuid } from '@notifycal/shared/types';
 import type { Url } from '@own-types/model';
-import { AuditTrailService } from '@services/audit-trail';
 import { MessagingService } from '@services/messaging';
+import { SnsService } from '@services/sns';
 import type { SendEventReminderConfig } from './config';
 import type { Record } from './index';
 
 export default class MessageProcessor {
-  private readonly _auditTrailService: AuditTrailService;
+  private readonly _snsService: SnsService;
   private readonly _messagingService: MessagingService;
   private readonly _isMessagingEnabled: boolean;
 
   public constructor(config: SendEventReminderConfig) {
-    this._auditTrailService = AuditTrailService.withConfig(config.auditTrailQueueConfig);
+    this._snsService = SnsService.withConfig(config.messagingTopicConfig);
     this._messagingService = new MessagingService(
       config.vonageConfig.applicationId,
       config.vonageConfig.privateKey
@@ -50,23 +50,15 @@ export default class MessageProcessor {
       messageUUID = await Promise.resolve('fake-uuid' as Uuid);
     }
 
-    logger.info('Sending message attempt to audit trail');
-    try {
-      await this._auditTrailService.send<ActionableEventReminderAttemptSentEvent>({
-        ...body,
-        eventType: 'ActionableEventReminderAttemptSent',
-        data: {
-          ...body.data,
-          messageUUID
-        }
-      });
-      logger.info('Message attempt sent to audit trail');
-    } catch (error) {
-      // Not throwing an error if sending to audit trail fails as we wouldn't want the lambda to fail (and retry) because of it.
-      logger.error('Could not send message attempt to audit trail', {
-        error
-      });
-    }
+    logger.info('Attempt to publish an event');
+    await this._snsService.safePublish<ActionableEventReminderAttemptSentEvent>({
+      ...body,
+      eventType: 'ActionableEventReminderAttemptSent',
+      data: {
+        ...body.data,
+        messageUUID
+      }
+    });
 
     return messageUUID;
   }
@@ -79,19 +71,13 @@ export default class MessageProcessor {
       correlationId
     });
 
-    try {
-      await this._auditTrailService.send<ActionableEventReminderAttemptSkippedEvent>({
-        ...body,
-        eventType: 'ActionableEventReminderAttemptSkipped',
-        data: {
-          ...body.data,
-          messageUUID
-        }
-      });
-    } catch (error) {
-      logger.error('Could not send duplicated message attempt to audit trail', {
-        error
-      });
-    }
+    return this._snsService.safePublish<ActionableEventReminderAttemptSkippedEvent>({
+      ...body,
+      eventType: 'ActionableEventReminderAttemptSkipped',
+      data: {
+        ...body.data,
+        messageUUID
+      }
+    });
   }
 }
