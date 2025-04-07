@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.21.1](https://github.com/Notifycal/backend/compare/v0.21.0...v0.21.1) (2025-04-07)
+
+
+### Bug Fixes
+
+* **local:** build read-only error when unzipping ([#491](https://github.com/Notifycal/backend/issues/491)) ([355a3c2](https://github.com/Notifycal/backend/commit/355a3c2757259e8ce9d18c37e9b26cece9e23711))
+
 ## [0.21.0](https://github.com/Notifycal/backend/compare/v0.20.1...v0.21.0) (2025-04-04)
 
 
