@@ -64,7 +64,7 @@ resource "aws_cloudwatch_metric_alarm" "sqs_dlq_number_of_messages" {
   statistic                 = "Average"
   period                    = 60
   evaluation_periods        = 5
-  datapoints_to_alarm       = 5
+  datapoints_to_alarm       = 1
   threshold                 = 0
   comparison_operator       = "GreaterThanThreshold"
   treat_missing_data        = "ignore"
