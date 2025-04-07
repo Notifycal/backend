@@ -70,7 +70,7 @@ export class SqsService extends BaseAwsMessagingService {
     const sendMessageCommand = new SendMessageBatchCommand(input);
     return this._client.send(sendMessageCommand).then(
       (result) => {
-        logger.info(`SQS send result`);
+        logger.info(`SQS send result`, { result });
         return result;
       },
       (error) => throwError(`Error sending an event to SQS`, error)
