@@ -3,7 +3,7 @@ import * as userSignedInModule from '@model/app-events/UserSignedInEvent';
 import * as userSignedUpModule from '@model/app-events/UserSignedUpEvent';
 import * as userSignInFailedModule from '@model/app-events/UserSignInFailedEvent';
 import type {
-  AuditTrailQueueConfig,
+  ApiRestTopicConfig,
   EncodeAccessJwtConfig,
   EncodeRefreshJwtConfig
 } from '@model/Config';
@@ -17,18 +17,17 @@ import type {
   UnixTimestamp,
   UserId
 } from '@notifycal/shared/types';
-import type { PrivateKey, Url } from '@own-types/model';
+import type { AwsArn, PrivateKey } from '@own-types/model';
 import { validJwts } from '@testing/utils/jwt';
 import { v4 as uuid } from 'uuid';
 import { describe, expect, it, vi } from 'vitest';
-import { AuditTrailService } from './audit-trail';
 import { _successHandler, buildJwtsAndStoreRefreshJwt, signInOrUp } from './auth';
 import { buildJwts, type EncodedAndDecodedJwts } from './jwt';
+import { SnsService } from './sns';
 import { RefreshTokenBaseStore } from './stores/refresh-token-base-store';
 import { UserBaseStore } from './stores/user-base-store';
 
 vi.mock('./stores/user-base-store');
-vi.mock('./audit-trail');
 vi.mock('@model/app-events/UserSignedInEvent');
 vi.mock('@model/app-events/UserSignedUpEvent');
 
@@ -48,10 +47,10 @@ const validAuthorization: AuthorizationForIdp<'google.com'> = {
   refreshToken: 'google-refresh-token'
 };
 
-const validConfig: BaseLoginConfig & AuditTrailQueueConfig = {
+const validConfig: BaseLoginConfig & ApiRestTopicConfig = {
   userBaseStoreConfig: { tableName: 'Users-local' },
   refreshTokenBaseStoreConfig: { tableName: 'RefreshTokens-local' },
-  auditTrailQueueConfig: { queueUrl: 'https://fakeUrl.com/audit-trail' as Url },
+  apiRestTopicConfig: { topicArn: 'some-topic-arn' as AwsArn },
   encodeAccessJwtConfig: {
     secretOrPrivateKey: `some_fake_private_key` as PrivateKey,
     algorithm: 'ES256',
@@ -83,7 +82,7 @@ describe('Auth Service', () => {
     it('should sign in an existing user', async () => {
       const getUserByIdFn = vi.fn(() => Promise.resolve(existingUser));
       const putUserFn = vi.fn(() => Promise.resolve());
-      const auditTrailSendFn = vi.fn(() => Promise.resolve());
+      const safePublishFn = vi.fn(() => Promise.resolve());
       const buildJwtsFn = vi.fn(() => Promise.resolve(validJwts));
       const putTokenFn = vi.fn(() => Promise.resolve(null));
       const userSignedInSpy = vi
@@ -96,7 +95,7 @@ describe('Auth Service', () => {
         validAuthorization,
         getUserByIdFn,
         putUserFn,
-        auditTrailSendFn,
+        safePublishFn,
         buildJwtsFn,
         putTokenFn
       );
@@ -104,7 +103,7 @@ describe('Auth Service', () => {
       expect(result).toStrictEqual(validJwts);
       expect(getUserByIdFn).toHaveBeenCalledOnce();
       expect(putUserFn).toHaveBeenCalledOnce();
-      expect(auditTrailSendFn).toHaveBeenCalledOnce();
+      expect(safePublishFn).toHaveBeenCalledOnce();
       expect(userSignedInSpy).toHaveBeenCalledOnce();
       // eslint-disable-next-line vitest/max-expects
       expect(userSignedUpSpy).not.toHaveBeenCalled();
@@ -113,7 +112,7 @@ describe('Auth Service', () => {
     it('should sign up a new user', async () => {
       const getUserByIdFn = vi.fn(() => Promise.resolve(null));
       const putUserFn = vi.fn(() => Promise.resolve());
-      const auditTrailSendFn = vi.fn(() => Promise.resolve());
+      const safePublishFn = vi.fn(() => Promise.resolve());
       const buildJwtsFn = vi.fn(() => Promise.resolve(validJwts));
       const putTokenFn = vi.fn(() => Promise.resolve(null));
       const userSignedInSpy = vi.spyOn(userSignedInModule, 'userSignedIn');
@@ -126,7 +125,7 @@ describe('Auth Service', () => {
         validAuthorization,
         getUserByIdFn,
         putUserFn,
-        auditTrailSendFn,
+        safePublishFn,
         buildJwtsFn,
         putTokenFn
       );
@@ -134,7 +133,7 @@ describe('Auth Service', () => {
       expect(result).toStrictEqual(validJwts);
       expect(getUserByIdFn).toHaveBeenCalledOnce();
       expect(putUserFn).toHaveBeenCalledOnce();
-      expect(auditTrailSendFn).toHaveBeenCalledOnce();
+      expect(safePublishFn).toHaveBeenCalledOnce();
       expect(userSignedInSpy).not.toHaveBeenCalled();
       // eslint-disable-next-line vitest/max-expects
       expect(userSignedUpSpy).toHaveBeenCalledOnce();
@@ -145,7 +144,7 @@ describe('Auth Service', () => {
       const getUserByIdFn = vi.fn(() => Promise.resolve(bannedUser));
       const userSignInFailedSpy = vi.spyOn(userSignInFailedModule, 'userSignInFailed');
       const putUserFn = vi.fn();
-      const auditTrailSendFn = vi.fn();
+      const safePublishFn = vi.fn();
       const buildJwtsFn = vi.fn();
       const putTokenFn = vi.fn();
 
@@ -154,7 +153,7 @@ describe('Auth Service', () => {
         validAuthorization,
         getUserByIdFn,
         putUserFn,
-        auditTrailSendFn,
+        safePublishFn,
         buildJwtsFn,
         putTokenFn
       );
@@ -163,7 +162,7 @@ describe('Auth Service', () => {
         `User with id '${validUserId}' is banned and login is prohibited`
       );
       expect(putUserFn).not.toHaveBeenCalled();
-      expect(auditTrailSendFn).toHaveBeenCalledOnce();
+      expect(safePublishFn).toHaveBeenCalledOnce();
       expect(userSignInFailedSpy).toHaveBeenCalledOnce();
       expect(buildJwtsFn).not.toHaveBeenCalled();
       // eslint-disable-next-line vitest/max-expects
@@ -174,7 +173,7 @@ describe('Auth Service', () => {
       const error = new Error('Database error');
       const getUserByIdFn = vi.fn(() => Promise.reject(error));
       const putUserFn = vi.fn();
-      const auditTrailSendFn = vi.fn();
+      const safePublishFn = vi.fn();
       const buildJwtsFn = vi.fn();
       const putTokenFn = vi.fn();
 
@@ -183,7 +182,7 @@ describe('Auth Service', () => {
         validAuthorization,
         getUserByIdFn,
         putUserFn,
-        auditTrailSendFn,
+        safePublishFn,
         buildJwtsFn,
         putTokenFn
       );
@@ -192,7 +191,7 @@ describe('Auth Service', () => {
         `Failed to fetch '${validUserId}' out of persistance. Unable to say if the user was signing in or up as the call to persistance failed`
       );
       expect(putUserFn).not.toHaveBeenCalled();
-      expect(auditTrailSendFn).not.toHaveBeenCalled();
+      expect(safePublishFn).not.toHaveBeenCalled();
       expect(buildJwtsFn).not.toHaveBeenCalled();
       expect(putTokenFn).not.toHaveBeenCalled();
     });
@@ -275,7 +274,7 @@ describe('Auth Service', () => {
     authorization: AuthorizationForIdp<TIdpName>,
     getUserByIdFn: () => Promise<UserStoreRecord<TIdpName> | null>,
     putUserFn: () => Promise<void>,
-    auditTrailSendFn: () => Promise<void>,
+    safePublishFn: () => Promise<void>,
     buildJwtsFn: () => Promise<EncodedAndDecodedJwts>,
     putTokenFn: () => Promise<null>
   ): Promise<EncodedAndDecodedJwts> {
@@ -289,14 +288,12 @@ describe('Auth Service', () => {
       userBaseStoreMock as unknown as UserBaseStore<TIdpName>
     );
 
-    vi.mock('./audit-trail');
-    const auditTrailServiceMock = {
-      safeSend: vi.fn().mockImplementation(auditTrailSendFn)
+    vi.mock('@services/sns');
+    const snsServiceMock = {
+      safePublish: safePublishFn
     };
     // eslint-disable-next-line @typescript-eslint/unbound-method
-    vi.mocked(AuditTrailService.withConfig).mockReturnValue(
-      auditTrailServiceMock as unknown as AuditTrailService
-    );
+    vi.mocked(SnsService.withConfig).mockReturnValue(snsServiceMock as unknown as SnsService);
 
     vi.mock('./stores/refresh-token-base-store');
     // eslint-disable-next-line @typescript-eslint/unbound-method

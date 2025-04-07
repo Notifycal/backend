@@ -9,9 +9,9 @@ import {
   type DecodeVonageAccessJwtConfig
 } from '@model/vendor/vonage';
 import type { DateTime, EventId } from '@notifycal/shared/types';
-import { AuditTrailService } from '@services/audit-trail';
 import { successHandler } from '@services/common/api-response-handlers';
 import { vonageDecodeAndVerifyJwtSignature } from '@services/jwt';
+import { SnsService } from '@services/sns';
 import { queryStringObjectToTypedObject } from '@utils/queryString';
 import type { APIGatewayProxyResult, Context } from 'aws-lambda';
 import { v4 } from 'uuid';
@@ -59,7 +59,7 @@ async function lambdaHandler(
     queryStringParameterObject
   });
 
-  const auditTrailService = AuditTrailService.withConfig(config.auditTrailQueueConfig);
+  const snsService = SnsService.withConfig(config.messagingTopicConfig);
   let rebuiltEventObject: Omit<ActionableEventFoundEvent, 'eventType' | 'eventId' | 'happenedAt'>;
 
   try {
@@ -75,7 +75,7 @@ async function lambdaHandler(
     logger.error(`Could not rebuild event from query string`, { error: err });
     return Promise.resolve(successHandler()());
   }
-  await auditTrailService.safeSend(
+  await snsService.safePublish(
     buildActionableEventReminderStatusUpdated(rebuiltEventObject, event.body)
   );
 

@@ -79,6 +79,14 @@ export function setEnvActionableEventFoundTopicConfig(config: SnsTopicConfig): v
   process.env.ACTIONABLE_EVENT_FOUND_TOPIC_ARN = config.topicArn;
 }
 
+export function setEnvMessagingTopicConfig(config: SnsTopicConfig): void {
+  process.env.MESSAGING_TOPIC_ARN = config.topicArn;
+}
+
+export function setEnvApiRestTopicConfig(config: SnsTopicConfig): void {
+  process.env.API_REST_TOPIC_ARN = config.topicArn;
+}
+
 export function setEnvDeadLetterQueueConfig(config: SqsQueueConfig): void {
   process.env.DEAD_LETTER_QUEUE_URL = config.queueUrl;
 }
@@ -93,10 +101,6 @@ export function setEnvRefreshTokenBaseStoreConfig(config: RefreshTokenBaseStoreC
 
 export function setEnvAuditTrailBaseStoreConfig(config: AuditTrailBaseStoreConfig): void {
   process.env.AUDIT_TRAIL_TABLE_NAME = config.tableName;
-}
-
-export function setEnvAuditTrailQueueConfig(config: SqsQueueConfig): void {
-  process.env.AUDIT_TRAIL_QUEUE_URL = config.queueUrl;
 }
 
 export function setEnvBaseConfig(config: CorsConfig): void {

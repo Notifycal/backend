@@ -8,13 +8,12 @@ variable "topic_display_name" {
   description = "SNS topic display name"
 }
 
-variable "publisher_arn" {
-  type        = string
-  description = "AWS arn of identity publishing messages to SNS topic"
-}
-
-variable "subscriber_arns" {
-  type        = map(string)
+variable "subscribers" {
+  type = map(object({
+    arn                 = string
+    filter_policy       = string
+    filter_policy_scope = optional(string, "MessageAttributes")
+  }))
   description = "Map containg keys representing the subscriber name and values representing the subscriber AWS arn"
 }
 

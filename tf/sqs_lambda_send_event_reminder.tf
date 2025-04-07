@@ -42,15 +42,16 @@ data "aws_iam_policy_document" "send_event_reminder_iam_policydoc" {
       data.aws_ssm_parameter.vonage_private_key.arn
     ]
   }
+
   statement {
     effect = "Allow"
 
     actions = [
-      "sqs:SendMessage",
+      "sns:Publish",
     ]
 
     resources = [
-      module.audit_trail_queue.sqs_queue_arn
+      module.messaging_topic.sns_topic_arn
     ]
   }
 }
@@ -119,5 +120,5 @@ module "send_event_reminder_lambda" {
       dataAttr             = local.lambda_idempotency_table_config.data_attribute_name
       validationKeyAttr    = local.lambda_idempotency_table_config.validation_attribute_name
     })
-  }, local.audit_trail_queue_env_vars, local.common_lambda_env_vars)
+  }, local.messaging_topic_env_vars, local.common_lambda_env_vars)
 }

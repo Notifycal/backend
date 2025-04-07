@@ -13,13 +13,13 @@ import type {
   UserId,
   Uuid
 } from '@notifycal/shared/types';
-import type { PhoneNumberE164, Url } from '@own-types/model';
-import { AuditTrailService } from '@services/audit-trail';
+import type { AwsArn, PhoneNumberE164, Url } from '@own-types/model';
 import type { VonageApplicationId } from '@services/messaging';
+import { SnsService } from '@services/sns';
 import { validRawRecord as _validRawRecord } from '@testing/data/sqs-events';
 import {
-  setEnvAuditTrailQueueConfig,
   setEnvIdempotencyPersistanceConfig,
+  setEnvMessagingTopicConfig,
   setEnvVonageConfig
 } from '@testing/utils/config';
 import type { Context, SQSEvent, SQSRecord } from 'aws-lambda';
@@ -30,7 +30,7 @@ import MessageProcessor from './message-idempotent-processor';
 
 vi.mock('@common/powertools');
 vi.mock('./message-idempotent-processor');
-vi.mock('@services/audit-trail');
+vi.mock('@services/sns');
 vi.mock('@aws-lambda-powertools/parameters/ssm');
 vi.mock('@aws-lambda-powertools/idempotency');
 vi.mock('@aws-lambda-powertools/metrics');
@@ -85,15 +85,11 @@ const nonSpanishEvent: SQSEvent = {
 describe('Send event reminder', () => {
   it('should process and return message UUID if successful', async () => {
     const returnedReminderId = 'mock-uuid' as Uuid;
-
     const sendReminderSpy = vi
       .spyOn(MessageProcessor.prototype, 'sendReminder')
       .mockResolvedValue(returnedReminderId);
-    const auditTrailSpy = vi.fn().mockResolvedValue({});
-    // eslint-disable-next-line @typescript-eslint/unbound-method
-    vi.mocked(AuditTrailService.withConfig).mockReturnValue({
-      safeSend: auditTrailSpy
-    } as unknown as AuditTrailService);
+    const safePublishFn = vi.fn().mockResolvedValue({});
+
     const makeIdempotentSpy = vi
       .spyOn(makeIdempotentModule, 'makeIdempotent')
       .mockImplementation(() => sendReminderSpy.getMockImplementation()!);
@@ -101,52 +97,44 @@ describe('Send event reminder', () => {
       .spyOn(MessageProcessor.prototype, 'onIdempotencyHit')
       .mockResolvedValue(undefined);
 
-    const result = await testit(validEvent);
+    const result = await testit(validEvent, safePublishFn);
 
     expect(result).toStrictEqual(returnedReminderId);
-    expect(auditTrailSpy).toHaveBeenCalledTimes(0);
+    expect(safePublishFn).toHaveBeenCalledTimes(0);
     expect(makeIdempotentSpy).toHaveBeenCalledTimes(1);
     expect(onIdempotencyHitSpy).toHaveBeenCalledTimes(0);
   });
 
   it('should return "MessageNotSentOutsideOfSpain" for non-Spanish phone numbers', async () => {
     const sendReminderSpy = vi.spyOn(MessageProcessor.prototype, 'sendReminder');
-    const auditTrailSpy = vi.fn().mockResolvedValue({});
-    // eslint-disable-next-line @typescript-eslint/unbound-method
-    vi.mocked(AuditTrailService.withConfig).mockReturnValue({
-      safeSend: auditTrailSpy
-    } as unknown as AuditTrailService);
+    const safePublishFn = vi.fn().mockResolvedValue({});
     const makeIdempotentSpy = vi.spyOn(makeIdempotentModule, 'makeIdempotent');
     const onIdempotencyHitSpy = vi.spyOn(MessageProcessor.prototype, 'onIdempotencyHit');
 
-    const result = await testit(nonSpanishEvent);
+    const result = await testit(nonSpanishEvent, safePublishFn);
 
     expect(result).toBe('MessageNotSentOutsideOfSpain');
     expect(sendReminderSpy).toHaveBeenCalledTimes(0);
-    expect(auditTrailSpy).toHaveBeenCalledTimes(0);
+    expect(safePublishFn).toHaveBeenCalledTimes(0);
     expect(makeIdempotentSpy).toHaveBeenCalledTimes(0);
     expect(onIdempotencyHitSpy).toHaveBeenCalledTimes(0);
   });
 
-  it('should call audit trail service when message sending fails', async () => {
+  it('should publish an event when message sending fails', async () => {
     const error = new Error('Failed to send message');
     const sendReminderSpy = vi
       .spyOn(MessageProcessor.prototype, 'sendReminder')
       .mockRejectedValue(error);
 
-    const auditTrailSpy = vi.fn().mockResolvedValue({});
-    // eslint-disable-next-line @typescript-eslint/unbound-method
-    vi.mocked(AuditTrailService.withConfig).mockReturnValue({
-      safeSend: auditTrailSpy
-    } as unknown as AuditTrailService);
+    const safePublishFn = vi.fn().mockResolvedValue({});
     vi.spyOn(makeIdempotentModule, 'makeIdempotent').mockImplementation(
       () => sendReminderSpy.getMockImplementation()!
     );
 
-    await expect(testit(validEvent)).rejects.toThrow(error);
+    await expect(testit(validEvent, safePublishFn)).rejects.toThrow(error);
 
-    expect(auditTrailSpy).toHaveBeenCalledTimes(1);
-    expect(auditTrailSpy).toHaveBeenCalledWith({
+    expect(safePublishFn).toHaveBeenCalledTimes(1);
+    expect(safePublishFn).toHaveBeenCalledWith({
       ...validActionableEventEvent,
       eventType: 'ActionableEventReminderAttemptFailed'
     });
@@ -159,15 +147,17 @@ describe('Send event reminder', () => {
     vi.spyOn(makeIdempotentModule, 'makeIdempotent').mockImplementation(() => {
       throw error;
     });
+    const safePublishFn = vi.fn().mockResolvedValue({});
 
-    await expect(testit(validEvent)).rejects.toThrow(error);
+    await expect(testit(validEvent, safePublishFn)).rejects.toThrow(error);
   });
 
   it('should log appropriate metrics for non-Spanish numbers', async () => {
     const addMetricSpy = vi.spyOn(metrics, 'addMetric');
     const addMetadataSpy = vi.spyOn(metrics, 'addMetadata');
+    const safePublishFn = vi.fn().mockResolvedValue({});
 
-    await testit(nonSpanishEvent);
+    await testit(nonSpanishEvent, safePublishFn);
 
     expect(addMetricSpy).toHaveBeenCalledWith('MessageNotSentOutsideOfSpain', 'Count', 1);
     expect(addMetadataSpy).toHaveBeenCalledWith(
@@ -187,10 +177,16 @@ type EndpointConfig = Omit<SendEventReminderConfig, 'vonageConfig'> & {
 
 function testit(
   event: SQSEvent,
+  safePublishFn: () => Promise<void>,
   getParameterFromSsmFn: () => Promise<string> = () => Promise.resolve('fakePrivateKey'),
   config: EndpointConfig = defaultConfig
 ): Promise<Uuid | 'MessageNotSentOutsideOfSpain'> {
   setEnv(config);
+  const snsServiceMock = {
+    safePublish: safePublishFn
+  };
+  // eslint-disable-next-line @typescript-eslint/unbound-method
+  vi.mocked(SnsService.withConfig).mockReturnValue(snsServiceMock as unknown as SnsService);
   vi.mocked(getParameter).mockImplementation(getParameterFromSsmFn);
   return handler(event as unknown as Event, {} as Context);
 }
@@ -210,8 +206,8 @@ const defaultConfig: EndpointConfig = {
     dataAttr: 'some data attr',
     validationKeyAttr: 'some validation key attr'
   },
-  auditTrailQueueConfig: {
-    queueUrl: 'some queue url' as Url
+  messagingTopicConfig: {
+    topicArn: 'some topic arn' as AwsArn
   },
   messagingConfig: {
     enabled: true
@@ -220,6 +216,6 @@ const defaultConfig: EndpointConfig = {
 
 function setEnv(config: EndpointConfig): void {
   setEnvVonageConfig(config.vonageConfig);
-  setEnvAuditTrailQueueConfig(config.auditTrailQueueConfig);
+  setEnvMessagingTopicConfig(config.messagingTopicConfig);
   setEnvIdempotencyPersistanceConfig(config);
 }

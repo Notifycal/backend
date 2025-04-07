@@ -4,7 +4,7 @@ import { userSignedUp } from '@model/app-events/UserSignedUpEvent';
 import { userSignInFailed } from '@model/app-events/UserSignInFailedEvent';
 import { userSignUpFailed } from '@model/app-events/UserSignUpFailedEvent';
 import type {
-  AuditTrailQueueConfig,
+  ApiRestTopicConfig,
   EncodeAccessJwtConfig,
   EncodeRefreshJwtConfig
 } from '@model/Config';
@@ -14,9 +14,9 @@ import { type UserIdentity, extractIdentity } from '@model/UserIdentity';
 import type { Identity, IdpName, UnixTimestamp } from '@notifycal/shared/types';
 import { doAndRethrow, tap } from '@utils/promises';
 import type { APIGatewayProxyResult } from 'aws-lambda';
-import { AuditTrailService } from './audit-trail';
 import { successHandler } from './common/api-response-handlers';
 import { type EncodedAndDecodedJwts, buildJwts } from './jwt';
+import { SnsService } from './sns';
 import { RefreshTokenBaseStore } from './stores/refresh-token-base-store';
 import { UserBaseStore } from './stores/user-base-store';
 
@@ -89,7 +89,7 @@ function handleFailureToGetUserById<TIdpName extends IdpName>(
 
 function generateAuthentication<TIdpName extends IdpName>(
   user: UserIdentity<TIdpName>,
-  config: BaseLoginConfig & AuditTrailQueueConfig
+  config: BaseLoginConfig
 ): Promise<EncodedAndDecodedJwts> {
   const store = new RefreshTokenBaseStore(config.refreshTokenBaseStoreConfig);
   return buildJwtsAndStoreRefreshJwt(
@@ -103,25 +103,25 @@ function generateAuthentication<TIdpName extends IdpName>(
 export function signInOrUp<TIdpName extends IdpName>(
   identity: Identity<TIdpName>,
   authorization: AuthorizationForIdp<TIdpName>,
-  config: BaseLoginConfig & AuditTrailQueueConfig
+  config: BaseLoginConfig & ApiRestTopicConfig
 ): Promise<EncodedAndDecodedJwts> {
   const userProvider = UserBaseStore.withConfig<TIdpName>(config.userBaseStoreConfig);
-  const auditTrailService = AuditTrailService.withConfig(config.auditTrailQueueConfig);
+  const snsService = SnsService.withConfig(config.apiRestTopicConfig);
 
   return userProvider.getUserById(identity.userId).then((userOrNot) => {
     if (userOrNot) {
       return signIn(userOrNot, identity, authorization, userProvider)
         .then((user) => generateAuthentication(user, config))
         .then(
-          tap(() => auditTrailService.safeSend(userSignedIn(identity, userOrNot))),
-          doAndRethrow(() => auditTrailService.safeSend(userSignInFailed(identity, userOrNot)))
+          tap(() => snsService.safePublish(userSignedIn(identity, userOrNot))),
+          doAndRethrow(() => snsService.safePublish(userSignInFailed(identity, userOrNot)))
         );
     } else {
       return signUp(identity, authorization, userProvider)
         .then((user) => generateAuthentication(user, config))
         .then(
-          tap(() => auditTrailService.safeSend(userSignedUp(identity))),
-          doAndRethrow(() => auditTrailService.safeSend(userSignUpFailed(identity)))
+          tap(() => snsService.safePublish(userSignedUp(identity))),
+          doAndRethrow(() => snsService.safePublish(userSignUpFailed(identity)))
         );
     }
   }, handleFailureToGetUserById<TIdpName>(identity));

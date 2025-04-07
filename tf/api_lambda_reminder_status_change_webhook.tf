@@ -3,11 +3,11 @@ data "aws_iam_policy_document" "event_reminder_status_change_webhook_iam_policyd
     effect = "Allow"
 
     actions = [
-      "sqs:SendMessage",
+      "sns:Publish",
     ]
 
     resources = [
-      module.audit_trail_queue.sqs_queue_arn
+      module.messaging_topic.sns_topic_arn
     ]
   }
 }
@@ -45,7 +45,7 @@ module "event_reminder_status_change_webhook_lambda" {
     VONAGE_WEBHOOK_JWT_SIGNING_SECRET = var.vonage_auth_config.webhook_jwt_signing_secret
     VONAGE_JWT_ALGORITHM              = "HS256"
     VONAGE_JWT_ISSUER                 = "Vonage"
-  }, local.audit_trail_queue_env_vars, local.common_lambda_env_vars)
+  }, local.messaging_topic_env_vars, local.common_lambda_env_vars)
 }
 
 module "event_reminder_status_change_webhook_lambda_alias" {

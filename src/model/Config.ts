@@ -88,12 +88,12 @@ export type ActionableEventFoundTopicConfig = {
   actionableEventFoundTopicConfig: SnsTopicConfig;
 };
 
-export type DeadLetterQueueConfig = {
-  deadLetterQueueConfig: SqsQueueConfig;
+export type MessagingTopicConfig = {
+  messagingTopicConfig: SnsTopicConfig;
 };
 
-export type AuditTrailQueueConfig = {
-  auditTrailQueueConfig: SqsQueueConfig;
+export type ApiRestTopicConfig = {
+  apiRestTopicConfig: SnsTopicConfig;
 };
 
 export type IdempotencyPersistenceConfig = {
