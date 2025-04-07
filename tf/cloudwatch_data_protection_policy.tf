@@ -20,11 +20,29 @@ resource "aws_cloudwatch_log_data_protection_policy" "no_credentials_in_logs" {
 
   log_group_name = each.value
 
+  # This is the format AWS expects, with an Operation.Audit and an Operation.Deidentify
+  # even if you're only using one of them
   policy_document = jsonencode({
     Name    = "MaskCredentials"
     Version = "2021-06-01"
 
     Statement = [
+      {
+        Sid = "Audit",
+        DataIdentifier = [
+          "arn:aws:dataprotection::aws:data-identifier/AwsSecretKey",
+          "arn:aws:dataprotection::aws:data-identifier/OpenSshPrivateKey",
+          "arn:aws:dataprotection::aws:data-identifier/PgpPrivateKey",
+          "arn:aws:dataprotection::aws:data-identifier/PkcsPrivateKey",
+          "arn:aws:dataprotection::aws:data-identifier/PuttyPrivateKey",
+          "PrivatekeyGeneric"
+        ],
+        Operation = {
+          Audit = {
+            FindingsDestination = {}
+          }
+        }
+      },
       {
         Sid = "Redact"
         DataIdentifier = [
@@ -32,8 +50,8 @@ resource "aws_cloudwatch_log_data_protection_policy" "no_credentials_in_logs" {
           "arn:aws:dataprotection::aws:data-identifier/OpenSshPrivateKey",
           "arn:aws:dataprotection::aws:data-identifier/PgpPrivateKey",
           "arn:aws:dataprotection::aws:data-identifier/PkcsPrivateKey",
-          "arn:aws:dataprotection::aws:data-identifier/PuttyPrivateKey"
-
+          "arn:aws:dataprotection::aws:data-identifier/PuttyPrivateKey",
+          "PrivatekeyGeneric"
         ]
         Operation = {
           Deidentify = {
