@@ -30,10 +30,12 @@ const messageStatusErrorSchema = z.object({
 });
 
 const messageStatusUsageSchema = z.object({
-  usage: z.object({
-    currency: z.enum(['EUR']),
-    price: z.coerce.number()
-  })
+  usage: z
+    .object({
+      currency: z.enum(['EUR']),
+      price: z.coerce.number()
+    })
+    .optional()
 });
 
 export const messageStatusSchema = z.enum(['submitted', 'delivered', 'rejected', 'undeliverable']);
