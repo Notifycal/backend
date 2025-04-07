@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.23.1](https://github.com/Notifycal/backend/compare/v0.23.0...v0.23.1) (2025-04-07)
+
+
+### Bug Fixes
+
+* usage schema from Vonage is not required as their OpenAPI says ([#505](https://github.com/Notifycal/backend/issues/505)) ([ae96048](https://github.com/Notifycal/backend/commit/ae9604823f69a5b938f1709e13c309495c1a7b4b))
+
 ## [0.23.0](https://github.com/Notifycal/backend/compare/v0.22.1...v0.23.0) (2025-04-07)
 
 
