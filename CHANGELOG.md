@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.23.0](https://github.com/Notifycal/backend/compare/v0.22.1...v0.23.0) (2025-04-07)
+
+
+### Features
+
+* sanitize Credentials/Private key in logs ([#497](https://github.com/Notifycal/backend/issues/497)) ([56c1008](https://github.com/Notifycal/backend/commit/56c10081ead05342082a70e33b5972a849123bbe))
+
+
+### Bug Fixes
+
+* make sure config exists ([#498](https://github.com/Notifycal/backend/issues/498)) ([f8658dc](https://github.com/Notifycal/backend/commit/f8658dc93d0dfd270da390e29245b31c246d29d8))
+* sns subscription filter code ([#495](https://github.com/Notifycal/backend/issues/495)) ([d675c33](https://github.com/Notifycal/backend/commit/d675c331b7960f86898f1ddf4e22f11f0d954d32))
+* update express route import ([#499](https://github.com/Notifycal/backend/issues/499)) ([c8a7749](https://github.com/Notifycal/backend/commit/c8a7749484878d462f7ec6951f537cb9c03bda4c))
+
 ## [0.22.1](https://github.com/Notifycal/backend/compare/v0.22.0...v0.22.1) (2025-04-07)
 
 
