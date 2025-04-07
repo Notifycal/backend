@@ -5,14 +5,7 @@ import type {
   AuditTrailStoreRecord,
   AuditTrailStoreRecordOrigin
 } from '@model/store/AuditTrailStoreRecord';
-import type {
-  CorrelationId,
-  DateTime,
-  EventId,
-  IdpId,
-  IdpName,
-  UserId
-} from '@notifycal/shared/types';
+import type { CorrelationId, DateTime, EventId, UserId } from '@notifycal/shared/types';
 import { throwError } from '@services/common/error-handling';
 import { AuditTrailBaseStore } from '@services/stores/audit-trail-base-store';
 import { match, P } from 'ts-pattern';
@@ -43,8 +36,8 @@ function toStoreRecord(r: Record): Promise<AuditTrailStoreRecord> {
           EventId: event.id as EventId,
           CorrelationId: event.id as CorrelationId,
           UserId: 'System' as UserId,
-          IdpId: 'N/A' as IdpId,
-          Idp: 'N/A' as IdpName,
+          IdpId: 'N/A' as const,
+          Idp: 'N/A' as const,
           EventType: event['detail-type'] as EventType,
           HappenedAt: event.time as DateTime,
           Data: event,

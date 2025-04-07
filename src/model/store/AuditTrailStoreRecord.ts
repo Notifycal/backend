@@ -1,4 +1,4 @@
-import type { EventType } from '@model/app-events/BaseEvent';
+import type { EventType, SystemEventType } from '@model/app-events/BaseEvent';
 import type {
   Brand,
   CorrelationId,
@@ -21,7 +21,7 @@ export interface AuditTrailStoreRecord {
   UserId: UserId | 'System';
   IdpId: IdpId | 'N/A';
   Idp: IdpName | 'N/A';
-  EventType: EventType;
+  EventType: EventType | SystemEventType;
   HappenedAt: DateTime;
   Data: Data;
   Origin: AuditTrailStoreRecordOrigin;
