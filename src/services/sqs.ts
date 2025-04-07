@@ -1,6 +1,8 @@
+import type { SendMessageBatchCommandInput } from '@aws-sdk/client-sqs';
 import {
   type SendMessageCommandOutput,
   type SQSClient,
+  SendMessageBatchCommand,
   SendMessageCommand
 } from '@aws-sdk/client-sqs';
 import { sqsClient } from '@clients/sqs';
@@ -42,6 +44,36 @@ export class SqsService extends BaseAwsMessagingService {
         return result;
       },
       (error) => throwError(`Error sending an event to SQS`, error, { eventId: event.eventId })
+    );
+  }
+
+  public sendBatch<TEvent extends BaseEvent>(
+    events: Array<TEvent>
+  ): Promise<SendMessageCommandOutput> {
+    const fifoParams = this._config.queueUrl.endsWith('.fifo')
+      ? {
+          MessageGroupId: '1'
+        }
+      : {};
+    const entries = events.map((event) => ({
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      Id: event.eventId || event.id || 'some-id',
+      MessageBody: JSON.stringify(event),
+      MessageDeduplicationId: event.eventId,
+      ...fifoParams
+    }));
+    const input: SendMessageBatchCommandInput = {
+      QueueUrl: this._config.queueUrl,
+      Entries: entries,
+      ...fifoParams
+    };
+    const sendMessageCommand = new SendMessageBatchCommand(input);
+    return this._client.send(sendMessageCommand).then(
+      (result) => {
+        logger.info(`SQS send result`);
+        return result;
+      },
+      (error) => throwError(`Error sending an event to SQS`, error)
     );
   }
 }

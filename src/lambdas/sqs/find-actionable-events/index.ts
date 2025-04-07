@@ -21,7 +21,7 @@ function lambdaHandler(event: Event, context: Context): Promise<PartialItemFailu
     recordProcessorCurried(event.lambdaConfig),
     new BatchProcessor(EventType.SQS)
   ).catch((error) => {
-    logger.error(`Failed to process event.`, { error });
+    logger.error(`Failed to process batch of events.`, { error });
     throw error;
   });
 }

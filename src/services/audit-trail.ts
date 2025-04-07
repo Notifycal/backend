@@ -17,4 +17,10 @@ export class AuditTrailService {
   public send<TEvent extends BaseEvent>(event: TEvent): Promise<SendMessageCommandOutput> {
     return this._sqsService.send(event);
   }
+
+  public sendBatch<TEvent extends BaseEvent>(
+    events: Array<TEvent>
+  ): Promise<SendMessageCommandOutput> {
+    return this._sqsService.sendBatch(events);
+  }
 }
