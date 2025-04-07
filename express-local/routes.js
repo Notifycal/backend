@@ -3,9 +3,9 @@
 import { handler as getUserProfile } from '../dist/lambdas/api/get-user-profile/index.cjs';
 import { handler as getUserCalendars } from '../dist/lambdas/api/idp/get-user-calendars/index.cjs';
 import { handler as patchUserProfile } from '../dist/lambdas/api/patch-user-profile/index.cjs';
+import { handler as postMessageDeliveryWebhook } from '../dist/lambdas/api/post-event-reminder-delivery-status-webhook/index.cjs';
 import { handler as postLogin } from '../dist/lambdas/api/post-login/index.cjs';
 import { handler as postRefresh } from '../dist/lambdas/api/post-refresh/index.cjs';
-import { handler as postMessageDeliveryWebhook } from '../dist/lambdas/api/post-reminder-delivery-status-webhook/index.cjs';
 
 const routes = {
   'idp/user-calendars': {
