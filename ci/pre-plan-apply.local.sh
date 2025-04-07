@@ -18,13 +18,12 @@ echo "STACK NAME: ${STACK_NAME}"
 echo "STACK_VERSION: ${STACK_VERSION}"    # Assumes STACK_NAME == repository name
 echo "PWD: $RUNNING_PATH"
 echo "REPO_PATH: $REPO_PATH"
-echo "OUT_DIR: $OUT_DIR"
 echo "==================================="
 echo
 
 echo "Creating adhoc build..."
 pushd "${REPO_PATH}" > /dev/null
-npm run build && npm run package && pushd dist && unzip -o build.zip -d "$OUT_DIR" && popd
+npm run build && npm run package && pushd dist && unzip -o build.zip && popd
 popd > /dev/null
 
 exit 0;
