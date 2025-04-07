@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.22.0](https://github.com/Notifycal/backend/compare/v0.21.1...v0.22.0) (2025-04-07)
+
+
+### Features
+
+* alert on non-empty DLQs ([#485](https://github.com/Notifycal/backend/issues/485)) ([72b4465](https://github.com/Notifycal/backend/commit/72b4465478a241905454ef59bb7c97c472e94156))
+
+
+### Bug Fixes
+
+* limit number of attempts to process messages in audit trail. ([#482](https://github.com/Notifycal/backend/issues/482)) ([b769d57](https://github.com/Notifycal/backend/commit/b769d5778e3485cbef45db3ae0da1368de5edc8f))
+
 ## [0.21.1](https://github.com/Notifycal/backend/compare/v0.21.0...v0.21.1) (2025-04-07)
 
 
