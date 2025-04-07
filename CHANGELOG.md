@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.21.1](https://github.com/Notifycal/backend/compare/v0.21.0...v0.21.1) (2025-04-07)
+
+
+### Bug Fixes
+
+* **local:** build read-only error when unzipping ([#491](https://github.com/Notifycal/backend/issues/491)) ([355a3c2](https://github.com/Notifycal/backend/commit/355a3c2757259e8ce9d18c37e9b26cece9e23711))
+
+## [0.21.0](https://github.com/Notifycal/backend/compare/v0.20.1...v0.21.0) (2025-04-04)
+
+
+### Features
+
+* create metrics for audit-trail events ([#477](https://github.com/Notifycal/backend/issues/477)) ([94c3bb9](https://github.com/Notifycal/backend/commit/94c3bb960fce88cfb5de77f3f05375ef549b2fbd))
+* store event source (eventSourceARN) in audit-trail ([#481](https://github.com/Notifycal/backend/issues/481)) ([4020f4e](https://github.com/Notifycal/backend/commit/4020f4e7fa4f1d11d344a6e51dadeb419e63dfef))
+
 ## [0.20.1](https://github.com/Notifycal/backend/compare/v0.20.0...v0.20.1) (2025-03-31)
 
 

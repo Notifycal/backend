@@ -1,6 +1,6 @@
 {
   "name": "backend",
-  "version": "0.20.1",
+  "version": "0.21.1",
   "description": "",
   "main": "index.js",
   "type": "module",
@@ -72,7 +72,7 @@
     "@vitest/coverage-v8": "^3.0.6",
     "@vitest/eslint-plugin": "^1.1.31",
     "@vitest/ui": "^3.0.2",
-    "body-parser": "^1.20.3",
+    "body-parser": "^2.2.0",
     "connect-timeout": "^1.9.0",
     "dotenv": "^16.4.7",
     "esbuild": "^0.25.0",

@@ -1,5 +1,6 @@
 import type { EventType } from '@model/app-events/BaseEvent';
 import type {
+  Brand,
   CorrelationId,
   DateTime,
   EventId,
@@ -12,6 +13,8 @@ import { z } from 'zod';
 export const dataSchema = z.object({}).passthrough();
 export type Data = z.infer<typeof dataSchema>;
 
+export type AuditTrailStoreRecordOrigin = Brand<string, 'Origin'>;
+
 export interface AuditTrailStoreRecord {
   EventId: EventId;
   CorrelationId: CorrelationId;
@@ -21,4 +24,5 @@ export interface AuditTrailStoreRecord {
   EventType: EventType;
   HappenedAt: DateTime;
   Data: Data;
+  Origin: AuditTrailStoreRecordOrigin;
 }
