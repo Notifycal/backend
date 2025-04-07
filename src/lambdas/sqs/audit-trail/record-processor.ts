@@ -21,20 +21,8 @@ import type { Record } from './schema';
 
 function toStoreRecord(r: Record): Promise<AuditTrailStoreRecord> {
   return match(r)
-    .with(
-      { body: { eventType: P.any, eventId: P.string, happenedAt: P.string } },
-      ({ body: event, eventSourceARN }) =>
-        Promise.resolve({
-          EventId: event.eventId,
-          CorrelationId: event.correlationId,
-          UserId: event.userId,
-          IdpId: event.idpId,
-          Idp: event.idp,
-          EventType: event.eventType,
-          HappenedAt: event.happenedAt,
-          Data: event.data,
-          Origin: eventSourceARN as AuditTrailStoreRecordOrigin
-        })
+    .with({ body: { eventType: P.any, eventId: P.string, happenedAt: P.string } }, () =>
+      Promise.reject(new Error('Boom!!!! We are trying out partial batch processing'))
     )
     .with(
       { body: { 'detail-type': P.string, time: P.string, id: P.string } },
