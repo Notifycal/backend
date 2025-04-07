@@ -59,9 +59,9 @@ resource "aws_cloudwatch_metric_alarm" "sqs_dlq_number_of_messages" {
   ok_actions                = local.alarm_actions
   alarm_actions             = local.alarm_actions
   insufficient_data_actions = local.alarm_actions
-  metric_name               = "ApproximateNumberOfMessagesVisible"
+  metric_name               = "NumberOfMessagesReceived"
   namespace                 = "AWS/SQS"
-  statistic                 = "Average"
+  statistic                 = "Sum"
   period                    = 60
   evaluation_periods        = 5
   datapoints_to_alarm       = 1
