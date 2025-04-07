@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.22.1](https://github.com/Notifycal/backend/compare/v0.22.0...v0.22.1) (2025-04-07)
+
+
+### Bug Fixes
+
+* setup infra to do partial batch failures for real ([#484](https://github.com/Notifycal/backend/issues/484)) ([50eac23](https://github.com/Notifycal/backend/commit/50eac239ac1efa97acdfd7d443c61d39bd033e3e))
+
 ## [0.22.0](https://github.com/Notifycal/backend/compare/v0.21.1...v0.22.0) (2025-04-07)
 
 
