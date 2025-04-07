@@ -11,10 +11,28 @@ variable "topic_display_name" {
 variable "subscribers" {
   type = map(object({
     arn                 = string
-    filter_policy       = string
-    filter_policy_scope = optional(string, "MessageAttributes")
+    filter_policy       = optional(string)
+    filter_policy_scope = optional(string)
   }))
   description = "Map containg keys representing the subscriber name and values representing the subscriber AWS arn"
+
+  validation {
+    condition = alltrue([
+      for k, v in var.subscribers :
+      v.filter_policy_scope == null ||
+      v.filter_policy_scope == "MessageAttributes" ||
+      v.filter_policy_scope == "MessageBody"
+    ])
+    error_message = "The filter_policy_scope must be either 'MessageAttributes' or 'MessageBody'."
+  }
+
+  validation {
+    condition = alltrue([
+      for k, v in var.subscribers :
+      v.filter_policy_scope == null || v.filter_policy != null
+    ])
+    error_message = "When filter_policy_scope is set, filter_policy must also be provided."
+  }
 }
 
 variable "topic_config" {
