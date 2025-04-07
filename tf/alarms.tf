@@ -89,7 +89,7 @@ resource "aws_cloudwatch_metric_alarm" "lambda_errors" {
   period                    = 60
   dimensions                = {}
   evaluation_periods        = 2
-  datapoints_to_alarm       = 2
+  datapoints_to_alarm       = 1
   threshold                 = 0
   comparison_operator       = "GreaterThanThreshold"
   treat_missing_data        = "ignore"
