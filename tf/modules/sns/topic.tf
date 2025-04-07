@@ -22,7 +22,7 @@ resource "aws_sns_topic_subscription" "topic_subscriptions" {
   for_each             = var.subscribers
   topic_arn            = aws_sns_topic.topic.arn
   filter_policy        = each.value.filter_policy
-  filter_policy_scope  = each.value.filter_policy != null ? each.value.filter_policy_scope : null
+  filter_policy_scope  = each.value.filter_policy_scope
   protocol             = "sqs"
   delivery_policy      = null // by default, there is a delivery policy https://docs.aws.amazon.com/sns/latest/dg/sns-message-delivery-retries.html
   endpoint             = each.value.arn
