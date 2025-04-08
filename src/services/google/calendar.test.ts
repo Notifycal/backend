@@ -6,7 +6,8 @@ import type {
   CalendarEvent,
   CalendarId,
   CalendarName,
-  DateTime
+  DateTime,
+  TimeZone
 } from '@notifycal/shared/types';
 import { fakeIdpConfigs } from '@testing/utils/config';
 import { google, type calendar_v3 } from 'googleapis';
@@ -267,4 +268,90 @@ describe('GoogleCalendar Service eventsWithinPeriod', () => {
       includeAllDayEvents
     );
   }
+});
+
+describe('toCalendarEventEntry', () => {
+  it('should convert a Google Calendar event to a CalendarEvent', () => {
+    const input: calendar_v3.Schema$Event = {
+      kind: 'calendar#event',
+      etag: '"MADEUP"',
+      id: 'FAKEIDSOERJRgbosujRBGOWIRG',
+      status: 'confirmed',
+      htmlLink: 'https://www.google.com/calendar/event?eid=ipowhjbbmmadeup&ctz=UTC',
+      created: '2025-04-07T21:42:46.000Z',
+      updated: '2025-04-07T22:43:51.867Z',
+      summary: 'Testing 0.23.0',
+      creator: {
+        email: 'someemail@gmail.com',
+        self: true
+      },
+      organizer: {
+        email: 'someemail@gmail.com',
+        self: true
+      },
+      start: {
+        dateTime: '2025-04-08T23:15:00Z',
+        timeZone: 'Europe/Madrid'
+      },
+      end: {
+        dateTime: '2025-04-09T00:15:00Z',
+        timeZone: 'Europe/Madrid'
+      },
+      iCalUID: 'madeupppp@google.com',
+      sequence: 4,
+      attendees: [
+        {
+          email: 'someemail@gmail.com',
+          organizer: true,
+          self: true,
+          responseStatus: 'accepted'
+        },
+        {
+          email: 'receiver@gmail.com',
+          responseStatus: 'needsAction'
+        }
+      ],
+      hangoutLink: 'https://meet.google.com/dgo-vupb-madeup',
+      conferenceData: {
+        entryPoints: [
+          {
+            entryPointType: 'video',
+            uri: 'https://meet.google.com/dgo-vupb-madeup',
+            label: 'meet.google.com/dgo-vupb-madeup'
+          }
+        ],
+        conferenceSolution: {
+          key: {
+            type: 'hangoutsMeet'
+          },
+          name: 'Google Meet',
+          iconUri:
+            'https://fonts.gstatic.com/s/i/productlogos/meet_2020q4/v6/web-512dp/logo_meet_2020q4_color_2x_web_512dp.png'
+        },
+        conferenceId: 'dgo-vupb-madeup'
+      },
+      reminders: {
+        useDefault: true
+      },
+      eventType: 'default'
+    };
+
+    const result = GoogleCalendar.withRefreshToken(
+      fakeIdpConfigs['google.com'],
+      'wsrgrgrg'
+    ).toCalendarEventEntry(input, 'irrelevant' as CalendarId, 'Europe/Madrid' as TimeZone);
+
+    expect(result).toStrictEqual({
+      attendees: [
+        {
+          id: 'receiver@gmail.com'
+        }
+      ],
+      description: 'Testing 0.23.0',
+      id: 'FAKEIDSOERJRgbosujRBGOWIRG',
+      isAllDayEvent: false,
+      startTime: '2025-04-08T23:15:00Z',
+      timeZone: 'Europe/Madrid'
+    });
+  });
 });
