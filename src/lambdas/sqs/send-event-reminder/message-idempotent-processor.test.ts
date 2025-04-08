@@ -122,8 +122,7 @@ describe('MessageProcessor', () => {
       expect(loggerAppendKeysSpy).toHaveBeenCalledWith({
         reminderMessage: validRecord.body.data.message,
         senderDetails: validRecord.body.data.senderDetails,
-        receiverDetails: validRecord.body.data.receiverDetails,
-        correlationId: validRecord.body.correlationId
+        receiverDetails: validRecord.body.data.receiverDetails
       });
       expect(loggerInfoSpy).toHaveBeenCalledWith('Sending a message through Vonage');
       // eslint-disable-next-line vitest/max-expects
@@ -184,7 +183,6 @@ describe('MessageProcessor', () => {
             sendMessage: vi.fn()
           }) as unknown as MessagingService
       );
-      const loggerAppendKeysSpy = vi.spyOn(logger, 'appendKeys');
 
       await testIt(validRecord, validReturnedUuid, safePublishSpy);
 
@@ -195,9 +193,6 @@ describe('MessageProcessor', () => {
           ...validRecord.body.data,
           messageUUID: validReturnedUuid
         }
-      });
-      expect(loggerAppendKeysSpy).toHaveBeenCalledWith({
-        correlationId: validRecord.body.correlationId
       });
     });
 

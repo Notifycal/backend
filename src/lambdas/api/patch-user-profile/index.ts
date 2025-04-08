@@ -3,6 +3,7 @@ import { protectedEndpointMiddleware } from '@common/lambda-middleware';
 import { authedEventSchema } from '@model/lambda-events/ApiGatewayEvents';
 import { reminderConfigSchema } from '@notifycal/shared/schemas';
 import { errorHandler, successHandler } from '@services/common/api-response-handlers';
+import { setupLoggerForAuthedApiRequest } from '@services/common/logger';
 import { UserBaseStore } from '@services/stores/user-base-store';
 import type { APIGatewayProxyResult, Context } from 'aws-lambda';
 import { type CountryCode, isValidPhoneNumber } from 'libphonenumber-js';
@@ -48,6 +49,7 @@ function lambdaHandler(
   /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
   ctx: Context
 ): Promise<APIGatewayProxyResult> {
+  setupLoggerForAuthedApiRequest(event.requestContext.authorizer);
   const config = event.lambdaConfig;
   const body = event.body;
   const userProvider = UserBaseStore.withConfig(config.userBaseStoreConfig);

@@ -15,13 +15,15 @@ import type {
   JwtClaimCheckerFn,
   JwtDecoderAndSignatureVerifierFn
 } from '@own-types/model';
+import { setupLoggerCorrelationIdApi } from '@services/common/logger';
 import { decodeAndVerifyJwtSignature } from '@services/jwt';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import type { z } from 'zod';
 import { configReaderMiddleware } from './config-reader-middleware';
 import { corsMiddleware } from './cors-middleware';
+import { eventParserMiddleware } from './event-parser-middleware';
 import { checkClaims, jwtVerificationMiddleware } from './jwt-verification-middleware';
-import { eventParserMiddleware } from './parser-http-middleware';
+import { setupMiddleware } from './setup-middleware';
 
 function baseMiddleware(): middy.MiddyfiedHandler {
   return middy({
@@ -41,13 +43,15 @@ function baseConfigMiddleware<TConfig, TResult>(
   );
 }
 
-export function backgroundProcessingMiddleware<TConfig, T extends z.AnyZodObject>(
+export function backgroundProcessingMiddleware<TConfig, T extends z.AnyZodObject, TRequest>(
   configReaderFn: ConfigReaderFn<Promise<TConfig>>,
-  eventSchema: T
+  eventSchema: T,
+  loggerSetup?: (req: TRequest) => void
 ): middy.MiddyfiedHandler {
-  return baseConfigMiddleware(() => configReaderFn(), false).use(
-    eventParserMiddleware(eventSchema, false)
-  );
+  const apiRequest = false;
+  return baseConfigMiddleware(() => configReaderFn(), false)
+    .use(setupMiddleware({ setupFn: loggerSetup }))
+    .use(eventParserMiddleware(eventSchema, apiRequest));
 }
 
 const noOpMiddleware: MiddlewareObj = {
@@ -60,6 +64,7 @@ export function unprotectedEndpointMiddleware<TConfig, T extends z.AnyZodObject>
   enableCors: boolean
 ): middy.MiddyfiedHandler<APIGatewayProxyEvent, APIGatewayProxyResult> {
   return baseConfigMiddleware(() => configReaderFn(), true)
+    .use(setupMiddleware<APIGatewayProxyEvent>({ setupFn: setupLoggerCorrelationIdApi }))
     .use(eventParserMiddleware(eventSchema, true))
     .use(enableCors ? corsMiddleware() : noOpMiddleware) as middy.MiddyfiedHandler<
     APIGatewayProxyEvent,
@@ -92,6 +97,7 @@ export function protectedEndpointMiddlewareCustom<
   enableCors: boolean
 ): middy.MiddyfiedHandler<APIGatewayProxyEvent, APIGatewayProxyResult> {
   return baseConfigMiddleware(() => configReaderFn(), true)
+    .use(setupMiddleware<APIGatewayProxyEvent>({ setupFn: setupLoggerCorrelationIdApi }))
     .use(
       jwtVerificationMiddleware(accessTokenSchema, jwtDecoderAndSignatureVerifierFn, claimCheckerFn)
     )

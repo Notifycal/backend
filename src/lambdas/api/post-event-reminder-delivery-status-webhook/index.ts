@@ -67,6 +67,11 @@ async function lambdaHandler(
       queryStringParameterObject,
       actionableEventQuerySchema
     );
+    logger.appendKeys({
+      userId: rebuiltEventObject.userId,
+      idp: rebuiltEventObject.idp,
+      idpId: rebuiltEventObject.idpId
+    });
 
     logger.info('Rebuilt object', {
       rebuiltEventObject

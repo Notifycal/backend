@@ -1,5 +1,6 @@
 import { JSONStringified } from '@aws-lambda-powertools/parser/helpers';
 import { unprotectedCrossDomainEndpointMiddleware } from '@common/lambda-middleware';
+import { logger } from '@common/powertools';
 import type { IdpConfigs } from '@model/Config';
 import type { AuthorizationForIdp } from '@model/IdpAuthorization';
 import { apiEventSchema } from '@model/lambda-events/ApiGatewayEvents';
@@ -46,9 +47,16 @@ function lambdaHandler(
   const idpQueryPath = event.queryStringParameters?.['idp'];
 
   return verifyIdentity(event, idpQueryPath, config.idpConfigs)
-    .then(([identity, idpAuthorization]) =>
-      signInOrUp(identity, idpAuthorization, config).then(_successHandler).catch(errorHandler(500))
-    )
+    .then(([identity, idpAuthorization]) => {
+      logger.appendKeys({
+        userId: identity.userId,
+        idp: identity.idp,
+        idpId: identity.idpId
+      });
+      return signInOrUp(identity, idpAuthorization, config)
+        .then(_successHandler)
+        .catch(errorHandler(500));
+    })
     .catch(errorHandler(401));
 }
 

@@ -1,7 +1,6 @@
 import { parser } from '@aws-lambda-powertools/parser/middleware';
 import type { MiddlewareObj, Request } from '@middy/core';
-/* eslint-disable-next-line no-duplicate-imports */
-import type middy from '@middy/core';
+
 import type { OptionalCorsEndpointConfig } from '@model/Config';
 import type { EventWithConfig } from '@model/lambda-events/Event';
 import { baseHeaders, errorHandler, headers } from '@services/common/api-response-handlers';
@@ -46,10 +45,7 @@ export function eventParserMiddleware<
   TSchema extends z.AnyZodObject,
   TResult
 >(schema: TSchema, isApiRequest: boolean): MiddlewareObj<EventWithConfig<TConfig>, TResult> {
-  const before: middy.MiddlewareFn<EventWithConfig<TConfig>, TResult> = (
-    req: Request<EventWithConfig<TConfig>, TResult, Error, Context>
-  ) => eventParser(req, schema, isApiRequest);
   return {
-    before
+    before: (req) => eventParser(req, schema, isApiRequest)
   };
 }
