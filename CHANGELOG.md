@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.23.2](https://github.com/Notifycal/backend/compare/v0.23.1...v0.23.2) (2025-04-08)
+
+
+### Bug Fixes
+
+* google integration - method that parses google response. Test it ([#507](https://github.com/Notifycal/backend/issues/507)) ([3e7ae6b](https://github.com/Notifycal/backend/commit/3e7ae6be67fdca15c1f55133125e73f2c8bdebcc))
+* ingest system events in audit trail ([#501](https://github.com/Notifycal/backend/issues/501)) ([0e72a7d](https://github.com/Notifycal/backend/commit/0e72a7d2f372f777ea840ed3a3a47ecb61760794))
+* remove r trademark ([#509](https://github.com/Notifycal/backend/issues/509)) ([ffb9bfb](https://github.com/Notifycal/backend/commit/ffb9bfb108cb606dcfab3204b677198a7b35eba0))
+
 ## [0.23.1](https://github.com/Notifycal/backend/compare/v0.23.0...v0.23.1) (2025-04-07)
 
 
