@@ -70,14 +70,14 @@ export class GoogleCalendar extends BaseGoogle {
   }
 
   // Docs: it includes events which start time happens between start and end inclusive and all day events too.
-  private toCalendarEventEntry(
+  public toCalendarEventEntry(
     item: calendar_v3.Schema$Event,
     calendarId: CalendarId,
     calendarTimezone: string | undefined
   ): CalendarEvent | ParsingError {
     try {
       const timeZone =
-        (item.start?.dateTime as TimeZone) ??
+        (item.start?.timeZone as TimeZone) ??
         (typeof calendarTimezone === 'string' ? (calendarTimezone as TimeZone) : undefined);
       const calendarEvent: Partial<CalendarEvent> = {
         id: item.id ?? undefined,

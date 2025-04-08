@@ -6,21 +6,12 @@ import { userFetchedEventsParsingFailed } from '@model/app-events/UserFetchedEve
 import type { IdpConfigs } from '@model/Config';
 import type { ParsingError } from '@model/Errors';
 import type { ServiceResponse } from '@model/ServiceResponse';
-import { templateMap } from '@notifycal/shared/templates';
-import type {
-  BusinessAddress,
-  BusinessName,
-  CalendarEvent,
-  DateTime,
-  Email,
-  EventId,
-  TemplateId,
-  TimeZone
-} from '@notifycal/shared/types';
+import type { CalendarEvent, DateTime, Email, EventId } from '@notifycal/shared/types';
 import type { PhoneNumberE164 } from '@own-types/model';
 import { eventsStartTimeWithin } from '@services/calendar-events';
 import { phoneNumberByEmail } from '@services/contacts';
 import { SnsService } from '@services/sns';
+import { interpolate } from '@services/template';
 import { allSettledAllOrErrorHandler } from '@utils/promises';
 import { DateTime as DT } from 'luxon';
 import { v4 } from 'uuid';
@@ -30,17 +21,6 @@ import type { Record } from './schema';
 interface CalendarEventWithAnAttendeePhoneNumber {
   calendarEvent: CalendarEvent;
   attendeePhoneNumber: PhoneNumberE164;
-}
-
-function interpolateMessage(
-  templateId: TemplateId,
-  businessName: BusinessName,
-  businessAddress: BusinessAddress,
-  startTime: DateTime,
-  timeZone: TimeZone
-): string {
-  const localDateTime = DT.fromISO(startTime, { zone: timeZone });
-  return templateMap[templateId].interpolate(businessName, businessAddress, localDateTime);
 }
 
 function fetchCalendarEvents(
@@ -121,7 +101,7 @@ function buildActionableEvents(
           phoneNumber: attendeePhoneNumber
         },
         senderDetails: event.data.senderDetails,
-        message: interpolateMessage(
+        message: interpolate(
           event.data.template.id,
           event.data.template.fields.business.name,
           event.data.template.fields.business.address,
