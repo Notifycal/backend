@@ -65,7 +65,7 @@ describe('Find actionable events record processor', () => {
             identifier: validRCSSenderId
           },
           message:
-            'Dear customer, you have an appointment at SomeBusinessName on 02/01/2024 at 16:05, located at SomeBusinessAddress. If you cannot attend, please notify us in advance. Sent with Notifycal®'
+            'Dear customer, you have an appointment at SomeBusinessName on 02/01/2024 at 16:05, located at SomeBusinessAddress. If you cannot attend, please notify us in advance.'
         }
       })
     );
