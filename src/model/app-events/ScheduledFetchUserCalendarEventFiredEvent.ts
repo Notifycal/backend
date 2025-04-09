@@ -24,7 +24,7 @@ export function scheduledFetchUserCalendarEventFired(
 ): ScheduledFetchUserCalendarEventFiredEvent {
   return {
     eventId: v4() as EventId,
-    correlationId: origin.id as CorrelationId,
+    correlationId: 'some corrlation ID' as CorrelationId, //TODO
     eventType: 'ScheduledFetchUserCalendarEventFired',
     happenedAt: new Date().toISOString() as DateTime,
     userId: 'System',

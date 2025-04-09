@@ -21,14 +21,14 @@ export function noUserCalendarFound(
 ): NoUserCalendarFoundEvent {
   return {
     eventId: v4() as EventId,
-    correlationId: origin.id as CorrelationId,
+    correlationId: 'some corrlation ID' as CorrelationId, //TODO
     eventType: 'NoUserCalendarFound',
     happenedAt: new Date().toISOString() as DateTime,
     userId: liveUser.UserId,
     idp: liveUser.Idp,
     idpId: liveUser.IdpId,
     data: {
-      awsEventIdCause: origin.id as EventId,
+      awsEventIdCause: 'some iddddd' as EventId, //TODO
       run: run
     }
   };

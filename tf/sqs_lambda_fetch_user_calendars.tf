@@ -1,12 +1,3 @@
-# Fetch user calendars or just fetch calendars? Isn't that implementation details?
-
-locals {
-  fetch_user_calendars_lambda_cron_schedule_window_minutes = "30"
-  fetch_user_calendars_lambda_cron_schedule                = "cron(0/${local.fetch_user_calendars_lambda_cron_schedule_window_minutes} * * * ? *)"
-  fetch_user_calendars_lambda_function_name                = "fetch-user-calendars"
-  fetch_user_calendars_lambda_function_full_name           = "${local.fetch_user_calendars_lambda_function_name}-${var.environment}"
-}
-
 data "aws_iam_policy_document" "fetch_user_calendars_iam_policydoc" {
   statement {
     effect = "Allow"
@@ -25,6 +16,20 @@ data "aws_iam_policy_document" "fetch_user_calendars_iam_policydoc" {
     effect = "Allow"
 
     actions = [
+      "sqs:DeleteMessage",
+      "sqs:GetQueueAttributes",
+      "sqs:ReceiveMessage"
+    ]
+
+    resources = [
+      module.fetch_user_calendars_queue.sqs_queue_arn
+    ]
+  }
+
+  statement {
+    effect = "Allow"
+
+    actions = [
       "sns:Publish",
     ]
 
@@ -32,19 +37,6 @@ data "aws_iam_policy_document" "fetch_user_calendars_iam_policydoc" {
       module.user_calendar_fetched_topic.sns_topic_arn
     ]
   }
-}
-
-resource "aws_cloudwatch_event_rule" "fetch_user_calendars_trigger_rule" {
-  name        = "${local.fetch_user_calendars_lambda_function_name}-schedule-${var.environment}"
-  description = "Schedule for fetch_user_calendars Lambda"
-
-  schedule_expression = local.fetch_user_calendars_lambda_cron_schedule
-}
-
-resource "aws_cloudwatch_event_target" "fetch_user_calendars_event_target" {
-  rule      = aws_cloudwatch_event_rule.fetch_user_calendars_trigger_rule.name
-  target_id = "FetchLiveUsersCalendars"
-  arn       = module.fetch_user_calendars_lambda.lambda_function_arn
 }
 
 module "fetch_user_calendars_lambda" {
@@ -77,10 +69,23 @@ module "fetch_user_calendars_lambda" {
   attach_policy_json = true
   policy_json        = data.aws_iam_policy_document.fetch_user_calendars_iam_policydoc.json
 
+  event_source_mapping = {
+    sqs = {
+      event_source_arn = module.fetch_user_calendars_queue.sqs_queue_arn
+      batch_size       = 1
+      scaling_config = {
+        maximum_concurrency = 2
+      }
+      metrics_config = {
+        metrics = ["EventCount"]
+      }
+    }
+  }
+
   allowed_triggers = {
-    AllowEventBridgeInvoke = {
-      principal  = "events.amazonaws.com"
-      source_arn = aws_cloudwatch_event_rule.fetch_user_calendars_trigger_rule.arn
+    AllowSQSInvoke = {
+      principal  = "sqs.amazonaws.com"
+      source_arn = module.fetch_user_calendars_queue.sqs_queue_arn
     }
   }
 
