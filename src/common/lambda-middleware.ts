@@ -10,12 +10,16 @@ import type {
   OptionalCorsEndpointConfig
 } from '@model/Config';
 import { accessTokenSchema } from '@model/Jwt';
+import type { AuthedAPIEventWithConfig } from '@model/lambda-events/ApiGatewayEvents';
 import type {
   ConfigReaderFn,
   JwtClaimCheckerFn,
   JwtDecoderAndSignatureVerifierFn
 } from '@own-types/model';
-import { setupLoggerCorrelationIdApi } from '@services/common/logger';
+import {
+  setupLoggerCorrelationIdApi,
+  setupLoggerForAuthedApiRequest
+} from '@services/common/logger';
 import { decodeAndVerifyJwtSignature } from '@services/jwt';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import type { z } from 'zod';
@@ -94,12 +98,20 @@ export function protectedEndpointMiddlewareCustom<
     TDecodeAccessJwtConfig
   >,
   claimCheckerFn: JwtClaimCheckerFn<z.infer<typeof accessTokenSchema>, TConfig>,
-  enableCors: boolean
+  enableCors: boolean,
+  loggerSetup: (req: z.infer<typeof accessTokenSchema>) => void
 ): middy.MiddyfiedHandler<APIGatewayProxyEvent, APIGatewayProxyResult> {
   return baseConfigMiddleware(() => configReaderFn(), true)
     .use(setupMiddleware<APIGatewayProxyEvent>({ setupFn: setupLoggerCorrelationIdApi }))
     .use(
       jwtVerificationMiddleware(accessTokenSchema, jwtDecoderAndSignatureVerifierFn, claimCheckerFn)
+    )
+    .use(
+      setupMiddleware<AuthedAPIEventWithConfig<unknown, TAccessTokenSchema>>({
+        setupFn: (req) => {
+          loggerSetup(req.requestContext.authorizer);
+        }
+      })
     )
     .use(eventParserMiddleware<TConfig, TEventSchema, APIGatewayProxyResult>(eventSchema, true))
     .use(enableCors ? corsMiddleware() : noOpMiddleware) as middy.MiddyfiedHandler<
@@ -128,6 +140,7 @@ export function protectedEndpointMiddleware<
     accessTokenSchema,
     decodeAndVerifyJwtSignature<typeof accessTokenSchema, TDecodeAccessJwtConfig>,
     checkClaims,
-    enableCors
+    enableCors,
+    setupLoggerForAuthedApiRequest
   ) as unknown as middy.MiddyfiedHandler<APIGatewayProxyEvent, APIGatewayProxyResult>;
 }

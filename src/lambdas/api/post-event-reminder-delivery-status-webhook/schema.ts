@@ -19,6 +19,7 @@ export const vonageAccessTokenSchema = z.object({
   }),
   signature: z.string()
 });
+export type VonageAccessToken = z.infer<typeof vonageAccessTokenSchema>;
 
 const actionableEventFoundEventDataSchema = actionableEventFoundEventSchema.shape.data;
 export const actionableEventQuerySchema = actionableEventFoundEventSchema

@@ -5,6 +5,7 @@ import type { ActionableEventFoundEvent } from '@model/app-events/ActionableEven
 import type { ActionableEventReminderStatusUpdatedEvent } from '@model/app-events/ActionableEventReminderStatusUpdatedEvent';
 import { authedEventSchema } from '@model/lambda-events/ApiGatewayEvents';
 import {
+  setupLoggerForAuthedVonageApiRequest,
   VonageMessageStatusWebhookSchema,
   type DecodeVonageAccessJwtConfig
 } from '@model/vendor/vonage';
@@ -105,5 +106,6 @@ export const handler = protectedEndpointMiddlewareCustom(
   vonageAccessTokenSchema,
   vonageDecodeAndVerifyJwtSignature<typeof vonageAccessTokenSchema, DecodeVonageAccessJwtConfig>,
   vonageAccessTokenClaimChecker,
-  enableCors
+  enableCors,
+  setupLoggerForAuthedVonageApiRequest
 ).handler<Event>(lambdaHandler);
