@@ -1,5 +1,5 @@
 locals {
-  fetch_user_calendars_lambda_cron_schedule_window_minutes = "2"
+  fetch_user_calendars_lambda_cron_schedule_window_minutes = "30"
   fetch_user_calendars_lambda_cron_schedule                = "cron(0/${local.fetch_user_calendars_lambda_cron_schedule_window_minutes} * * * ? *)"
   fetch_user_calendars_lambda_function_name                = "fetch-user-calendars"
 }
