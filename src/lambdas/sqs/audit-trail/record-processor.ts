@@ -5,11 +5,10 @@ import type {
   AuditTrailStoreRecord,
   AuditTrailStoreRecordOrigin
 } from '@model/store/AuditTrailStoreRecord';
-import type { DateTime, EventId, UserId } from '@notifycal/shared/types';
+import type { CorrelationId, DateTime, EventId, UserId } from '@notifycal/shared/types';
 import { throwError } from '@services/common/error-handling';
 import { AuditTrailBaseStore } from '@services/stores/audit-trail-base-store';
 import { match, P } from 'ts-pattern';
-import type { CorrelationId } from './../../../../node_modules/@notifycal/shared/dist/types/common.d';
 import type { AuditTrailConfig } from './config';
 import type { Record } from './schema';
 
