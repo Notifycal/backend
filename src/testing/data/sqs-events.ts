@@ -37,9 +37,7 @@ const recordBodyOmitted: Omit<TestingSQSRecord<unknown>, 'body'> = {
   eventSourceARN: '',
   awsRegion: ''
 };
-export function validRecord<TRecord extends BaseEvent | EventBridgeEvent>(
-  event: TRecord
-): TestingSQSRecord<TRecord> {
+export function validRecord<TRecord extends BaseEvent>(event: TRecord): TestingSQSRecord<TRecord> {
   return {
     body: event,
     ...recordBodyOmitted

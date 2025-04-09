@@ -1,50 +1,26 @@
 import { MetricUnit } from '@aws-lambda-powertools/metrics';
 import { logger, metrics } from '@common/powertools';
-import type { EventType } from '@model/app-events/BaseEvent';
 import type {
   AuditTrailStoreRecord,
   AuditTrailStoreRecordOrigin
 } from '@model/store/AuditTrailStoreRecord';
-import type { CorrelationId, DateTime, EventId, UserId } from '@notifycal/shared/types';
 import { throwError } from '@services/common/error-handling';
 import { AuditTrailBaseStore } from '@services/stores/audit-trail-base-store';
-import { match, P } from 'ts-pattern';
 import type { AuditTrailConfig } from './config';
 import type { Record } from './schema';
 
 function toStoreRecord(r: Record): Promise<AuditTrailStoreRecord> {
-  return match(r)
-    .with(
-      { body: { eventType: P.any, eventId: P.string, happenedAt: P.string } },
-      ({ body: event, eventSourceARN }) =>
-        Promise.resolve({
-          EventId: event.eventId,
-          CorrelationId: event.correlationId,
-          UserId: event.userId,
-          IdpId: event.idpId,
-          Idp: event.idp,
-          EventType: event.eventType,
-          HappenedAt: event.happenedAt,
-          Data: event.data,
-          Origin: eventSourceARN as AuditTrailStoreRecordOrigin
-        })
-    )
-    .with(
-      { body: { 'detail-type': P.string, time: P.string, id: P.string } },
-      ({ body: event, eventSourceARN }) =>
-        Promise.resolve({
-          EventId: event.id as EventId,
-          CorrelationId: event.id as CorrelationId,
-          UserId: 'System' as UserId,
-          IdpId: 'N/A' as const,
-          Idp: 'N/A' as const,
-          EventType: event['detail-type'] as EventType,
-          HappenedAt: event.time as DateTime,
-          Data: event,
-          Origin: eventSourceARN as AuditTrailStoreRecordOrigin
-        })
-    )
-    .exhaustive();
+  return Promise.resolve({
+    EventId: r.body.eventId,
+    CorrelationId: r.body.correlationId,
+    UserId: r.body.userId,
+    IdpId: r.body.idpId,
+    Idp: r.body.idp,
+    EventType: r.body.eventType,
+    HappenedAt: r.body.happenedAt,
+    Data: r.body.data,
+    Origin: r.eventSourceARN as AuditTrailStoreRecordOrigin
+  });
 }
 
 function withEventMetric(event: AuditTrailStoreRecord): AuditTrailStoreRecord {

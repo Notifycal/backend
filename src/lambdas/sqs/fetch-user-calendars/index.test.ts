@@ -333,7 +333,6 @@ function testit(
   const validEvent: SQSEvent = {
     Records: [validRawRecord]
   };
-
   return handler(validEvent as unknown as Event, {} as Context);
 }
 
