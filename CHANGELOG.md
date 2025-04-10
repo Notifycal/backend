@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.23.3](https://github.com/Notifycal/backend/compare/v0.23.2...v0.23.3) (2025-04-10)
+
+
+### Bug Fixes
+
+* use generic EventEmitted metric rather than one metric per EventType ([#511](https://github.com/Notifycal/backend/issues/511)) ([91fc413](https://github.com/Notifycal/backend/commit/91fc413693a3743edb35abb0592227b4598c74a9))
+
 ## [0.23.2](https://github.com/Notifycal/backend/compare/v0.23.1...v0.23.2) (2025-04-08)
 
 

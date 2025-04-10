@@ -1,5 +1,5 @@
-import { MetricUnit } from '@aws-lambda-powertools/metrics';
-import { logger, metrics } from '@common/powertools';
+import { type Metrics, MetricUnit } from '@aws-lambda-powertools/metrics';
+import { logger, metrics as metricsSingleton } from '@common/powertools';
 import type { EventType } from '@model/app-events/BaseEvent';
 import type {
   AuditTrailStoreRecord,
@@ -47,16 +47,40 @@ function toStoreRecord(r: Record): Promise<AuditTrailStoreRecord> {
     .exhaustive();
 }
 
-function withEventMetric(event: AuditTrailStoreRecord): AuditTrailStoreRecord {
+function withEventMetric(
+  event: AuditTrailStoreRecord,
+  metrics: Metrics = metricsSingleton
+): AuditTrailStoreRecord {
+  const auditTrailStoreRecordDimensionData = {
+    eventType: event.EventType,
+    origin: event.Origin,
+    idp: event.Idp
+  };
+  const auditTrailStoreRecordMetadataData = {
+    eventId: event.EventId,
+    correlationId: event.CorrelationId,
+    userId: event.UserId,
+    idpId: event.IdpId
+  };
+
   try {
-    metrics.addMetric(event.EventType, MetricUnit.Count, 1);
-    metrics.addMetadata('eventId', event.EventId);
-    metrics.addMetadata('correlationId', event.CorrelationId);
+    metrics.addMetric('EventPublished', MetricUnit.Count, 1);
+
+    for (const [dimensionName, dimensionValue] of Object.entries(
+      auditTrailStoreRecordDimensionData
+    )) {
+      metrics.addDimension(dimensionName, dimensionValue);
+    }
+
+    for (const [metadataName, metadataValue] of Object.entries(auditTrailStoreRecordMetadataData)) {
+      metrics.addMetadata(metadataName, metadataValue);
+    }
+
     if (event.HappenedAt) {
       metrics.setTimestamp(new Date(event.HappenedAt));
     }
   } catch (error) {
-    logger.info('Could not add EventType Cloudwatch Metric.', {
+    logger.info('Could not add EventPublished Cloudwatch Metric.', {
       error,
       event
     });
