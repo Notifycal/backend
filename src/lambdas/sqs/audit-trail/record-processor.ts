@@ -52,9 +52,9 @@ function withEventMetric(
   metrics: Metrics = metricsSingleton
 ): AuditTrailStoreRecord {
   const auditTrailStoreRecordDimensionData = {
-    EventType: event.EventType,
-    Origin: event.Origin,
-    Idp: event.Idp
+    eventType: event.EventType,
+    origin: event.Origin,
+    idp: event.Idp
   };
   const auditTrailStoreRecordMetadataData = {
     eventId: event.EventId,
