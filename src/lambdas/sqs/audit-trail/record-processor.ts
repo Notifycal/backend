@@ -1,4 +1,4 @@
-import { type Metrics, MetricUnit } from '@aws-lambda-powertools/metrics';
+import { MetricUnit } from '@aws-lambda-powertools/metrics';
 import { logger, metrics as metricsSingleton } from '@common/powertools';
 import type { EventType } from '@model/app-events/BaseEvent';
 import type {
@@ -8,6 +8,7 @@ import type {
 import type { CorrelationId, DateTime, EventId, UserId } from '@notifycal/shared/types';
 import { throwError } from '@services/common/error-handling';
 import { AuditTrailBaseStore } from '@services/stores/audit-trail-base-store';
+import type MetricsAggregator from '@utils/MetricsAggregator';
 import { match, P } from 'ts-pattern';
 import type { AuditTrailConfig } from './config';
 import type { Record } from './schema';
@@ -49,7 +50,7 @@ function toStoreRecord(r: Record): Promise<AuditTrailStoreRecord> {
 
 function withEventMetric(
   event: AuditTrailStoreRecord,
-  metrics: Metrics = metricsSingleton
+  metrics: MetricsAggregator = metricsSingleton
 ): AuditTrailStoreRecord {
   const auditTrailStoreRecordDimensionData = {
     eventType: event.EventType,
@@ -64,21 +65,14 @@ function withEventMetric(
   };
 
   try {
-    metrics.addMetric('EventPublished', MetricUnit.Count, 1);
-
-    for (const [dimensionName, dimensionValue] of Object.entries(
-      auditTrailStoreRecordDimensionData
-    )) {
-      metrics.addDimension(dimensionName, dimensionValue);
-    }
-
-    for (const [metadataName, metadataValue] of Object.entries(auditTrailStoreRecordMetadataData)) {
-      metrics.addMetadata(metadataName, metadataValue);
-    }
-
-    if (event.HappenedAt) {
-      metrics.setTimestamp(new Date(event.HappenedAt));
-    }
+    metrics.addMetric(
+      'EventPublished',
+      MetricUnit.Count,
+      1,
+      auditTrailStoreRecordDimensionData,
+      auditTrailStoreRecordMetadataData,
+      new Date(event.HappenedAt)
+    );
   } catch (error) {
     logger.info('Could not add EventPublished Cloudwatch Metric.', {
       error,

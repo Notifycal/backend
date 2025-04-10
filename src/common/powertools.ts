@@ -1,7 +1,9 @@
 import { PT_VERSION as version } from '@aws-lambda-powertools/commons';
 import { Logger } from '@aws-lambda-powertools/logger';
 import { Metrics } from '@aws-lambda-powertools/metrics';
+import type { MetricsOptions } from '@aws-lambda-powertools/metrics/types';
 import { Tracer } from '@aws-lambda-powertools/tracer';
+import MetricsAggregator from '@utils/MetricsAggregator';
 
 const environment = process.env.ENVIRONMENT || 'N/A';
 const serviceName = 'notifycal-backend';
@@ -26,7 +28,7 @@ const logger = new Logger({
   }
 });
 
-const metrics = new Metrics({
+const metricsOptions: MetricsOptions = {
   namespace: metricsNamespace,
   serviceName,
   defaultDimensions: {
@@ -35,7 +37,11 @@ const metrics = new Metrics({
     // eslint-disable-next-line camelcase
     function_name: process.env.AWS_LAMBDA_FUNCTION_NAME || 'N/A'
   }
-});
+};
+
+const metrics = new MetricsAggregator(metricsOptions);
+
+// const metrics2 = new Metrics(metricsOptions);
 
 const tracer = new Tracer();
 
