@@ -73,9 +73,6 @@ module "fetch_user_calendars_lambda" {
     sqs = {
       event_source_arn = module.fetch_user_calendars_queue.sqs_queue_arn
       batch_size       = 1
-      scaling_config = {
-        maximum_concurrency = 2
-      }
       metrics_config = {
         metrics = ["EventCount"]
       }
