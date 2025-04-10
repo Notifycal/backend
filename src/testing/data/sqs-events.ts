@@ -45,7 +45,7 @@ export function validRecord<TRecord extends BaseEvent | EventBridgeEvent>(
     ...recordBodyOmitted
   };
 }
-export function validRawRecord<TRecord extends BaseEvent>(
+export function validRawRecord<TRecord extends BaseEvent | EventBridgeEvent>(
   event: TRecord
 ): TestingSQSRecord<string> {
   return {

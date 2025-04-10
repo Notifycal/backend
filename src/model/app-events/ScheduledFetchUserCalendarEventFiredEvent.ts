@@ -1,4 +1,4 @@
-import type { Event } from '@lambdas/schedule/fetch-user-calendars/index';
+import type { Record } from '@lambdas/sqs/fetch-user-calendars/index';
 import type { CronRunConfig } from '@model/Config';
 import type { CorrelationId, DateTime, EventId } from '@notifycal/shared/types';
 import { v4 } from 'uuid';
@@ -19,7 +19,7 @@ export type ScheduledFetchUserCalendarEventFiredEvent = z.infer<
 >;
 
 export function scheduledFetchUserCalendarEventFired(
-  origin: Event,
+  origin: Record['body'],
   config: CronRunConfig
 ): ScheduledFetchUserCalendarEventFiredEvent {
   return {
