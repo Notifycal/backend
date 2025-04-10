@@ -64,7 +64,7 @@ function withEventMetric(
   };
 
   try {
-    metrics.addMetric('EventEmitted', MetricUnit.Count, 1);
+    metrics.addMetric('EventPublished', MetricUnit.Count, 1);
 
     for (const [dimensionName, dimensionValue] of Object.entries(
       auditTrailStoreRecordDimensionData
@@ -80,7 +80,7 @@ function withEventMetric(
       metrics.setTimestamp(new Date(event.HappenedAt));
     }
   } catch (error) {
-    logger.info('Could not add EmittedEvent Cloudwatch Metric.', {
+    logger.info('Could not add EventPublished Cloudwatch Metric.', {
       error,
       event
     });
