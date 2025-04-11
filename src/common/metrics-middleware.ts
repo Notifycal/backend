@@ -18,7 +18,7 @@ export function metricsMiddleware(
     if (!utility.getColdStart()) {
       return;
     }
-
+    logger.info('Capturing cold start metric');
     target.addMetric(COLD_START_METRIC, MetricUnit.Count, 1);
   };
 
@@ -30,7 +30,6 @@ export function metricsMiddleware(
   const before = (): void => {
     const { captureColdStartMetric } = options;
     if (captureColdStartMetric) {
-      logger.info('Capturing cold start metric');
       captureLambdaColdStartMetric();
     }
   };
