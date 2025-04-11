@@ -1,3 +1,6 @@
+import type { Logger } from '@aws-lambda-powertools/logger';
+import { logger } from '@common/powertools';
+import type { VonageAccessToken } from '@lambdas/api/post-event-reminder-delivery-status-webhook/schema';
 import type { Algorithm, DecodeAccessJwtEndpointConfig } from '@model/Config';
 import { uuidSchema } from '@notifycal/shared/schemas';
 import type { Url } from '@own-types/model';
@@ -88,3 +91,14 @@ export interface DecodeVonageAccessJwtConfig {
 
 export type DecodeVonageAccessJwtEndpointConfig =
   DecodeAccessJwtEndpointConfig<DecodeVonageAccessJwtConfig>;
+
+export function setupLoggerForAuthedVonageApiRequest(
+  jwt: VonageAccessToken,
+  _logger: Logger = logger
+): void {
+  _logger.appendKeys({
+    vendor: 'Vonage',
+    applicationId: jwt.payload.application_id,
+    apiKey: jwt.payload.api_key
+  });
+}

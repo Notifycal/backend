@@ -154,19 +154,19 @@ describe('Send event reminder', () => {
 
   it('should log appropriate metrics for non-Spanish numbers', async () => {
     const addMetricSpy = vi.spyOn(metrics, 'addMetric');
-    const addMetadataSpy = vi.spyOn(metrics, 'addMetadata');
     const safePublishFn = vi.fn().mockResolvedValue({});
 
     await testit(nonSpanishEvent, safePublishFn);
 
-    expect(addMetricSpy).toHaveBeenCalledWith('MessageNotSentOutsideOfSpain', 'Count', 1);
-    expect(addMetadataSpy).toHaveBeenCalledWith(
-      'correlationId',
-      nonSpanishReceiverActionableEventEvent.correlationId
-    );
-    expect(addMetadataSpy).toHaveBeenCalledWith(
-      'eventId',
-      nonSpanishReceiverActionableEventEvent.eventId
+    expect(addMetricSpy).toHaveBeenCalledWith(
+      'MessageNotSentOutsideOfSpain',
+      'Count',
+      1,
+      {},
+      {
+        correlationId: nonSpanishReceiverActionableEventEvent.correlationId,
+        eventId: nonSpanishReceiverActionableEventEvent.eventId
+      }
     );
   });
 });

@@ -13,6 +13,7 @@ import type { ActionableEventReminderAttemptFailedEvent } from '@model/app-event
 import { eventSqsSchema } from '@model/lambda-events/SqsEvents';
 import type { Uuid } from '@notifycal/shared/types';
 import type { PhoneNumberE164, Url } from '@own-types/model';
+import { setupLoggerForEventProcessing } from '@services/common/logger';
 import { SnsService } from '@services/sns';
 import { objectToQueryString } from '@utils/queryString';
 import type { Context } from 'aws-lambda';
@@ -33,9 +34,16 @@ function nonSpanishPhoneReceiverHandler(record: Record): 'MessageNotSentOutsideO
   logger.warn('Not sending event reminder because the number does not start with +34', {
     record
   });
-  metrics.addMetric('MessageNotSentOutsideOfSpain', MetricUnit.Count, 1);
-  metrics.addMetadata('correlationId', record.body.correlationId);
-  metrics.addMetadata('eventId', record.body.eventId);
+  metrics.addMetric(
+    'MessageNotSentOutsideOfSpain',
+    MetricUnit.Count,
+    1,
+    {},
+    {
+      correlationId: record.body.correlationId,
+      eventId: record.body.eventId
+    }
+  );
   return 'MessageNotSentOutsideOfSpain';
 }
 
@@ -125,7 +133,11 @@ async function lambdaHandler(
   logger.info(`Processing sqs message in third lambda`, { event });
   const config = event.lambdaConfig;
   const record = event.Records[0];
-
+  setupLoggerForEventProcessing(record.body);
+  logger.appendKeys({
+    run: record.body.data.run,
+    correlationId: record.body.correlationId
+  });
   if (!isSpanishPhoneNumber(record.body.data.receiverDetails.phoneNumber)) {
     return nonSpanishPhoneReceiverHandler(record);
   }

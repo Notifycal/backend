@@ -8,13 +8,15 @@ import type {
   userCalendarFetchedEventSchema
 } from '@model/app-events/UserCalendarFetchedEvent';
 import type { CronRunConfig } from '@model/Config';
-import { eventBridgeEventSchema } from '@model/lambda-events/EventBridgeEvents';
+import { eventBridgeEventSchema as _eventBridgeEventSchema } from '@model/lambda-events/EventBridgeEvents';
+import { eventSqsSchema } from '@model/lambda-events/SqsEvents';
 import type { LiveUserStoreRecord } from '@model/store/LiveUserStoreRecord';
 import type { UserIdpAuthorizationStoreRecord } from '@model/store/UserIdpAuthorizationStoreRecord';
 import { phoneByCountry } from '@notifycal/shared/i18n';
 import type { senderSchema } from '@notifycal/shared/schemas';
 import type { CorrelationId, DateTime, EventId } from '@notifycal/shared/types';
 import type { PhoneNumberE164 } from '@own-types/model';
+import { setupLoggerCorrelationIdEventBridge } from '@services/common/logger';
 import { SnsService } from '@services/sns';
 import { UserLiveIndexStore } from '@services/stores/user-live-index-store';
 import type { Context } from 'aws-lambda';
@@ -24,8 +26,12 @@ import { v4 } from 'uuid';
 import type { z } from 'zod';
 import { readFetchUserCalendarsConfig, type FetchUserCalendarsConfig } from './config';
 
-const eventSchema = eventBridgeEventSchema<FetchUserCalendarsConfig>();
+const eventBridgeEventSchema = _eventBridgeEventSchema();
+const eventSchema = eventSqsSchema<FetchUserCalendarsConfig, typeof eventBridgeEventSchema>(
+  eventBridgeEventSchema
+);
 export type Event = z.infer<typeof eventSchema>;
+export type Record = z.infer<typeof eventSchema.shape.Records.element>;
 export interface CronRunForEvent {
   lowerBoundStartTime: DateTime;
   upperBoundStartTime: DateTime;
@@ -79,7 +85,7 @@ function toEvents(
   });
 }
 
-function runDataFromConfig(config: CronRunConfig, event: Event): CronRunForEvent {
+function runDataFromConfig(config: CronRunConfig, event: Record['body']): CronRunForEvent {
   const windowStart = DT.fromISO(event.time).toUTC().plus({ hours: 24 });
   return {
     lowerBoundStartTime: windowStart.toISO() as DateTime,
@@ -95,16 +101,17 @@ function runDataFromConfig(config: CronRunConfig, event: Event): CronRunForEvent
 async function lambdaHandler(event: Event, context: Context): Promise<void> {
   const { userLiveIndexStoreConfig, userCalendarFetchedTopicConfig, cronRunConfig } =
     event.lambdaConfig;
-
+  const record = event.Records[0].body;
   const userLiveProvider = UserLiveIndexStore.withConfig(userLiveIndexStoreConfig);
   const snsService = SnsService.withConfig(userCalendarFetchedTopicConfig);
 
-  const systemEvent = scheduledFetchUserCalendarEventFired(event, cronRunConfig);
+  const systemEvent = scheduledFetchUserCalendarEventFired(record, cronRunConfig);
   await snsService.safePublish(systemEvent);
 
-  const run = runDataFromConfig(cronRunConfig, event);
+  const run = runDataFromConfig(cronRunConfig, record);
+  logger.appendKeys({ run });
   logger.info(
-    `Starting run corresponding to cron ${event.time}. Time window: [${run.lowerBoundStartTime}, ${run.upperBoundStartTime}]`
+    `Starting run corresponding to cron ${record.time}. Time window: [${run.lowerBoundStartTime}, ${run.upperBoundStartTime}]`
   );
   let totalPages = 0;
   let totalItems = 0;
@@ -116,10 +123,15 @@ async function lambdaHandler(event: Event, context: Context): Promise<void> {
 
       const events = await Promise.all(
         liveUsersPage.map((user) => {
+          logger.appendKeys({
+            userId: user.UserId,
+            idpId: user.IdpId,
+            idp: user.Idp
+          });
           if (user.Config.calendars && user.Config.calendars.length > 0) {
             return Promise.resolve(toEvents(user, run));
           } else {
-            const errorEvent = noUserCalendarFound(event, run, user);
+            const errorEvent = noUserCalendarFound(record, run, user);
             return snsService.safePublish(errorEvent).then(() => []);
           }
         })
@@ -141,5 +153,6 @@ async function lambdaHandler(event: Event, context: Context): Promise<void> {
 }
 export const handler = backgroundProcessingMiddleware(
   () => readFetchUserCalendarsConfig(),
-  eventSchema
+  eventSchema,
+  setupLoggerCorrelationIdEventBridge
 ).handler<Event>(lambdaHandler);
