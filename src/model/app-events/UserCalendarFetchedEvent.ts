@@ -7,7 +7,7 @@ const data = z.object({
   run: runSchema,
   calendar: calendarSchema,
   senderDetails: senderStandardSchema,
-  senderCountryCode: countryCodeSchema,
+  senderCountryCode: countryCodeSchema.optional(),
   template: z.object({
     id: z.string().brand('TemplateId'),
     fields: z.object({

@@ -14,7 +14,7 @@ import type { LiveUserStoreRecord } from '@model/store/LiveUserStoreRecord';
 import type { UserIdpAuthorizationStoreRecord } from '@model/store/UserIdpAuthorizationStoreRecord';
 import { phoneByCountry } from '@notifycal/shared/i18n';
 import type { senderSchema } from '@notifycal/shared/schemas';
-import type { CorrelationId, CountryCode, DateTime, EventId } from '@notifycal/shared/types';
+import type { CorrelationId, DateTime, EventId } from '@notifycal/shared/types';
 import type { PhoneNumberE164 } from '@own-types/model';
 import { setupLoggerCorrelationIdEventBridge } from '@services/common/logger';
 import { SnsService } from '@services/sns';
@@ -57,7 +57,7 @@ function toEvents(
 ): Array<UserCalendarFetchedEvent> {
   const senderCountryCode = match(item.Config.business.senderContact)
     .with({ type: 'phone', countryCode: P.any }, (phone) => phone.countryCode)
-    .with({ type: 'rcs', identifier: P.string }, () => 'ES' as CountryCode) //TODO: Add support for RCS
+    .with({ type: 'rcs', identifier: P.string }, () => undefined)
     .exhaustive();
   const pageData = item.Config.calendars.map((c) => ({
     calendar: c,

@@ -20,7 +20,7 @@ export function _findPhoneNumbersInText(
 export function phoneExtractor(
   calendarEvent: Pick<CalendarEvent, 'summary' | 'description'>,
   attendeeId: Email,
-  senderCountryCode: CountryCode,
+  senderCountryCode: CountryCode | undefined,
   idp: IdpName,
   idpAuthorization: AuthorizationForIdp<IdpName>,
   idpConfigs: IdpConfigs
@@ -33,11 +33,11 @@ export function phoneExtractor(
   );
   const fromCalendarEventSummaryPromise = _findPhoneNumbersInText(
     calendarEvent.summary || '',
-    senderCountryCode
+    senderCountryCode || 'ES'
   );
   const fromCalendarEventDescriptionPromise = _findPhoneNumbersInText(
     calendarEvent.description || '',
-    senderCountryCode
+    senderCountryCode || 'ES'
   );
   return Promise.allSettled([
     fromContactIntegrationPromise,
