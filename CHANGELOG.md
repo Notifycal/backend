@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.25.0](https://github.com/Notifycal/backend/compare/v0.24.0...v0.25.0) (2025-04-11)
+
+
+### Features
+
+* add FunctionName dimension to lambda alerts ([#520](https://github.com/Notifycal/backend/issues/520)) ([cfd7c12](https://github.com/Notifycal/backend/commit/cfd7c12b0ebc306c30907dabcab1b269210b1d22))
+* create ResponseTime metrics for 3rd parties ([#500](https://github.com/Notifycal/backend/issues/500)) ([8d4689e](https://github.com/Notifycal/backend/commit/8d4689e809c99e02d7d828692962aa8826c6ecfa))
+* improve logging by adding keys ([#510](https://github.com/Notifycal/backend/issues/510)) ([f1458c3](https://github.com/Notifycal/backend/commit/f1458c38b66b628c73ced2dd01f08d13c78e909b))
+* replace metrics singleton with aggregator ([#519](https://github.com/Notifycal/backend/issues/519)) ([31e6392](https://github.com/Notifycal/backend/commit/31e6392f19a6c9acbf48bd36df509dd2a487067f))
+
 ## [0.24.0](https://github.com/Notifycal/backend/compare/v0.23.3...v0.24.0) (2025-04-10)
 
 
