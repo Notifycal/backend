@@ -18,8 +18,9 @@ export function metricsMiddleware(
     if (!utility.getColdStart()) {
       return;
     }
-    logger.info('Capturing cold start metric');
+    logger.info('Capturing ColdStart metric');
     target.addMetric(COLD_START_METRIC, MetricUnit.Count, 1);
+    logger.info('ColdStart metric captured!');
   };
 
   const publish = (): void => {
