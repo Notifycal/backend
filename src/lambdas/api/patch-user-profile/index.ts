@@ -31,7 +31,7 @@ const contactDetailsWithValidator =
       .exhaustive();
   });
 
-const updatedBusinessSchema = reminderConfigSchema.shape.business.extend({
+export const updatedBusinessSchema = reminderConfigSchema.shape.business.extend({
   senderContact: contactDetailsWithValidator
 });
 const bodySchema = reminderConfigSchema.extend({
