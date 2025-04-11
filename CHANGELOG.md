@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.24.0](https://github.com/Notifycal/backend/compare/v0.23.3...v0.24.0) (2025-04-10)
+
+
+### Features
+
+* interleave a queue between eventbridge and first lambda to simplify things ([#512](https://github.com/Notifycal/backend/issues/512)) ([5ad32d1](https://github.com/Notifycal/backend/commit/5ad32d17eb748e2d1d46d59907d27fcfa57b12e5))
+
 ## [0.23.3](https://github.com/Notifycal/backend/compare/v0.23.2...v0.23.3) (2025-04-10)
 
 

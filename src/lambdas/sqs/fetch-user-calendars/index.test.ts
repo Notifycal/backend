@@ -20,12 +20,13 @@ import type { AwsArn } from '@own-types/model';
 import * as snsService from '@services/sns';
 import { UserLiveIndexStore } from '@services/stores/user-live-index-store';
 import { fakeScheduledEventBridgeEvent } from '@testing/data/event-bridge-event';
+import { validRawRecord as _validRawRecord } from '@testing/data/sqs-events';
 import {
   setEnvCronRunConfig,
   setEnvUserCalendarFetchedTopicConfig,
   setEnvUserLiveStoreConfig
 } from '@testing/utils/config';
-import type { Context } from 'aws-lambda';
+import type { Context, SQSEvent, SQSRecord } from 'aws-lambda';
 import { describe, expect, it, vi } from 'vitest';
 import type { FetchUserCalendarsConfig } from './config';
 import { handler, type Event } from './index';
@@ -328,7 +329,12 @@ function testit(
   vi.mocked(UserLiveIndexStore.withConfig).mockReturnValue(
     userBaseStoreMock as unknown as UserLiveIndexStore<IdpName>
   );
-  return handler(fakeScheduledEventBridgeEvent as unknown as Event, {} as Context);
+  const validRawRecord: SQSRecord = _validRawRecord(fakeScheduledEventBridgeEvent);
+  const validEvent: SQSEvent = {
+    Records: [validRawRecord]
+  };
+
+  return handler(validEvent as unknown as Event, {} as Context);
 }
 
 const defaultEnv: FetchUserCalendarsConfig = {

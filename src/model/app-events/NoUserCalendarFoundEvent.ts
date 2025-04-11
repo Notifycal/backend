@@ -1,4 +1,4 @@
-import type { Event } from '@lambdas/schedule/fetch-user-calendars/index';
+import type { Record } from '@lambdas/sqs/fetch-user-calendars/index';
 import type { LiveUserStoreRecord } from '@model/store/LiveUserStoreRecord';
 import type { CorrelationId, DateTime, EventId, IdpName } from '@notifycal/shared/types';
 import { v4 } from 'uuid';
@@ -15,7 +15,7 @@ export const noUserCalendarFoundEventSchema = eventSchemaGenerator('NoUserCalend
 export type NoUserCalendarFoundEvent = z.infer<typeof noUserCalendarFoundEventSchema>;
 
 export function noUserCalendarFound(
-  origin: Event,
+  origin: Record['body'],
   run: z.infer<typeof runSchema>,
   liveUser: LiveUserStoreRecord<IdpName>
 ): NoUserCalendarFoundEvent {

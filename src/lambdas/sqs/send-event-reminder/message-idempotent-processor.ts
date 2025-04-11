@@ -31,8 +31,7 @@ export default class MessageProcessor {
     logger.appendKeys({
       reminderMessage: message,
       senderDetails,
-      receiverDetails,
-      correlationId
+      receiverDetails
     });
 
     let messageUUID;
@@ -65,12 +64,6 @@ export default class MessageProcessor {
 
   public async onIdempotencyHit(record: Record, messageUUID: Uuid): Promise<void> {
     const { body } = record;
-    const { correlationId } = body;
-
-    logger.appendKeys({
-      correlationId
-    });
-
     return this._snsService.safePublish<ActionableEventReminderAttemptSkippedEvent>({
       ...body,
       eventType: 'ActionableEventReminderAttemptSkipped',
