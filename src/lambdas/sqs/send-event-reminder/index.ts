@@ -164,7 +164,9 @@ async function lambdaHandler(
   );
 }
 
-export const handler = backgroundProcessingMiddleware(
+const handler = backgroundProcessingMiddleware(
   () => readSendEventReminderConfig(ssmCache),
   eventSchema
 ).handler<Event>(lambdaHandler);
+
+module.exports = { handler };

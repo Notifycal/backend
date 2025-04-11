@@ -54,6 +54,9 @@ locals {
   lambdas_attach_tracing_policy = var.enable_xray_active_tracing
   lambdas_tracing_mode          = var.enable_xray_active_tracing ? "Active" : "PassThrough"
 
+  otel_lambda_layer = "arn:aws:lambda:${var.aws_region}:615299751070:layer:AWSOpenTelemetryDistroJs:6"
+  # otel_lambda_layer = "arn:aws:lambda:${var.aws_region}:901920570463:layer:aws-otel-nodejs-amd64-ver-1-30-1:2"
+
   all_lambdas = {
     get_idp_user_calendars               = module.get_idp_user_calendars_lambda,
     get_user_profile                     = module.get_user_profile_lambda,

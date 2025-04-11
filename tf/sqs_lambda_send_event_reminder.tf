@@ -70,6 +70,10 @@ module "send_event_reminder_lambda" {
   memory_size = 256
   handler     = var.lambdas_handler_name
 
+  layers = [
+    local.otel_lambda_layer
+  ]
+
   logging_log_format    = var.lambdas_logging_log_format
   attach_tracing_policy = local.lambdas_attach_tracing_policy
   tracing_mode          = local.lambdas_tracing_mode
@@ -120,5 +124,6 @@ module "send_event_reminder_lambda" {
       dataAttr             = local.lambda_idempotency_table_config.data_attribute_name
       validationKeyAttr    = local.lambda_idempotency_table_config.validation_attribute_name
     })
+    AWS_LAMBDA_EXEC_WRAPPER = "/opt/otel-handler"
   }, local.messaging_topic_env_vars, local.common_lambda_env_vars)
 }
