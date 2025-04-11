@@ -5,6 +5,7 @@ import type { Uuid } from '@notifycal/shared/types';
 import type { Url } from '@own-types/model';
 import { MessagingService } from '@services/messaging';
 import { SnsService } from '@services/sns';
+import { withIntegrationMetrics } from '@utils/withIntegrationMetrics';
 import type { SendEventReminderConfig } from './config';
 import type { Record } from './index';
 
@@ -37,12 +38,14 @@ export default class MessageProcessor {
     let messageUUID;
     if (this._isMessagingEnabled) {
       logger.info('Sending a message through Vonage');
-      messageUUID = await this._messagingService.sendMessage(
-        message,
-        senderDetails,
-        receiverDetails,
-        correlationId,
-        webhookUrl
+      messageUUID = await withIntegrationMetrics('Vonage', 'SendEventReminder', () =>
+        this._messagingService.sendMessage(
+          message,
+          senderDetails,
+          receiverDetails,
+          correlationId,
+          webhookUrl
+        )
       );
     } else {
       logger.info('Simulating a message is being sent');

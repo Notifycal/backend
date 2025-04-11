@@ -13,6 +13,7 @@ import { phoneNumberByEmail } from '@services/contacts';
 import { SnsService } from '@services/sns';
 import { interpolate } from '@services/template';
 import { allSettledAllOrErrorHandler } from '@utils/promises';
+import { withIntegrationMetrics } from '@utils/withIntegrationMetrics';
 import { DateTime as DT } from 'luxon';
 import { v4 } from 'uuid';
 import type { ActionableEventsConfig } from './config';
@@ -32,14 +33,16 @@ function fetchCalendarEvents(
   const includeAllDayEvents =
     calendarEventStartTime.get('hour') === 10 && calendarEventStartTime.get('minute') === 0;
 
-  return eventsStartTimeWithin(
-    event.data.calendar.id,
-    event.data.run.lowerBoundStartTime,
-    event.data.run.upperBoundStartTime,
-    includeAllDayEvents,
-    idpAuthorization,
-    event.idp,
-    idpConfigs
+  return withIntegrationMetrics(event.idp, 'FetchCalendarEvents', () =>
+    eventsStartTimeWithin(
+      event.data.calendar.id,
+      event.data.run.lowerBoundStartTime,
+      event.data.run.upperBoundStartTime,
+      includeAllDayEvents,
+      idpAuthorization,
+      event.idp,
+      idpConfigs
+    )
   );
 }
 
@@ -51,11 +54,13 @@ function fetchAttendeePhoneNumbers(
 ): Promise<Array<CalendarEventWithAnAttendeePhoneNumber>> {
   return Promise.allSettled(
     calendarEvent.attendees.map((attendee) =>
-      phoneNumberByEmail(
-        attendee.id as Email,
-        event.sensitiveData.idpAuthorization,
-        event.idp,
-        idpConfigs
+      withIntegrationMetrics(event.idp, 'GetAttendeePhoneNumbers', () =>
+        phoneNumberByEmail(
+          attendee.id as Email,
+          event.sensitiveData.idpAuthorization,
+          event.idp,
+          idpConfigs
+        )
       ).then((phoneNumbers) => {
         if (phoneNumbers && phoneNumbers.length > 0) {
           return Promise.resolve([
