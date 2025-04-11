@@ -10,6 +10,11 @@ import {
   actionableEventFoundEventSchema
 } from '@model/app-events/ActionableEventFoundEvent';
 import type { ActionableEventReminderAttemptFailedEvent } from '@model/app-events/ActionableEventReminderAttemptFailedEvent';
+import type { ReminderToBeSentAttemptFailedEvent } from '@model/app-events/ReminderToBeSentAttemptFailedEvent';
+import {
+  type ReminderToBeSentEvent,
+  reminderToBeSentEventSchema
+} from '@model/app-events/ReminderToBeSentEvent';
 import { eventSqsSchema } from '@model/lambda-events/SqsEvents';
 import type { Uuid } from '@notifycal/shared/types';
 import type { PhoneNumberE164, Url } from '@own-types/model';
@@ -17,13 +22,13 @@ import { setupLoggerForEventProcessing } from '@services/common/logger';
 import { SnsService } from '@services/sns';
 import { objectToQueryString } from '@utils/queryString';
 import type { Context } from 'aws-lambda';
-import type { z } from 'zod';
+import { match } from 'ts-pattern';
+import { z } from 'zod';
 import { readSendEventReminderConfig, type SendEventReminderConfig } from './config';
 import MessageProcessor from './message-idempotent-processor';
 
-const eventSchema = eventSqsSchema<SendEventReminderConfig, typeof actionableEventFoundEventSchema>(
-  actionableEventFoundEventSchema
-);
+const bodies = z.union([actionableEventFoundEventSchema, reminderToBeSentEventSchema]);
+const eventSchema = eventSqsSchema<SendEventReminderConfig, typeof bodies>(bodies);
 export type Event = z.infer<typeof eventSchema>;
 export type Record = z.infer<typeof eventSchema.shape.Records.element>;
 
@@ -53,7 +58,7 @@ function isSpanishPhoneNumber(number: PhoneNumberE164): boolean {
 
 function buildWebhookUrl(record: Record, baseWebhookUrl: Url): Url {
   const queryStringEventData: Omit<
-    ActionableEventFoundEvent,
+    ActionableEventFoundEvent | ReminderToBeSentEvent,
     'eventType' | 'eventId' | 'happenedAt'
   > = {
     correlationId: record.body.correlationId,
@@ -99,10 +104,19 @@ async function handleReminderAttemptFailure(
   config: SendEventReminderConfig['messagingTopicConfig']
 ): Promise<void> {
   const snsService = SnsService.withConfig(config);
-  await snsService.safePublish<ActionableEventReminderAttemptFailedEvent>({
-    ...record.body,
-    eventType: 'ActionableEventReminderAttemptFailed'
-  });
+  const errorEvent = match(record.body)
+    .with({ eventType: 'ActionableEventFound' }, (b) => ({
+      ...b,
+      eventType: 'ActionableEventReminderAttemptFailed' as const
+    }))
+    .with({ eventType: 'ReminderToBeSent' }, (b) => ({
+      ...b,
+      eventType: 'ReminderToBeSentAttemptFailed' as const
+    }))
+    .exhaustive();
+  await snsService.safePublish<
+    ActionableEventReminderAttemptFailedEvent | ReminderToBeSentAttemptFailedEvent
+  >(errorEvent);
 }
 
 async function sendMessageIdempotently(
@@ -135,7 +149,7 @@ async function lambdaHandler(
   const record = event.Records[0];
   setupLoggerForEventProcessing(record.body);
   logger.appendKeys({
-    run: record.body.data.run,
+    ...('run' in record.body.data ? { run: record.body.data.run } : {}),
     correlationId: record.body.correlationId
   });
   if (!isSpanishPhoneNumber(record.body.data.receiverDetails.phoneNumber)) {
