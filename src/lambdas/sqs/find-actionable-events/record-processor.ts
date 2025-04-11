@@ -9,7 +9,7 @@ import type { ServiceResponse } from '@model/ServiceResponse';
 import type { CalendarEvent, DateTime, Email, EventId } from '@notifycal/shared/types';
 import type { PhoneNumberE164 } from '@own-types/model';
 import { eventsStartTimeWithin } from '@services/calendar-events';
-import { phoneNumberByEmail } from '@services/contacts';
+import { phoneExtractor } from '@services/phone-extractor';
 import { SnsService } from '@services/sns';
 import { interpolate } from '@services/template';
 import { allSettledAllOrErrorHandler } from '@utils/promises';
@@ -55,18 +55,20 @@ function fetchAttendeePhoneNumbers(
   return Promise.allSettled(
     calendarEvent.attendees.map((attendee) =>
       withIntegrationMetrics(event.idp, 'GetAttendeePhoneNumbers', () =>
-        phoneNumberByEmail(
+        phoneExtractor(
+          calendarEvent,
           attendee.id as Email,
-          event.sensitiveData.idpAuthorization,
+          event.data.senderCountryCode,
           event.idp,
+          event.sensitiveData.idpAuthorization,
           idpConfigs
         )
       ).then((phoneNumbers) => {
-        if (phoneNumbers && phoneNumbers.length > 0) {
+        if (phoneNumbers && phoneNumbers.size > 0) {
           return Promise.resolve([
             {
               calendarEvent: calendarEvent,
-              attendeePhoneNumber: phoneNumbers[0] // if attendee has more than 1 phone number set, pick the first one.
+              attendeePhoneNumber: Array.from(phoneNumbers)[0] // if attendee has more than 1 phone number set, pick the first one.
             }
           ]);
         } else {
