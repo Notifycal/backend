@@ -33,6 +33,7 @@ export const userCalendarFetchedEvent: UserCalendarFetchedEvent = {
       type: 'rcs',
       identifier: 'Notifycal testing' as RCSSenderId
     },
+    senderCountryCode: 'ES',
     calendar: {
       id: 'someCalendarId' as CalendarId,
       name: 'Some Calendar Name' as CalendarName

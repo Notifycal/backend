@@ -13,12 +13,12 @@ export function _findPhoneNumbersInText(
   return promiseTry(() =>
     findPhoneNumbersInText(text, {
       defaultCountry: countryCode
-    }).map((results) => results.number.formatInternational() as PhoneNumberE164)
+    }).map((results) => results.number.formatInternational().replaceAll(' ', '') as PhoneNumberE164)
   );
 }
 
 export function phoneExtractor(
-  calendarEvent: CalendarEvent,
+  calendarEvent: Pick<CalendarEvent, 'summary' | 'description'>,
   attendeeId: Email,
   senderCountryCode: CountryCode,
   idp: IdpName,
@@ -31,18 +31,24 @@ export function phoneExtractor(
     idp,
     idpConfigs
   );
-  const fromCalendarEventTitlePromise = _findPhoneNumbersInText(
+  const fromCalendarEventSummaryPromise = _findPhoneNumbersInText(
+    calendarEvent.summary || '',
+    senderCountryCode
+  );
+  const fromCalendarEventDescriptionPromise = _findPhoneNumbersInText(
     calendarEvent.description || '',
     senderCountryCode
   );
-  return Promise.allSettled([fromContactIntegrationPromise, fromCalendarEventTitlePromise])
+  return Promise.allSettled([
+    fromContactIntegrationPromise,
+    fromCalendarEventDescriptionPromise,
+    fromCalendarEventSummaryPromise
+  ])
     .then((results) => {
       return allSettledAllOrErrorHandler(
         results,
-        'obtaining phone numbers from contact integration and calendar event title and merging them'
+        'obtaining phone numbers from contact integration, calendar event description and summary'
       );
     })
-    .then(([phoneNumbers1, phoneNumbers2]) => {
-      return new Set([...phoneNumbers1, ...phoneNumbers2]);
-    });
+    .then((results) => new Set(results.flat()));
 }
