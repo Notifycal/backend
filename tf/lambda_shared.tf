@@ -53,4 +53,18 @@ locals {
   lambdas_create_package        = false
   lambdas_attach_tracing_policy = var.enable_xray_active_tracing
   lambdas_tracing_mode          = var.enable_xray_active_tracing ? "Active" : "PassThrough"
+
+  all_lambdas = {
+    get_idp_user_calendars               = module.get_idp_user_calendars_lambda,
+    get_user_profile                     = module.get_user_profile_lambda,
+    patch_user_profile                   = module.patch_user_profile_lambda,
+    post_login                           = module.post_login_lambda,
+    post_refresh                         = module.post_refresh_lambda,
+    event_reminder_status_change_webhook = module.event_reminder_status_change_webhook_lambda,
+    fetch_user_calendars                 = module.fetch_user_calendars_lambda,
+    audit_trail                          = module.audit_trail_lambda,
+    find_actionable_events               = module.find_actionable_events_lambda,
+    send_event_reminder                  = module.send_event_reminder_lambda
+    # TODO: Add new lambdas here
+  }
 }
