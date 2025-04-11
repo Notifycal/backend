@@ -1,12 +1,15 @@
 import { MetricUnit } from '@aws-lambda-powertools/metrics';
 import { metrics } from '@common/powertools';
+import type { IdpName } from '@notifycal/shared/types';
 
 interface MetricDimensions {
   [key: string]: string;
 }
 
+type IntegrationVendorName = 'Vonage' | IdpName;
+
 export async function withIntegrationMetrics<T>(
-  vendor: string,
+  vendor: IntegrationVendorName,
   operation: string,
   fn: () => Promise<T>,
   extraDimensions: MetricDimensions = {}
