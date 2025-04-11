@@ -1,6 +1,6 @@
 import { injectLambdaContext } from '@aws-lambda-powertools/logger/middleware';
 import { captureLambdaHandler } from '@aws-lambda-powertools/tracer/middleware';
-import { logger, tracer } from '@common/powertools';
+import { logger, metrics, tracer } from '@common/powertools';
 import middy, { type MiddlewareObj } from '@middy/core';
 import type {
   AuthedEndpointConfig,
@@ -20,7 +20,7 @@ import type { z } from 'zod';
 import { configReaderMiddleware } from './config-reader-middleware';
 import { corsMiddleware } from './cors-middleware';
 import { checkClaims, jwtVerificationMiddleware } from './jwt-verification-middleware';
-import { flushMetricsMiddleware } from './metrics-middleware';
+import { metricsMiddleware } from './metrics-middleware';
 import { eventParserMiddleware } from './parser-http-middleware';
 
 function baseMiddleware(): middy.MiddyfiedHandler {
@@ -29,7 +29,7 @@ function baseMiddleware(): middy.MiddyfiedHandler {
   })
     .use(captureLambdaHandler(tracer))
     .use(injectLambdaContext(logger, { logEvent: true }))
-    .use(flushMetricsMiddleware());
+    .use(metricsMiddleware(metrics, { captureColdStartMetric: true }));
 }
 
 function baseConfigMiddleware<TConfig, TResult>(

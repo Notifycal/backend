@@ -1,6 +1,5 @@
 import { PT_VERSION as version } from '@aws-lambda-powertools/commons';
 import { Logger } from '@aws-lambda-powertools/logger';
-import { Metrics } from '@aws-lambda-powertools/metrics';
 import type { MetricsOptions } from '@aws-lambda-powertools/metrics/types';
 import { Tracer } from '@aws-lambda-powertools/tracer';
 import MetricsAggregator from '@utils/MetricsAggregator';
@@ -40,8 +39,6 @@ const metricsOptions: MetricsOptions = {
 };
 
 const metrics = new MetricsAggregator(metricsOptions);
-
-// const metrics2 = new Metrics(metricsOptions);
 
 const tracer = new Tracer();
 
