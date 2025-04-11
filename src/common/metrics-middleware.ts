@@ -4,6 +4,7 @@ import type MetricsAggregator from '@utils/MetricsAggregator';
 
 import { MetricUnit } from '@aws-lambda-powertools/metrics';
 import { LambdaUtility } from '@utils/LambdaUtility';
+import { logger } from './powertools';
 
 const utility = new LambdaUtility();
 
@@ -22,12 +23,14 @@ export function metricsMiddleware(
   };
 
   const publish = (): void => {
+    logger.info('Publishing metrics to CloudWatch');
     target.publishAll();
   };
 
   const before = (): void => {
     const { captureColdStartMetric } = options;
     if (captureColdStartMetric) {
+      logger.info('Capturing cold start metric');
       captureLambdaColdStartMetric();
     }
   };
