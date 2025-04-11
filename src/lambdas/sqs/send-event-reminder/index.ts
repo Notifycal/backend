@@ -34,9 +34,16 @@ function nonSpanishPhoneReceiverHandler(record: Record): 'MessageNotSentOutsideO
   logger.warn('Not sending event reminder because the number does not start with +34', {
     record
   });
-  metrics.addMetric('MessageNotSentOutsideOfSpain', MetricUnit.Count, 1);
-  metrics.addMetadata('correlationId', record.body.correlationId);
-  metrics.addMetadata('eventId', record.body.eventId);
+  metrics.addMetric(
+    'MessageNotSentOutsideOfSpain',
+    MetricUnit.Count,
+    1,
+    {},
+    {
+      correlationId: record.body.correlationId,
+      eventId: record.body.eventId
+    }
+  );
   return 'MessageNotSentOutsideOfSpain';
 }
 
