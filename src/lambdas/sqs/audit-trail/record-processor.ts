@@ -7,42 +7,41 @@ import type {
 } from '@model/store/AuditTrailStoreRecord';
 import type { CorrelationId, DateTime, EventId, UserId } from '@notifycal/shared/types';
 import { throwError } from '@services/common/error-handling';
+import { setupLoggerForAuditStoreRecordProcessing } from '@services/common/logger';
 import { AuditTrailBaseStore } from '@services/stores/audit-trail-base-store';
 import { match, P } from 'ts-pattern';
 import type { AuditTrailConfig } from './config';
 import type { Record } from './schema';
 
-function toStoreRecord(r: Record): Promise<AuditTrailStoreRecord> {
+function toStoreRecord(r: Record): AuditTrailStoreRecord {
   return match(r)
     .with(
       { body: { eventType: P.any, eventId: P.string, happenedAt: P.string } },
-      ({ body: event, eventSourceARN }) =>
-        Promise.resolve({
-          EventId: event.eventId,
-          CorrelationId: event.correlationId,
-          UserId: event.userId,
-          IdpId: event.idpId,
-          Idp: event.idp,
-          EventType: event.eventType,
-          HappenedAt: event.happenedAt,
-          Data: event.data,
-          Origin: eventSourceARN as AuditTrailStoreRecordOrigin
-        })
+      ({ body: event, eventSourceARN }) => ({
+        EventId: event.eventId,
+        CorrelationId: event.correlationId,
+        UserId: event.userId,
+        IdpId: event.idpId,
+        Idp: event.idp,
+        EventType: event.eventType,
+        HappenedAt: event.happenedAt,
+        Data: event.data,
+        Origin: eventSourceARN as AuditTrailStoreRecordOrigin
+      })
     )
     .with(
       { body: { 'detail-type': P.string, time: P.string, id: P.string } },
-      ({ body: event, eventSourceARN }) =>
-        Promise.resolve({
-          EventId: event.id as EventId,
-          CorrelationId: event.id as CorrelationId,
-          UserId: 'System' as UserId,
-          IdpId: 'N/A' as const,
-          Idp: 'N/A' as const,
-          EventType: event['detail-type'] as EventType,
-          HappenedAt: event.time as DateTime,
-          Data: event,
-          Origin: eventSourceARN as AuditTrailStoreRecordOrigin
-        })
+      ({ body: event, eventSourceARN }) => ({
+        EventId: event.id as EventId,
+        CorrelationId: event.id as CorrelationId,
+        UserId: 'System' as UserId,
+        IdpId: 'N/A' as const,
+        Idp: 'N/A' as const,
+        EventType: event['detail-type'] as EventType,
+        HappenedAt: event.time as DateTime,
+        Data: event,
+        Origin: eventSourceARN as AuditTrailStoreRecordOrigin
+      })
     )
     .exhaustive();
 }
@@ -91,9 +90,11 @@ function withEventMetric(
 
 export function recordProcessor(record: Record, config: AuditTrailConfig): Promise<void> {
   const auditTrailBaseStore = AuditTrailBaseStore.withConfig(config.auditTrailBaseStoreConfig);
-  return toStoreRecord(record)
-    .then((storeRecord) => auditTrailBaseStore.put(storeRecord).then(() => storeRecord))
-    .then((storeRecord) => withEventMetric(storeRecord))
+  const storeRecord = toStoreRecord(record);
+  setupLoggerForAuditStoreRecordProcessing(storeRecord, logger.createChild());
+  return auditTrailBaseStore
+    .put(storeRecord)
+    .then(() => withEventMetric(storeRecord))
     .then(
       (storeRecord) => {
         logger.info(`Event has been successfully processed`, { eventId: storeRecord.EventId });

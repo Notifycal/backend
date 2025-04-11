@@ -1,6 +1,4 @@
 import type { MiddlewareObj, Request } from '@middy/core';
-/* eslint-disable-next-line no-duplicate-imports */
-import type middy from '@middy/core';
 import type { AuthedEndpointConfig, OptionalCorsEndpointConfig } from '@model/Config';
 import type { AccessToken } from '@model/Jwt';
 import type { AuthedAPIEventWithConfig } from '@model/lambda-events/ApiGatewayEvents';
@@ -83,13 +81,9 @@ export function jwtVerificationMiddleware<
   AuthedAPIEventWithConfig<TConfig, z.infer<typeof accessTokenSchema>>,
   APIGatewayProxyResult
 > {
-  const before: middy.MiddlewareFn<
-    AuthedAPIEventWithConfig<TConfig, z.infer<typeof accessTokenSchema>>,
-    APIGatewayProxyResult
-  > = (req) =>
-    jwtVerification(accessTokenSchema, req, jwtDecoderAndSignatureVerifierFn, claimCheckerFn);
   return {
-    before
+    before: (req) =>
+      jwtVerification(accessTokenSchema, req, jwtDecoderAndSignatureVerifierFn, claimCheckerFn)
   };
 }
 

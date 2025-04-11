@@ -1,5 +1,6 @@
 import { JSONStringified } from '@aws-lambda-powertools/parser/helpers';
 import { unprotectedCrossDomainEndpointMiddleware } from '@common/lambda-middleware';
+import { logger } from '@common/powertools';
 import { refreshTokenSchema } from '@model/Jwt';
 import { apiEventSchema } from '@model/lambda-events/ApiGatewayEvents';
 import { extractIdentity } from '@model/UserIdentity';
@@ -37,12 +38,19 @@ function lambdaHandler(
   )
     .then((jwt) => {
       const userId = jwt.payload.sub;
+      logger.appendKeys({
+        userId
+      });
       return Promise.all([
         refreshTokenStore.getTokenBy(userId, jwt.payload.jti),
         userStore.getUserById(userId)
       ])
         .then(([storedToken, user]) => {
           if (storedToken && storedToken.RefreshToken === refreshToken && user) {
+            logger.appendKeys({
+              idp: user.Idp,
+              idpId: user.IdpId
+            });
             return buildJwtsAndStoreRefreshJwt(
               extractIdentity(user),
               config.encodeAccessJwtConfig,

@@ -16,6 +16,7 @@ import { phoneByCountry } from '@notifycal/shared/i18n';
 import type { senderSchema } from '@notifycal/shared/schemas';
 import type { CorrelationId, DateTime, EventId } from '@notifycal/shared/types';
 import type { PhoneNumberE164 } from '@own-types/model';
+import { setupLoggerCorrelationIdEventBridge } from '@services/common/logger';
 import { SnsService } from '@services/sns';
 import { UserLiveIndexStore } from '@services/stores/user-live-index-store';
 import type { Context } from 'aws-lambda';
@@ -108,6 +109,7 @@ async function lambdaHandler(event: Event, context: Context): Promise<void> {
   await snsService.safePublish(systemEvent);
 
   const run = runDataFromConfig(cronRunConfig, record);
+  logger.appendKeys({ run });
   logger.info(
     `Starting run corresponding to cron ${record.time}. Time window: [${run.lowerBoundStartTime}, ${run.upperBoundStartTime}]`
   );
@@ -121,6 +123,11 @@ async function lambdaHandler(event: Event, context: Context): Promise<void> {
 
       const events = await Promise.all(
         liveUsersPage.map((user) => {
+          logger.appendKeys({
+            userId: user.UserId,
+            idpId: user.IdpId,
+            idp: user.Idp
+          });
           if (user.Config.calendars && user.Config.calendars.length > 0) {
             return Promise.resolve(toEvents(user, run));
           } else {
@@ -146,5 +153,6 @@ async function lambdaHandler(event: Event, context: Context): Promise<void> {
 }
 export const handler = backgroundProcessingMiddleware(
   () => readFetchUserCalendarsConfig(),
-  eventSchema
+  eventSchema,
+  setupLoggerCorrelationIdEventBridge
 ).handler<Event>(lambdaHandler);

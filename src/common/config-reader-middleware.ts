@@ -1,6 +1,5 @@
 import type { MiddlewareObj, Request } from '@middy/core';
-/* eslint-disable-next-line no-duplicate-imports */
-import type middy from '@middy/core';
+
 import type { EventWithConfig } from '@model/lambda-events/Event';
 import { errorHandler } from '@services/common/api-response-handlers';
 import type { Context } from 'aws-lambda';
@@ -31,9 +30,7 @@ export function configReaderMiddleware<TConfig, TResult>(
   configReaderFn: () => Promise<TConfig>,
   isApiRequest: boolean
 ): MiddlewareObj<EventWithConfig<TConfig>, TResult> {
-  const before: middy.MiddlewareFn<EventWithConfig<TConfig>, TResult> = (req) =>
-    configReader(req, configReaderFn, isApiRequest);
   return {
-    before
+    before: (req) => configReader(req, configReaderFn, isApiRequest)
   };
 }
