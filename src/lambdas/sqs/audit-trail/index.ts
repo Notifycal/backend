@@ -25,7 +25,9 @@ function lambdaHandler(event: Event, context: Context): Promise<PartialItemFailu
     throw error;
   });
 }
-export const handler = backgroundProcessingMiddleware(
+const handler = backgroundProcessingMiddleware(
   () => readAuditTrailConfig(),
   eventSchema
 ).handler<Event>(lambdaHandler);
+
+module.exports = { handler };
