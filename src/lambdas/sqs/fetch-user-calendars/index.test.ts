@@ -29,6 +29,7 @@ import {
 import type { Context, SQSEvent, SQSRecord } from 'aws-lambda';
 import { describe, expect, it, vi } from 'vitest';
 import type { FetchUserCalendarsConfig } from './config';
+// @ts-expect-error cjs handler export
 import { handler, type Event } from './index';
 
 const validCalendar: Calendar & { template: { id: TemplateId; language: LanguageCode } } = {

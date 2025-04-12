@@ -18,6 +18,7 @@ import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { v4 as uuidv4, type Version4Options } from 'uuid';
 import { describe, expect, it, vi } from 'vitest';
 import type { ReminderDeliveryStatusWebhookConfig } from './config';
+// @ts-expect-error cjs handler export
 import { handler, type Event } from './index';
 
 import { logger } from '@common/powertools';

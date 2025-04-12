@@ -35,6 +35,7 @@ import { validJwts } from '@testing/utils/jwt';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { describe, it, vi } from 'vitest';
 import type { LoginConfig } from './config';
+// @ts-expect-error cjs handler export
 import { handler, type Event } from './index';
 
 describe('POST Login', () => {

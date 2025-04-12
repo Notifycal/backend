@@ -8,9 +8,10 @@ import {
 } from '@testing/utils/config';
 import type { SQSEvent, SQSRecord } from 'aws-lambda';
 import { describe, vi } from 'vitest';
-import { handler } from '.';
 import { createSqsHandlerTestSuite } from '../sqs-lambda-handler-test.suite';
 import type { ActionableEventsConfig } from './config';
+// @ts-expect-error cjs handler export
+import { handler } from './index';
 import { recordProcessor } from './record-processor';
 
 const validUserCalendarFetchedEvent = userCalendarFetchedEvent;
