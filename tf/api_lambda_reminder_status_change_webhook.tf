@@ -26,9 +26,7 @@ module "event_reminder_status_change_webhook_lambda" {
   memory_size = 256
   handler     = var.lambdas_handler_name
 
-  layers = [
-    local.otel_lambda_layer
-  ]
+  layers = local.lambdas_layers
 
   logging_log_format    = var.lambdas_logging_log_format
   attach_tracing_policy = local.lambdas_attach_tracing_policy
