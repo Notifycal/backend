@@ -26,6 +26,10 @@ module "get_user_profile_lambda" {
   memory_size = 256
   handler     = var.lambdas_handler_name
 
+  layers = [
+    local.otel_lambda_layer
+  ]
+
   logging_log_format    = var.lambdas_logging_log_format
   attach_tracing_policy = local.lambdas_attach_tracing_policy
   tracing_mode          = local.lambdas_tracing_mode
@@ -38,6 +42,10 @@ module "get_user_profile_lambda" {
 
   attach_policy_json = true
   policy_json        = data.aws_iam_policy_document.get_user_profile_iam_policydoc.json
+  attach_policies    = true
+  policies = [
+    data.aws_iam_policy.appsignals.arn
+  ]
 
   environment_variables = merge({
   }, local.protected_endpoint_env_vars, local.users_persistance_env_vars)

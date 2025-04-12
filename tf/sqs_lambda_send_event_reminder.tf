@@ -89,6 +89,10 @@ module "send_event_reminder_lambda" {
 
   attach_policy_json = true
   policy_json        = data.aws_iam_policy_document.send_event_reminder_iam_policydoc.json
+  attach_policies    = true
+  policies = [
+    data.aws_iam_policy.appsignals.arn
+  ]
 
   event_source_mapping = {
     sqs = {
@@ -124,6 +128,5 @@ module "send_event_reminder_lambda" {
       dataAttr             = local.lambda_idempotency_table_config.data_attribute_name
       validationKeyAttr    = local.lambda_idempotency_table_config.validation_attribute_name
     })
-    AWS_LAMBDA_EXEC_WRAPPER = "/opt/otel-handler"
   }, local.messaging_topic_env_vars, local.common_lambda_env_vars)
 }

@@ -26,6 +26,10 @@ module "event_reminder_status_change_webhook_lambda" {
   memory_size = 256
   handler     = var.lambdas_handler_name
 
+  layers = [
+    local.otel_lambda_layer
+  ]
+
   logging_log_format    = var.lambdas_logging_log_format
   attach_tracing_policy = local.lambdas_attach_tracing_policy
   tracing_mode          = local.lambdas_tracing_mode
@@ -38,6 +42,10 @@ module "event_reminder_status_change_webhook_lambda" {
 
   attach_policy_json = true
   policy_json        = data.aws_iam_policy_document.event_reminder_status_change_webhook_iam_policydoc.json
+  attach_policies    = true
+  policies = [
+    data.aws_iam_policy.appsignals.arn
+  ]
 
   environment_variables = merge({
     VONAGE_APPLICATION_ID             = var.vonage_auth_config.application_id

@@ -1,10 +1,11 @@
 locals {
   common_lambda_env_vars = {
     # This is required for sourcemaps to work
-    NODE_OPTIONS    = "--enable-source-maps"
-    ENVIRONMENT     = var.environment
-    FRONTEND_DOMAIN = var.frontend_domain
-    APP_VERSION     = var.app_version
+    NODE_OPTIONS            = "--enable-source-maps"
+    ENVIRONMENT             = var.environment
+    FRONTEND_DOMAIN         = var.frontend_domain
+    APP_VERSION             = var.app_version
+    AWS_LAMBDA_EXEC_WRAPPER = "/opt/otel-instrument"
   }
   users_persistance_env_vars = {
     USERS_TABLE_NAME = aws_dynamodb_table.users.name
@@ -55,7 +56,6 @@ locals {
   lambdas_tracing_mode          = var.enable_xray_active_tracing ? "Active" : "PassThrough"
 
   otel_lambda_layer = "arn:aws:lambda:${var.aws_region}:615299751070:layer:AWSOpenTelemetryDistroJs:6"
-  # otel_lambda_layer = "arn:aws:lambda:${var.aws_region}:901920570463:layer:aws-otel-nodejs-amd64-ver-1-30-1:2"
 
   all_lambdas = {
     get_idp_user_calendars               = module.get_idp_user_calendars_lambda,
@@ -70,4 +70,9 @@ locals {
     send_event_reminder                  = module.send_event_reminder_lambda
     # TODO: Add new lambdas here
   }
+}
+
+# appsignals/otel AWS Managed Policy
+data "aws_iam_policy" "appsignals" {
+  name = "CloudWatchLambdaApplicationSignalsExecutionRolePolicy"
 }
