@@ -42,10 +42,10 @@ module "get_user_profile_lambda" {
 
   attach_policy_json = true
   policy_json        = data.aws_iam_policy_document.get_user_profile_iam_policydoc.json
+
   attach_policies    = true
-  policies = [
-    data.aws_iam_policy.appsignals.arn
-  ]
+  policies           = local.lambdas_shared_iam_policies
+  number_of_policies = length(local.lambdas_shared_iam_policies)
 
   environment_variables = merge({
   }, local.protected_endpoint_env_vars, local.users_persistance_env_vars)

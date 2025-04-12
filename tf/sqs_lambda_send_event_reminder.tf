@@ -89,10 +89,10 @@ module "send_event_reminder_lambda" {
 
   attach_policy_json = true
   policy_json        = data.aws_iam_policy_document.send_event_reminder_iam_policydoc.json
+
   attach_policies    = true
-  policies = [
-    data.aws_iam_policy.appsignals.arn
-  ]
+  policies           = local.lambdas_shared_iam_policies
+  number_of_policies = length(local.lambdas_shared_iam_policies)
 
   event_source_mapping = {
     sqs = {

@@ -55,6 +55,10 @@ locals {
   lambdas_attach_tracing_policy = var.enable_xray_active_tracing
   lambdas_tracing_mode          = var.enable_xray_active_tracing ? "Active" : "PassThrough"
 
+  lambdas_shared_iam_policies = [
+    data.aws_iam_policy.appsignals.arn
+  ]
+
   otel_lambda_layer = "arn:aws:lambda:${var.aws_region}:615299751070:layer:AWSOpenTelemetryDistroJs:6"
 
   all_lambdas = {
