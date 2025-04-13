@@ -24,9 +24,8 @@ import {
 } from '@testing/utils/config';
 import type { Context, SQSEvent, SQSRecord } from 'aws-lambda';
 import { describe, expect, it, vi } from 'vitest';
+import { handler, type Event } from '.';
 import type { SendEventReminderConfig } from './config';
-// @ts-expect-error cjs handler export
-import { handler, type Event } from './index';
 import MessageProcessor from './message-idempotent-processor';
 
 vi.mock('@common/powertools');

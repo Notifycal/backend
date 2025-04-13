@@ -100,7 +100,7 @@ function vonageAccessTokenClaimChecker(
 }
 const enableCors = false;
 
-const handler = protectedEndpointMiddlewareCustom(
+export const handler = protectedEndpointMiddlewareCustom(
   () => readReminderDeliveryStatusWebhookConfig(),
   schema,
   vonageAccessTokenSchema,
@@ -109,5 +109,3 @@ const handler = protectedEndpointMiddlewareCustom(
   enableCors,
   setupLoggerForAuthedVonageApiRequest
 ).handler<Event>(lambdaHandler);
-
-module.exports = { handler };

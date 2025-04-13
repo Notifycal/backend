@@ -151,10 +151,8 @@ async function lambdaHandler(event: Event, context: Context): Promise<void> {
     );
   }
 }
-const handler = backgroundProcessingMiddleware(
+export const handler = backgroundProcessingMiddleware(
   () => readFetchUserCalendarsConfig(),
   eventSchema,
   setupLoggerCorrelationIdEventBridge
 ).handler<Event>(lambdaHandler);
-
-module.exports = { handler };

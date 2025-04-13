@@ -33,9 +33,7 @@ function lambdaHandler(event: Event, context: Context): Promise<PartialItemFailu
     throw error;
   });
 }
-const handler = backgroundProcessingMiddleware(
+export const handler = backgroundProcessingMiddleware(
   () => readActionableEventsConfig(),
   eventSchema
 ).handler<Event>(lambdaHandler);
-
-module.exports = { handler };

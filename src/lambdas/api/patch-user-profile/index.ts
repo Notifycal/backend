@@ -61,9 +61,7 @@ function lambdaHandler(
     .then(() => successHandler(204)(), errorHandler(500));
 }
 
-const handler = protectedEndpointMiddleware(
+export const handler = protectedEndpointMiddleware(
   () => readPatchUserConfig(),
   eventSchema
 ).handler<Event>(lambdaHandler);
-
-module.exports = { handler };
