@@ -28,7 +28,7 @@ resource "aws_cloudwatch_metric_alarm" "lambda_concurrent_executions" {
   datapoints_to_alarm = 10
   threshold           = 600
   comparison_operator = "GreaterThanThreshold"
-  treat_missing_data  = "ignore"
+  treat_missing_data  = "notBreaching"
 }
 
 resource "aws_cloudwatch_metric_alarm" "lambda_invocations" {
@@ -52,7 +52,7 @@ resource "aws_cloudwatch_metric_alarm" "lambda_invocations" {
   datapoints_to_alarm = 10
   threshold           = 250
   comparison_operator = "GreaterThanThreshold"
-  treat_missing_data  = "ignore"
+  treat_missing_data  = "notBreaching"
 }
 
 resource "aws_cloudwatch_metric_alarm" "lambda_duration" {
@@ -76,7 +76,7 @@ resource "aws_cloudwatch_metric_alarm" "lambda_duration" {
   datapoints_to_alarm = 15
   threshold           = 5000
   comparison_operator = "GreaterThanThreshold"
-  treat_missing_data  = "ignore"
+  treat_missing_data  = "notBreaching"
 }
 
 resource "aws_cloudwatch_metric_alarm" "lambda_errors" {
@@ -100,7 +100,7 @@ resource "aws_cloudwatch_metric_alarm" "lambda_errors" {
   datapoints_to_alarm = 1
   threshold           = 0
   comparison_operator = "GreaterThanThreshold"
-  treat_missing_data  = "ignore"
+  treat_missing_data  = "notBreaching"
 }
 
 resource "aws_cloudwatch_metric_alarm" "lambda_throttles" {
@@ -124,5 +124,5 @@ resource "aws_cloudwatch_metric_alarm" "lambda_throttles" {
   datapoints_to_alarm = 5
   threshold           = 0.1
   comparison_operator = "GreaterThanOrEqualToThreshold"
-  treat_missing_data  = "ignore"
+  treat_missing_data  = "notBreaching"
 }
