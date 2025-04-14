@@ -6,7 +6,7 @@ import { userFetchedEventsParsingFailed } from '@model/app-events/UserFetchedEve
 import type { IdpConfigs } from '@model/Config';
 import type { ParsingError } from '@model/Errors';
 import type { ServiceResponse } from '@model/ServiceResponse';
-import type { CalendarEvent, DateTime, Email, EventId } from '@notifycal/shared/types';
+import type { CalendarEvent, CountryCode, DateTime, Email, EventId } from '@notifycal/shared/types';
 import type { PhoneNumberE164 } from '@own-types/model';
 import { eventsStartTimeWithin } from '@services/calendar-events';
 import { phoneExtractor } from '@services/phone-extractor';
@@ -15,6 +15,7 @@ import { interpolate } from '@services/template';
 import { allSettledAllOrErrorHandler } from '@utils/promises';
 import { withIntegrationMetrics } from '@utils/withIntegrationMetrics';
 import { DateTime as DT } from 'luxon';
+import { match } from 'ts-pattern';
 import { v4 } from 'uuid';
 import type { ActionableEventsConfig } from './config';
 import type { Record } from './schema';
@@ -46,6 +47,13 @@ function fetchCalendarEvents(
   );
 }
 
+function extractCountryCode(senderDetails: Record['body']['data']['senderDetails']): CountryCode {
+  return match(senderDetails)
+    .with({ type: 'phone' }, (phone) => phone.countryCode)
+    .with({ type: 'rcs' }, () => 'ES' as CountryCode)
+    .exhaustive();
+}
+
 function fetchAttendeePhoneNumbers(
   calendarEvent: CalendarEvent,
   event: Record['body'],
@@ -58,7 +66,7 @@ function fetchAttendeePhoneNumbers(
         phoneExtractor(
           calendarEvent,
           attendee.id as Email,
-          event.data.senderCountryCode,
+          extractCountryCode(event.data.senderDetails),
           event.idp,
           event.sensitiveData.idpAuthorization,
           idpConfigs
@@ -90,7 +98,7 @@ function buildActionableEvents(
   attendeePhoneData: Array<CalendarEventWithAnAttendeePhoneNumber>,
   event: Record['body']
 ): Array<ActionableEventFoundEvent> {
-  return attendeePhoneData.map(({ calendarEvent: calendarEvent, attendeePhoneNumber }) => {
+  return attendeePhoneData.map(({ calendarEvent, attendeePhoneNumber }) => {
     const actionableEvent: ActionableEventFoundEvent = {
       eventId: v4() as EventId,
       correlationId: event.correlationId,
@@ -105,7 +113,8 @@ function buildActionableEvents(
         calendarEvent,
         receiverDetails: {
           type: 'phone',
-          phoneNumber: attendeePhoneNumber
+          phoneNumber: attendeePhoneNumber,
+          countryCode: extractCountryCode(event.data.senderDetails)
         },
         senderDetails: event.data.senderDetails,
         message: interpolate(

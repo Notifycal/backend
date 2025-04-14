@@ -1,4 +1,4 @@
-import { calendarSchema, countryCodeSchema } from '@notifycal/shared/schemas';
+import { calendarSchema } from '@notifycal/shared/schemas';
 import { z } from 'zod';
 import { eventSchemaGenerator } from './BaseEvent';
 import { runSchema, senderStandardSchema } from './common';
@@ -7,7 +7,6 @@ const data = z.object({
   run: runSchema,
   calendar: calendarSchema,
   senderDetails: senderStandardSchema,
-  senderCountryCode: countryCodeSchema.optional(),
   template: z.object({
     id: z.string().brand('TemplateId'),
     fields: z.object({

@@ -46,7 +46,8 @@ function toCanonicalForm(
     .with({ type: 'phone', countryCode: P.any, phoneNumber: P.string }, (phone) => ({
       type: phone.type,
       phoneNumber:
-        `${phoneByCountry[phone.countryCode].phoneDetails.dialCode}${phone.phoneNumber.toString()}` as PhoneNumberE164
+        `${phoneByCountry[phone.countryCode].phoneDetails.dialCode}${phone.phoneNumber.toString()}` as PhoneNumberE164,
+      countryCode: phone.countryCode
     }))
     .exhaustive();
 }
