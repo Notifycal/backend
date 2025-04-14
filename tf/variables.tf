@@ -118,7 +118,15 @@ variable "enable_xray_active_tracing" {
 
 variable "observability" {
   type = object({
-    slack_webhook_url = string
-    slack_channel     = string
+    alert_notifier = object({
+      slack_channel = string
+    })
+    alert_config = optional(object({
+      treat_missing_data       = optional(string, "missing")
+      notify_insufficient_data = optional(bool, true)
+      }), {
+      treat_missing_data       = "missing"
+      notify_insufficient_data = true
+    })
   })
 }

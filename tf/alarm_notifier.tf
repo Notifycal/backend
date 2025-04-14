@@ -9,7 +9,7 @@ module "notify_slack" {
 
   sns_topic_name = "${var.environment}-alarms"
 
-  slack_channel   = var.observability.slack_channel
+  slack_channel   = var.observability.alert_notifier.slack_channel
   slack_bot_token = data.aws_ssm_parameter.slack_bot_token.value
 
   lambda_function_name = "notify-slack-${var.environment}"

@@ -16,7 +16,7 @@ resource "aws_cloudwatch_metric_alarm" "lambda_concurrent_executions" {
   actions_enabled           = true
   ok_actions                = local.alarm_actions
   alarm_actions             = local.alarm_actions
-  insufficient_data_actions = local.alarm_actions
+  insufficient_data_actions = var.observability.alert_config.notify_insufficient_data ? local.alarm_actions : []
   metric_name               = "ConcurrentExecutions"
   namespace                 = "AWS/Lambda"
   statistic                 = "Maximum"
@@ -28,7 +28,7 @@ resource "aws_cloudwatch_metric_alarm" "lambda_concurrent_executions" {
   datapoints_to_alarm = 10
   threshold           = 600
   comparison_operator = "GreaterThanThreshold"
-  treat_missing_data  = "ignore"
+  treat_missing_data  = var.observability.alert_config.treat_missing_data
 }
 
 resource "aws_cloudwatch_metric_alarm" "lambda_invocations" {
@@ -40,7 +40,7 @@ resource "aws_cloudwatch_metric_alarm" "lambda_invocations" {
   actions_enabled           = true
   ok_actions                = local.alarm_actions
   alarm_actions             = local.alarm_actions
-  insufficient_data_actions = local.alarm_actions
+  insufficient_data_actions = var.observability.alert_config.notify_insufficient_data ? local.alarm_actions : []
   metric_name               = "Invocations"
   namespace                 = "AWS/Lambda"
   statistic                 = "Sum"
@@ -52,7 +52,7 @@ resource "aws_cloudwatch_metric_alarm" "lambda_invocations" {
   datapoints_to_alarm = 10
   threshold           = 250
   comparison_operator = "GreaterThanThreshold"
-  treat_missing_data  = "ignore"
+  treat_missing_data  = var.observability.alert_config.treat_missing_data
 }
 
 resource "aws_cloudwatch_metric_alarm" "lambda_duration" {
@@ -64,7 +64,7 @@ resource "aws_cloudwatch_metric_alarm" "lambda_duration" {
   actions_enabled           = true
   ok_actions                = local.alarm_actions
   alarm_actions             = local.alarm_actions
-  insufficient_data_actions = local.alarm_actions
+  insufficient_data_actions = var.observability.alert_config.notify_insufficient_data ? local.alarm_actions : []
   metric_name               = "Duration"
   namespace                 = "AWS/Lambda"
   extended_statistic        = "p90"
@@ -76,7 +76,7 @@ resource "aws_cloudwatch_metric_alarm" "lambda_duration" {
   datapoints_to_alarm = 15
   threshold           = 5000
   comparison_operator = "GreaterThanThreshold"
-  treat_missing_data  = "ignore"
+  treat_missing_data  = var.observability.alert_config.treat_missing_data
 }
 
 resource "aws_cloudwatch_metric_alarm" "lambda_errors" {
@@ -88,7 +88,7 @@ resource "aws_cloudwatch_metric_alarm" "lambda_errors" {
   actions_enabled           = true
   ok_actions                = local.alarm_actions
   alarm_actions             = local.alarm_actions
-  insufficient_data_actions = local.alarm_actions
+  insufficient_data_actions = var.observability.alert_config.notify_insufficient_data ? local.alarm_actions : []
   metric_name               = "Errors"
   namespace                 = "AWS/Lambda"
   statistic                 = "Sum"
@@ -100,7 +100,7 @@ resource "aws_cloudwatch_metric_alarm" "lambda_errors" {
   datapoints_to_alarm = 1
   threshold           = 0
   comparison_operator = "GreaterThanThreshold"
-  treat_missing_data  = "ignore"
+  treat_missing_data  = var.observability.alert_config.treat_missing_data
 }
 
 resource "aws_cloudwatch_metric_alarm" "lambda_throttles" {
@@ -112,7 +112,7 @@ resource "aws_cloudwatch_metric_alarm" "lambda_throttles" {
   actions_enabled           = true
   ok_actions                = local.alarm_actions
   alarm_actions             = local.alarm_actions
-  insufficient_data_actions = local.alarm_actions
+  insufficient_data_actions = var.observability.alert_config.notify_insufficient_data ? local.alarm_actions : []
   metric_name               = "Throttles"
   namespace                 = "AWS/Lambda"
   statistic                 = "Sum"
@@ -124,5 +124,5 @@ resource "aws_cloudwatch_metric_alarm" "lambda_throttles" {
   datapoints_to_alarm = 5
   threshold           = 0.1
   comparison_operator = "GreaterThanOrEqualToThreshold"
-  treat_missing_data  = "ignore"
+  treat_missing_data  = var.observability.alert_config.treat_missing_data
 }
