@@ -66,7 +66,7 @@ resource "aws_cloudwatch_metric_alarm" "sqs_dlq_number_of_messages" {
   actions_enabled           = true
   ok_actions                = local.alarm_actions
   alarm_actions             = local.alarm_actions
-  insufficient_data_actions = local.alarm_actions
+  insufficient_data_actions = var.observability.alert_config.notify_insufficient_data ? local.alarm_actions : []
   metric_name               = "NumberOfMessagesReceived"
   namespace                 = "AWS/SQS"
   statistic                 = "Sum"
@@ -75,7 +75,7 @@ resource "aws_cloudwatch_metric_alarm" "sqs_dlq_number_of_messages" {
   datapoints_to_alarm       = 1
   threshold                 = 0
   comparison_operator       = "GreaterThanThreshold"
-  treat_missing_data        = "ignore"
+  treat_missing_data        = var.observability.alert_config.treat_missing_data
   dimensions = {
     QueueName = each.value["name"]
   }
