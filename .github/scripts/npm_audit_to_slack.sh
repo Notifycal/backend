@@ -30,7 +30,7 @@ TOTAL=$((CRITICAL + HIGH + MODERATE + LOW))
 
 # Extract vulnerability details (truncated for readability)
 DETAILS=$(echo "$AUDIT_JSON" | jq -r '.vulnerabilities | to_entries | map("- \(.key)[\(.value.range)]: \(.value.severity)") | join("\n")')
-DETAILS_ESCAPED=$(echo "$DETAILS" | gsed 's/"/\\"/g' | gsed ':a;N;$!ba;s/\n/\\n/g')
+DETAILS_ESCAPED=$(echo "$DETAILS" | sed 's/"/\\"/g' | sed ':a;N;$!ba;s/\n/\\n/g')
 
 SUMMARY="*Summary:* ${TOTAL} vulnerabilities found."
 
