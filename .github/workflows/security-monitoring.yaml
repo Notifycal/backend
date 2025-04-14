@@ -33,7 +33,7 @@ jobs:
         id: audit
         run: |
           ./.github/scripts/npm_audit_to_slack.sh "${{ github.repository }}" "${{ github.ref_name }}" \
-            "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" --include-dev
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
           SLACK_CHANNEL: '#security'
