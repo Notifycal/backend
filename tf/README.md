@@ -12,9 +12,9 @@
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 5.94.1 |
-| <a name="provider_awscc"></a> [awscc](#provider\_awscc) | 1.36.0 |
-| <a name="provider_tls"></a> [tls](#provider\_tls) | 4.0.6 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 5.86 |
+| <a name="provider_awscc"></a> [awscc](#provider\_awscc) | ~> 1.28 |
+| <a name="provider_tls"></a> [tls](#provider\_tls) | n/a |
 
 ## Modules
 
@@ -36,7 +36,7 @@
 | <a name="module_get_user_profile_lambda"></a> [get\_user\_profile\_lambda](#module\_get\_user\_profile\_lambda) | terraform-aws-modules/lambda/aws | ~> 7.17 |
 | <a name="module_get_user_profile_lambda_alias"></a> [get\_user\_profile\_lambda\_alias](#module\_get\_user\_profile\_lambda\_alias) | terraform-aws-modules/lambda/aws//modules/alias | ~> 7.17 |
 | <a name="module_messaging_topic"></a> [messaging\_topic](#module\_messaging\_topic) | ./modules/sns | n/a |
-| <a name="module_notify_slack"></a> [notify\_slack](#module\_notify\_slack) | git@github.com:Notifycal/tofu-module-aws-slack-notify.git | v7.0.0 |
+| <a name="module_notify_slack"></a> [notify\_slack](#module\_notify\_slack) | /Users/dan/dev/personal/notifycal/modules/tofu-module-aws-slack-notify | n/a |
 | <a name="module_patch_user_profile_lambda"></a> [patch\_user\_profile\_lambda](#module\_patch\_user\_profile\_lambda) | terraform-aws-modules/lambda/aws | ~> 7.17 |
 | <a name="module_patch_user_profile_lambda_alias"></a> [patch\_user\_profile\_lambda\_alias](#module\_patch\_user\_profile\_lambda\_alias) | terraform-aws-modules/lambda/aws//modules/alias | ~> 7.17 |
 | <a name="module_post_login_lambda"></a> [post\_login\_lambda](#module\_post\_login\_lambda) | terraform-aws-modules/lambda/aws | ~> 7.17 |
