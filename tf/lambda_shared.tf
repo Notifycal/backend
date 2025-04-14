@@ -54,6 +54,16 @@ locals {
   lambdas_attach_tracing_policy = var.enable_xray_active_tracing
   lambdas_tracing_mode          = var.enable_xray_active_tracing ? "Active" : "PassThrough"
 
+  lambdas_shared_iam_policies = [
+    data.aws_iam_policy.insights.arn,
+  ]
+
+  insights_lambda_layer = "arn:aws:lambda:${var.aws_region}:580247275435:layer:LambdaInsightsExtension:55"
+
+  lambdas_layers = [
+    local.insights_lambda_layer
+  ]
+
   all_lambdas = {
     get_idp_user_calendars               = module.get_idp_user_calendars_lambda,
     get_user_profile                     = module.get_user_profile_lambda,
@@ -67,4 +77,9 @@ locals {
     send_event_reminder                  = module.send_event_reminder_lambda
     # TODO: Add new lambdas here
   }
+}
+
+# lambda insights AWS Managed Policy
+data "aws_iam_policy" "insights" {
+  name = "CloudWatchLambdaInsightsExecutionRolePolicy"
 }

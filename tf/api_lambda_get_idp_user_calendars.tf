@@ -26,6 +26,8 @@ module "get_idp_user_calendars_lambda" {
   memory_size = 384
   handler     = var.lambdas_handler_name
 
+  layers = local.lambdas_layers
+
   logging_log_format    = var.lambdas_logging_log_format
   attach_tracing_policy = local.lambdas_attach_tracing_policy
   tracing_mode          = local.lambdas_tracing_mode
@@ -38,6 +40,10 @@ module "get_idp_user_calendars_lambda" {
 
   attach_policy_json = true
   policy_json        = data.aws_iam_policy_document.get_idp_user_calendars_iam_policydoc.json
+
+  attach_policies    = true
+  policies           = local.lambdas_shared_iam_policies
+  number_of_policies = length(local.lambdas_shared_iam_policies)
 
   environment_variables = merge({
   }, local.protected_endpoint_env_vars, local.idps_configs_env_vars, local.users_persistance_env_vars)
