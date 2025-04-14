@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.26.0](https://github.com/Notifycal/backend/compare/v0.25.0...v0.26.0) (2025-04-14)
+
+
+### Features
+
+* enable lambda insights ([#531](https://github.com/Notifycal/backend/issues/531)) ([e6bc8cc](https://github.com/Notifycal/backend/commit/e6bc8cc027f0d4b06ed1513e5482ab0a34785fde))
+* make alerts configurable (missing_data, insufficient_data) ([#542](https://github.com/Notifycal/backend/issues/542)) ([eb11c7f](https://github.com/Notifycal/backend/commit/eb11c7f2e50a0c0b7b1f1216c44bdc1041c1fbc1))
+* use our own slack notifier (Slack Bot App instead of Incoming webhooks) ([#532](https://github.com/Notifycal/backend/issues/532)) ([2395371](https://github.com/Notifycal/backend/commit/2395371d000a3ec948c9ea36f367d81749689797))
+
+
+### Bug Fixes
+
+* add first SQS queue to DLQ redrive policy ([#526](https://github.com/Notifycal/backend/issues/526)) ([cdd0c9b](https://github.com/Notifycal/backend/commit/cdd0c9b64cb4a56866fff91d11edacb517968eac))
+* create 1 Metrics object per metric to avoid lost dimensions/metadata ([#529](https://github.com/Notifycal/backend/issues/529)) ([2b8638e](https://github.com/Notifycal/backend/commit/2b8638e8a14975350debfccf477b647e678c858d))
+* pin tofu-module-aws-slack-notify module version ([c0d54c3](https://github.com/Notifycal/backend/commit/c0d54c3536cde3eaf122e773f354e2107472829b))
+
 ## [0.25.0](https://github.com/Notifycal/backend/compare/v0.24.0...v0.25.0) (2025-04-11)
 
 
