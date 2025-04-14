@@ -75,7 +75,13 @@ locals {
     audit_trail                          = module.audit_trail_lambda,
     find_actionable_events               = module.find_actionable_events_lambda,
     send_event_reminder                  = module.send_event_reminder_lambda
+
+    notify_slack = module.notify_slack[0].notify_lambda
     # TODO: Add new lambdas here
+    # notify_slack = {
+    #   lambda_function_name             = module.notify_slack[0].notify_slack_lambda_function_name
+    #   lambda_cloudwatch_log_group_name = module.notify_slack[0].lambda_cloudwatch_log_group_name
+    # }
   }
 }
 
