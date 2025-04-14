@@ -1,0 +1,39 @@
+name: Security Monitoring
+
+on:
+  # schedule:
+  #   # Run weekly on Monday at 9:00 AM
+  #   - cron: '0 9 * * 1'
+  workflow_dispatch: # Allow manual runs
+
+  # Also run when Dependabot creates a PR or alert
+  # pull_request:
+  #   types: [opened, reopened, synchronize]
+  #   branches: ['dependabot/**']
+  # security_alert:
+  #   types: [created]
+
+jobs:
+  npm-audit:
+    name: NPM Audit Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate .npmrc
+        run: |
+          echo "//npm.pkg.github.com/:_authToken=${{secrets.GITHUB_TOKEN}}" > .npmrc
+          echo "@notifycal=https://npm.pkg.github.com/" >> .npmrc
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+      - run: npm ci
+
+      - name: Run npm audit and post to Slack
+        id: audit
+        run: |
+          ./.github/scripts/npm_audit_to_slack.sh "${{ github.repository }}" "${{ github.ref_name }}" \
+            "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_CHANNEL: '#security'

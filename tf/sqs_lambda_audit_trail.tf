@@ -61,6 +61,8 @@ module "audit_trail_lambda" {
   memory_size = 256
   handler     = var.lambdas_handler_name
 
+  layers = local.lambdas_layers
+
   logging_log_format    = var.lambdas_logging_log_format
   attach_tracing_policy = local.lambdas_attach_tracing_policy
   tracing_mode          = local.lambdas_tracing_mode
@@ -76,6 +78,10 @@ module "audit_trail_lambda" {
 
   attach_policy_json = true
   policy_json        = data.aws_iam_policy_document.audit_trail_iam_policydoc.json
+
+  attach_policies    = true
+  policies           = local.lambdas_shared_iam_policies
+  number_of_policies = length(local.lambdas_shared_iam_policies)
 
   event_source_mapping = local.event_source_mappings
   allowed_triggers     = local.allowed_triggers

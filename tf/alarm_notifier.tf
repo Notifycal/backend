@@ -1,16 +1,19 @@
+data "aws_ssm_parameter" "slack_bot_token" {
+  name = "/providers/slack/botsecops/slack_token"
+}
+
 module "notify_slack" {
-  source  = "terraform-aws-modules/notify-slack/aws"
-  version = "~> 6.6"
-  count   = local.observability_count
+  source = "git@github.com:Notifycal/tofu-module-aws-slack-notify.git?ref=v7.0.0"
+
+  count = local.observability_count
 
   sns_topic_name = "${var.environment}-alarms"
 
-  slack_webhook_url = var.observability.slack_webhook_url
-  slack_channel     = var.observability.slack_channel
-  slack_username    = "reporter"
+  slack_channel   = var.observability.slack_channel
+  slack_bot_token = data.aws_ssm_parameter.slack_bot_token.value
 
-  lambda_function_name = "notify_slack_${var.environment}"
-  lambda_description   = "Lambda function which sends notifications to Slack"
+  lambda_function_name = "notify-slack-${var.environment}"
+  lambda_description   = "Lambda function which sends alert notifications to Slack"
   log_events           = true
 
   tags = merge({}, local.common_tags)
