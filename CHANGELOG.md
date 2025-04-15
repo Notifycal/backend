@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.27.2](https://github.com/Notifycal/backend/compare/v0.27.1...v0.27.2) (2025-04-15)
+
+
+### Bug Fixes
+
+* downgrade slack-notify module ([#561](https://github.com/Notifycal/backend/issues/561)) ([a7f531f](https://github.com/Notifycal/backend/commit/a7f531fe3910e7d7096db5649aff63e6ea9b06c8))
+
 ## [0.27.1](https://github.com/Notifycal/backend/compare/v0.27.0...v0.27.1) (2025-04-15)
 
 
