@@ -7,15 +7,12 @@ import { z } from 'zod';
 export function eventSqsSchema<TLambdaConfig, TSchema extends z.ZodTypeAny>(
   recordBodySchema: TSchema
 ) {
-  const schema = SqsSchema.extend({
-    lambdaConfig: z.custom<TLambdaConfig>()
+  const extendedRecordSchema = SqsSchema.shape.Records.element.extend({
+    body: JSONStringified(recordBodySchema)
   });
-  return schema.extend({
-    Records: schema.shape.Records.element
-      .extend({
-        body: JSONStringified(recordBodySchema)
-      })
-      .array()
+  return z.object({
+    lambdaConfig: z.custom<TLambdaConfig>(),
+    Records: extendedRecordSchema.array()
   });
 }
 
