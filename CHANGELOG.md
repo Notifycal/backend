@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.27.1](https://github.com/Notifycal/backend/compare/v0.27.0...v0.27.1) (2025-04-15)
+
+
+### Bug Fixes
+
+* **deps:** Update Node.js Dependencies ([#553](https://github.com/Notifycal/backend/issues/553)) ([57c69f1](https://github.com/Notifycal/backend/commit/57c69f1d6eeff60a29afe4b9af57f116d16d7c1c))
+* **deps:** Update Terraform github.com/Notifycal/tofu-module-aws-slack-notify to v7.0.1 ([#552](https://github.com/Notifycal/backend/issues/552)) ([2b709fd](https://github.com/Notifycal/backend/commit/2b709fd5026828a6cf4ae64bd0682142703ce347))
+
 ## [0.27.0](https://github.com/Notifycal/backend/compare/v0.26.0...v0.27.0) (2025-04-15)
 
 
