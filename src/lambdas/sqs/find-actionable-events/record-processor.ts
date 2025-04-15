@@ -1,3 +1,5 @@
+import { MetricUnit } from '@aws-lambda-powertools/metrics';
+import { metrics } from '@common/powertools';
 import type { ActionableEventFoundEvent } from '@model/app-events/ActionableEventFoundEvent';
 import { noActionableEventsFound } from '@model/app-events/NoActionableEventsFoundEvent';
 import { noAttendeesInCalendarEventFound } from '@model/app-events/NoAttendeesInCalendarEventFoundEvent';
@@ -13,7 +15,7 @@ import { phoneExtractor } from '@services/phone-extractor';
 import { SnsService } from '@services/sns';
 import { interpolate } from '@services/template';
 import { allSettledAllOrErrorHandler } from '@utils/promises';
-import { withIntegrationMetrics } from '@utils/withIntegrationMetrics';
+import { withIntegrationMetrics, type MetricDimensions } from '@utils/withIntegrationMetrics';
 import { DateTime as DT } from 'luxon';
 import { match } from 'ts-pattern';
 import { v4 } from 'uuid';
@@ -72,6 +74,16 @@ function fetchAttendeePhoneNumbers(
           idpConfigs
         )
       ).then((phoneNumbers) => {
+        const dimensions: MetricDimensions = {
+          idp: event.idp,
+          vendor: event.idp
+        };
+        metrics.addMetric(
+          'AttendeePhoneNumbersInCalendarEventCount',
+          MetricUnit.Count,
+          phoneNumbers.size,
+          dimensions
+        );
         if (phoneNumbers && phoneNumbers.size > 0) {
           return Promise.resolve([
             {
@@ -159,6 +171,16 @@ function handleCalendarEventAttendees(
 ): Promise<Array<CalendarEventWithAnAttendeePhoneNumber>> {
   return Promise.allSettled(
     calendarEvents.map((calendarEvent) => {
+      const dimensions: MetricDimensions = {
+        idp: event.idp,
+        vendor: event.idp
+      };
+      metrics.addMetric(
+        'AttendeeInCalendarEventCount',
+        MetricUnit.Count,
+        calendarEvent.attendees.length,
+        dimensions
+      );
       if (calendarEvent.attendees.length > 0) {
         return fetchAttendeePhoneNumbers(calendarEvent, event, idpConfigs, snsService);
       } else {
