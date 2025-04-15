@@ -153,9 +153,11 @@ const validQSPObject = {
 
   'data[receiverDetails][phoneNumber]': '+34654321987',
   'data[receiverDetails][type]': 'phone',
+  'data[receiverDetails][countryCode]': 'ES',
 
   'data[senderDetails][phoneNumber]': '+34654321987',
   'data[senderDetails][type]': 'phone',
+  'data[senderDetails][countryCode]': 'ES',
 
   'data[calendar][id]': 'someCalendarId',
   'data[calendar][name]': 'Some Calendar Name',
@@ -256,11 +258,13 @@ describe('POST Event reminder delivery status webhook', () => {
         },
         senderDetails: {
           phoneNumber: eventQSP['data[senderDetails][phoneNumber]'],
-          type: eventQSP['data[senderDetails][type]']
+          type: eventQSP['data[senderDetails][type]'],
+          countryCode: eventQSP['data[senderDetails][countryCode]']
         },
         receiverDetails: {
           phoneNumber: eventQSP['data[receiverDetails][phoneNumber]'],
-          type: eventQSP['data[receiverDetails][type]']
+          type: eventQSP['data[receiverDetails][type]'],
+          countryCode: eventQSP['data[senderDetails][countryCode]']
         },
         calendar: {
           id: eventQSP['data[calendar][id]'],

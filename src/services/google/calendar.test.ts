@@ -281,6 +281,7 @@ describe('toCalendarEventEntry', () => {
       created: '2025-04-07T21:42:46.000Z',
       updated: '2025-04-07T22:43:51.867Z',
       summary: 'Testing 0.23.0',
+      description: 'Here is some description',
       creator: {
         email: 'someemail@gmail.com',
         self: true
@@ -347,7 +348,8 @@ describe('toCalendarEventEntry', () => {
           id: 'receiver@gmail.com'
         }
       ],
-      description: 'Testing 0.23.0',
+      summary: 'Testing 0.23.0',
+      description: 'Here is some description',
       id: 'FAKEIDSOERJRgbosujRBGOWIRG',
       isAllDayEvent: false,
       startTime: '2025-04-08T23:15:00Z',

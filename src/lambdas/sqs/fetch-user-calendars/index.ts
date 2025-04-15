@@ -46,7 +46,8 @@ function toCanonicalForm(
     .with({ type: 'phone', countryCode: P.any, phoneNumber: P.string }, (phone) => ({
       type: phone.type,
       phoneNumber:
-        `${phoneByCountry[phone.countryCode].phoneDetails.dialCode}${phone.phoneNumber.toString()}` as PhoneNumberE164
+        `${phoneByCountry[phone.countryCode].phoneDetails.dialCode}${phone.phoneNumber.toString()}` as PhoneNumberE164,
+      countryCode: phone.countryCode
     }))
     .exhaustive();
 }
@@ -55,10 +56,15 @@ function toEvents(
   item: LiveUserStoreRecord<'google.com'> & UserIdpAuthorizationStoreRecord<'google.com'>,
   run: z.infer<typeof userCalendarFetchedEventSchema.shape.data.shape.run>
 ): Array<UserCalendarFetchedEvent> {
+  const senderCountryCode = match(item.Config.business.senderContact)
+    .with({ type: 'phone', countryCode: P.any }, (phone) => phone.countryCode)
+    .with({ type: 'rcs', identifier: P.string }, () => undefined)
+    .exhaustive();
   const pageData = item.Config.calendars.map((c) => ({
     calendar: c,
     run: run,
     senderDetails: toCanonicalForm(item.Config.business.senderContact),
+    senderCountryCode: senderCountryCode,
     template: {
       id: c.template.id,
       fields: {

@@ -81,7 +81,8 @@ export class GoogleCalendar extends BaseGoogle {
         (typeof calendarTimezone === 'string' ? (calendarTimezone as TimeZone) : undefined);
       const calendarEvent: Partial<CalendarEvent> = {
         id: item.id ?? undefined,
-        description: item.summary ?? undefined,
+        summary: item.summary ?? undefined,
+        description: item.description ?? undefined,
         attendees: (item.attendees || [])
           .filter((attendee) => !attendee.organizer)
           .map((attendee) => ({
