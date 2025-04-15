@@ -9,7 +9,7 @@ on:
 jobs:
   npm-audit:
     name: NPM Audit Check
-    uses: Notifycal/gh-actions/.github/workflows/npm-audit.reuse.yaml@v0.3.0
+    uses: Notifycal/gh-actions/.github/workflows/npm-audit.reuse.yaml@v0.3.1
     with:
       repository: ${{ github.repository }}
       ref_name: ${{ github.ref_name }}
