@@ -3,7 +3,7 @@ data "aws_ssm_parameter" "slack_bot_token" {
 }
 
 module "notify_slack" {
-  source = "git@github.com:Notifycal/tofu-module-aws-slack-notify.git?ref=v7.0.0"
+  source = "git@github.com:Notifycal/tofu-module-aws-slack-notify.git?ref=v7.0.1"
 
   count = local.observability_count
 
