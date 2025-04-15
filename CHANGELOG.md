@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.27.0](https://github.com/Notifycal/backend/compare/v0.26.0...v0.27.0) (2025-04-15)
+
+
+### Features
+
+* another way of getting receiver phone ([#523](https://github.com/Notifycal/backend/issues/523)) ([9304e73](https://github.com/Notifycal/backend/commit/9304e73939312783e76d5a4cf299ea24e4deecfa))
+
+
+### Bug Fixes
+
+* first lambda payload validation ([#547](https://github.com/Notifycal/backend/issues/547)) ([0837211](https://github.com/Notifycal/backend/commit/083721143b200ba143fdab96c485d30364eee9a5))
+
 ## [0.26.0](https://github.com/Notifycal/backend/compare/v0.25.0...v0.26.0) (2025-04-14)
 
 
