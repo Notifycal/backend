@@ -18,6 +18,7 @@ import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { v4 as uuidv4, type Version4Options } from 'uuid';
 import { describe, expect, it, vi } from 'vitest';
 import type { ReminderDeliveryStatusWebhookConfig } from './config';
+// @ts-expect-error cjs handler export
 import { handler, type Event } from './index';
 
 import { logger } from '@common/powertools';
@@ -339,6 +340,7 @@ describe('POST Event reminder delivery status webhook', () => {
     setEnvMessagingTopicConfig(config.messagingTopicConfig);
   }
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   async function testit(
     event: APIGatewayProxyEvent,
     safePublishFn: () => Promise<void> = vi.fn(),
@@ -361,6 +363,7 @@ describe('POST Event reminder delivery status webhook', () => {
       };
     });
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
     return handler(event as unknown as Event, c);
   }
 });

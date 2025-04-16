@@ -29,6 +29,7 @@ import {
 import type { Context, SQSEvent, SQSRecord } from 'aws-lambda';
 import { describe, expect, it, vi } from 'vitest';
 import type { FetchUserCalendarsConfig } from './config';
+// @ts-expect-error cjs handler export
 import { handler, type Event } from './index';
 
 const validCalendar: Calendar & { template: { id: TemplateId; language: LanguageCode } } = {
@@ -334,6 +335,7 @@ function testit(
     Records: [validRawRecord]
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
   return handler(validEvent as unknown as Event, {} as Context);
 }
 

@@ -24,8 +24,9 @@ import {
 } from '@testing/utils/config';
 import type { Context, SQSEvent, SQSRecord } from 'aws-lambda';
 import { describe, expect, it, vi } from 'vitest';
-import { handler, type Event } from '.';
 import type { SendEventReminderConfig } from './config';
+// @ts-expect-error cjs handler export
+import { handler, type Event } from './index';
 import MessageProcessor from './message-idempotent-processor';
 
 vi.mock('@common/powertools');
@@ -200,6 +201,7 @@ function testit(
   // eslint-disable-next-line @typescript-eslint/unbound-method
   vi.mocked(SnsService.withConfig).mockReturnValue(snsServiceMock as unknown as SnsService);
   vi.mocked(getParameter).mockImplementation(getParameterFromSsmFn);
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
   return handler(event as unknown as Event, {} as Context);
 }
 

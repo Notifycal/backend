@@ -35,6 +35,7 @@ import { validJwts } from '@testing/utils/jwt';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { describe, it, vi } from 'vitest';
 import type { LoginConfig } from './config';
+// @ts-expect-error cjs handler export
 import { handler, type Event } from './index';
 
 describe('POST Login', () => {
@@ -248,6 +249,7 @@ describe('POST Login', () => {
   });
 });
 
+// eslint-disable-next-line @typescript-eslint/require-await
 async function testit<T extends IdpName>(
   event: APIGatewayProxyEvent,
   verifyGoogleIdentityFn: () => Promise<[Identity<T>, AuthorizationForIdp<T>]>,
@@ -271,6 +273,7 @@ async function testit<T extends IdpName>(
     };
   });
   vi.mocked(signInOrUp).mockImplementation(signInOrUpUserFn);
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
   return handler(event as unknown as Event, c);
 }
 
