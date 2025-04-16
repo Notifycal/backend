@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.28.0](https://github.com/Notifycal/backend/compare/v0.27.2...v0.28.0) (2025-04-16)
+
+
+### Features
+
+* setup Cloudwatch Application Signals ([#525](https://github.com/Notifycal/backend/issues/525)) ([18b0795](https://github.com/Notifycal/backend/commit/18b07952f4f03440aa5d0421f5cfc68fe9caef1f))
+
 ## [0.27.2](https://github.com/Notifycal/backend/compare/v0.27.1...v0.27.2) (2025-04-15)
 
 
