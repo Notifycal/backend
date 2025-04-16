@@ -235,6 +235,7 @@ describe('POST Refresh', () => {
     });
   });
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   async function testit(
     event: APIGatewayProxyEvent,
     decodeAndVerifyJwtSignatureFn: () => Promise<RefreshToken>,
@@ -266,6 +267,7 @@ describe('POST Refresh', () => {
       };
     });
     vi.mocked(buildJwtsAndStoreRefreshJwt).mockImplementation(buildJwtsAndStoreRefreshJwtFn);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
     return handler(event as unknown as Event, c);
   }
 

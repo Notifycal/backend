@@ -89,6 +89,7 @@ describe('GET User calendars', () => {
   });
 });
 
+// eslint-disable-next-line @typescript-eslint/require-await
 async function testit(
   event: APIGatewayProxyEvent,
   calendarListFn: () => Promise<Array<Calendar>>,
@@ -97,6 +98,7 @@ async function testit(
   setEnv(env);
   vi.mock('@services/calendar');
   vi.mocked(calendarList).mockImplementation(calendarListFn);
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
   return handler(event as unknown as Event, c);
 }
 

@@ -30,6 +30,7 @@ describe(
   // eslint-disable-next-line vitest/valid-describe-callback
   'Audit Trail',
   createSqsHandlerTestSuite({
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     handler,
     setEnv,
     validSqsBatchEvent,

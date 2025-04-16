@@ -201,6 +201,7 @@ function testit(
   // eslint-disable-next-line @typescript-eslint/unbound-method
   vi.mocked(SnsService.withConfig).mockReturnValue(snsServiceMock as unknown as SnsService);
   vi.mocked(getParameter).mockImplementation(getParameterFromSsmFn);
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
   return handler(event as unknown as Event, {} as Context);
 }
 

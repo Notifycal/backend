@@ -151,6 +151,7 @@ describe('PATCH User profile', () => {
   });
 });
 
+// eslint-disable-next-line @typescript-eslint/require-await
 async function testit(
   event: APIGatewayProxyEvent,
   updateUserFn: () => Promise<null>,
@@ -165,6 +166,7 @@ async function testit(
   vi.mocked(UserBaseStore.withConfig).mockReturnValue(
     userBaseStoreMock as unknown as UserBaseStore<IdpName>
   );
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
   return handler(event as unknown as Event, c);
 }
 
