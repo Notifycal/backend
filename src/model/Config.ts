@@ -88,6 +88,10 @@ export type ActionableEventFoundTopicConfig = {
   actionableEventFoundTopicConfig: SnsTopicConfig;
 };
 
+export type ReminderToBeSentTopicConfig = {
+  reminderToBeSentTopicConfig: SnsTopicConfig;
+};
+
 export type MessagingTopicConfig = {
   messagingTopicConfig: SnsTopicConfig;
 };

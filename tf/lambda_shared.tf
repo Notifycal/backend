@@ -10,6 +10,9 @@ locals {
   users_persistance_env_vars = {
     USERS_TABLE_NAME = aws_dynamodb_table.users.name
   }
+  live_users_index_persistance_env_vars = {
+    LIVE_USERS_INDEX_NAME = local.live_users_index_name
+  }
   refresh_token_persistance_env_vars = {
     REFRESH_TOKENS_TABLE_NAME = aws_dynamodb_table.refresh_tokens.name
   }
@@ -67,10 +70,10 @@ locals {
   otel_lambda_layer     = "arn:aws:lambda:${var.aws_region}:615299751070:layer:AWSOpenTelemetryDistroJs:6"
   insights_lambda_layer = "arn:aws:lambda:${var.aws_region}:580247275435:layer:LambdaInsightsExtension:55"
 
-  lambdas_layers = [
+  lambdas_layers = var.observability != null ? [
     local.insights_lambda_layer,
-    local.otel_lambda_layer
-  ]
+    otel_lambda_layer
+  ] : []
 
   all_lambdas = {
     get_idp_user_calendars               = module.get_idp_user_calendars_lambda,

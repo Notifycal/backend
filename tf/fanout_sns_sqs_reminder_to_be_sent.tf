@@ -6,7 +6,7 @@ module "reminder_to_be_sent_topic" {
     queue = {
       arn = module.reminder_to_be_sent_queue.sqs_queue_arn
       filter_policy = jsonencode({
-        EventType = ["ActionableEventFound"] //TODO TBD
+        EventType = ["ReminderToBeSent"]
       })
     }
     audit_trail = local.audit_trail_subscription

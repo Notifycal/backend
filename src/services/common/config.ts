@@ -15,6 +15,7 @@ import type {
   IdpEndpointConfig,
   MessagingEndpointConfig,
   MessagingTopicConfig,
+  ReminderToBeSentTopicConfig,
   UserCalendarFetchedTopicConfig
 } from '@model/Config';
 import type { DecodeVonageAccessJwtEndpointConfig, VonageConfig } from '@model/vendor/vonage';
@@ -146,6 +147,14 @@ export function readActionableEventFoundTopicConfig(
   return {
     actionableEventFoundTopicConfig: {
       topicArn: env.get('ACTIONABLE_EVENT_FOUND_TOPIC_ARN').required().asString() as AwsArn
+    }
+  };
+}
+
+export function readReminderToBeSentTopicConfig(env: Environment): ReminderToBeSentTopicConfig {
+  return {
+    reminderToBeSentTopicConfig: {
+      topicArn: env.get('REMINDER_TO_BE_SENT_TOPIC_ARN').required().asString() as AwsArn
     }
   };
 }

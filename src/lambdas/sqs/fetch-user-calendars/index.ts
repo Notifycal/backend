@@ -1,6 +1,5 @@
 import { backgroundProcessingMiddleware } from '@common/lambda-middleware';
 import { logger } from '@common/powertools';
-import type { senderStandardSchema } from '@model/app-events/common';
 import { noUserCalendarFound } from '@model/app-events/NoUserCalendarFoundEvent';
 import { scheduledFetchUserCalendarEventFired } from '@model/app-events/ScheduledFetchUserCalendarEventFiredEvent';
 import type {
@@ -12,13 +11,11 @@ import { eventBridgeEventSchema as _eventBridgeEventSchema } from '@model/lambda
 import { eventSqsSchema } from '@model/lambda-events/SqsEvents';
 import type { LiveUserStoreRecord } from '@model/store/LiveUserStoreRecord';
 import type { UserIdpAuthorizationStoreRecord } from '@model/store/UserIdpAuthorizationStoreRecord';
-import { phoneByCountry } from '@notifycal/shared/i18n';
-import type { senderSchema } from '@notifycal/shared/schemas';
 import type { CorrelationId, DateTime, EventId } from '@notifycal/shared/types';
-import type { PhoneNumberE164 } from '@own-types/model';
 import { setupLoggerCorrelationIdEventBridge } from '@services/common/logger';
 import { SnsService } from '@services/sns';
 import { UserLiveIndexStore } from '@services/stores/user-live-index-store';
+import { toCanonicalForm } from '@utils/phone';
 import type { Context } from 'aws-lambda';
 import { DateTime as DT } from 'luxon';
 import { match, P } from 'ts-pattern';
@@ -36,20 +33,6 @@ export interface CronRunForEvent {
   lowerBoundStartTime: DateTime;
   upperBoundStartTime: DateTime;
   slidingWindowInMinutes: number;
-}
-
-function toCanonicalForm(
-  senderContact: z.infer<typeof senderSchema>
-): z.infer<typeof senderStandardSchema> {
-  return match(senderContact)
-    .with({ type: 'rcs', identifier: P.string }, (rcsPhone) => rcsPhone)
-    .with({ type: 'phone', countryCode: P.any, phoneNumber: P.string }, (phone) => ({
-      type: phone.type,
-      phoneNumber:
-        `${phoneByCountry[phone.countryCode].phoneDetails.dialCode}${phone.phoneNumber.toString()}` as PhoneNumberE164,
-      countryCode: phone.countryCode
-    }))
-    .exhaustive();
 }
 
 function toEvents(

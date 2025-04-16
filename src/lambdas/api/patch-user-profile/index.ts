@@ -4,34 +4,15 @@ import { authedEventSchema } from '@model/lambda-events/ApiGatewayEvents';
 import { reminderConfigSchema } from '@notifycal/shared/schemas';
 import { errorHandler, successHandler } from '@services/common/api-response-handlers';
 import { UserBaseStore } from '@services/stores/user-base-store';
+import { senderValidator } from '@utils/phone';
 import type { APIGatewayProxyResult, Context } from 'aws-lambda';
-import { type CountryCode, isValidPhoneNumber } from 'libphonenumber-js';
-import { match, P } from 'ts-pattern';
-import { z } from 'zod';
+import type { z } from 'zod';
 import { type PatchUserProfileConfig, readPatchUserConfig } from './config';
 
 const contactDetailsWithValidator =
-  reminderConfigSchema.shape.business.shape.senderContact.superRefine((data, context) => {
-    match(data)
-      .with({ type: 'rcs' }, () => {})
-      .with({ type: 'phone', countryCode: P.any, phoneNumber: P.string }, (phone) => {
-        if (!isValidPhoneNumber(phone.phoneNumber, phone.countryCode as CountryCode)) {
-          context.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: 'Phone number is invalid'
-          });
-        }
-        if (!['ES', 'EN'].includes(phone.countryCode)) {
-          context.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: 'The only dial codes allowed, for now, are from Spain and United Kingdom'
-          });
-        }
-      })
-      .exhaustive();
-  });
+  reminderConfigSchema.shape.business.shape.senderContact.superRefine(senderValidator);
 
-export const updatedBusinessSchema = reminderConfigSchema.shape.business.extend({
+const updatedBusinessSchema = reminderConfigSchema.shape.business.extend({
   senderContact: contactDetailsWithValidator
 });
 const bodySchema = reminderConfigSchema.extend({

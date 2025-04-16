@@ -1,22 +1,25 @@
 import { JSONStringified } from '@aws-lambda-powertools/parser/helpers';
 import { protectedEndpointMiddleware } from '@common/lambda-middleware';
+import { phoneE164Schema } from '@model/app-events/common';
 import type { ReminderToBeSentEvent } from '@model/app-events/ReminderToBeSentEvent';
 import { authedEventSchema } from '@model/lambda-events/ApiGatewayEvents';
+import type { ReminderConfig } from '@notifycal/shared/schemas';
 import type {
   CorrelationId,
   DateTime,
   EventId,
-  TemplateId,
-  TimeZone
+  Identity,
+  IdpName,
+  TemplateId
 } from '@notifycal/shared/types';
-import type { PhoneNumberE164 } from '@own-types/model';
+import { errorHandler, successHandler } from '@services/common/api-response-handlers';
 import { SnsService } from '@services/sns';
+import { UserLiveIndexStore } from '@services/stores/user-live-index-store';
 import { interpolate } from '@services/template';
+import { receiverValidator, toCanonicalForm } from '@utils/phone';
 import type { APIGatewayProxyResult, Context } from 'aws-lambda';
 import { v4 } from 'uuid';
 import { z } from 'zod';
-// TODO extract this to a common place
-import { errorHandler, successHandler } from '@services/common/api-response-handlers';
 import { readPostReminderConfig, type PostReminderConfig } from './config';
 
 const bodySchema = z.object({
@@ -29,8 +32,11 @@ const bodySchema = z.object({
       })
     })
   }),
-  startTime: z.string().brand('DateTime'),
-  timeZone: z.string().brand('TimeZone')
+  receiverDetails: phoneE164Schema.superRefine(receiverValidator),
+  startTime: z.object({
+    dateTime: z.string().brand('DateTime'),
+    timeZone: z.string().brand('TimeZone')
+  })
 });
 
 const eventSchema = authedEventSchema<PostReminderConfig>().extend({
@@ -38,48 +44,57 @@ const eventSchema = authedEventSchema<PostReminderConfig>().extend({
 });
 export type Event = z.infer<typeof eventSchema>;
 
-function lambdaHandler(
+function buildEvent(
+  requestBody: Event['body'],
+  senderContact: ReminderConfig['business']['senderContact'],
+  identity: Identity<IdpName>
+): ReminderToBeSentEvent {
+  const eventId = v4();
+  return {
+    eventId: eventId as EventId,
+    correlationId: eventId as CorrelationId,
+    eventType: 'ReminderToBeSent',
+    happenedAt: new Date().toISOString() as DateTime,
+    userId: identity.userId,
+    idp: identity.idp,
+    idpId: identity.idpId,
+    data: {
+      senderDetails: toCanonicalForm(senderContact),
+      receiverDetails: requestBody.receiverDetails,
+      message: interpolate(
+        requestBody.template.id as TemplateId,
+        requestBody.template.fields.business.name,
+        requestBody.template.fields.business.address,
+        requestBody.startTime.dateTime,
+        requestBody.startTime.timeZone
+      )
+    }
+  };
+}
+
+async function lambdaHandler(
   event: Event,
   /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
   ctx: Context
 ): Promise<APIGatewayProxyResult> {
   const config = event.lambdaConfig;
-  const snsService = SnsService.withConfig(config.actionableEventFoundTopicConfig);
-
+  const snsService = SnsService.withConfig(config.reminderToBeSentTopicConfig);
+  const userLiveProvider = UserLiveIndexStore.withConfig(config.userLiveIndexStoreConfig);
   const requestBody = event.body;
+  const callerIdentity = event.requestContext.authorizer.payload;
+  const userId = callerIdentity.userId;
 
-  const eventId = v4();
-  const actionableEvent: ReminderToBeSentEvent = {
-    eventId: eventId as EventId,
-    correlationId: eventId as CorrelationId,
-    eventType: 'ReminderToBeSent',
-    happenedAt: new Date().toISOString() as DateTime,
-    userId: event.requestContext.authorizer.payload.userId,
-    idp: event.requestContext.authorizer.payload.idp,
-    idpId: event.requestContext.authorizer.payload.idpId,
-    data: {
-      receiverDetails: {
-        type: 'phone',
-        phoneNumber: 'Some phone number' as PhoneNumberE164,
-        countryCode: 'ES'
-      },
-      senderDetails: {
-        type: 'phone',
-        phoneNumber: 'Some phone number' as PhoneNumberE164,
-        countryCode: 'ES'
-      },
-      message: interpolate(
-        requestBody.template.id as TemplateId,
-        requestBody.template.fields.business.name,
-        requestBody.template.fields.business.address,
-        'startTime' as DateTime,
-        'timeZone' as TimeZone
-      )
-    }
-  };
-  return snsService
-    .publish(actionableEvent)
-    .then(() => successHandler()())
+  return userLiveProvider
+    .getLiveUserConfigById(userId)
+    .then((configOrNot) =>
+      configOrNot
+        ? Promise.resolve(
+            buildEvent(requestBody, configOrNot.business.senderContact, callerIdentity)
+          )
+        : Promise.reject(new Error('User config not found'))
+    )
+    .then((reminderToBeSent) => snsService.publish(reminderToBeSent))
+    .then(() => successHandler(202)())
     .catch(errorHandler(500));
 }
 

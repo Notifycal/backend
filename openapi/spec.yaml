@@ -145,14 +145,10 @@ paths:
               type: object
               description: Request payload containing reminder config
               properties:
-                businessName:
-                  description: Business name
-                  type: string
-                businessAddress:
-                  description: Business address
-                  type: string
+                business:
+                  $ref: './component-definitions.yaml#/components/schemas/BusinessWithContact'
                 calendars:
-                  $ref: './component-definitions.yaml#/components/schemas/CalendarList'
+                  $ref: './component-definitions.yaml#/components/schemas/CalendarListWithTemplateSelection'
       responses:
         '204':
           description: 'No Content'
@@ -187,6 +183,52 @@ paths:
       x-amazon-apigateway-integration:
         $ref: './aws-stuff.yaml#/components/x-notifycal/AWS_LAMBDA_PROXY'
         uri: 'arn:aws:apigateway:${aws_region}:lambda:path/2015-03-31/functions/${lambda_functions.get_idp_user_calendars_arn}/invocations'
+    options:
+      $ref: './aws-stuff.yaml#/components/x-notifycal/CORS_OPTIONS'
+
+  /api/v1/reminder:
+    post:
+      summary: Post Reminder
+      operationId: postReminder
+      description: Send an inmediate reminder to the user
+      tags: [user, messaging]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Request payload containing reminder config
+              properties:
+                template:
+                  type: object
+                  properties:
+                    id:
+                      description: Template ID
+                      type: string
+                    fields:
+                      type: object
+                      properties:
+                        business:
+                          $ref: './component-definitions.yaml#/components/schemas/Business'
+                      additionalProperties: true
+                  additionalProperties: true
+                startTime:
+                  description: Start time of the reminder
+                  type: string
+                  format: date-time
+                timeZone:
+                  description: Time zone of the reminder. IANA format.
+                  type: string
+              additionalProperties: true
+      responses:
+        '202':
+          description: 'Accepted'
+        '400': { $ref: './component-definitions.yaml#/components/responses/BadRequest' }
+        '401': { $ref: './component-definitions.yaml#/components/responses/Unauthorised' }
+        '500': { $ref: './component-definitions.yaml#/components/responses/InternalServerError' }
+      x-amazon-apigateway-integration:
+        $ref: './aws-stuff.yaml#/components/x-notifycal/AWS_LAMBDA_PROXY'
+        uri: 'arn:aws:apigateway:${aws_region}:lambda:path/2015-03-31/functions/${lambda_functions.post_reminder_arn}/invocations'
     options:
       $ref: './aws-stuff.yaml#/components/x-notifycal/CORS_OPTIONS'
 

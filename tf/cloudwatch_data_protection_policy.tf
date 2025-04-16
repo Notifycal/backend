@@ -1,5 +1,5 @@
 resource "aws_cloudwatch_log_data_protection_policy" "no_credentials_in_logs" {
-  for_each = local.all_lambdas
+  for_each = var.environment != "local" ? local.all_lambdas : {}
 
   log_group_name = each.value["lambda_cloudwatch_log_group_name"]
 

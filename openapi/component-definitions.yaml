@@ -31,28 +31,146 @@ components:
         - lastSignInAt
         - signedUpAt
         - userStatus
-      # Additionalproperties are allowed by default in OpenAPI. To enforce maximum strictness use additionalProperties: false to block all arbitrary data.
+      additionalProperties: false
+
+    Calendar:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+      required:
+        - id
+        - name
       additionalProperties: false
 
     CalendarList:
-      type: array
-      items:
-        type: object
-        properties:
-          id:
-            type: string
-          name:
-            type: string
-        required:
-          - id
-          - name
-        # Additionalproperties are allowed by default in OpenAPI. To enforce maximum strictness use additionalProperties: false to block all arbitrary data.
-        additionalProperties: false
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Calendar'
+      additionalProperties: false
+
+    CalendarListWithTemplateSelection:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            allOf:
+              - $ref: '#/components/schemas/Calendar'
+              - type: object
+                properties:
+                  template:
+                    $ref: '#/components/schemas/Template'
+      additionalProperties: false
+
+    Business:
+      type: object
+      properties:
+        name:
+          description: Business name
+          type: string
+        address:
+          description: Business address
+          type: string
+      required:
+        - name
+        - address
+      additionalProperties: false
+
+    BusinessWithContact:
+      allOf:
+        - $ref: '#/components/schemas/Business'
+        - type: object
+          properties:
+            senderContact:
+              type: object
+              oneOf:
+                - $ref: '#/components/schemas/RCSSender'
+                - $ref: '#/components/schemas/Phone'
+          required:
+            - senderContact
+          additionalProperties: false
+
+    PhoneNumber:
+      type: string
+      description: A phone number string. No dial codes or special characters
+      example: '5551234567'
+
+    CountryCode:
+      type: string
+      description: A country code in ISO 3166-1 alpha-2 format
+      example: 'ES'
+
+    OurRCSSenderId:
+      type: string
+      description: A RCS sender identifier
+      example: 'My Business'
+
+    Phone:
+      type: object
+      required:
+        - type
+        - countryCode
+        - phoneNumber
+      properties:
+        type:
+          type: string
+          enum: [phone]
+        countryCode:
+          $ref: '#/components/schemas/CountryCode'
+        phoneNumber:
+          $ref: '#/components/schemas/PhoneNumber'
+      additionalProperties: false
+
+    RCSSender:
+      type: object
+      required:
+        - type
+        - identifier
+      properties:
+        type:
+          type: string
+          enum: [rcs]
+        identifier:
+          $ref: '#/components/schemas/OurRCSSenderId'
+      additionalProperties: false
+
+    Sender:
+      oneOf:
+        - $ref: '#/components/schemas/RCSSender'
+        - $ref: '#/components/schemas/Phone'
+
+    Template:
+      type: object
+      required:
+        - id
+        - language
+      properties:
+        id:
+          type: string
+          description: Template ID based on Notifycal offer.
+          example: 'formal-en-01'
+        language:
+          $ref: '#/components/schemas/LanguageCode'
+      additionalProperties: false
 
     UnixTimestamp:
       type: number
       format: int64
       description: Unix timestamp in seconds
+
+    LanguageCode:
+      type: string
+      description: A language code in ISO 639-1 format
+      example: 'es'
+      enum:
+        - en
+        - es
 
     ErrorResponse:
       type: object

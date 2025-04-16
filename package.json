@@ -8,7 +8,7 @@
     "clean": "rm -rf dist",
     "build": "$npm_execpath run clean && $npm_execpath run build:src && $npm_execpath run build:openapi",
     "build:src": "NODE_ENV=production node esbuild.js",
-    "build:openapi": "redocly bundle openapi/spec.yaml --output dist/spec.rendered.yaml",
+    "build:openapi": "npx @redocly/cli bundle openapi/spec.yaml --output dist/spec.rendered.yaml",
     "dev-build": "$npm_execpath run clean && node esbuild.js",
     "dev": "pm2 start --no-daemon ecosystem.dev.config.cjs",
     "package": "bin/package.sh",

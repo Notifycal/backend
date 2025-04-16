@@ -1,5 +1,6 @@
 data "aws_ssm_parameter" "slack_bot_token" {
-  name = "/providers/slack/botsecops/slack_token"
+  count = local.observability_count
+  name  = "/providers/slack/botsecops/slack_token"
 }
 
 module "notify_slack" {
@@ -10,7 +11,7 @@ module "notify_slack" {
   sns_topic_name = "${var.environment}-alarms"
 
   slack_channel   = var.observability.alert_notifier.slack_channel
-  slack_bot_token = data.aws_ssm_parameter.slack_bot_token.value
+  slack_bot_token = data.aws_ssm_parameter.slack_bot_token[count.index].value
 
   lambda_function_name = "notify-slack-${var.environment}"
   lambda_description   = "Lambda function which sends alert notifications to Slack"
