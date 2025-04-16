@@ -2,7 +2,7 @@ import { MetricUnit } from '@aws-lambda-powertools/metrics';
 import { metrics } from '@common/powertools';
 import type { IdpName } from '@notifycal/shared/types';
 
-interface MetricDimensions {
+export interface MetricDimensions {
   [key: string]: string;
 }
 

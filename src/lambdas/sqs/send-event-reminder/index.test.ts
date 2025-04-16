@@ -38,7 +38,11 @@ vi.mock('@aws-lambda-powertools/metrics');
 
 const validActionableEventEvent: ActionableEventFoundEvent = {
   data: {
-    receiverDetails: { type: 'phone', phoneNumber: '+34123456789' as PhoneNumberE164 },
+    receiverDetails: {
+      type: 'phone',
+      phoneNumber: '+34123456789' as PhoneNumberE164,
+      countryCode: 'ES'
+    },
     run: {
       lowerBoundStartTime: '2023-01-01T00:00:00Z' as DateTime,
       upperBoundStartTime: '2023-01-01T00:29:59Z' as DateTime,
@@ -55,7 +59,11 @@ const validActionableEventEvent: ActionableEventFoundEvent = {
       startTime: '2024-01-02T15:05:00Z' as DateTime,
       timeZone: 'Europe/Madrid' as TimeZone
     },
-    senderDetails: { type: 'phone', phoneNumber: '+34666999888' as PhoneNumberE164 },
+    senderDetails: {
+      type: 'phone',
+      phoneNumber: '+34666999888' as PhoneNumberE164,
+      countryCode: 'ES'
+    },
     message: `This is some message`
   },
   correlationId: '0de651ef-535e-4d2e-b9ff-7bf43f5aaaaa' as CorrelationId,
@@ -75,7 +83,11 @@ const nonSpanishReceiverActionableEventEvent: ActionableEventFoundEvent = {
   ...validActionableEventEvent,
   data: {
     ...validActionableEventEvent.data,
-    receiverDetails: { type: 'phone', phoneNumber: '+44123456789' as PhoneNumberE164 }
+    receiverDetails: {
+      type: 'phone',
+      phoneNumber: '+44123456789' as PhoneNumberE164,
+      countryCode: 'GB'
+    }
   }
 };
 const nonSpanishPhoneRecord: SQSRecord = _validRawRecord(nonSpanishReceiverActionableEventEvent);

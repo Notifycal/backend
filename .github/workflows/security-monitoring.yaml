@@ -1,0 +1,19 @@
+name: Security Monitoring
+
+on:
+  schedule:
+    # Run weekly on Monday at 9:00 AM
+    - cron: '0 9 * * 1'
+  workflow_dispatch: # Allow manual runs
+
+jobs:
+  npm-audit:
+    name: NPM Audit Check
+    uses: Notifycal/gh-actions/.github/workflows/npm-audit.reuse.yaml@v0.3.2
+    with:
+      repository: ${{ github.repository }}
+      ref_name: ${{ github.ref_name }}
+      run_link: 'https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}'
+      include_dev: true
+    secrets:
+      SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}

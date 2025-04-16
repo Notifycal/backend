@@ -58,7 +58,8 @@ describe('Find actionable events record processor', () => {
           calendarEvent: validEvents[0],
           receiverDetails: {
             type: 'phone',
-            phoneNumber: validPhoneNumber
+            phoneNumber: validPhoneNumber,
+            countryCode: 'ES'
           },
           senderDetails: {
             type: 'rcs',

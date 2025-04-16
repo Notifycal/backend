@@ -30,22 +30,18 @@ export default class MetricsAggregator {
   }
 
   public publishAll(): void {
-    const ptMetrics = new Metrics(this._metricOptions);
+    this._metricRecords.forEach((metricObj) => {
+      const ptMetrics = new Metrics(this._metricOptions);
+      ptMetrics.addDimensions(metricObj.dimensions);
 
-    for (const metric of this._metricRecords) {
-      ptMetrics.addDimensions(metric.dimensions);
-
-      for (const metadata of Object.entries(metric.metadata)) {
+      for (const metadata of Object.entries(metricObj.metadata)) {
         ptMetrics.addMetadata(...metadata);
       }
 
-      ptMetrics.setTimestamp(metric.timestamp);
-      ptMetrics.addMetric(metric.name, metric.unit, metric.value);
-      // Isolate each record avoiding dimensions/metadata to be carried over
-      ptMetrics.clearDimensions();
-      ptMetrics.clearMetadata();
-    }
+      ptMetrics.setTimestamp(metricObj.timestamp);
+      ptMetrics.addMetric(metricObj.name, metricObj.unit, metricObj.value);
 
-    ptMetrics.publishStoredMetrics();
+      ptMetrics.publishStoredMetrics();
+    });
   }
 }

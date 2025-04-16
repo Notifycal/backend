@@ -8,7 +8,7 @@ import { eventSchemaGenerator } from './BaseEvent';
 const data = z.object({
   lastSignInAt: unixTimestampSchema
 });
-export const userSignedInEventSchema = eventSchemaGenerator('UserSignedIn', data);
+export const userSignedInEventSchema = eventSchemaGenerator('UserSignInSucceeded', data);
 
 export type UserSignedInEvent = z.infer<typeof userSignedInEventSchema>;
 
@@ -20,7 +20,7 @@ export function userSignedIn<TIdpName extends IdpName>(
   return {
     eventId: eventId as EventId,
     correlationId: eventId as CorrelationId,
-    eventType: 'UserSignedIn',
+    eventType: 'UserSignInSucceeded',
     happenedAt: new Date().toISOString() as DateTime,
     userId: identity.userId,
     idp: identity.idp,

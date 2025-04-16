@@ -1,3 +1,5 @@
+import { MetricUnit } from '@aws-lambda-powertools/metrics';
+import { metrics } from '@common/powertools';
 import type { ActionableEventFoundEvent } from '@model/app-events/ActionableEventFoundEvent';
 import { noActionableEventsFound } from '@model/app-events/NoActionableEventsFoundEvent';
 import { noAttendeesInCalendarEventFound } from '@model/app-events/NoAttendeesInCalendarEventFoundEvent';
@@ -6,15 +8,16 @@ import { userFetchedEventsParsingFailed } from '@model/app-events/UserFetchedEve
 import type { IdpConfigs } from '@model/Config';
 import type { ParsingError } from '@model/Errors';
 import type { ServiceResponse } from '@model/ServiceResponse';
-import type { CalendarEvent, DateTime, Email, EventId } from '@notifycal/shared/types';
+import type { CalendarEvent, CountryCode, DateTime, Email, EventId } from '@notifycal/shared/types';
 import type { PhoneNumberE164 } from '@own-types/model';
 import { eventsStartTimeWithin } from '@services/calendar-events';
-import { phoneNumberByEmail } from '@services/contacts';
+import { phoneExtractor } from '@services/phone-extractor';
 import { SnsService } from '@services/sns';
 import { interpolate } from '@services/template';
 import { allSettledAllOrErrorHandler } from '@utils/promises';
-import { withIntegrationMetrics } from '@utils/withIntegrationMetrics';
+import { withIntegrationMetrics, type MetricDimensions } from '@utils/withIntegrationMetrics';
 import { DateTime as DT } from 'luxon';
+import { match } from 'ts-pattern';
 import { v4 } from 'uuid';
 import type { ActionableEventsConfig } from './config';
 import type { Record } from './schema';
@@ -46,6 +49,13 @@ function fetchCalendarEvents(
   );
 }
 
+function extractCountryCode(senderDetails: Record['body']['data']['senderDetails']): CountryCode {
+  return match(senderDetails)
+    .with({ type: 'phone' }, (phone) => phone.countryCode)
+    .with({ type: 'rcs' }, () => 'ES' as CountryCode)
+    .exhaustive();
+}
+
 function fetchAttendeePhoneNumbers(
   calendarEvent: CalendarEvent,
   event: Record['body'],
@@ -55,18 +65,30 @@ function fetchAttendeePhoneNumbers(
   return Promise.allSettled(
     calendarEvent.attendees.map((attendee) =>
       withIntegrationMetrics(event.idp, 'GetAttendeePhoneNumbers', () =>
-        phoneNumberByEmail(
+        phoneExtractor(
+          calendarEvent,
           attendee.id as Email,
-          event.sensitiveData.idpAuthorization,
+          extractCountryCode(event.data.senderDetails),
           event.idp,
+          event.sensitiveData.idpAuthorization,
           idpConfigs
         )
       ).then((phoneNumbers) => {
-        if (phoneNumbers && phoneNumbers.length > 0) {
+        const dimensions: MetricDimensions = {
+          idp: event.idp,
+          vendor: event.idp
+        };
+        metrics.addMetric(
+          'AttendeePhoneNumbersInCalendarEventCount',
+          MetricUnit.Count,
+          phoneNumbers.size,
+          dimensions
+        );
+        if (phoneNumbers && phoneNumbers.size > 0) {
           return Promise.resolve([
             {
               calendarEvent: calendarEvent,
-              attendeePhoneNumber: phoneNumbers[0] // if attendee has more than 1 phone number set, pick the first one.
+              attendeePhoneNumber: Array.from(phoneNumbers)[0] // if attendee has more than 1 phone number set, pick the first one.
             }
           ]);
         } else {
@@ -88,7 +110,7 @@ function buildActionableEvents(
   attendeePhoneData: Array<CalendarEventWithAnAttendeePhoneNumber>,
   event: Record['body']
 ): Array<ActionableEventFoundEvent> {
-  return attendeePhoneData.map(({ calendarEvent: calendarEvent, attendeePhoneNumber }) => {
+  return attendeePhoneData.map(({ calendarEvent, attendeePhoneNumber }) => {
     const actionableEvent: ActionableEventFoundEvent = {
       eventId: v4() as EventId,
       correlationId: event.correlationId,
@@ -103,7 +125,8 @@ function buildActionableEvents(
         calendarEvent,
         receiverDetails: {
           type: 'phone',
-          phoneNumber: attendeePhoneNumber
+          phoneNumber: attendeePhoneNumber,
+          countryCode: extractCountryCode(event.data.senderDetails)
         },
         senderDetails: event.data.senderDetails,
         message: interpolate(
@@ -148,6 +171,16 @@ function handleCalendarEventAttendees(
 ): Promise<Array<CalendarEventWithAnAttendeePhoneNumber>> {
   return Promise.allSettled(
     calendarEvents.map((calendarEvent) => {
+      const dimensions: MetricDimensions = {
+        idp: event.idp,
+        vendor: event.idp
+      };
+      metrics.addMetric(
+        'AttendeeInCalendarEventCount',
+        MetricUnit.Count,
+        calendarEvent.attendees.length,
+        dimensions
+      );
       if (calendarEvent.attendees.length > 0) {
         return fetchAttendeePhoneNumbers(calendarEvent, event, idpConfigs, snsService);
       } else {

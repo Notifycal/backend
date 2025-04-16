@@ -56,10 +56,17 @@ locals {
   lambdas_tracing_mode          = var.enable_xray_active_tracing ? "Active" : "PassThrough"
 
   lambdas_shared_iam_policies = [
+    data.aws_iam_policy.insights.arn,
     data.aws_iam_policy.appsignals.arn
   ]
 
-  otel_lambda_layer = "arn:aws:lambda:${var.aws_region}:615299751070:layer:AWSOpenTelemetryDistroJs:6"
+  otel_lambda_layer     = "arn:aws:lambda:${var.aws_region}:615299751070:layer:AWSOpenTelemetryDistroJs:6"
+  insights_lambda_layer = "arn:aws:lambda:${var.aws_region}:580247275435:layer:LambdaInsightsExtension:55"
+
+  lambdas_layers = [
+    local.insights_lambda_layer,
+    local.otel_lambda_layer
+  ]
 
   all_lambdas = {
     get_idp_user_calendars               = module.get_idp_user_calendars_lambda,
@@ -79,4 +86,9 @@ locals {
 # appsignals/otel AWS Managed Policy
 data "aws_iam_policy" "appsignals" {
   name = "CloudWatchLambdaApplicationSignalsExecutionRolePolicy"
+}
+
+# lambda insights AWS Managed Policy
+data "aws_iam_policy" "insights" {
+  name = "CloudWatchLambdaInsightsExecutionRolePolicy"
 }

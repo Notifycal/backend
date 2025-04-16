@@ -46,16 +46,14 @@ module "fetch_user_calendars_lambda" {
   function_name          = "fetch-user-calendars-${var.environment}"
   publish                = local.lambdas_publish
   create_package         = local.lambdas_create_package
-  local_existing_package = "${path.root}/../dist/lambdas/schedule/fetch-user-calendars.zip"
+  local_existing_package = "${path.root}/../dist/lambdas/sqs/fetch-user-calendars.zip"
 
   runtime     = var.lambdas_runtime
   timeout     = local.api_lambdas_timeout
   memory_size = 256
   handler     = var.lambdas_handler_name
 
-  layers = [
-    local.otel_lambda_layer
-  ]
+  layers = local.lambdas_layers
 
   logging_log_format    = var.lambdas_logging_log_format
   attach_tracing_policy = local.lambdas_attach_tracing_policy

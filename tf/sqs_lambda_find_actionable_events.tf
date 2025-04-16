@@ -39,9 +39,7 @@ module "find_actionable_events_lambda" {
   memory_size = 384
   handler     = var.lambdas_handler_name
 
-  layers = [
-    local.otel_lambda_layer
-  ]
+  layers = local.lambdas_layers
 
   logging_log_format    = var.lambdas_logging_log_format
   attach_tracing_policy = local.lambdas_attach_tracing_policy
