@@ -72,7 +72,7 @@ locals {
 
   lambdas_layers = var.observability != null ? [
     local.insights_lambda_layer,
-    otel_lambda_layer
+    local.otel_lambda_layer
   ] : []
 
   all_lambdas = {
