@@ -180,28 +180,24 @@ paths:
     options:
       $ref: './aws-stuff.yaml#/components/x-notifycal/CORS_OPTIONS'
 
-  /api/v1/reminder:
+  /api/v1/demo-reminder:
     post:
-      summary: Post Reminder
-      operationId: postReminder
-      description: Send an inmediate reminder to the user
-      tags: [user, messaging]
+      summary: Post Demo Reminder
+      operationId: postDemoReminder
+      description: Send an inmediate demo reminder to the user
+      tags: [user, messaging, demo]
       requestBody:
         content:
           application/json:
             schema:
               type: object
-              description: Request payload containing reminder config
+              description: Request payload containing demo reminder config
               properties:
                 receiverContact:
                   $ref: './component-definitions.yaml#/components/schemas/ReceiverContact'
                 startTime:
-                  description: Start time of the reminder
-                  type: string
-                  format: date-time
-                timeZone:
-                  description: Time zone of the reminder. IANA format.
-                  type: string
+                  description: Start time of the demo reminder
+                  $ref: './component-definitions.yaml#/components/schemas/DateTime'
               additionalProperties: true
       responses:
         '202':

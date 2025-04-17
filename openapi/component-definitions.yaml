@@ -180,6 +180,19 @@ components:
       type: number
       format: int64
       description: Unix timestamp in seconds
+    
+    DateTime:
+      type: object
+      properties:
+        dateTime:
+          type: string
+          format: date
+          description: Date in ISO 8601 format.
+          example: '2023-10-01T12:00:00Z'
+        timeZone:
+          type: string
+          description: Time zone of the reminder. IANA format.
+          example: 'Europe/Madrid'
 
     LanguageCode:
       type: string
