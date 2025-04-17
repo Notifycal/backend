@@ -13,6 +13,7 @@ import type { DateTime, EventId } from '@notifycal/shared/types';
 import { successHandler } from '@services/common/api-response-handlers';
 import { vonageDecodeAndVerifyJwtSignature } from '@services/jwt';
 import { SnsService } from '@services/sns';
+import { tap } from '@utils/promises';
 import { queryStringObjectToTypedObject } from '@utils/queryString';
 import type { APIGatewayProxyResult, Context } from 'aws-lambda';
 import { v4 } from 'uuid';
@@ -47,6 +48,31 @@ function buildActionableEventReminderStatusUpdated(
   };
 }
 
+function rebuildActionableEventFoundEvent(
+  queryParams: Record<string, string>,
+  requestBody: Event['body']
+): Promise<ActionableEventReminderStatusUpdatedEvent> {
+  logger.info('Attempting to rebuild object from query string parameters', {
+    queryParams
+  });
+  return queryStringObjectToTypedObject(queryParams, actionableEventQuerySchema)
+    .then(
+      tap((partialRebuiltEvent) => {
+        logger.appendKeys({
+          userId: partialRebuiltEvent.userId,
+          idp: partialRebuiltEvent.idp,
+          idpId: partialRebuiltEvent.idpId
+        });
+        logger.info('Rebuilt partial event', {
+          rebuiltEventObject: partialRebuiltEvent
+        });
+      })
+    )
+    .then((partialRebuiltEvent) =>
+      buildActionableEventReminderStatusUpdated(partialRebuiltEvent, requestBody)
+    );
+}
+
 async function lambdaHandler(
   event: Event,
   /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
@@ -54,38 +80,17 @@ async function lambdaHandler(
 ): Promise<APIGatewayProxyResult> {
   logger.info('Processing API call in messaging-webhook lambda', { event });
   const config = event.lambdaConfig;
-
-  const queryStringParameterObject = event.queryStringParameters || {};
-  logger.info('Attempting to rebuild object from query string parameters', {
-    queryStringParameterObject
-  });
-
   const snsService = SnsService.withConfig(config.messagingTopicConfig);
-  let rebuiltEventObject: Omit<ActionableEventFoundEvent, 'eventType' | 'eventId' | 'happenedAt'>;
 
-  try {
-    rebuiltEventObject = queryStringObjectToTypedObject(
-      queryStringParameterObject,
-      actionableEventQuerySchema
+  return rebuildActionableEventFoundEvent(event.queryStringParameters || {}, event.body)
+    .then((rebuiltEvent) => snsService.safePublish(rebuiltEvent))
+    .then(
+      () => successHandler()(),
+      (err) => {
+        logger.error(`Could not rebuild event from query string`, { error: err });
+        return successHandler()();
+      }
     );
-    logger.appendKeys({
-      userId: rebuiltEventObject.userId,
-      idp: rebuiltEventObject.idp,
-      idpId: rebuiltEventObject.idpId
-    });
-
-    logger.info('Rebuilt object', {
-      rebuiltEventObject
-    });
-  } catch (err) {
-    logger.error(`Could not rebuild event from query string`, { error: err });
-    return Promise.resolve(successHandler()());
-  }
-  await snsService.safePublish(
-    buildActionableEventReminderStatusUpdated(rebuiltEventObject, event.body)
-  );
-
-  return Promise.resolve(successHandler()());
 }
 
 function vonageAccessTokenClaimChecker(

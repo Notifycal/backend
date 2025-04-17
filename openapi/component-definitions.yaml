@@ -180,7 +180,7 @@ components:
       type: number
       format: int64
       description: Unix timestamp in seconds
-    
+
     DateTime:
       type: object
       properties:

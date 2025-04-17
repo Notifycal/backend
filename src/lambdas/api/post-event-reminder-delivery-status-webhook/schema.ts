@@ -1,4 +1,5 @@
 import { actionableEventFoundEventSchema } from '@model/app-events/ActionableEventFoundEvent';
+import { demoReminderToBeSentEventSchema } from '@model/app-events/DemoReminderToBeSentEvent';
 import { z } from 'zod';
 
 export const vonageAccessTokenSchema = z.object({
@@ -39,3 +40,9 @@ export const actionableEventQuerySchema = actionableEventFoundEventSchema
       })
     })
   });
+
+export const demoReminderToBeSentQuerySchema = demoReminderToBeSentEventSchema.omit({
+  eventId: true,
+  eventType: true,
+  happenedAt: true
+});
