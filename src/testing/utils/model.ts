@@ -54,6 +54,27 @@ export function validUser(userId: UserId): User<'google.com'> {
     idpId: 'c22ea42f-4028-468b-ac46-9d570b525081' as IdpId,
     lastSignInAt: 1736254413865 as UnixTimestamp,
     signedUpAt: 1736254413865 as UnixTimestamp,
-    userStatus: 'live'
+    userStatus: 'live',
+    config: {
+      calendars: [
+        {
+          id: 'test-calendar-id' as CalendarId,
+          name: 'Test Calendar' as CalendarName,
+          template: {
+            id: 'template-id' as TemplateId,
+            language: 'en'
+          }
+        }
+      ],
+      business: {
+        name: 'Test Business' as BusinessName,
+        address: '123 Test St, Test City, TX 12345' as BusinessAddress,
+        senderContact: {
+          type: 'phone',
+          countryCode: 'ES',
+          phoneNumber: '666777888' as PhoneNumber
+        }
+      }
+    }
   };
 }

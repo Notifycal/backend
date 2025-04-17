@@ -90,10 +90,7 @@ components:
         - type: object
           properties:
             senderContact:
-              type: object
-              oneOf:
-                - $ref: '#/components/schemas/RCSSender'
-                - $ref: '#/components/schemas/Phone'
+              $ref: '#/components/schemas/SenderContact'
           required:
             - senderContact
           additionalProperties: false
@@ -106,6 +103,15 @@ components:
           $ref: './component-definitions.yaml#/components/schemas/BusinessWithContact'
         calendars:
           $ref: './component-definitions.yaml#/components/schemas/CalendarListWithTemplateSelection'
+
+    SenderContact:
+      type: object
+      oneOf:
+        - $ref: '#/components/schemas/RCSSender'
+        - $ref: '#/components/schemas/Phone'
+
+    ReceiverContact:
+      $ref: '#/components/schemas/Phone'
 
     PhoneNumber:
       type: string

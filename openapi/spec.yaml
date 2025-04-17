@@ -193,19 +193,8 @@ paths:
               type: object
               description: Request payload containing reminder config
               properties:
-                template:
-                  type: object
-                  properties:
-                    id:
-                      description: Template ID
-                      type: string
-                    fields:
-                      type: object
-                      properties:
-                        business:
-                          $ref: './component-definitions.yaml#/components/schemas/Business'
-                      additionalProperties: true
-                  additionalProperties: true
+                receiverContact:
+                  $ref: './component-definitions.yaml#/components/schemas/ReceiverContact'
                 startTime:
                   description: Start time of the reminder
                   type: string

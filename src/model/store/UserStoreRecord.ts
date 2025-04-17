@@ -45,5 +45,3 @@ export function extractUser<TIdpName extends IdpName>(
     config: userRecord.Config ? extractReminderConfig(userRecord.Config) : undefined
   };
 }
-
-

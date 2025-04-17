@@ -9,7 +9,9 @@ import type {
 import type { CronRunConfig } from '@model/Config';
 import { eventBridgeEventSchema as _eventBridgeEventSchema } from '@model/lambda-events/EventBridgeEvents';
 import { eventSqsSchema } from '@model/lambda-events/SqsEvents';
+import { fromStoreRecord as fromContactStoreRecord } from '@model/store/ContactDetailsRecordStore';
 import type { LiveUserStoreRecord } from '@model/store/LiveUserStoreRecord';
+import { fromStoreRecord } from '@model/store/ReminderConfigStoreRecord';
 import type { UserIdpAuthorizationStoreRecord } from '@model/store/UserIdpAuthorizationStoreRecord';
 import type { CorrelationId, DateTime, EventId } from '@notifycal/shared/types';
 import { setupLoggerCorrelationIdEventBridge } from '@services/common/logger';
@@ -39,19 +41,22 @@ function toEvents(
   item: LiveUserStoreRecord<'google.com'> & UserIdpAuthorizationStoreRecord<'google.com'>,
   run: z.infer<typeof userCalendarFetchedEventSchema.shape.data.shape.run>
 ): Array<UserCalendarFetchedEvent> {
-  const senderCountryCode = match(item.Config.business.senderContact)
-    .with({ type: 'phone', countryCode: P.any }, (phone) => phone.countryCode)
-    .with({ type: 'rcs', identifier: P.string }, () => undefined)
+  const senderCountryCode = match(item.Config.Business.SenderContact)
+    .with({ Type: 'phone', CountryCode: P.any }, (phone) => phone.CountryCode)
+    .with({ Type: 'rcs', Identifier: P.string }, () => undefined)
     .exhaustive();
-  const pageData = item.Config.calendars.map((c) => ({
+  const pageData = fromStoreRecord(item.Config).calendars.map((c) => ({
     calendar: c,
     run: run,
-    senderDetails: toCanonicalForm(item.Config.business.senderContact),
+    senderDetails: toCanonicalForm(fromContactStoreRecord(item.Config.Business.SenderContact)),
     senderCountryCode: senderCountryCode,
     template: {
       id: c.template.id,
       fields: {
-        business: item.Config.business
+        business: {
+          name: item.Config.Business.Name,
+          address: item.Config.Business.Address
+        }
       }
     }
   }));
@@ -117,7 +122,7 @@ async function lambdaHandler(event: Event, context: Context): Promise<void> {
             idpId: user.IdpId,
             idp: user.Idp
           });
-          if (user.Config.calendars && user.Config.calendars.length > 0) {
+          if (user.Config.Calendars && user.Config.Calendars.length > 0) {
             return Promise.resolve(toEvents(user, run));
           } else {
             const errorEvent = noUserCalendarFound(record, run, user);
