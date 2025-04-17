@@ -43,8 +43,8 @@ locals {
     API_REST_TOPIC_ARN = module.api_rest_topic.sns_topic_arn
   }
 
-  reminder_to_be_sent_topic_env_vars = {
-    REMINDER_TO_BE_SENT_TOPIC_ARN = module.reminder_to_be_sent_topic.sns_topic_arn
+  demo_reminder_to_be_sent_topic_env_vars = {
+    DEMO_REMINDER_TO_BE_SENT_TOPIC_ARN = module.demo_reminder_to_be_sent_topic.sns_topic_arn
   }
   google_idp_config_env_vars = {
     GOOGLE_OAUTH_CLIENT_ID           = var.google_oauth_config.client_id
@@ -81,6 +81,7 @@ locals {
     patch_user_profile                   = module.patch_user_profile_lambda,
     post_login                           = module.post_login_lambda,
     post_refresh                         = module.post_refresh_lambda,
+    post_demo_reminder                   = module.post_demo_reminder_lambda,
     event_reminder_status_change_webhook = module.event_reminder_status_change_webhook_lambda,
     fetch_user_calendars                 = module.fetch_user_calendars_lambda,
     audit_trail                          = module.audit_trail_lambda,

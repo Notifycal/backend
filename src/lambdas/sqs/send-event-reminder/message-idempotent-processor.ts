@@ -1,8 +1,8 @@
 import { logger } from '@common/powertools';
 import type { ActionableEventReminderAttemptSentEvent } from '@model/app-events/ActionableEventReminderAttemptSentEvent';
 import type { ActionableEventReminderAttemptSkippedEvent } from '@model/app-events/ActionableEventReminderAttemptSkippedEvent';
-import type { ReminderToBeSentAttemptSentEvent } from '@model/app-events/ReminderToBeSentAttemptSentEvent';
-import type { ReminderToBeSentAttemptSkippedEvent } from '@model/app-events/ReminderToBeSentAttemptSkippedEvent';
+import type { DemoReminderToBeSentAttemptSentEvent } from '@model/app-events/DemoReminderToBeSentAttemptSentEvent';
+import type { DemoReminderToBeSentAttemptSkippedEvent } from '@model/app-events/DemoReminderToBeSentAttemptSkippedEvent';
 import type { Uuid } from '@notifycal/shared/types';
 import type { Url } from '@own-types/model';
 import { MessagingService } from '@services/messaging';
@@ -65,9 +65,9 @@ export default class MessageProcessor {
           messageUUID
         }
       }))
-      .with({ eventType: 'ReminderToBeSent' }, (b) => ({
+      .with({ eventType: 'DemoReminderToBeSent' }, (b) => ({
         ...b,
-        eventType: 'ReminderToBeSentAttemptSent' as const,
+        eventType: 'DemoReminderToBeSentAttemptSent' as const,
         data: {
           ...b.data,
           messageUUID
@@ -75,7 +75,7 @@ export default class MessageProcessor {
       }))
       .exhaustive();
     await this._snsService.safePublish<
-      ActionableEventReminderAttemptSentEvent | ReminderToBeSentAttemptSentEvent
+      ActionableEventReminderAttemptSentEvent | DemoReminderToBeSentAttemptSentEvent
     >(e);
 
     return messageUUID;
@@ -92,9 +92,9 @@ export default class MessageProcessor {
           messageUUID
         }
       }))
-      .with({ eventType: 'ReminderToBeSent' }, (b) => ({
+      .with({ eventType: 'DemoReminderToBeSent' }, (b) => ({
         ...b,
-        eventType: 'ReminderToBeSentAttemptSkipped' as const,
+        eventType: 'DemoReminderToBeSentAttemptSkipped' as const,
         data: {
           ...b.data,
           messageUUID
@@ -102,7 +102,7 @@ export default class MessageProcessor {
       }))
       .exhaustive();
     return this._snsService.safePublish<
-      ActionableEventReminderAttemptSkippedEvent | ReminderToBeSentAttemptSkippedEvent
+      ActionableEventReminderAttemptSkippedEvent | DemoReminderToBeSentAttemptSkippedEvent
     >(e);
   }
 }

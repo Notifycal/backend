@@ -16,19 +16,19 @@ export const successEventTypeSchema = z.union([
   z.literal('UserCalendarFetched'),
   z.literal('ActionableEventFound'),
   z.literal('ActionableEventReminderAttemptFailed'),
-  z.literal('ReminderToBeSentAttemptFailed'),
   z.literal('ActionableEventReminderAttemptSent'),
-  z.literal('ReminderToBeSentAttemptSent'),
   z.literal('ActionableEventReminderAttemptSkipped'),
-  z.literal('ReminderToBeSentAttemptSkipped'),
   z.literal('ActionableEventReminderStatusUpdated'),
+  z.literal('DemoReminderToBeSent'),
+  z.literal('DemoReminderToBeSentAttemptFailed'),
+  z.literal('DemoReminderToBeSentAttemptSent'),
+  z.literal('DemoReminderToBeSentAttemptSkipped'),
   z.literal('UserSignInSucceeded'),
   z.literal('UserSignUpSucceeded'),
   z.literal('NoPhoneNumberForCalendarEventFound'),
   z.literal('NoActionableEventsFound'),
   z.literal('NoAttendeesInCalendarEventFound'),
-  z.literal('NoUserCalendarFound'),
-  z.literal('ReminderToBeSent')
+  z.literal('NoUserCalendarFound')
 ]);
 export const errorEventTypeSchema = z.union([
   z.literal('UserFetchedEventsParsingFailed'),

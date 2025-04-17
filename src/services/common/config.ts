@@ -8,6 +8,7 @@ import type {
   DecodeAccessJwtConfig,
   DecodeAccessJwtEndpointConfig,
   DecodeRefreshJwtConfig,
+  DemoReminderToBeSentTopicConfig,
   EncodeAccessJwtConfig,
   EncodeJwtsEndpointConfig,
   EncodeRefreshJwtConfig,
@@ -15,7 +16,6 @@ import type {
   IdpEndpointConfig,
   MessagingEndpointConfig,
   MessagingTopicConfig,
-  ReminderToBeSentTopicConfig,
   UserCalendarFetchedTopicConfig
 } from '@model/Config';
 import type { DecodeVonageAccessJwtEndpointConfig, VonageConfig } from '@model/vendor/vonage';
@@ -151,10 +151,12 @@ export function readActionableEventFoundTopicConfig(
   };
 }
 
-export function readReminderToBeSentTopicConfig(env: Environment): ReminderToBeSentTopicConfig {
+export function readDemoReminderToBeSentTopicConfig(
+  env: Environment
+): DemoReminderToBeSentTopicConfig {
   return {
-    reminderToBeSentTopicConfig: {
-      topicArn: env.get('REMINDER_TO_BE_SENT_TOPIC_ARN').required().asString() as AwsArn
+    demoReminderToBeSentTopicConfig: {
+      topicArn: env.get('DEMO_REMINDER_TO_BE_SENT_TOPIC_ARN').required().asString() as AwsArn
     }
   };
 }

@@ -4,7 +4,7 @@ import type { AuthorizationForIdp } from '@model/IdpAuthorization';
 import type { LiveUser } from '@model/LiveUser';
 import type { IdpName, UserStatus } from '@notifycal/shared/types';
 import type { ReminderConfigStoreRecord } from './ReminderConfigStoreRecord';
-import { extractReminderConfig } from './UserStoreRecord';
+import { fromStoreRecord } from './UserStoreRecord';
 
 export interface LiveUserStoreRecord<TIdpName> extends UserIdentity<TIdpName> {
   Config: ReminderConfigStoreRecord;
@@ -17,7 +17,7 @@ export function extractLiveUser<TIdpName extends IdpName>(
 ): LiveUser<TIdpName> {
   return {
     ...extractIdentity(userRecord),
-    config: extractReminderConfig(userRecord.Config),
+    config: fromStoreRecord(userRecord.Config),
     idpAuthorization: userRecord.IdpAuthorization
   };
 }

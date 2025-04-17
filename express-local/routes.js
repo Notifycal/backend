@@ -3,10 +3,10 @@
 import { handler as getUserProfile } from '../dist/lambdas/api/get-user-profile/index.cjs';
 import { handler as getUserCalendars } from '../dist/lambdas/api/idp/get-user-calendars/index.cjs';
 import { handler as patchUserProfile } from '../dist/lambdas/api/patch-user-profile/index.cjs';
+import { handler as postDemoReminder } from '../dist/lambdas/api/post-demo-reminder/index.cjs';
 import { handler as postMessageDeliveryWebhook } from '../dist/lambdas/api/post-event-reminder-delivery-status-webhook/index.cjs';
 import { handler as postLogin } from '../dist/lambdas/api/post-login/index.cjs';
 import { handler as postRefresh } from '../dist/lambdas/api/post-refresh/index.cjs';
-import { handler as postReminder } from '../dist/lambdas/api/post-reminder/index.cjs';
 
 const routes = {
   'idp/user-calendars': {
@@ -22,8 +22,8 @@ const routes = {
   refresh: {
     POST: postRefresh
   },
-  reminder: {
-    POST: postReminder
+  'demo-reminder': {
+    POST: postDemoReminder
   },
   'webhook/reminder-status': {
     POST: postMessageDeliveryWebhook

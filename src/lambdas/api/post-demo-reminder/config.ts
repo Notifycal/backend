@@ -1,22 +1,25 @@
-import type { AuthedEndpointConfig, ReminderToBeSentTopicConfig } from '@model/Config';
+import type {
+  AuthedEndpointConfig,
+  DemoReminderToBeSentTopicConfig as DemoReminderTopicConfig
+} from '@model/Config';
 import {
   readAuthedEndpointConfig,
+  readDemoReminderToBeSentTopicConfig,
   readEnv,
-  readReminderToBeSentTopicConfig,
   readUserLiveIndexConfig
 } from '@services/common/config';
 import type { UserLiveIndexStoreEndpointConfig } from '@services/stores/user-live-index-store';
 import { promiseTry } from '@utils/promises';
 
-export type PostReminderConfig = AuthedEndpointConfig &
-  ReminderToBeSentTopicConfig &
+export type PostDemoReminderConfig = AuthedEndpointConfig &
+  DemoReminderTopicConfig &
   UserLiveIndexStoreEndpointConfig;
 
-export function readPostReminderConfig(): Promise<PostReminderConfig> {
+export function readPostDemoReminderConfig(): Promise<PostDemoReminderConfig> {
   const env = readEnv();
   return promiseTry(() => ({
     ...readAuthedEndpointConfig(env),
-    ...readReminderToBeSentTopicConfig(env),
+    ...readDemoReminderToBeSentTopicConfig(env),
     ...readUserLiveIndexConfig(env)
   }));
 }

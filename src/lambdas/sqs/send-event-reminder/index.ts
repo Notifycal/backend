@@ -10,11 +10,11 @@ import {
   actionableEventFoundEventSchema
 } from '@model/app-events/ActionableEventFoundEvent';
 import type { ActionableEventReminderAttemptFailedEvent } from '@model/app-events/ActionableEventReminderAttemptFailedEvent';
-import type { ReminderToBeSentAttemptFailedEvent } from '@model/app-events/ReminderToBeSentAttemptFailedEvent';
+import type { DemoReminderToBeSentAttemptFailedEvent } from '@model/app-events/DemoReminderToBeSentAttemptFailedEvent';
 import {
-  type ReminderToBeSentEvent,
-  reminderToBeSentEventSchema
-} from '@model/app-events/ReminderToBeSentEvent';
+  type DemoReminderToBeSentEvent,
+  demoReminderToBeSentEventSchema
+} from '@model/app-events/DemoReminderToBeSentEvent';
 import { eventSqsSchema } from '@model/lambda-events/SqsEvents';
 import type { Uuid } from '@notifycal/shared/types';
 import type { PhoneNumberE164, Url } from '@own-types/model';
@@ -27,7 +27,7 @@ import { z } from 'zod';
 import { readSendEventReminderConfig, type SendEventReminderConfig } from './config';
 import MessageProcessor from './message-idempotent-processor';
 
-const bodies = z.union([actionableEventFoundEventSchema, reminderToBeSentEventSchema]);
+const bodies = z.union([actionableEventFoundEventSchema, demoReminderToBeSentEventSchema]);
 const eventSchema = eventSqsSchema<SendEventReminderConfig, typeof bodies>(bodies);
 export type Event = z.infer<typeof eventSchema>;
 export type Record = z.infer<typeof eventSchema.shape.Records.element>;
@@ -58,7 +58,7 @@ function isSpanishPhoneNumber(number: PhoneNumberE164): boolean {
 
 function buildWebhookUrl(record: Record, baseWebhookUrl: Url): Url {
   const queryStringEventData: Omit<
-    ActionableEventFoundEvent | ReminderToBeSentEvent,
+    ActionableEventFoundEvent | DemoReminderToBeSentEvent,
     'eventType' | 'eventId' | 'happenedAt'
   > = {
     correlationId: record.body.correlationId,
@@ -109,13 +109,13 @@ async function handleReminderAttemptFailure(
       ...b,
       eventType: 'ActionableEventReminderAttemptFailed' as const
     }))
-    .with({ eventType: 'ReminderToBeSent' }, (b) => ({
+    .with({ eventType: 'DemoReminderToBeSent' }, (b) => ({
       ...b,
-      eventType: 'ReminderToBeSentAttemptFailed' as const
+      eventType: 'DemoReminderToBeSentAttemptFailed' as const
     }))
     .exhaustive();
   await snsService.safePublish<
-    ActionableEventReminderAttemptFailedEvent | ReminderToBeSentAttemptFailedEvent
+    ActionableEventReminderAttemptFailedEvent | DemoReminderToBeSentAttemptFailedEvent
   >(errorEvent);
 }
 

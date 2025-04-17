@@ -6,7 +6,7 @@ import type {
   User,
   UserStatus
 } from '@notifycal/shared/types';
-import { fromStoreRecord } from './ContactDetailsRecordStore';
+import { fromStoreRecord as fromContactStoreRecord } from './ContactDetailsRecordStore';
 import type { ReminderConfigStoreRecord } from './ReminderConfigStoreRecord';
 
 export interface UserStoreRecord<TIdpName> extends UserIdentity<TIdpName> {
@@ -16,7 +16,7 @@ export interface UserStoreRecord<TIdpName> extends UserIdentity<TIdpName> {
   Config?: ReminderConfigStoreRecord;
 }
 
-export function extractReminderConfig(config: ReminderConfigStoreRecord): ReminderConfig {
+export function fromStoreRecord(config: ReminderConfigStoreRecord): ReminderConfig {
   return {
     calendars: config?.Calendars.map((calendar) => ({
       id: calendar.Id,
@@ -29,7 +29,7 @@ export function extractReminderConfig(config: ReminderConfigStoreRecord): Remind
     business: {
       name: config?.Business.Name,
       address: config?.Business.Address,
-      senderContact: fromStoreRecord(config?.Business.SenderContact)
+      senderContact: fromContactStoreRecord(config?.Business.SenderContact)
     }
   };
 }
@@ -42,6 +42,6 @@ export function extractUser<TIdpName extends IdpName>(
     lastSignInAt: userRecord.LastSignInAt,
     signedUpAt: userRecord.SignedUpAt,
     userStatus: userRecord.UserStatus,
-    config: userRecord.Config ? extractReminderConfig(userRecord.Config) : undefined
+    config: userRecord.Config ? fromStoreRecord(userRecord.Config) : undefined
   };
 }

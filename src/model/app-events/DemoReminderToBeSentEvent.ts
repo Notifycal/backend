@@ -7,6 +7,9 @@ const dataSchema = z.object({
   senderDetails: senderStandardSchema,
   message: z.string()
 });
-export const reminderToBeSentEventSchema = eventSchemaGenerator('ReminderToBeSent', dataSchema);
+export const demoReminderToBeSentEventSchema = eventSchemaGenerator(
+  'DemoReminderToBeSent',
+  dataSchema
+);
 
-export type ReminderToBeSentEvent = z.infer<typeof reminderToBeSentEventSchema>;
+export type DemoReminderToBeSentEvent = z.infer<typeof demoReminderToBeSentEventSchema>;

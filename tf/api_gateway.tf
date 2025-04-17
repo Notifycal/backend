@@ -12,7 +12,7 @@ locals {
       get_user_profile_arn       = module.get_user_profile_lambda_alias.lambda_alias_arn
       patch_user_profile_arn     = module.patch_user_profile_lambda_alias.lambda_alias_arn
       get_idp_user_calendars_arn = module.get_idp_user_calendars_lambda_alias.lambda_alias_arn
-      post_reminder_arn          = module.post_reminder_lambda_alias.lambda_alias_arn
+      post_demo_reminder_arn     = module.post_demo_reminder_lambda_alias.lambda_alias_arn
       webhook_reminder_status    = module.event_reminder_status_change_webhook_lambda_alias.lambda_alias_arn
     }
   })

@@ -1,12 +1,12 @@
-module "reminder_to_be_sent_topic" {
+module "demo_reminder_to_be_sent_topic" {
   source             = "./modules/sns"
-  topic_name         = "reminder-to-be-sent-${var.environment}"
-  topic_display_name = "Reminder to be sent ${var.environment}"
+  topic_name         = "demo-reminder-to-be-sent-${var.environment}"
+  topic_display_name = "Demo reminder to be sent ${var.environment}"
   subscribers = {
     queue = {
-      arn = module.reminder_to_be_sent_queue.sqs_queue_arn
+      arn = module.demo_reminder_to_be_sent_queue.sqs_queue_arn
       filter_policy = jsonencode({
-        EventType = ["ReminderToBeSent"]
+        EventType = ["DemoReminderToBeSent"]
       })
     }
     audit_trail = local.audit_trail_subscription
@@ -16,10 +16,10 @@ module "reminder_to_be_sent_topic" {
   tags                       = local.common_tags
 }
 
-module "reminder_to_be_sent_queue" {
+module "demo_reminder_to_be_sent_queue" {
   source       = "./modules/sqs"
-  queue_name   = "reminder-to-be-sent-${var.environment}"
-  sender_arns  = toset([module.reminder_to_be_sent_topic.sns_topic_arn])
+  queue_name   = "demo-reminder-to-be-sent-${var.environment}"
+  sender_arns  = toset([module.demo_reminder_to_be_sent_topic.sns_topic_arn])
   receiver_arn = "" //TODO find out why this works withot an Arn here
   tags         = local.common_tags
 
