@@ -113,6 +113,7 @@
 | <a name="input_aws_region"></a> [aws\_region](#input\_aws\_region) | n/a | `string` | n/a | yes |
 | <a name="input_base_domain"></a> [base\_domain](#input\_base\_domain) | n/a | `string` | `"notifycal.com"` | no |
 | <a name="input_domain_prefix"></a> [domain\_prefix](#input\_domain\_prefix) | n/a | `string` | `"api"` | no |
+| <a name="input_enable_data_protection"></a> [enable\_data\_protection](#input\_enable\_data\_protection) | n/a | `bool` | `true` | no |
 | <a name="input_enable_xray_active_tracing"></a> [enable\_xray\_active\_tracing](#input\_enable\_xray\_active\_tracing) | n/a | `bool` | `true` | no |
 | <a name="input_environment"></a> [environment](#input\_environment) | n/a | `string` | n/a | yes |
 | <a name="input_frontend_domain"></a> [frontend\_domain](#input\_frontend\_domain) | Allowed domain specified in response headers by API gateway lambdas(TLDR: CORS) | `string` | n/a | yes |
