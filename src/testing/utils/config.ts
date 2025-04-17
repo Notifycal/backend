@@ -87,6 +87,10 @@ export function setEnvApiRestTopicConfig(config: SnsTopicConfig): void {
   process.env.API_REST_TOPIC_ARN = config.topicArn;
 }
 
+export function setEnvDemoReminderToBeSentTopicConfig(config: SnsTopicConfig): void {
+  process.env.DEMO_REMINDER_TO_BE_SENT_TOPIC_ARN = config.topicArn;
+}
+
 export function setEnvDeadLetterQueueConfig(config: SqsQueueConfig): void {
   process.env.DEAD_LETTER_QUEUE_URL = config.queueUrl;
 }

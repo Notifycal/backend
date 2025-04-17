@@ -1,0 +1,253 @@
+import { accessTokenSchema, type OurAccessTokenClaims } from '@model/Jwt';
+import type { LiveUserStoreRecord } from '@model/store/LiveUserStoreRecord';
+import type {
+  BusinessAddress,
+  BusinessName,
+  CalendarId,
+  CalendarName,
+  DateTime,
+  Email,
+  IdpId,
+  IdpName,
+  PhoneNumber,
+  TemplateId,
+  TimeZone,
+  UserId
+} from '@notifycal/shared/types';
+import type { AwsArn, PhoneNumberE164 } from '@own-types/model';
+import { SnsService } from '@services/sns';
+import { UserLiveIndexStore } from '@services/stores/user-live-index-store';
+import { testAuthedEvent, testEvent } from '@testing/data/apigateway';
+import {
+  setEnvBaseConfig,
+  setEnvDecodeAccessJwtConfig,
+  setEnvDemoReminderToBeSentTopicConfig,
+  setEnvUserLiveStoreConfig
+} from '@testing/utils/config';
+import { getDefaultDecodeAccessJwtConfig } from '@testing/utils/jwt';
+import type { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from 'aws-lambda';
+import { describe, expect, it, vi } from 'vitest';
+import type { PostDemoReminderConfig } from './config';
+import { handler, type Event } from './index';
+
+vi.mock('@services/sns');
+vi.mock('@services/stores/user-live-index-store');
+
+const validDateTime = '2023-10-01T12:00:00Z' as DateTime;
+const validTimeZone = 'Europe/Madrid' as TimeZone;
+const validIdentity = {
+  userId: 'cfaa8471-f4cc-44da-bc22-ddc4b735a847' as UserId,
+  email: 'test@notifycal.com' as Email,
+  idp: 'google.com' as IdpName,
+  idpId: '246534735745767767' as IdpId
+};
+const validAccessToken: OurAccessTokenClaims = {
+  ...validIdentity,
+  role: 'user',
+  permissions: {}
+};
+
+const validPhone = {
+  type: 'phone' as const,
+  phoneNumber: '+34123456789' as PhoneNumberE164,
+  countryCode: 'ES' as const
+};
+const validE164Phone = '+34123456789' as PhoneNumberE164;
+const validUserConfig: LiveUserStoreRecord<unknown>['Config'] = {
+  Calendars: [
+    {
+      Id: 'calendar-id-1' as CalendarId,
+      Name: 'Test Calendar' as CalendarName,
+      Template: {
+        Id: 'informal-en-01' as TemplateId,
+        Language: 'en'
+      }
+    }
+  ],
+  Business: {
+    SenderContact: {
+      Type: 'phone',
+      PhoneNumber: '666999888' as PhoneNumber,
+      CountryCode: 'ES'
+    },
+    Name: 'Test Business' as BusinessName,
+    Address: 'Test Address' as BusinessAddress
+  }
+};
+
+const validRequestBody: Event['body'] = {
+  receiverContact: validPhone,
+  startTime: {
+    dateTime: validDateTime,
+    timeZone: validTimeZone
+  }
+};
+
+describe('Post Demo Reminder', () => {
+  it('should successfully publish a demo reminder event', async () => {
+    const validEvent = (await testAuthedEvent(
+      validRequestBody,
+      {},
+      accessTokenSchema,
+      validAccessToken
+    )) as unknown as APIGatewayProxyEvent;
+    const getLiveUserConfigByIdFn = vi.fn().mockResolvedValue(validUserConfig);
+    const publishFn = vi.fn().mockResolvedValue({});
+
+    const result = await testit(validEvent, getLiveUserConfigByIdFn, publishFn);
+
+    expect(result.statusCode).toBe(202);
+    expect(getLiveUserConfigByIdFn).toHaveBeenCalledWith(validAccessToken.userId);
+    expect(publishFn).toHaveBeenCalledWith(
+      expect.objectContaining({
+        eventType: 'DemoReminderToBeSent',
+        userId: validIdentity.userId,
+        data: {
+          receiverDetails: {
+            type: 'phone' as const,
+            countryCode: 'ES',
+            phoneNumber: validE164Phone
+          },
+          senderDetails: {
+            type: 'phone' as const,
+            countryCode: 'ES',
+            phoneNumber: `+34666999888` as PhoneNumberE164
+          },
+          message:
+            "Don't forget your appointment at Test Business! On 01/10/2023 at 14:00 at Test Address. If you can't make it, let us know."
+        }
+      })
+    );
+  });
+
+  it('should return 400 if payload is invalid', async () => {
+    const invalidBody = {
+      receiverContact: 4567457634624,
+      startTime: {
+        dateTime: validDateTime
+      }
+    };
+    const validEvent = (await testAuthedEvent(
+      invalidBody,
+      {},
+      accessTokenSchema,
+      validAccessToken
+    )) as unknown as APIGatewayProxyEvent;
+    const getLiveUserConfigByIdFn = vi.fn();
+    const publishFn = vi.fn();
+
+    const result = await testit(validEvent, getLiveUserConfigByIdFn, publishFn);
+
+    expect(result.statusCode).toBe(400);
+    expect(getLiveUserConfigByIdFn).not.toHaveBeenCalled();
+    expect(publishFn).not.toHaveBeenCalled();
+  });
+
+  it('should return 401 if missing authorization', async () => {
+    const validEvent = testEvent(validRequestBody) as APIGatewayProxyEvent;
+    const getLiveUserConfigByIdFn = vi.fn();
+    const publishFn = vi.fn();
+
+    const result = await testit(validEvent, getLiveUserConfigByIdFn, publishFn);
+
+    expect(result.statusCode).toBe(401);
+    expect(getLiveUserConfigByIdFn).not.toHaveBeenCalled();
+    expect(publishFn).not.toHaveBeenCalled();
+  });
+
+  it('should return 500 when user config is not found', async () => {
+    const validEvent = (await testAuthedEvent(
+      validRequestBody,
+      {},
+      accessTokenSchema,
+      validAccessToken
+    )) as unknown as APIGatewayProxyEvent;
+    const getLiveUserConfigByIdFn = vi.fn(() => Promise.resolve(undefined));
+    const publishFn = vi.fn();
+
+    const result = await testit(validEvent, getLiveUserConfigByIdFn, publishFn);
+
+    expect(result.statusCode).toBe(500);
+    expect(getLiveUserConfigByIdFn).toHaveBeenCalledWith(validAccessToken.userId);
+    expect(publishFn).not.toHaveBeenCalled();
+  });
+
+  it('should return 500 when user config Promise is rejected', async () => {
+    const validEvent = (await testAuthedEvent(
+      validRequestBody,
+      {},
+      accessTokenSchema,
+      validAccessToken
+    )) as unknown as APIGatewayProxyEvent;
+    const getLiveUserConfigByIdFn = vi.fn().mockRejectedValue(new Error('Database error'));
+    const publishFn = vi.fn().mockResolvedValue({});
+
+    const result = await testit(validEvent, getLiveUserConfigByIdFn, publishFn);
+
+    expect(result.statusCode).toBe(500);
+    expect(getLiveUserConfigByIdFn).toHaveBeenCalledWith(validAccessToken.userId);
+    expect(publishFn).not.toHaveBeenCalled();
+  });
+
+  it('should return 500 when SNS service fails to publish', async () => {
+    const validEvent = (await testAuthedEvent(
+      validRequestBody,
+      {},
+      accessTokenSchema,
+      validAccessToken
+    )) as unknown as APIGatewayProxyEvent;
+    const error = new Error('Failed to publish message');
+    const publishFn = vi.fn().mockRejectedValue(error);
+    const getLiveUserConfigByIdFn = vi.fn().mockResolvedValue(validUserConfig);
+
+    const result = await testit(validEvent, getLiveUserConfigByIdFn, publishFn);
+
+    expect(result.statusCode).toBe(500);
+    expect(getLiveUserConfigByIdFn).toHaveBeenCalledWith(validAccessToken.userId);
+    expect(publishFn).toHaveBeenCalledOnce();
+  });
+});
+
+const defaultEnv = {
+  decodeAccessJwtConfig: getDefaultDecodeAccessJwtConfig(),
+  userLiveIndexStoreConfig: {
+    tableName: 'Some-table-name',
+    indexName: 'some-index-name',
+    pageSize: 50
+  },
+  demoReminderToBeSentTopicConfig: {
+    topicArn: 'arn:aws:sns:eu-west-1:123456789012:DemoReminderToBeSent' as AwsArn
+  },
+  corsConfig: {
+    frontendDomain: 'http://localhost:5173'
+  }
+};
+
+function testit(
+  event: APIGatewayProxyEvent,
+  getLiveUserConfigByIdFn: () => Promise<LiveUserStoreRecord<unknown>['Config'] | undefined>,
+  publishFn: () => Promise<void>,
+  config: PostDemoReminderConfig = defaultEnv
+): Promise<APIGatewayProxyResult> {
+  const userBaseStoreMock = {
+    getLiveUserConfigById: vi.fn().mockImplementation(getLiveUserConfigByIdFn)
+  };
+  // eslint-disable-next-line @typescript-eslint/unbound-method
+  vi.mocked(UserLiveIndexStore.withConfig).mockReturnValue(
+    userBaseStoreMock as unknown as UserLiveIndexStore<IdpName>
+  );
+  const snsServiceMock = {
+    publish: publishFn
+  };
+  // eslint-disable-next-line @typescript-eslint/unbound-method
+  vi.mocked(SnsService.withConfig).mockReturnValue(snsServiceMock as unknown as SnsService);
+  setEnv(config);
+  return handler(event as unknown as Event, {} as Context);
+}
+
+function setEnv(config: PostDemoReminderConfig): void {
+  setEnvDecodeAccessJwtConfig(config.decodeAccessJwtConfig);
+  setEnvUserLiveStoreConfig(config.userLiveIndexStoreConfig);
+  setEnvDemoReminderToBeSentTopicConfig(config.demoReminderToBeSentTopicConfig);
+  setEnvBaseConfig(config.corsConfig);
+}
