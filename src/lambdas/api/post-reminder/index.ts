@@ -4,14 +4,7 @@ import { phoneE164Schema } from '@model/app-events/common';
 import type { ReminderToBeSentEvent } from '@model/app-events/ReminderToBeSentEvent';
 import { authedEventSchema } from '@model/lambda-events/ApiGatewayEvents';
 import type { ReminderConfig } from '@notifycal/shared/schemas';
-import type {
-  CorrelationId,
-  DateTime,
-  EventId,
-  Identity,
-  IdpName,
-  TemplateId
-} from '@notifycal/shared/types';
+import type { CorrelationId, DateTime, EventId, Identity, IdpName } from '@notifycal/shared/types';
 import { errorHandler, successHandler } from '@services/common/api-response-handlers';
 import { SnsService } from '@services/sns';
 import { UserLiveIndexStore } from '@services/stores/user-live-index-store';
@@ -23,15 +16,6 @@ import { z } from 'zod';
 import { readPostReminderConfig, type PostReminderConfig } from './config';
 
 const bodySchema = z.object({
-  template: z.object({
-    id: z.string(),
-    fields: z.object({
-      business: z.object({
-        name: z.string().brand('BusinessName'),
-        address: z.string().brand('BusinessAddress')
-      })
-    })
-  }),
   receiverDetails: phoneE164Schema.superRefine(receiverValidator),
   startTime: z.object({
     dateTime: z.string().brand('DateTime'),
@@ -46,10 +30,11 @@ export type Event = z.infer<typeof eventSchema>;
 
 function buildEvent(
   requestBody: Event['body'],
-  senderContact: ReminderConfig['business']['senderContact'],
+  userReminderConfig: ReminderConfig,
   identity: Identity<IdpName>
 ): ReminderToBeSentEvent {
   const eventId = v4();
+  const templateId = userReminderConfig.calendars[0].template.id;
   return {
     eventId: eventId as EventId,
     correlationId: eventId as CorrelationId,
@@ -59,12 +44,12 @@ function buildEvent(
     idp: identity.idp,
     idpId: identity.idpId,
     data: {
-      senderDetails: toCanonicalForm(senderContact),
+      senderDetails: toCanonicalForm(userReminderConfig.business.senderContact),
       receiverDetails: requestBody.receiverDetails,
       message: interpolate(
-        requestBody.template.id as TemplateId,
-        requestBody.template.fields.business.name,
-        requestBody.template.fields.business.address,
+        templateId,
+        userReminderConfig.business.name,
+        userReminderConfig.business.address,
         requestBody.startTime.dateTime,
         requestBody.startTime.timeZone
       )
@@ -88,9 +73,7 @@ async function lambdaHandler(
     .getLiveUserConfigById(userId)
     .then((configOrNot) =>
       configOrNot
-        ? Promise.resolve(
-            buildEvent(requestBody, configOrNot.business.senderContact, callerIdentity)
-          )
+        ? Promise.resolve(buildEvent(requestBody, configOrNot, callerIdentity))
         : Promise.reject(new Error('User config not found'))
     )
     .then((reminderToBeSent) => snsService.publish(reminderToBeSent))

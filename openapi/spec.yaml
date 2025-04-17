@@ -142,13 +142,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              description: Request payload containing reminder config
-              properties:
-                business:
-                  $ref: './component-definitions.yaml#/components/schemas/BusinessWithContact'
-                calendars:
-                  $ref: './component-definitions.yaml#/components/schemas/CalendarListWithTemplateSelection'
+              $ref: './component-definitions.yaml#/components/schemas/ReminderConfig'
       responses:
         '204':
           description: 'No Content'

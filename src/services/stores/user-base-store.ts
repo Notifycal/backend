@@ -27,7 +27,8 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
       'IdpId',
       'LastSignInAt',
       'SignedUpAt',
-      'UserStatus'
+      'UserStatus',
+      'Config'
     ];
     const queryCmdInput = {
       KeyConditionExpression: 'UserId = :id',

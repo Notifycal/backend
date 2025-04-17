@@ -23,6 +23,8 @@ components:
             - live
             - onboarding
             - banned
+        config:
+          $ref: '#/components/schemas/ReminderConfig'
       required:
         - userId
         - email
@@ -95,6 +97,15 @@ components:
           required:
             - senderContact
           additionalProperties: false
+
+    ReminderConfig:
+      type: object
+      description: Data containing user choice to send reminder
+      properties:
+        business:
+          $ref: './component-definitions.yaml#/components/schemas/BusinessWithContact'
+        calendars:
+          $ref: './component-definitions.yaml#/components/schemas/CalendarListWithTemplateSelection'
 
     PhoneNumber:
       type: string

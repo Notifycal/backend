@@ -8,20 +8,22 @@ import type {
 } from '@notifycal/shared/types';
 import type { SenderContactStoreRecord } from './ContactDetailsRecordStore';
 
-interface CalendarStoreRecord {
-  id: CalendarId;
-  name: CalendarName;
-  template: {
-    id: TemplateId;
-    language: LanguageCode;
-  };
+export interface TemplateStoreRecord {
+  Id: TemplateId;
+  Language: LanguageCode;
+}
+
+export interface CalendarStoreRecord {
+  Id: CalendarId;
+  Name: CalendarName;
+  Template: TemplateStoreRecord;
 }
 
 export interface ReminderConfigStoreRecord {
-  calendars: Array<CalendarStoreRecord>;
-  business: {
-    name: BusinessName;
-    address: BusinessAddress;
-    senderContact: SenderContactStoreRecord;
+  Calendars: Array<CalendarStoreRecord>;
+  Business: {
+    Name: BusinessName;
+    Address: BusinessAddress;
+    SenderContact: SenderContactStoreRecord;
   };
 }

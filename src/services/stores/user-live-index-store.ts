@@ -1,6 +1,5 @@
 import type { LiveUserStoreRecord } from '@model/store/LiveUserStoreRecord';
 import type { UserIdpAuthorizationStoreRecord } from '@model/store/UserIdpAuthorizationStoreRecord';
-import type { ReminderConfig } from '@notifycal/shared/schemas';
 import type { IdpName, UserId } from '@notifycal/shared/types';
 import { IndexStore, type IndexStoreConfig } from '@services/common/index-store';
 
@@ -50,7 +49,9 @@ export class UserLiveIndexStore<
     return super.queryCommandRunner(queryCommand);
   }
 
-  public getLiveUserConfigById(userId: UserId): Promise<ReminderConfig | undefined> {
+  public getLiveUserConfigById(
+    userId: UserId
+  ): Promise<LiveUserStoreRecord<unknown>['Config'] | undefined> {
     const projections: Array<keyof LiveUserStoreRecord<IdpName>> = ['Config'];
     const queryCommand = {
       Key: {
@@ -65,6 +66,8 @@ export class UserLiveIndexStore<
       ProjectionExpression: projections.join(', ')
     };
 
-    return super.getCommandRunner(queryCommand);
+    return super
+      .getCommandRunner<LiveUserStoreRecord<unknown>>(queryCommand)
+      .then((result) => result?.Config);
   }
 }

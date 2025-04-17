@@ -1,10 +1,7 @@
-import type {
-  MessageReceiver,
-  MessageSender,
-  senderStandardSchema
-} from '@model/app-events/common';
+import type { senderStandardSchema } from '@model/app-events/common';
 import { phoneByCountry } from '@notifycal/shared/i18n';
 import type { senderSchema } from '@notifycal/shared/schemas';
+import type { PhoneContact, ReceiverContact, SenderContact } from '@notifycal/shared/types';
 import type { PhoneNumberE164 } from '@own-types/model';
 import { isValidPhoneNumber } from 'libphonenumber-js';
 import { match, P } from 'ts-pattern';
@@ -24,14 +21,7 @@ export function toCanonicalForm(
     .exhaustive();
 }
 
-function phoneValidator(
-  data: {
-    type: 'phone';
-    phoneNumber: string & z.BRAND<'PhoneNumberE164'>;
-    countryCode: 'ES' | 'GB';
-  },
-  context: z.RefinementCtx
-): void {
+function phoneValidator(data: PhoneContact, context: z.RefinementCtx): void {
   if (!isValidPhoneNumber(data.phoneNumber, data.countryCode)) {
     context.addIssue({
       code: z.ZodIssueCode.custom,
@@ -46,7 +36,7 @@ function phoneValidator(
   }
 }
 
-export function senderValidator(): (arg: MessageSender, ctx: z.RefinementCtx) => void {
+export function senderValidator(): (arg: SenderContact, ctx: z.RefinementCtx) => void {
   return (data, context) => {
     match(data)
       .with({ type: 'rcs' }, () => {})
@@ -57,7 +47,7 @@ export function senderValidator(): (arg: MessageSender, ctx: z.RefinementCtx) =>
   };
 }
 
-export function receiverValidator(): (arg: MessageReceiver, ctx: z.RefinementCtx) => void {
+export function receiverValidator(): (arg: ReceiverContact, ctx: z.RefinementCtx) => void {
   return (data, context) => {
     phoneValidator(data, context);
   };
