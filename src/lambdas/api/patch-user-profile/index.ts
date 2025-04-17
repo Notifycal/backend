@@ -2,7 +2,7 @@ import { JSONStringified } from '@aws-lambda-powertools/parser/helpers';
 import { protectedEndpointMiddleware } from '@common/lambda-middleware';
 import { authedEventSchema } from '@model/lambda-events/ApiGatewayEvents';
 import { toStoreRecord } from '@model/store/ContactDetailsRecordStore';
-import { reminderConfigSchema } from '@notifycal/shared/schemas';
+import { reminderConfigSchema } from '@notifycal/shared/types';
 import { errorHandler, successHandler } from '@services/common/api-response-handlers';
 import { UserBaseStore } from '@services/stores/user-base-store';
 import { senderValidator } from '@utils/phone';

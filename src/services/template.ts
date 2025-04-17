@@ -1,10 +1,10 @@
-import { templateMap } from '@notifycal/shared/templates';
-import type {
-  BusinessAddress,
-  BusinessName,
-  DateTime,
-  TemplateId,
-  TimeZone
+import {
+  templateMap,
+  type BusinessAddress,
+  type BusinessName,
+  type DateTime,
+  type TemplateId,
+  type TimeZone
 } from '@notifycal/shared/types';
 import { DateTime as DT } from 'luxon';
 

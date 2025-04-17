@@ -1,18 +1,18 @@
 import type { NoPhoneNumberForCalendarEventFoundEvent } from '@model/app-events/NoPhoneNumberForCalendarEventFoundEvent';
 import type { UserCalendarFetchedEvent } from '@model/app-events/UserCalendarFetchedEvent';
-import { templateMap } from '@notifycal/shared/templates';
-import type {
-  BusinessAddress,
-  BusinessName,
-  CalendarId,
-  CalendarName,
-  CorrelationId,
-  DateTime,
-  EventId,
-  IdpId,
-  RCSSenderId,
-  TimeZone,
-  UserId
+import {
+  templateMap,
+  type BusinessAddress,
+  type BusinessName,
+  type CalendarId,
+  type CalendarName,
+  type CorrelationId,
+  type DateTime,
+  type EventId,
+  type IdpId,
+  type RCSSenderId,
+  type TimeZone,
+  type UserId
 } from '@notifycal/shared/types';
 
 export const userCalendarFetchedEvent: UserCalendarFetchedEvent = {

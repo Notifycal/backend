@@ -3,7 +3,8 @@ import { protectedEndpointMiddleware } from '@common/lambda-middleware';
 import { phoneE164Schema } from '@model/app-events/common';
 import type { ReminderToBeSentEvent } from '@model/app-events/ReminderToBeSentEvent';
 import { authedEventSchema } from '@model/lambda-events/ApiGatewayEvents';
-import type { ReminderConfig } from '@notifycal/shared/schemas';
+import { fromStoreRecord } from '@model/store/ContactDetailsRecordStore';
+import type { LiveUserStoreRecord } from '@model/store/LiveUserStoreRecord';
 import type { CorrelationId, DateTime, EventId, Identity, IdpName } from '@notifycal/shared/types';
 import { errorHandler, successHandler } from '@services/common/api-response-handlers';
 import { SnsService } from '@services/sns';
@@ -30,11 +31,11 @@ export type Event = z.infer<typeof eventSchema>;
 
 function buildEvent(
   requestBody: Event['body'],
-  userReminderConfig: ReminderConfig,
+  userReminderConfig: LiveUserStoreRecord<unknown>['Config'],
   identity: Identity<IdpName>
 ): ReminderToBeSentEvent {
   const eventId = v4();
-  const templateId = userReminderConfig.calendars[0].template.id;
+  const templateId = userReminderConfig.Calendars[0].Template.Id;
   return {
     eventId: eventId as EventId,
     correlationId: eventId as CorrelationId,
@@ -44,12 +45,12 @@ function buildEvent(
     idp: identity.idp,
     idpId: identity.idpId,
     data: {
-      senderDetails: toCanonicalForm(userReminderConfig.business.senderContact),
+      senderDetails: toCanonicalForm(fromStoreRecord(userReminderConfig.Business.SenderContact)),
       receiverDetails: requestBody.receiverDetails,
       message: interpolate(
         templateId,
-        userReminderConfig.business.name,
-        userReminderConfig.business.address,
+        userReminderConfig.Business.Name,
+        userReminderConfig.Business.Address,
         requestBody.startTime.dateTime,
         requestBody.startTime.timeZone
       )

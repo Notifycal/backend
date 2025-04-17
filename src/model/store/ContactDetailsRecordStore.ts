@@ -27,3 +27,17 @@ export function toStoreRecord(contact: SenderContact): SenderContactStoreRecord 
     }))
     .exhaustive();
 }
+
+export function fromStoreRecord(contact: SenderContactStoreRecord): SenderContact {
+  return match(contact)
+    .with({ Type: 'phone' }, (phone) => ({
+      type: phone.Type,
+      countryCode: phone.CountryCode,
+      phoneNumber: phone.PhoneNumber
+    }))
+    .with({ Type: 'rcs' }, (rcs) => ({
+      type: rcs.Type,
+      identifier: rcs.Identifier
+    }))
+    .exhaustive();
+}

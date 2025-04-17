@@ -1,16 +1,16 @@
 import { accessTokenSchema, type OurAccessTokenClaims } from '@model/Jwt';
-import type { ReminderConfig } from '@notifycal/shared/schemas';
-import { templateMap } from '@notifycal/shared/templates';
-import type {
-  BusinessAddress,
-  BusinessName,
-  CalendarId,
-  CalendarName,
-  Email,
-  IdpId,
-  IdpName,
-  PhoneNumber,
-  UserId
+import {
+  templateMap,
+  type BusinessAddress,
+  type BusinessName,
+  type CalendarId,
+  type CalendarName,
+  type Email,
+  type IdpId,
+  type IdpName,
+  type PhoneNumber,
+  type ReminderConfig,
+  type UserId
 } from '@notifycal/shared/types';
 import { UserBaseStore } from '@services/stores/user-base-store';
 import { c, testAuthedEvent, testEvent } from '@testing/data/apigateway';
