@@ -196,7 +196,6 @@ paths:
                 receiverContact:
                   $ref: './component-definitions.yaml#/components/schemas/ReceiverContact'
                 startTime:
-                  description: Start time of the demo reminder
                   $ref: './component-definitions.yaml#/components/schemas/DateTime'
               additionalProperties: true
       responses:
@@ -225,3 +224,5 @@ tags:
     description: webhooks
   - name: messaging
     description: integration with messaging provider
+  - name: demo
+    description: demo operations
