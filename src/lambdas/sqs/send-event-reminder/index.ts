@@ -59,8 +59,9 @@ function isSpanishPhoneNumber(number: PhoneNumberE164): boolean {
 function buildWebhookUrl(record: Record, baseWebhookUrl: Url): Url {
   const queryStringEventData: Omit<
     ActionableEventFoundEvent | DemoReminderToBeSentEvent,
-    'eventType' | 'eventId' | 'happenedAt'
+    'eventId' | 'happenedAt'
   > = {
+    eventType: record.body.eventType,
     correlationId: record.body.correlationId,
     userId: record.body.userId,
     idp: record.body.idp,

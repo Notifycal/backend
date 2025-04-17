@@ -22,9 +22,9 @@ import type { ReminderDeliveryStatusWebhookConfig } from './config';
 import { handler, type Event } from './index';
 
 import { logger } from '@common/powertools';
+import type { DemoReminderToBeSentStatusUpdatedEvent } from '@model/app-events/DemoReminderToBeSentStatusUpdatedEvent';
 import { SnsService } from '@services/sns';
 import { setEnvMessagingTopicConfig } from '@testing/utils/config';
-import { ZodError } from 'zod';
 
 /* eslint-disable camelcase */
 const invalidBodies = [
@@ -141,10 +141,11 @@ const validVonageEncodeJwtConfig: EncodeVonageAccessJwtConfig = {
   issuer: 'Vonage'
 };
 
-const validQSPObject = {
+const validActionableEventFoundQSPObject = {
   userId: '96f3d941-1155-4d50-ac5a-19345fb7e9ef',
   idpId: 'google-123',
   idp: 'google.com',
+  eventType: 'ActionableEventFound',
   correlationId: 'c1625a78-7337-4fd8-a6c4-a0afb9c0ceb9',
   'data[run][slidingWindowInMinutes]': '30',
   'data[run][lowerBoundStartTime]': '2023-01-01T00:00:00Z',
@@ -170,6 +171,23 @@ const validQSPObject = {
   'data[calendarEvent][timeZone]': 'Europe/Madrid'
 };
 
+const validDemoReminderToBeSentQSPObject = {
+  userId: '96f3d941-1155-4d50-ac5a-19345fb7e988',
+  idpId: 'google-456',
+  idp: 'google.com',
+  eventType: 'DemoReminderToBeSent',
+  correlationId: 'c1625a78-7337-4fd8-a6c4-a0afb9c0ceb9',
+  'data[message]': 'This is a test message!',
+
+  'data[receiverDetails][phoneNumber]': '+34654321987',
+  'data[receiverDetails][type]': 'phone',
+  'data[receiverDetails][countryCode]': 'ES',
+
+  'data[senderDetails][phoneNumber]': '+34654321987',
+  'data[senderDetails][type]': 'phone',
+  'data[senderDetails][countryCode]': 'ES'
+};
+
 describe('POST Event reminder delivery status webhook', () => {
   it.each(invalidBodies)(
     'should fail validation if the body is invalid',
@@ -177,7 +195,7 @@ describe('POST Event reminder delivery status webhook', () => {
       const event = testVonageAuthedEvent(
         invalidCaseBody,
         validVonageJwt,
-        validQSPObject
+        validActionableEventFoundQSPObject
       ) as APIGatewayProxyEvent;
 
       return testit(event).then((resp) => {
@@ -190,7 +208,7 @@ describe('POST Event reminder delivery status webhook', () => {
     const event = testVonageAuthedEvent(
       validCaseBody,
       validVonageJwt,
-      validQSPObject
+      validActionableEventFoundQSPObject
     ) as APIGatewayProxyEvent;
 
     return testit(event).then((resp) => {
@@ -203,7 +221,7 @@ describe('POST Event reminder delivery status webhook', () => {
     const event = testVonageAuthedEvent(
       chosenBody,
       'invalid-jwt-token' as Jwt,
-      validQSPObject
+      validActionableEventFoundQSPObject
     ) as APIGatewayProxyEvent;
 
     return testit(event).then((resp) => {
@@ -223,7 +241,11 @@ describe('POST Event reminder delivery status webhook', () => {
 
     const chosenBody = validBodies[0];
 
-    const event = testVonageAuthedEvent(chosenBody, validVonageJwt, validQSPObject);
+    const event = testVonageAuthedEvent(
+      chosenBody,
+      validVonageJwt,
+      validActionableEventFoundQSPObject
+    );
 
     await testit(event as APIGatewayProxyEvent, safePublishMock);
 
@@ -287,7 +309,72 @@ describe('POST Event reminder delivery status webhook', () => {
     vi.useRealTimers();
   });
 
-  it('should log an error and success if it cannot rebuild the ActionableEventFound event from query string', async () => {
+  it('should publish a DemoReminderToBeSentStatusUpdated event to sns service', async () => {
+    const safePublishMock = vi.fn();
+    const fixedDate = new Date('2025-03-26T08:20:53.444Z');
+    vi.setSystemTime(fixedDate);
+
+    const fixedUUID = '0de651ef-535e-4d2e-b9ff-7bf43f5a0aaa';
+    vi.mocked<(options?: Version4Options, buf?: undefined, offset?: number) => string>(
+      uuidv4
+    ).mockReturnValue(fixedUUID);
+
+    const chosenBody = validBodies[0];
+
+    const event = testVonageAuthedEvent(
+      chosenBody,
+      validVonageJwt,
+      validDemoReminderToBeSentQSPObject
+    );
+
+    await testit(event as APIGatewayProxyEvent, safePublishMock);
+
+    const eventQSP = event.queryStringParameters || {};
+
+    expect(event.queryStringParameters).not.toBeNull();
+    expect(safePublishMock).toHaveBeenCalledTimes(1);
+    expect(safePublishMock).toHaveBeenCalledWith({
+      eventType: 'DemoReminderToBeSentStatusUpdated',
+      correlationId: eventQSP.correlationId,
+      userId: eventQSP.userId,
+      idpId: eventQSP.idpId,
+      idp: eventQSP.idp,
+      data: {
+        messageStatusPayload: {
+          ...chosenBody,
+          usage: {
+            ...chosenBody.usage,
+            price: parseFloat(chosenBody.usage?.price || '')
+          },
+          sms: {
+            ...chosenBody.sms,
+            // eslint-disable-next-line camelcase
+            count_total: parseInt(chosenBody.sms?.count_total || '')
+          }
+        },
+        messageUUID: chosenBody.message_uuid,
+        message: eventQSP['data[message]'],
+
+        senderDetails: {
+          phoneNumber: eventQSP['data[senderDetails][phoneNumber]'],
+          type: eventQSP['data[senderDetails][type]'],
+          countryCode: eventQSP['data[senderDetails][countryCode]']
+        },
+        receiverDetails: {
+          phoneNumber: eventQSP['data[receiverDetails][phoneNumber]'],
+          type: eventQSP['data[receiverDetails][type]'],
+          countryCode: eventQSP['data[senderDetails][countryCode]']
+        }
+      },
+      happenedAt: fixedDate.toISOString(),
+      eventId: fixedUUID
+    } as DemoReminderToBeSentStatusUpdatedEvent);
+
+    // Cleanup
+    vi.useRealTimers();
+  });
+
+  it('should log an error and success if it cannot rebuild the neither ActionableEventFound nor DemoReminderToBeSent event from query string', async () => {
     const errorLoggerSpy = vi.spyOn(logger, 'error');
 
     const chosenBody = validBodies[1];
@@ -309,7 +396,10 @@ describe('POST Event reminder delivery status webhook', () => {
       'Could not rebuild event from query string',
       expect.objectContaining({
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        error: expect.any(ZodError)
+        error: expect.objectContaining({
+          message:
+            'Could not parse query string neither as ActionableEventFoundEvent nor DemoReminderToBeSentEvent'
+        })
       })
     );
   });

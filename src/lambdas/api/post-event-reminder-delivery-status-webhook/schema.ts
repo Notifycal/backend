@@ -26,7 +26,6 @@ const actionableEventFoundEventDataSchema = actionableEventFoundEventSchema.shap
 export const actionableEventQuerySchema = actionableEventFoundEventSchema
   .omit({
     eventId: true,
-    eventType: true,
     happenedAt: true
   })
   // I hate this, but writing something generic to coerce specific schema paths proved quite challenging
@@ -41,8 +40,7 @@ export const actionableEventQuerySchema = actionableEventFoundEventSchema
     })
   });
 
-export const demoReminderToBeSentQuerySchema = demoReminderToBeSentEventSchema.omit({
+export const demoReminderToBeSentEventQuerySchema = demoReminderToBeSentEventSchema.omit({
   eventId: true,
-  eventType: true,
   happenedAt: true
 });
