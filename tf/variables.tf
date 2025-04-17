@@ -130,3 +130,8 @@ variable "observability" {
     })
   })
 }
+
+variable "enable_data_protection" {
+  type    = bool
+  default = true
+}
