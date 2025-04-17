@@ -21,7 +21,7 @@ export const successEventTypeSchema = z.union([
   z.literal('ActionableEventReminderStatusUpdated'),
   z.literal('UserSignInSucceeded'),
   z.literal('UserSignUpSucceeded'),
-  z.literal('NoPhoneNumberForAttendeeFound'),
+  z.literal('NoPhoneNumberForCalendarEventFound'),
   z.literal('NoActionableEventsFound'),
   z.literal('NoAttendeesInCalendarEventFound'),
   z.literal('NoUserCalendarFound')

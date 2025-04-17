@@ -173,7 +173,7 @@ describe('Find actionable events record processor', () => {
     expect(publishSpy).toHaveBeenCalledTimes(2);
   });
 
-  it('should process events with multiple attendees and publish to SNS for each', async () => {
+  it('should process an actionable event with multiple attendees with different phone numbers and pick just the first one', async () => {
     const publishSpy = vi
       .spyOn(SnsService.prototype, 'publish')
       .mockResolvedValue({} as PublishCommandOutput);
@@ -188,14 +188,17 @@ describe('Find actionable events record processor', () => {
     ];
     const eventsStartTimeWithinFn = () =>
       Promise.resolve({ successList: eventWithMultipleAttendees, failureList: [] });
-    const phoneNumberByEmailFn = () => Promise.resolve([validPhoneNumber]);
+    const phoneNumberByEmailFn = vi
+      .fn()
+      .mockResolvedValueOnce([validPhoneNumber])
+      .mockResolvedValueOnce(['+34666777444' as PhoneNumberE164]);
     await testit(
       validRecord(userCalendarFetchedEvent),
       eventsStartTimeWithinFn,
       phoneNumberByEmailFn
     );
 
-    expect(publishSpy).toHaveBeenCalledTimes(2);
+    expect(publishSpy).toHaveBeenCalledTimes(1);
   });
 
   it('should process attendees with multiple phone numbers and publish to SNS using the first one', async () => {
@@ -299,7 +302,7 @@ describe('Find actionable events record processor', () => {
     );
   });
 
-  it('should publish an event if no phone number for an attendee and keep processing', async () => {
+  it('should publish an event if no phone number for a calendar event and finish', async () => {
     const publishSpy = vi
       .spyOn(SnsService.prototype, 'publish')
       .mockResolvedValue({} as PublishCommandOutput);
@@ -321,8 +324,7 @@ describe('Find actionable events record processor', () => {
           eventIdCause: record.body.eventId,
           run: record.body.data.run,
           calendar: record.body.data.calendar,
-          calendarEvent: validEvents[0],
-          attendeeId: validEvents[0].attendees[0].id
+          calendarEvent: validEvents[0]
         }
       })
     );

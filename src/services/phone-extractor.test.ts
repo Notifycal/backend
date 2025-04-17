@@ -9,22 +9,28 @@ import { _findPhoneNumbersInText, phoneExtractor } from './phone-extractor';
 vi.mock('@services/contacts');
 
 describe('phoneExtractor', () => {
-  const validAttendeeId = 'john@example.com' as Email;
   const validIdp = 'google' as IdpName;
   const validIdpAuthorization = {} as AuthorizationForIdp<IdpName>;
   const validIdpConfigs = {} as IdpConfigs;
+  const validAttendeeId = 'john@example.com' as Email;
+  const validAttendee: CalendarEvent['attendees'][number] = {
+    id: validAttendeeId
+  };
+  const validAttendee2: CalendarEvent['attendees'][number] = {
+    id: 'paco@example.com' as Email
+  };
 
   it('should extract and combine phone numbers from multiple sources preserving order', async () => {
     const validCalendarEvent = {
       summary: 'Meeting with John: +34611222333',
-      description: 'Details and contact: +34644555666'
+      description: 'Details and contact: +34644555666',
+      attendees: [validAttendee, validAttendee2]
     };
     const validCountryCode = 'ES' as CountryCode;
-    const phoneNumberByEmailFn = () => Promise.resolve(['+34677888999' as PhoneNumberE164]);
+    const phoneNumberByEmailFn = vi.fn(() => Promise.resolve(['+34677888999' as PhoneNumberE164]));
 
     const result = await testit(
       validCalendarEvent,
-      validAttendeeId,
       validCountryCode,
       validIdp,
       validIdpAuthorization,
@@ -39,19 +45,20 @@ describe('phoneExtractor', () => {
       validIdpConfigs
     );
     expect([...result]).toStrictEqual(['+34677888999', '+34644555666', '+34611222333']);
+    expect(phoneNumberByEmailFn).toHaveBeenCalledTimes(2);
   });
 
   it('should handle empty calendar event fields', async () => {
     const validCalendarEvent = {
       summary: '',
-      description: ''
+      description: '',
+      attendees: []
     };
     const validCountryCode = 'ES' as CountryCode;
-    const phoneNumberByEmailFn = () => Promise.resolve(['+34677888999' as PhoneNumberE164]);
+    const phoneNumberByEmailFn = vi.fn();
 
     const result = await testit(
       validCalendarEvent,
-      validAttendeeId,
       validCountryCode,
       validIdp,
       validIdpAuthorization,
@@ -59,23 +66,21 @@ describe('phoneExtractor', () => {
       phoneNumberByEmailFn
     );
 
-    expect(phoneNumberByEmail).toHaveBeenCalledWith(
-      validAttendeeId,
-      validIdpAuthorization,
-      validIdp,
-      validIdpConfigs
-    );
-    expect([...result]).toStrictEqual(['+34677888999']);
+    expect(phoneNumberByEmail).toHaveBeenCalledTimes(0);
+    expect([...result]).toStrictEqual([]);
   });
 
   it('should handle undefined calendar event fields', async () => {
-    const validCalendarEvent = {};
+    const validCalendarEvent = {
+      summary: undefined,
+      description: undefined,
+      attendees: []
+    };
     const validCountryCode = 'ES' as CountryCode;
-    const phoneNumberByEmailFn = () => Promise.resolve(['+34677888999' as PhoneNumberE164]);
+    const phoneNumberByEmailFn = vi.fn();
 
     const result = await testit(
       validCalendarEvent,
-      validAttendeeId,
       validCountryCode,
       validIdp,
       validIdpAuthorization,
@@ -83,26 +88,21 @@ describe('phoneExtractor', () => {
       phoneNumberByEmailFn
     );
 
-    expect(phoneNumberByEmail).toHaveBeenCalledWith(
-      validAttendeeId,
-      validIdpAuthorization,
-      validIdp,
-      validIdpConfigs
-    );
-    expect([...result]).toStrictEqual(['+34677888999']);
+    expect(phoneNumberByEmail).toHaveBeenCalledTimes(0);
+    expect([...result]).toStrictEqual([]);
   });
 
   it('should handle no phone numbers found', async () => {
     const validCalendarEvent = {
       summary: 'Meeting with John',
-      description: 'Details and contact info'
+      description: 'Details and contact info',
+      attendees: []
     };
     const validCountryCode = 'ES' as CountryCode;
     const phoneNumberByEmailFn = () => Promise.resolve([]);
 
     const result = await testit(
       validCalendarEvent,
-      validAttendeeId,
       validCountryCode,
       validIdp,
       validIdpAuthorization,
@@ -116,14 +116,14 @@ describe('phoneExtractor', () => {
   it('should deduplicate phone numbers from different sources', async () => {
     const validCalendarEvent = {
       summary: 'Meeting with John: +34611222333',
-      description: 'Details and contact: +34611222333'
+      description: 'Details and contact: +34611222333',
+      attendees: [validAttendee]
     };
     const validCountryCode = 'ES' as CountryCode;
     const phoneNumberByEmailFn = () => Promise.resolve(['+34611222333' as PhoneNumberE164]);
 
     const result = await testit(
       validCalendarEvent,
-      validAttendeeId,
       validCountryCode,
       validIdp,
       validIdpAuthorization,
@@ -134,9 +134,39 @@ describe('phoneExtractor', () => {
     expect([...result]).toStrictEqual(['+34611222333']);
   });
 
+  it('should fail if obtaining a phone number from an attendee fails', async () => {
+    const validCalendarEvent = {
+      summary: 'Meeting with John: +34611222333',
+      description: 'Details and contact: +34644555666',
+      attendees: [validAttendee]
+    };
+    const validCountryCode = 'ES' as CountryCode;
+    const error = new Error('Failed to get phone number');
+    const phoneNumberByEmailFn = vi.fn(() => Promise.reject(error));
+
+    const result = testit(
+      validCalendarEvent,
+      validCountryCode,
+      validIdp,
+      validIdpAuthorization,
+      validIdpConfigs,
+      phoneNumberByEmailFn
+    );
+
+    await expect(result).rejects.toThrow(
+      'There were 1 failures to obtaining phone numbers from contact integration, calendar event description and summary. Successes: 2. Total: 3. All results:'
+    );
+    expect(phoneNumberByEmail).toHaveBeenCalledWith(
+      validCalendarEvent.attendees[0].id,
+      validIdpAuthorization,
+      validIdp,
+      validIdpConfigs
+    );
+    expect(phoneNumberByEmailFn).toHaveBeenCalledOnce();
+  });
+
   function testit(
-    calendarEvent: Pick<CalendarEvent, 'summary' | 'description'>,
-    attendeeId: Email,
+    calendarEvent: Pick<CalendarEvent, 'summary' | 'description' | 'attendees'>,
     countryCode: CountryCode,
     idp: IdpName,
     idpAuthorization: AuthorizationForIdp<IdpName>,
@@ -145,14 +175,7 @@ describe('phoneExtractor', () => {
   ) {
     vi.mocked(phoneNumberByEmail).mockImplementation(phoneByEmailFn);
 
-    return phoneExtractor(
-      calendarEvent,
-      attendeeId,
-      countryCode,
-      idp,
-      idpAuthorization,
-      idpConfigs
-    );
+    return phoneExtractor(calendarEvent, countryCode, idp, idpAuthorization, idpConfigs);
   }
 });
 

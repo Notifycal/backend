@@ -2,13 +2,12 @@ import { MetricUnit } from '@aws-lambda-powertools/metrics';
 import { metrics } from '@common/powertools';
 import type { ActionableEventFoundEvent } from '@model/app-events/ActionableEventFoundEvent';
 import { noActionableEventsFound } from '@model/app-events/NoActionableEventsFoundEvent';
-import { noAttendeesInCalendarEventFound } from '@model/app-events/NoAttendeesInCalendarEventFoundEvent';
-import { noPhoneNumberForAttendeeFound } from '@model/app-events/NoPhoneNumberForAttendeeFoundEvent';
+import { noPhoneNumberForCalendarEventFound } from '@model/app-events/NoPhoneNumberForCalendarEventFoundEvent';
 import { userFetchedEventsParsingFailed } from '@model/app-events/UserFetchedEventsParsingFailedEvent';
 import type { IdpConfigs } from '@model/Config';
 import type { ParsingError } from '@model/Errors';
 import type { ServiceResponse } from '@model/ServiceResponse';
-import type { CalendarEvent, CountryCode, DateTime, Email, EventId } from '@notifycal/shared/types';
+import type { CalendarEvent, CountryCode, DateTime, EventId } from '@notifycal/shared/types';
 import type { PhoneNumberE164 } from '@own-types/model';
 import { eventsStartTimeWithin } from '@services/calendar-events';
 import { phoneExtractor } from '@services/phone-extractor';
@@ -56,54 +55,45 @@ function extractCountryCode(senderDetails: Record['body']['data']['senderDetails
     .exhaustive();
 }
 
-function fetchAttendeePhoneNumbers(
+function fetchAttendeePhoneNumbersForCalendarEvent(
   calendarEvent: CalendarEvent,
   event: Record['body'],
   idpConfigs: IdpConfigs,
   snsService: SnsService
 ): Promise<Array<CalendarEventWithAnAttendeePhoneNumber>> {
-  return Promise.allSettled(
-    calendarEvent.attendees.map((attendee) =>
-      withIntegrationMetrics(event.idp, 'GetAttendeePhoneNumbers', () =>
-        phoneExtractor(
-          calendarEvent,
-          attendee.id as Email,
-          extractCountryCode(event.data.senderDetails),
-          event.idp,
-          event.sensitiveData.idpAuthorization,
-          idpConfigs
-        )
-      ).then((phoneNumbers) => {
-        const dimensions: MetricDimensions = {
-          idp: event.idp,
-          vendor: event.idp
-        };
-        metrics.addMetric(
-          'AttendeePhoneNumbersInCalendarEventCount',
-          MetricUnit.Count,
-          phoneNumbers.size,
-          dimensions
-        );
-        if (phoneNumbers && phoneNumbers.size > 0) {
-          return Promise.resolve([
-            {
-              calendarEvent: calendarEvent,
-              attendeePhoneNumber: Array.from(phoneNumbers)[0] // if attendee has more than 1 phone number set, pick the first one.
-            }
-          ]);
-        } else {
-          return snsService
-            .safePublish(noPhoneNumberForAttendeeFound(event, calendarEvent, attendee.id))
-            .then(() => []);
-        }
-      })
+  return withIntegrationMetrics(event.idp, 'GetAttendeePhoneNumbers', () =>
+    phoneExtractor(
+      calendarEvent,
+      extractCountryCode(event.data.senderDetails),
+      event.idp,
+      event.sensitiveData.idpAuthorization,
+      idpConfigs
     )
-  ).then((results) =>
-    allSettledAllOrErrorHandler(
-      results,
-      `fetch attendees' phone numbers for a calendar event ${calendarEvent.id}`
-    ).flat()
-  );
+  ).then((phoneNumbers) => {
+    const dimensions: MetricDimensions = {
+      idp: event.idp,
+      vendor: event.idp
+    };
+    metrics.addMetric(
+      'AttendeePhoneNumbersInCalendarEventCount',
+      MetricUnit.Count,
+      phoneNumbers.size,
+      dimensions
+    );
+    if (phoneNumbers && phoneNumbers.size > 0) {
+      const attendeePhoneData: Array<CalendarEventWithAnAttendeePhoneNumber> = Array.from([
+        ...phoneNumbers
+      ]).map((phoneNumber) => ({
+        calendarEvent: calendarEvent,
+        attendeePhoneNumber: phoneNumber
+      }));
+      return Promise.resolve(attendeePhoneData);
+    } else {
+      return snsService
+        .safePublish(noPhoneNumberForCalendarEventFound(event, calendarEvent))
+        .then(() => []);
+    }
+  });
 }
 
 function buildActionableEvents(
@@ -181,13 +171,12 @@ function handleCalendarEventAttendees(
         calendarEvent.attendees.length,
         dimensions
       );
-      if (calendarEvent.attendees.length > 0) {
-        return fetchAttendeePhoneNumbers(calendarEvent, event, idpConfigs, snsService);
-      } else {
-        return snsService
-          .safePublish(noAttendeesInCalendarEventFound(event, calendarEvent))
-          .then(() => []);
-      }
+      return fetchAttendeePhoneNumbersForCalendarEvent(
+        calendarEvent,
+        event,
+        idpConfigs,
+        snsService
+      );
     })
   ).then((results) => {
     return allSettledAllOrErrorHandler(
