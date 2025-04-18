@@ -26,7 +26,7 @@ export function promiseTry<T>(fn: () => T | Promise<T>): Promise<T> {
   }
 }
 
-export function tap<T, Z>(fn: (value?: T) => Z | Promise<Z>): (value: T) => Promise<T> {
+export function tap<T, Z>(fn: (value: T) => Z | Promise<Z>): (value: T) => Promise<T> {
   return async (value: T): Promise<T> => {
     await fn(value);
     return value;

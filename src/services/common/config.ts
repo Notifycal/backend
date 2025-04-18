@@ -8,6 +8,7 @@ import type {
   DecodeAccessJwtConfig,
   DecodeAccessJwtEndpointConfig,
   DecodeRefreshJwtConfig,
+  DemoReminderToBeSentTopicConfig,
   EncodeAccessJwtConfig,
   EncodeJwtsEndpointConfig,
   EncodeRefreshJwtConfig,
@@ -146,6 +147,16 @@ export function readActionableEventFoundTopicConfig(
   return {
     actionableEventFoundTopicConfig: {
       topicArn: env.get('ACTIONABLE_EVENT_FOUND_TOPIC_ARN').required().asString() as AwsArn
+    }
+  };
+}
+
+export function readDemoReminderToBeSentTopicConfig(
+  env: Environment
+): DemoReminderToBeSentTopicConfig {
+  return {
+    demoReminderToBeSentTopicConfig: {
+      topicArn: env.get('DEMO_REMINDER_TO_BE_SENT_TOPIC_ARN').required().asString() as AwsArn
     }
   };
 }

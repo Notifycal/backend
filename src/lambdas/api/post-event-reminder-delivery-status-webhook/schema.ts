@@ -1,4 +1,5 @@
 import { actionableEventFoundEventSchema } from '@model/app-events/ActionableEventFoundEvent';
+import { demoReminderToBeSentEventSchema } from '@model/app-events/DemoReminderToBeSentEvent';
 import { z } from 'zod';
 
 export const vonageAccessTokenSchema = z.object({
@@ -25,7 +26,6 @@ const actionableEventFoundEventDataSchema = actionableEventFoundEventSchema.shap
 export const actionableEventQuerySchema = actionableEventFoundEventSchema
   .omit({
     eventId: true,
-    eventType: true,
     happenedAt: true
   })
   // I hate this, but writing something generic to coerce specific schema paths proved quite challenging
@@ -39,3 +39,8 @@ export const actionableEventQuerySchema = actionableEventFoundEventSchema
       })
     })
   });
+
+export const demoReminderToBeSentEventQuerySchema = demoReminderToBeSentEventSchema.omit({
+  eventId: true,
+  happenedAt: true
+});

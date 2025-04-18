@@ -1,4 +1,6 @@
-import { countryCodeSchema, rcsSenderSchema } from '@notifycal/shared/schemas';
+import { VonageMessageStatusWebhookSchema } from '@model/vendor/vonage';
+import { countryCodeSchema, rcsSenderSchema, uuidSchema } from '@notifycal/shared/schemas';
+import type { RCSSenderContact } from '@notifycal/shared/types';
 import { z } from 'zod';
 
 export const errorSchema = z.object({
@@ -23,5 +25,18 @@ export const phoneE164Schema = z.object({
 export const senderStandardSchema = z.union([rcsSenderSchema, phoneE164Schema]);
 export const receiverStandardSchema = phoneE164Schema;
 
-export type MessageReceiver = z.infer<typeof receiverStandardSchema>;
-export type MessageSender = z.infer<typeof senderStandardSchema>;
+export type PhoneStandardContact = z.infer<typeof phoneE164Schema>;
+export type SenderStandardContact = PhoneStandardContact | RCSSenderContact;
+export type ReceiverStandardContact = PhoneStandardContact;
+
+export const providerSentPayloadSchema = z.object({
+  messageUUID: uuidSchema
+});
+
+export const providerMessageStatusPayloadSchema = z.object({
+  messageStatusPayload: VonageMessageStatusWebhookSchema
+});
+
+export const providerErrorPayloadSchema = z.object({
+  providerErrorPayload: z.any() // TODO: review this schema when we've replaced the Vonage SDK with Axios
+});

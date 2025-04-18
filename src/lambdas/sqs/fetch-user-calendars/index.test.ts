@@ -1,9 +1,9 @@
 import type { LiveUserStoreRecord } from '@model/store/LiveUserStoreRecord';
+import type { CalendarStoreRecord } from '@model/store/ReminderConfigStoreRecord';
 import type { UserIdpAuthorizationStoreRecord } from '@model/store/UserIdpAuthorizationStoreRecord';
 import type {
   BusinessAddress,
   BusinessName,
-  Calendar,
   CalendarId,
   CalendarName,
   Email,
@@ -32,12 +32,12 @@ import type { FetchUserCalendarsConfig } from './config';
 // @ts-expect-error cjs handler export
 import { handler, type Event } from './index';
 
-const validCalendar: Calendar & { template: { id: TemplateId; language: LanguageCode } } = {
-  id: 'someCalendarId' as CalendarId,
-  name: 'Some Calendar Name' as CalendarName,
-  template: {
-    id: 'some-template-id' as TemplateId,
-    language: 'es' as LanguageCode
+const validCalendar: CalendarStoreRecord = {
+  Id: 'someCalendarId' as CalendarId,
+  Name: 'Some Calendar Name' as CalendarName,
+  Template: {
+    Id: 'some-template-id' as TemplateId,
+    Language: 'es' as LanguageCode
   }
 };
 async function* validLiveUsers(): AsyncGenerator<
@@ -54,14 +54,14 @@ async function* validLiveUsers(): AsyncGenerator<
       LastSignInAt: 1672531199 as UnixTimestamp,
       SignedUpAt: 1609459200 as UnixTimestamp,
       Config: {
-        calendars: [validCalendar],
-        business: {
-          name: 'businessName1' as BusinessName,
-          address: 'businessNameAddress1' as BusinessAddress,
-          senderContact: {
-            type: 'phone',
-            countryCode: 'ES',
-            phoneNumber: '666777888' as PhoneNumber
+        Calendars: [validCalendar],
+        Business: {
+          Name: 'businessName1' as BusinessName,
+          Address: 'businessNameAddress1' as BusinessAddress,
+          SenderContact: {
+            Type: 'phone',
+            CountryCode: 'ES',
+            PhoneNumber: '666777888' as PhoneNumber
           }
         }
       },
@@ -78,14 +78,14 @@ async function* validLiveUsers(): AsyncGenerator<
       LastSignInAt: 1675622399 as UnixTimestamp,
       SignedUpAt: 1612137600 as UnixTimestamp,
       Config: {
-        calendars: [validCalendar],
-        business: {
-          name: 'businessName2' as BusinessName,
-          address: 'businessNameAddress2' as BusinessAddress,
-          senderContact: {
-            type: 'phone',
-            countryCode: 'ES',
-            phoneNumber: '666777888' as PhoneNumber
+        Calendars: [validCalendar],
+        Business: {
+          Name: 'businessName2' as BusinessName,
+          Address: 'businessNameAddress2' as BusinessAddress,
+          SenderContact: {
+            Type: 'phone',
+            CountryCode: 'ES',
+            PhoneNumber: '666777888' as PhoneNumber
           }
         }
       },
@@ -105,14 +105,14 @@ async function* validLiveUsers(): AsyncGenerator<
       LastSignInAt: 1680460800 as UnixTimestamp,
       SignedUpAt: 1619827200 as UnixTimestamp,
       Config: {
-        calendars: [validCalendar],
-        business: {
-          name: 'businessName3' as BusinessName,
-          address: 'businessNameAddress3' as BusinessAddress,
-          senderContact: {
-            type: 'phone',
-            countryCode: 'ES',
-            phoneNumber: '666777888' as PhoneNumber
+        Calendars: [validCalendar],
+        Business: {
+          Name: 'businessName3' as BusinessName,
+          Address: 'businessNameAddress3' as BusinessAddress,
+          SenderContact: {
+            Type: 'phone',
+            CountryCode: 'ES',
+            PhoneNumber: '666777888' as PhoneNumber
           }
         }
       },
@@ -138,14 +138,14 @@ async function* validLiveUsersWithoutACalendar(): AsyncGenerator<
       LastSignInAt: 1672531199 as UnixTimestamp,
       SignedUpAt: 1609459200 as UnixTimestamp,
       Config: {
-        calendars: [],
-        business: {
-          name: 'businessName1' as BusinessName,
-          address: 'businessNameAddress1' as BusinessAddress,
-          senderContact: {
-            type: 'phone',
-            countryCode: 'ES',
-            phoneNumber: '666777888' as PhoneNumber
+        Calendars: [],
+        Business: {
+          Name: 'businessName1' as BusinessName,
+          Address: 'businessNameAddress1' as BusinessAddress,
+          SenderContact: {
+            Type: 'phone',
+            CountryCode: 'ES',
+            PhoneNumber: '666777888' as PhoneNumber
           }
         }
       },
@@ -162,14 +162,14 @@ async function* validLiveUsersWithoutACalendar(): AsyncGenerator<
       LastSignInAt: 1675622399 as UnixTimestamp,
       SignedUpAt: 1612137600 as UnixTimestamp,
       Config: {
-        calendars: [validCalendar],
-        business: {
-          name: 'businessName2' as BusinessName,
-          address: 'businessNameAddress2' as BusinessAddress,
-          senderContact: {
-            type: 'phone',
-            countryCode: 'ES',
-            phoneNumber: '666777888' as PhoneNumber
+        Calendars: [validCalendar],
+        Business: {
+          Name: 'businessName2' as BusinessName,
+          Address: 'businessNameAddress2' as BusinessAddress,
+          SenderContact: {
+            Type: 'phone',
+            CountryCode: 'ES',
+            PhoneNumber: '666777888' as PhoneNumber
           }
         }
       },
@@ -195,14 +195,14 @@ async function* oneRejectionInBetweenLiveUsers(): AsyncGenerator<
       LastSignInAt: 1672531199 as UnixTimestamp,
       SignedUpAt: 1609459200 as UnixTimestamp,
       Config: {
-        calendars: [validCalendar],
-        business: {
-          name: 'businessName4' as BusinessName,
-          address: 'businessNameAddress4' as BusinessAddress,
-          senderContact: {
-            type: 'phone',
-            countryCode: 'ES',
-            phoneNumber: '666777888' as PhoneNumber
+        Calendars: [validCalendar],
+        Business: {
+          Name: 'businessName4' as BusinessName,
+          Address: 'businessNameAddress4' as BusinessAddress,
+          SenderContact: {
+            Type: 'phone',
+            CountryCode: 'ES',
+            PhoneNumber: '666777888' as PhoneNumber
           }
         }
       },
@@ -224,14 +224,14 @@ async function* oneRejectionInBetweenLiveUsers(): AsyncGenerator<
       LastSignInAt: 1680460800 as UnixTimestamp,
       SignedUpAt: 1619827200 as UnixTimestamp,
       Config: {
-        calendars: [validCalendar],
-        business: {
-          name: 'businessName5' as BusinessName,
-          address: 'businessNameAddress5' as BusinessAddress,
-          senderContact: {
-            type: 'phone',
-            countryCode: 'ES',
-            phoneNumber: '666777888' as PhoneNumber
+        Calendars: [validCalendar],
+        Business: {
+          Name: 'businessName5' as BusinessName,
+          Address: 'businessNameAddress5' as BusinessAddress,
+          SenderContact: {
+            Type: 'phone',
+            CountryCode: 'ES',
+            PhoneNumber: '666777888' as PhoneNumber
           }
         }
       },

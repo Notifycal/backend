@@ -142,17 +142,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              description: Request payload containing reminder config
-              properties:
-                businessName:
-                  description: Business name
-                  type: string
-                businessAddress:
-                  description: Business address
-                  type: string
-                calendars:
-                  $ref: './component-definitions.yaml#/components/schemas/CalendarList'
+              $ref: './component-definitions.yaml#/components/schemas/ReminderConfig'
       responses:
         '204':
           description: 'No Content'
@@ -190,6 +180,36 @@ paths:
     options:
       $ref: './aws-stuff.yaml#/components/x-notifycal/CORS_OPTIONS'
 
+  /api/v1/demo-reminder:
+    post:
+      summary: Post Demo Reminder
+      operationId: postDemoReminder
+      description: Send an inmediate demo reminder to the user
+      tags: [user, messaging, demo]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Request payload containing demo reminder config
+              properties:
+                receiverContact:
+                  $ref: './component-definitions.yaml#/components/schemas/ReceiverContact'
+                startTime:
+                  $ref: './component-definitions.yaml#/components/schemas/DateTime'
+              additionalProperties: true
+      responses:
+        '202':
+          description: 'Accepted'
+        '400': { $ref: './component-definitions.yaml#/components/responses/BadRequest' }
+        '401': { $ref: './component-definitions.yaml#/components/responses/Unauthorised' }
+        '500': { $ref: './component-definitions.yaml#/components/responses/InternalServerError' }
+      x-amazon-apigateway-integration:
+        $ref: './aws-stuff.yaml#/components/x-notifycal/AWS_LAMBDA_PROXY'
+        uri: 'arn:aws:apigateway:${aws_region}:lambda:path/2015-03-31/functions/${lambda_functions.post_demo_reminder_arn}/invocations'
+    options:
+      $ref: './aws-stuff.yaml#/components/x-notifycal/CORS_OPTIONS'
+
   /api/v1/webhook/reminder-status:
     $ref: './messaging-webhook-vonage.yaml#/paths/~1api~1v1~1webhook~1reminder-status'
 
@@ -204,3 +224,5 @@ tags:
     description: webhooks
   - name: messaging
     description: integration with messaging provider
+  - name: demo
+    description: demo operations
