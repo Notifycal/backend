@@ -27,7 +27,7 @@ function normalizeToError(value: unknown): Error {
   }
   return new Error(`${typeof value}: ${String(value)}`);
 }
-export function _mergeErrors(
+export function mergeTypedErrors(
   normalizedErrors: Array<Error>,
   resultingErrorMessage: string = 'Everything went wrong'
 ): Error {
@@ -52,5 +52,5 @@ export function mergeErrors(
   resultingErrorMessage: string = 'Everything went wrong'
 ): Error {
   const normalizedErrors = errors.map(normalizeToError);
-  return _mergeErrors(normalizedErrors, resultingErrorMessage);
+  return mergeTypedErrors(normalizedErrors, resultingErrorMessage);
 }
