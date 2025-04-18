@@ -1,3 +1,4 @@
+import type { MailgunConfig } from '@lambdas/sqs/send-email/config';
 import type {
   ActionableEventFoundTopicConfig,
   Algorithm,
@@ -9,6 +10,8 @@ import type {
   DecodeAccessJwtEndpointConfig,
   DecodeRefreshJwtConfig,
   DemoReminderToBeSentTopicConfig,
+  EmailingEndpointConfig,
+  EmailingTopicConfig,
   EncodeAccessJwtConfig,
   EncodeJwtsEndpointConfig,
   EncodeRefreshJwtConfig,
@@ -247,6 +250,30 @@ export function readDecodeVonageJwtConfig(env: Environment): DecodeVonageAccessJ
         .default('HS256')
         .asString() as Algorithm,
       issuer: env.get('VONAGE_JWT_ISSUER').required().default('Vonage').asString()
+    }
+  };
+}
+
+export function readMailgunConfig(env: Environment): MailgunConfig {
+  return {
+    apiKey: env.get('MAILGUN_API_KEY').required().asString(),
+    endpointURL: env.get('MAILGUN_ENDPOINT_URL').required().asString() as Url,
+    sender: env.get('MAILGUN_SENDER').required().asString()
+  };
+}
+
+export function readEmailingTopicConfig(env: Environment): EmailingTopicConfig {
+  return {
+    emailingTopicConfig: {
+      topicArn: env.get('EMAILING_TOPIC_ARN').required().asString() as AwsArn
+    }
+  };
+}
+
+export function readEmailingConfig(env: Environment): EmailingEndpointConfig {
+  return {
+    emailingConfig: {
+      enabled: env.get('EMAILING_ENABLED').required().default('true').asBool()
     }
   };
 }
