@@ -96,6 +96,10 @@ export type MessagingTopicConfig = {
   messagingTopicConfig: SnsTopicConfig;
 };
 
+export type EmailingTopicConfig = {
+  emailingTopicConfig: SnsTopicConfig;
+};
+
 export type ApiRestTopicConfig = {
   apiRestTopicConfig: SnsTopicConfig;
 };
@@ -114,4 +118,10 @@ export interface MessagingConfig {
 }
 export interface MessagingEndpointConfig {
   messagingConfig: MessagingConfig;
+}
+export interface EmailingConfig {
+  enabled: boolean;
+}
+export interface EmailingEndpointConfig {
+  emailingConfig: EmailingConfig;
 }

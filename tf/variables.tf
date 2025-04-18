@@ -80,6 +80,23 @@ variable "vonage_auth_config" {
   sensitive = true
 }
 
+variable "mailgun_auth_config" {
+  type = object({
+    api_key = string
+  })
+  sensitive = true
+}
+
+variable "mailgun_config" {
+  type = object({
+    endpoint_url = string
+    sender = object({
+      display_name = string
+      address      = string
+    })
+  })
+}
+
 variable "jwt_config" {
   type = object({
     access = object({
