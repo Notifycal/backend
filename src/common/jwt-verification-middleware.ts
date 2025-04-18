@@ -61,7 +61,7 @@ function jwtVerification<
       }
     },
     (err: unknown) => {
-      return errorHandler(401, earlyResponseHeaders)(`Invalid Signature`, { error: err });
+      return errorHandler(401, earlyResponseHeaders)(`Invalid JWT`, { error: err });
     }
   );
 }
