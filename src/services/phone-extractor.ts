@@ -18,19 +18,23 @@ export function _findPhoneNumbersInText(
 }
 
 export function phoneExtractor(
-  calendarEvent: Pick<CalendarEvent, 'summary' | 'description'>,
-  attendeeId: Email,
+  calendarEvent: Pick<CalendarEvent, 'summary' | 'description' | 'attendees'>,
   senderCountryCode: CountryCode | undefined,
   idp: IdpName,
   idpAuthorization: AuthorizationForIdp<IdpName>,
   idpConfigs: IdpConfigs
 ): Promise<Set<PhoneNumberE164>> {
-  const fromContactIntegrationPromise = phoneNumberByEmail(
-    attendeeId,
-    idpAuthorization,
-    idp,
-    idpConfigs
-  );
+  const fromContactIntegrationPromise = Promise.allSettled(
+    calendarEvent.attendees.map((attendee) =>
+      phoneNumberByEmail(attendee.id as Email, idpAuthorization, idp, idpConfigs).then(
+        (phoneNumbers) => (phoneNumbers.length > 0 ? [phoneNumbers[0]] : []) // if attendee has more than 1 phone number set, pick the first one.
+      )
+    )
+  )
+    .then((results) =>
+      allSettledAllOrErrorHandler(results, 'obtaining phone numbers from contact integration')
+    )
+    .then((results) => results.flat());
   const fromCalendarEventSummaryPromise = _findPhoneNumbersInText(
     calendarEvent.summary || '',
     senderCountryCode || 'ES'
