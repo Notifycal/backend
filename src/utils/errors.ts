@@ -1,4 +1,6 @@
-function normalizeToError(value: unknown): Error {
+import type { MergedErrorResult } from '@model/Errors';
+
+export function normalizeToError(value: unknown): Error {
   if (value instanceof Error) {
     return value;
   }
@@ -30,7 +32,7 @@ function normalizeToError(value: unknown): Error {
 export function mergeTypedErrors(
   normalizedErrors: Array<Error>,
   resultingErrorMessage: string = 'Everything went wrong'
-): Error {
+): MergedErrorResult {
   const errorAttributes = normalizedErrors.reduce(
     (acc, error, index) => {
       return {
@@ -45,12 +47,12 @@ export function mergeTypedErrors(
     },
     {} as Record<string, unknown>
   );
-  return new Error(resultingErrorMessage, { cause: errorAttributes });
+  return new Error(resultingErrorMessage, { cause: errorAttributes }) as MergedErrorResult;
 }
 export function mergeErrors(
   errors: Array<unknown>,
   resultingErrorMessage: string = 'Everything went wrong'
-): Error {
+): MergedErrorResult {
   const normalizedErrors = errors.map(normalizeToError);
   return mergeTypedErrors(normalizedErrors, resultingErrorMessage);
 }
