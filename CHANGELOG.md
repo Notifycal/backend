@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.29.0](https://github.com/Notifycal/backend/compare/v0.28.1...v0.29.0) (2025-04-18)
+
+
+### Features
+
+* POST /reminder ([#524](https://github.com/Notifycal/backend/issues/524)) ([0a5c36b](https://github.com/Notifycal/backend/commit/0a5c36ba4e95ad5760dbb6074f75a2652aab4d7b))
+
 ## [0.28.1](https://github.com/Notifycal/backend/compare/v0.28.0...v0.28.1) (2025-04-18)
 
 
