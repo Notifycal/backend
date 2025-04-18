@@ -46,7 +46,7 @@ module "post_login_lambda" {
 
   runtime     = var.lambdas_runtime
   timeout     = local.api_lambdas_timeout
-  memory_size = 256
+  memory_size = 512
   handler     = var.lambdas_handler_name
 
   layers = local.lambdas_layers
