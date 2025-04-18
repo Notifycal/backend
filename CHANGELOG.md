@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.28.1](https://github.com/Notifycal/backend/compare/v0.28.0...v0.28.1) (2025-04-18)
+
+
+### Bug Fixes
+
+* calendar event phone extractor ([#565](https://github.com/Notifycal/backend/issues/565)) ([49017fe](https://github.com/Notifycal/backend/commit/49017fe534967b4bc0b9919243397547c4127e0b))
+* increate lambda memory ([999875f](https://github.com/Notifycal/backend/commit/999875f422272461ca7c2f66a1b2475bd560c8b2))
+* update log statement. Add missing env var for local env ([#570](https://github.com/Notifycal/backend/issues/570)) ([f750cff](https://github.com/Notifycal/backend/commit/f750cff2ff0d74150fee09989f34803d55b92869))
+
 ## [0.28.0](https://github.com/Notifycal/backend/compare/v0.27.2...v0.28.0) (2025-04-16)
 
 
