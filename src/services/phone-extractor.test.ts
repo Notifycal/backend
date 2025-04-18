@@ -48,6 +48,36 @@ describe('phoneExtractor', () => {
     expect(phoneNumberByEmailFn).toHaveBeenCalledTimes(2);
   });
 
+  it('should return an empty list if attendees have no phone number', async () => {
+    const validCalendarEvent = {
+      id: 'event-1',
+      attendees: [{ id: validAttendeeId }],
+      isAllDayEvent: false,
+      startTime: '2024-01-02T15:05:00Z',
+      timeZone: 'Europe/Madrid'
+    };
+    const validCountryCode = 'ES' as CountryCode;
+    const phoneNumberByEmailFn = vi.fn(() => Promise.resolve([]));
+
+    const result = await testit(
+      validCalendarEvent,
+      validCountryCode,
+      validIdp,
+      validIdpAuthorization,
+      validIdpConfigs,
+      phoneNumberByEmailFn
+    );
+
+    expect(phoneNumberByEmail).toHaveBeenCalledWith(
+      validAttendeeId,
+      validIdpAuthorization,
+      validIdp,
+      validIdpConfigs
+    );
+    expect([...result]).toStrictEqual([]);
+    expect(phoneNumberByEmailFn).toHaveBeenCalledTimes(1);
+  });
+
   it('should handle empty calendar event fields', async () => {
     const validCalendarEvent = {
       summary: '',

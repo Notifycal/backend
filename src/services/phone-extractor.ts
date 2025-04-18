@@ -27,7 +27,7 @@ export function phoneExtractor(
   const fromContactIntegrationPromise = Promise.allSettled(
     calendarEvent.attendees.map((attendee) =>
       phoneNumberByEmail(attendee.id as Email, idpAuthorization, idp, idpConfigs).then(
-        (phoneNumbers) => [phoneNumbers[0]] // if attendee has more than 1 phone number set, pick the first one.
+        (phoneNumbers) => (phoneNumbers.length > 0 ? [phoneNumbers[0]] : []) // if attendee has more than 1 phone number set, pick the first one.
       )
     )
   )

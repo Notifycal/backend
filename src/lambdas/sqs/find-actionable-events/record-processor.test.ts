@@ -173,7 +173,7 @@ describe('Find actionable events record processor', () => {
     expect(publishSpy).toHaveBeenCalledTimes(2);
   });
 
-  it('should process an actionable event with multiple attendees with different phone numbers and pick just the first one', async () => {
+  it('should process an actionable event with multiple attendees with different phone numbers and publish to SNS for each', async () => {
     const publishSpy = vi
       .spyOn(SnsService.prototype, 'publish')
       .mockResolvedValue({} as PublishCommandOutput);
@@ -198,7 +198,7 @@ describe('Find actionable events record processor', () => {
       phoneNumberByEmailFn
     );
 
-    expect(publishSpy).toHaveBeenCalledTimes(1);
+    expect(publishSpy).toHaveBeenCalledTimes(2);
   });
 
   it('should process attendees with multiple phone numbers and publish to SNS using the first one', async () => {
