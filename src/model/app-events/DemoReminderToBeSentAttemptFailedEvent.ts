@@ -1,12 +1,11 @@
-import { z } from 'zod';
+import type { z } from 'zod';
 import { eventSchemaGenerator } from './BaseEvent';
 import { demoReminderToBeSentEventSchema } from './DemoReminderToBeSentEvent';
+import { providerErrorPayloadSchema } from './common';
 
 export const demoReminderToBeSentAttemptFailedEventSchema = eventSchemaGenerator(
   'DemoReminderToBeSentAttemptFailed',
-  demoReminderToBeSentEventSchema.shape.data.extend({
-    providerErrorPayload: z.any() // TODO: review this schema when we've replaced the Vonage SDK with Axios
-  })
+  demoReminderToBeSentEventSchema.shape.data.extend(providerErrorPayloadSchema.shape)
 );
 
 export type DemoReminderToBeSentAttemptFailedEvent = z.infer<

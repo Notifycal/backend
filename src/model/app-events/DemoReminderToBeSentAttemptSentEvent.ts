@@ -1,13 +1,11 @@
-import { uuidSchema } from '@notifycal/shared/schemas';
 import type { z } from 'zod';
 import { eventSchemaGenerator } from './BaseEvent';
 import { demoReminderToBeSentEventSchema } from './DemoReminderToBeSentEvent';
+import { providerSentPayloadSchema } from './common';
 
 export const demoReminderToBeSentAttemptSentEventSchema = eventSchemaGenerator(
   'DemoReminderToBeSentAttemptSent',
-  demoReminderToBeSentEventSchema.shape.data.extend({
-    messageUUID: uuidSchema
-  })
+  demoReminderToBeSentEventSchema.shape.data.extend(providerSentPayloadSchema.shape)
 );
 
 export type DemoReminderToBeSentAttemptSentEvent = z.infer<
