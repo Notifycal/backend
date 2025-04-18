@@ -43,9 +43,6 @@ locals {
     API_REST_TOPIC_ARN = module.api_rest_topic.sns_topic_arn
   }
 
-  demo_reminder_to_be_sent_topic_env_vars = {
-    DEMO_REMINDER_TO_BE_SENT_TOPIC_ARN = module.demo_reminder_to_be_sent_topic.sns_topic_arn
-  }
   google_idp_config_env_vars = {
     GOOGLE_OAUTH_CLIENT_ID           = var.google_oauth_config.client_id
     GOOGLE_OAUTH_CLIENT_SECRET       = var.google_oauth_config.client_secret

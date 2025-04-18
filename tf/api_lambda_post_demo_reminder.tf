@@ -3,6 +3,17 @@ data "aws_iam_policy_document" "demo_reminder_to_be_sent_iam_policydoc" {
     effect = "Allow"
 
     actions = [
+      "dynamodb:GetItem",
+    ]
+
+    resources = [
+      aws_dynamodb_table.users.arn
+    ]
+  }
+  statement {
+    effect = "Allow"
+
+    actions = [
       "sns:Publish",
     ]
 
@@ -46,7 +57,8 @@ module "post_demo_reminder_lambda" {
   number_of_policies = length(local.lambdas_shared_iam_policies)
 
   environment_variables = merge({
-  }, local.protected_endpoint_env_vars, local.demo_reminder_to_be_sent_topic_env_vars)
+    DEMO_REMINDER_TO_BE_SENT_TOPIC_ARN = module.demo_reminder_to_be_sent_topic.sns_topic_arn
+  }, local.protected_endpoint_env_vars, local.users_persistance_env_vars)
 }
 
 module "post_demo_reminder_lambda_alias" {

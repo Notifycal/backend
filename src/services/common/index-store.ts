@@ -1,8 +1,6 @@
 import {
-  GetCommand,
   paginateQuery,
   type DynamoDBDocumentClient,
-  type GetCommandInput,
   type QueryCommandInput
 } from '@aws-sdk/lib-dynamodb';
 import { dynamodbClient } from '@clients/dynamodb';
@@ -45,25 +43,5 @@ export abstract class IndexStore<TConfig extends IndexStoreConfig> {
     for await (const page of paginator) {
       yield page.Items as T;
     }
-  }
-
-  protected getCommandRunner<T>(
-    cmdInput: Omit<GetCommandInput, 'TableName'> & Partial<GetCommandInput>
-  ): Promise<T | undefined> {
-    return this._dynamoDbClient
-      .send(
-        new GetCommand({
-          TableName: this._tableName,
-          ...cmdInput
-        })
-      )
-      .then((result) => {
-        const item = result.Item;
-        if (item) {
-          return item as T;
-        } else {
-          return undefined;
-        }
-      });
   }
 }

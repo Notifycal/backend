@@ -1,6 +1,6 @@
 import type { LiveUserStoreRecord } from '@model/store/LiveUserStoreRecord';
 import type { UserIdpAuthorizationStoreRecord } from '@model/store/UserIdpAuthorizationStoreRecord';
-import type { IdpName, UserId } from '@notifycal/shared/types';
+import type { IdpName } from '@notifycal/shared/types';
 import { IndexStore, type IndexStoreConfig } from '@services/common/index-store';
 
 export type UserLiveIndexStoreConfig = IndexStoreConfig;
@@ -47,27 +47,5 @@ export class UserLiveIndexStore<
     };
 
     return super.queryCommandRunner(queryCommand);
-  }
-
-  public getLiveUserConfigById(
-    userId: UserId
-  ): Promise<LiveUserStoreRecord<unknown>['Config'] | undefined> {
-    const projections: Array<keyof LiveUserStoreRecord<IdpName>> = ['Config'];
-    const queryCommand = {
-      Key: {
-        UserId: userId
-      },
-      KeyConditionExpression: 'UserStatus = :status',
-      FilterExpression: 'attribute_exists(Config) AND size(Config) > :configMinSize',
-      ExpressionAttributeValues: {
-        ':status': 'live',
-        ':configMinSize': 0
-      },
-      ProjectionExpression: projections.join(', ')
-    };
-
-    return super
-      .getCommandRunner<LiveUserStoreRecord<unknown>>(queryCommand)
-      .then((result) => result?.Config);
   }
 }

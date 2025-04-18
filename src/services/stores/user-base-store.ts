@@ -74,6 +74,26 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
       );
   }
 
+  public getUserConfigById(
+    userId: UserId
+  ): Promise<UserStoreRecord<unknown>['Config'] | undefined> {
+    const projections: Array<keyof UserStoreRecord<IdpName>> = ['Config'];
+    const getCommand = {
+      Key: {
+        UserId: userId
+      },
+      FilterExpression: 'attribute_exists(Config) AND size(Config) > :configMinSize',
+      ExpressionAttributeValues: {
+        ':configMinSize': 0
+      },
+      ProjectionExpression: projections.join(', ')
+    };
+
+    return super
+      .getCommandRunner<UserStoreRecord<unknown>>(getCommand)
+      .then((result) => result?.Config);
+  }
+
   public putUser(
     user: UserStoreRecord<IdpName>,
     authorization: AuthorizationForIdp<TIdpName>

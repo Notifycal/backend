@@ -9,7 +9,7 @@ import { dateTimeSchema, timeZoneSchema } from '@notifycal/shared/schemas';
 import type { CorrelationId, DateTime, EventId, Identity, IdpName } from '@notifycal/shared/types';
 import { errorHandler, successHandler } from '@services/common/api-response-handlers';
 import { SnsService } from '@services/sns';
-import { UserLiveIndexStore } from '@services/stores/user-live-index-store';
+import { UserBaseStore } from '@services/stores/user-base-store';
 import { interpolate } from '@services/template';
 import { receiverValidator, toCanonicalForm } from '@utils/phone';
 import type { APIGatewayProxyResult, Context } from 'aws-lambda';
@@ -66,13 +66,13 @@ async function lambdaHandler(
 ): Promise<APIGatewayProxyResult> {
   const config = event.lambdaConfig;
   const snsService = SnsService.withConfig(config.demoReminderToBeSentTopicConfig);
-  const userLiveProvider = UserLiveIndexStore.withConfig(config.userLiveIndexStoreConfig);
+  const userBaseStore = UserBaseStore.withConfig(config.userBaseStoreConfig);
   const requestBody = event.body;
   const callerIdentity = event.requestContext.authorizer.payload;
   const userId = callerIdentity.userId;
 
-  return userLiveProvider
-    .getLiveUserConfigById(userId)
+  return userBaseStore
+    .getUserConfigById(userId)
     .then((configOrNot) =>
       configOrNot
         ? Promise.resolve(buildEvent(requestBody, configOrNot, callerIdentity))
