@@ -29,6 +29,7 @@ import { getDefaultDecodeAccessJwtConfig } from '@testing/utils/jwt';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from 'aws-lambda';
 import { describe, expect, it, vi } from 'vitest';
 import type { PostDemoReminderConfig } from './config';
+// @ts-expect-error cjs handler export
 import { handler, type Event } from './index';
 
 vi.mock('@services/sns');
@@ -50,7 +51,7 @@ const validAccessToken: OurAccessTokenClaims = {
 
 const validPhone = {
   type: 'phone' as const,
-  phoneNumber: '+34123456789' as PhoneNumberE164,
+  phoneNumber: '123456789' as PhoneNumber,
   countryCode: 'ES' as const
 };
 const validE164Phone = '+34123456789' as PhoneNumberE164;
@@ -241,6 +242,7 @@ function testit(
   // eslint-disable-next-line @typescript-eslint/unbound-method
   vi.mocked(SnsService.withConfig).mockReturnValue(snsServiceMock as unknown as SnsService);
   setEnv(config);
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
   return handler(event as unknown as Event, {} as Context);
 }
 

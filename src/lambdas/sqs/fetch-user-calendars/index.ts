@@ -17,7 +17,7 @@ import type { CorrelationId, DateTime, EventId } from '@notifycal/shared/types';
 import { setupLoggerCorrelationIdEventBridge } from '@services/common/logger';
 import { SnsService } from '@services/sns';
 import { UserLiveIndexStore } from '@services/stores/user-live-index-store';
-import { toCanonicalForm } from '@utils/phone';
+import { senderToCanonicalForm } from '@utils/phone';
 import type { Context } from 'aws-lambda';
 import { DateTime as DT } from 'luxon';
 import { match, P } from 'ts-pattern';
@@ -48,7 +48,9 @@ function toEvents(
   const pageData = fromStoreRecord(item.Config).calendars.map((c) => ({
     calendar: c,
     run: run,
-    senderDetails: toCanonicalForm(fromContactStoreRecord(item.Config.Business.SenderContact)),
+    senderDetails: senderToCanonicalForm(
+      fromContactStoreRecord(item.Config.Business.SenderContact)
+    ),
     senderCountryCode: senderCountryCode,
     template: {
       id: c.template.id,
