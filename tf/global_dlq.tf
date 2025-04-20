@@ -43,7 +43,8 @@ resource "aws_sqs_queue_redrive_allow_policy" "dlq_redrive_allow_policy" {
       # Add SQS queue ARNs that have a DLQ associated here
       module.fetch_user_calendars_queue.sqs_queue_arn,
       module.user_calendar_fetched_queue.sqs_queue_arn,
-      module.actionable_event_found_queue.sqs_queue_arn
+      module.actionable_event_found_queue.sqs_queue_arn,
+      module.demo_reminder_to_be_sent_queue.sqs_queue_arn
     ]
   })
 }
