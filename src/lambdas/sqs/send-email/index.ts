@@ -16,6 +16,7 @@ import type { EmailSendSuccessResponse } from '@model/vendor/mailgun';
 import type { Brand } from '@notifycal/shared/types';
 import { setupLoggerForEventProcessing } from '@services/common/logger';
 import { SnsService } from '@services/sns';
+import { tap } from '@utils/promises';
 import type { Context } from 'aws-lambda';
 import type { z } from 'zod';
 import { readSendEmailConfig, type SendEmailConfig } from './config';
@@ -31,13 +32,9 @@ export type Base64Event = Brand<string, 'Base64Event'>;
 function buildSendEmailIdempotentlyFn(
   processor: MessageProcessor,
   config: DynamoDBPersistenceOptions,
-  responseHook: (messageUUIDResponse: JSONValue) => JSONValue,
+  responseHook: (messageResponse: JSONValue) => JSONValue,
   context: Context
-): (
-  event: EmailToBeSentEvent,
-  from: EmailWithName,
-  tags: Array<string>
-) => Promise<EmailSendSuccessResponse> {
+): (event: EmailToBeSentEvent, from: EmailWithName) => Promise<EmailSendSuccessResponse> {
   const idempotencyConfig = new IdempotencyConfig({
     eventKeyJmesPath: '[body.data.htmlBody, body.data.to, body.data.subject]', //TODO double check this cause it a fragile bit of code
     expiresAfterSeconds: 86400,
@@ -47,17 +44,14 @@ function buildSendEmailIdempotentlyFn(
   idempotencyConfig.registerLambdaContext(context);
 
   const idempotencyPersistence = new DynamoDBPersistenceLayer(config);
-  return makeIdempotent<
-    (
-      event: EmailToBeSentEvent,
-      from: EmailWithName,
-      tags: Array<string>
-    ) => Promise<EmailSendSuccessResponse>
-  >((event, from, tags) => processor.sendEmail(event, from, tags), {
-    dataIndexArgument: 0, // Which argument will be used as a PK for idempotency in the store //TODO double check this cause it a fragile bit of code
-    persistenceStore: idempotencyPersistence,
-    config: idempotencyConfig
-  });
+  return makeIdempotent(
+    (event: EmailToBeSentEvent, from: EmailWithName) => processor.sendEmail(event, from),
+    {
+      dataIndexArgument: 0, // Which argument will be used as a PK for idempotency in the store //TODO double check this cause it a fragile bit of code
+      persistenceStore: idempotencyPersistence,
+      config: idempotencyConfig
+    }
+  );
 }
 
 async function handleReminderAttemptFailure(
@@ -77,27 +71,22 @@ async function sendEmailIdempotently(
   config: SendEmailConfig,
   sendEmailIdempotentlyFn: (
     event: EmailToBeSentEvent,
-    sender: EmailWithName,
-    tags: Array<string>
+    sender: EmailWithName
   ) => Promise<EmailSendSuccessResponse>,
   isIdempotencyHit: boolean,
   messageProcessor: MessageProcessor
 ): Promise<EmailSendSuccessResponse> {
-  let sendResponse: EmailSendSuccessResponse;
-  try {
-    sendResponse = await sendEmailIdempotentlyFn(
-      event,
-      config.emailingConfig.sender,
-      event.data.tags //TODO check this out. Code smell,
-    );
-  } catch (err) {
-    await handleReminderAttemptFailure(event, config.emailingTopicConfig);
-    throw err;
-  }
-  if (isIdempotencyHit) {
-    await messageProcessor.onIdempotencyHit(event, sendResponse);
-  }
-  return sendResponse;
+  return sendEmailIdempotentlyFn(event, config.emailingConfig.sender).then(
+    tap(async (sendResponse) => {
+      if (isIdempotencyHit) {
+        await messageProcessor.onIdempotencyHit(event, sendResponse);
+      }
+    }),
+    async (err) => {
+      await handleReminderAttemptFailure(event, config.emailingTopicConfig);
+      throw err;
+    }
+  );
 }
 
 function lambdaHandler(event: Event, context: Context): Promise<EmailSendSuccessResponse> {
@@ -117,9 +106,9 @@ function lambdaHandler(event: Event, context: Context): Promise<EmailSendSuccess
   const sendMessageIdempotentlyFn = buildSendEmailIdempotentlyFn(
     messageProcessor,
     config.idempotencyPersistenceConfig,
-    (messageUUIDResponse: JSONValue) => {
+    (messageResponse: JSONValue) => {
       isIdempotencyHit = true;
-      return messageUUIDResponse;
+      return messageResponse;
     },
     context
   );

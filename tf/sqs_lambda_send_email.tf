@@ -104,5 +104,5 @@ module "send_email_lambda" {
     MAILGUN_DOMAIN_NAME          = var.mailgun_config.domain_name
     EMAILING_SENDER_DISPLAY_NAME = var.emailing_config.sender.displayName
     EMAILING_SENDER_EMAIL        = var.emailing_config.sender.email
-  }, local.messaging_topic_env_vars, local.idempotency_persistance_env_vars, local.common_lambda_env_vars)
+  }, local.emailing_topic_env_vars, local.idempotency_persistance_env_vars, local.common_lambda_env_vars)
 }

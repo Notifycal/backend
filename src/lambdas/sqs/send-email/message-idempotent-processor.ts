@@ -36,8 +36,7 @@ export default class MessageProcessor {
 
   public async sendEmail(
     event: EmailToBeSentEvent,
-    from: EmailWithName,
-    tags: Array<string>
+    from: EmailWithName
   ): Promise<EmailSendSuccessResponse> {
     const { htmlBody, subject, to } = event.data;
 
@@ -53,7 +52,7 @@ export default class MessageProcessor {
           {
             originalEvent: this.encodeBase64(event)
           },
-          tags
+          event.data.tags
         )
       );
     } else {
