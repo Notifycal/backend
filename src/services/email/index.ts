@@ -1,26 +1,58 @@
+import { logger } from '@common/powertools';
+import type { EmailWithName } from '@model/app-events/common';
+import type { SendSuccessResponse } from '@model/vendor/mailgun';
+import type { EmailHtmlBody, EmailSubject } from '@own-types/model';
+import { throwError } from '@services/common/error-handling';
+import { setInterceptors } from '@utils/axios';
 import axios, { type AxiosInstance } from 'axios';
 import FormData from 'form-data';
 
 export class EmailService {
   private readonly httpClient: AxiosInstance;
-  private readonly apiUrl: string;
 
   public constructor(
-    private readonly apiKey: string,
-    baseUrl: string
+    private readonly baseUrl: string,
+    private readonly domainName: string,
+    private readonly apiKey: string
   ) {
-    this.apiUrl = baseUrl;
-    this.httpClient = axios.create({
+    this.baseUrl = baseUrl;
+    const _httpClient = axios.create({
       auth: {
         username: 'api',
         password: this.apiKey
       }
     });
+    this.httpClient = setInterceptors(_httpClient, 'Mailgun(Email Service)');
   }
 
-  public async sendEmail(): Promise<void> {
+  private flattenNameWithEmail(emailWithName: EmailWithName): string {
+    return `${emailWithName.name} <${emailWithName.email}>`;
+  }
+
+  public async sendEmail(
+    from: EmailWithName,
+    to: EmailWithName,
+    subject: EmailSubject,
+    htmlBody: EmailHtmlBody,
+    metadata: Record<string, string> = {}
+  ): Promise<SendSuccessResponse> {
     const form = new FormData();
-    
-    form.append('from', options.from);
+    form.append('from', this.flattenNameWithEmail(from));
+    form.append('to', this.flattenNameWithEmail(to));
+    form.append('subject', subject);
+    form.append('html', htmlBody);
+    Object.entries(metadata).forEach(([key, value]) => {
+      form.append(`v:${key}`, value);
+    });
+
+    return this.httpClient
+      .post(`${this.baseUrl}/v3/${this.domainName}/messages`, form)
+      .then((response) => {
+        logger.info('Email response:', { response });
+        return response.data as SendSuccessResponse;
+      })
+      .catch((error) => {
+        throwError('Email error', error);
+      });
   }
 }

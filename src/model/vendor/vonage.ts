@@ -102,3 +102,15 @@ export function setupLoggerForAuthedVonageApiRequest(
     apiKey: jwt.payload.api_key
   });
 }
+
+export const providerVonageSentPayloadSchema = z.object({
+  messageUUID: uuidSchema
+});
+
+export const providerVonageMessageStatusPayloadSchema = z.object({
+  messageStatusPayload: VonageMessageStatusWebhookSchema
+});
+
+export const providerVonageErrorPayloadSchema = z.object({
+  providerErrorPayload: z.any() // TODO: review this schema when we've replaced the Vonage SDK with Axios
+});

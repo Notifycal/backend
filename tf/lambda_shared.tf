@@ -43,6 +43,10 @@ locals {
     API_REST_TOPIC_ARN = module.api_rest_topic.sns_topic_arn
   }
 
+  idempotency_persistance_env_vars = {
+    IDEMPOTENCY_PERSISTENCE_CONFIG = local.lambda_idempotency_table_config
+  }
+
   google_idp_config_env_vars = {
     GOOGLE_OAUTH_CLIENT_ID           = var.google_oauth_config.client_id
     GOOGLE_OAUTH_CLIENT_SECRET       = var.google_oauth_config.client_secret

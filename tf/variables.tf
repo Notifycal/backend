@@ -80,7 +80,16 @@ variable "vonage_auth_config" {
   sensitive = true
 }
 
-variable "mailgun_auth_config" {
+variable "messaging_config" {
+  type = object({
+    enabled = bool
+  })
+  default = {
+    enabled = true
+  }
+}
+
+variable "mailgun_auth" {
   type = object({
     api_key = string
   })
@@ -89,12 +98,26 @@ variable "mailgun_auth_config" {
 
 variable "mailgun_config" {
   type = object({
-    endpoint_url = string
+    base_url    = string
+    domain_name = string
+  })
+}
+
+variable "emailing_config" {
+  type = object({
+    enabled = bool
     sender = object({
-      display_name = string
-      address      = string
+      displayName = optional(string, "Notifycal")
+      email       = string
     })
   })
+  default = {
+    enabled = true
+    sender = {
+      displayName = "Notifycal"
+      email       = "info@notifycal.com"
+    }
+  }
 }
 
 variable "jwt_config" {

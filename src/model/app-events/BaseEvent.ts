@@ -29,7 +29,11 @@ export const successEventTypeSchema = z.union([
   z.literal('NoPhoneNumberForCalendarEventFound'),
   z.literal('NoActionableEventsFound'),
   z.literal('NoAttendeesInCalendarEventFound'),
-  z.literal('NoUserCalendarFound')
+  z.literal('NoUserCalendarFound'),
+  z.literal('EmailToBeSent'),
+  z.literal('EmailToBeSentAttemptSent'),
+  z.literal('EmailToBeSentAttemptSkipped'),
+  z.literal('EmailToBeSentAttemptFailed')
 ]);
 export const errorEventTypeSchema = z.union([
   z.literal('UserFetchedEventsParsingFailed'),
