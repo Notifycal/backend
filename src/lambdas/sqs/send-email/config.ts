@@ -12,11 +12,10 @@ import {
   readMailgunConfig
 } from '@services/common/config';
 import { promiseTry } from '@utils/promises';
-
 export interface MailgunConfig {
   apiKey: string;
-  endpointURL: Url;
-  sender: string;
+  baseUrl: Url;
+  domainName: string;
 }
 
 export type SendEmailConfig = MailgunConfig &

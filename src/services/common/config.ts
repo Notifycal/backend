@@ -22,6 +22,7 @@ import type {
   UserCalendarFetchedTopicConfig
 } from '@model/Config';
 import type { DecodeVonageAccessJwtEndpointConfig, VonageConfig } from '@model/vendor/vonage';
+import type { Email } from '@notifycal/shared/types';
 import type { AwsArn, Environment, PrivateKey, PublicKey, Url } from '@own-types/model';
 import type {
   VonageApiKey,
@@ -257,8 +258,20 @@ export function readDecodeVonageJwtConfig(env: Environment): DecodeVonageAccessJ
 export function readMailgunConfig(env: Environment): MailgunConfig {
   return {
     apiKey: env.get('MAILGUN_API_KEY').required().asString(),
-    endpointURL: env.get('MAILGUN_ENDPOINT_URL').required().asString() as Url,
-    sender: env.get('MAILGUN_SENDER').required().asString()
+    baseUrl: env.get('MAILGUN_BASE_URL').required().asString() as Url,
+    domainName: env.get('MAILGUN_DOMAIN_NAME').required().asString()
+  };
+}
+
+export function readEmailingConfig(env: Environment): EmailingEndpointConfig {
+  return {
+    emailingConfig: {
+      enabled: env.get('EMAILING_ENABLED').required().default('true').asBool(),
+      sender: {
+        name: env.get('EMAILING_SENDER_DISPLAY_NAME').required().asString(),
+        email: env.get('EMAILING_SENDER_EMAIL').required().asString() as Email
+      }
+    }
   };
 }
 
@@ -266,14 +279,6 @@ export function readEmailingTopicConfig(env: Environment): EmailingTopicConfig {
   return {
     emailingTopicConfig: {
       topicArn: env.get('EMAILING_TOPIC_ARN').required().asString() as AwsArn
-    }
-  };
-}
-
-export function readEmailingConfig(env: Environment): EmailingEndpointConfig {
-  return {
-    emailingConfig: {
-      enabled: env.get('EMAILING_ENABLED').required().default('true').asBool()
     }
   };
 }

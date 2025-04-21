@@ -97,19 +97,12 @@ module "send_email_lambda" {
   }
 
   environment_variables = merge({
-    MAILGUN_API_KEY = var.mailgun_auth_config.api_key
+    EMAILING_ENABLED = var.emailing_config.enabled
 
-    MAILGUN_ENDPOINT_URL = var.mailgun_config.endpoint_url
-    MAILGUN_SENDER       = format("%s <%s>", var.mailgun_config.sender.display_name, var.mailgun_config.sender.address)
-
-    IDEMPOTENCY_PERSISTENCE_CONFIG = jsonencode({
-      tableName            = aws_dynamodb_table.lambda_idempotency.name,
-      keyAttr              = local.lambda_idempotency_table_config.hash_attribute_name,
-      expiryAttr           = local.lambda_idempotency_table_config.expiration_attribute_name,
-      inProgressExpiryAttr = local.lambda_idempotency_table_config.in_progress_expiry_attribute,
-      statusAttr           = local.lambda_idempotency_table_config.status_attribute_name
-      dataAttr             = local.lambda_idempotency_table_config.data_attribute_name
-      validationKeyAttr    = local.lambda_idempotency_table_config.validation_attribute_name
-    })
-  }, local.messaging_topic_env_vars, local.common_lambda_env_vars)
+    MAILGUN_API_KEY              = var.mailgun_auth.api_key
+    MAILGUN_BASE_URL             = var.mailgun_config.base_url
+    MAILGUN_DOMAIN_NAME          = var.mailgun_config.domain_name
+    EMAILING_SENDER_DISPLAY_NAME = var.emailing_config.sender.displayName
+    EMAILING_SENDER_EMAIL        = var.emailing_config.sender.email
+  }, local.messaging_topic_env_vars, local.idempotency_persistance_env_vars, local.common_lambda_env_vars)
 }
