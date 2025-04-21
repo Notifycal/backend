@@ -5,7 +5,8 @@ import { emailWithNameSchema } from './common';
 const dataSchema = z.object({
   to: emailWithNameSchema,
   subject: z.string().brand('EmailSubject'),
-  htmlBody: z.string().brand('EmailHtmlBody')
+  htmlBody: z.string().brand('EmailHtmlBody'),
+  tags: z.string().array().default([])
 });
 export const emailToBeSentEventSchema = eventSchemaGenerator('EmailToBeSent', dataSchema);
 
