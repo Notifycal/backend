@@ -36,7 +36,7 @@ function buildSendEmailIdempotentlyFn(
   context: Context
 ): (event: EmailToBeSentEvent, from: EmailWithName) => Promise<EmailSendSuccessResponse> {
   const idempotencyConfig = new IdempotencyConfig({
-    eventKeyJmesPath: '[body.data.htmlBody, body.data.to, body.data.subject]', //TODO double check this cause it a fragile bit of code
+    eventKeyJmesPath: '[data.htmlBody, data.to, data.subject]',
     expiresAfterSeconds: 86400,
     throwOnNoIdempotencyKey: true,
     responseHook: responseHook
@@ -47,7 +47,7 @@ function buildSendEmailIdempotentlyFn(
   return makeIdempotent(
     (event: EmailToBeSentEvent, from: EmailWithName) => processor.sendEmail(event, from),
     {
-      dataIndexArgument: 0, // Which argument will be used as a PK for idempotency in the store //TODO double check this cause it a fragile bit of code
+      dataIndexArgument: 0, // Which argument will be used as a PK for idempotency in the store
       persistenceStore: idempotencyPersistence,
       config: idempotencyConfig
     }
@@ -96,7 +96,7 @@ function lambdaHandler(event: Event, context: Context): Promise<EmailSendSuccess
   setupLoggerForEventProcessing(record.body);
   logger.appendKeys({
     correlationId: record.body.correlationId,
-    to: record.body.data.to.email,
+    to: record.body.data.to,
     emailTags: record.body.data.tags
   });
 

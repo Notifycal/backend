@@ -1,9 +1,9 @@
+import { emailSchema } from '@notifycal/shared/schemas';
 import { z } from 'zod';
 import { eventSchemaGenerator } from './BaseEvent';
-import { emailWithNameSchema } from './common';
 
 const dataSchema = z.object({
-  to: emailWithNameSchema,
+  to: emailSchema,
   subject: z.string().brand('EmailSubject'),
   htmlBody: z.string().brand('EmailHtmlBody'),
   tags: z.string().array().default([])
