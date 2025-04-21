@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.29.1](https://github.com/Notifycal/backend/compare/v0.29.0...v0.29.1) (2025-04-21)
+
+
+### Bug Fixes
+
+* demo reminder iac and receiver phone ([#573](https://github.com/Notifycal/backend/issues/573)) ([5877281](https://github.com/Notifycal/backend/commit/587728187b5f9973d22ada9a58edc5f70095ec21))
+
 ## [0.29.0](https://github.com/Notifycal/backend/compare/v0.28.1...v0.29.0) (2025-04-18)
 
 
