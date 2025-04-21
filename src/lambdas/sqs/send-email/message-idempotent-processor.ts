@@ -2,12 +2,13 @@ import { logger } from '@common/powertools';
 import type { EmailWithName } from '@model/app-events/common';
 import type { EmailToBeSentAttemptSentEvent } from '@model/app-events/EmailToBeSentAttemptSentEvent';
 import type { EmailToBeSentAttemptSkippedEvent } from '@model/app-events/EmailToBeSentAttemptSkippedEvent';
-import type { SendSuccessResponse } from '@model/vendor/mailgun';
+import type { EmailToBeSentEvent } from '@model/app-events/EmailToBeSentEvent';
+import type { EmailSendSuccessResponse } from '@model/vendor/mailgun';
 import { EmailService } from '@services/email';
 import { SnsService } from '@services/sns';
 import { withIntegrationMetrics } from '@utils/withIntegrationMetrics';
 import type { SendEmailConfig } from './config';
-import type { Base64Event, Record } from './index';
+import type { Base64Event } from './index';
 
 export default class MessageProcessor {
   private readonly _snsService: SnsService;
@@ -20,27 +21,40 @@ export default class MessageProcessor {
     this._isEmailingEnabled = config.emailingConfig.enabled;
   }
 
+  private encodeBase64(event: EmailToBeSentEvent): Base64Event {
+    const eventData: Omit<EmailToBeSentEvent, 'eventId' | 'happenedAt'> = {
+      eventType: event.eventType,
+      correlationId: event.correlationId,
+      userId: event.userId,
+      idp: event.idp,
+      idpId: event.idpId,
+      data: event.data
+    };
+    const jsonString = JSON.stringify(eventData);
+    return Buffer.from(jsonString).toString('base64') as Base64Event;
+  }
+
   public async sendEmail(
-    record: Record,
+    event: EmailToBeSentEvent,
     from: EmailWithName,
-    metadata: Base64Event
-  ): Promise<SendSuccessResponse> {
-    const { body } = record;
-    const { htmlBody, subject, to } = body.data;
+    tags: Array<string>
+  ): Promise<EmailSendSuccessResponse> {
+    const { htmlBody, subject, to } = event.data;
 
-    // logger.appendKeys({
-    //   reminderMessage: message,
-    //   senderDetails,
-    //   receiverDetails
-    // });
-
-    let sendResponse: SendSuccessResponse;
+    let sendResponse: EmailSendSuccessResponse;
     if (this._isEmailingEnabled) {
       logger.info('Sending an email through Mailgun');
       sendResponse = await withIntegrationMetrics('Mailgun', 'SendEmail', () =>
-        this._emailingService.sendEmail(to, from, subject, htmlBody, {
-          originalEvent: metadata
-        })
+        this._emailingService.sendEmail(
+          to,
+          from,
+          subject,
+          htmlBody,
+          {
+            originalEvent: this.encodeBase64(event)
+          },
+          tags
+        )
       );
     } else {
       logger.info('Simulating an email is being sent');
@@ -49,10 +63,10 @@ export default class MessageProcessor {
 
     logger.info('Attempt to publish an event');
     const e: EmailToBeSentAttemptSentEvent = {
-      ...body,
+      ...event,
       eventType: 'EmailToBeSentAttemptSent' as const,
       data: {
-        ...body.data,
+        ...event.data,
         vendorResponse: sendResponse
       }
     };
@@ -61,13 +75,15 @@ export default class MessageProcessor {
     return sendResponse;
   }
 
-  public async onIdempotencyHit(record: Record, sendResponse: SendSuccessResponse): Promise<void> {
-    const { body } = record;
+  public async onIdempotencyHit(
+    event: EmailToBeSentEvent,
+    sendResponse: EmailSendSuccessResponse
+  ): Promise<void> {
     const e: EmailToBeSentAttemptSkippedEvent = {
-      ...body,
+      ...event,
       eventType: 'EmailToBeSentAttemptSkipped' as const,
       data: {
-        ...body.data,
+        ...event.data,
         vendorResponse: sendResponse
       }
     };
