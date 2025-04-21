@@ -20,6 +20,7 @@ import type { Uuid } from '@notifycal/shared/types';
 import type { PhoneNumberE164, Url } from '@own-types/model';
 import { setupLoggerForEventProcessing } from '@services/common/logger';
 import { SnsService } from '@services/sns';
+import { tap } from '@utils/promises';
 import { objectToQueryString } from '@utils/queryString';
 import type { Context } from 'aws-lambda';
 import { match } from 'ts-pattern';
@@ -90,8 +91,8 @@ function buildSendMessageIdempotentlyFn(
   idempotencyConfig.registerLambdaContext(context);
 
   const idempotencyPersistence = new DynamoDBPersistenceLayer(config);
-  return makeIdempotent<(record: Record, webhookUrl: Url) => Promise<Uuid>>(
-    (record, webhookUrl) => processor.sendReminder(record, webhookUrl),
+  return makeIdempotent(
+    (record: Record, webhookUrl: Url) => processor.sendReminder(record, webhookUrl),
     {
       dataIndexArgument: 0, // Which argument will be used as a PK for idempotency in the store
       persistenceStore: idempotencyPersistence,
@@ -128,17 +129,17 @@ async function sendMessageIdempotently(
   messageProcessor: MessageProcessor
 ): Promise<Uuid> {
   const webhookURL = buildWebhookUrl(record, config.vonageConfig.webhookBaseURL);
-  let messageUUID: Uuid;
-  try {
-    messageUUID = await sendMessageIdempotentlyFn(record, webhookURL);
-  } catch (err) {
-    await handleReminderAttemptFailure(record, config.messagingTopicConfig);
-    throw err;
-  }
-  if (isIdempotencyHit) {
-    await messageProcessor.onIdempotencyHit(record, messageUUID);
-  }
-  return messageUUID;
+  return sendMessageIdempotentlyFn(record, webhookURL).then(
+    tap(async (messageUUID) => {
+      if (isIdempotencyHit) {
+        await messageProcessor.onIdempotencyHit(record, messageUUID);
+      }
+    }),
+    async (err) => {
+      await handleReminderAttemptFailure(record, config.messagingTopicConfig);
+      throw err;
+    }
+  );
 }
 
 async function lambdaHandler(
