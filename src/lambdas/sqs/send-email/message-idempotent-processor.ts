@@ -45,12 +45,19 @@ export default class MessageProcessor {
       logger.info('Sending an email through Mailgun');
       sendResponse = await withIntegrationMetrics('Mailgun', 'SendEmail', () =>
         this._emailingService.sendEmail(
-          to,
           from,
+          to,
           subject,
           htmlBody,
           {
-            originalEvent: this.encodeBase64(event)
+            originalBase64Event: this.encodeBase64(event),
+            eventId: event.eventId,
+            userId: event.userId,
+            correlationId: event.correlationId,
+            eventType: event.eventType,
+            idp: event.idp,
+            idpId: event.idpId,
+            happenedAt: event.happenedAt
           },
           event.data.tags
         )

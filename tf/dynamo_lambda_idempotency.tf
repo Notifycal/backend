@@ -9,12 +9,12 @@ locals {
   }
   lambda_idempotency_table_config = jsonencode({
     tableName            = aws_dynamodb_table.lambda_idempotency.name,
-    keyAttr              = local.lambda_idempotency_table_config.hash_attribute_name,
-    expiryAttr           = local.lambda_idempotency_table_config.expiration_attribute_name,
-    inProgressExpiryAttr = local.lambda_idempotency_table_config.in_progress_expiry_attribute,
-    statusAttr           = local.lambda_idempotency_table_config.status_attribute_name
-    dataAttr             = local.lambda_idempotency_table_config.data_attribute_name
-    validationKeyAttr    = local.lambda_idempotency_table_config.validation_attribute_name
+    keyAttr              = local.idempotency_table_config.hash_attribute_name,
+    expiryAttr           = local.idempotency_table_config.expiration_attribute_name,
+    inProgressExpiryAttr = local.idempotency_table_config.in_progress_expiry_attribute,
+    statusAttr           = local.idempotency_table_config.status_attribute_name
+    dataAttr             = local.idempotency_table_config.data_attribute_name
+    validationKeyAttr    = local.idempotency_table_config.validation_attribute_name
   })
 }
 

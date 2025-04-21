@@ -1,6 +1,7 @@
 import { logger } from '@common/powertools';
 import type { EmailWithName } from '@model/app-events/common';
 import type { EmailSendSuccessResponse } from '@model/vendor/mailgun';
+import type { Email } from '@notifycal/shared/types';
 import type { EmailHtmlBody, EmailSubject } from '@own-types/model';
 import { throwError } from '@services/common/error-handling';
 import { setInterceptors } from '@utils/axios';
@@ -31,7 +32,7 @@ export class EmailService {
 
   public async sendEmail(
     from: EmailWithName,
-    to: EmailWithName,
+    to: Email,
     subject: EmailSubject,
     htmlBody: EmailHtmlBody,
     metadata: Record<string, string> = {},
@@ -39,7 +40,7 @@ export class EmailService {
   ): Promise<EmailSendSuccessResponse> {
     const form = new FormData();
     form.append('from', this.flattenNameWithEmail(from));
-    form.append('to', this.flattenNameWithEmail(to));
+    form.append('to', to);
     form.append('subject', subject);
     form.append('html', htmlBody);
     Object.entries(metadata).forEach(([key, value]) => {

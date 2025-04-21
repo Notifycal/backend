@@ -1,0 +1,15 @@
+{
+  "eventId": "87929f06-86b9-462a-925c-32d993e97238",
+  "eventType": "EmailToBeSent",
+  "happenedAt": "2025-04-21T20:00:00Z",
+  "correlationId": "87929f06-86b9-462a-925c-32d993e97238",
+  "userId": "87929f06-86b9-462a-925c-32d993e97999",
+  "idp": "google.com",
+  "idpId": "test-idp-id",
+  "data": {
+    "to": "notifycal@gmail.com",
+    "subject": "First real test",
+    "htmlBody": "<h1>Hola colega</h1>",
+    "tags": ["test"]
+  }
+}
