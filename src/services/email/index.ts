@@ -5,6 +5,7 @@ import type { Email } from '@notifycal/shared/types';
 import type { EmailHtmlBody, EmailSubject } from '@own-types/model';
 import { throwError } from '@services/common/error-handling';
 import { withInterceptors } from '@utils/axios';
+import { withIntegrationMetrics } from '@utils/withIntegrationMetrics';
 import axios, { type AxiosInstance } from 'axios';
 import FormData from 'form-data';
 
@@ -50,14 +51,16 @@ export class EmailService {
       form.append(`o:tag`, tag);
     });
 
-    return this.httpClient
-      .post(`${this.baseUrl}/v3/${this.domainName}/messages`, form)
-      .then((response) => {
-        logger.info('Email response:', { response });
-        return response.data as EmailSendSuccessResponse;
-      })
-      .catch((error) => {
-        throwError('Email error', error);
-      });
+    return withIntegrationMetrics('Mailgun', 'SendEmail', () =>
+      this.httpClient
+        .post(`${this.baseUrl}/v3/${this.domainName}/messages`, form)
+        .then((response) => {
+          logger.info('Email response:', { response });
+          return response.data as EmailSendSuccessResponse;
+        })
+        .catch((error) => {
+          throwError('Email error', error);
+        })
+    );
   }
 }

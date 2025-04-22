@@ -5,10 +5,11 @@ import { eventSqsSchema } from '@model/lambda-events/SqsEvents';
 import type { EmailSendSuccessResponse } from '@model/vendor/mailgun';
 import type { Brand } from '@notifycal/shared/types';
 import { setupLoggerForEventProcessing } from '@services/common/logger';
+import { SnsService } from '@services/sns';
 import type { Context } from 'aws-lambda';
 import type { z } from 'zod';
 import { readSendEmailConfig, type SendEmailConfig } from './config';
-import MessageProcessor from './message-idempotent-processor';
+import { IdempotentProcessor } from './idempotent-processor';
 
 const body = emailToBeSentEventSchema;
 const eventSchema = eventSqsSchema<SendEmailConfig, typeof body>(body);
@@ -29,13 +30,15 @@ function lambdaHandler(event: Event, context: Context): Promise<EmailSendSuccess
     subject: record.body.data.subject,
     emailTags: record.body.data.tags
   });
+  const snsService = SnsService.withConfig(config.emailingTopicConfig);
 
   logger.info('Before running idempotency. Will attempt to send a message if not sent yet');
-  const messageProcessor = new MessageProcessor(
+  const messageProcessor = new IdempotentProcessor(
     config,
-    config.emailingConfig.enabled,
     config.idempotencyPersistenceConfig,
-    context
+    config.emailingConfig.enabled,
+    context,
+    snsService
   );
 
   return messageProcessor.sendEmailIdempotently(record.body, config.emailingConfig.sender);
