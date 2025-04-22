@@ -1,4 +1,14 @@
+import type { Url } from '@own-types/model';
 import { z } from 'zod';
+
+export interface MailgunConfig {
+  apiKey: string;
+  baseUrl: Url;
+  domainName: string;
+}
+export interface MailgunEndpointConfig {
+  mailgunConfig: MailgunConfig;
+}
 
 export const emailSendSuccessPayloadResponseSchema = z.object({
   id: z.string(),

@@ -3,7 +3,7 @@ import type {
   EmailingTopicConfig,
   IdempotencyPersistenceConfig
 } from '@model/Config';
-import type { Url } from '@own-types/model';
+import type { MailgunEndpointConfig } from '@model/vendor/mailgun';
 import {
   readEmailingConfig,
   readEmailingTopicConfig,
@@ -12,13 +12,8 @@ import {
   readMailgunConfig
 } from '@services/common/config';
 import { promiseTry } from '@utils/promises';
-export interface MailgunConfig {
-  apiKey: string;
-  baseUrl: Url;
-  domainName: string;
-}
 
-export type SendEmailConfig = MailgunConfig &
+export type SendEmailConfig = MailgunEndpointConfig &
   IdempotencyPersistenceConfig &
   EmailingTopicConfig &
   EmailingEndpointConfig;
