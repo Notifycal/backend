@@ -1,7 +1,7 @@
 import { logger } from '@common/powertools';
 import type { AxiosInstance } from 'axios';
 
-export function setInterceptors(axios: AxiosInstance, targetName: string): AxiosInstance {
+export function withInterceptors(axios: AxiosInstance, targetName: string): AxiosInstance {
   axios.interceptors.request.use(
     (config) => {
       logger.info(`${targetName} successful request`, { requestConfig: config });
