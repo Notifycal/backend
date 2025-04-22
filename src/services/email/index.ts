@@ -4,7 +4,7 @@ import type { EmailSendSuccessResponse } from '@model/vendor/mailgun';
 import type { Email } from '@notifycal/shared/types';
 import type { EmailHtmlBody, EmailSubject } from '@own-types/model';
 import { throwError } from '@services/common/error-handling';
-import { setInterceptors } from '@utils/axios';
+import { withInterceptors } from '@utils/axios';
 import axios, { type AxiosInstance } from 'axios';
 import FormData from 'form-data';
 
@@ -23,7 +23,7 @@ export class EmailService {
         password: this.apiKey
       }
     });
-    this.httpClient = setInterceptors(_httpClient, 'Mailgun(Email Service)');
+    this.httpClient = withInterceptors(_httpClient, 'Mailgun(Email Service)');
   }
 
   private flattenNameWithEmail(emailWithName: EmailWithName): string {
