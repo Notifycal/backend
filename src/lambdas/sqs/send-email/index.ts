@@ -1,22 +1,10 @@
-import type { JSONValue } from '@aws-lambda-powertools/commons/types';
-import { IdempotencyConfig, makeIdempotent } from '@aws-lambda-powertools/idempotency';
-import { DynamoDBPersistenceLayer } from '@aws-lambda-powertools/idempotency/dynamodb';
-import type { DynamoDBPersistenceOptions } from '@aws-lambda-powertools/idempotency/dynamodb/types';
 import { backgroundProcessingMiddleware } from '@common/lambda-middleware';
 import { logger } from '@common/powertools';
-import type { EmailWithName } from '@model/app-events/common';
-import type { EmailToBeSentAttemptFailedEvent } from '@model/app-events/EmailToBeSentAttemptFailedEvent';
-import {
-  type EmailToBeSentEvent,
-  emailToBeSentEventSchema
-} from '@model/app-events/EmailToBeSentEvent';
-import type { EmailingTopicConfig } from '@model/Config';
+import { emailToBeSentEventSchema } from '@model/app-events/EmailToBeSentEvent';
 import { eventSqsSchema } from '@model/lambda-events/SqsEvents';
 import type { EmailSendSuccessResponse } from '@model/vendor/mailgun';
 import type { Brand } from '@notifycal/shared/types';
 import { setupLoggerForEventProcessing } from '@services/common/logger';
-import { SnsService } from '@services/sns';
-import { tap } from '@utils/promises';
 import type { Context } from 'aws-lambda';
 import type { z } from 'zod';
 import { readSendEmailConfig, type SendEmailConfig } from './config';
@@ -28,66 +16,6 @@ export type Event = z.infer<typeof eventSchema>;
 export type Record = z.infer<typeof eventSchema.shape.Records.element>;
 
 export type Base64Event = Brand<string, 'Base64Event'>;
-
-function buildSendEmailIdempotentlyFn(
-  processor: MessageProcessor,
-  config: DynamoDBPersistenceOptions,
-  responseHook: (messageResponse: JSONValue) => JSONValue,
-  context: Context
-): (event: EmailToBeSentEvent, from: EmailWithName) => Promise<EmailSendSuccessResponse> {
-  const idempotencyConfig = new IdempotencyConfig({
-    eventKeyJmesPath: '[data.htmlBody, data.to, data.subject]',
-    expiresAfterSeconds: 86400,
-    throwOnNoIdempotencyKey: true,
-    responseHook: responseHook
-  });
-  idempotencyConfig.registerLambdaContext(context);
-
-  const idempotencyPersistence = new DynamoDBPersistenceLayer(config);
-  return makeIdempotent(
-    (event: EmailToBeSentEvent, from: EmailWithName) => processor.sendEmail(event, from),
-    {
-      dataIndexArgument: 0, // Which argument will be used as a PK for idempotency in the store
-      persistenceStore: idempotencyPersistence,
-      config: idempotencyConfig
-    }
-  );
-}
-
-async function handleReminderAttemptFailure(
-  event: EmailToBeSentEvent,
-  config: EmailingTopicConfig['emailingTopicConfig']
-): Promise<void> {
-  const snsService = SnsService.withConfig(config);
-  const errorEvent: EmailToBeSentAttemptFailedEvent = {
-    ...event,
-    eventType: 'EmailToBeSentAttemptFailed' as const
-  };
-  await snsService.safePublish(errorEvent);
-}
-
-async function sendEmailIdempotently(
-  event: EmailToBeSentEvent,
-  config: SendEmailConfig,
-  sendEmailIdempotentlyFn: (
-    event: EmailToBeSentEvent,
-    sender: EmailWithName
-  ) => Promise<EmailSendSuccessResponse>,
-  isIdempotencyHit: boolean,
-  messageProcessor: MessageProcessor
-): Promise<EmailSendSuccessResponse> {
-  return sendEmailIdempotentlyFn(event, config.emailingConfig.sender).then(
-    tap(async (sendResponse) => {
-      if (isIdempotencyHit) {
-        await messageProcessor.onIdempotencyHit(event, sendResponse);
-      }
-    }),
-    async (err) => {
-      await handleReminderAttemptFailure(event, config.emailingTopicConfig);
-      throw err;
-    }
-  );
-}
 
 function lambdaHandler(event: Event, context: Context): Promise<EmailSendSuccessResponse> {
   logger.info(`Processing sqs message in email lambda`, { event });
@@ -103,25 +31,14 @@ function lambdaHandler(event: Event, context: Context): Promise<EmailSendSuccess
   });
 
   logger.info('Before running idempotency. Will attempt to send a message if not sent yet');
-  const messageProcessor = new MessageProcessor(config, config.emailingConfig.enabled);
-  let isIdempotencyHit = false;
-  const sendMessageIdempotentlyFn = buildSendEmailIdempotentlyFn(
-    messageProcessor,
+  const messageProcessor = new MessageProcessor(
+    config,
+    config.emailingConfig.enabled,
     config.idempotencyPersistenceConfig,
-    (messageResponse: JSONValue) => {
-      isIdempotencyHit = true;
-      return messageResponse;
-    },
     context
   );
 
-  return sendEmailIdempotently(
-    record.body,
-    config,
-    sendMessageIdempotentlyFn,
-    isIdempotencyHit,
-    messageProcessor
-  );
+  return messageProcessor.sendEmailIdempotently(record.body, config.emailingConfig.sender);
 }
 
 const handler = backgroundProcessingMiddleware(
