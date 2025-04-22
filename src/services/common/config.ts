@@ -1,4 +1,3 @@
-import type { MailgunConfig } from '@lambdas/sqs/send-email/config';
 import type {
   ActionableEventFoundTopicConfig,
   Algorithm,
@@ -21,6 +20,7 @@ import type {
   MessagingTopicConfig,
   UserCalendarFetchedTopicConfig
 } from '@model/Config';
+import type { MailgunEndpointConfig } from '@model/vendor/mailgun';
 import type { DecodeVonageAccessJwtEndpointConfig, VonageConfig } from '@model/vendor/vonage';
 import type { Email } from '@notifycal/shared/types';
 import type { AwsArn, Environment, PrivateKey, PublicKey, Url } from '@own-types/model';
@@ -255,11 +255,13 @@ export function readDecodeVonageJwtConfig(env: Environment): DecodeVonageAccessJ
   };
 }
 
-export function readMailgunConfig(env: Environment): MailgunConfig {
+export function readMailgunConfig(env: Environment): MailgunEndpointConfig {
   return {
-    apiKey: env.get('MAILGUN_API_KEY').required().asString(),
-    baseUrl: env.get('MAILGUN_BASE_URL').required().asString() as Url,
-    domainName: env.get('MAILGUN_DOMAIN_NAME').required().asString()
+    mailgunConfig: {
+      apiKey: env.get('MAILGUN_API_KEY').required().asString(),
+      baseUrl: env.get('MAILGUN_BASE_URL').required().asString() as Url,
+      domainName: env.get('MAILGUN_DOMAIN_NAME').required().asString()
+    }
   };
 }
 

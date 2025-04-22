@@ -97,11 +97,13 @@ function lambdaHandler(event: Event, context: Context): Promise<EmailSendSuccess
   logger.appendKeys({
     correlationId: record.body.correlationId,
     to: record.body.data.to,
+    from: config.emailingConfig.sender,
+    subject: record.body.data.subject,
     emailTags: record.body.data.tags
   });
 
   logger.info('Before running idempotency. Will attempt to send a message if not sent yet');
-  const messageProcessor = new MessageProcessor(config);
+  const messageProcessor = new MessageProcessor(config, config.emailingConfig.enabled);
   let isIdempotencyHit = false;
   const sendMessageIdempotentlyFn = buildSendEmailIdempotentlyFn(
     messageProcessor,

@@ -1,5 +1,7 @@
 import { logger } from '@common/powertools';
 import type { ActionableEventFoundEvent } from '@model/app-events/ActionableEventFoundEvent';
+import type { MessagingEndpointConfig, MessagingTopicConfig } from '@model/Config';
+import type { VonageEndpointConfig } from '@model/vendor/vonage';
 import type {
   CalendarId,
   CalendarName,
@@ -21,7 +23,6 @@ import { SnsService } from '@services/sns';
 import { validRecord as _validRecord } from '@testing/data/sqs-events';
 import type {} from 'aws-lambda';
 import { describe, expect, it, vi } from 'vitest';
-import type { SendEventReminderConfig } from './config';
 import type { Record } from './index';
 import MessageProcessor from './message-idempotent-processor';
 
@@ -30,21 +31,12 @@ vi.mock('@common/powertools');
 vi.mock('@services/messaging');
 vi.mock('@aws-lambda-powertools/idempotency');
 
-const defaultConfig: SendEventReminderConfig = {
+const defaultConfig: VonageEndpointConfig & MessagingTopicConfig & MessagingEndpointConfig = {
   vonageConfig: {
     applicationId: 'some app id' as VonageApplicationId,
     webhookBaseURL: 'https://test.com' as Url,
     privateKeySSMPath: 'some path',
     privateKey: 'some private key' as VonagePrivateKey
-  },
-  idempotencyPersistenceConfig: {
-    tableName: 'some table name',
-    keyAttr: 'some key attr',
-    expiryAttr: 'some expiryAttr',
-    inProgressExpiryAttr: 'some in progress expiryAttr',
-    statusAttr: 'some status Attr',
-    dataAttr: 'some data attr',
-    validationKeyAttr: 'some validation key attr'
   },
   messagingTopicConfig: {
     topicArn: 'some aws arn' as AwsArn
@@ -94,7 +86,7 @@ const validActionableEventEvent: ActionableEventFoundEvent = {
 };
 const validRecord = _validRecord(validActionableEventEvent);
 
-describe('MessageProcessor', () => {
+describe('Messaging MessageProcessor', () => {
   const validWebhookUrl = 'https://webhook.example.com/callback' as Url;
   const validReturnedUuid = 'test-uuid-123' as Uuid;
 
@@ -103,13 +95,10 @@ describe('MessageProcessor', () => {
       const safePublishSpy = vi.fn().mockResolvedValue({ $metadata: {} });
       const sendMessageSpy = vi.fn().mockResolvedValue(validReturnedUuid);
 
-      vi.mocked(MessagingService).mockReturnValue({
-        sendMessage: sendMessageSpy
-      } as unknown as MessagingService);
       const loggerAppendKeysSpy = vi.spyOn(logger, 'appendKeys');
       const loggerInfoSpy = vi.spyOn(logger, 'info');
 
-      const result = await testIt(validRecord, validWebhookUrl, safePublishSpy);
+      const result = await testIt(validRecord, validWebhookUrl, sendMessageSpy, safePublishSpy);
 
       expect(result).toStrictEqual(validReturnedUuid);
       expect(sendMessageSpy).toHaveBeenCalledWith(
@@ -138,20 +127,23 @@ describe('MessageProcessor', () => {
     });
 
     it('should return a fake uuid when messaging is disabled', async () => {
-      const disabledConfig: SendEventReminderConfig = {
-        ...defaultConfig,
-        messagingConfig: {
-          enabled: false
-        }
-      };
+      const disabledConfig: VonageEndpointConfig & MessagingTopicConfig & MessagingEndpointConfig =
+        {
+          ...defaultConfig,
+          messagingConfig: {
+            enabled: false
+          }
+        };
       const sendMessageSpy = vi.fn().mockResolvedValue(validReturnedUuid);
       const safePublishSpy = vi.fn().mockResolvedValue({});
 
-      vi.mocked(MessagingService).mockReturnValue({
-        sendMessage: sendMessageSpy
-      } as unknown as MessagingService);
-
-      const result = await testIt(validRecord, validWebhookUrl, safePublishSpy, disabledConfig);
+      const result = await testIt(
+        validRecord,
+        validWebhookUrl,
+        sendMessageSpy,
+        safePublishSpy,
+        disabledConfig
+      );
 
       expect(result).toBe('fake-uuid');
       expect(sendMessageSpy).not.toHaveBeenCalled();
@@ -165,12 +157,29 @@ describe('MessageProcessor', () => {
       });
     });
 
+    it('should return an error if message sending fails - let caller deal with it', async () => {
+      const error = new Error('Booom!');
+      const sendMessageSpy = vi.fn().mockRejectedValue(error);
+      const safePublishSpy = vi.fn().mockResolvedValue({ $metadata: {} });
+
+      const result = testIt(validRecord, validWebhookUrl, sendMessageSpy, safePublishSpy);
+
+      await expect(result).rejects.toThrow(error);
+      expect(sendMessageSpy).toHaveBeenCalledOnce();
+      expect(safePublishSpy).not.toHaveBeenCalled();
+    });
+
     function testIt(
       record: Record,
       webhookUrl: Url,
+      sendMessageFn: () => Promise<Uuid>,
       safePublishFn: () => Promise<void>,
-      config: SendEventReminderConfig = defaultConfig
+      config: VonageEndpointConfig & MessagingTopicConfig & MessagingEndpointConfig = defaultConfig
     ): Promise<Uuid> {
+      vi.mocked(MessagingService).mockReturnValue({
+        sendMessage: sendMessageFn
+      } as unknown as MessagingService);
+
       const snsServiceMock = {
         safePublish: safePublishFn
       };
@@ -208,7 +217,7 @@ describe('MessageProcessor', () => {
       record: Record,
       messageUUID: Uuid,
       safePublishFn: () => Promise<void>,
-      config: SendEventReminderConfig = defaultConfig
+      config: VonageEndpointConfig & MessagingTopicConfig & MessagingEndpointConfig = defaultConfig
     ): Promise<void> {
       const snsServiceMock = {
         safePublish: safePublishFn

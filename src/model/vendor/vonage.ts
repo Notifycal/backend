@@ -7,7 +7,8 @@ import type { Url } from '@own-types/model';
 import type {
   VonageApiKey,
   VonageApplicationId,
-  VonageJwtSigningSecret
+  VonageJwtSigningSecret,
+  VonagePrivateKey
 } from '@services/messaging';
 import { z } from 'zod';
 
@@ -81,6 +82,11 @@ export interface VonageConfig {
   applicationId: VonageApplicationId;
   webhookBaseURL: Url;
 }
+
+export interface VonageEndpointConfig {
+  vonageConfig: VonageConfig & { privateKey: VonagePrivateKey };
+}
+
 export interface DecodeVonageAccessJwtConfig {
   applicationId: VonageApplicationId;
   apiKey: VonageApiKey;
