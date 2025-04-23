@@ -1,7 +1,7 @@
 import { logger } from '@common/powertools';
 import type { EmailWithName } from '@model/app-events/common';
 import type { EmailToBeSentEvent } from '@model/app-events/EmailToBeSentEvent';
-import type { EmailingTopicConfig } from '@model/Config';
+import type { EmailingTopicConfig, SnsTopicConfig } from '@model/Config';
 import type { EmailSendSuccessResponse, MailgunEndpointConfig } from '@model/vendor/mailgun';
 import type {
   CorrelationId,
@@ -89,7 +89,7 @@ describe('Email processor', () => {
           idp: 'google.com',
           idpId: '45346356356',
           originalBase64Event:
-            'eyJldmVudFR5cGUiOiJFbWFpbFRvQmVTZW50IiwiY29ycmVsYXRpb25JZCI6IjBkZTY1MWVmLTUzNWUtNGQyZS1iOWZmLTdiZjQzZjVhYWFhYSIsInVzZXJJZCI6IjBkZTY1MWVmLTUzNWUtNGQyZS1iOWZmLTdiZjQzZjVhMDAwMCIsImlkcCI6Imdvb2dsZS5jb20iLCJpZHBJZCI6IjQ1MzQ2MzU2MzU2IiwiZGF0YSI6eyJ0byI6InRlc3RAbm90aWZ5Y2FsLmNvbSIsInN1YmplY3QiOiJTb21lIHN1YmplY3QiLCJodG1sQm9keSI6IjxoMT5IZWxsbyBteSBmcmllbmQ8L2gxPiIsInRhZ3MiOlsiT25lVGFnIl19fQ==',
+            'eyJkYXRhIjp7InRvIjoidGVzdEBub3RpZnljYWwuY29tIiwic3ViamVjdCI6IlNvbWUgc3ViamVjdCIsImh0bWxCb2R5IjoiPGgxPkhlbGxvIG15IGZyaWVuZDwvaDE+IiwidGFncyI6WyJPbmVUYWciXX0sImNvcnJlbGF0aW9uSWQiOiIwZGU2NTFlZi01MzVlLTRkMmUtYjlmZi03YmY0M2Y1YWFhYWEiLCJldmVudElkIjoiMGRlNjUxZWYtNTM1ZS00ZDJlLWI5ZmYtN2JmNDNmNWEwMWFjIiwidXNlcklkIjoiMGRlNjUxZWYtNTM1ZS00ZDJlLWI5ZmYtN2JmNDNmNWEwMDAwIiwiaWRwIjoiZ29vZ2xlLmNvbSIsImlkcElkIjoiNDUzNDYzNTYzNTYiLCJldmVudFR5cGUiOiJFbWFpbFRvQmVTZW50IiwiaGFwcGVuZWRBdCI6IjIwMjQtMDEtMDJUMTU6MDQ6NTBaIn0=',
           userId: '0de651ef-535e-4d2e-b9ff-7bf43f5a0000'
         },
         validEvent.data.tags
@@ -151,14 +151,14 @@ describe('Email processor', () => {
       sendEmailFn: () => Promise<EmailSendSuccessResponse>,
       safePublishFn: () => Promise<void>,
       emailingEnabled: boolean,
-      config: MailgunEndpointConfig & EmailingTopicConfig = defaultConfig
+      config: MailgunEndpointConfig = defaultConfig
     ): Promise<EmailSendSuccessResponse> {
       const snsServiceMock = {
         safePublish: safePublishFn
       };
       // eslint-disable-next-line @typescript-eslint/unbound-method
       vi.mocked(SnsService.withConfig).mockReturnValue(snsServiceMock as unknown as SnsService);
-      const snsService = SnsService.withConfig(config.emailingTopicConfig);
+      const snsService = SnsService.withConfig({} as SnsTopicConfig);
       vi.mocked(EmailService).mockReturnValue({
         sendEmail: sendEmailFn
       } as unknown as EmailService);
@@ -167,36 +167,4 @@ describe('Email processor', () => {
       return messageProcessor.process(event, from);
     }
   });
-
-  //   describe('onIdempotencyHit', () => {
-  //     it('should publish a email attempt skipped event', async () => {
-  //       const safePublishSpy = vi.fn().mockResolvedValue({});
-
-  //       await testIt(validEvent, validEmailServiceResponse, safePublishSpy);
-
-  //       expect(safePublishSpy).toHaveBeenCalledWith({
-  //         ...validEvent,
-  //         eventType: 'EmailToBeSentAttemptSkipped',
-  //         data: {
-  //           ...validEvent.data,
-  //           vendorResponse: validEmailServiceResponse
-  //         }
-  //       });
-  //     });
-
-  //     function testIt(
-  //       record: Record['body'],
-  //       response: EmailSendSuccessResponse,
-  //       safePublishFn: () => Promise<void>,
-  //       config: MailgunEndpointConfig & EmailingTopicConfig = defaultConfig
-  //     ): Promise<void> {
-  //       const snsServiceMock = {
-  //         safePublish: safePublishFn
-  //       };
-  //       // eslint-disable-next-line @typescript-eslint/unbound-method
-  //       vi.mocked(SnsService.withConfig).mockReturnValue(snsServiceMock as unknown as SnsService);
-  //       const messageProcessor = new MessageProcessor(config, true);
-  //       return messageProcessor.onIdempotencyHit(record, response);
-  //     }
-  //   });
 });
