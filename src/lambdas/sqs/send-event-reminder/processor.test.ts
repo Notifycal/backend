@@ -21,7 +21,6 @@ import {
   type VonagePrivateKey
 } from '@services/messaging';
 import { SnsService } from '@services/sns';
-import type { } from 'aws-lambda';
 import { describe, expect, it, vi } from 'vitest';
 import Processor from './processor';
 

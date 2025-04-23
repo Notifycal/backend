@@ -69,7 +69,6 @@ export default class Processor {
       logger.info('Simulating a message is being sent');
       messageUUID = await Promise.resolve('fake-uuid' as Uuid);
     }
-
     await this.publishAttemptSentEvent(event, messageUUID);
 
     return messageUUID;

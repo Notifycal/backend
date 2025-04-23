@@ -30,7 +30,16 @@ export class Processor {
       logger.info('Simulating an email is being sent');
       sendResponse = await Promise.resolve({ id: 'fake-uuid', message: 'OK!' });
     }
+    await this.publishAttemptSentEvent(event, sendResponse);
 
+    return sendResponse;
+  }
+
+  private publishAttemptSentEvent(
+    event: EmailToBeSentEvent,
+    sendResponse: EmailSendSuccessResponse
+  ): Promise<void> {
+    logger.info('Attempt to publish an event');
     const e: EmailToBeSentAttemptSentEvent = {
       ...event,
       eventType: 'EmailToBeSentAttemptSent' as const,
@@ -39,10 +48,7 @@ export class Processor {
         vendorResponse: sendResponse
       }
     };
-    logger.info('Attempt to publish an event');
-    await this.snsService.safePublish(e);
-
-    return sendResponse;
+    return this.snsService.safePublish(e);
   }
 
   private sendEmail(
