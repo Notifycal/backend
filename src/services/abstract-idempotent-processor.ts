@@ -43,10 +43,10 @@ export abstract class AbstractIdempotentProcessor<TSuccessResponse> {
     return idempotentProcessorFn(...args).then(
       tap(async (response: TSuccessResponse) => {
         if (isIdempotencyHit) {
-          logger.info('Idempotency hit')
+          logger.info('Idempotency hit');
           await onIdempotencyHit(response);
         } else {
-          logger.info('NO idempotency hit')
+          logger.info('NO idempotency hit');
         }
       }),
       async (err) => {
