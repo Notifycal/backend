@@ -8,7 +8,7 @@ import type { DemoReminderToBeSentStatusUpdatedEvent } from '@model/app-events/D
 import { authedEventSchema } from '@model/lambda-events/ApiGatewayEvents';
 import {
   setupLoggerForAuthedVonageApiRequest,
-  VonageMessageStatusWebhookSchema,
+  vonageMessageStatusWebhookSchema,
   type DecodeVonageAccessJwtConfig
 } from '@model/vendor/vonage';
 import type { DateTime, EventId } from '@notifycal/shared/types';
@@ -33,7 +33,7 @@ import {
 } from './schema';
 
 const schema = authedEventSchema<ReminderDeliveryStatusWebhookConfig>().extend({
-  body: JSONStringified(VonageMessageStatusWebhookSchema)
+  body: JSONStringified(vonageMessageStatusWebhookSchema)
 });
 export type Event = z.infer<typeof schema>;
 

@@ -1,4 +1,4 @@
-import { emailSendSuccessPayloadResponseSchema } from '@model/vendor/mailgun';
+import { mailgunEmailSendSuccessPayloadResponseSchema } from '@model/vendor/mailgun';
 import type { z } from 'zod';
 import { eventSchemaGenerator } from './BaseEvent';
 import { emailToBeSentEventSchema } from './EmailToBeSentEvent';
@@ -6,7 +6,7 @@ import { emailToBeSentEventSchema } from './EmailToBeSentEvent';
 export const emailToBeSentAttemptSentEventSchema = eventSchemaGenerator(
   'EmailToBeSentAttemptSent',
   emailToBeSentEventSchema.shape.data.extend({
-    vendorResponse: emailSendSuccessPayloadResponseSchema
+    vendorResponse: mailgunEmailSendSuccessPayloadResponseSchema
   })
 );
 

@@ -71,7 +71,7 @@ const messageStatusRCSSchema = messageStatusBaseSchema.extend({
   destination: destinationSchema.optional()
 });
 
-export const VonageMessageStatusWebhookSchema = z.discriminatedUnion('channel', [
+export const vonageMessageStatusWebhookSchema = z.discriminatedUnion('channel', [
   messageStatusSMSSchema,
   messageStatusRCSSchema
 ]);
@@ -109,14 +109,14 @@ export function setupLoggerForAuthedVonageApiRequest(
   });
 }
 
-export const providerVonageSentPayloadSchema = z.object({
+export const vonageSentPayloadSchema = z.object({
   messageUUID: uuidSchema
 });
 
-export const providerVonageMessageStatusPayloadSchema = z.object({
-  messageStatusPayload: VonageMessageStatusWebhookSchema
+export const vonageMessageStatusPayloadSchema = z.object({
+  messageStatusPayload: vonageMessageStatusWebhookSchema
 });
 
-export const providerVonageErrorPayloadSchema = z.object({
+export const vonageErrorPayloadSchema = z.object({
   providerErrorPayload: z.any() // TODO: review this schema when we've replaced the Vonage SDK with Axios
 });

@@ -10,12 +10,12 @@ export interface MailgunEndpointConfig {
   mailgunConfig: MailgunConfig;
 }
 
-export const emailSendSuccessPayloadResponseSchema = z.object({
+export const mailgunEmailSendSuccessPayloadResponseSchema = z.object({
   id: z.string(),
   message: z.string()
 });
-export type EmailSendSuccessResponse = z.infer<typeof emailSendSuccessPayloadResponseSchema>;
+export type EmailSendSuccessResponse = z.infer<typeof mailgunEmailSendSuccessPayloadResponseSchema>;
 
-export const emailSendErrorPayloadResponse = z.object({
+export const mailgunEmailSendErrorPayloadResponse = z.object({
   errorPayload: z.any()
 });

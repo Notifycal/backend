@@ -1,11 +1,11 @@
-import { providerVonageErrorPayloadSchema } from '@model/vendor/vonage';
+import { vonageErrorPayloadSchema } from '@model/vendor/vonage';
 import type { z } from 'zod';
 import { eventSchemaGenerator } from './BaseEvent';
 import { demoReminderToBeSentEventSchema } from './DemoReminderToBeSentEvent';
 
 export const demoReminderToBeSentAttemptFailedEventSchema = eventSchemaGenerator(
   'DemoReminderToBeSentAttemptFailed',
-  demoReminderToBeSentEventSchema.shape.data.extend(providerVonageErrorPayloadSchema.shape)
+  demoReminderToBeSentEventSchema.shape.data.extend(vonageErrorPayloadSchema.shape)
 );
 
 export type DemoReminderToBeSentAttemptFailedEvent = z.infer<
