@@ -123,7 +123,7 @@ module "send_event_reminder_lambda" {
   allowed_triggers     = local.send_event_reminder_allowed_triggers
 
   environment_variables = merge({
-    MESSAGING_ENABLED = var.messaging_config.enabled
+    MESSAGING_ENABLED = tostring(var.messaging_config.enabled)
 
     VONAGE_APPLICATION_ID       = var.vonage_auth_config.application_id
     VONAGE_SSM_PATH_PRIVATE_KEY = data.aws_ssm_parameter.vonage_private_key.name

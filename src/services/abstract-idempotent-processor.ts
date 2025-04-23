@@ -6,11 +6,10 @@ import type {
   IdempotencyConfigOptions,
   ItempotentFunctionOptions
 } from '@aws-lambda-powertools/idempotency/types';
+import type { AsyncFunction } from '@own-types/model';
 import { throwError } from '@services/common/error-handling';
 import { tap } from '@utils/promises';
 import type { Context } from 'aws-lambda';
-
-type AnyFunction<TArgs extends Array<unknown>, TReturn> = (...args: TArgs) => Promise<TReturn>;
 
 export abstract class AbstractIdempotentProcessor<TSuccessResponse> {
   protected constructor(
@@ -19,7 +18,7 @@ export abstract class AbstractIdempotentProcessor<TSuccessResponse> {
   ) {}
 
   protected processIdempotently<TArgs extends Array<unknown>>(
-    processorFn: AnyFunction<TArgs, TSuccessResponse>,
+    processorFn: AsyncFunction<TArgs, TSuccessResponse>,
     args: TArgs,
     onIdempotencyHit: (response: TSuccessResponse) => Promise<void>,
     onError: (error?: unknown) => Promise<void>,

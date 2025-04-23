@@ -51,7 +51,7 @@ module "send_email_lambda" {
 
   runtime     = var.lambdas_runtime
   timeout     = local.api_lambdas_timeout
-  memory_size = 256
+  memory_size = 384
   handler     = var.lambdas_handler_name
 
   layers = local.lambdas_layers
@@ -97,7 +97,7 @@ module "send_email_lambda" {
   }
 
   environment_variables = merge({
-    EMAILING_ENABLED = var.emailing_config.enabled
+    EMAILING_ENABLED = tostring(var.emailing_config.enabled)
 
     MAILGUN_API_KEY              = var.mailgun_auth.api_key
     MAILGUN_BASE_URL             = var.mailgun_config.base_url
