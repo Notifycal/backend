@@ -1,5 +1,4 @@
 import type { DynamoDBPersistenceOptions } from '@aws-lambda-powertools/idempotency/dynamodb/types';
-import { logger } from '@common/powertools';
 import type { ActionableEventFoundEvent } from '@model/app-events/ActionableEventFoundEvent';
 import type { ActionableEventReminderAttemptFailedEvent } from '@model/app-events/ActionableEventReminderAttemptFailedEvent';
 import type { ActionableEventReminderAttemptSkippedEvent } from '@model/app-events/ActionableEventReminderAttemptSkippedEvent';
@@ -33,14 +32,13 @@ export class IdempotentProcessor extends AbstractIdempotentProcessor<Uuid> {
     event: ActionableEventFoundEvent | DemoReminderToBeSentEvent
   ): Promise<Uuid> {
     const idempotencyOptions = {
-      eventKeyJmesPath: '[body.data.message, body.data.senderDetails, body.data.receiverDetails]',
+      eventKeyJmesPath: '[data.message, data.senderDetails, data.receiverDetails]',
       expiresAfterSeconds: 86400
     };
     const idempotencyFunctionOptions = {
       dataIndexArgument: 0
     };
 
-    logger.info('A reminder will be send if not sent yet');
     return this.processIdempotently(
       (event: ActionableEventFoundEvent | DemoReminderToBeSentEvent) =>
         this.processor.process(event),

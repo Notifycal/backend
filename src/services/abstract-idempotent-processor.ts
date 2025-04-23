@@ -6,6 +6,7 @@ import type {
   IdempotencyConfigOptions,
   ItempotentFunctionOptions
 } from '@aws-lambda-powertools/idempotency/types';
+import { logger } from '@common/powertools';
 import type { AsyncFunction } from '@own-types/model';
 import { throwError } from '@services/common/error-handling';
 import { tap } from '@utils/promises';
@@ -42,7 +43,10 @@ export abstract class AbstractIdempotentProcessor<TSuccessResponse> {
     return idempotentProcessorFn(...args).then(
       tap(async (response: TSuccessResponse) => {
         if (isIdempotencyHit) {
+          logger.info('Idempotency hit')
           await onIdempotencyHit(response);
+        } else {
+          logger.info('NO idempotency hit')
         }
       }),
       async (err) => {
