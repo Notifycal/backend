@@ -1,13 +1,14 @@
 import type { DynamoDBPersistenceOptions } from '@aws-lambda-powertools/idempotency/dynamodb/types';
+import { logger } from '@common/powertools';
 import type { EmailWithName } from '@model/app-events/common';
 import type { EmailToBeSentAttemptFailedEvent } from '@model/app-events/EmailToBeSentAttemptFailedEvent';
 import type { EmailToBeSentAttemptSkippedEvent } from '@model/app-events/EmailToBeSentAttemptSkippedEvent';
 import type { EmailToBeSentEvent } from '@model/app-events/EmailToBeSentEvent';
 import type { EmailingTopicConfig } from '@model/Config';
 import type { EmailSendSuccessResponse, MailgunEndpointConfig } from '@model/vendor/mailgun';
+import { AbstractIdempotentProcessor } from '@services/abstract-idempotent-processor';
 import { SnsService } from '@services/sns';
 import type { Context } from 'aws-lambda';
-import { AbstractIdempotentProcessor } from './abstract-idempotent-processor';
 import { Processor } from './processor';
 
 export class IdempotentProcessor extends AbstractIdempotentProcessor<EmailSendSuccessResponse> {
@@ -36,6 +37,8 @@ export class IdempotentProcessor extends AbstractIdempotentProcessor<EmailSendSu
     const idempotencyFunctionOptions = {
       dataIndexArgument: 0
     };
+
+    logger.info('A message will be send if not sent yet');
     return this.processIdempotently(
       (event: EmailToBeSentEvent, from: EmailWithName) => this.processor.process(event, from),
       [event, from],

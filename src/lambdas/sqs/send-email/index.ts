@@ -1,8 +1,13 @@
 import { backgroundProcessingMiddleware } from '@common/lambda-middleware';
 import { logger } from '@common/powertools';
 import { emailToBeSentEventSchema } from '@model/app-events/EmailToBeSentEvent';
+import type {
+  EmailingEndpointConfig,
+  EmailingTopicConfig,
+  IdempotencyPersistenceConfig
+} from '@model/Config';
 import { eventSqsSchema } from '@model/lambda-events/SqsEvents';
-import type { EmailSendSuccessResponse } from '@model/vendor/mailgun';
+import type { EmailSendSuccessResponse, MailgunEndpointConfig } from '@model/vendor/mailgun';
 import type { Brand } from '@notifycal/shared/types';
 import { setupLoggerForEventProcessing } from '@services/common/logger';
 import { SnsService } from '@services/sns';
@@ -18,10 +23,13 @@ export type Record = z.infer<typeof eventSchema.shape.Records.element>;
 
 export type Base64Event = Brand<string, 'Base64Event'>;
 
-function lambdaHandler(event: Event, context: Context): Promise<EmailSendSuccessResponse> {
-  logger.info(`Processing sqs message in email lambda`, { event });
-  const config = event.lambdaConfig;
-  const record = event.Records[0];
+function setupLogger(
+  record: Record,
+  config: MailgunEndpointConfig &
+    IdempotencyPersistenceConfig &
+    EmailingTopicConfig &
+    EmailingEndpointConfig
+): void {
   setupLoggerForEventProcessing(record.body);
   logger.appendKeys({
     correlationId: record.body.correlationId,
@@ -30,9 +38,14 @@ function lambdaHandler(event: Event, context: Context): Promise<EmailSendSuccess
     subject: record.body.data.subject,
     emailTags: record.body.data.tags
   });
-  const snsService = SnsService.withConfig(config.emailingTopicConfig);
+}
 
-  logger.info('Before running idempotency. Will attempt to send a message if not sent yet');
+function lambdaHandler(event: Event, context: Context): Promise<EmailSendSuccessResponse> {
+  logger.info(`Processing sqs message in email lambda`, { event });
+  const config = event.lambdaConfig;
+  const record = event.Records[0];
+  setupLogger(record, config);
+  const snsService = SnsService.withConfig(config.emailingTopicConfig);
   const messageProcessor = new IdempotentProcessor(
     config,
     config.idempotencyPersistenceConfig,

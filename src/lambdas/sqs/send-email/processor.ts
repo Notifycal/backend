@@ -6,17 +6,16 @@ import type { EmailSendSuccessResponse, MailgunConfig } from '@model/vendor/mail
 import { EmailService } from '@services/email';
 import type { SnsService } from '@services/sns';
 import { toBase64 } from '@utils/cripto';
-import type { Base64Event } from '.';
 
 export class Processor {
-  private readonly emailingService: EmailService;
+  private readonly emailService: EmailService;
 
   public constructor(
-    private readonly config: MailgunConfig,
+    config: MailgunConfig,
     private readonly isEnabled: boolean,
     private readonly snsService: SnsService
   ) {
-    this.emailingService = new EmailService(config.baseUrl, config.domainName, config.apiKey);
+    this.emailService = new EmailService(config.baseUrl, config.domainName, config.apiKey);
   }
 
   public async process(
@@ -51,13 +50,13 @@ export class Processor {
     from: EmailWithName
   ): Promise<EmailSendSuccessResponse> {
     const { htmlBody, subject, to } = event.data;
-    return this.emailingService.sendEmail(
+    return this.emailService.sendEmail(
       from,
       to,
       subject,
       htmlBody,
       {
-        originalBase64Event: this.encodeBase64(event),
+        originalBase64Event: toBase64(event),
         eventId: event.eventId,
         userId: event.userId,
         correlationId: event.correlationId,
@@ -68,17 +67,5 @@ export class Processor {
       },
       event.data.tags
     );
-  }
-
-  protected encodeBase64(event: EmailToBeSentEvent): Base64Event {
-    const eventData: Omit<EmailToBeSentEvent, 'eventId' | 'happenedAt'> = {
-      eventType: event.eventType,
-      correlationId: event.correlationId,
-      userId: event.userId,
-      idp: event.idp,
-      idpId: event.idpId,
-      data: event.data
-    };
-    return toBase64(eventData) as Base64Event;
   }
 }
