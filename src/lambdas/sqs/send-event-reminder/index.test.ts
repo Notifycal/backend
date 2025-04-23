@@ -1,4 +1,3 @@
-import * as makeIdempotentModule from '@aws-lambda-powertools/idempotency';
 import { getParameter } from '@aws-lambda-powertools/parameters/ssm';
 import { metrics } from '@common/powertools';
 import type { ActionableEventFoundEvent } from '@model/app-events/ActionableEventFoundEvent';
@@ -15,7 +14,6 @@ import type {
 } from '@notifycal/shared/types';
 import type { AwsArn, PhoneNumberE164, Url } from '@own-types/model';
 import type { VonageApplicationId } from '@services/messaging';
-import { SnsService } from '@services/sns';
 import { validRawRecord as _validRawRecord } from '@testing/data/sqs-events';
 import {
   setEnvIdempotencyPersistanceConfig,
@@ -25,15 +23,13 @@ import {
 import type { Context, SQSEvent, SQSRecord } from 'aws-lambda';
 import { describe, expect, it, vi } from 'vitest';
 import type { SendEventReminderConfig } from './config';
+import { IdempotentProcessor } from './idempotent-processor';
 // @ts-expect-error cjs handler export
 import { handler, type Event } from './index';
-import MessageProcessor from './message-idempotent-processor';
 
 vi.mock('@common/powertools');
-vi.mock('./message-idempotent-processor');
-vi.mock('@services/sns');
+vi.mock('./idempotent-processor');
 vi.mock('@aws-lambda-powertools/parameters/ssm');
-vi.mock('@aws-lambda-powertools/idempotency');
 vi.mock('@aws-lambda-powertools/metrics');
 
 const validActionableEventEvent: ActionableEventFoundEvent = {
@@ -98,78 +94,27 @@ const nonSpanishEvent: SQSEvent = {
 describe('Send event reminder', () => {
   it('should process and return message UUID if successful', async () => {
     const returnedReminderId = 'mock-uuid' as Uuid;
-    const sendReminderSpy = vi
-      .spyOn(MessageProcessor.prototype, 'sendReminder')
-      .mockResolvedValue(returnedReminderId);
-    const safePublishFn = vi.fn().mockResolvedValue({});
+    const sendReminderIdempotentlyFn = vi.fn().mockResolvedValue(returnedReminderId);
 
-    const makeIdempotentSpy = vi
-      .spyOn(makeIdempotentModule, 'makeIdempotent')
-      .mockImplementation(() => sendReminderSpy.getMockImplementation()!);
-    const onIdempotencyHitSpy = vi
-      .spyOn(MessageProcessor.prototype, 'onIdempotencyHit')
-      .mockResolvedValue(undefined);
-
-    const result = await testit(validEvent, safePublishFn);
+    const result = await testit(validEvent, sendReminderIdempotentlyFn);
 
     expect(result).toStrictEqual(returnedReminderId);
-    expect(safePublishFn).toHaveBeenCalledTimes(0);
-    expect(makeIdempotentSpy).toHaveBeenCalledTimes(1);
-    expect(onIdempotencyHitSpy).toHaveBeenCalledTimes(0);
+    expect(sendReminderIdempotentlyFn).toHaveBeenCalledWith(validActionableEventEvent);
   });
 
   it('should return "MessageNotSentOutsideOfSpain" for non-Spanish phone numbers', async () => {
-    const sendReminderSpy = vi.spyOn(MessageProcessor.prototype, 'sendReminder');
-    const safePublishFn = vi.fn().mockResolvedValue({});
-    const makeIdempotentSpy = vi.spyOn(makeIdempotentModule, 'makeIdempotent');
-    const onIdempotencyHitSpy = vi.spyOn(MessageProcessor.prototype, 'onIdempotencyHit');
+    const sendReminderIdempotentlyFn = vi.fn();
 
-    const result = await testit(nonSpanishEvent, safePublishFn);
+    const result = await testit(nonSpanishEvent, sendReminderIdempotentlyFn);
 
     expect(result).toBe('MessageNotSentOutsideOfSpain');
-    expect(sendReminderSpy).toHaveBeenCalledTimes(0);
-    expect(safePublishFn).toHaveBeenCalledTimes(0);
-    expect(makeIdempotentSpy).toHaveBeenCalledTimes(0);
-    expect(onIdempotencyHitSpy).toHaveBeenCalledTimes(0);
-  });
-
-  it('should publish an event when message sending fails', async () => {
-    const error = new Error('Failed to send message');
-    const sendReminderSpy = vi
-      .spyOn(MessageProcessor.prototype, 'sendReminder')
-      .mockRejectedValue(error);
-
-    const safePublishFn = vi.fn().mockResolvedValue({});
-    vi.spyOn(makeIdempotentModule, 'makeIdempotent').mockImplementation(
-      () => sendReminderSpy.getMockImplementation()!
-    );
-
-    await expect(testit(validEvent, safePublishFn)).rejects.toThrow(error);
-
-    expect(safePublishFn).toHaveBeenCalledTimes(1);
-    expect(safePublishFn).toHaveBeenCalledWith({
-      ...validActionableEventEvent,
-      eventType: 'ActionableEventReminderAttemptFailed'
-    });
-  });
-
-  it.todo('should call onIdempotencyHit when idempotency is hit - cannot be unit tested');
-
-  it('should throw error when idempotency key is missing', async () => {
-    const error = new Error('No idempotency key found in the request');
-    vi.spyOn(makeIdempotentModule, 'makeIdempotent').mockImplementation(() => {
-      throw error;
-    });
-    const safePublishFn = vi.fn().mockResolvedValue({});
-
-    await expect(testit(validEvent, safePublishFn)).rejects.toThrow(error);
+    expect(sendReminderIdempotentlyFn).toHaveBeenCalledTimes(0);
   });
 
   it('should log appropriate metrics for non-Spanish numbers', async () => {
     const addMetricSpy = vi.spyOn(metrics, 'addMetric');
-    const safePublishFn = vi.fn().mockResolvedValue({});
 
-    await testit(nonSpanishEvent, safePublishFn);
+    await testit(nonSpanishEvent, vi.fn());
 
     expect(addMetricSpy).toHaveBeenCalledWith(
       'MessageNotSentOutsideOfSpain',
@@ -182,6 +127,17 @@ describe('Send event reminder', () => {
       }
     );
   });
+
+  it('should return an error if config cannot be fetched from SSM', async () => {
+    const sendReminderIdempotentlyFn = vi.fn();
+    const error = new Error('Boooom!');
+    const getParameterFromSsmFn = () => Promise.reject(error);
+
+    const result = testit(validEvent, sendReminderIdempotentlyFn, getParameterFromSsmFn);
+
+    await expect(result).rejects.toThrow('Lambda config could not be loaded');
+    expect(sendReminderIdempotentlyFn).not.toHaveBeenCalled();
+  });
 });
 
 type EndpointConfig = Omit<SendEventReminderConfig, 'vonageConfig'> & {
@@ -190,16 +146,15 @@ type EndpointConfig = Omit<SendEventReminderConfig, 'vonageConfig'> & {
 
 function testit(
   event: SQSEvent,
-  safePublishFn: () => Promise<void>,
+  sendReminderIdempotentlyFn: () => Promise<Uuid>,
   getParameterFromSsmFn: () => Promise<string> = () => Promise.resolve('fakePrivateKey'),
   config: EndpointConfig = defaultConfig
 ): Promise<Uuid | 'MessageNotSentOutsideOfSpain'> {
   setEnv(config);
-  const snsServiceMock = {
-    safePublish: safePublishFn
-  };
   // eslint-disable-next-line @typescript-eslint/unbound-method
-  vi.mocked(SnsService.withConfig).mockReturnValue(snsServiceMock as unknown as SnsService);
+  vi.mocked(IdempotentProcessor.prototype.sendReminderIdempotently).mockImplementation(
+    sendReminderIdempotentlyFn
+  );
   vi.mocked(getParameter).mockImplementation(getParameterFromSsmFn);
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
   return handler(event as unknown as Event, {} as Context);

@@ -1,7 +1,8 @@
 import { logger } from '@common/powertools';
 import type { ActionableEventFoundEvent } from '@model/app-events/ActionableEventFoundEvent';
-import type { MessagingEndpointConfig, MessagingTopicConfig } from '@model/Config';
-import type { VonageEndpointConfig } from '@model/vendor/vonage';
+import type { DemoReminderToBeSentEvent } from '@model/app-events/DemoReminderToBeSentEvent';
+import type { SnsTopicConfig } from '@model/Config';
+import type { VonageConfig, VonageEndpointConfig } from '@model/vendor/vonage';
 import type {
   CalendarId,
   CalendarName,
@@ -13,40 +14,29 @@ import type {
   UserId,
   Uuid
 } from '@notifycal/shared/types';
-import type { AwsArn, PhoneNumberE164, Url } from '@own-types/model';
+import type { PhoneNumberE164, Url } from '@own-types/model';
 import {
   MessagingService,
   type VonageApplicationId,
   type VonagePrivateKey
 } from '@services/messaging';
 import { SnsService } from '@services/sns';
-import { validRecord as _validRecord } from '@testing/data/sqs-events';
-import type {} from 'aws-lambda';
+import type { } from 'aws-lambda';
 import { describe, expect, it, vi } from 'vitest';
-import type { Record } from './index';
-import MessageProcessor from './message-idempotent-processor';
+import Processor from './processor';
 
 vi.mock('@services/sns');
 vi.mock('@common/powertools');
 vi.mock('@services/messaging');
-vi.mock('@aws-lambda-powertools/idempotency');
 
-const defaultConfig: VonageEndpointConfig & MessagingTopicConfig & MessagingEndpointConfig = {
-  vonageConfig: {
-    applicationId: 'some app id' as VonageApplicationId,
-    webhookBaseURL: 'https://test.com' as Url,
-    privateKeySSMPath: 'some path',
-    privateKey: 'some private key' as VonagePrivateKey
-  },
-  messagingTopicConfig: {
-    topicArn: 'some aws arn' as AwsArn
-  },
-  messagingConfig: {
-    enabled: true
-  }
+const defaultConfig: VonageEndpointConfig['vonageConfig'] = {
+  applicationId: 'some app id' as VonageApplicationId,
+  webhookBaseURL: 'https://test.com' as Url,
+  privateKeySSMPath: 'some path',
+  privateKey: 'some private key' as VonagePrivateKey
 };
 
-const validActionableEventEvent: ActionableEventFoundEvent = {
+const validEvent: ActionableEventFoundEvent = {
   data: {
     receiverDetails: {
       type: 'phone',
@@ -84,42 +74,44 @@ const validActionableEventEvent: ActionableEventFoundEvent = {
   eventType: 'ActionableEventFound',
   happenedAt: '2024-01-02T15:04:50Z' as DateTime
 };
-const validRecord = _validRecord(validActionableEventEvent);
 
-describe('Messaging MessageProcessor', () => {
-  const validWebhookUrl = 'https://webhook.example.com/callback' as Url;
+describe('Messaging processor', () => {
   const validReturnedUuid = 'test-uuid-123' as Uuid;
 
-  describe('sendReminder', () => {
+  describe('process', () => {
     it('should send a message when messaging is enabled', async () => {
       const safePublishSpy = vi.fn().mockResolvedValue({ $metadata: {} });
       const sendMessageSpy = vi.fn().mockResolvedValue(validReturnedUuid);
+      const messagingEnabled = true;
 
       const loggerAppendKeysSpy = vi.spyOn(logger, 'appendKeys');
       const loggerInfoSpy = vi.spyOn(logger, 'info');
 
-      const result = await testIt(validRecord, validWebhookUrl, sendMessageSpy, safePublishSpy);
+      const result = await testIt(validEvent, sendMessageSpy, safePublishSpy, messagingEnabled);
 
       expect(result).toStrictEqual(validReturnedUuid);
       expect(sendMessageSpy).toHaveBeenCalledWith(
-        validRecord.body.data.message,
-        validRecord.body.data.senderDetails,
-        validRecord.body.data.receiverDetails,
-        validRecord.body.correlationId,
-        validWebhookUrl
+        validEvent.data.message,
+        validEvent.data.senderDetails,
+        validEvent.data.receiverDetails,
+        validEvent.correlationId,
+        // eslint-disable-next-line vitest/no-conditional-expect
+        expect.stringContaining(defaultConfig.webhookBaseURL) &&
+          // eslint-disable-next-line vitest/no-conditional-expect
+          expect.stringContaining('data%5Bmessage%5D=This%20is%20some%20message')
       );
       expect(safePublishSpy).toHaveBeenCalledWith({
-        ...validRecord.body,
+        ...validEvent,
         eventType: 'ActionableEventReminderAttemptSent',
         data: {
-          ...validRecord.body.data,
+          ...validEvent.data,
           messageUUID: validReturnedUuid
         }
       });
       expect(loggerAppendKeysSpy).toHaveBeenCalledWith({
-        reminderMessage: validRecord.body.data.message,
-        senderDetails: validRecord.body.data.senderDetails,
-        receiverDetails: validRecord.body.data.receiverDetails
+        reminderMessage: validEvent.data.message,
+        senderDetails: validEvent.data.senderDetails,
+        receiverDetails: validEvent.data.receiverDetails
       });
       expect(loggerInfoSpy).toHaveBeenCalledWith('Sending a message through Vonage');
       // eslint-disable-next-line vitest/max-expects
@@ -127,31 +119,19 @@ describe('Messaging MessageProcessor', () => {
     });
 
     it('should return a fake uuid when messaging is disabled', async () => {
-      const disabledConfig: VonageEndpointConfig & MessagingTopicConfig & MessagingEndpointConfig =
-        {
-          ...defaultConfig,
-          messagingConfig: {
-            enabled: false
-          }
-        };
+      const messagingEnabled = false;
       const sendMessageSpy = vi.fn().mockResolvedValue(validReturnedUuid);
       const safePublishSpy = vi.fn().mockResolvedValue({});
 
-      const result = await testIt(
-        validRecord,
-        validWebhookUrl,
-        sendMessageSpy,
-        safePublishSpy,
-        disabledConfig
-      );
+      const result = await testIt(validEvent, sendMessageSpy, safePublishSpy, messagingEnabled);
 
       expect(result).toBe('fake-uuid');
       expect(sendMessageSpy).not.toHaveBeenCalled();
       expect(safePublishSpy).toHaveBeenCalledWith({
-        ...validRecord.body,
+        ...validEvent,
         eventType: 'ActionableEventReminderAttemptSent',
         data: {
-          ...validRecord.body.data,
+          ...validEvent.data,
           messageUUID: 'fake-uuid'
         }
       });
@@ -160,9 +140,9 @@ describe('Messaging MessageProcessor', () => {
     it('should return an error if message sending fails - let caller deal with it', async () => {
       const error = new Error('Booom!');
       const sendMessageSpy = vi.fn().mockRejectedValue(error);
-      const safePublishSpy = vi.fn().mockResolvedValue({ $metadata: {} });
+      const safePublishSpy = vi.fn();
 
-      const result = testIt(validRecord, validWebhookUrl, sendMessageSpy, safePublishSpy);
+      const result = testIt(validEvent, sendMessageSpy, safePublishSpy, true);
 
       await expect(result).rejects.toThrow(error);
       expect(sendMessageSpy).toHaveBeenCalledOnce();
@@ -170,11 +150,11 @@ describe('Messaging MessageProcessor', () => {
     });
 
     function testIt(
-      record: Record,
-      webhookUrl: Url,
+      event: ActionableEventFoundEvent | DemoReminderToBeSentEvent,
       sendMessageFn: () => Promise<Uuid>,
       safePublishFn: () => Promise<void>,
-      config: VonageEndpointConfig & MessagingTopicConfig & MessagingEndpointConfig = defaultConfig
+      messagingEnabled: boolean,
+      config: VonageConfig & { privateKey: VonagePrivateKey } = defaultConfig
     ): Promise<Uuid> {
       vi.mocked(MessagingService).mockReturnValue({
         sendMessage: sendMessageFn
@@ -185,47 +165,9 @@ describe('Messaging MessageProcessor', () => {
       };
       // eslint-disable-next-line @typescript-eslint/unbound-method
       vi.mocked(SnsService.withConfig).mockReturnValue(snsServiceMock as unknown as SnsService);
-
-      const messageProcessor = new MessageProcessor(config);
-      return messageProcessor.sendReminder(record, webhookUrl);
-    }
-  });
-
-  describe('onIdempotencyHit', () => {
-    it('should publish a reminder attempt skipped event', async () => {
-      const safePublishSpy = vi.fn().mockResolvedValue({});
-      vi.mocked(MessagingService).mockImplementation(
-        () =>
-          ({
-            sendMessage: vi.fn()
-          }) as unknown as MessagingService
-      );
-
-      await testIt(validRecord, validReturnedUuid, safePublishSpy);
-
-      expect(safePublishSpy).toHaveBeenCalledWith({
-        ...validRecord.body,
-        eventType: 'ActionableEventReminderAttemptSkipped',
-        data: {
-          ...validRecord.body.data,
-          messageUUID: validReturnedUuid
-        }
-      });
-    });
-
-    function testIt(
-      record: Record,
-      messageUUID: Uuid,
-      safePublishFn: () => Promise<void>,
-      config: VonageEndpointConfig & MessagingTopicConfig & MessagingEndpointConfig = defaultConfig
-    ): Promise<void> {
-      const snsServiceMock = {
-        safePublish: safePublishFn
-      };
-      // eslint-disable-next-line @typescript-eslint/unbound-method
-      vi.mocked(SnsService.withConfig).mockReturnValue(snsServiceMock as unknown as SnsService);
-      const messageProcessor = new MessageProcessor(config);
-      return messageProcessor.onIdempotencyHit(record, messageUUID);
+      const snsService = SnsService.withConfig({} as SnsTopicConfig);
+      const messageProcessor = new Processor(config, messagingEnabled, snsService);
+      return messageProcessor.process(event);
     }
   });
 });
