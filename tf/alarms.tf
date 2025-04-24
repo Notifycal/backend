@@ -129,7 +129,7 @@ resource "aws_cloudwatch_metric_alarm" "lambda_throttles" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "integration_error_rate_alarms" {
-  for_each = var.vendor_alarm_config
+  for_each = var.observability != null ? var.vendor_alarm_config : {}
 
   alarm_name          = "${each.key} integration call error rate"
   alarm_description   = "Alarm triggered when error rate for ${each.key} integration exceeds ${each.value.error_rate_threshold}%"
