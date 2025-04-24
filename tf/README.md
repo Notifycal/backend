@@ -14,7 +14,7 @@
 |------|---------|
 | <a name="provider_aws"></a> [aws](#provider\_aws) | 5.95.0 |
 | <a name="provider_awscc"></a> [awscc](#provider\_awscc) | 1.37.0 |
-| <a name="provider_tls"></a> [tls](#provider\_tls) | 4.0.6 |
+| <a name="provider_tls"></a> [tls](#provider\_tls) | 4.1.0 |
 
 ## Modules
 
@@ -62,6 +62,7 @@
 | [aws_cloudwatch_event_rule.fetch_user_calendars_trigger_rule](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_event_rule) | resource |
 | [aws_cloudwatch_event_target.fetch_user_calendars_event_target](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_event_target) | resource |
 | [aws_cloudwatch_log_data_protection_policy.no_credentials_in_logs](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_log_data_protection_policy) | resource |
+| [aws_cloudwatch_metric_alarm.integration_error_rate_alarms](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_metric_alarm) | resource |
 | [aws_cloudwatch_metric_alarm.lambda_concurrent_executions](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_metric_alarm) | resource |
 | [aws_cloudwatch_metric_alarm.lambda_duration](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_metric_alarm) | resource |
 | [aws_cloudwatch_metric_alarm.lambda_errors](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_metric_alarm) | resource |
@@ -125,6 +126,7 @@
 | <a name="input_lambdas_runtime"></a> [lambdas\_runtime](#input\_lambdas\_runtime) | n/a | `string` | `"nodejs22.x"` | no |
 | <a name="input_observability"></a> [observability](#input\_observability) | n/a | <pre>object({<br/>    alert_notifier = object({<br/>      slack_channel = string<br/>    })<br/>    alert_config = optional(object({<br/>      treat_missing_data       = optional(string, "missing")<br/>      notify_insufficient_data = optional(bool, true)<br/>      }), {<br/>      treat_missing_data       = "missing"<br/>      notify_insufficient_data = true<br/>    })<br/>  })</pre> | n/a | yes |
 | <a name="input_openapi_spec_file"></a> [openapi\_spec\_file](#input\_openapi\_spec\_file) | Name of the OpenAPI spec file for this API | `string` | `"spec.yaml"` | no |
+| <a name="input_vendor_alarm_config"></a> [vendor\_alarm\_config](#input\_vendor\_alarm\_config) | Configuration for each integration vendor's error rate alarm | <pre>map(object({<br/>    error_rate_threshold      = number<br/>    evaluation_period_seconds = number<br/>    datapoints_to_alarm       = number<br/>    evaluation_periods        = number<br/>  }))</pre> | <pre>{<br/>  "Mailgun": {<br/>    "datapoints_to_alarm": 1,<br/>    "error_rate_threshold": 5,<br/>    "evaluation_period_seconds": 3600,<br/>    "evaluation_periods": 1<br/>  },<br/>  "Vonage": {<br/>    "datapoints_to_alarm": 1,<br/>    "error_rate_threshold": 2,<br/>    "evaluation_period_seconds": 3600,<br/>    "evaluation_periods": 1<br/>  },<br/>  "google.com": {<br/>    "datapoints_to_alarm": 1,<br/>    "error_rate_threshold": 2,<br/>    "evaluation_period_seconds": 3600,<br/>    "evaluation_periods": 1<br/>  }<br/>}</pre> | no |
 | <a name="input_vonage_auth_config"></a> [vonage\_auth\_config](#input\_vonage\_auth\_config) | n/a | <pre>object({<br/>    api_key                    = string<br/>    application_id             = string<br/>    private_key_secret_path    = string<br/>    webhook_jwt_signing_secret = string<br/>  })</pre> | n/a | yes |
 
 ## Outputs
