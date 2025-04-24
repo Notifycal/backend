@@ -24,8 +24,7 @@ import type { Context, SQSEvent, SQSRecord } from 'aws-lambda';
 import { describe, expect, it, vi } from 'vitest';
 import type { SendEventReminderConfig } from './config';
 import { IdempotentProcessor } from './idempotent-processor';
-// @ts-expect-error cjs handler export
-import { handler, type Event } from './index';
+import type { Event } from './index';
 
 vi.mock('@common/powertools');
 vi.mock('./idempotent-processor');
@@ -156,8 +155,12 @@ function testit(
     sendReminderIdempotentlyFn
   );
   vi.mocked(getParameter).mockImplementation(getParameterFromSsmFn);
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
-  return handler(event as unknown as Event, {} as Context);
+  // Gotcha: software under test is dynamically imported because it caches a variable. Otherwise, if it gets imported just once tests carry undesired state along.
+  return import('./index').then((module) =>
+    // @ts-expect-error cjs handler export
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
+    module.handler(event as unknown as Event, {} as Context)
+  );
 }
 
 const defaultConfig: EndpointConfig = {
