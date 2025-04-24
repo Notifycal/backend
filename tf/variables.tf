@@ -131,6 +131,37 @@ variable "observability" {
   })
 }
 
+variable "vendor_alarm_config" {
+  description = "Configuration for each integration vendor's error rate alarm"
+  type = map(object({
+    error_rate_threshold      = number
+    evaluation_period_seconds = number
+    datapoints_to_alarm       = number
+    evaluation_periods        = number
+  }))
+  default = {
+    "Vonage" = {
+      error_rate_threshold      = 2
+      evaluation_period_seconds = 3600
+      datapoints_to_alarm       = 1
+      evaluation_periods        = 1
+    },
+    "Mailgun" = {
+      error_rate_threshold      = 5
+      evaluation_period_seconds = 3600
+      datapoints_to_alarm       = 1
+      evaluation_periods        = 1
+    },
+    "google.com" = {
+      error_rate_threshold      = 2
+      evaluation_period_seconds = 3600
+      datapoints_to_alarm       = 1
+      evaluation_periods        = 1
+    }
+  }
+}
+
+
 variable "enable_data_protection" {
   type    = bool
   default = true
