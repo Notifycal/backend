@@ -1,7 +1,7 @@
 import { logger } from '@common/powertools';
-import type { AxiosInstance } from 'axios';
+import axios, { type AxiosBasicCredentials, type AxiosInstance } from 'axios';
 
-export function withInterceptors(axios: AxiosInstance, targetName: string): AxiosInstance {
+function withInterceptors(axios: AxiosInstance, targetName: string): AxiosInstance {
   axios.interceptors.request.use(
     (config) => {
       logger.info(`${targetName} successful request`, { requestConfig: config });
@@ -32,4 +32,11 @@ export function withInterceptors(axios: AxiosInstance, targetName: string): Axio
     }
   );
   return axios;
+}
+
+export function createHttpClient(auth: AxiosBasicCredentials, target: string): AxiosInstance {
+  const _httpClient = axios.create({
+    auth: auth
+  });
+  return withInterceptors(_httpClient, target);
 }
