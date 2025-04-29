@@ -5,7 +5,7 @@ import type { EmailToBeSentEvent } from '@model/app-events/EmailToBeSentEvent';
 import type { EmailSendSuccessResponse, MailgunConfig } from '@model/vendor/mailgun';
 import { EmailService } from '@services/email';
 import type { SnsService } from '@services/sns';
-import { toBase64 } from '@utils/cripto';
+import { toBase64 } from '@utils/crypto';
 
 export class Processor {
   private readonly emailService: EmailService;
