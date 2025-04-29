@@ -10,7 +10,7 @@ export function withInterceptors(axios: AxiosInstance, targetName: string): Axio
     (error) => {
       logger.error(`${targetName} failed request`, { requestError: error });
       return Promise.reject(
-        new Error(`There was an error adding a request interceptor for ${targetName}`, {
+        new Error(`${targetName} request error`, {
           cause: error
         })
       );
@@ -25,7 +25,7 @@ export function withInterceptors(axios: AxiosInstance, targetName: string): Axio
     (error) => {
       logger.error(`${targetName} failed response`, { responseError: error });
       return Promise.reject(
-        new Error(`There was an error adding a response interceptor for ${targetName}`, {
+        new Error(`${targetName} response error`, {
           cause: error
         })
       );
