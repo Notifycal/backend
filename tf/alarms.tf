@@ -149,7 +149,7 @@ resource "aws_cloudwatch_metric_alarm" "integration_error_rate_alarms" {
   metric_query {
     id = "m1"
     metric {
-      metric_name = "${each.key}IntegrationCallSuccess"
+      metric_name = "IntegrationCallSuccess"
       namespace   = local.alarm_lambda_namespace
       period      = each.value.evaluation_period_seconds
       stat        = "Sum"
@@ -162,7 +162,7 @@ resource "aws_cloudwatch_metric_alarm" "integration_error_rate_alarms" {
   metric_query {
     id = "m2"
     metric {
-      metric_name = "${each.key}IntegrationCallFailure"
+      metric_name = "IntegrationCallFailure"
       namespace   = local.alarm_lambda_namespace
       period      = each.value.evaluation_period_seconds
       stat        = "Sum"
