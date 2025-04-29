@@ -71,7 +71,7 @@ export class Processor {
         idpId: event.idpId,
         happenedAt: event.happenedAt
       },
-      event.data.tags
+      event.data.tags //TODO: add subEventType once we come up with a final structure for EmailToBeSent.
     );
   }
 }
