@@ -9,11 +9,8 @@ function withInterceptors(axios: AxiosInstance, targetName: string): AxiosInstan
     },
     (error) => {
       logger.error(`${targetName} failed request`, { requestError: error });
-      return Promise.reject(
-        new Error(`${targetName} request error`, {
-          cause: error
-        })
-      );
+      // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
+      return Promise.reject(error);
     }
   );
 
@@ -24,11 +21,8 @@ function withInterceptors(axios: AxiosInstance, targetName: string): AxiosInstan
     },
     (error) => {
       logger.error(`${targetName} failed response`, { responseError: error });
-      return Promise.reject(
-        new Error(`${targetName} response error`, {
-          cause: error
-        })
-      );
+      // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
+      return Promise.reject(error);
     }
   );
   return axios;
