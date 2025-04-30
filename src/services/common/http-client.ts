@@ -4,11 +4,13 @@ import axios, { type AxiosBasicCredentials, type AxiosInstance } from 'axios';
 function withInterceptors(axios: AxiosInstance, targetName: string): AxiosInstance {
   axios.interceptors.request.use(
     (config) => {
-      logger.info(`${targetName} successful request`, { requestConfig: config });
+      logger.info(`${targetName} request`, { requestConfig: config });
       return config;
     },
     (error) => {
-      logger.error(`${targetName} failed request`, { requestError: error });
+      logger.error(`Something unexpected went wrong prepping a request to ${targetName}`, {
+        requestError: error
+      });
       // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
       return Promise.reject(error);
     }
