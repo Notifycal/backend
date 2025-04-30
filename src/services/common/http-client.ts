@@ -28,8 +28,13 @@ function withInterceptors(axios: AxiosInstance, targetName: string): AxiosInstan
   return axios;
 }
 
-export function createHttpClient(auth: AxiosBasicCredentials, target: string): AxiosInstance {
+export function createHttpClient(
+  baseUrl: string,
+  auth: AxiosBasicCredentials,
+  target: string
+): AxiosInstance {
   const _httpClient = axios.create({
+    baseURL: baseUrl,
     auth: auth
   });
   return withInterceptors(_httpClient, target);

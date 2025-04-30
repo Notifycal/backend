@@ -89,7 +89,7 @@ describe('Email processor', () => {
           idp: 'google.com',
           idpId: '45346356356',
           originalBase64Event:
-            'eyJkYXRhIjp7InRvIjoidGVzdEBub3RpZnljYWwuY29tIiwic3ViamVjdCI6IlNvbWUgc3ViamVjdCIsImh0bWxCb2R5IjoiPGgxPkhlbGxvIG15IGZyaWVuZDwvaDE+IiwidGFncyI6WyJPbmVUYWciXX0sImNvcnJlbGF0aW9uSWQiOiIwZGU2NTFlZi01MzVlLTRkMmUtYjlmZi03YmY0M2Y1YWFhYWEiLCJldmVudElkIjoiMGRlNjUxZWYtNTM1ZS00ZDJlLWI5ZmYtN2JmNDNmNWEwMWFjIiwidXNlcklkIjoiMGRlNjUxZWYtNTM1ZS00ZDJlLWI5ZmYtN2JmNDNmNWEwMDAwIiwiaWRwIjoiZ29vZ2xlLmNvbSIsImlkcElkIjoiNDUzNDYzNTYzNTYiLCJldmVudFR5cGUiOiJFbWFpbFRvQmVTZW50IiwiaGFwcGVuZWRBdCI6IjIwMjQtMDEtMDJUMTU6MDQ6NTBaIn0=',
+            'eyJkYXRhIjp7InRvIjoidGVzdEBub3RpZnljYWwuY29tIiwic3ViamVjdCI6IlNvbWUgc3ViamVjdCIsInRhZ3MiOlsiT25lVGFnIl19LCJjb3JyZWxhdGlvbklkIjoiMGRlNjUxZWYtNTM1ZS00ZDJlLWI5ZmYtN2JmNDNmNWFhYWFhIiwiZXZlbnRJZCI6IjBkZTY1MWVmLTUzNWUtNGQyZS1iOWZmLTdiZjQzZjVhMDFhYyIsInVzZXJJZCI6IjBkZTY1MWVmLTUzNWUtNGQyZS1iOWZmLTdiZjQzZjVhMDAwMCIsImlkcCI6Imdvb2dsZS5jb20iLCJpZHBJZCI6IjQ1MzQ2MzU2MzU2IiwiZXZlbnRUeXBlIjoiRW1haWxUb0JlU2VudCIsImhhcHBlbmVkQXQiOiIyMDI0LTAxLTAyVDE1OjA0OjUwWiJ9',
           userId: '0de651ef-535e-4d2e-b9ff-7bf43f5a0000'
         },
         validEvent.data.tags

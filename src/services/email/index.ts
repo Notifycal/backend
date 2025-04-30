@@ -14,12 +14,12 @@ export class EmailService {
   private readonly httpClient: AxiosInstance;
 
   public constructor(
-    private readonly baseUrl: string,
+    baseUrl: string,
     private readonly domainName: string,
     private readonly apiKey: string
   ) {
-    this.baseUrl = baseUrl;
     this.httpClient = createHttpClient(
+      baseUrl,
       {
         username: 'api',
         password: this.apiKey
@@ -53,7 +53,7 @@ export class EmailService {
     });
 
     return withIntegrationMetrics('Mailgun', 'SendEmail', () =>
-      this.httpClient.post(`${this.baseUrl}/v3/${this.domainName}/messages`, form)
+      this.httpClient.post(`/v3/${this.domainName}/messages`, form)
     )
       .then((response) => {
         logger.info('Email response:', { response });
