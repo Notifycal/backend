@@ -7,6 +7,10 @@ import { EmailService } from '@services/email';
 import type { SnsService } from '@services/sns';
 import { toBase64 } from '@utils/crypto';
 
+type RedactedEmailToBeSentEvent = Omit<EmailToBeSentEvent, 'data'> & {
+  data: Omit<EmailToBeSentEvent['data'], 'htmlBody'>;
+};
+
 export class Processor {
   private readonly emailService: EmailService;
 
@@ -56,13 +60,21 @@ export class Processor {
     from: EmailWithName
   ): Promise<EmailSendSuccessResponse> {
     const { htmlBody, subject, to } = event.data;
+    const redactedEvent: RedactedEmailToBeSentEvent = {
+      ...event,
+      data: {
+        to: event.data.to,
+        subject: event.data.subject,
+        tags: event.data.tags
+      }
+    };
     return this.emailService.sendEmail(
       from,
       to,
       subject,
       htmlBody,
       {
-        originalBase64Event: toBase64(event),
+        originalBase64Event: toBase64(redactedEvent),
         eventId: event.eventId,
         userId: event.userId,
         correlationId: event.correlationId,
