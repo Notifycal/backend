@@ -12,9 +12,9 @@
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 5.96.0 |
-| <a name="provider_awscc"></a> [awscc](#provider\_awscc) | 1.38.0 |
-| <a name="provider_tls"></a> [tls](#provider\_tls) | 4.1.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 5.86 |
+| <a name="provider_awscc"></a> [awscc](#provider\_awscc) | ~> 1.28 |
+| <a name="provider_tls"></a> [tls](#provider\_tls) | n/a |
 
 ## Modules
 
