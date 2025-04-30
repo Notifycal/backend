@@ -1,5 +1,5 @@
 import type { MessagingTopicConfig } from '@model/Config';
-import type { DecodeVonageAccessJwtEndpointConfig } from '@model/vendor/vonage';
+import type { DecodeVonageAccessJwtEndpointConfig } from '@model/vendor/vonage/config';
 import {
   readDecodeVonageJwtConfig,
   readEnv,

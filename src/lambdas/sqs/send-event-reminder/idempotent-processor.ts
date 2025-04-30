@@ -5,7 +5,7 @@ import type { ActionableEventReminderAttemptSkippedEvent } from '@model/app-even
 import type { DemoReminderToBeSentAttemptFailedEvent } from '@model/app-events/DemoReminderToBeSentAttemptFailedEvent';
 import type { DemoReminderToBeSentAttemptSkippedEvent } from '@model/app-events/DemoReminderToBeSentAttemptSkippedEvent';
 import type { DemoReminderToBeSentEvent } from '@model/app-events/DemoReminderToBeSentEvent';
-import type { VonageConfig } from '@model/vendor/vonage';
+import type { VonageConfig } from '@model/vendor/vonage/config';
 import type { Uuid } from '@notifycal/shared/types';
 import { AbstractIdempotentProcessor } from '@services/abstract-idempotent-processor';
 import type { VonagePrivateKey } from '@services/messaging';

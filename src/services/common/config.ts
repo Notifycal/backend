@@ -20,8 +20,11 @@ import type {
   MessagingTopicConfig,
   UserCalendarFetchedTopicConfig
 } from '@model/Config';
-import type { MailgunEndpointConfig } from '@model/vendor/mailgun';
-import type { DecodeVonageAccessJwtEndpointConfig, VonageConfig } from '@model/vendor/vonage';
+import type { MailgunEndpointConfig } from '@model/vendor/mailgun/config';
+import type {
+  DecodeVonageAccessJwtEndpointConfig,
+  VonageConfig
+} from '@model/vendor/vonage/config';
 import type { Email } from '@notifycal/shared/types';
 import type { AwsArn, Environment, PrivateKey, PublicKey, Url } from '@own-types/model';
 import type {

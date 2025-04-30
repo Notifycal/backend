@@ -2,7 +2,8 @@ import { logger } from '@common/powertools';
 import type { EmailWithName } from '@model/app-events/common';
 import type { EmailToBeSentEvent } from '@model/app-events/EmailToBeSentEvent';
 import type { EmailingTopicConfig, SnsTopicConfig } from '@model/Config';
-import type { EmailSendSuccessResponse, MailgunEndpointConfig } from '@model/vendor/mailgun';
+import type { MailgunEndpointConfig } from '@model/vendor/mailgun/config';
+import type { EmailSendSuccessResponse } from '@model/vendor/mailgun/schemas';
 import type {
   CorrelationId,
   DateTime,

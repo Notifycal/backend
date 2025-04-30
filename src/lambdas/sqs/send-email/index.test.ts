@@ -1,5 +1,5 @@
 import type { EmailToBeSentEvent } from '@model/app-events/EmailToBeSentEvent';
-import type { EmailSendSuccessResponse } from '@model/vendor/mailgun';
+import type { EmailSendSuccessResponse } from '@model/vendor/mailgun/schemas';
 import type {
   CorrelationId,
   DateTime,

@@ -7,7 +7,8 @@ import type {
   IdempotencyPersistenceConfig
 } from '@model/Config';
 import { eventSqsSchema } from '@model/lambda-events/SqsEvents';
-import type { EmailSendSuccessResponse, MailgunEndpointConfig } from '@model/vendor/mailgun';
+import type { MailgunEndpointConfig } from '@model/vendor/mailgun/config';
+import type { EmailSendSuccessResponse } from '@model/vendor/mailgun/schemas';
 import type { Brand } from '@notifycal/shared/types';
 import { setupLoggerForEventProcessing } from '@services/common/logger';
 import { SnsService } from '@services/sns';

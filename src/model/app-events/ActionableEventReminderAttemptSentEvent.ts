@@ -1,4 +1,4 @@
-import { vonageSentPayloadSchema } from '@model/vendor/vonage';
+import { vonageSentPayloadSchema } from '@model/vendor/vonage/schemas';
 import type { z } from 'zod';
 import { actionableEventFoundEventSchema } from './ActionableEventFoundEvent';
 import { eventSchemaGenerator } from './BaseEvent';

@@ -1,6 +1,6 @@
 import { logger } from '@common/powertools';
 import type { EmailWithName } from '@model/app-events/common';
-import type { EmailSendSuccessResponse } from '@model/vendor/mailgun';
+import type { EmailSendSuccessResponse } from '@model/vendor/mailgun/schemas';
 import type { Email } from '@notifycal/shared/types';
 import type { EmailHtmlBody, EmailSubject } from '@own-types/model';
 import { throwError } from '@services/common/error-handling';

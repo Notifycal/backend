@@ -1,4 +1,4 @@
-import { vonageMessageStatusPayloadSchema } from '@model/vendor/vonage';
+import { vonageMessageStatusPayloadSchema } from '@model/vendor/vonage/schemas';
 import type { z } from 'zod';
 import { actionableEventReminderAttemptSentEventSchema } from './ActionableEventReminderAttemptSentEvent';
 import { eventSchemaGenerator } from './BaseEvent';

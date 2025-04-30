@@ -2,7 +2,7 @@ import { logger } from '@common/powertools';
 import type { ActionableEventFoundEvent } from '@model/app-events/ActionableEventFoundEvent';
 import type { DemoReminderToBeSentEvent } from '@model/app-events/DemoReminderToBeSentEvent';
 import type { SnsTopicConfig } from '@model/Config';
-import type { VonageConfig, VonageEndpointConfig } from '@model/vendor/vonage';
+import type { VonageConfig, VonageEndpointConfig } from '@model/vendor/vonage/config';
 import type {
   CalendarId,
   CalendarName,

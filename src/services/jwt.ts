@@ -7,7 +7,7 @@ import {
   type OurRefreshTokenClaims,
   type RefreshToken
 } from '@model/Jwt';
-import type { DecodeVonageAccessJwtConfig } from '@model/vendor/vonage';
+import type { DecodeVonageAccessJwtConfig } from '@model/vendor/vonage/config';
 import type { Identity, IdpName, Jwt, UserId } from '@notifycal/shared/types';
 import jwtBuilder from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';

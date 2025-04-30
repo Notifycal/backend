@@ -1,4 +1,4 @@
-import { vonageErrorPayloadSchema } from '@model/vendor/vonage';
+import { vonageErrorPayloadSchema } from '@model/vendor/vonage/schemas';
 import type { z } from 'zod';
 import { eventSchemaGenerator } from './BaseEvent';
 import { demoReminderToBeSentEventSchema } from './DemoReminderToBeSentEvent';

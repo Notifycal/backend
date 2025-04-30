@@ -1,16 +1,8 @@
 import type { Logger } from '@aws-lambda-powertools/logger';
 import { logger } from '@common/powertools';
-import type { VonageAccessToken } from '@lambdas/api/post-event-reminder-delivery-status-webhook/schema';
-import type { Algorithm, DecodeAccessJwtEndpointConfig } from '@model/Config';
 import { uuidSchema } from '@notifycal/shared/schemas';
-import type { Url } from '@own-types/model';
-import type {
-  VonageApiKey,
-  VonageApplicationId,
-  VonageJwtSigningSecret,
-  VonagePrivateKey
-} from '@services/messaging';
 import { z } from 'zod';
+import type { VonageAccessToken } from './config';
 
 /* eslint-disable camelcase */
 
@@ -77,26 +69,24 @@ export const vonageMessageStatusWebhookSchema = z.discriminatedUnion('channel', 
 ]);
 /* eslint-enable camelcase */
 
-export interface VonageConfig {
-  privateKeySSMPath: string;
-  applicationId: VonageApplicationId;
-  webhookBaseURL: Url;
-}
-
-export interface VonageEndpointConfig {
-  vonageConfig: VonageConfig & { privateKey: VonagePrivateKey };
-}
-
-export interface DecodeVonageAccessJwtConfig {
-  applicationId: VonageApplicationId;
-  apiKey: VonageApiKey;
-  signingSecret: VonageJwtSigningSecret;
-  algorithm: Algorithm;
-  issuer: string;
-}
-
-export type DecodeVonageAccessJwtEndpointConfig =
-  DecodeAccessJwtEndpointConfig<DecodeVonageAccessJwtConfig>;
+export const vonageAccessTokenSchema = z.object({
+  header: z.object({
+    alg: z.string(),
+    typ: z.string()
+  }),
+  payload: z.object({
+    jti: z.string(),
+    iat: z.number(),
+    iss: z.string(),
+    // eslint-disable-next-line camelcase
+    api_key: z.string(),
+    // eslint-disable-next-line camelcase
+    application_id: z.string(),
+    // eslint-disable-next-line camelcase
+    payload_hash: z.string().optional()
+  }),
+  signature: z.string()
+});
 
 export function setupLoggerForAuthedVonageApiRequest(
   jwt: VonageAccessToken,

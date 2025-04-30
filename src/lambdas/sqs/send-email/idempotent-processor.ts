@@ -4,7 +4,8 @@ import type { EmailToBeSentAttemptFailedEvent } from '@model/app-events/EmailToB
 import type { EmailToBeSentAttemptSkippedEvent } from '@model/app-events/EmailToBeSentAttemptSkippedEvent';
 import type { EmailToBeSentEvent } from '@model/app-events/EmailToBeSentEvent';
 import type { EmailingTopicConfig } from '@model/Config';
-import type { EmailSendSuccessResponse, MailgunEndpointConfig } from '@model/vendor/mailgun';
+import type { MailgunEndpointConfig } from '@model/vendor/mailgun/config';
+import type { EmailSendSuccessResponse } from '@model/vendor/mailgun/schemas';
 import { AbstractIdempotentProcessor } from '@services/abstract-idempotent-processor';
 import { SnsService } from '@services/sns';
 import type { Context } from 'aws-lambda';

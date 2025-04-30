@@ -3,7 +3,7 @@ import type {
   EmailingTopicConfig,
   IdempotencyPersistenceConfig
 } from '@model/Config';
-import type { MailgunEndpointConfig } from '@model/vendor/mailgun';
+import type { MailgunEndpointConfig } from '@model/vendor/mailgun/config';
 import {
   readEmailingConfig,
   readEmailingTopicConfig,

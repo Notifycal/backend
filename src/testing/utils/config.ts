@@ -11,8 +11,8 @@ import type {
   SnsTopicConfig,
   SqsQueueConfig
 } from '@model/Config';
-import type { MailgunConfig } from '@model/vendor/mailgun';
-import type { VonageConfig } from '@model/vendor/vonage';
+import type { MailgunConfig } from '@model/vendor/mailgun/config';
+import type { VonageConfig } from '@model/vendor/vonage/config';
 import type { AuditTrailBaseStoreConfig } from '@services/stores/audit-trail-base-store';
 import type { RefreshTokenBaseStoreConfig } from '@services/stores/refresh-token-base-store';
 import type { UserBaseStoreConfig } from '@services/stores/user-base-store';

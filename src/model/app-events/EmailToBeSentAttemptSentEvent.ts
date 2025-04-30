@@ -1,4 +1,4 @@
-import { mailgunEmailSendSuccessPayloadResponseSchema } from '@model/vendor/mailgun';
+import { mailgunEmailSendSuccessPayloadResponseSchema } from '@model/vendor/mailgun/schemas';
 import type { z } from 'zod';
 import { eventSchemaGenerator } from './BaseEvent';
 import { emailToBeSentEventSchema } from './EmailToBeSentEvent';

@@ -3,7 +3,7 @@ import type { ActionableEventFoundEvent } from '@model/app-events/ActionableEven
 import type { ActionableEventReminderAttemptSentEvent } from '@model/app-events/ActionableEventReminderAttemptSentEvent';
 import type { DemoReminderToBeSentAttemptSentEvent } from '@model/app-events/DemoReminderToBeSentAttemptSentEvent';
 import type { DemoReminderToBeSentEvent } from '@model/app-events/DemoReminderToBeSentEvent';
-import type { VonageConfig } from '@model/vendor/vonage';
+import type { VonageConfig } from '@model/vendor/vonage/config';
 import type { Uuid } from '@notifycal/shared/types';
 import type { Url } from '@own-types/model';
 import { type VonagePrivateKey, MessagingService } from '@services/messaging';

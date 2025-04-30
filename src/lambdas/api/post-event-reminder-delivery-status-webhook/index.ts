@@ -6,11 +6,12 @@ import type { ActionableEventReminderStatusUpdatedEvent } from '@model/app-event
 import type { DemoReminderToBeSentEvent } from '@model/app-events/DemoReminderToBeSentEvent';
 import type { DemoReminderToBeSentStatusUpdatedEvent } from '@model/app-events/DemoReminderToBeSentStatusUpdatedEvent';
 import { authedEventSchema } from '@model/lambda-events/ApiGatewayEvents';
+import type { DecodeVonageAccessJwtConfig } from '@model/vendor/vonage/config';
 import {
   setupLoggerForAuthedVonageApiRequest,
-  vonageMessageStatusWebhookSchema,
-  type DecodeVonageAccessJwtConfig
-} from '@model/vendor/vonage';
+  vonageAccessTokenSchema,
+  vonageMessageStatusWebhookSchema
+} from '@model/vendor/vonage/schemas';
 import type { DateTime, EventId } from '@notifycal/shared/types';
 import { successHandler } from '@services/common/api-response-handlers';
 import { vonageDecodeAndVerifyJwtSignature } from '@services/jwt';
@@ -26,11 +27,7 @@ import {
   readReminderDeliveryStatusWebhookConfig,
   type ReminderDeliveryStatusWebhookConfig
 } from './config';
-import {
-  actionableEventQuerySchema,
-  demoReminderToBeSentEventQuerySchema,
-  vonageAccessTokenSchema
-} from './schema';
+import { actionableEventQuerySchema, demoReminderToBeSentEventQuerySchema } from './schema';
 
 const schema = authedEventSchema<ReminderDeliveryStatusWebhookConfig>().extend({
   body: JSONStringified(vonageMessageStatusWebhookSchema)
