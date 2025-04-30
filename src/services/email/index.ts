@@ -5,6 +5,7 @@ import type { Email } from '@notifycal/shared/types';
 import type { EmailHtmlBody, EmailSubject } from '@own-types/model';
 import { throwError } from '@services/common/error-handling';
 import { createHttpClient } from '@services/common/http-client';
+import { capArray } from '@utils/array';
 import { withIntegrationMetrics } from '@utils/withIntegrationMetrics';
 import type { AxiosInstance } from 'axios';
 import FormData from 'form-data';
@@ -48,8 +49,19 @@ export class EmailService {
     Object.entries(metadata).forEach(([key, value]) => {
       form.append(`v:${key}`, value);
     });
-    tags.forEach((tag) => {
-      form.append(`o:tag`, tag);
+    // Docs: https://documentation.mailgun.com/docs/mailgun/user-manual/tracking-messages/#tags
+    const { items: sanitizedTags, dropped: droppedTags } = capArray(tags, 10);
+    if (droppedTags.length > 0) {
+      logger.warn(`Tags list has been capped as it exceeds vendor 10 limit.`, {
+        droppedTags
+      });
+    }
+    sanitizedTags.forEach((tag) => {
+      if (tag.length <= 128) {
+        form.append(`o:tag`, tag);
+      } else {
+        logger.warn(`Tag ${tag} has not been included in vendor call has it exceeds vendor limits`);
+      }
     });
 
     return withIntegrationMetrics('Mailgun', 'SendEmail', () =>
