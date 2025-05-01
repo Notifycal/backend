@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.30.0](https://github.com/Notifycal/backend/compare/v0.29.1...v0.30.0) (2025-05-01)
+
+
+### Features
+
+* alerting for vendors ([#584](https://github.com/Notifycal/backend/issues/584)) ([17f2270](https://github.com/Notifycal/backend/commit/17f227010fe1c2081fac4a86fb5f586e6c0f9b27))
+* email service ([#583](https://github.com/Notifycal/backend/issues/583)) ([b5486ea](https://github.com/Notifycal/backend/commit/b5486ea8225fef78548b8397acb56712ee5f7265))
+
+
+### Bug Fixes
+
+* vendor alarm ([5084abf](https://github.com/Notifycal/backend/commit/5084abf91139a6a77b0a0db6235c1de4f3a6d633))
+
 ## [0.29.1](https://github.com/Notifycal/backend/compare/v0.29.0...v0.29.1) (2025-04-21)
 
 
