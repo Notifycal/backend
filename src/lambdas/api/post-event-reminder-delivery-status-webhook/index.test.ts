@@ -1,6 +1,6 @@
 import type { ActionableEventReminderStatusUpdatedEvent } from '@model/app-events/ActionableEventReminderStatusUpdatedEvent';
 import type { Algorithm, Duration } from '@model/Config';
-import type { DecodeVonageAccessJwtConfig } from '@model/vendor/vonage';
+import type { DecodeVonageAccessJwtConfig } from '@model/vendor/vonage/config';
 import type { Jwt } from '@notifycal/shared/types';
 import type { AwsArn } from '@own-types/model';
 import type {

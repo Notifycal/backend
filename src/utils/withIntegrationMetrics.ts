@@ -6,7 +6,7 @@ export interface MetricDimensions {
   [key: string]: string;
 }
 
-type IntegrationVendorName = 'Vonage' | IdpName;
+type IntegrationVendorName = 'Vonage' | 'Mailgun' | IdpName;
 
 export async function withIntegrationMetrics<T>(
   vendor: IntegrationVendorName,

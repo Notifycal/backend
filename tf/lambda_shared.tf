@@ -39,8 +39,16 @@ locals {
     MESSAGING_TOPIC_ARN = module.messaging_topic.sns_topic_arn
   }
 
+  emailing_topic_env_vars = {
+    EMAILING_TOPIC_ARN = module.emailing_topic.sns_topic_arn
+  }
+
   api_rest_topic_env_vars = {
     API_REST_TOPIC_ARN = module.api_rest_topic.sns_topic_arn
+  }
+
+  idempotency_persistance_env_vars = {
+    IDEMPOTENCY_PERSISTENCE_CONFIG = local.lambda_idempotency_table_config
   }
 
   google_idp_config_env_vars = {

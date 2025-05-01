@@ -5,6 +5,7 @@ import type {
   Algorithm as jsonwebtokenAlgorithm,
   SignOptions as jsonwebtokenSignOptions
 } from 'jsonwebtoken';
+import type { EmailWithName } from './app-events/common';
 
 export type SignOptions = jsonwebtokenSignOptions;
 export type Algorithm = jsonwebtokenAlgorithm;
@@ -96,6 +97,10 @@ export type MessagingTopicConfig = {
   messagingTopicConfig: SnsTopicConfig;
 };
 
+export type EmailingTopicConfig = {
+  emailingTopicConfig: SnsTopicConfig;
+};
+
 export type ApiRestTopicConfig = {
   apiRestTopicConfig: SnsTopicConfig;
 };
@@ -114,4 +119,11 @@ export interface MessagingConfig {
 }
 export interface MessagingEndpointConfig {
   messagingConfig: MessagingConfig;
+}
+export interface EmailingConfig {
+  enabled: boolean;
+  sender: EmailWithName;
+}
+export interface EmailingEndpointConfig {
+  emailingConfig: EmailingConfig;
 }

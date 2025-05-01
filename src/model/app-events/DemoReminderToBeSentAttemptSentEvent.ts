@@ -1,11 +1,11 @@
+import { messagingSentPayloadSchema } from '@model/vendor/vonage/schemas';
 import type { z } from 'zod';
 import { eventSchemaGenerator } from './BaseEvent';
 import { demoReminderToBeSentEventSchema } from './DemoReminderToBeSentEvent';
-import { providerSentPayloadSchema } from './common';
 
 export const demoReminderToBeSentAttemptSentEventSchema = eventSchemaGenerator(
   'DemoReminderToBeSentAttemptSent',
-  demoReminderToBeSentEventSchema.shape.data.extend(providerSentPayloadSchema.shape)
+  demoReminderToBeSentEventSchema.shape.data.extend(messagingSentPayloadSchema.shape)
 );
 
 export type DemoReminderToBeSentAttemptSentEvent = z.infer<
