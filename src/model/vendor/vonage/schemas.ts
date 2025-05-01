@@ -99,14 +99,14 @@ export function setupLoggerForAuthedVonageApiRequest(
   });
 }
 
-export const vonageSentPayloadSchema = z.object({
+export const messagingSentPayloadSchema = z.object({
   messageUUID: uuidSchema
 });
 
-export const vonageMessageStatusPayloadSchema = z.object({
+export const messagingMessageStatusPayloadSchema = z.object({
   messageStatusPayload: vonageMessageStatusWebhookSchema
 });
 
-export const vonageErrorPayloadSchema = z.object({
+export const messagingErrorPayloadSchema = z.object({
   providerErrorPayload: z.any() // TODO: review this schema when we've replaced the Vonage SDK with Axios
 });

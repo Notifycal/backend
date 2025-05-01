@@ -1,11 +1,11 @@
 import { z } from 'zod';
 
-export const mailgunEmailSendSuccessPayloadResponseSchema = z.object({
+export const emailingSendSuccessPayloadResponseSchema = z.object({
   id: z.string(),
   message: z.string()
 });
-export type EmailSendSuccessResponse = z.infer<typeof mailgunEmailSendSuccessPayloadResponseSchema>;
+export type EmailSendSuccessResponse = z.infer<typeof emailingSendSuccessPayloadResponseSchema>;
 
-export const mailgunEmailSendErrorPayloadResponse = z.object({
+export const emailingSendErrorPayloadResponse = z.object({
   errorPayload: z.any()
 });

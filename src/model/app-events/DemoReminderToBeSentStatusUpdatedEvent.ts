@@ -1,4 +1,4 @@
-import { vonageMessageStatusPayloadSchema } from '@model/vendor/vonage/schemas';
+import { messagingMessageStatusPayloadSchema } from '@model/vendor/vonage/schemas';
 import type { z } from 'zod';
 import { eventSchemaGenerator } from './BaseEvent';
 import { demoReminderToBeSentAttemptSentEventSchema } from './DemoReminderToBeSentAttemptSentEvent';
@@ -6,7 +6,7 @@ import { demoReminderToBeSentAttemptSentEventSchema } from './DemoReminderToBeSe
 export const demoReminderToBeSentStatusUpdatedEventSchema = eventSchemaGenerator(
   'DemoReminderToBeSentStatusUpdated',
   demoReminderToBeSentAttemptSentEventSchema.shape.data.extend(
-    vonageMessageStatusPayloadSchema.shape
+    messagingMessageStatusPayloadSchema.shape
   )
 );
 
