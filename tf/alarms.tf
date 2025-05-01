@@ -6,6 +6,12 @@ locals {
   ok_actions                = local.default_action
   insufficient_data_actions = local.default_action
   observability_count       = var.observability != null ? 1 : 0
+
+  vendor_domain_map = {
+    "Vonage"  = "Vonage"
+    "Mailgun" = "Mailgun"
+    "Google"  = "google.com"
+  }
 }
 
 resource "aws_cloudwatch_metric_alarm" "lambda_concurrent_executions" {
@@ -154,7 +160,7 @@ resource "aws_cloudwatch_metric_alarm" "integration_error_rate_alarms" {
       period      = each.value.evaluation_period_seconds
       stat        = "Sum"
       dimensions = {
-        vendor = each.key
+        vendor = local.vendor_domain_map[each.key]
       }
     }
   }
@@ -167,7 +173,7 @@ resource "aws_cloudwatch_metric_alarm" "integration_error_rate_alarms" {
       period      = each.value.evaluation_period_seconds
       stat        = "Sum"
       dimensions = {
-        vendor = each.key
+        vendor = local.vendor_domain_map[each.key]
       }
     }
   }

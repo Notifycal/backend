@@ -187,7 +187,7 @@ variable "vendor_alarm_config" {
       datapoints_to_alarm       = number
       evaluation_periods        = number
     })
-    "google.com" = object({
+    Google = object({
       error_rate_threshold      = number
       evaluation_period_seconds = number
       datapoints_to_alarm       = number
@@ -207,7 +207,7 @@ variable "vendor_alarm_config" {
       datapoints_to_alarm       = 1
       evaluation_periods        = 1
     },
-    "google.com" = {
+    Google = {
       error_rate_threshold      = 2
       evaluation_period_seconds = 3600
       datapoints_to_alarm       = 1
