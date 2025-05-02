@@ -1,10 +1,10 @@
 import type { EventBridgeEvent } from '@aws-lambda-powertools/parser/types';
 import { logger } from '@common/powertools';
 import type { BaseEvent } from '@model/app-events/BaseEvent';
-import type { NoPhoneNumberForAttendeeFoundEvent } from '@model/app-events/NoPhoneNumberForAttendeeFoundEvent';
+import type { NoPhoneNumberForCalendarEventFoundEvent } from '@model/app-events/NoPhoneNumberForCalendarEventFoundEvent';
 import { AuditTrailBaseStore } from '@services/stores/audit-trail-base-store';
 import {
-  noPhoneNumberForAttendeeFoundEvent,
+  noPhoneNumberForCalendarEventFoundEvent,
   userCalendarFetchedEvent
 } from '@testing/data/app-events';
 import { fakeScheduledEventBridgeEvent } from '@testing/data/event-bridge-event';
@@ -46,7 +46,8 @@ describe('Audit trail record processor', () => {
 
   // eslint-disable-next-line vitest/expect-expect
   it('should process an error event successfully and log the success message', async () => {
-    const validErrorEvent: NoPhoneNumberForAttendeeFoundEvent = noPhoneNumberForAttendeeFoundEvent;
+    const validErrorEvent: NoPhoneNumberForCalendarEventFoundEvent =
+      noPhoneNumberForCalendarEventFoundEvent;
     return successTest(validErrorEvent);
   });
 

@@ -1,15 +1,8 @@
 import type { Logger } from '@aws-lambda-powertools/logger';
 import { logger } from '@common/powertools';
-import type { VonageAccessToken } from '@lambdas/api/post-event-reminder-delivery-status-webhook/schema';
-import type { Algorithm, DecodeAccessJwtEndpointConfig } from '@model/Config';
 import { uuidSchema } from '@notifycal/shared/schemas';
-import type { Url } from '@own-types/model';
-import type {
-  VonageApiKey,
-  VonageApplicationId,
-  VonageJwtSigningSecret
-} from '@services/messaging';
 import { z } from 'zod';
+import type { VonageAccessToken } from './config';
 
 /* eslint-disable camelcase */
 
@@ -70,27 +63,30 @@ const messageStatusRCSSchema = messageStatusBaseSchema.extend({
   destination: destinationSchema.optional()
 });
 
-export const VonageMessageStatusWebhookSchema = z.discriminatedUnion('channel', [
+export const vonageMessageStatusWebhookSchema = z.discriminatedUnion('channel', [
   messageStatusSMSSchema,
   messageStatusRCSSchema
 ]);
 /* eslint-enable camelcase */
 
-export interface VonageConfig {
-  privateKeySSMPath: string;
-  applicationId: VonageApplicationId;
-  webhookBaseURL: Url;
-}
-export interface DecodeVonageAccessJwtConfig {
-  applicationId: VonageApplicationId;
-  apiKey: VonageApiKey;
-  signingSecret: VonageJwtSigningSecret;
-  algorithm: Algorithm;
-  issuer: string;
-}
-
-export type DecodeVonageAccessJwtEndpointConfig =
-  DecodeAccessJwtEndpointConfig<DecodeVonageAccessJwtConfig>;
+export const vonageAccessTokenSchema = z.object({
+  header: z.object({
+    alg: z.string(),
+    typ: z.string()
+  }),
+  payload: z.object({
+    jti: z.string(),
+    iat: z.number(),
+    iss: z.string(),
+    // eslint-disable-next-line camelcase
+    api_key: z.string(),
+    // eslint-disable-next-line camelcase
+    application_id: z.string(),
+    // eslint-disable-next-line camelcase
+    payload_hash: z.string().optional()
+  }),
+  signature: z.string()
+});
 
 export function setupLoggerForAuthedVonageApiRequest(
   jwt: VonageAccessToken,
@@ -102,3 +98,15 @@ export function setupLoggerForAuthedVonageApiRequest(
     apiKey: jwt.payload.api_key
   });
 }
+
+export const messagingSentPayloadSchema = z.object({
+  messageUUID: uuidSchema
+});
+
+export const messagingMessageStatusPayloadSchema = z.object({
+  messageStatusPayload: vonageMessageStatusWebhookSchema
+});
+
+export const messagingErrorPayloadSchema = z.object({
+  providerErrorPayload: z.any() // TODO: review this schema when we've replaced the Vonage SDK with Axios
+});

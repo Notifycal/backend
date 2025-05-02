@@ -33,6 +33,9 @@ const buildOptions = {
   target: 'node22',
   format: 'cjs',
   outExtension: { '.js': '.cjs' },
+  logOverride: {
+    'commonjs-variable-in-esm': 'silent'
+  },
   tsconfig
 };
 

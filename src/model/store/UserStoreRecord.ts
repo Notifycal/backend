@@ -1,10 +1,37 @@
-import type { IdpName, UnixTimestamp, User, UserStatus } from '@notifycal/shared/types';
 import { type UserIdentity, extractIdentity } from '@model/UserIdentity';
+import type {
+  IdpName,
+  ReminderConfig,
+  UnixTimestamp,
+  User,
+  UserStatus
+} from '@notifycal/shared/types';
+import { fromStoreRecord as fromContactStoreRecord } from './ContactDetailsRecordStore';
+import type { ReminderConfigStoreRecord } from './ReminderConfigStoreRecord';
 
 export interface UserStoreRecord<TIdpName> extends UserIdentity<TIdpName> {
   LastSignInAt: UnixTimestamp;
   SignedUpAt: UnixTimestamp;
   UserStatus: UserStatus;
+  Config?: ReminderConfigStoreRecord;
+}
+
+export function fromStoreRecord(config: ReminderConfigStoreRecord): ReminderConfig {
+  return {
+    calendars: config?.Calendars.map((calendar) => ({
+      id: calendar.Id,
+      name: calendar.Name,
+      template: {
+        id: calendar.Template.Id,
+        language: calendar.Template.Language
+      }
+    })),
+    business: {
+      name: config?.Business.Name,
+      address: config?.Business.Address,
+      senderContact: fromContactStoreRecord(config?.Business.SenderContact)
+    }
+  };
 }
 
 export function extractUser<TIdpName extends IdpName>(
@@ -14,6 +41,7 @@ export function extractUser<TIdpName extends IdpName>(
     ...extractIdentity(userRecord),
     lastSignInAt: userRecord.LastSignInAt,
     signedUpAt: userRecord.SignedUpAt,
-    userStatus: userRecord.UserStatus
+    userStatus: userRecord.UserStatus,
+    config: userRecord.Config ? fromStoreRecord(userRecord.Config) : undefined
   };
 }

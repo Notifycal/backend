@@ -1,4 +1,5 @@
-import { countryCodeSchema, rcsSenderSchema } from '@notifycal/shared/schemas';
+import { countryCodeSchema, emailSchema, rcsSenderSchema } from '@notifycal/shared/schemas';
+import type { RCSSenderContact } from '@notifycal/shared/types';
 import { z } from 'zod';
 
 export const errorSchema = z.object({
@@ -23,5 +24,12 @@ export const phoneE164Schema = z.object({
 export const senderStandardSchema = z.union([rcsSenderSchema, phoneE164Schema]);
 export const receiverStandardSchema = phoneE164Schema;
 
-export type MessageReceiver = z.infer<typeof receiverStandardSchema>;
-export type MessageSender = z.infer<typeof senderStandardSchema>;
+export type PhoneStandardContact = z.infer<typeof phoneE164Schema>;
+export type SenderStandardContact = PhoneStandardContact | RCSSenderContact;
+export type ReceiverStandardContact = PhoneStandardContact;
+
+export const emailWithNameSchema = z.object({
+  name: z.string(),
+  email: emailSchema
+});
+export type EmailWithName = z.infer<typeof emailWithNameSchema>;

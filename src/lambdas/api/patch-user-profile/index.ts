@@ -1,35 +1,17 @@
 import { JSONStringified } from '@aws-lambda-powertools/parser/helpers';
 import { protectedEndpointMiddleware } from '@common/lambda-middleware';
 import { authedEventSchema } from '@model/lambda-events/ApiGatewayEvents';
-import { reminderConfigSchema } from '@notifycal/shared/schemas';
+import { toStoreRecord } from '@model/store/ReminderConfigStoreRecord';
+import { reminderConfigSchema } from '@notifycal/shared/types';
 import { errorHandler, successHandler } from '@services/common/api-response-handlers';
 import { UserBaseStore } from '@services/stores/user-base-store';
+import { senderValidator } from '@utils/phone';
 import type { APIGatewayProxyResult, Context } from 'aws-lambda';
-import { type CountryCode, isValidPhoneNumber } from 'libphonenumber-js';
-import { match, P } from 'ts-pattern';
-import { z } from 'zod';
+import type { z } from 'zod';
 import { type PatchUserProfileConfig, readPatchUserConfig } from './config';
 
 const contactDetailsWithValidator =
-  reminderConfigSchema.shape.business.shape.senderContact.superRefine((data, context) => {
-    match(data)
-      .with({ type: 'rcs' }, () => {})
-      .with({ type: 'phone', countryCode: P.any, phoneNumber: P.string }, (phone) => {
-        if (!isValidPhoneNumber(phone.phoneNumber, phone.countryCode as CountryCode)) {
-          context.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: 'Phone number is invalid'
-          });
-        }
-        if (!['ES', 'EN'].includes(phone.countryCode)) {
-          context.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: 'The only dial codes allowed, for now, are from Spain and United Kingdom'
-          });
-        }
-      })
-      .exhaustive();
-  });
+  reminderConfigSchema.shape.business.shape.senderContact.superRefine(senderValidator);
 
 const updatedBusinessSchema = reminderConfigSchema.shape.business.extend({
   senderContact: contactDetailsWithValidator
@@ -52,16 +34,14 @@ function lambdaHandler(
   const body = event.body;
   const userProvider = UserBaseStore.withConfig(config.userBaseStoreConfig);
   const userId = event.requestContext.authorizer.payload.userId;
-  const reminderConfigStoreRecord = {
-    business: body.business,
-    calendars: body.calendars
-  };
   return userProvider
-    .updateUser(userId, 'live', reminderConfigStoreRecord)
+    .updateUser(userId, 'live', toStoreRecord(body))
     .then(() => successHandler(204)(), errorHandler(500));
 }
 
-export const handler = protectedEndpointMiddleware(
+const handler = protectedEndpointMiddleware(
   () => readPatchUserConfig(),
   eventSchema
 ).handler<Event>(lambdaHandler);
+
+module.exports = { handler };

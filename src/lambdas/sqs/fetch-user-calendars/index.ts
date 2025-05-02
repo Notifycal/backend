@@ -1,6 +1,5 @@
 import { backgroundProcessingMiddleware } from '@common/lambda-middleware';
 import { logger } from '@common/powertools';
-import type { senderStandardSchema } from '@model/app-events/common';
 import { noUserCalendarFound } from '@model/app-events/NoUserCalendarFoundEvent';
 import { scheduledFetchUserCalendarEventFired } from '@model/app-events/ScheduledFetchUserCalendarEventFiredEvent';
 import type {
@@ -10,15 +9,15 @@ import type {
 import type { CronRunConfig } from '@model/Config';
 import { eventBridgeEventSchema as _eventBridgeEventSchema } from '@model/lambda-events/EventBridgeEvents';
 import { eventSqsSchema } from '@model/lambda-events/SqsEvents';
+import { fromStoreRecord as fromContactStoreRecord } from '@model/store/ContactDetailsRecordStore';
 import type { LiveUserStoreRecord } from '@model/store/LiveUserStoreRecord';
+import { fromStoreRecord } from '@model/store/ReminderConfigStoreRecord';
 import type { UserIdpAuthorizationStoreRecord } from '@model/store/UserIdpAuthorizationStoreRecord';
-import { phoneByCountry } from '@notifycal/shared/i18n';
-import type { senderSchema } from '@notifycal/shared/schemas';
 import type { CorrelationId, DateTime, EventId } from '@notifycal/shared/types';
-import type { PhoneNumberE164 } from '@own-types/model';
 import { setupLoggerCorrelationIdEventBridge } from '@services/common/logger';
 import { SnsService } from '@services/sns';
 import { UserLiveIndexStore } from '@services/stores/user-live-index-store';
+import { senderToCanonicalForm } from '@utils/phone';
 import type { Context } from 'aws-lambda';
 import { DateTime as DT } from 'luxon';
 import { match, P } from 'ts-pattern';
@@ -38,37 +37,28 @@ export interface CronRunForEvent {
   slidingWindowInMinutes: number;
 }
 
-function toCanonicalForm(
-  senderContact: z.infer<typeof senderSchema>
-): z.infer<typeof senderStandardSchema> {
-  return match(senderContact)
-    .with({ type: 'rcs', identifier: P.string }, (rcsPhone) => rcsPhone)
-    .with({ type: 'phone', countryCode: P.any, phoneNumber: P.string }, (phone) => ({
-      type: phone.type,
-      phoneNumber:
-        `${phoneByCountry[phone.countryCode].phoneDetails.dialCode}${phone.phoneNumber.toString()}` as PhoneNumberE164,
-      countryCode: phone.countryCode
-    }))
-    .exhaustive();
-}
-
 function toEvents(
   item: LiveUserStoreRecord<'google.com'> & UserIdpAuthorizationStoreRecord<'google.com'>,
   run: z.infer<typeof userCalendarFetchedEventSchema.shape.data.shape.run>
 ): Array<UserCalendarFetchedEvent> {
-  const senderCountryCode = match(item.Config.business.senderContact)
-    .with({ type: 'phone', countryCode: P.any }, (phone) => phone.countryCode)
-    .with({ type: 'rcs', identifier: P.string }, () => undefined)
+  const senderCountryCode = match(item.Config.Business.SenderContact)
+    .with({ Type: 'phone', CountryCode: P.any }, (phone) => phone.CountryCode)
+    .with({ Type: 'rcs', Identifier: P.string }, () => undefined)
     .exhaustive();
-  const pageData = item.Config.calendars.map((c) => ({
+  const pageData = fromStoreRecord(item.Config).calendars.map((c) => ({
     calendar: c,
     run: run,
-    senderDetails: toCanonicalForm(item.Config.business.senderContact),
+    senderDetails: senderToCanonicalForm(
+      fromContactStoreRecord(item.Config.Business.SenderContact)
+    ),
     senderCountryCode: senderCountryCode,
     template: {
       id: c.template.id,
       fields: {
-        business: item.Config.business
+        business: {
+          name: item.Config.Business.Name,
+          address: item.Config.Business.Address
+        }
       }
     }
   }));
@@ -134,7 +124,7 @@ async function lambdaHandler(event: Event, context: Context): Promise<void> {
             idpId: user.IdpId,
             idp: user.Idp
           });
-          if (user.Config.calendars && user.Config.calendars.length > 0) {
+          if (user.Config.Calendars && user.Config.Calendars.length > 0) {
             return Promise.resolve(toEvents(user, run));
           } else {
             const errorEvent = noUserCalendarFound(record, run, user);
@@ -157,8 +147,10 @@ async function lambdaHandler(event: Event, context: Context): Promise<void> {
     );
   }
 }
-export const handler = backgroundProcessingMiddleware(
+const handler = backgroundProcessingMiddleware(
   () => readFetchUserCalendarsConfig(),
   eventSchema,
   setupLoggerCorrelationIdEventBridge
 ).handler<Event>(lambdaHandler);
+
+module.exports = { handler };

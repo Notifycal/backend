@@ -24,6 +24,7 @@ import { validUserStoreRecord } from '@testing/utils/model';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { describe, it, vi } from 'vitest';
 import type { RefreshConfig } from './config';
+// @ts-expect-error cjs handler export
 import { handler, type Event } from './index';
 
 describe('POST Refresh', () => {
@@ -234,6 +235,7 @@ describe('POST Refresh', () => {
     });
   });
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   async function testit(
     event: APIGatewayProxyEvent,
     decodeAndVerifyJwtSignatureFn: () => Promise<RefreshToken>,
@@ -265,6 +267,7 @@ describe('POST Refresh', () => {
       };
     });
     vi.mocked(buildJwtsAndStoreRefreshJwt).mockImplementation(buildJwtsAndStoreRefreshJwtFn);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
     return handler(event as unknown as Event, c);
   }
 

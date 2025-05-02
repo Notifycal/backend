@@ -8,6 +8,9 @@ import type {
   DecodeAccessJwtConfig,
   DecodeAccessJwtEndpointConfig,
   DecodeRefreshJwtConfig,
+  DemoReminderToBeSentTopicConfig,
+  EmailingEndpointConfig,
+  EmailingTopicConfig,
   EncodeAccessJwtConfig,
   EncodeJwtsEndpointConfig,
   EncodeRefreshJwtConfig,
@@ -17,7 +20,12 @@ import type {
   MessagingTopicConfig,
   UserCalendarFetchedTopicConfig
 } from '@model/Config';
-import type { DecodeVonageAccessJwtEndpointConfig, VonageConfig } from '@model/vendor/vonage';
+import type { MailgunEndpointConfig } from '@model/vendor/mailgun/config';
+import type {
+  DecodeVonageAccessJwtEndpointConfig,
+  VonageConfig
+} from '@model/vendor/vonage/config';
+import type { Email } from '@notifycal/shared/types';
 import type { AwsArn, Environment, PrivateKey, PublicKey, Url } from '@own-types/model';
 import type {
   VonageApiKey,
@@ -150,6 +158,16 @@ export function readActionableEventFoundTopicConfig(
   };
 }
 
+export function readDemoReminderToBeSentTopicConfig(
+  env: Environment
+): DemoReminderToBeSentTopicConfig {
+  return {
+    demoReminderToBeSentTopicConfig: {
+      topicArn: env.get('DEMO_REMINDER_TO_BE_SENT_TOPIC_ARN').required().asString() as AwsArn
+    }
+  };
+}
+
 export function readRefreshTokenStoreConfig(
   env: Environment
 ): RefreshTokenBaseStoreConfigEndpointConfig {
@@ -236,6 +254,36 @@ export function readDecodeVonageJwtConfig(env: Environment): DecodeVonageAccessJ
         .default('HS256')
         .asString() as Algorithm,
       issuer: env.get('VONAGE_JWT_ISSUER').required().default('Vonage').asString()
+    }
+  };
+}
+
+export function readMailgunConfig(env: Environment): MailgunEndpointConfig {
+  return {
+    mailgunConfig: {
+      apiKey: env.get('MAILGUN_API_KEY').required().asString(),
+      baseUrl: env.get('MAILGUN_BASE_URL').required().asString() as Url,
+      domainName: env.get('MAILGUN_DOMAIN_NAME').required().asString()
+    }
+  };
+}
+
+export function readEmailingConfig(env: Environment): EmailingEndpointConfig {
+  return {
+    emailingConfig: {
+      enabled: env.get('EMAILING_ENABLED').required().default('true').asBool(),
+      sender: {
+        name: env.get('EMAILING_SENDER_DISPLAY_NAME').required().asString(),
+        email: env.get('EMAILING_SENDER_EMAIL').required().asString() as Email
+      }
+    }
+  };
+}
+
+export function readEmailingTopicConfig(env: Environment): EmailingTopicConfig {
+  return {
+    emailingTopicConfig: {
+      topicArn: env.get('EMAILING_TOPIC_ARN').required().asString() as AwsArn
     }
   };
 }

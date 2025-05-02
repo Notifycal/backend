@@ -4,9 +4,10 @@ import { Vonage } from '@vonage/server-sdk';
 
 import { throwError } from '@services/common/error-handling';
 
-import type { MessageReceiver, MessageSender } from '@model/app-events/common';
+import type { ReceiverStandardContact, SenderStandardContact } from '@model/app-events/common';
 import type { Brand, Uuid } from '@notifycal/shared/types';
 import type { Url } from '@own-types/model';
+import { withIntegrationMetrics } from '@utils/withIntegrationMetrics';
 import { match } from 'ts-pattern';
 
 export type VonageApiKey = Brand<string, 'VonageApiKey'>;
@@ -28,8 +29,8 @@ export class MessagingService {
 
   public async sendMessage(
     messageBody: string,
-    sender: MessageSender,
-    receiver: MessageReceiver,
+    sender: SenderStandardContact,
+    receiver: ReceiverStandardContact,
     clientRef: string,
     webhookUrl: Url
   ): Promise<Uuid> {
@@ -49,7 +50,9 @@ export class MessagingService {
         text: messageBody,
         webhookUrl
       });
-      const { messageUUID } = await this._client.messages.send(messageObject);
+      const { messageUUID } = await withIntegrationMetrics('Vonage', 'SendEventReminder', () =>
+        this._client.messages.send(messageObject)
+      );
 
       return messageUUID as Uuid;
     } catch (error) {

@@ -13,3 +13,19 @@ export function partitionByError<T, TError extends Error>(
     [[], []]
   );
 }
+
+export function capArray<T>(
+  input: Array<T>,
+  limit: number
+): { items: Array<T>; dropped: Array<T> } {
+  if (input.length <= limit) {
+    return { items: input, dropped: [] };
+  }
+  if (limit < 0) {
+    return { items: [], dropped: input };
+  }
+  const sanitizedList = input.slice(0, limit);
+  const droppedItems = input.slice(limit);
+
+  return { items: sanitizedList, dropped: droppedItems };
+}

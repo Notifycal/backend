@@ -10,27 +10,25 @@ const data = z.object({
   eventIdCause: eventIdSchema,
   run: runSchema,
   calendar: calendarSchema,
-  calendarEvent: calendarEventSchema,
-  attendeeId: z.string()
+  calendarEvent: calendarEventSchema
 });
-export const noPhoneNumberForAttendeeFoundEventSchema = eventSchemaGenerator(
-  'NoPhoneNumberForAttendeeFound',
+export const noPhoneNumberForCalendarEventFoundEventSchema = eventSchemaGenerator(
+  'NoPhoneNumberForCalendarEventFound',
   data
 );
 
-export type NoPhoneNumberForAttendeeFoundEvent = z.infer<
-  typeof noPhoneNumberForAttendeeFoundEventSchema
+export type NoPhoneNumberForCalendarEventFoundEvent = z.infer<
+  typeof noPhoneNumberForCalendarEventFoundEventSchema
 >;
 
-export function noPhoneNumberForAttendeeFound(
+export function noPhoneNumberForCalendarEventFound(
   origin: UserCalendarFetchedEvent,
-  calendarEvent: CalendarEvent,
-  attendeeId: string
-): NoPhoneNumberForAttendeeFoundEvent {
+  calendarEvent: CalendarEvent
+): NoPhoneNumberForCalendarEventFoundEvent {
   return {
     eventId: v4() as EventId,
     correlationId: origin.correlationId,
-    eventType: 'NoPhoneNumberForAttendeeFound',
+    eventType: 'NoPhoneNumberForCalendarEventFound',
     happenedAt: new Date().toISOString() as DateTime,
     userId: origin.userId,
     idp: origin.idp,
@@ -39,8 +37,7 @@ export function noPhoneNumberForAttendeeFound(
       eventIdCause: origin.eventId,
       run: origin.data.run,
       calendar: origin.data.calendar,
-      calendarEvent: calendarEvent,
-      attendeeId: attendeeId
+      calendarEvent: calendarEvent
     }
   };
 }

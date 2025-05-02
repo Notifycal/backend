@@ -1,13 +1,17 @@
 locals {
   common_lambda_env_vars = {
     # This is required for sourcemaps to work
-    NODE_OPTIONS    = "--enable-source-maps"
-    ENVIRONMENT     = var.environment
-    FRONTEND_DOMAIN = var.frontend_domain
-    APP_VERSION     = var.app_version
+    NODE_OPTIONS            = "--enable-source-maps"
+    ENVIRONMENT             = var.environment
+    FRONTEND_DOMAIN         = var.frontend_domain
+    APP_VERSION             = var.app_version
+    AWS_LAMBDA_EXEC_WRAPPER = "/opt/otel-instrument"
   }
   users_persistance_env_vars = {
     USERS_TABLE_NAME = aws_dynamodb_table.users.name
+  }
+  live_users_index_persistance_env_vars = {
+    LIVE_USERS_INDEX_NAME = local.live_users_index_name
   }
   refresh_token_persistance_env_vars = {
     REFRESH_TOKENS_TABLE_NAME = aws_dynamodb_table.refresh_tokens.name
@@ -35,9 +39,18 @@ locals {
     MESSAGING_TOPIC_ARN = module.messaging_topic.sns_topic_arn
   }
 
+  emailing_topic_env_vars = {
+    EMAILING_TOPIC_ARN = module.emailing_topic.sns_topic_arn
+  }
+
   api_rest_topic_env_vars = {
     API_REST_TOPIC_ARN = module.api_rest_topic.sns_topic_arn
   }
+
+  idempotency_persistance_env_vars = {
+    IDEMPOTENCY_PERSISTENCE_CONFIG = local.lambda_idempotency_table_config
+  }
+
   google_idp_config_env_vars = {
     GOOGLE_OAUTH_CLIENT_ID           = var.google_oauth_config.client_id
     GOOGLE_OAUTH_CLIENT_SECRET       = var.google_oauth_config.client_secret
@@ -56,13 +69,16 @@ locals {
 
   lambdas_shared_iam_policies = [
     data.aws_iam_policy.insights.arn,
+    data.aws_iam_policy.appsignals.arn
   ]
 
+  otel_lambda_layer     = "arn:aws:lambda:${var.aws_region}:615299751070:layer:AWSOpenTelemetryDistroJs:6"
   insights_lambda_layer = "arn:aws:lambda:${var.aws_region}:580247275435:layer:LambdaInsightsExtension:55"
 
-  lambdas_layers = [
-    local.insights_lambda_layer
-  ]
+  lambdas_layers = var.observability != null ? [
+    local.insights_lambda_layer,
+    local.otel_lambda_layer
+  ] : []
 
   all_lambdas = {
     get_idp_user_calendars               = module.get_idp_user_calendars_lambda,
@@ -70,6 +86,7 @@ locals {
     patch_user_profile                   = module.patch_user_profile_lambda,
     post_login                           = module.post_login_lambda,
     post_refresh                         = module.post_refresh_lambda,
+    post_demo_reminder                   = module.post_demo_reminder_lambda,
     event_reminder_status_change_webhook = module.event_reminder_status_change_webhook_lambda,
     fetch_user_calendars                 = module.fetch_user_calendars_lambda,
     audit_trail                          = module.audit_trail_lambda,
@@ -77,6 +94,11 @@ locals {
     send_event_reminder                  = module.send_event_reminder_lambda
     # TODO: Add new lambdas here
   }
+}
+
+# appsignals/otel AWS Managed Policy
+data "aws_iam_policy" "appsignals" {
+  name = "CloudWatchLambdaApplicationSignalsExecutionRolePolicy"
 }
 
 # lambda insights AWS Managed Policy

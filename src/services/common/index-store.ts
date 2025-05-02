@@ -1,7 +1,7 @@
 import {
-  type QueryCommandInput,
+  paginateQuery,
   type DynamoDBDocumentClient,
-  paginateQuery
+  type QueryCommandInput
 } from '@aws-sdk/lib-dynamodb';
 import { dynamodbClient } from '@clients/dynamodb';
 

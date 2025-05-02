@@ -22,11 +22,13 @@ export abstract class BaseGoogle {
   protected setInterceptors(gaxios: Gaxios): void {
     const requestInterceptor: GaxiosInterceptor<GaxiosOptions> = {
       resolved: (config) => {
-        logger.info('Google successful request', { requestConfig: config });
+        logger.info('Google request', { requestConfig: config });
         return Promise.resolve(config);
       },
       rejected: (error) => {
-        logger.error('Google failed request', { requestError: error });
+        logger.error('Something unexpected went wrong prepping a request to Google', {
+          requestError: error
+        });
       }
     };
     const responseInterceptor: GaxiosInterceptor<GaxiosResponse> = {

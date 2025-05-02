@@ -14,7 +14,8 @@ data "aws_iam_policy_document" "send_event_reminder_iam_policydoc" {
     ]
 
     resources = [
-      module.actionable_event_found_queue.sqs_queue_arn
+      module.actionable_event_found_queue.sqs_queue_arn,
+      module.demo_reminder_to_be_sent_queue.sqs_queue_arn
     ]
   }
   statement {
@@ -56,6 +57,31 @@ data "aws_iam_policy_document" "send_event_reminder_iam_policydoc" {
   }
 }
 
+locals {
+  send_event_reminder_queue_sources = {
+    actionable_event_found_queue   = module.actionable_event_found_queue.sqs_queue_arn,
+    demo_reminder_to_be_sent_queue = module.demo_reminder_to_be_sent_queue.sqs_queue_arn
+  }
+  send_event_reminder_event_source_mappings = {
+    for queue_name, queue_arn in local.send_event_reminder_queue_sources : queue_name => {
+      event_source_arn = queue_arn
+      batch_size       = 1
+      scaling_config = {
+        maximum_concurrency = 20
+      }
+      metrics_config = {
+        metrics = ["EventCount"]
+      }
+    }
+  }
+
+  send_event_reminder_allowed_triggers = {
+    for queue_name, queue_arn in local.queue_sources : "AllowSQS${title(replace(queue_name, "_", ""))}Invoke" => {
+      principal  = "sqs.amazonaws.com"
+      source_arn = queue_arn
+    }
+  }
+}
 module "send_event_reminder_lambda" {
   source  = "terraform-aws-modules/lambda/aws"
   version = "~> 7.17"
@@ -67,7 +93,7 @@ module "send_event_reminder_lambda" {
 
   runtime     = var.lambdas_runtime
   timeout     = local.api_lambdas_timeout
-  memory_size = 256
+  memory_size = 384
   handler     = var.lambdas_handler_name
 
   layers = local.lambdas_layers
@@ -92,39 +118,15 @@ module "send_event_reminder_lambda" {
   policies           = local.lambdas_shared_iam_policies
   number_of_policies = length(local.lambdas_shared_iam_policies)
 
-  event_source_mapping = {
-    sqs = {
-      event_source_arn = module.actionable_event_found_queue.sqs_queue_arn
-      batch_size       = 1
-      scaling_config = {
-        maximum_concurrency = 20
-      }
-      metrics_config = {
-        metrics = ["EventCount"]
-      }
-    }
-  }
 
-  allowed_triggers = {
-    AllowSQSInvoke = {
-      principal  = "sqs.amazonaws.com"
-      source_arn = module.actionable_event_found_queue.sqs_queue_arn
-    }
-  }
+  event_source_mapping = local.send_event_reminder_event_source_mappings
+  allowed_triggers     = local.send_event_reminder_allowed_triggers
 
   environment_variables = merge({
+    MESSAGING_ENABLED = tostring(var.messaging_config.enabled)
+
     VONAGE_APPLICATION_ID       = var.vonage_auth_config.application_id
     VONAGE_SSM_PATH_PRIVATE_KEY = data.aws_ssm_parameter.vonage_private_key.name
     VONAGE_WEBHOOK_BASE_URL     = "${local.api_url}/api/v1/webhook/reminder-status"
-    MESSAGING_ENABLED           = "false"
-    IDEMPOTENCY_PERSISTENCE_CONFIG = jsonencode({
-      tableName            = aws_dynamodb_table.lambda_idempotency.name,
-      keyAttr              = local.lambda_idempotency_table_config.hash_attribute_name,
-      expiryAttr           = local.lambda_idempotency_table_config.expiration_attribute_name,
-      inProgressExpiryAttr = local.lambda_idempotency_table_config.in_progress_expiry_attribute,
-      statusAttr           = local.lambda_idempotency_table_config.status_attribute_name
-      dataAttr             = local.lambda_idempotency_table_config.data_attribute_name
-      validationKeyAttr    = local.lambda_idempotency_table_config.validation_attribute_name
-    })
-  }, local.messaging_topic_env_vars, local.common_lambda_env_vars)
+  }, local.messaging_topic_env_vars, local.idempotency_persistance_env_vars, local.common_lambda_env_vars)
 }

@@ -1,18 +1,18 @@
-import type { NoPhoneNumberForAttendeeFoundEvent } from '@model/app-events/NoPhoneNumberForAttendeeFoundEvent';
+import type { NoPhoneNumberForCalendarEventFoundEvent } from '@model/app-events/NoPhoneNumberForCalendarEventFoundEvent';
 import type { UserCalendarFetchedEvent } from '@model/app-events/UserCalendarFetchedEvent';
-import { templateMap } from '@notifycal/shared/templates';
-import type {
-  BusinessAddress,
-  BusinessName,
-  CalendarId,
-  CalendarName,
-  CorrelationId,
-  DateTime,
-  EventId,
-  IdpId,
-  RCSSenderId,
-  TimeZone,
-  UserId
+import {
+  templateMap,
+  type BusinessAddress,
+  type BusinessName,
+  type CalendarId,
+  type CalendarName,
+  type CorrelationId,
+  type DateTime,
+  type EventId,
+  type IdpId,
+  type RCSSenderId,
+  type TimeZone,
+  type UserId
 } from '@notifycal/shared/types';
 
 export const userCalendarFetchedEvent: UserCalendarFetchedEvent = {
@@ -54,9 +54,9 @@ export const userCalendarFetchedEvent: UserCalendarFetchedEvent = {
   }
 };
 
-export const noPhoneNumberForAttendeeFoundEvent: NoPhoneNumberForAttendeeFoundEvent = {
+export const noPhoneNumberForCalendarEventFoundEvent: NoPhoneNumberForCalendarEventFoundEvent = {
   eventId: 'some-event-id' as EventId,
-  eventType: 'NoPhoneNumberForAttendeeFound',
+  eventType: 'NoPhoneNumberForCalendarEventFound',
   happenedAt: '2024-01-01T15:00:00Z' as DateTime,
   correlationId: 'test-correlation-id' as CorrelationId,
   userId: 'test-user-id' as UserId,
@@ -79,7 +79,6 @@ export const noPhoneNumberForAttendeeFoundEvent: NoPhoneNumberForAttendeeFoundEv
       isAllDayEvent: false,
       startTime: '2024-01-02T15:05:00Z' as DateTime,
       timeZone: 'Europe/Madrid' as TimeZone
-    },
-    attendeeId: 'some-ateendee-id'
+    }
   }
 };

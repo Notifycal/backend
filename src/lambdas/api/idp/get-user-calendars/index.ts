@@ -23,7 +23,9 @@ function lambdaHandler(
   ).then((calendars) => successHandler()({ result: calendars }), errorHandler(500));
 }
 
-export const handler = protectedEndpointMiddleware(
+const handler = protectedEndpointMiddleware(
   () => readGetUserCalendarListConfig(),
   eventSchema
 ).handler<Event>(lambdaHandler);
+
+module.exports = { handler };

@@ -1,10 +1,17 @@
 locals {
   default_action = var.observability != null ? [module.notify_slack[0].slack_topic_arn] : []
 
+  alarm_lambda_namespace    = "AWS/Lambda"
   alarm_actions             = local.default_action
   ok_actions                = local.default_action
   insufficient_data_actions = local.default_action
   observability_count       = var.observability != null ? 1 : 0
+
+  vendor_domain_map = {
+    "Vonage"  = "Vonage"
+    "Mailgun" = "Mailgun"
+    "Google"  = "google.com"
+  }
 }
 
 resource "aws_cloudwatch_metric_alarm" "lambda_concurrent_executions" {
@@ -18,7 +25,7 @@ resource "aws_cloudwatch_metric_alarm" "lambda_concurrent_executions" {
   alarm_actions             = local.alarm_actions
   insufficient_data_actions = var.observability.alert_config.notify_insufficient_data ? local.alarm_actions : []
   metric_name               = "ConcurrentExecutions"
-  namespace                 = "AWS/Lambda"
+  namespace                 = local.alarm_lambda_namespace
   statistic                 = "Maximum"
   period                    = 60
   dimensions = {
@@ -42,7 +49,7 @@ resource "aws_cloudwatch_metric_alarm" "lambda_invocations" {
   alarm_actions             = local.alarm_actions
   insufficient_data_actions = var.observability.alert_config.notify_insufficient_data ? local.alarm_actions : []
   metric_name               = "Invocations"
-  namespace                 = "AWS/Lambda"
+  namespace                 = local.alarm_lambda_namespace
   statistic                 = "Sum"
   period                    = 60
   dimensions = {
@@ -66,7 +73,7 @@ resource "aws_cloudwatch_metric_alarm" "lambda_duration" {
   alarm_actions             = local.alarm_actions
   insufficient_data_actions = var.observability.alert_config.notify_insufficient_data ? local.alarm_actions : []
   metric_name               = "Duration"
-  namespace                 = "AWS/Lambda"
+  namespace                 = local.alarm_lambda_namespace
   extended_statistic        = "p90"
   period                    = 60
   dimensions = {
@@ -90,7 +97,7 @@ resource "aws_cloudwatch_metric_alarm" "lambda_errors" {
   alarm_actions             = local.alarm_actions
   insufficient_data_actions = var.observability.alert_config.notify_insufficient_data ? local.alarm_actions : []
   metric_name               = "Errors"
-  namespace                 = "AWS/Lambda"
+  namespace                 = local.alarm_lambda_namespace
   statistic                 = "Sum"
   period                    = 60
   dimensions = {
@@ -114,7 +121,7 @@ resource "aws_cloudwatch_metric_alarm" "lambda_throttles" {
   alarm_actions             = local.alarm_actions
   insufficient_data_actions = var.observability.alert_config.notify_insufficient_data ? local.alarm_actions : []
   metric_name               = "Throttles"
-  namespace                 = "AWS/Lambda"
+  namespace                 = local.alarm_lambda_namespace
   statistic                 = "Sum"
   period                    = 60
   dimensions = {
@@ -125,4 +132,53 @@ resource "aws_cloudwatch_metric_alarm" "lambda_throttles" {
   threshold           = 0.1
   comparison_operator = "GreaterThanOrEqualToThreshold"
   treat_missing_data  = var.observability.alert_config.treat_missing_data
+}
+
+resource "aws_cloudwatch_metric_alarm" "integration_error_rate_alarms" {
+  for_each = var.observability != null ? var.vendor_alarm_config : {}
+
+  alarm_name          = "${each.key} integration call error rate"
+  alarm_description   = "Alarm triggered when error rate for ${each.key} integration exceeds ${each.value.error_rate_threshold}%"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = each.value.evaluation_periods
+  datapoints_to_alarm = each.value.datapoints_to_alarm
+  threshold           = each.value.error_rate_threshold
+  treat_missing_data  = var.observability.alert_config.treat_missing_data
+
+  metric_query {
+    id          = "e1"
+    expression  = "m2/(m1+m2)*100"
+    label       = "Error Rate (%)"
+    return_data = "true"
+  }
+
+  metric_query {
+    id = "m1"
+    metric {
+      metric_name = "IntegrationCallSuccess"
+      namespace   = local.alarm_lambda_namespace
+      period      = each.value.evaluation_period_seconds
+      stat        = "Sum"
+      dimensions = {
+        vendor = local.vendor_domain_map[each.key]
+      }
+    }
+  }
+
+  metric_query {
+    id = "m2"
+    metric {
+      metric_name = "IntegrationCallFailure"
+      namespace   = local.alarm_lambda_namespace
+      period      = each.value.evaluation_period_seconds
+      stat        = "Sum"
+      dimensions = {
+        vendor = local.vendor_domain_map[each.key]
+      }
+    }
+  }
+
+  ok_actions                = local.alarm_actions
+  alarm_actions             = local.alarm_actions
+  insufficient_data_actions = var.observability.alert_config.notify_insufficient_data ? local.alarm_actions : []
 }

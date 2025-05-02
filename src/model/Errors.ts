@@ -9,3 +9,14 @@ export class ParsingError extends Error {
 
   public item: JsonObject;
 }
+
+export type MergedErrorResult = Error & {
+  cause: {
+    [key: string]: {
+      message: string;
+      name: string;
+      stack?: string;
+      cause?: unknown;
+    };
+  };
+};

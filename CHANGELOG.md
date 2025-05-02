@@ -1,5 +1,55 @@
 # Changelog
 
+## [0.30.0](https://github.com/Notifycal/backend/compare/v0.29.1...v0.30.0) (2025-05-01)
+
+
+### Features
+
+* alerting for vendors ([#584](https://github.com/Notifycal/backend/issues/584)) ([17f2270](https://github.com/Notifycal/backend/commit/17f227010fe1c2081fac4a86fb5f586e6c0f9b27))
+* email service ([#583](https://github.com/Notifycal/backend/issues/583)) ([b5486ea](https://github.com/Notifycal/backend/commit/b5486ea8225fef78548b8397acb56712ee5f7265))
+
+
+### Bug Fixes
+
+* vendor alarm ([5084abf](https://github.com/Notifycal/backend/commit/5084abf91139a6a77b0a0db6235c1de4f3a6d633))
+
+## [0.29.1](https://github.com/Notifycal/backend/compare/v0.29.0...v0.29.1) (2025-04-21)
+
+
+### Bug Fixes
+
+* demo reminder iac and receiver phone ([#573](https://github.com/Notifycal/backend/issues/573)) ([5877281](https://github.com/Notifycal/backend/commit/587728187b5f9973d22ada9a58edc5f70095ec21))
+
+## [0.29.0](https://github.com/Notifycal/backend/compare/v0.28.1...v0.29.0) (2025-04-18)
+
+
+### Features
+
+* POST /reminder ([#524](https://github.com/Notifycal/backend/issues/524)) ([0a5c36b](https://github.com/Notifycal/backend/commit/0a5c36ba4e95ad5760dbb6074f75a2652aab4d7b))
+
+## [0.28.1](https://github.com/Notifycal/backend/compare/v0.28.0...v0.28.1) (2025-04-18)
+
+
+### Bug Fixes
+
+* calendar event phone extractor ([#565](https://github.com/Notifycal/backend/issues/565)) ([49017fe](https://github.com/Notifycal/backend/commit/49017fe534967b4bc0b9919243397547c4127e0b))
+* increate lambda memory ([999875f](https://github.com/Notifycal/backend/commit/999875f422272461ca7c2f66a1b2475bd560c8b2))
+* update log statement. Add missing env var for local env ([#570](https://github.com/Notifycal/backend/issues/570)) ([f750cff](https://github.com/Notifycal/backend/commit/f750cff2ff0d74150fee09989f34803d55b92869))
+
+## [0.28.0](https://github.com/Notifycal/backend/compare/v0.27.2...v0.28.0) (2025-04-16)
+
+
+### Features
+
+* setup Cloudwatch Application Signals ([#525](https://github.com/Notifycal/backend/issues/525)) ([18b0795](https://github.com/Notifycal/backend/commit/18b07952f4f03440aa5d0421f5cfc68fe9caef1f))
+
+## [0.27.2](https://github.com/Notifycal/backend/compare/v0.27.1...v0.27.2) (2025-04-15)
+
+
+### Bug Fixes
+
+* downgrade slack-notify module ([#561](https://github.com/Notifycal/backend/issues/561)) ([a7f531f](https://github.com/Notifycal/backend/commit/a7f531fe3910e7d7096db5649aff63e6ea9b06c8))
+
 ## [0.27.1](https://github.com/Notifycal/backend/compare/v0.27.0...v0.27.1) (2025-04-15)
 
 

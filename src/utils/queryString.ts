@@ -1,3 +1,4 @@
+import { promiseTry } from '@utils/promises';
 import { parse, stringify } from 'qs';
 import type { z } from 'zod';
 
@@ -12,8 +13,9 @@ export function queryStringToObject(queryString: string): Record<string, unknown
 export function queryStringObjectToTypedObject<TSchema extends z.AnyZodObject>(
   queryStringFlatObject: Record<string, string>,
   schema: TSchema
-): z.infer<typeof schema> {
-  const raw = queryStringToObject(objectToQueryString(queryStringFlatObject));
-  const result = schema.parse(raw);
-  return result;
+): Promise<z.infer<typeof schema>> {
+  return promiseTry(() => {
+    const raw = queryStringToObject(objectToQueryString(queryStringFlatObject));
+    return schema.parse(raw);
+  });
 }

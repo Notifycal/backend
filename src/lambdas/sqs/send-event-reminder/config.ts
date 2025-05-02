@@ -5,7 +5,7 @@ import type {
   MessagingEndpointConfig,
   MessagingTopicConfig
 } from '@model/Config';
-import type { VonageConfig } from '@model/vendor/vonage';
+import type { VonageConfig } from '@model/vendor/vonage/config';
 import {
   readEnv,
   readIdempotencyPersistenceConfig,

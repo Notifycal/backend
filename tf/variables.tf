@@ -80,6 +80,46 @@ variable "vonage_auth_config" {
   sensitive = true
 }
 
+variable "messaging_config" {
+  type = object({
+    enabled = bool
+  })
+  default = {
+    enabled = true
+  }
+}
+
+variable "mailgun_auth" {
+  type = object({
+    api_key = string
+  })
+  sensitive = true
+}
+
+variable "mailgun_config" {
+  type = object({
+    base_url    = string
+    domain_name = string
+  })
+}
+
+variable "emailing_config" {
+  type = object({
+    enabled = bool
+    sender = object({
+      displayName = optional(string, "Notifycal")
+      email       = string
+    })
+  })
+  default = {
+    enabled = true
+    sender = {
+      displayName = "Notifycal"
+      email       = "info@notifycal.com"
+    }
+  }
+}
+
 variable "jwt_config" {
   type = object({
     access = object({
@@ -129,4 +169,54 @@ variable "observability" {
       notify_insufficient_data = true
     })
   })
+}
+
+
+variable "vendor_alarm_config" {
+  description = "Configuration for each integration vendor's error rate alarm"
+  type = object({
+    Vonage = object({
+      error_rate_threshold      = number
+      evaluation_period_seconds = number
+      datapoints_to_alarm       = number
+      evaluation_periods        = number
+    })
+    Mailgun = object({
+      error_rate_threshold      = number
+      evaluation_period_seconds = number
+      datapoints_to_alarm       = number
+      evaluation_periods        = number
+    })
+    Google = object({
+      error_rate_threshold      = number
+      evaluation_period_seconds = number
+      datapoints_to_alarm       = number
+      evaluation_periods        = number
+    })
+  })
+  default = {
+    Vonage = {
+      error_rate_threshold      = 2
+      evaluation_period_seconds = 3600
+      datapoints_to_alarm       = 1
+      evaluation_periods        = 1
+    },
+    Mailgun = {
+      error_rate_threshold      = 5
+      evaluation_period_seconds = 3600
+      datapoints_to_alarm       = 1
+      evaluation_periods        = 1
+    },
+    Google = {
+      error_rate_threshold      = 2
+      evaluation_period_seconds = 3600
+      datapoints_to_alarm       = 1
+      evaluation_periods        = 1
+    }
+  }
+}
+
+variable "enable_data_protection" {
+  type    = bool
+  default = true
 }
