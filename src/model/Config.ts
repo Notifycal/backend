@@ -101,6 +101,10 @@ export type EmailingTopicConfig = {
   emailingTopicConfig: SnsTopicConfig;
 };
 
+export type EmailToBeSentTopicConfig = {
+  emailToBeSentTopicConfig: SnsTopicConfig;
+};
+
 export type ApiRestTopicConfig = {
   apiRestTopicConfig: SnsTopicConfig;
 };

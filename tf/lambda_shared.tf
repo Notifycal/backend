@@ -43,6 +43,9 @@ locals {
     EMAILING_TOPIC_ARN = module.emailing_topic.sns_topic_arn
   }
 
+  email_to_be_sent_topic_env_vars = {
+    EMAIL_TO_BE_SENT_TOPIC_ARN = module.email_to_be_sent_topic.sns_topic_arn
+  }
   api_rest_topic_env_vars = {
     API_REST_TOPIC_ARN = module.api_rest_topic.sns_topic_arn
   }

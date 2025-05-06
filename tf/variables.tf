@@ -220,3 +220,8 @@ variable "enable_data_protection" {
   type    = bool
   default = true
 }
+
+variable "deletion_protection_enabled" {
+  type    = bool
+  default = true
+}

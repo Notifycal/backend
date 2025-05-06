@@ -35,5 +35,5 @@ resource "aws_dynamodb_table" "users" {
     ]
   }
 
-  deletion_protection_enabled = true
+  deletion_protection_enabled = var.deletion_protection_enabled
 }

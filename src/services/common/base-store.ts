@@ -7,7 +7,8 @@ import {
   type GetCommandInput,
   type PutCommandInput,
   type QueryCommandInput,
-  type UpdateCommandInput
+  type UpdateCommandInput,
+  type UpdateCommandOutput
 } from '@aws-sdk/lib-dynamodb';
 import { dynamodbClient } from '@clients/dynamodb';
 
@@ -84,15 +85,13 @@ export abstract class BaseStore<TConfig extends BaseStoreConfig> {
       Required<Pick<UpdateCommandInput, 'ExpressionAttributeValues'>> &
       Partial<UpdateCommandInput> &
       Omit<UpdateCommandInput, 'TableName'>
-  ): Promise<null> {
+  ): Promise<UpdateCommandOutput> {
     const command = new UpdateCommand({
       TableName: this._tableName,
       ReturnConsumedCapacity: 'TOTAL',
       ReturnValues: 'ALL_NEW',
       ...cmd
     });
-    return this._dynamoDbClient.send(command).then(() => {
-      return null;
-    });
+    return this._dynamoDbClient.send(command);
   }
 }

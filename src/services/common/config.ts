@@ -11,6 +11,7 @@ import type {
   DemoReminderToBeSentTopicConfig,
   EmailingEndpointConfig,
   EmailingTopicConfig,
+  EmailToBeSentTopicConfig,
   EncodeAccessJwtConfig,
   EncodeJwtsEndpointConfig,
   EncodeRefreshJwtConfig,
@@ -32,6 +33,7 @@ import type {
   VonageApplicationId,
   VonageJwtSigningSecret
 } from '@services/messaging';
+import type { AlertNoPhoneNumberBaseStoreEndpointConfig } from '@services/stores/alert-no-phone-number-store';
 import type { AuditTrailBaseStoreEndpointConfig } from '@services/stores/audit-trail-base-store';
 import type { RefreshTokenBaseStoreConfigEndpointConfig } from '@services/stores/refresh-token-base-store';
 import type { UserBaseStoreEndpointConfig } from '@services/stores/user-base-store';
@@ -198,6 +200,16 @@ export function readAuditTrailBaseStoreConfig(env: Environment): AuditTrailBaseS
   };
 }
 
+export function readAlertNoPhoneNumber(
+  env: Environment
+): AlertNoPhoneNumberBaseStoreEndpointConfig {
+  return {
+    alertNoPhoneNumberBaseStoreConfig: {
+      tableName: env.get('ALERT_NO_PHONE_NUMBER_TABLE_NAME').required().asString()
+    }
+  };
+}
+
 export function readIdempotencyPersistenceConfig(env: Environment): IdempotencyPersistenceConfig {
   return {
     idempotencyPersistenceConfig: env
@@ -284,6 +296,14 @@ export function readEmailingTopicConfig(env: Environment): EmailingTopicConfig {
   return {
     emailingTopicConfig: {
       topicArn: env.get('EMAILING_TOPIC_ARN').required().asString() as AwsArn
+    }
+  };
+}
+
+export function readEmailToBeSentTopicConfig(env: Environment): EmailToBeSentTopicConfig {
+  return {
+    emailToBeSentTopicConfig: {
+      topicArn: env.get('EMAIL_TO_BE_SENT_TOPIC_ARN').required().asString() as AwsArn
     }
   };
 }

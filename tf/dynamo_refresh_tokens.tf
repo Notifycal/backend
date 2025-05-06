@@ -7,8 +7,6 @@ resource "aws_dynamodb_table" "refresh_tokens" {
     attribute_name = "ExpiresAt"
     enabled        = true
   }
-  stream_enabled   = true
-  stream_view_type = "NEW_AND_OLD_IMAGES"
 
   attribute {
     name = "UserId"
@@ -19,5 +17,5 @@ resource "aws_dynamodb_table" "refresh_tokens" {
     type = "S"
   }
 
-  deletion_protection_enabled = true
+  deletion_protection_enabled = var.deletion_protection_enabled
 }

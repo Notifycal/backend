@@ -117,6 +117,6 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
         ':config': config
       },
       UpdateExpression: 'set UserStatus = :userStatus, Config = :config'
-    });
+    }).then(() => null);
   }
 }
