@@ -22,12 +22,15 @@
 |------|--------|---------|
 | <a name="module_actionable_event_found_queue"></a> [actionable\_event\_found\_queue](#module\_actionable\_event\_found\_queue) | ./modules/sqs | n/a |
 | <a name="module_actionable_event_found_topic"></a> [actionable\_event\_found\_topic](#module\_actionable\_event\_found\_topic) | ./modules/sns | n/a |
+| <a name="module_alert_no_phone_number_lambda"></a> [alert\_no\_phone\_number\_lambda](#module\_alert\_no\_phone\_number\_lambda) | terraform-aws-modules/lambda/aws | ~> 7.17 |
 | <a name="module_api_rest_topic"></a> [api\_rest\_topic](#module\_api\_rest\_topic) | ./modules/sns | n/a |
 | <a name="module_apigateway_custom_domain"></a> [apigateway\_custom\_domain](#module\_apigateway\_custom\_domain) | ./modules/api_gateway_external_domain | n/a |
 | <a name="module_audit_trail_lambda"></a> [audit\_trail\_lambda](#module\_audit\_trail\_lambda) | terraform-aws-modules/lambda/aws | ~> 7.17 |
 | <a name="module_audit_trail_queue"></a> [audit\_trail\_queue](#module\_audit\_trail\_queue) | ./modules/sqs | n/a |
 | <a name="module_demo_reminder_to_be_sent_queue"></a> [demo\_reminder\_to\_be\_sent\_queue](#module\_demo\_reminder\_to\_be\_sent\_queue) | ./modules/sqs | n/a |
 | <a name="module_demo_reminder_to_be_sent_topic"></a> [demo\_reminder\_to\_be\_sent\_topic](#module\_demo\_reminder\_to\_be\_sent\_topic) | ./modules/sns | n/a |
+| <a name="module_email_to_be_sent_queue"></a> [email\_to\_be\_sent\_queue](#module\_email\_to\_be\_sent\_queue) | ./modules/sqs | n/a |
+| <a name="module_email_to_be_sent_topic"></a> [email\_to\_be\_sent\_topic](#module\_email\_to\_be\_sent\_topic) | ./modules/sns | n/a |
 | <a name="module_emailing_topic"></a> [emailing\_topic](#module\_emailing\_topic) | ./modules/sns | n/a |
 | <a name="module_event_reminder_status_change_webhook_lambda"></a> [event\_reminder\_status\_change\_webhook\_lambda](#module\_event\_reminder\_status\_change\_webhook\_lambda) | terraform-aws-modules/lambda/aws | ~> 7.17 |
 | <a name="module_event_reminder_status_change_webhook_lambda_alias"></a> [event\_reminder\_status\_change\_webhook\_lambda\_alias](#module\_event\_reminder\_status\_change\_webhook\_lambda\_alias) | terraform-aws-modules/lambda/aws//modules/alias | ~> 7.17 |
@@ -72,11 +75,13 @@
 | [aws_cloudwatch_metric_alarm.lambda_invocations](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_metric_alarm) | resource |
 | [aws_cloudwatch_metric_alarm.lambda_throttles](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_metric_alarm) | resource |
 | [aws_cloudwatch_metric_alarm.sqs_dlq_number_of_messages](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_metric_alarm) | resource |
+| [aws_dynamodb_table.alert_no_phone_number](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/dynamodb_table) | resource |
 | [aws_dynamodb_table.audit_trail_events](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/dynamodb_table) | resource |
 | [aws_dynamodb_table.lambda_idempotency](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/dynamodb_table) | resource |
 | [aws_dynamodb_table.refresh_tokens](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/dynamodb_table) | resource |
 | [aws_dynamodb_table.users](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/dynamodb_table) | resource |
 | [aws_iam_role.sns_feedback_role](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role) | resource |
+| [aws_lambda_event_source_mapping.dynamodb_stream_mapping](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lambda_event_source_mapping) | resource |
 | [aws_sqs_queue.global_dlq_lambda](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/sqs_queue) | resource |
 | [aws_sqs_queue.global_dlq_sqs](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/sqs_queue) | resource |
 | [aws_sqs_queue.global_dlq_unprocessable_sqs](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/sqs_queue) | resource |
@@ -90,6 +95,7 @@
 | [aws_caller_identity.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/caller_identity) | data source |
 | [aws_iam_policy.appsignals](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy) | data source |
 | [aws_iam_policy.insights](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy) | data source |
+| [aws_iam_policy_document.alert_no_phone_number_iam_policydoc](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
 | [aws_iam_policy_document.audit_trail_iam_policydoc](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
 | [aws_iam_policy_document.demo_reminder_to_be_sent_iam_policydoc](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
 | [aws_iam_policy_document.event_reminder_status_change_webhook_iam_policydoc](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
@@ -117,6 +123,7 @@
 | <a name="input_app_version"></a> [app\_version](#input\_app\_version) | n/a | `string` | n/a | yes |
 | <a name="input_aws_region"></a> [aws\_region](#input\_aws\_region) | n/a | `string` | n/a | yes |
 | <a name="input_base_domain"></a> [base\_domain](#input\_base\_domain) | n/a | `string` | `"notifycal.com"` | no |
+| <a name="input_deletion_protection_enabled"></a> [deletion\_protection\_enabled](#input\_deletion\_protection\_enabled) | n/a | `bool` | `true` | no |
 | <a name="input_domain_prefix"></a> [domain\_prefix](#input\_domain\_prefix) | n/a | `string` | `"api"` | no |
 | <a name="input_emailing_config"></a> [emailing\_config](#input\_emailing\_config) | n/a | <pre>object({<br/>    enabled = bool<br/>    sender = object({<br/>      displayName = optional(string, "Notifycal")<br/>      email       = string<br/>    })<br/>  })</pre> | <pre>{<br/>  "enabled": true,<br/>  "sender": {<br/>    "displayName": "Notifycal",<br/>    "email": "info@notifycal.com"<br/>  }<br/>}</pre> | no |
 | <a name="input_enable_data_protection"></a> [enable\_data\_protection](#input\_enable\_data\_protection) | n/a | `bool` | `true` | no |
@@ -134,7 +141,7 @@
 | <a name="input_messaging_config"></a> [messaging\_config](#input\_messaging\_config) | n/a | <pre>object({<br/>    enabled = bool<br/>  })</pre> | <pre>{<br/>  "enabled": true<br/>}</pre> | no |
 | <a name="input_observability"></a> [observability](#input\_observability) | n/a | <pre>object({<br/>    alert_notifier = object({<br/>      slack_channel = string<br/>    })<br/>    alert_config = optional(object({<br/>      treat_missing_data       = optional(string, "missing")<br/>      notify_insufficient_data = optional(bool, true)<br/>      }), {<br/>      treat_missing_data       = "missing"<br/>      notify_insufficient_data = true<br/>    })<br/>  })</pre> | n/a | yes |
 | <a name="input_openapi_spec_file"></a> [openapi\_spec\_file](#input\_openapi\_spec\_file) | Name of the OpenAPI spec file for this API | `string` | `"spec.yaml"` | no |
-| <a name="input_vendor_alarm_config"></a> [vendor\_alarm\_config](#input\_vendor\_alarm\_config) | Configuration for each integration vendor's error rate alarm | <pre>object({<br/>    Vonage = object({<br/>      error_rate_threshold      = number<br/>      evaluation_period_seconds = number<br/>      datapoints_to_alarm       = number<br/>      evaluation_periods        = number<br/>    })<br/>    Mailgun = object({<br/>      error_rate_threshold      = number<br/>      evaluation_period_seconds = number<br/>      datapoints_to_alarm       = number<br/>      evaluation_periods        = number<br/>    })<br/>    "google.com" = object({<br/>      error_rate_threshold      = number<br/>      evaluation_period_seconds = number<br/>      datapoints_to_alarm       = number<br/>      evaluation_periods        = number<br/>    })<br/>  })</pre> | <pre>{<br/>  "Mailgun": {<br/>    "datapoints_to_alarm": 1,<br/>    "error_rate_threshold": 5,<br/>    "evaluation_period_seconds": 3600,<br/>    "evaluation_periods": 1<br/>  },<br/>  "Vonage": {<br/>    "datapoints_to_alarm": 1,<br/>    "error_rate_threshold": 2,<br/>    "evaluation_period_seconds": 3600,<br/>    "evaluation_periods": 1<br/>  },<br/>  "google.com": {<br/>    "datapoints_to_alarm": 1,<br/>    "error_rate_threshold": 2,<br/>    "evaluation_period_seconds": 3600,<br/>    "evaluation_periods": 1<br/>  }<br/>}</pre> | no |
+| <a name="input_vendor_alarm_config"></a> [vendor\_alarm\_config](#input\_vendor\_alarm\_config) | Configuration for each integration vendor's error rate alarm | <pre>object({<br/>    Vonage = object({<br/>      error_rate_threshold      = number<br/>      evaluation_period_seconds = number<br/>      datapoints_to_alarm       = number<br/>      evaluation_periods        = number<br/>    })<br/>    Mailgun = object({<br/>      error_rate_threshold      = number<br/>      evaluation_period_seconds = number<br/>      datapoints_to_alarm       = number<br/>      evaluation_periods        = number<br/>    })<br/>    Google = object({<br/>      error_rate_threshold      = number<br/>      evaluation_period_seconds = number<br/>      datapoints_to_alarm       = number<br/>      evaluation_periods        = number<br/>    })<br/>  })</pre> | <pre>{<br/>  "Google": {<br/>    "datapoints_to_alarm": 1,<br/>    "error_rate_threshold": 2,<br/>    "evaluation_period_seconds": 3600,<br/>    "evaluation_periods": 1<br/>  },<br/>  "Mailgun": {<br/>    "datapoints_to_alarm": 1,<br/>    "error_rate_threshold": 5,<br/>    "evaluation_period_seconds": 3600,<br/>    "evaluation_periods": 1<br/>  },<br/>  "Vonage": {<br/>    "datapoints_to_alarm": 1,<br/>    "error_rate_threshold": 2,<br/>    "evaluation_period_seconds": 3600,<br/>    "evaluation_periods": 1<br/>  }<br/>}</pre> | no |
 | <a name="input_vonage_auth_config"></a> [vonage\_auth\_config](#input\_vonage\_auth\_config) | n/a | <pre>object({<br/>    api_key                    = string<br/>    application_id             = string<br/>    private_key_secret_path    = string<br/>    webhook_jwt_signing_secret = string<br/>  })</pre> | n/a | yes |
 
 ## Outputs
