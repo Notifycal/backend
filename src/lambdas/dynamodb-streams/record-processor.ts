@@ -6,6 +6,7 @@ import {
 } from '@model/store/AlertNoPhoneNumberStoreRecord';
 import type { Email, UserId } from '@notifycal/shared/types';
 import type { EmailHtmlBody, EmailSubject } from '@own-types/model';
+import { throwError } from '@services/common/error-handling';
 import type { SnsService } from '@services/sns';
 import type { AlertNoPhoneNumberBaseStore } from '@services/stores/alert-no-phone-number-store';
 import { tap } from '@utils/promises';
@@ -90,6 +91,11 @@ export function recordProcessor(
         ) {
           return sendAlert(event, hashKey, sortKey, result, baseStore, snsService);
         }
+      })
+    )
+    .catch((error) =>
+      throwError(`(Re)-Throwing error on purpose to notify of batch item failure`, error, {
+        eventId: event.eventId
       })
     )
     .then();

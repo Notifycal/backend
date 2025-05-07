@@ -1,8 +1,13 @@
 locals {
   event_source_mappings = {
     dynamodb = {
-      event_source_arn  = aws_dynamodb_table.audit_trail_events.stream_arn
-      starting_position = "LATEST"
+      event_source_arn                   = aws_dynamodb_table.audit_trail_events.stream_arn
+      starting_position                  = "LATEST"
+      function_response_types            = ["ReportBatchItemFailures"]
+      maximum_batching_window_in_seconds = 300
+      batch_size                         = 100 //matches default value
+      metrics_config                     = { metrics = ["EventCount"] }
+      parallelization_factor             = 1 // matches default value
       filter_criteria = {
         filter = {
           pattern = jsonencode({
