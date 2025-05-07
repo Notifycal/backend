@@ -28,7 +28,6 @@ export const successEventTypeSchema = z.union([
   z.literal('UserSignUpSucceeded'),
   z.literal('NoPhoneNumberForCalendarEventFound'),
   z.literal('NoActionableEventsFound'),
-  z.literal('NoAttendeesInCalendarEventFound'),
   z.literal('NoUserCalendarFound'),
   z.literal('EmailToBeSent'),
   z.literal('EmailToBeSentAttemptSent'),
