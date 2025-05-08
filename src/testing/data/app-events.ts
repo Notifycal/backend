@@ -1,5 +1,9 @@
 import type { NoPhoneNumberForCalendarEventFoundEvent } from '@model/app-events/NoPhoneNumberForCalendarEventFoundEvent';
 import type { UserCalendarFetchedEvent } from '@model/app-events/UserCalendarFetchedEvent';
+import type {
+  AuditTrailStoreRecord,
+  AuditTrailStoreRecordOrigin
+} from '@model/store/AuditTrailStoreRecord';
 import {
   templateMap,
   type BusinessAddress,
@@ -14,6 +18,7 @@ import {
   type TimeZone,
   type UserId
 } from '@notifycal/shared/types';
+import type { PhoneNumberE164 } from '@own-types/model';
 
 export const userCalendarFetchedEvent: UserCalendarFetchedEvent = {
   eventId: 'c1625a78-7337-4fd8-a6c4-a0afb9c0ceb9' as EventId,
@@ -52,6 +57,46 @@ export const userCalendarFetchedEvent: UserCalendarFetchedEvent = {
       refreshToken: 'some refresh token'
     }
   }
+};
+
+export const auditTrailActionableEventFoundEvent: AuditTrailStoreRecord = {
+  Data: {
+    receiverDetails: {
+      type: 'phone',
+      phoneNumber: '+34123456789' as PhoneNumberE164,
+      countryCode: 'ES'
+    },
+    run: {
+      lowerBoundStartTime: '2023-01-01T00:00:00Z' as DateTime,
+      upperBoundStartTime: '2023-01-01T00:29:59Z' as DateTime,
+      slidingWindowInMinutes: 30
+    },
+    calendar: {
+      id: 'some calendar id' as CalendarId,
+      name: 'some calendar name' as CalendarName
+    },
+    calendarEvent: {
+      id: 'event-1',
+      attendees: [{ id: 'attendee@test.com' }],
+      isAllDayEvent: false,
+      startTime: '2024-01-02T15:05:00Z' as DateTime,
+      timeZone: 'Europe/Madrid' as TimeZone
+    },
+    senderDetails: {
+      type: 'phone',
+      phoneNumber: '+34666999888' as PhoneNumberE164,
+      countryCode: 'ES'
+    },
+    message: `This is some message`
+  },
+  CorrelationId: '0de651ef-535e-4d2e-b9ff-7bf43f5aaaaa' as CorrelationId,
+  EventId: '0de651ef-535e-4d2e-b9ff-7bf43f5a01ac' as EventId,
+  UserId: '0de651ef-535e-4d2e-b9ff-7bf43f5a0000' as UserId,
+  Idp: 'google.com',
+  IdpId: '45346356356' as IdpId,
+  EventType: 'ActionableEventFound',
+  HappenedAt: '2024-01-02T15:04:50Z' as DateTime,
+  Origin: 'somewhere' as AuditTrailStoreRecordOrigin
 };
 
 export const noPhoneNumberForCalendarEventFoundEvent: NoPhoneNumberForCalendarEventFoundEvent = {

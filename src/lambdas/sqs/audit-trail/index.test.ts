@@ -3,7 +3,7 @@ import { validRawRecord } from '@testing/data/sqs-events';
 import { setEnvAuditTrailBaseStoreConfig } from '@testing/utils/config';
 import type { SQSEvent, SQSRecord } from 'aws-lambda';
 import { describe, vi } from 'vitest';
-import { createSqsHandlerTestSuite } from '../sqs-lambda-handler-test.suite';
+import { createSqsHandlerTestSuite } from '../batch-processing-lambda-handler-test.suite';
 import type { AuditTrailConfig } from './config';
 // @ts-expect-error cjs handler export
 import { handler } from './index';
@@ -33,7 +33,7 @@ describe(
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     handler,
     setEnv,
-    validSqsBatchEvent,
+    validBatchEvent: validSqsBatchEvent,
     recordProcessorMockFn: () => vi.mocked(recordProcessor)
   })
 );

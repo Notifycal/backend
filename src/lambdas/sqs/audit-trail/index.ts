@@ -2,6 +2,7 @@ import { BatchProcessor, EventType, processPartialResponse } from '@aws-lambda-p
 import type { PartialItemFailureResponse } from '@aws-lambda-powertools/batch/types';
 import { backgroundProcessingMiddleware } from '@common/lambda-middleware';
 import { logger } from '@common/powertools';
+import { AuditTrailBaseStore } from '@services/stores/audit-trail-base-store';
 import type { Context } from 'aws-lambda';
 import { readAuditTrailConfig, type AuditTrailConfig } from './config';
 import { recordProcessor } from './record-processor';
@@ -10,7 +11,8 @@ import { eventSchema, type Event, type Record } from './schema';
 export function recordProcessorCurried(
   config: AuditTrailConfig
 ): (record: Record) => Promise<void> {
-  return (record: Record) => recordProcessor(record, config);
+  const auditTrailBaseStore = AuditTrailBaseStore.withConfig(config.auditTrailBaseStoreConfig);
+  return (record: Record) => recordProcessor(record, auditTrailBaseStore);
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars

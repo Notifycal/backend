@@ -8,10 +8,9 @@ import type {
 import type { CorrelationId, DateTime, EventId, UserId } from '@notifycal/shared/types';
 import { throwError } from '@services/common/error-handling';
 import { setupLoggerForAuditStoreRecordProcessing } from '@services/common/logger';
-import { AuditTrailBaseStore } from '@services/stores/audit-trail-base-store';
+import type { AuditTrailBaseStore } from '@services/stores/audit-trail-base-store';
 import type MetricsAggregator from '@utils/MetricsAggregator';
 import { match, P } from 'ts-pattern';
-import type { AuditTrailConfig } from './config';
 import type { Record } from './schema';
 
 function toStoreRecord(r: Record): AuditTrailStoreRecord {
@@ -82,8 +81,10 @@ function withEventMetric(
   return event;
 }
 
-export function recordProcessor(record: Record, config: AuditTrailConfig): Promise<void> {
-  const auditTrailBaseStore = AuditTrailBaseStore.withConfig(config.auditTrailBaseStoreConfig);
+export function recordProcessor(
+  record: Record,
+  auditTrailBaseStore: AuditTrailBaseStore
+): Promise<void> {
   const storeRecord = toStoreRecord(record);
   setupLoggerForAuditStoreRecordProcessing(storeRecord, logger.createChild());
   return auditTrailBaseStore

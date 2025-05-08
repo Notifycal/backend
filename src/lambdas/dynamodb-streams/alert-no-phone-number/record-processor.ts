@@ -1,10 +1,10 @@
-import { emailToBeSent, type EmailToBeSentEvent } from '@model/app-events/EmailToBeSentEvent';
+import type { EmailToBeSentEvent } from '@model/app-events/EmailToBeSentEvent';
 import {
   EventTypeDate,
   type AlertCounterKeyNames,
   type AlertNoPhoneNumberStoreRecord
 } from '@model/store/AlertNoPhoneNumberStoreRecord';
-import type { Email, UserId } from '@notifycal/shared/types';
+import type { DateTime, Email, EventId, UserId } from '@notifycal/shared/types';
 import type { EmailHtmlBody, EmailSubject } from '@own-types/model';
 import { throwError } from '@services/common/error-handling';
 import type { SnsService } from '@services/sns';
@@ -12,12 +12,30 @@ import type { AlertNoPhoneNumberBaseStore } from '@services/stores/alert-no-phon
 import { tap } from '@utils/promises';
 import { DateTime as DT } from 'luxon';
 import { match } from 'ts-pattern';
-import type { Record } from './schema';
+import { v4 } from 'uuid';
+import type { z } from 'zod';
+import type { payloadSchemas, Record } from './schema';
+
+export function emailToBeSent(
+  origin: z.infer<typeof payloadSchemas>,
+  data: EmailToBeSentEvent['data']
+): EmailToBeSentEvent {
+  return {
+    eventId: v4() as EventId,
+    correlationId: origin.CorrelationId,
+    eventType: 'EmailToBeSent',
+    happenedAt: new Date().toISOString() as DateTime,
+    userId: origin.UserId,
+    idp: origin.Idp,
+    idpId: origin.IdpId,
+    data: data
+  };
+}
 
 function updateCounterOnEventReceived(
   hashKey: EventTypeDate,
   sortKey: UserId,
-  eventType: Record['body']['eventType'],
+  eventType: Record['NewImage']['EventType'],
   baseStore: AlertNoPhoneNumberBaseStore
 ): Promise<AlertNoPhoneNumberStoreRecord<EventTypeDate['value'], UserId>> {
   const counterToIncrement: AlertCounterKeyNames = match(eventType)
@@ -44,7 +62,7 @@ function updateCounterOnAlertSent(
 }
 
 function sendAlert(
-  event: Record['body'],
+  event: Record['NewImage'],
   hashKey: EventTypeDate,
   sortKey: UserId,
   updateCounterResult: AlertNoPhoneNumberStoreRecord<EventTypeDate['value'], UserId>,
@@ -54,8 +72,7 @@ function sendAlert(
   const alertData = {
     to: 'foobar@notifycal.com' as Email,
     subject: 'Un rabo' as EmailSubject,
-    htmlBody:
-      `<h1>Otro rabo. Durante el dia X has tenido ${updateCounterResult.FailureCount} eventos con un numero de telefono erroneo</h1>` as EmailHtmlBody,
+    htmlBody: `<h1>Otro rabo</h1>` as EmailHtmlBody,
     tags: []
   };
   const alertEvent: EmailToBeSentEvent = emailToBeSent(event, alertData);
@@ -65,10 +82,13 @@ function sendAlert(
     .then();
 }
 
-function buildPersistanceKeys(event: Record['body']): { hashKey: EventTypeDate; sortKey: UserId } {
-  const happenedAt = DT.fromISO(event.happenedAt).toUTC();
-  const hashKey = new EventTypeDate(event.eventType, happenedAt);
-  const sortKey = event.userId;
+function buildPersistanceKeys(event: Record['NewImage']): {
+  hashKey: EventTypeDate;
+  sortKey: UserId;
+} {
+  const happenedAt = DT.fromISO(event.HappenedAt).toUTC();
+  const hashKey = new EventTypeDate(event.EventType, happenedAt);
+  const sortKey = event.UserId;
   return { hashKey, sortKey };
 }
 
@@ -77,9 +97,9 @@ export function recordProcessor(
   baseStore: AlertNoPhoneNumberBaseStore,
   snsService: SnsService
 ): Promise<void> {
-  const event = record.body;
+  const event = record.NewImage;
   const { hashKey, sortKey } = buildPersistanceKeys(event);
-  return updateCounterOnEventReceived(hashKey, sortKey, event.eventType, baseStore)
+  return updateCounterOnEventReceived(hashKey, sortKey, event.EventType, baseStore)
     .then(
       tap((result) => {
         const { SuccessCount, FailureCount, NotificationSentCount } = result;
@@ -87,7 +107,7 @@ export function recordProcessor(
         if (
           errorRate > 5 &&
           (NotificationSentCount || 0) < 1 &&
-          (SuccessCount || 0) + (FailureCount || 0)
+          (SuccessCount || 0) + (FailureCount || 0) > 10
         ) {
           return sendAlert(event, hashKey, sortKey, result, baseStore, snsService);
         }
@@ -95,7 +115,7 @@ export function recordProcessor(
     )
     .catch((error) =>
       throwError(`(Re)-Throwing error on purpose to notify of batch item failure`, error, {
-        eventId: event.eventId
+        eventId: event.EventId
       })
     )
     .then();
