@@ -1,3 +1,4 @@
+import type { AlertThresholdConfig } from '@lambdas/dynamodb-streams/alert-for-missing-phone-number/config';
 import type {
   CorsConfig,
   CronRunConfig,
@@ -160,4 +161,9 @@ export function setEnvMaigunConfig(config: MailgunConfig): void {
   process.env.MAILGUN_API_KEY = config.apiKey;
   process.env.MAILGUN_BASE_URL = config.baseUrl;
   process.env.MAILGUN_DOMAIN_NAME = config.domainName;
+}
+
+export function setEnvAlertThresholdConfig(config: AlertThresholdConfig): void {
+  process.env.ERROR_RATE_THRESHOLD = config.errorRateThreshold.toString();
+  process.env.BASELINE_COUNT_TO_ENABLE_TRIGGER = config.countThresholdToEnableTrigger.toString();
 }

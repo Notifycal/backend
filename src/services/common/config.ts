@@ -1,3 +1,4 @@
+import type { AlertThresholdEndpointConfig } from '@lambdas/dynamodb-streams/alert-for-missing-phone-number/config';
 import type {
   ActionableEventFoundTopicConfig,
   Algorithm,
@@ -302,6 +303,19 @@ export function readEmailToBeSentTopicConfig(env: Environment): EmailToBeSentTop
   return {
     emailToBeSentTopicConfig: {
       topicArn: env.get('EMAIL_TO_BE_SENT_TOPIC_ARN').required().asString() as AwsArn
+    }
+  };
+}
+
+export function readAlertThresholdConfig(env: Environment): AlertThresholdEndpointConfig {
+  return {
+    alertThresholdConfig: {
+      errorRateThreshold: env.get('ERROR_RATE_THRESHOLD').required().default(5).asIntPositive(),
+      countThresholdToEnableTrigger: env
+        .get('COUNT_THRESHOLD_TO_ENABLE_TRIGGER')
+        .required()
+        .default(10)
+        .asIntPositive()
     }
   };
 }

@@ -100,7 +100,9 @@ module "alert_for_missing_phone_number_lambda" {
   allowed_triggers     = local.allowed_triggers
 
   environment_variables = merge({
-    BUSINESS_ALERTS_TABLE_NAME = aws_dynamodb_table.business_alerts.name
+    BUSINESS_ALERTS_TABLE_NAME        = aws_dynamodb_table.business_alerts.name
+    ERROR_RATE_THRESHOLD              = var.alert_for_missing_phone_number.error_rate_threshold
+    COUNT_THRESHOLD_TO_ENABLE_TRIGGER = var.alert_for_missing_phone_number.count_threshold_to_enable_trigger
   }, local.email_to_be_sent_topic_env_vars, local.common_lambda_env_vars)
 }
 

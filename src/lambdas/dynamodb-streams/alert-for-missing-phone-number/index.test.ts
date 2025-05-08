@@ -31,6 +31,10 @@ function setEnv() {
     },
     emailToBeSentTopicConfig: {
       topicArn: 'some-arn' as AwsArn
+    },
+    alertThresholdConfig: {
+      errorRateThreshold: 5,
+      countThresholdToEnableTrigger: 10
     }
   };
   setEnvAlertsBaseStoreConfig(config.alertsBaseStoreConfig);

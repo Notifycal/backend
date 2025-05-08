@@ -19,7 +19,7 @@ import type {
   Record
 } from './schema';
 
-export function emailToBeSent(
+function emailToBeSent(
   origin: AuditTrailActionableEventFoundEvent | AuditTrailNoPhoneNumberForCalendarEventFoundEvent,
   data: EmailToBeSentEvent['data']
 ): EmailToBeSentEvent {
