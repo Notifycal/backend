@@ -1,24 +1,21 @@
 import { logger } from '@common/powertools';
-import type {
-  AlertCounterKeyNames,
-  AlertNoPhoneNumberStoreRecord
-} from '@model/store/AlertNoPhoneNumberStoreRecord';
+import type { AlertCounterKeyNames, AlertStoreRecord } from '@model/store/AlertStoreRecord';
 import { BaseStore, type BaseStoreConfig } from '@services/common/base-store';
 import { throwError } from '@services/common/error-handling';
 import { tap } from '@utils/promises';
 import { DateTime } from 'luxon';
 
-export type AlertNoPhoneNumberBaseStoreConfig = BaseStoreConfig;
-export type AlertNoPhoneNumberBaseStoreEndpointConfig = {
-  alertNoPhoneNumberBaseStoreConfig: AlertNoPhoneNumberBaseStoreConfig;
+export type AlertsBaseStoreConfig = BaseStoreConfig;
+export type AlertsBaseStoreEndpointConfig = {
+  alertsBaseStoreConfig: AlertsBaseStoreConfig;
 };
 
-export class AlertNoPhoneNumberBaseStore extends BaseStore<AlertNoPhoneNumberBaseStoreConfig> {
-  public static withConfig(config: AlertNoPhoneNumberBaseStoreConfig): AlertNoPhoneNumberBaseStore {
-    return new AlertNoPhoneNumberBaseStore(config);
+export class AlertsBaseStore extends BaseStore<AlertsBaseStoreConfig> {
+  public static withConfig(config: AlertsBaseStoreConfig): AlertsBaseStore {
+    return new AlertsBaseStore(config);
   }
 
-  private constructor(config: AlertNoPhoneNumberBaseStoreConfig) {
+  private constructor(config: AlertsBaseStoreConfig) {
     super(config);
   }
 
@@ -26,7 +23,7 @@ export class AlertNoPhoneNumberBaseStore extends BaseStore<AlertNoPhoneNumberBas
     hashKey: THashKey,
     sortKey: TSortKey,
     alertCounterKeyName: AlertCounterKeyNames
-  ): Promise<AlertNoPhoneNumberStoreRecord<THashKey, TSortKey>> {
+  ): Promise<AlertStoreRecord<THashKey, TSortKey>> {
     return this.updateCommandRunner({
       Key: {
         HashKey: hashKey,
@@ -51,7 +48,7 @@ export class AlertNoPhoneNumberBaseStore extends BaseStore<AlertNoPhoneNumberBas
       )
       .then((output) => {
         if (output.Attributes) {
-          return output.Attributes as AlertNoPhoneNumberStoreRecord<THashKey, TSortKey>;
+          return output.Attributes as AlertStoreRecord<THashKey, TSortKey>;
         } else {
           throwError('Error incrementing counter');
         }

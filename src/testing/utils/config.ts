@@ -13,7 +13,7 @@ import type {
 } from '@model/Config';
 import type { MailgunConfig } from '@model/vendor/mailgun/config';
 import type { VonageConfig } from '@model/vendor/vonage/config';
-import type { AlertNoPhoneNumberBaseStoreConfig } from '@services/stores/alert-no-phone-number-store';
+import type { AlertsBaseStoreConfig } from '@services/stores/alerts-base-store';
 import type { AuditTrailBaseStoreConfig } from '@services/stores/audit-trail-base-store';
 import type { RefreshTokenBaseStoreConfig } from '@services/stores/refresh-token-base-store';
 import type { UserBaseStoreConfig } from '@services/stores/user-base-store';
@@ -118,10 +118,8 @@ export function setEnvAuditTrailBaseStoreConfig(config: AuditTrailBaseStoreConfi
   process.env.AUDIT_TRAIL_TABLE_NAME = config.tableName;
 }
 
-export function setEnvAlertNoPhoneNumberBaseStoreConfig(
-  config: AlertNoPhoneNumberBaseStoreConfig
-): void {
-  process.env.ALERT_NO_PHONE_NUMBER_TABLE_NAME = config.tableName;
+export function setEnvAlertNoPhoneNumberBaseStoreConfig(config: AlertsBaseStoreConfig): void {
+  process.env.BUSINESS_ALERTS_TABLE_NAME = config.tableName;
 }
 
 export function setEnvEmailingConfig(config: EmailingConfig): void {

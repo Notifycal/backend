@@ -1,5 +1,5 @@
-resource "aws_dynamodb_table" "alert_no_phone_number" {
-  name         = "AlertNoPhoneNumber-${var.environment}"
+resource "aws_dynamodb_table" "business_alerts" {
+  name         = "BusinessAlerts-${var.environment}"
   billing_mode = "PAY_PER_REQUEST"
   hash_key     = "HashKey"
   range_key    = "SortKey"

@@ -15,7 +15,7 @@ export class EventTypeDate {
   }
 }
 
-export interface AlertNoPhoneNumberStoreRecord<THashKey, TSortKey> {
+export interface AlertStoreRecord<THashKey, TSortKey> {
   HashKey: THashKey;
   SortKey: TSortKey;
   SuccessCount: number | undefined;
@@ -24,7 +24,7 @@ export interface AlertNoPhoneNumberStoreRecord<THashKey, TSortKey> {
   ExpiresAt: UnixTimestamp;
 }
 
-export type AlertCounterKeyNames = Extract<
-  keyof AlertNoPhoneNumberStoreRecord<unknown, unknown>,
+export type AlertCounterKeyNames = keyof Pick<
+  AlertStoreRecord<unknown, unknown>,
   'SuccessCount' | 'FailureCount' | 'NotificationSentCount'
 >;

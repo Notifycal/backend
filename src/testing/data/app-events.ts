@@ -127,3 +127,33 @@ export const noPhoneNumberForCalendarEventFoundEvent: NoPhoneNumberForCalendarEv
     }
   }
 };
+
+export const auditTrailNoPhoneNumberForCalendarEventFoundEvent: AuditTrailStoreRecord = {
+  EventId: '0de651ef-535e-4d2e-b9ff-7bf43f5a0055' as EventId,
+  EventType: 'NoPhoneNumberForCalendarEventFound',
+  HappenedAt: '2024-01-01T15:00:00Z' as DateTime,
+  CorrelationId: '0de651ef-535e-4d2e-b9ff-7bf43f5a0033' as CorrelationId,
+  UserId: '0de651ef-535e-4d2e-b9ff-7bf43f5a0011' as UserId,
+  Idp: 'google.com',
+  IdpId: '123456789' as IdpId,
+  Data: {
+    eventIdCause: '0de651ef-535e-4d2e-b9ff-7bf43f5a0099' as EventId,
+    run: {
+      lowerBoundStartTime: '2024-01-02T15:00:00Z' as DateTime,
+      upperBoundStartTime: '2024-01-02T15:29:59Z' as DateTime,
+      slidingWindowInMinutes: 30
+    },
+    calendar: {
+      id: 'test-calendar-id' as CalendarId,
+      name: 'Test Calendar' as CalendarName
+    },
+    calendarEvent: {
+      id: 'event-1',
+      attendees: [{ id: 'attendee@test.com' }],
+      isAllDayEvent: false,
+      startTime: '2024-01-02T15:05:00Z' as DateTime,
+      timeZone: 'Europe/Madrid' as TimeZone
+    }
+  },
+  Origin: 'somewhere' as AuditTrailStoreRecordOrigin
+};

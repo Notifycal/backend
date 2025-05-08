@@ -33,7 +33,7 @@ import type {
   VonageApplicationId,
   VonageJwtSigningSecret
 } from '@services/messaging';
-import type { AlertNoPhoneNumberBaseStoreEndpointConfig } from '@services/stores/alert-no-phone-number-store';
+import type { AlertsBaseStoreEndpointConfig } from '@services/stores/alerts-base-store';
 import type { AuditTrailBaseStoreEndpointConfig } from '@services/stores/audit-trail-base-store';
 import type { RefreshTokenBaseStoreConfigEndpointConfig } from '@services/stores/refresh-token-base-store';
 import type { UserBaseStoreEndpointConfig } from '@services/stores/user-base-store';
@@ -200,12 +200,10 @@ export function readAuditTrailBaseStoreConfig(env: Environment): AuditTrailBaseS
   };
 }
 
-export function readAlertNoPhoneNumber(
-  env: Environment
-): AlertNoPhoneNumberBaseStoreEndpointConfig {
+export function readAlertsBaseStoreConfig(env: Environment): AlertsBaseStoreEndpointConfig {
   return {
-    alertNoPhoneNumberBaseStoreConfig: {
-      tableName: env.get('ALERT_NO_PHONE_NUMBER_TABLE_NAME').required().asString()
+    alertsBaseStoreConfig: {
+      tableName: env.get('BUSINESS_ALERTS_TABLE_NAME').required().asString()
     }
   };
 }

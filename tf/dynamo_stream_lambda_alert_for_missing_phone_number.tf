@@ -32,7 +32,7 @@ locals {
   }
 }
 
-data "aws_iam_policy_document" "alert_no_phone_number_iam_policydoc" {
+data "aws_iam_policy_document" "alert_for_missing_phone_number_iam_policydoc" {
   statement {
     effect = "Allow"
 
@@ -55,19 +55,19 @@ data "aws_iam_policy_document" "alert_no_phone_number_iam_policydoc" {
     ]
 
     resources = [
-      aws_dynamodb_table.alert_no_phone_number.arn
+      aws_dynamodb_table.business_alerts.arn
     ]
   }
 }
 
-module "alert_no_phone_number_lambda" {
+module "alert_for_missing_phone_number_lambda" {
   source  = "terraform-aws-modules/lambda/aws"
   version = "~> 7.17"
 
-  function_name          = "alert-no-phone-number-${var.environment}"
+  function_name          = "alert-for-missing-phone-number-${var.environment}"
   publish                = local.lambdas_publish
   create_package         = local.lambdas_create_package
-  local_existing_package = "${path.root}/../dist/lambdas/dynamodb-streams/alert-no-phone-number.zip"
+  local_existing_package = "${path.root}/../dist/lambdas/dynamodb-streams/alert-for-missing-phone-number.zip"
 
   runtime     = var.lambdas_runtime
   timeout     = local.api_lambdas_timeout
@@ -90,7 +90,7 @@ module "alert_no_phone_number_lambda" {
   tags = local.common_tags
 
   attach_policy_json = true
-  policy_json        = data.aws_iam_policy_document.alert_no_phone_number_iam_policydoc.json
+  policy_json        = data.aws_iam_policy_document.alert_for_missing_phone_number_iam_policydoc.json
 
   attach_policies    = true
   policies           = local.lambdas_shared_iam_policies
@@ -100,14 +100,14 @@ module "alert_no_phone_number_lambda" {
   allowed_triggers     = local.allowed_triggers
 
   environment_variables = merge({
-    ALERT_NO_PHONE_NUMBER_TABLE_NAME = aws_dynamodb_table.alert_no_phone_number.name
+    BUSINESS_ALERTS_TABLE_NAME = aws_dynamodb_table.business_alerts.name
   }, local.email_to_be_sent_topic_env_vars, local.common_lambda_env_vars)
 }
 
 
 resource "aws_lambda_event_source_mapping" "dynamodb_stream_mapping" {
   event_source_arn  = aws_dynamodb_table.audit_trail_events.stream_arn
-  function_name     = module.alert_no_phone_number_lambda.lambda_function_name
+  function_name     = module.alert_for_missing_phone_number_lambda.lambda_function_name
   starting_position = "LATEST"
   filter_criteria {
     filter {
