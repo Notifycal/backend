@@ -5,7 +5,12 @@ import {
   auditTrailNoPhoneNumberForCalendarEventFoundEvent
 } from '@testing/data/app-events';
 import { validRawRecord } from '@testing/data/dynamodb-stream-events';
-import { setEnvAlertsBaseStoreConfig, setEnvEmailToBeSentTopicConfig } from '@testing/utils/config';
+import {
+  setEnvAlertsBaseStoreConfig,
+  setEnvAlertThresholdConfig,
+  setEnvEmailToBeSentTopicConfig,
+  setEnvUserBaseStoreConfig
+} from '@testing/utils/config';
 import type { DynamoDBRecord, DynamoDBStreamEvent } from 'aws-lambda';
 import { describe, vi } from 'vitest';
 import type { AlertForMissingPhoneNumberConfig } from './config';
@@ -29,16 +34,22 @@ function setEnv() {
     alertsBaseStoreConfig: {
       tableName: 'some-table-name'
     },
+    userBaseStoreConfig: {
+      tableName: 'Users-local'
+    },
     emailToBeSentTopicConfig: {
       topicArn: 'some-arn' as AwsArn
     },
     alertThresholdConfig: {
       errorRateThreshold: 5,
+      maxNotificationsPerDay: 1,
       countThresholdToEnableTrigger: 10
     }
   };
   setEnvAlertsBaseStoreConfig(config.alertsBaseStoreConfig);
+  setEnvUserBaseStoreConfig(config.userBaseStoreConfig);
   setEnvEmailToBeSentTopicConfig(config.emailToBeSentTopicConfig);
+  setEnvAlertThresholdConfig(config.alertThresholdConfig);
 }
 
 vi.mock('./record-processor');

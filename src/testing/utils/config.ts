@@ -165,5 +165,6 @@ export function setEnvMaigunConfig(config: MailgunConfig): void {
 
 export function setEnvAlertThresholdConfig(config: AlertThresholdConfig): void {
   process.env.ERROR_RATE_THRESHOLD = config.errorRateThreshold.toString();
+  process.env.MAX_NOTIFICATIONS_PER_DAY = config.maxNotificationsPerDay.toString();
   process.env.BASELINE_COUNT_TO_ENABLE_TRIGGER = config.countThresholdToEnableTrigger.toString();
 }

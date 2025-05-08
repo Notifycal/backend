@@ -131,7 +131,7 @@ export const noPhoneNumberForCalendarEventFoundEvent: NoPhoneNumberForCalendarEv
 export const auditTrailNoPhoneNumberForCalendarEventFoundEvent: AuditTrailStoreRecord = {
   EventId: '0de651ef-535e-4d2e-b9ff-7bf43f5a0055' as EventId,
   EventType: 'NoPhoneNumberForCalendarEventFound',
-  HappenedAt: '2024-01-01T15:00:00Z' as DateTime,
+  HappenedAt: '2024-01-02T15:00:00Z' as DateTime,
   CorrelationId: '0de651ef-535e-4d2e-b9ff-7bf43f5a0033' as CorrelationId,
   UserId: '0de651ef-535e-4d2e-b9ff-7bf43f5a0011' as UserId,
   Idp: 'google.com',

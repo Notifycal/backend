@@ -310,11 +310,11 @@ export function readEmailToBeSentTopicConfig(env: Environment): EmailToBeSentTop
 export function readAlertThresholdConfig(env: Environment): AlertThresholdEndpointConfig {
   return {
     alertThresholdConfig: {
-      errorRateThreshold: env.get('ERROR_RATE_THRESHOLD').required().default(5).asIntPositive(),
+      errorRateThreshold: env.get('ERROR_RATE_THRESHOLD').default(5).asIntPositive(),
+      maxNotificationsPerDay: env.get('MAX_NOTIFICATIONS_PER_DAY').default(1).asIntPositive(),
       countThresholdToEnableTrigger: env
         .get('COUNT_THRESHOLD_TO_ENABLE_TRIGGER')
-        .required()
-        .default(10)
+        .default(0)
         .asIntPositive()
     }
   };

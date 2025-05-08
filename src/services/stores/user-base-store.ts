@@ -94,6 +94,26 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
       .then((result) => result?.Config);
   }
 
+  public getEmailById(userId: UserId): Promise<UserStoreRecord<unknown>['Email'] | undefined> {
+    const projections: Array<keyof UserStoreRecord<IdpName>> = ['Email'];
+    const queryCmd = {
+      KeyConditionExpression: 'UserId = :id',
+      ExpressionAttributeValues: {
+        ':id': userId
+      },
+      ProjectionExpression: projections.join(', ')
+    };
+    return this.queryCommandRunner<UserStoreRecord<unknown>['Email']>(queryCmd)
+      .then((emailOrNot) => emailOrNot)
+      .catch((error) =>
+        Promise.reject(
+          new Error(`Email for user id '${userId}' could not be retrieved`, {
+            cause: error
+          })
+        )
+      );
+  }
+
   public putUser(
     user: UserStoreRecord<IdpName>,
     authorization: AuthorizationForIdp<TIdpName>

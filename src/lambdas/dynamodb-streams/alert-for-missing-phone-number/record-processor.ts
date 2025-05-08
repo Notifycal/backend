@@ -1,22 +1,24 @@
+import { logger } from '@common/powertools';
 import type { EmailToBeSentEvent } from '@model/app-events/EmailToBeSentEvent';
 import {
   EventTypeDate,
   type AlertCounterKeyNames,
   type AlertStoreRecord
 } from '@model/store/AlertStoreRecord';
-import type { DateTime, Email, EventId, UserId } from '@notifycal/shared/types';
+import type { DateTime, Email, EventId, IdpName, UserId } from '@notifycal/shared/types';
 import type { EmailHtmlBody, EmailSubject } from '@own-types/model';
 import { throwError } from '@services/common/error-handling';
 import type { SnsService } from '@services/sns';
 import type { AlertsBaseStore } from '@services/stores/alerts-base-store';
+import type { UserBaseStore } from '@services/stores/user-base-store';
 import { tap } from '@utils/promises';
 import { DateTime as DT } from 'luxon';
 import { match } from 'ts-pattern';
 import { v4 } from 'uuid';
+import type { AlertThresholdConfig } from './config';
 import type {
   AuditTrailActionableEventFoundEvent,
-  AuditTrailNoPhoneNumberForCalendarEventFoundEvent,
-  Record
+  AuditTrailNoPhoneNumberForCalendarEventFoundEvent
 } from './schema';
 
 function emailToBeSent(
@@ -38,7 +40,9 @@ function emailToBeSent(
 function updateCounterOnEventReceived(
   hashKey: EventTypeDate,
   sortKey: UserId,
-  eventType: Record['NewImage']['EventType'],
+  eventType:
+    | AuditTrailActionableEventFoundEvent['EventType']
+    | AuditTrailNoPhoneNumberForCalendarEventFoundEvent['EventType'],
   alertsBaseStore: AlertsBaseStore
 ): Promise<AlertStoreRecord<EventTypeDate['value'], UserId>> {
   const counterToIncrement: AlertCounterKeyNames = match(eventType)
@@ -64,20 +68,29 @@ function updateCounterOnAlertSent(
   );
 }
 
+function interpolateEmail(
+  email: Email,
+  updateCounterResult: AlertStoreRecord<EventTypeDate['value'], UserId>
+): EmailToBeSentEvent['data'] {
+  return {
+    to: email,
+    subject: 'Missing phone numbers in your events' as EmailSubject,
+    htmlBody:
+      `<p>Attention, your calendar events have not got valid phone numbers. The failure count is: ${updateCounterResult.FailureCount}</p>` as EmailHtmlBody,
+    tags: []
+  };
+}
+
 function sendAlert(
-  event: Record['NewImage'],
+  event: AuditTrailActionableEventFoundEvent | AuditTrailNoPhoneNumberForCalendarEventFoundEvent,
   hashKey: EventTypeDate,
   sortKey: UserId,
+  email: Email,
   updateCounterResult: AlertStoreRecord<EventTypeDate['value'], UserId>,
   alertsBaseStore: AlertsBaseStore,
   snsService: SnsService
 ): Promise<void> {
-  const alertData = {
-    to: 'foobar@notifycal.com' as Email,
-    subject: 'Un rabo' as EmailSubject,
-    htmlBody: `<h1>Otro rabo. ${updateCounterResult.FailureCount} errors</h1>` as EmailHtmlBody,
-    tags: []
-  };
+  const alertData = interpolateEmail(email, updateCounterResult);
   const alertEvent: EmailToBeSentEvent = emailToBeSent(event, alertData);
   return snsService
     .publish(alertEvent)
@@ -85,41 +98,66 @@ function sendAlert(
     .then();
 }
 
-function buildPersistanceKeys(event: Record['NewImage']): {
+function buildPersistanceKeys(
+  event: AuditTrailActionableEventFoundEvent | AuditTrailNoPhoneNumberForCalendarEventFoundEvent
+): {
   hashKey: EventTypeDate;
   sortKey: UserId;
 } {
   const happenedAt = DT.fromISO(event.HappenedAt).toUTC();
-  const hashKey = new EventTypeDate(event.EventType, happenedAt);
+  const hashKey = new EventTypeDate('NoPhoneNumberForCalendarEventFound', happenedAt);
   const sortKey = event.UserId;
   return { hashKey, sortKey };
 }
 
+function errorRate(successCount: number | undefined, failureCount: number | undefined): number {
+  return ((failureCount || 0) / ((successCount || 0) + (failureCount || 0))) * 100;
+}
+
+function shouldAlert(
+  result: AlertStoreRecord<EventTypeDate['value'], UserId>,
+  config: AlertThresholdConfig
+): boolean {
+  const { SuccessCount, FailureCount, NotificationSentCount } = result;
+  const { errorRateThreshold, maxNotificationsPerDay, countThresholdToEnableTrigger } = config;
+  return (
+    errorRate(SuccessCount, FailureCount) > errorRateThreshold &&
+    (NotificationSentCount || 0) < maxNotificationsPerDay &&
+    (SuccessCount || 0) + (FailureCount || 0) >= countThresholdToEnableTrigger
+  );
+}
+
+function errorHandler(eventId: EventId): (error: unknown) => Promise<void | undefined> {
+  return (error: unknown) => {
+    throwError(`(Re)-Throwing error on purpose to notify of batch item failure`, error, {
+      eventId: eventId
+    });
+  };
+}
+
 export function recordProcessor(
-  record: Record,
+  event: AuditTrailActionableEventFoundEvent | AuditTrailNoPhoneNumberForCalendarEventFoundEvent,
+  config: AlertThresholdConfig,
   alertsBaseStore: AlertsBaseStore,
+  userBaseStore: UserBaseStore<IdpName>,
   snsService: SnsService
 ): Promise<void> {
-  const event = record.NewImage;
   const { hashKey, sortKey } = buildPersistanceKeys(event);
   return updateCounterOnEventReceived(hashKey, sortKey, event.EventType, alertsBaseStore)
-    .then(
-      tap((result) => {
-        const { SuccessCount, FailureCount, NotificationSentCount } = result;
-        const errorRate = (FailureCount || 0 / (SuccessCount || 0) + (FailureCount || 0)) * 100;
-        if (
-          errorRate > 5 &&
-          (NotificationSentCount || 0) < 1 &&
-          (SuccessCount || 0) + (FailureCount || 0) > 10
-        ) {
-          return sendAlert(event, hashKey, sortKey, result, alertsBaseStore, snsService);
-        }
-      })
-    )
-    .catch((error) =>
-      throwError(`(Re)-Throwing error on purpose to notify of batch item failure`, error, {
-        eventId: event.EventId
-      })
-    )
+    .then((result) => {
+      if (shouldAlert(result, config)) {
+        return userBaseStore.getEmailById(event.UserId).then((email) => {
+          if (email) {
+            return sendAlert(event, hashKey, sortKey, email, result, alertsBaseStore, snsService);
+          } else {
+            logger.error(
+              `Email alert could not be sent to user with id ${event.UserId} cause email was not found in persistance. Not retrying...`
+            );
+            return Promise.resolve();
+          }
+        });
+      }
+    })
+    .catch(errorHandler(event.EventId))
     .then();
 }

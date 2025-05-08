@@ -4,6 +4,7 @@ import { backgroundProcessingMiddleware } from '@common/lambda-middleware';
 import { logger } from '@common/powertools';
 import { SnsService } from '@services/sns';
 import { AlertsBaseStore } from '@services/stores/alerts-base-store';
+import { UserBaseStore } from '@services/stores/user-base-store';
 import type { Context } from 'aws-lambda';
 import {
   readAlertForMissingPhoneNumberConfig,
@@ -16,8 +17,16 @@ export function recordProcessorCurried(
   config: AlertForMissingPhoneNumberConfig
 ): (record: Record) => Promise<void> {
   const alertsBaseStore = AlertsBaseStore.withConfig(config.alertsBaseStoreConfig);
+  const userBaseStore = UserBaseStore.withConfig(config.userBaseStoreConfig);
   const snsService = SnsService.withConfig(config.emailToBeSentTopicConfig);
-  return (record: Record) => recordProcessor(record, alertsBaseStore, snsService);
+  return (record: Record) =>
+    recordProcessor(
+      record.NewImage,
+      config.alertThresholdConfig,
+      alertsBaseStore,
+      userBaseStore,
+      snsService
+    );
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
