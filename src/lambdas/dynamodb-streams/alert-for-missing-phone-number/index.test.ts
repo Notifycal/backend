@@ -5,10 +5,7 @@ import {
   auditTrailNoPhoneNumberForCalendarEventFoundEvent
 } from '@testing/data/app-events';
 import { validRawRecord } from '@testing/data/dynamodb-stream-events';
-import {
-  setEnvAlertNoPhoneNumberBaseStoreConfig as setEnvAlertForMissingPhoneNumberBaseStoreConfig,
-  setEnvEmailToBeSentTopicConfig
-} from '@testing/utils/config';
+import { setEnvAlertsBaseStoreConfig, setEnvEmailToBeSentTopicConfig } from '@testing/utils/config';
 import type { DynamoDBRecord, DynamoDBStreamEvent } from 'aws-lambda';
 import { describe, vi } from 'vitest';
 import type { AlertForMissingPhoneNumberConfig } from './config';
@@ -36,7 +33,7 @@ function setEnv() {
       topicArn: 'some-arn' as AwsArn
     }
   };
-  setEnvAlertForMissingPhoneNumberBaseStoreConfig(config.alertsBaseStoreConfig);
+  setEnvAlertsBaseStoreConfig(config.alertsBaseStoreConfig);
   setEnvEmailToBeSentTopicConfig(config.emailToBeSentTopicConfig);
 }
 

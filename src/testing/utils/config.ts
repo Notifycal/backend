@@ -118,7 +118,7 @@ export function setEnvAuditTrailBaseStoreConfig(config: AuditTrailBaseStoreConfi
   process.env.AUDIT_TRAIL_TABLE_NAME = config.tableName;
 }
 
-export function setEnvAlertNoPhoneNumberBaseStoreConfig(config: AlertsBaseStoreConfig): void {
+export function setEnvAlertsBaseStoreConfig(config: AlertsBaseStoreConfig): void {
   process.env.BUSINESS_ALERTS_TABLE_NAME = config.tableName;
 }
 
