@@ -95,6 +95,8 @@ locals {
     audit_trail                          = module.audit_trail_lambda,
     find_actionable_events               = module.find_actionable_events_lambda,
     send_event_reminder                  = module.send_event_reminder_lambda
+    send_email                           = module.send_email_lambda
+    alert_for_missing_phone_number       = module.alert_for_missing_phone_number_lambda
     # TODO: Add new lambdas here
   }
 }

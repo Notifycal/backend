@@ -34,6 +34,17 @@ data "aws_iam_policy_document" "alert_for_missing_phone_number_iam_policydoc" {
       aws_dynamodb_table.business_alerts.arn
     ]
   }
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "dynamodb:Query"
+    ]
+
+    resources = [
+      aws_dynamodb_table.users.arn
+    ]
+  }
 }
 
 module "alert_for_missing_phone_number_lambda" {
