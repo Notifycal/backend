@@ -1,4 +1,4 @@
-import { createSqsHandlerTestSuite as createBatchProcessingHandlerTestSuite } from '@lambdas/sqs/batch-processing-lambda-handler-test.suite';
+import { createSqsHandlerTestSuite as createBatchProcessingHandlerTestSuite } from '@lambdas/batch-processing-lambda-handler-test.suite';
 import type { AwsArn } from '@own-types/model';
 import {
   auditTrailActionableEventFoundEvent,

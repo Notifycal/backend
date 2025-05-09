@@ -54,4 +54,4 @@ export const eventSchema = z.object({
   Records: extendedRecordSchema.array()
 });
 export type Event = z.infer<typeof eventSchema>;
-export type Record = Event['Records'][number]['dynamodb'];
+export type Record = Event['Records'][number];

@@ -1,5 +1,6 @@
+import type { Logger } from '@aws-lambda-powertools/logger';
 import { MetricUnit } from '@aws-lambda-powertools/metrics';
-import { logger, metrics as metricsSingleton } from '@common/powertools';
+import { metrics as metricsSingleton } from '@common/powertools';
 import type { EventType } from '@model/app-events/BaseEvent';
 import type {
   AuditTrailStoreRecord,
@@ -48,6 +49,7 @@ function toStoreRecord(r: Record): AuditTrailStoreRecord {
 
 function withEventMetric(
   event: AuditTrailStoreRecord,
+  logger: Logger,
   metrics: MetricsAggregator = metricsSingleton
 ): AuditTrailStoreRecord {
   const auditTrailStoreRecordDimensionData = {
@@ -83,13 +85,14 @@ function withEventMetric(
 
 export function recordProcessor(
   record: Record,
-  auditTrailBaseStore: AuditTrailBaseStore
+  auditTrailBaseStore: AuditTrailBaseStore,
+  logger: Logger
 ): Promise<void> {
   const storeRecord = toStoreRecord(record);
-  setupLoggerForAuditStoreRecordProcessing(storeRecord, logger.createChild());
+  setupLoggerForAuditStoreRecordProcessing(storeRecord, logger);
   return auditTrailBaseStore
     .put(storeRecord)
-    .then(() => withEventMetric(storeRecord))
+    .then(() => withEventMetric(storeRecord, logger))
     .then(
       (storeRecord) => {
         logger.info(`Event has been successfully processed`, { eventId: storeRecord.EventId });

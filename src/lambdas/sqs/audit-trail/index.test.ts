@@ -1,9 +1,9 @@
+import { createSqsHandlerTestSuite } from '@lambdas/batch-processing-lambda-handler-test.suite';
 import { userCalendarFetchedEvent } from '@testing/data/app-events';
 import { validRawRecord } from '@testing/data/sqs-events';
 import { setEnvAuditTrailBaseStoreConfig } from '@testing/utils/config';
 import type { SQSEvent, SQSRecord } from 'aws-lambda';
 import { describe, vi } from 'vitest';
-import { createSqsHandlerTestSuite } from '../batch-processing-lambda-handler-test.suite';
 import type { AuditTrailConfig } from './config';
 // @ts-expect-error cjs handler export
 import { handler } from './index';

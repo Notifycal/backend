@@ -1,4 +1,5 @@
-import { logger } from '@common/powertools';
+import type { Logger } from '@aws-lambda-powertools/logger';
+import { environment } from '@common/powertools';
 import type { EmailToBeSentEvent } from '@model/app-events/EmailToBeSentEvent';
 import {
   EventTypeDate,
@@ -70,14 +71,24 @@ function updateCounterOnAlertSent(
 
 function interpolateEmail(
   email: Email,
-  updateCounterResult: AlertStoreRecord<EventTypeDate['value'], UserId>
+  updateCounterResult: AlertStoreRecord<EventTypeDate['value'], UserId>,
+  errorRate: number
 ): EmailToBeSentEvent['data'] {
+  const subEventType: EmailToBeSentEvent['data']['subEventType'] =
+    'NoPhoneNumberForCalendarEventFound';
   return {
     to: email,
     subject: 'Missing phone numbers in your events' as EmailSubject,
     htmlBody:
       `<p>Attention, your calendar events have not got valid phone numbers. The failure count is: ${updateCounterResult.FailureCount}</p>` as EmailHtmlBody,
-    tags: []
+    tags: [environment, subEventType],
+    subEventType,
+    metadata: {
+      actionableEventFoundCount: updateCounterResult.SuccessCount,
+      noPhoneNumberForCalendarEventFoundCount: updateCounterResult.FailureCount,
+      errorRate,
+      notificationsSentCountBeforeUpdate: updateCounterResult.NotificationSentCount
+    }
   };
 }
 
@@ -87,10 +98,11 @@ function sendAlert(
   sortKey: UserId,
   email: Email,
   updateCounterResult: AlertStoreRecord<EventTypeDate['value'], UserId>,
+  errorRate: number,
   alertsBaseStore: AlertsBaseStore,
   snsService: SnsService
 ): Promise<void> {
-  const alertData = interpolateEmail(email, updateCounterResult);
+  const alertData = interpolateEmail(email, updateCounterResult, errorRate);
   const alertEvent: EmailToBeSentEvent = emailToBeSent(event, alertData);
   return snsService
     .publish(alertEvent)
@@ -116,12 +128,13 @@ function errorRate(successCount: number | undefined, failureCount: number | unde
 
 function shouldAlert(
   result: AlertStoreRecord<EventTypeDate['value'], UserId>,
+  errorRate: number,
   config: AlertThresholdConfig
 ): boolean {
   const { SuccessCount, FailureCount, NotificationSentCount } = result;
   const { errorRateThreshold, maxNotificationsPerDay, countThresholdToEnableTrigger } = config;
   return (
-    errorRate(SuccessCount, FailureCount) > errorRateThreshold &&
+    errorRate > errorRateThreshold &&
     (NotificationSentCount || 0) < maxNotificationsPerDay &&
     (SuccessCount || 0) + (FailureCount || 0) >= countThresholdToEnableTrigger
   );
@@ -140,15 +153,26 @@ export function recordProcessor(
   config: AlertThresholdConfig,
   alertsBaseStore: AlertsBaseStore,
   userBaseStore: UserBaseStore<IdpName>,
-  snsService: SnsService
+  snsService: SnsService,
+  logger: Logger
 ): Promise<void> {
   const { hashKey, sortKey } = buildPersistanceKeys(event);
   return updateCounterOnEventReceived(hashKey, sortKey, event.EventType, alertsBaseStore)
     .then((result) => {
-      if (shouldAlert(result, config)) {
+      const _errorRate = errorRate(result.SuccessCount, result.FailureCount);
+      if (shouldAlert(result, _errorRate, config)) {
         return userBaseStore.getEmailById(event.UserId).then((email) => {
           if (email) {
-            return sendAlert(event, hashKey, sortKey, email, result, alertsBaseStore, snsService);
+            return sendAlert(
+              event,
+              hashKey,
+              sortKey,
+              email,
+              result,
+              _errorRate,
+              alertsBaseStore,
+              snsService
+            );
           } else {
             logger.error(
               `Email alert could not be sent to user with id ${event.UserId} cause email was not found in persistance. Not retrying...`

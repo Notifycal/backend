@@ -31,7 +31,11 @@ const validEvent: EmailToBeSentEvent = {
     to: validEmail,
     subject: 'Some subject' as EmailSubject,
     htmlBody: '<h1>Hello my friend</h1>' as EmailHtmlBody,
-    tags: ['OneTag']
+    tags: ['OneTag'],
+    subEventType: 'NoPhoneNumberForCalendarEventFound',
+    metadata: {
+      attr1: 'something'
+    }
   },
   correlationId: '0de651ef-535e-4d2e-b9ff-7bf43f5aaaaa' as CorrelationId,
   eventId: '0de651ef-535e-4d2e-b9ff-7bf43f5a01ac' as EventId,

@@ -12,7 +12,10 @@ export function recordProcessorCurried(
   config: AuditTrailConfig
 ): (record: Record) => Promise<void> {
   const auditTrailBaseStore = AuditTrailBaseStore.withConfig(config.auditTrailBaseStoreConfig);
-  return (record: Record) => recordProcessor(record, auditTrailBaseStore);
+  return (record: Record) => {
+    const _logger = logger.createChild();
+    return recordProcessor(record, auditTrailBaseStore, _logger);
+  };
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars

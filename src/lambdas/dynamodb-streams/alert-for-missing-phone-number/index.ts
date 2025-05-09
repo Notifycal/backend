@@ -2,6 +2,7 @@ import { BatchProcessor, EventType, processPartialResponse } from '@aws-lambda-p
 import type { PartialItemFailureResponse } from '@aws-lambda-powertools/batch/types';
 import { backgroundProcessingMiddleware } from '@common/lambda-middleware';
 import { logger } from '@common/powertools';
+import { setupLoggerForAuditStoreRecordProcessing } from '@services/common/logger';
 import { SnsService } from '@services/sns';
 import { AlertsBaseStore } from '@services/stores/alerts-base-store';
 import { UserBaseStore } from '@services/stores/user-base-store';
@@ -19,14 +20,18 @@ export function recordProcessorCurried(
   const alertsBaseStore = AlertsBaseStore.withConfig(config.alertsBaseStoreConfig);
   const userBaseStore = UserBaseStore.withConfig(config.userBaseStoreConfig);
   const snsService = SnsService.withConfig(config.emailToBeSentTopicConfig);
-  return (record: Record) =>
-    recordProcessor(
-      record.NewImage,
+  return (record: Record) => {
+    const _logger = logger.createChild();
+    setupLoggerForAuditStoreRecordProcessing(record.dynamodb.NewImage);
+    return recordProcessor(
+      record.dynamodb.NewImage,
       config.alertThresholdConfig,
       alertsBaseStore,
       userBaseStore,
-      snsService
+      snsService,
+      _logger
     );
+  };
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars

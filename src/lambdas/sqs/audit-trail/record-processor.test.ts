@@ -1,3 +1,4 @@
+import type { Logger } from '@aws-lambda-powertools/logger';
 import type { EventBridgeEvent } from '@aws-lambda-powertools/parser/types';
 import { logger } from '@common/powertools';
 import type { BaseEvent } from '@model/app-events/BaseEvent';
@@ -21,8 +22,8 @@ vi.mock('@services/stores/audit-trail-base-store');
 describe('Audit trail record processor', () => {
   async function successTest(event: BaseEvent | EventBridgeEvent): Promise<void> {
     const putFn = vi.fn(() => Promise.resolve());
-    const loggerSpy = vi.spyOn(logger, 'info');
-    await testit(validRecord(event), putFn);
+    const loggerSpy = vi.spyOn(logger, 'info').mockReturnThis();
+    await testit(validRecord(event), putFn, logger);
 
     expect(putFn).toHaveBeenCalledTimes(1);
     expect(loggerSpy).toHaveBeenCalledWith(`Event has been successfully processed`, {
@@ -57,7 +58,11 @@ describe('Audit trail record processor', () => {
   });
 });
 
-function testit(record: Record, putFn: () => Promise<void>): Promise<void> {
+function testit(
+  record: Record,
+  putFn: () => Promise<void>,
+  _logger: Logger = logger
+): Promise<void> {
   const auditTrailBaseStoreMock = {
     put: vi.fn().mockImplementation(putFn)
   };
@@ -65,5 +70,5 @@ function testit(record: Record, putFn: () => Promise<void>): Promise<void> {
     // eslint-disable-next-line @typescript-eslint/unbound-method
     .mocked(AuditTrailBaseStore.withConfig)
     .mockReturnValue(auditTrailBaseStoreMock as unknown as AuditTrailBaseStore);
-  return recordProcessor(record, new x({} as BaseStoreConfig));
+  return recordProcessor(record, new x({} as BaseStoreConfig), _logger);
 }

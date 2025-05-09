@@ -1,3 +1,4 @@
+import { logger } from '@common/powertools';
 import type { AlertStoreRecord } from '@model/store/AlertStoreRecord';
 import type { Email, IdpName, UserId } from '@notifycal/shared/types';
 import type { SnsService } from '@services/sns';
@@ -143,7 +144,7 @@ describe('Alert for missing phone number record processor', () => {
         data: expect.objectContaining({
           to: validEmail,
           subject: 'Missing phone numbers in your events',
-          tags: []
+          tags: ['N/A', 'NoPhoneNumberForCalendarEventFound']
         })
       })
     );
@@ -225,15 +226,20 @@ describe('Alert for missing phone number record processor', () => {
     const alertsBaseStoreMock = {
       incrementCounter: incrementCounterFn
     } as unknown as AlertsBaseStore;
-
     const userBaseStoreMock = {
       getEmailById: getEmailByIdFn
     } as unknown as UserBaseStore<IdpName>;
-
     const snsServiceMock = {
       publish: publishFn
     } as unknown as SnsService;
 
-    return recordProcessor(event, config, alertsBaseStoreMock, userBaseStoreMock, snsServiceMock);
+    return recordProcessor(
+      event,
+      config,
+      alertsBaseStoreMock,
+      userBaseStoreMock,
+      snsServiceMock,
+      logger
+    );
   }
 });

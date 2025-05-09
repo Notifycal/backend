@@ -66,7 +66,9 @@ export class Processor {
       data: {
         to: event.data.to,
         subject: event.data.subject,
-        tags: event.data.tags
+        tags: event.data.tags,
+        subEventType: event.data.subEventType,
+        metadata: event.data.metadata
       }
     };
     return this.emailService.sendEmail(

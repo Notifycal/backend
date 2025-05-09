@@ -12,6 +12,9 @@ import { eventIdSchema } from './common';
 //  - wrong user data
 // SystemEvent:
 //  - a priori, movements initiated by AWS. So, AWS wrappers in simple words.
+export const noPhoneNumberForCalendarEventFoundEventType = z.literal(
+  'NoPhoneNumberForCalendarEventFound'
+);
 export const successEventTypeSchema = z.union([
   z.literal('UserCalendarFetched'),
   z.literal('ActionableEventFound'),
@@ -26,7 +29,7 @@ export const successEventTypeSchema = z.union([
   z.literal('DemoReminderToBeSentStatusUpdated'),
   z.literal('UserSignInSucceeded'),
   z.literal('UserSignUpSucceeded'),
-  z.literal('NoPhoneNumberForCalendarEventFound'),
+  noPhoneNumberForCalendarEventFoundEventType,
   z.literal('NoActionableEventsFound'),
   z.literal('NoUserCalendarFound'),
   z.literal('EmailToBeSent'),

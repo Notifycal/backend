@@ -4,7 +4,7 @@ import type { MetricsOptions } from '@aws-lambda-powertools/metrics/types';
 import { Tracer } from '@aws-lambda-powertools/tracer';
 import MetricsAggregator from '@utils/MetricsAggregator';
 
-const environment = process.env.ENVIRONMENT || 'N/A';
+export const environment = process.env.ENVIRONMENT || 'N/A';
 const serviceName = 'notifycal-backend';
 const metricsNamespace = `${serviceName}-${environment}`;
 
