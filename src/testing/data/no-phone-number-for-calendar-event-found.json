@@ -1,0 +1,28 @@
+{
+  "eventId": "0de651ef-535e-4d2e-b9ff-7bf43f5a0000",
+  "eventType": "NoPhoneNumberForCalendarEventFound",
+  "happenedAt": "2025-05-09T13:00:00Z",
+  "correlationId": "0de651ef-535e-4d2e-b9ff-7bf43f5a0000",
+  "userId": "b150d276-e327-51fb-b455-34a87c1c8ecc",
+  "idp": "google.com",
+  "idpId": "123456789",
+  "data": {
+    "eventIdCause": "0de651ef-535e-4d2e-b9ff-7bf43f5a0000",
+    "run": {
+      "lowerBoundStartTime": "2024-01-02T15:00:00Z",
+      "upperBoundStartTime": "2024-01-02T15:29:59Z",
+      "slidingWindowInMinutes": 30
+    },
+    "calendar": {
+      "id": "test-calendar-id",
+      "name": "Test Calendar"
+    },
+    "calendarEvent": {
+      "id": "event-1",
+      "attendees": [{ "id": "sergio.testing@gmail.com" }],
+      "isAllDayEvent": false,
+      "startTime": "2024-01-02T15:05:00Z",
+      "timeZone": "Europe/Madrid"
+    }
+  }
+}
