@@ -27,6 +27,7 @@ data "aws_iam_policy_document" "alert_for_missing_phone_number_iam_policydoc" {
 
     actions = [
       "dynamodb:UpdateItem",
+      "dynamodb:Query"
     ]
 
     resources = [
