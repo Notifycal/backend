@@ -100,8 +100,10 @@ function sendAlert(
   updateCounterResult: AlertStoreRecord<EventTypeDate['value'], UserId>,
   errorRate: number,
   alertsBaseStore: AlertsBaseStore,
-  snsService: SnsService
+  snsService: SnsService,
+  logger: Logger
 ): Promise<void> {
+  logger.info(`Sending alert to user`);
   const alertData = interpolateEmail(email, updateCounterResult, errorRate);
   const alertEvent: EmailToBeSentEvent = emailToBeSent(event, alertData);
   return snsService
@@ -171,7 +173,8 @@ export function recordProcessor(
               result,
               _errorRate,
               alertsBaseStore,
-              snsService
+              snsService,
+              logger
             );
           } else {
             logger.error(

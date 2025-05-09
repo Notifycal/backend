@@ -45,6 +45,17 @@ data "aws_iam_policy_document" "alert_for_missing_phone_number_iam_policydoc" {
       aws_dynamodb_table.users.arn
     ]
   }
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "sns:Publish",
+    ]
+
+    resources = [
+      module.email_to_be_sent_topic.sns_topic_arn
+    ]
+  }
 }
 
 module "alert_for_missing_phone_number_lambda" {
