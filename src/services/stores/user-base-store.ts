@@ -103,8 +103,8 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
       },
       ProjectionExpression: projections.join(', ')
     };
-    return this.queryCommandRunner<UserStoreRecord<unknown>['Email']>(queryCmd)
-      .then((emailOrNot) => emailOrNot)
+    return this.queryCommandRunner<UserStoreRecord<unknown>>(queryCmd)
+      .then((emailOrNot) => emailOrNot?.Email)
       .catch((error) =>
         Promise.reject(
           new Error(`Email for user id '${userId}' could not be retrieved`, {
