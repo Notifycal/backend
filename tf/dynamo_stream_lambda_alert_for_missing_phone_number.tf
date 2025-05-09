@@ -1,5 +1,5 @@
 locals {
-  event_source_mappings = {
+  alert_for_missing_phone_number_event_source_mappings = {
     dynamodb = {
       event_source_arn                   = aws_dynamodb_table.audit_trail_events.stream_arn
       starting_position                  = "LATEST"
@@ -24,7 +24,7 @@ locals {
     }
   }
 
-  allowed_triggers = {
+  alert_for_missing_phone_number_allowed_triggers = {
     dynamodb = {
       principal  = "dynamodb.amazonaws.com"
       source_arn = aws_dynamodb_table.audit_trail_events.stream_arn
@@ -96,8 +96,8 @@ module "alert_for_missing_phone_number_lambda" {
   policies           = local.lambdas_shared_iam_policies
   number_of_policies = length(local.lambdas_shared_iam_policies)
 
-  event_source_mapping = local.event_source_mappings
-  allowed_triggers     = local.allowed_triggers
+  event_source_mapping = local.alert_for_missing_phone_number_event_source_mappings
+  allowed_triggers     = local.alert_for_missing_phone_number_allowed_triggers
 
   environment_variables = merge({
     BUSINESS_ALERTS_TABLE_NAME        = aws_dynamodb_table.business_alerts.name

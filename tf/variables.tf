@@ -232,4 +232,5 @@ variable "alert_for_missing_phone_number" {
     max_notifications_per_day         = optional(number, 1)
     count_threshold_to_enable_trigger = optional(number, 0)
   })
+  default = {}
 }

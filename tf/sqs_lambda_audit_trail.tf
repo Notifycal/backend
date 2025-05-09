@@ -5,7 +5,7 @@ locals {
     global_dlq_sqs    = aws_sqs_queue.global_dlq_sqs.arn
   }
 
-  event_source_mappings = {
+  audit_trail_event_source_mappings = {
     for queue_name, queue_arn in local.queue_sources : queue_name => {
       event_source_arn        = queue_arn
       scaling_config          = { maximum_concurrency = 20 }
@@ -14,7 +14,7 @@ locals {
     }
   }
 
-  allowed_triggers = {
+  audit_trail_allowed_triggers = {
     for queue_name, queue_arn in local.queue_sources : "Allow${title(replace(queue_name, "_", ""))}Invoke" => {
       principal  = "sqs.amazonaws.com"
       source_arn = queue_arn
@@ -83,8 +83,8 @@ module "audit_trail_lambda" {
   policies           = local.lambdas_shared_iam_policies
   number_of_policies = length(local.lambdas_shared_iam_policies)
 
-  event_source_mapping = local.event_source_mappings
-  allowed_triggers     = local.allowed_triggers
+  event_source_mapping = local.audit_trail_event_source_mappings
+  allowed_triggers     = local.audit_trail_allowed_triggers
 
   environment_variables = merge({
     AUDIT_TRAIL_TABLE_NAME = aws_dynamodb_table.audit_trail_events.name
