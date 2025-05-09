@@ -12,9 +12,9 @@
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 5.86 |
-| <a name="provider_awscc"></a> [awscc](#provider\_awscc) | ~> 1.28 |
-| <a name="provider_tls"></a> [tls](#provider\_tls) | n/a |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 5.97.0 |
+| <a name="provider_awscc"></a> [awscc](#provider\_awscc) | 1.39.0 |
+| <a name="provider_tls"></a> [tls](#provider\_tls) | 4.1.0 |
 
 ## Modules
 
@@ -52,7 +52,6 @@
 | <a name="module_post_refresh_lambda"></a> [post\_refresh\_lambda](#module\_post\_refresh\_lambda) | terraform-aws-modules/lambda/aws | ~> 7.17 |
 | <a name="module_post_refresh_lambda_alias"></a> [post\_refresh\_lambda\_alias](#module\_post\_refresh\_lambda\_alias) | terraform-aws-modules/lambda/aws//modules/alias | ~> 7.17 |
 | <a name="module_send_email_lambda"></a> [send\_email\_lambda](#module\_send\_email\_lambda) | terraform-aws-modules/lambda/aws | ~> 7.17 |
-| <a name="module_send_email_queue"></a> [send\_email\_queue](#module\_send\_email\_queue) | ./modules/sqs | n/a |
 | <a name="module_send_event_reminder_lambda"></a> [send\_event\_reminder\_lambda](#module\_send\_event\_reminder\_lambda) | terraform-aws-modules/lambda/aws | ~> 7.17 |
 | <a name="module_user_calendar_fetched_queue"></a> [user\_calendar\_fetched\_queue](#module\_user\_calendar\_fetched\_queue) | ./modules/sqs | n/a |
 | <a name="module_user_calendar_fetched_topic"></a> [user\_calendar\_fetched\_topic](#module\_user\_calendar\_fetched\_topic) | ./modules/sns | n/a |
@@ -118,7 +117,7 @@
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| <a name="input_alert_for_missing_phone_number"></a> [alert\_for\_missing\_phone\_number](#input\_alert\_for\_missing\_phone\_number) | n/a | <pre>object({<br/>    error_rate_threshold              = optional(number, 5)<br/>    max_notifications_per_day         = optional(number, 1)<br/>    count_threshold_to_enable_trigger = optional(number, 0)<br/>  })</pre> | n/a | yes |
+| <a name="input_alert_for_missing_phone_number"></a> [alert\_for\_missing\_phone\_number](#input\_alert\_for\_missing\_phone\_number) | n/a | <pre>object({<br/>    error_rate_threshold              = optional(number, 5)<br/>    max_notifications_per_day         = optional(number, 1)<br/>    count_threshold_to_enable_trigger = optional(number, 0)<br/>  })</pre> | `{}` | no |
 | <a name="input_api_gateway_custom_domain_enabled"></a> [api\_gateway\_custom\_domain\_enabled](#input\_api\_gateway\_custom\_domain\_enabled) | Controls the creation of a custom domain for API Gateway and the domain it is accessible from | `bool` | `true` | no |
 | <a name="input_api_stage_name"></a> [api\_stage\_name](#input\_api\_stage\_name) | n/a | `string` | n/a | yes |
 | <a name="input_app_version"></a> [app\_version](#input\_app\_version) | n/a | `string` | n/a | yes |
