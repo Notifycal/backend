@@ -80,7 +80,7 @@ function interpolateEmail(
     to: email,
     subject: 'Missing phone numbers in your events' as EmailSubject,
     htmlBody:
-      `<p>Attention, your calendar events have not got valid phone numbers. The failure count is: ${updateCounterResult.FailureCount}</p>` as EmailHtmlBody,
+      `<p>Attention, some of your calendar events have not got any attendee phone number. The failure count is: ${updateCounterResult.FailureCount}</p>` as EmailHtmlBody,
     tags: [environment, subEventType],
     subEventType,
     metadata: {
