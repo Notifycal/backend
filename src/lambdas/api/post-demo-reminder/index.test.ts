@@ -49,12 +49,6 @@ const validAccessToken: OurAccessTokenClaims = {
   permissions: {}
 };
 
-const validPhone = {
-  type: 'phone' as const,
-  phoneNumber: '123456789' as PhoneNumber,
-  countryCode: 'ES' as const
-};
-const validE164Phone = '+34123456789' as PhoneNumberE164;
 const validUserConfig: LiveUserStoreRecord<unknown>['Config'] = {
   Calendars: [
     {
@@ -78,7 +72,6 @@ const validUserConfig: LiveUserStoreRecord<unknown>['Config'] = {
 };
 
 const validRequestBody: Event['body'] = {
-  receiverContact: validPhone,
   startTime: {
     dateTime: validDateTime,
     timeZone: validTimeZone
@@ -98,6 +91,12 @@ describe('Post Demo Reminder', () => {
 
     const result = await testit(validEvent, getUserConfigByIdFn, publishFn);
 
+    const senderAndReceiver = {
+      type: 'phone' as const,
+      countryCode: 'ES',
+      phoneNumber: `+34666999888` as PhoneNumberE164
+    };
+
     expect(result.statusCode).toBe(202);
     expect(getUserConfigByIdFn).toHaveBeenCalledWith(validAccessToken.userId);
     expect(publishFn).toHaveBeenCalledWith(
@@ -105,16 +104,8 @@ describe('Post Demo Reminder', () => {
         eventType: 'DemoReminderToBeSent',
         userId: validIdentity.userId,
         data: {
-          receiverDetails: {
-            type: 'phone' as const,
-            countryCode: 'ES',
-            phoneNumber: validE164Phone
-          },
-          senderDetails: {
-            type: 'phone' as const,
-            countryCode: 'ES',
-            phoneNumber: `+34666999888` as PhoneNumberE164
-          },
+          receiverDetails: senderAndReceiver,
+          senderDetails: senderAndReceiver,
           message:
             "Don't forget your appointment at Test Business! On 01/10/2023 at 14:00 at Test Address. If you can't make it, let us know."
         }
