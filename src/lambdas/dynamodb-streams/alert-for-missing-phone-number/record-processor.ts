@@ -124,8 +124,8 @@ function buildPersistanceKeys(
   return { hashKey, sortKey };
 }
 
-function errorRate(successCount: number | undefined, failureCount: number | undefined): number {
-  return ((failureCount || 0) / ((successCount || 0) + (failureCount || 0))) * 100;
+function errorRate(successCount: number = 0, failureCount: number = 0): number {
+  return (failureCount / (successCount + failureCount)) * 100;
 }
 
 function shouldAlert(
