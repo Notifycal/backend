@@ -54,6 +54,10 @@ locals {
     IDEMPOTENCY_PERSISTENCE_CONFIG = local.lambda_idempotency_table_config
   }
 
+  business_alerts_persistance_env_vars = {
+    BUSINESS_ALERTS_TABLE_NAME = aws_dynamodb_table.business_alerts.name
+  }
+
   google_idp_config_env_vars = {
     GOOGLE_OAUTH_CLIENT_ID           = var.google_oauth_config.client_id
     GOOGLE_OAUTH_CLIENT_SECRET       = var.google_oauth_config.client_secret
