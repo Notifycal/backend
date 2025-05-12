@@ -133,12 +133,12 @@ function shouldAlert(
   errorRate: number,
   config: AlertThresholdConfig
 ): boolean {
-  const { SuccessCount, FailureCount, NotificationSentCount } = result;
+  const { SuccessCount = 0, FailureCount = 0, NotificationSentCount = 0 } = result;
   const { errorRateThreshold, maxNotificationsPerDay, countThresholdToEnableTrigger } = config;
   return (
     errorRate > errorRateThreshold &&
-    (NotificationSentCount || 0) < maxNotificationsPerDay &&
-    (SuccessCount || 0) + (FailureCount || 0) >= countThresholdToEnableTrigger
+    NotificationSentCount < maxNotificationsPerDay &&
+    SuccessCount + FailureCount >= countThresholdToEnableTrigger
   );
 }
 
