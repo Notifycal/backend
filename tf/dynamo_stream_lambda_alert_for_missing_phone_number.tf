@@ -1,4 +1,32 @@
 locals {
+  alert_for_missing_phone_number_event_source_mappings = {
+    dynamodb = {
+      event_source_arn                   = aws_dynamodb_table.audit_trail_events.stream_arn
+      function_name                      = module.alert_for_missing_phone_number_lambda.lambda_function_name
+      starting_position                  = "LATEST"
+      function_response_types            = ["ReportBatchItemFailures"]
+      maximum_batching_window_in_seconds = 300
+      batch_size                         = 100 //matches default value
+      metrics_config = {
+        metrics = ["EventCount"]
+      }
+      parallelization_factor = 1 // matches default value
+      filter_criteria = [
+        {
+          pattern = jsonencode({
+            dynamodb : {
+              NewImage : {
+                EventType : {
+                  S : ["NoPhoneNumberForCalendarEventFound", "ActionableEventFound"]
+                }
+              }
+            }
+          })
+        }
+      ]
+    }
+  }
+
   alert_for_missing_phone_number_allowed_triggers = {
     dynamodb = {
       principal  = "dynamodb.amazonaws.com"
@@ -94,7 +122,8 @@ module "alert_for_missing_phone_number_lambda" {
   policies           = local.lambdas_shared_iam_policies
   number_of_policies = length(local.lambdas_shared_iam_policies)
 
-  allowed_triggers = local.alert_for_missing_phone_number_allowed_triggers
+  event_source_mapping = local.alert_for_missing_phone_number_event_source_mappings
+  allowed_triggers     = local.alert_for_missing_phone_number_allowed_triggers
 
   environment_variables = merge({
     BUSINESS_ALERTS_TABLE_NAME        = aws_dynamodb_table.business_alerts.name
@@ -102,31 +131,4 @@ module "alert_for_missing_phone_number_lambda" {
     MAX_NOTIFICATIONS_PER_DAY         = var.alert_for_missing_phone_number.max_notifications_per_day
     COUNT_THRESHOLD_TO_ENABLE_TRIGGER = var.alert_for_missing_phone_number.count_threshold_to_enable_trigger
   }, local.email_to_be_sent_topic_env_vars, local.users_persistance_env_vars, local.common_lambda_env_vars)
-}
-
-
-resource "aws_lambda_event_source_mapping" "dynamodb_stream_mapping" {
-  event_source_arn                   = aws_dynamodb_table.audit_trail_events.stream_arn
-  function_name                      = module.alert_for_missing_phone_number_lambda.lambda_function_name
-  starting_position                  = "LATEST"
-  function_response_types            = ["ReportBatchItemFailures"]
-  maximum_batching_window_in_seconds = 300
-  batch_size                         = 100 //matches default value
-  metrics_config {
-    metrics = ["EventCount"]
-  }
-  parallelization_factor = 1 // matches default value
-  filter_criteria {
-    filter {
-      pattern = jsonencode({
-        dynamodb : {
-          NewImage : {
-            EventType : {
-              S : ["NoPhoneNumberForCalendarEventFound", "ActionableEventFound"]
-            }
-          }
-        }
-      })
-    }
-  }
 }
