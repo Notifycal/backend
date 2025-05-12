@@ -17,15 +17,18 @@ export class AlertsBaseStore extends BaseStore<AlertsBaseStoreConfig> {
     super(config);
   }
 
-  public incrementCounter<THashKey extends string = string, TSortKey extends string = string>(
-    hashKey: THashKey,
-    sortKey: TSortKey,
+  public incrementCounter<
+    TAlertName extends string = string,
+    TAlertDiscriminator extends string = string
+  >(
+    alertName: TAlertName,
+    alertDiscriminator: TAlertDiscriminator,
     alertCounterKeyName: AlertCounterKeyNames
-  ): Promise<AlertStoreRecord<THashKey, TSortKey>> {
+  ): Promise<AlertStoreRecord<TAlertName, TAlertDiscriminator>> {
     return this.updateCommandRunner({
       Key: {
-        HashKey: hashKey,
-        SortKey: sortKey
+        AlertName: alertName,
+        AlertDiscriminator: alertDiscriminator
       },
       UpdateExpression:
         'SET #counter = if_not_exists(#counter, :zero) + :increment, #ttl = if_not_exists(#ttl, :ttl)',
@@ -40,7 +43,7 @@ export class AlertsBaseStore extends BaseStore<AlertsBaseStoreConfig> {
       }
     }).then((output) => {
       if (output.Attributes) {
-        return output.Attributes as AlertStoreRecord<THashKey, TSortKey>;
+        return output.Attributes as AlertStoreRecord<TAlertName, TAlertDiscriminator>;
       } else {
         throwError('Error incrementing counter');
       }

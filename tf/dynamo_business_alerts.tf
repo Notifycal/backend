@@ -1,15 +1,15 @@
 resource "aws_dynamodb_table" "business_alerts" {
   name         = "BusinessAlerts-${var.environment}"
   billing_mode = "PAY_PER_REQUEST"
-  hash_key     = "HashKey"
-  range_key    = "SortKey"
+  hash_key     = "AlertName"
+  range_key    = "AlertDiscriminator"
 
   attribute {
-    name = "HashKey"
+    name = "AlertName"
     type = "S"
   }
   attribute {
-    name = "SortKey"
+    name = "AlertDiscriminator"
     type = "S"
   }
   ttl {

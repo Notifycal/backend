@@ -39,8 +39,8 @@ function emailToBeSent(
 }
 
 function updateCounterOnEventReceived(
-  hashKey: EventTypeDate,
-  sortKey: UserId,
+  alertName: EventTypeDate,
+  alertDiscriminator: UserId,
   eventType:
     | AuditTrailActionableEventFoundEvent['EventType']
     | AuditTrailNoPhoneNumberForCalendarEventFoundEvent['EventType'],
@@ -51,20 +51,20 @@ function updateCounterOnEventReceived(
     .with('NoPhoneNumberForCalendarEventFound', () => 'FailureCount' as const)
     .exhaustive();
   return alertsBaseStore.incrementCounter<EventTypeDate['value'], UserId>(
-    hashKey.value,
-    sortKey,
+    alertName.value,
+    alertDiscriminator,
     counterToIncrement
   );
 }
 
 function updateCounterOnAlertSent(
-  hashKey: EventTypeDate,
-  sortKey: UserId,
+  alertName: EventTypeDate,
+  alertDiscriminator: UserId,
   alertsBaseStore: AlertsBaseStore
 ): Promise<AlertStoreRecord<EventTypeDate['value'], UserId>> {
   return alertsBaseStore.incrementCounter<EventTypeDate['value'], UserId>(
-    hashKey.value,
-    sortKey,
+    alertName.value,
+    alertDiscriminator,
     'NotificationSentCount'
   );
 }
@@ -94,8 +94,8 @@ function interpolateEmail(
 
 function sendAlert(
   event: AuditTrailActionableEventFoundEvent | AuditTrailNoPhoneNumberForCalendarEventFoundEvent,
-  hashKey: EventTypeDate,
-  sortKey: UserId,
+  alertName: EventTypeDate,
+  alertDiscriminator: UserId,
   email: Email,
   updateCounterResult: AlertStoreRecord<EventTypeDate['value'], UserId>,
   errorRate: number,
@@ -108,20 +108,20 @@ function sendAlert(
   const alertEvent: EmailToBeSentEvent = emailToBeSent(event, alertData);
   return snsService
     .publish(alertEvent)
-    .then(tap(() => updateCounterOnAlertSent(hashKey, sortKey, alertsBaseStore)))
+    .then(tap(() => updateCounterOnAlertSent(alertName, alertDiscriminator, alertsBaseStore)))
     .then();
 }
 
 function buildPersistanceKeys(
   event: AuditTrailActionableEventFoundEvent | AuditTrailNoPhoneNumberForCalendarEventFoundEvent
 ): {
-  hashKey: EventTypeDate;
-  sortKey: UserId;
+  alertName: EventTypeDate;
+  alertDiscriminator: UserId;
 } {
   const happenedAt = DT.fromISO(event.HappenedAt).toUTC();
-  const hashKey = new EventTypeDate('NoPhoneNumberForCalendarEventFound', happenedAt);
-  const sortKey = event.UserId;
-  return { hashKey, sortKey };
+  const alertName = new EventTypeDate('NoPhoneNumberForCalendarEventFound', happenedAt);
+  const alertDiscriminator = event.UserId;
+  return { alertName, alertDiscriminator };
 }
 
 export function errorRate(successCount: number = 0, failureCount: number = 0): number {
@@ -158,8 +158,13 @@ export function recordProcessor(
   snsService: SnsService,
   logger: Logger
 ): Promise<void> {
-  const { hashKey, sortKey } = buildPersistanceKeys(event);
-  return updateCounterOnEventReceived(hashKey, sortKey, event.EventType, alertsBaseStore)
+  const { alertName, alertDiscriminator } = buildPersistanceKeys(event);
+  return updateCounterOnEventReceived(
+    alertName,
+    alertDiscriminator,
+    event.EventType,
+    alertsBaseStore
+  )
     .then((result) => {
       const _errorRate = errorRate(result.SuccessCount, result.FailureCount);
       if (shouldAlert(result, _errorRate, config)) {
@@ -167,8 +172,8 @@ export function recordProcessor(
           if (email) {
             return sendAlert(
               event,
-              hashKey,
-              sortKey,
+              alertName,
+              alertDiscriminator,
               email,
               result,
               _errorRate,

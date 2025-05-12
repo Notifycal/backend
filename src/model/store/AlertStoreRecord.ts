@@ -15,9 +15,9 @@ export class EventTypeDate {
   }
 }
 
-export interface AlertStoreRecord<THashKey, TSortKey> {
-  HashKey: THashKey;
-  SortKey: TSortKey;
+export interface AlertStoreRecord<TAlertName, TAlertDiscriminator> {
+  AlertName: TAlertName;
+  AlertDiscriminator: TAlertDiscriminator;
   SuccessCount: number | undefined;
   FailureCount: number | undefined;
   NotificationSentCount: number | undefined;
