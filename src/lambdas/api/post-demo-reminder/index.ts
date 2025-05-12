@@ -1,5 +1,6 @@
 import { JSONStringified } from '@aws-lambda-powertools/parser/helpers';
 import { protectedEndpointMiddleware } from '@common/lambda-middleware';
+import type { PhoneStandardContact } from '@model/app-events/common';
 import type { DemoReminderToBeSentEvent } from '@model/app-events/DemoReminderToBeSentEvent';
 import { authedEventSchema } from '@model/lambda-events/ApiGatewayEvents';
 import { fromStoreRecord } from '@model/store/ContactDetailsRecordStore';
@@ -9,7 +10,7 @@ import { errorHandler, successHandler } from '@services/common/api-response-hand
 import { SnsService } from '@services/sns';
 import { UserBaseStore } from '@services/stores/user-base-store';
 import { interpolate } from '@services/template';
-import { receiverToCanonicalForm, senderToCanonicalForm } from '@utils/phone';
+import { senderToCanonicalForm } from '@utils/phone';
 import type { APIGatewayProxyResult, Context } from 'aws-lambda';
 import { demoReminderPayloadSchema } from 'node_modules/@notifycal/shared/dist/schemas/reminder';
 import { v4 } from 'uuid';
@@ -42,9 +43,9 @@ function buildEvent(
       senderDetails: senderToCanonicalForm(
         fromStoreRecord(userReminderConfig.Business.SenderContact)
       ),
-      receiverDetails: receiverToCanonicalForm(
+      receiverDetails: senderToCanonicalForm(
         fromStoreRecord(userReminderConfig.Business.SenderContact)
-      ),
+      ) as PhoneStandardContact, // TODO: when RCS is fully implemented this casting needs to disappear
       message: interpolate(
         templateId,
         userReminderConfig.Business.Name,
