@@ -143,7 +143,7 @@ describe('Alert for missing phone number record processor', () => {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         data: expect.objectContaining({
           to: validEmail,
-          subject: 'Missing phone numbers in your events',
+          subject: 'Aviso importante: Recordatorios de calendario no enviados',
           tags: ['N/A', 'NoPhoneNumberForCalendarEventFound']
         })
       })

@@ -78,9 +78,9 @@ function interpolateEmail(
     'NoPhoneNumberForCalendarEventFound';
   return {
     to: email,
-    subject: 'Missing phone numbers in your events' as EmailSubject,
+    subject: 'Aviso importante: Recordatorios de calendario no enviados' as EmailSubject,
     htmlBody:
-      `<p>Attention, some of your calendar events have not got any attendee phone number. The failure count is: ${updateCounterResult.FailureCount}</p>` as EmailHtmlBody,
+      `<p><strong>Atención:</strong> No pudimos encontrar números de teléfono para enviar recordatorios para ${updateCounterResult.FailureCount} evento(s) de tu calendario.</p>` as EmailHtmlBody,
     tags: [environment, subEventType],
     subEventType,
     metadata: {
