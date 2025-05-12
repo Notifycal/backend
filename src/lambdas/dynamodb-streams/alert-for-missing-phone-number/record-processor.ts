@@ -6,7 +6,14 @@ import {
   type AlertCounterKeyNames,
   type AlertStoreRecord
 } from '@model/store/AlertStoreRecord';
-import type { DateTime, Email, EventId, IdpName, UserId } from '@notifycal/shared/types';
+import type {
+  DateTime,
+  Email,
+  EventId,
+  IdpName,
+  LanguageCode,
+  UserId
+} from '@notifycal/shared/types';
 import type { EmailHtmlBody, EmailSubject } from '@own-types/model';
 import { throwError } from '@services/common/error-handling';
 import type { SnsService } from '@services/sns';
@@ -71,6 +78,7 @@ function updateCounterOnAlertSent(
 
 function interpolateEmail(
   email: Email,
+  language: LanguageCode,
   updateCounterResult: AlertStoreRecord<EventTypeDate['value'], UserId>,
   errorRate: number
 ): EmailToBeSentEvent['data'] {
@@ -98,6 +106,7 @@ function sendAlert(
   alertName: EventTypeDate,
   alertDiscriminator: UserId,
   email: Email,
+  language: LanguageCode,
   updateCounterResult: AlertStoreRecord<EventTypeDate['value'], UserId>,
   errorRate: number,
   alertsBaseStore: AlertsBaseStore,
@@ -105,7 +114,7 @@ function sendAlert(
   logger: Logger
 ): Promise<void> {
   logger.info(`Sending alert to user`);
-  const alertData = interpolateEmail(email, updateCounterResult, errorRate);
+  const alertData = interpolateEmail(email, language, updateCounterResult, errorRate);
   const alertEvent: EmailToBeSentEvent = emailToBeSent(event, alertData);
   return snsService
     .publish(alertEvent)
@@ -169,13 +178,14 @@ export function recordProcessor(
     .then((result) => {
       const _errorRate = errorRate(result.SuccessCount, result.FailureCount);
       if (shouldAlert(result, _errorRate, config)) {
-        return userBaseStore.getEmailById(event.UserId).then((email) => {
-          if (email) {
+        return userBaseStore.getEmailAndConfigById(event.UserId).then((emailAndConfig) => {
+          if (emailAndConfig) {
             return sendAlert(
               event,
               alertName,
               alertDiscriminator,
-              email,
+              emailAndConfig.email,
+              'es', // TODO: replace by emailAndConfig.config.Business once language is stored
               result,
               _errorRate,
               alertsBaseStore,
