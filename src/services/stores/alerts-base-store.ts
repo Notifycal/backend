@@ -1,8 +1,6 @@
-import { logger } from '@common/powertools';
 import type { AlertCounterKeyNames, AlertStoreRecord } from '@model/store/AlertStoreRecord';
 import { BaseStore, type BaseStoreConfig } from '@services/common/base-store';
 import { throwError } from '@services/common/error-handling';
-import { tap } from '@utils/promises';
 import { DateTime } from 'luxon';
 
 export type AlertsBaseStoreConfig = BaseStoreConfig;
@@ -40,18 +38,12 @@ export class AlertsBaseStore extends BaseStore<AlertsBaseStoreConfig> {
         ':zero': 0,
         ':ttl': DateTime.now().plus({ day: 1 }).toUnixInteger()
       }
-    })
-      .then(
-        tap((output) => {
-          logger.info('increment counter output', { output });
-        })
-      )
-      .then((output) => {
-        if (output.Attributes) {
-          return output.Attributes as AlertStoreRecord<THashKey, TSortKey>;
-        } else {
-          throwError('Error incrementing counter');
-        }
-      });
+    }).then((output) => {
+      if (output.Attributes) {
+        return output.Attributes as AlertStoreRecord<THashKey, TSortKey>;
+      } else {
+        throwError('Error incrementing counter');
+      }
+    });
   }
 }
