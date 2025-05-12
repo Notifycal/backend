@@ -83,6 +83,7 @@ function interpolateEmail(
       `<p><strong>Atención:</strong> No pudimos encontrar números de teléfono para enviar recordatorios para ${updateCounterResult.FailureCount} evento(s) de tu calendario.</p>` as EmailHtmlBody,
     tags: [environment, subEventType],
     subEventType,
+    inlineAttachments: {},
     metadata: {
       actionableEventFoundCount: updateCounterResult.SuccessCount,
       noPhoneNumberForCalendarEventFoundCount: updateCounterResult.FailureCount,

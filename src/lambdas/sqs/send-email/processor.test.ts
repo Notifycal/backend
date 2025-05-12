@@ -12,7 +12,14 @@ import type {
   IdpId,
   UserId
 } from '@notifycal/shared/types';
-import type { AwsArn, EmailHtmlBody, EmailSubject, Url } from '@own-types/model';
+import type {
+  AwsArn,
+  ContentType,
+  EmailHtmlBody,
+  EmailInlineAttachementBase64,
+  EmailSubject,
+  Url
+} from '@own-types/model';
 import { EmailService } from '@services/email';
 import { SnsService } from '@services/sns';
 import { describe, expect, it, vi } from 'vitest';
@@ -46,6 +53,13 @@ const validEvent: EmailToBeSentEvent = {
     htmlBody: '<h1>Hello my friend</h1>' as EmailHtmlBody,
     tags: ['OneTag'],
     subEventType: 'NoPhoneNumberForCalendarEventFound',
+    inlineAttachments: {
+      'logo.png': {
+        type: 'inline',
+        contentType: 'images/png' as ContentType,
+        base64Content: 'ewrgwergwergwrg' as EmailInlineAttachementBase64
+      }
+    },
     metadata: {
       attr1: 'bla'
     }
@@ -97,6 +111,7 @@ describe('Email processor', () => {
             'eyJkYXRhIjp7InRvIjoidGVzdEBub3RpZnljYWwuY29tIiwic3ViamVjdCI6IlNvbWUgc3ViamVjdCIsInRhZ3MiOlsiT25lVGFnIl0sInN1YkV2ZW50VHlwZSI6Ik5vUGhvbmVOdW1iZXJGb3JDYWxlbmRhckV2ZW50Rm91bmQiLCJtZXRhZGF0YSI6eyJhdHRyMSI6ImJsYSJ9fSwiY29ycmVsYXRpb25JZCI6IjBkZTY1MWVmLTUzNWUtNGQyZS1iOWZmLTdiZjQzZjVhYWFhYSIsImV2ZW50SWQiOiIwZGU2NTFlZi01MzVlLTRkMmUtYjlmZi03YmY0M2Y1YTAxYWMiLCJ1c2VySWQiOiIwZGU2NTFlZi01MzVlLTRkMmUtYjlmZi03YmY0M2Y1YTAwMDAiLCJpZHAiOiJnb29nbGUuY29tIiwiaWRwSWQiOiI0NTM0NjM1NjM1NiIsImV2ZW50VHlwZSI6IkVtYWlsVG9CZVNlbnQiLCJoYXBwZW5lZEF0IjoiMjAyNC0wMS0wMlQxNTowNDo1MFoifQ==',
           userId: '0de651ef-535e-4d2e-b9ff-7bf43f5a0000'
         },
+        validEvent.data.inlineAttachments,
         validEvent.data.tags
       );
       expect(safePublishSpy).toHaveBeenCalledWith({

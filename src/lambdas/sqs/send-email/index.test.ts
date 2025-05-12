@@ -8,7 +8,14 @@ import type {
   IdpId,
   UserId
 } from '@notifycal/shared/types';
-import type { AwsArn, EmailHtmlBody, EmailSubject, Url } from '@own-types/model';
+import type {
+  AwsArn,
+  ContentType,
+  EmailHtmlBody,
+  EmailInlineAttachementBase64,
+  EmailSubject,
+  Url
+} from '@own-types/model';
 import { validRawRecord as _validRawRecord } from '@testing/data/sqs-events';
 import {
   setEnvEmailingConfig,
@@ -33,6 +40,13 @@ const validEvent: EmailToBeSentEvent = {
     htmlBody: '<h1>Hello my friend</h1>' as EmailHtmlBody,
     tags: ['OneTag'],
     subEventType: 'NoPhoneNumberForCalendarEventFound',
+    inlineAttachments: {
+      'logo.png': {
+        type: 'inline',
+        contentType: 'images/png' as ContentType,
+        base64Content: 'ewrgwergwergwrg' as EmailInlineAttachementBase64
+      }
+    },
     metadata: {
       attr1: 'something'
     }

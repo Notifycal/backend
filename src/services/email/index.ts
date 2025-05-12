@@ -1,8 +1,9 @@
 import { logger } from '@common/powertools';
 import type { EmailWithName } from '@model/app-events/common';
+import type { EmailInlineAttachment } from '@model/app-events/EmailToBeSentEvent';
 import type { EmailSendSuccessResponse } from '@model/vendor/mailgun/schemas';
 import type { Email } from '@notifycal/shared/types';
-import type { EmailHtmlBody, EmailSubject } from '@own-types/model';
+import type { EmailAttachmentName, EmailHtmlBody, EmailSubject } from '@own-types/model';
 import { throwError } from '@services/common/error-handling';
 import { createHttpClient } from '@services/common/http-client';
 import { capArray } from '@utils/array';
@@ -39,6 +40,7 @@ export class EmailService {
     subject: EmailSubject,
     htmlBody: EmailHtmlBody,
     metadata: Record<string, string> = {},
+    attachmentsInline: Partial<Record<EmailAttachmentName, EmailInlineAttachment>> = {},
     tags: Array<string> = []
   ): Promise<EmailSendSuccessResponse> {
     const form = new FormData();
@@ -46,6 +48,14 @@ export class EmailService {
     form.append('to', to);
     form.append('subject', subject);
     form.append('html', htmlBody);
+    Object.entries(attachmentsInline).forEach(([name, attachment]) => {
+      if (name && attachment) {
+        form.append(`inline`, atob(attachment.base64Content), {
+          filename: name,
+          contentType: attachment.contentType
+        });
+      }
+    });
     Object.entries(metadata).forEach(([key, value]) => {
       form.append(`v:${key}`, value);
     });

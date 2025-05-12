@@ -34,3 +34,7 @@ export type PhoneNumberE164 = Brand<string, 'PhoneNumberE164'>;
 
 export type EmailSubject = Brand<string, 'EmailSubject'>;
 export type EmailHtmlBody = Brand<string, 'EmailHtmlBody'>;
+export type EmailInlineAttachementBase64 = Brand<string, 'EmailInlineAttachementBase64'>;
+export type EmailAttachmentName = Brand<string, 'EmailAttachmentName'>;
+
+export type ContentType = Brand<string, 'ContentType'>;

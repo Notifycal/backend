@@ -9,7 +9,7 @@ import type { SnsService } from '@services/sns';
 import { toBase64 } from '@utils/crypto';
 
 type RedactedEmailToBeSentEvent = Omit<EmailToBeSentEvent, 'data'> & {
-  data: Omit<EmailToBeSentEvent['data'], 'htmlBody'>;
+  data: Omit<EmailToBeSentEvent['data'], 'htmlBody' | 'inlineAttachments'>;
 };
 
 export class Processor {
@@ -86,6 +86,7 @@ export class Processor {
         idpId: event.idpId,
         happenedAt: event.happenedAt
       },
+      event.data.inlineAttachments,
       event.data.tags //TODO: add subEventType once we come up with a final structure for EmailToBeSent.
     );
   }
