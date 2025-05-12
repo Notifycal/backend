@@ -76,7 +76,7 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
 
   public getUserConfigById(
     userId: UserId
-  ): Promise<UserStoreRecord<unknown>['Config'] | undefined> {
+  ): Promise<UserStoreRecord<IdpName>['Config'] | undefined> {
     const projections: Array<keyof UserStoreRecord<IdpName>> = ['Config'];
     const getCommand = {
       Key: {
@@ -90,11 +90,11 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
     };
 
     return super
-      .getCommandRunner<UserStoreRecord<unknown>>(getCommand)
+      .getCommandRunner<UserStoreRecord<IdpName>>(getCommand)
       .then((result) => result?.Config);
   }
 
-  public getEmailById(userId: UserId): Promise<UserStoreRecord<unknown>['Email'] | undefined> {
+  public getEmailById(userId: UserId): Promise<UserStoreRecord<TIdpName>['Email'] | undefined> {
     const projections: Array<keyof UserStoreRecord<IdpName>> = ['Email'];
     const queryCmd = {
       KeyConditionExpression: 'UserId = :id',
@@ -103,7 +103,7 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
       },
       ProjectionExpression: projections.join(', ')
     };
-    return this.queryCommandRunner<UserStoreRecord<unknown>>(queryCmd)
+    return this.queryCommandRunner<UserStoreRecord<TIdpName>>(queryCmd)
       .then((emailOrNot) => emailOrNot?.Email)
       .catch((error) =>
         Promise.reject(
