@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.31.0](https://github.com/Notifycal/backend/compare/v0.30.2...v0.31.0) (2025-05-13)
+
+
+### Features
+
+* alert for missing phone number ([#607](https://github.com/Notifycal/backend/issues/607)) ([a3d3fab](https://github.com/Notifycal/backend/commit/a3d3fabe81ccfd4ec38fdc073090705c284300d4))
+
 ## [0.30.2](https://github.com/Notifycal/backend/compare/v0.30.1...v0.30.2) (2025-05-12)
 
 
