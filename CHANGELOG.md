@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.30.2](https://github.com/Notifycal/backend/compare/v0.30.1...v0.30.2) (2025-05-12)
+
+
+### Bug Fixes
+
+* receiverContact equals senderContact for demo endpoint ([#609](https://github.com/Notifycal/backend/issues/609)) ([1351c16](https://github.com/Notifycal/backend/commit/1351c169eabccc4e72fb080df8723e686cf0f62f))
+
 ## [0.30.1](https://github.com/Notifycal/backend/compare/v0.30.0...v0.30.1) (2025-05-02)
 
 
