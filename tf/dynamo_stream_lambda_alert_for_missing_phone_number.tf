@@ -5,6 +5,8 @@ locals {
       function_name                      = module.alert_for_missing_phone_number_lambda.lambda_function_name
       starting_position                  = "LATEST"
       function_response_types            = ["ReportBatchItemFailures"]
+      maximum_retry_attempts             = 3
+      destination_arn_on_failure         = aws_sqs_queue.global_unprocessable.arn
       maximum_batching_window_in_seconds = 300
       batch_size                         = 100 //matches default value
       metrics_config = {
@@ -84,6 +86,18 @@ data "aws_iam_policy_document" "alert_for_missing_phone_number_iam_policydoc" {
       module.email_to_be_sent_topic.sns_topic_arn
     ]
   }
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "sqs:SendMessage",
+    ]
+
+    resources = [
+      aws_sqs_queue.global_unprocessable.arn
+    ]
+  }
+
 }
 
 module "alert_for_missing_phone_number_lambda" {

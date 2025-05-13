@@ -1,28 +1,23 @@
 import { JSONStringified } from '@aws-lambda-powertools/parser/helpers';
 import { protectedEndpointMiddleware } from '@common/lambda-middleware';
+import type { PhoneStandardContact } from '@model/app-events/common';
 import type { DemoReminderToBeSentEvent } from '@model/app-events/DemoReminderToBeSentEvent';
 import { authedEventSchema } from '@model/lambda-events/ApiGatewayEvents';
 import { fromStoreRecord } from '@model/store/ContactDetailsRecordStore';
 import type { LiveUserStoreRecord } from '@model/store/LiveUserStoreRecord';
-import { dateTimeSchema, phoneSchema, timeZoneSchema } from '@notifycal/shared/schemas';
 import type { CorrelationId, DateTime, EventId, Identity, IdpName } from '@notifycal/shared/types';
 import { errorHandler, successHandler } from '@services/common/api-response-handlers';
 import { SnsService } from '@services/sns';
 import { UserBaseStore } from '@services/stores/user-base-store';
 import { interpolate } from '@services/template';
-import { receiverToCanonicalForm, receiverValidator, senderToCanonicalForm } from '@utils/phone';
+import { senderToCanonicalForm } from '@utils/phone';
 import type { APIGatewayProxyResult, Context } from 'aws-lambda';
+import { demoReminderPayloadSchema } from 'node_modules/@notifycal/shared/dist/schemas/reminder';
 import { v4 } from 'uuid';
-import { z } from 'zod';
+import type { z } from 'zod';
 import { readPostDemoReminderConfig, type PostDemoReminderConfig } from './config';
 
-const bodySchema = z.object({
-  receiverContact: phoneSchema.superRefine(receiverValidator),
-  startTime: z.object({
-    dateTime: dateTimeSchema,
-    timeZone: timeZoneSchema
-  })
-});
+const bodySchema = demoReminderPayloadSchema;
 
 const eventSchema = authedEventSchema<PostDemoReminderConfig>().extend({
   body: JSONStringified(bodySchema)
@@ -48,7 +43,9 @@ function buildEvent(
       senderDetails: senderToCanonicalForm(
         fromStoreRecord(userReminderConfig.Business.SenderContact)
       ),
-      receiverDetails: receiverToCanonicalForm(requestBody.receiverContact),
+      receiverDetails: senderToCanonicalForm(
+        fromStoreRecord(userReminderConfig.Business.SenderContact)
+      ) as PhoneStandardContact, // TODO: when RCS is fully implemented this casting needs to disappear
       message: interpolate(
         templateId,
         userReminderConfig.Business.Name,
