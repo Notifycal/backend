@@ -1,7 +1,8 @@
-import type { EmailToBeSentTopicConfig } from '@model/Config';
+import type { EmailingSenderEndpointConfig, EmailToBeSentTopicConfig } from '@model/Config';
 import {
   readAlertsBaseStoreConfig,
   readAlertThresholdConfig,
+  readEmailingSenderConfig,
   readEmailToBeSentTopicConfig,
   readEnv,
   readUserBaseStoreConfig
@@ -22,7 +23,8 @@ export interface AlertThresholdEndpointConfig {
 export type AlertForMissingPhoneNumberConfig = AlertsBaseStoreEndpointConfig &
   UserBaseStoreEndpointConfig &
   EmailToBeSentTopicConfig &
-  AlertThresholdEndpointConfig;
+  AlertThresholdEndpointConfig &
+  EmailingSenderEndpointConfig;
 
 export function readAlertForMissingPhoneNumberConfig(): Promise<AlertForMissingPhoneNumberConfig> {
   const env = readEnv();
@@ -30,6 +32,7 @@ export function readAlertForMissingPhoneNumberConfig(): Promise<AlertForMissingP
     ...readAlertsBaseStoreConfig(env),
     ...readUserBaseStoreConfig(env),
     ...readEmailToBeSentTopicConfig(env),
-    ...readAlertThresholdConfig(env)
+    ...readAlertThresholdConfig(env),
+    ...readEmailingSenderConfig(env)
   }));
 }

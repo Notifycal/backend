@@ -1,5 +1,4 @@
 import { logger } from '@common/powertools';
-import type { EmailWithName } from '@model/app-events/common';
 import type { EmailToBeSentAttemptSentEvent } from '@model/app-events/EmailToBeSentAttemptSentEvent';
 import type { EmailToBeSentEvent } from '@model/app-events/EmailToBeSentEvent';
 import type { MailgunConfig } from '@model/vendor/mailgun/config';
@@ -23,14 +22,11 @@ export class Processor {
     this.emailService = new EmailService(config.baseUrl, config.domainName, config.apiKey);
   }
 
-  public async process(
-    event: EmailToBeSentEvent,
-    from: EmailWithName
-  ): Promise<EmailSendSuccessResponse> {
+  public async process(event: EmailToBeSentEvent): Promise<EmailSendSuccessResponse> {
     let sendResponse: EmailSendSuccessResponse;
     if (this.isEnabled) {
       logger.info('Sending an email through Mailgun');
-      sendResponse = await this.sendEmail(event, from);
+      sendResponse = await this.sendEmail(event);
     } else {
       logger.info('Simulating an email is being sent');
       sendResponse = await Promise.resolve({ id: 'fake-uuid', message: 'OK!' });
@@ -56,14 +52,12 @@ export class Processor {
     return this.snsService.safePublish(e);
   }
 
-  private sendEmail(
-    event: EmailToBeSentEvent,
-    from: EmailWithName
-  ): Promise<EmailSendSuccessResponse> {
-    const { htmlBody, subject, to } = event.data;
+  private sendEmail(event: EmailToBeSentEvent): Promise<EmailSendSuccessResponse> {
+    const { htmlBody, subject, to, from } = event.data;
     const redactedEvent: RedactedEmailToBeSentEvent = {
       ...event,
       data: {
+        from: event.data.from,
         to: event.data.to,
         subject: event.data.subject,
         tags: event.data.tags,

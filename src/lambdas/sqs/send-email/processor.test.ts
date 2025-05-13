@@ -48,6 +48,7 @@ const validSender: EmailWithName = {
 
 const validEvent: EmailToBeSentEvent = {
   data: {
+    from: validSender,
     to: validEmail,
     subject: 'Some subject' as EmailSubject,
     htmlBody: '<h1>Hello my friend</h1>' as EmailHtmlBody,
@@ -86,13 +87,7 @@ describe('Email processor', () => {
       const loggerInfoSpy = vi.spyOn(logger, 'info');
       const emailingEnabled = true;
 
-      const result = await testIt(
-        validEvent,
-        validSender,
-        sendEmailSpy,
-        safePublishSpy,
-        emailingEnabled
-      );
+      const result = await testIt(validEvent, sendEmailSpy, safePublishSpy, emailingEnabled);
 
       expect(result).toStrictEqual(validEmailServiceResponse);
       expect(sendEmailSpy).toHaveBeenCalledWith(
@@ -108,7 +103,7 @@ describe('Email processor', () => {
           idp: 'google.com',
           idpId: '45346356356',
           originalBase64Event:
-            'eyJkYXRhIjp7InRvIjoidGVzdEBub3RpZnljYWwuY29tIiwic3ViamVjdCI6IlNvbWUgc3ViamVjdCIsInRhZ3MiOlsiT25lVGFnIl0sInN1YkV2ZW50VHlwZSI6Ik5vUGhvbmVOdW1iZXJGb3JDYWxlbmRhckV2ZW50Rm91bmQiLCJtZXRhZGF0YSI6eyJhdHRyMSI6ImJsYSJ9fSwiY29ycmVsYXRpb25JZCI6IjBkZTY1MWVmLTUzNWUtNGQyZS1iOWZmLTdiZjQzZjVhYWFhYSIsImV2ZW50SWQiOiIwZGU2NTFlZi01MzVlLTRkMmUtYjlmZi03YmY0M2Y1YTAxYWMiLCJ1c2VySWQiOiIwZGU2NTFlZi01MzVlLTRkMmUtYjlmZi03YmY0M2Y1YTAwMDAiLCJpZHAiOiJnb29nbGUuY29tIiwiaWRwSWQiOiI0NTM0NjM1NjM1NiIsImV2ZW50VHlwZSI6IkVtYWlsVG9CZVNlbnQiLCJoYXBwZW5lZEF0IjoiMjAyNC0wMS0wMlQxNTowNDo1MFoifQ==',
+            'eyJkYXRhIjp7ImZyb20iOnsibmFtZSI6Ik5vdGlmeWNhbCIsImVtYWlsIjoidGVzdEBub3RpZnljYWwuY29tIn0sInRvIjoidGVzdEBub3RpZnljYWwuY29tIiwic3ViamVjdCI6IlNvbWUgc3ViamVjdCIsInRhZ3MiOlsiT25lVGFnIl0sInN1YkV2ZW50VHlwZSI6Ik5vUGhvbmVOdW1iZXJGb3JDYWxlbmRhckV2ZW50Rm91bmQiLCJtZXRhZGF0YSI6eyJhdHRyMSI6ImJsYSJ9fSwiY29ycmVsYXRpb25JZCI6IjBkZTY1MWVmLTUzNWUtNGQyZS1iOWZmLTdiZjQzZjVhYWFhYSIsImV2ZW50SWQiOiIwZGU2NTFlZi01MzVlLTRkMmUtYjlmZi03YmY0M2Y1YTAxYWMiLCJ1c2VySWQiOiIwZGU2NTFlZi01MzVlLTRkMmUtYjlmZi03YmY0M2Y1YTAwMDAiLCJpZHAiOiJnb29nbGUuY29tIiwiaWRwSWQiOiI0NTM0NjM1NjM1NiIsImV2ZW50VHlwZSI6IkVtYWlsVG9CZVNlbnQiLCJoYXBwZW5lZEF0IjoiMjAyNC0wMS0wMlQxNTowNDo1MFoifQ==',
           userId: '0de651ef-535e-4d2e-b9ff-7bf43f5a0000'
         },
         validEvent.data.inlineAttachments,
@@ -132,13 +127,7 @@ describe('Email processor', () => {
       const sendEmailSpy = vi.fn();
       const safePublishSpy = vi.fn().mockResolvedValue({});
 
-      const result = await testIt(
-        validEvent,
-        validSender,
-        sendEmailSpy,
-        safePublishSpy,
-        emailingEnabled
-      );
+      const result = await testIt(validEvent, sendEmailSpy, safePublishSpy, emailingEnabled);
       const expectedFakeResponse = { id: 'fake-uuid', message: 'OK!' };
 
       expect(result).toStrictEqual(expectedFakeResponse);
@@ -158,7 +147,7 @@ describe('Email processor', () => {
       const sendEmailSpy = vi.fn().mockRejectedValue(error);
       const safePublishSpy = vi.fn().mockResolvedValue({ $metadata: {} });
 
-      const result = testIt(validEvent, validSender, sendEmailSpy, safePublishSpy, true);
+      const result = testIt(validEvent, sendEmailSpy, safePublishSpy, true);
 
       await expect(result).rejects.toThrow(error);
       expect(sendEmailSpy).toHaveBeenCalledOnce();
@@ -167,7 +156,6 @@ describe('Email processor', () => {
 
     function testIt(
       event: EmailToBeSentEvent,
-      from: EmailWithName,
       sendEmailFn: () => Promise<EmailSendSuccessResponse>,
       safePublishFn: () => Promise<void>,
       emailingEnabled: boolean,
@@ -184,7 +172,7 @@ describe('Email processor', () => {
       } as unknown as EmailService);
 
       const messageProcessor = new Processor(config.mailgunConfig, emailingEnabled, snsService);
-      return messageProcessor.process(event, from);
+      return messageProcessor.process(event);
     }
   });
 });

@@ -126,8 +126,13 @@ export interface MessagingEndpointConfig {
 }
 export interface EmailingConfig {
   enabled: boolean;
+}
+export interface EmailingSenderConfig {
   sender: EmailWithName;
 }
 export interface EmailingEndpointConfig {
   emailingConfig: EmailingConfig;
+}
+export interface EmailingSenderEndpointConfig {
+  emailingSenderConfig: EmailingSenderConfig;
 }

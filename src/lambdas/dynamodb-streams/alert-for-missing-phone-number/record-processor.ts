@@ -1,6 +1,8 @@
 import type { Logger } from '@aws-lambda-powertools/logger';
 import { environment } from '@common/powertools';
+import type { EmailWithName } from '@model/app-events/common';
 import type { EmailToBeSentEvent } from '@model/app-events/EmailToBeSentEvent';
+import type { EmailingSenderEndpointConfig } from '@model/Config';
 import {
   EventTypeDate,
   type AlertCounterKeyNames,
@@ -23,7 +25,7 @@ import { tap } from '@utils/promises';
 import { DateTime as DT } from 'luxon';
 import { match } from 'ts-pattern';
 import { v4 } from 'uuid';
-import type { AlertThresholdConfig } from './config';
+import type { AlertThresholdConfig, AlertThresholdEndpointConfig } from './config';
 import type {
   AuditTrailActionableEventFoundEvent,
   AuditTrailNoPhoneNumberForCalendarEventFoundEvent
@@ -78,6 +80,7 @@ function updateCounterOnAlertSent(
 
 function interpolateEmail(
   email: Email,
+  sender: EmailWithName,
   language: LanguageCode,
   updateCounterResult: AlertStoreRecord<EventTypeDate['value'], UserId>,
   errorRate: number
@@ -85,6 +88,7 @@ function interpolateEmail(
   const subEventType: EmailToBeSentEvent['data']['subEventType'] =
     'NoPhoneNumberForCalendarEventFound';
   return {
+    from: sender,
     to: email,
     subject: 'Aviso importante: Recordatorios de calendario no enviados' as EmailSubject,
     htmlBody:
@@ -106,6 +110,7 @@ function sendAlert(
   alertName: EventTypeDate,
   alertDiscriminator: UserId,
   email: Email,
+  sender: EmailWithName,
   language: LanguageCode,
   updateCounterResult: AlertStoreRecord<EventTypeDate['value'], UserId>,
   errorRate: number,
@@ -114,7 +119,7 @@ function sendAlert(
   logger: Logger
 ): Promise<void> {
   logger.info(`Sending alert to user`);
-  const alertData = interpolateEmail(email, language, updateCounterResult, errorRate);
+  const alertData = interpolateEmail(email, sender, language, updateCounterResult, errorRate);
   const alertEvent: EmailToBeSentEvent = emailToBeSent(event, alertData);
   return snsService
     .publish(alertEvent)
@@ -162,7 +167,7 @@ function errorHandler(eventId: EventId): (error: unknown) => Promise<void | unde
 
 export function recordProcessor(
   event: AuditTrailActionableEventFoundEvent | AuditTrailNoPhoneNumberForCalendarEventFoundEvent,
-  config: AlertThresholdConfig,
+  config: AlertThresholdEndpointConfig & EmailingSenderEndpointConfig,
   alertsBaseStore: AlertsBaseStore,
   userBaseStore: UserBaseStore<IdpName>,
   snsService: SnsService,
@@ -177,14 +182,15 @@ export function recordProcessor(
   )
     .then((result) => {
       const _errorRate = errorRate(result.SuccessCount, result.FailureCount);
-      if (shouldAlert(result, _errorRate, config)) {
+      if (shouldAlert(result, _errorRate, config.alertThresholdConfig)) {
         return userBaseStore.getEmailAndConfigById(event.UserId).then((emailAndConfig) => {
           if (emailAndConfig) {
             return sendAlert(
               event,
               alertName,
               alertDiscriminator,
-              emailAndConfig.email,
+              emailAndConfig.Email,
+              config.emailingSenderConfig.sender,
               'es', // TODO: replace by emailAndConfig.config.Business once language is stored
               result,
               _errorRate,

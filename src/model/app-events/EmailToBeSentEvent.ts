@@ -1,6 +1,7 @@
 import { emailSchema } from '@notifycal/shared/schemas';
 import { z } from 'zod';
 import { eventSchemaGenerator, noPhoneNumberForCalendarEventFoundEventType } from './BaseEvent';
+import { emailWithNameSchema } from './common';
 
 const inlineAttachmentSchema = z.object({
   type: z.literal('inline'),
@@ -12,6 +13,7 @@ export type EmailInlineAttachment = z.infer<typeof inlineAttachmentSchema>;
 const inlineAttachments = z.record(inlineAttachmentSchema);
 
 const dataSchema = z.object({
+  from: emailWithNameSchema,
   to: emailSchema,
   subject: z.string().brand('EmailSubject'),
   htmlBody: z.string().brand('EmailHtmlBody'),

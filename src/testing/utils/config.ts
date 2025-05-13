@@ -5,6 +5,7 @@ import type {
   DecodeAccessJwtConfig,
   DecodeRefreshJwtConfig,
   EmailingConfig,
+  EmailingSenderConfig,
   EncodeAccessJwtConfig,
   EncodeRefreshJwtConfig,
   IdempotencyPersistenceConfig,
@@ -125,6 +126,9 @@ export function setEnvAlertsBaseStoreConfig(config: AlertsBaseStoreConfig): void
 
 export function setEnvEmailingConfig(config: EmailingConfig): void {
   process.env.EMAILING_ENABLED = config.enabled.toString();
+}
+
+export function setEnvEmailingSenderConfig(config: EmailingSenderConfig): void {
   process.env.EMAILING_SENDER_DISPLAY_NAME = config.sender.name;
   process.env.EMAILING_SENDER_EMAIL = config.sender.email;
 }

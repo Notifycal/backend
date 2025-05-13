@@ -11,6 +11,7 @@ import type {
   DecodeRefreshJwtConfig,
   DemoReminderToBeSentTopicConfig,
   EmailingEndpointConfig,
+  EmailingSenderEndpointConfig,
   EmailingTopicConfig,
   EmailToBeSentTopicConfig,
   EncodeAccessJwtConfig,
@@ -282,7 +283,14 @@ export function readMailgunConfig(env: Environment): MailgunEndpointConfig {
 export function readEmailingConfig(env: Environment): EmailingEndpointConfig {
   return {
     emailingConfig: {
-      enabled: env.get('EMAILING_ENABLED').required().default('true').asBool(),
+      enabled: env.get('EMAILING_ENABLED').required().default('true').asBool()
+    }
+  };
+}
+
+export function readEmailingSenderConfig(env: Environment): EmailingSenderEndpointConfig {
+  return {
+    emailingSenderConfig: {
       sender: {
         name: env.get('EMAILING_SENDER_DISPLAY_NAME').required().asString(),
         email: env.get('EMAILING_SENDER_EMAIL').required().asString() as Email

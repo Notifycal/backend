@@ -1,3 +1,4 @@
+import type { EmailWithName } from '@model/app-events/common';
 import type { EmailToBeSentEvent } from '@model/app-events/EmailToBeSentEvent';
 import type { EmailSendSuccessResponse } from '@model/vendor/mailgun/schemas';
 import type {
@@ -32,9 +33,15 @@ import { handler, type Event } from './index';
 
 vi.mock('./idempotent-processor');
 
+const validSender: EmailWithName = {
+  name: 'Notifycal Dev',
+  email: 'test@notifycal.dev' as Email
+};
+
 const validEmail = 'test@notifycal.com' as Email;
 const validEvent: EmailToBeSentEvent = {
   data: {
+    from: validSender,
     to: validEmail,
     subject: 'Some subject' as EmailSubject,
     htmlBody: '<h1>Hello my friend</h1>' as EmailHtmlBody,
@@ -76,10 +83,7 @@ describe('Send email lambda', () => {
     const result = await testit(validSqsEvent, processIdempotentlyFn);
 
     expect(result).toStrictEqual(validEmailServiceResponse);
-    expect(processIdempotentlyFn).toHaveBeenCalledWith(
-      validEvent,
-      defaultConfig.emailingConfig.sender
-    );
+    expect(processIdempotentlyFn).toHaveBeenCalledWith(validEvent);
   });
 
   it('should return an error if an email fails to be sent', async () => {
@@ -89,10 +93,7 @@ describe('Send email lambda', () => {
     const result = testit(validSqsEvent, processIdempotentlyFn);
 
     await expect(result).rejects.toThrow(error);
-    expect(processIdempotentlyFn).toHaveBeenCalledWith(
-      validEvent,
-      defaultConfig.emailingConfig.sender
-    );
+    expect(processIdempotentlyFn).toHaveBeenCalledWith(validEvent);
   });
 });
 
@@ -129,11 +130,7 @@ const defaultConfig: SendEmailConfig = {
     topicArn: 'some topic arn' as AwsArn
   },
   emailingConfig: {
-    enabled: true,
-    sender: {
-      name: 'Notifycal Dev',
-      email: 'test@notifycal.dev' as Email
-    }
+    enabled: true
   }
 };
 
