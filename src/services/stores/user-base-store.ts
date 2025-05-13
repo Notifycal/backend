@@ -96,9 +96,7 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
 
   public getEmailAndConfigById(
     userId: UserId
-  ): Promise<
-    { email: UserStoreRecord<TIdpName>['Email']; config: ReminderConfigStoreRecord } | undefined
-  > {
+  ): Promise<Pick<UserStoreRecord<TIdpName>, 'Email' | 'Config'> | undefined> {
     const projections: Array<keyof UserStoreRecord<IdpName>> = ['Email', 'Config'];
     const queryCmd = {
       KeyConditionExpression: 'UserId = :id',
@@ -107,21 +105,15 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
       },
       ProjectionExpression: projections.join(', ')
     };
-    return this.queryCommandRunner<UserStoreRecord<TIdpName>>(queryCmd)
-      .then((emailAndConfigOrNot) => {
-        if (emailAndConfigOrNot && emailAndConfigOrNot?.Email && emailAndConfigOrNot?.Config) {
-          return { email: emailAndConfigOrNot.Email, config: emailAndConfigOrNot.Config };
-        } else {
-          return undefined;
-        }
-      })
-      .catch((error) =>
-        Promise.reject(
-          new Error(`Email for user id '${userId}' could not be retrieved`, {
-            cause: error
-          })
-        )
-      );
+    return this.queryCommandRunner<Pick<UserStoreRecord<TIdpName>, 'Email' | 'Config'>>(
+      queryCmd
+    ).catch((error) =>
+      Promise.reject(
+        new Error(`Email for user id '${userId}' could not be retrieved`, {
+          cause: error
+        })
+      )
+    );
   }
 
   public putUser(
