@@ -1,12 +1,14 @@
 import { emailSchema } from '@notifycal/shared/schemas';
 import { z } from 'zod';
-import { eventSchemaGenerator } from './BaseEvent';
+import { eventSchemaGenerator, noPhoneNumberForCalendarEventFoundEventType } from './BaseEvent';
 
 const dataSchema = z.object({
   to: emailSchema,
   subject: z.string().brand('EmailSubject'),
   htmlBody: z.string().brand('EmailHtmlBody'),
-  tags: z.string().array().default([])
+  tags: z.string().array().default([]),
+  subEventType: noPhoneNumberForCalendarEventFoundEventType,
+  metadata: z.object({}).passthrough()
 });
 export const emailToBeSentEventSchema = eventSchemaGenerator('EmailToBeSent', dataSchema);
 

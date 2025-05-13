@@ -44,7 +44,11 @@ const validEvent: EmailToBeSentEvent = {
     to: validEmail,
     subject: 'Some subject' as EmailSubject,
     htmlBody: '<h1>Hello my friend</h1>' as EmailHtmlBody,
-    tags: ['OneTag']
+    tags: ['OneTag'],
+    subEventType: 'NoPhoneNumberForCalendarEventFound',
+    metadata: {
+      attr1: 'bla'
+    }
   },
   correlationId: '0de651ef-535e-4d2e-b9ff-7bf43f5aaaaa' as CorrelationId,
   eventId: '0de651ef-535e-4d2e-b9ff-7bf43f5a01ac' as EventId,
@@ -90,7 +94,7 @@ describe('Email processor', () => {
           idp: 'google.com',
           idpId: '45346356356',
           originalBase64Event:
-            'eyJkYXRhIjp7InRvIjoidGVzdEBub3RpZnljYWwuY29tIiwic3ViamVjdCI6IlNvbWUgc3ViamVjdCIsInRhZ3MiOlsiT25lVGFnIl19LCJjb3JyZWxhdGlvbklkIjoiMGRlNjUxZWYtNTM1ZS00ZDJlLWI5ZmYtN2JmNDNmNWFhYWFhIiwiZXZlbnRJZCI6IjBkZTY1MWVmLTUzNWUtNGQyZS1iOWZmLTdiZjQzZjVhMDFhYyIsInVzZXJJZCI6IjBkZTY1MWVmLTUzNWUtNGQyZS1iOWZmLTdiZjQzZjVhMDAwMCIsImlkcCI6Imdvb2dsZS5jb20iLCJpZHBJZCI6IjQ1MzQ2MzU2MzU2IiwiZXZlbnRUeXBlIjoiRW1haWxUb0JlU2VudCIsImhhcHBlbmVkQXQiOiIyMDI0LTAxLTAyVDE1OjA0OjUwWiJ9',
+            'eyJkYXRhIjp7InRvIjoidGVzdEBub3RpZnljYWwuY29tIiwic3ViamVjdCI6IlNvbWUgc3ViamVjdCIsInRhZ3MiOlsiT25lVGFnIl0sInN1YkV2ZW50VHlwZSI6Ik5vUGhvbmVOdW1iZXJGb3JDYWxlbmRhckV2ZW50Rm91bmQiLCJtZXRhZGF0YSI6eyJhdHRyMSI6ImJsYSJ9fSwiY29ycmVsYXRpb25JZCI6IjBkZTY1MWVmLTUzNWUtNGQyZS1iOWZmLTdiZjQzZjVhYWFhYSIsImV2ZW50SWQiOiIwZGU2NTFlZi01MzVlLTRkMmUtYjlmZi03YmY0M2Y1YTAxYWMiLCJ1c2VySWQiOiIwZGU2NTFlZi01MzVlLTRkMmUtYjlmZi03YmY0M2Y1YTAwMDAiLCJpZHAiOiJnb29nbGUuY29tIiwiaWRwSWQiOiI0NTM0NjM1NjM1NiIsImV2ZW50VHlwZSI6IkVtYWlsVG9CZVNlbnQiLCJoYXBwZW5lZEF0IjoiMjAyNC0wMS0wMlQxNTowNDo1MFoifQ==',
           userId: '0de651ef-535e-4d2e-b9ff-7bf43f5a0000'
         },
         validEvent.data.tags

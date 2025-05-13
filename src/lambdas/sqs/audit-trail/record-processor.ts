@@ -1,5 +1,6 @@
+import type { Logger } from '@aws-lambda-powertools/logger';
 import { MetricUnit } from '@aws-lambda-powertools/metrics';
-import { logger, metrics as metricsSingleton } from '@common/powertools';
+import { metrics as metricsSingleton } from '@common/powertools';
 import type { EventType } from '@model/app-events/BaseEvent';
 import type {
   AuditTrailStoreRecord,
@@ -8,10 +9,9 @@ import type {
 import type { CorrelationId, DateTime, EventId, UserId } from '@notifycal/shared/types';
 import { throwError } from '@services/common/error-handling';
 import { setupLoggerForAuditStoreRecordProcessing } from '@services/common/logger';
-import { AuditTrailBaseStore } from '@services/stores/audit-trail-base-store';
+import type { AuditTrailBaseStore } from '@services/stores/audit-trail-base-store';
 import type MetricsAggregator from '@utils/MetricsAggregator';
 import { match, P } from 'ts-pattern';
-import type { AuditTrailConfig } from './config';
 import type { Record } from './schema';
 
 function toStoreRecord(r: Record): AuditTrailStoreRecord {
@@ -49,6 +49,7 @@ function toStoreRecord(r: Record): AuditTrailStoreRecord {
 
 function withEventMetric(
   event: AuditTrailStoreRecord,
+  logger: Logger,
   metrics: MetricsAggregator = metricsSingleton
 ): AuditTrailStoreRecord {
   const auditTrailStoreRecordDimensionData = {
@@ -82,13 +83,16 @@ function withEventMetric(
   return event;
 }
 
-export function recordProcessor(record: Record, config: AuditTrailConfig): Promise<void> {
-  const auditTrailBaseStore = AuditTrailBaseStore.withConfig(config.auditTrailBaseStoreConfig);
+export function recordProcessor(
+  record: Record,
+  auditTrailBaseStore: AuditTrailBaseStore,
+  logger: Logger
+): Promise<void> {
   const storeRecord = toStoreRecord(record);
-  setupLoggerForAuditStoreRecordProcessing(storeRecord, logger.createChild());
+  setupLoggerForAuditStoreRecordProcessing(storeRecord, logger);
   return auditTrailBaseStore
     .put(storeRecord)
-    .then(() => withEventMetric(storeRecord))
+    .then(() => withEventMetric(storeRecord, logger))
     .then(
       (storeRecord) => {
         logger.info(`Event has been successfully processed`, { eventId: storeRecord.EventId });

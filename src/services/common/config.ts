@@ -1,3 +1,4 @@
+import type { AlertThresholdEndpointConfig } from '@lambdas/dynamodb-streams/alert-for-missing-phone-number/config';
 import type {
   ActionableEventFoundTopicConfig,
   Algorithm,
@@ -11,6 +12,7 @@ import type {
   DemoReminderToBeSentTopicConfig,
   EmailingEndpointConfig,
   EmailingTopicConfig,
+  EmailToBeSentTopicConfig,
   EncodeAccessJwtConfig,
   EncodeJwtsEndpointConfig,
   EncodeRefreshJwtConfig,
@@ -32,6 +34,7 @@ import type {
   VonageApplicationId,
   VonageJwtSigningSecret
 } from '@services/messaging';
+import type { AlertsBaseStoreEndpointConfig } from '@services/stores/alerts-base-store';
 import type { AuditTrailBaseStoreEndpointConfig } from '@services/stores/audit-trail-base-store';
 import type { RefreshTokenBaseStoreConfigEndpointConfig } from '@services/stores/refresh-token-base-store';
 import type { UserBaseStoreEndpointConfig } from '@services/stores/user-base-store';
@@ -198,6 +201,14 @@ export function readAuditTrailBaseStoreConfig(env: Environment): AuditTrailBaseS
   };
 }
 
+export function readAlertsBaseStoreConfig(env: Environment): AlertsBaseStoreEndpointConfig {
+  return {
+    alertsBaseStoreConfig: {
+      tableName: env.get('BUSINESS_ALERTS_TABLE_NAME').required().asString()
+    }
+  };
+}
+
 export function readIdempotencyPersistenceConfig(env: Environment): IdempotencyPersistenceConfig {
   return {
     idempotencyPersistenceConfig: env
@@ -284,6 +295,27 @@ export function readEmailingTopicConfig(env: Environment): EmailingTopicConfig {
   return {
     emailingTopicConfig: {
       topicArn: env.get('EMAILING_TOPIC_ARN').required().asString() as AwsArn
+    }
+  };
+}
+
+export function readEmailToBeSentTopicConfig(env: Environment): EmailToBeSentTopicConfig {
+  return {
+    emailToBeSentTopicConfig: {
+      topicArn: env.get('EMAIL_TO_BE_SENT_TOPIC_ARN').required().asString() as AwsArn
+    }
+  };
+}
+
+export function readAlertThresholdConfig(env: Environment): AlertThresholdEndpointConfig {
+  return {
+    alertThresholdConfig: {
+      errorRateThreshold: env.get('ERROR_RATE_THRESHOLD').default(5).asIntPositive(),
+      maxNotificationsPerDay: env.get('MAX_NOTIFICATIONS_PER_DAY').default(1).asIntPositive(),
+      countThresholdToEnableTrigger: env
+        .get('COUNT_THRESHOLD_TO_ENABLE_TRIGGER')
+        .default(0)
+        .asIntPositive()
     }
   };
 }

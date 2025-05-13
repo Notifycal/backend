@@ -1,3 +1,4 @@
+import { createSqsHandlerTestSuite } from '@lambdas/batch-processing-lambda-handler-test.suite';
 import type { AwsArn } from '@own-types/model';
 import { userCalendarFetchedEvent } from '@testing/data/app-events';
 import { validRawRecord } from '@testing/data/sqs-events';
@@ -8,7 +9,6 @@ import {
 } from '@testing/utils/config';
 import type { SQSEvent, SQSRecord } from 'aws-lambda';
 import { describe, vi } from 'vitest';
-import { createSqsHandlerTestSuite } from '../sqs-lambda-handler-test.suite';
 import type { ActionableEventsConfig } from './config';
 // @ts-expect-error cjs handler export
 import { handler } from './index';
@@ -40,7 +40,7 @@ describe(
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     handler,
     setEnv,
-    validSqsBatchEvent,
+    validBatchEvent: validSqsBatchEvent,
     recordProcessorMockFn: () => vi.mocked(recordProcessor)
   })
 );

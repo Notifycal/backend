@@ -1,0 +1,38 @@
+{
+  "data": {
+    "receiverDetails": {
+      "type": "phone",
+      "phoneNumber": "+34123456789",
+      "countryCode": "ES"
+    },
+    "run": {
+      "lowerBoundStartTime": "2023-01-01T00:00:00Z",
+      "upperBoundStartTime": "2023-01-01T00:29:59Z",
+      "slidingWindowInMinutes": 30
+    },
+    "calendar": {
+      "id": "some calendar id",
+      "name": "some calendar name"
+    },
+    "calendarEvent": {
+      "id": "event-1",
+      "attendees": [{ "id": "attendee@test.com" }],
+      "isAllDayEvent": false,
+      "startTime": "2024-01-02T15:05:00Z",
+      "timeZone": "Europe/Madrid"
+    },
+    "senderDetails": {
+      "type": "phone",
+      "phoneNumber": "+34666999888",
+      "countryCode": "ES"
+    },
+    "message": "This is some message. sergio test"
+  },
+  "correlationId": "0de651ef-535e-4d2e-b9ff-7bf43f5aaaaa",
+  "eventId": "0de651ef-535e-4d2e-b9ff-7bf43f5a01ac",
+  "userId": "b150d276-e327-51fb-b455-34a87c1c8ecc",
+  "idp": "google.com",
+  "idpId": "123456789",
+  "eventType": "ActionableEventFound",
+  "happenedAt": "2025-05-09T13:00:00Z"
+}

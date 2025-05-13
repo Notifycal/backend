@@ -220,3 +220,17 @@ variable "enable_data_protection" {
   type    = bool
   default = true
 }
+
+variable "deletion_protection_enabled" {
+  type    = bool
+  default = true
+}
+
+variable "alert_for_missing_phone_number" {
+  type = object({
+    error_rate_threshold              = optional(number, 5)
+    max_notifications_per_day         = optional(number, 1)
+    count_threshold_to_enable_trigger = optional(number, 0)
+  })
+  default = {}
+}

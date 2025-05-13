@@ -76,7 +76,7 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
 
   public getUserConfigById(
     userId: UserId
-  ): Promise<UserStoreRecord<unknown>['Config'] | undefined> {
+  ): Promise<UserStoreRecord<IdpName>['Config'] | undefined> {
     const projections: Array<keyof UserStoreRecord<IdpName>> = ['Config'];
     const getCommand = {
       Key: {
@@ -90,8 +90,28 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
     };
 
     return super
-      .getCommandRunner<UserStoreRecord<unknown>>(getCommand)
+      .getCommandRunner<UserStoreRecord<IdpName>>(getCommand)
       .then((result) => result?.Config);
+  }
+
+  public getEmailById(userId: UserId): Promise<UserStoreRecord<TIdpName>['Email'] | undefined> {
+    const projections: Array<keyof UserStoreRecord<IdpName>> = ['Email'];
+    const queryCmd = {
+      KeyConditionExpression: 'UserId = :id',
+      ExpressionAttributeValues: {
+        ':id': userId
+      },
+      ProjectionExpression: projections.join(', ')
+    };
+    return this.queryCommandRunner<UserStoreRecord<TIdpName>>(queryCmd)
+      .then((emailOrNot) => emailOrNot?.Email)
+      .catch((error) =>
+        Promise.reject(
+          new Error(`Email for user id '${userId}' could not be retrieved`, {
+            cause: error
+          })
+        )
+      );
   }
 
   public putUser(
@@ -117,6 +137,6 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
         ':config': config
       },
       UpdateExpression: 'set UserStatus = :userStatus, Config = :config'
-    });
+    }).then(() => null);
   }
 }

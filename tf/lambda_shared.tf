@@ -43,12 +43,19 @@ locals {
     EMAILING_TOPIC_ARN = module.emailing_topic.sns_topic_arn
   }
 
+  email_to_be_sent_topic_env_vars = {
+    EMAIL_TO_BE_SENT_TOPIC_ARN = module.email_to_be_sent_topic.sns_topic_arn
+  }
   api_rest_topic_env_vars = {
     API_REST_TOPIC_ARN = module.api_rest_topic.sns_topic_arn
   }
 
   idempotency_persistance_env_vars = {
     IDEMPOTENCY_PERSISTENCE_CONFIG = local.lambda_idempotency_table_config
+  }
+
+  business_alerts_persistance_env_vars = {
+    BUSINESS_ALERTS_TABLE_NAME = aws_dynamodb_table.business_alerts.name
   }
 
   google_idp_config_env_vars = {
@@ -92,6 +99,8 @@ locals {
     audit_trail                          = module.audit_trail_lambda,
     find_actionable_events               = module.find_actionable_events_lambda,
     send_event_reminder                  = module.send_event_reminder_lambda
+    send_email                           = module.send_email_lambda
+    alert_for_missing_phone_number       = module.alert_for_missing_phone_number_lambda
     # TODO: Add new lambdas here
   }
 }

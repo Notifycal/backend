@@ -1,6 +1,7 @@
 /* eslint-disable vitest/require-top-level-describe */
 import type { MiddyfiedHandler } from '@middy/core';
-import type { Context, SQSEvent, SQSRecord } from 'aws-lambda';
+import type { Context, DynamoDBRecord, DynamoDBStreamEvent, SQSEvent, SQSRecord } from 'aws-lambda';
+import { match, P } from 'ts-pattern';
 import { expect, test, type MockedFunction, type SuiteFactory } from 'vitest';
 
 export type RecordProcessorModule = {
@@ -11,25 +12,25 @@ export const createSqsHandlerTestSuite =
   <TRecord, TConfig>({
     handler,
     setEnv,
-    validSqsBatchEvent,
+    validBatchEvent,
     recordProcessorMockFn
   }: {
     handler: MiddyfiedHandler;
     setEnv: () => void;
-    validSqsBatchEvent: SQSEvent;
+    validBatchEvent: SQSEvent | DynamoDBStreamEvent;
     recordProcessorMockFn: () => MockedFunction<
       (record: TRecord, config: TConfig) => Promise<void>
     >;
   }): SuiteFactory =>
   () => {
-    function testit(event: SQSEvent): Promise<unknown> {
+    function testit(event: SQSEvent | DynamoDBStreamEvent): Promise<unknown> {
       setEnv();
       return handler(event, {} as Context);
     }
 
     test('should parse config and events', () => {
       recordProcessorMockFn().mockResolvedValue(undefined);
-      return testit(validSqsBatchEvent).then((r) => {
+      return testit(validBatchEvent).then((r) => {
         expect(r).toStrictEqual({
           batchItemFailures: []
         });
@@ -41,25 +42,35 @@ export const createSqsHandlerTestSuite =
         .mockResolvedValueOnce(undefined)
         .mockRejectedValue(new Error('Boom!'));
 
-      const eventError: SQSRecord = {
-        ...validSqsBatchEvent.Records[0],
-        messageId: 'messageWithErrorId'
-      };
-      const input: SQSEvent = {
-        Records: [validSqsBatchEvent.Records[0], eventError]
+      const eventError: SQSRecord | DynamoDBRecord = match(validBatchEvent.Records[0])
+        .with({ messageId: P.string }, (validSqsRecord) => ({
+          ...validSqsRecord,
+          messageId: 'messageWithErrorId'
+        }))
+        .with({ eventID: P.string }, (validDynamoDbRecord) => validDynamoDbRecord)
+        .exhaustive();
+      const input: SQSEvent | DynamoDBStreamEvent = {
+        Records: [validBatchEvent.Records[0], eventError]
       };
 
       return testit(input).then((r) => {
         expect(processorSpy).toHaveBeenCalledTimes(2);
         expect(r).toStrictEqual({
-          batchItemFailures: [{ itemIdentifier: eventError.messageId }]
+          batchItemFailures: [
+            {
+              itemIdentifier: match(eventError)
+                .with({ messageId: P.string }, (_eventError) => _eventError.messageId)
+                .with({ eventID: P.string }, (_eventError) => _eventError.dynamodb?.SequenceNumber)
+                .exhaustive()
+            }
+          ]
         });
       });
     });
 
     test('should throw an error if processing of every item fails', () => {
       recordProcessorMockFn().mockRejectedValue(new Error('Boom!'));
-      return expect(testit(validSqsBatchEvent)).rejects.toThrow(
+      return expect(testit(validBatchEvent)).rejects.toThrow(
         'All records failed processing. See individual errors below.'
       );
     });

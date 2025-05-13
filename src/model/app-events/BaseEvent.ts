@@ -12,6 +12,9 @@ import { eventIdSchema } from './common';
 //  - wrong user data
 // SystemEvent:
 //  - a priori, movements initiated by AWS. So, AWS wrappers in simple words.
+export const noPhoneNumberForCalendarEventFoundEventType = z.literal(
+  'NoPhoneNumberForCalendarEventFound'
+);
 export const successEventTypeSchema = z.union([
   z.literal('UserCalendarFetched'),
   z.literal('ActionableEventFound'),
@@ -26,9 +29,8 @@ export const successEventTypeSchema = z.union([
   z.literal('DemoReminderToBeSentStatusUpdated'),
   z.literal('UserSignInSucceeded'),
   z.literal('UserSignUpSucceeded'),
-  z.literal('NoPhoneNumberForCalendarEventFound'),
+  noPhoneNumberForCalendarEventFoundEventType,
   z.literal('NoActionableEventsFound'),
-  z.literal('NoAttendeesInCalendarEventFound'),
   z.literal('NoUserCalendarFound'),
   z.literal('EmailToBeSent'),
   z.literal('EmailToBeSentAttemptSent'),
@@ -48,20 +50,23 @@ export const eventTypeSchema = z.union([successEventTypeSchema, errorEventTypeSc
 export type EventType = SuccessEventType | ErrorEventType;
 export const dataSchema = z.object({}).passthrough();
 export type Data = z.infer<typeof dataSchema>;
+export const googleIdpSchema = z.literal('google.com');
+export const correlationIdSchema = z.string().uuid().brand('CorrelationId');
+export const notApplicableSchema = z.literal('N/A');
+export const systemSchema = z.literal('System');
 
 export const baseEventSchema = z.object({
   userId: userIdSchema,
   idpId: idpIdSchema,
-  idp: z.literal('google.com'),
+  idp: googleIdpSchema,
   eventType: eventTypeSchema,
   happenedAt: dateTimeSchema,
   eventId: eventIdSchema,
-  correlationId: z.string().uuid().brand('CorrelationId'),
+  correlationId: correlationIdSchema,
   data: dataSchema
 });
-const notApplicableSchema = z.literal('N/A');
 export const baseSystemEventSchema = baseEventSchema.extend({
-  userId: z.literal('System'),
+  userId: systemSchema,
   idpId: notApplicableSchema,
   idp: notApplicableSchema,
   eventType: systemEventTypeSchema

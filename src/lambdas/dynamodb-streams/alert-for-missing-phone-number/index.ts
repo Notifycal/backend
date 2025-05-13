@@ -2,36 +2,52 @@ import { BatchProcessor, EventType, processPartialResponse } from '@aws-lambda-p
 import type { PartialItemFailureResponse } from '@aws-lambda-powertools/batch/types';
 import { backgroundProcessingMiddleware } from '@common/lambda-middleware';
 import { logger } from '@common/powertools';
-import { AuditTrailBaseStore } from '@services/stores/audit-trail-base-store';
+import { setupLoggerForAuditStoreRecordProcessing } from '@services/common/logger';
+import { SnsService } from '@services/sns';
+import { AlertsBaseStore } from '@services/stores/alerts-base-store';
+import { UserBaseStore } from '@services/stores/user-base-store';
 import type { Context } from 'aws-lambda';
-import { readAuditTrailConfig, type AuditTrailConfig } from './config';
+import {
+  readAlertForMissingPhoneNumberConfig,
+  type AlertForMissingPhoneNumberConfig
+} from './config';
 import { recordProcessor } from './record-processor';
 import { eventSchema, type Event, type Record } from './schema';
 
 export function recordProcessorCurried(
-  config: AuditTrailConfig
+  config: AlertForMissingPhoneNumberConfig
 ): (record: Record) => Promise<void> {
-  const auditTrailBaseStore = AuditTrailBaseStore.withConfig(config.auditTrailBaseStoreConfig);
+  const alertsBaseStore = AlertsBaseStore.withConfig(config.alertsBaseStoreConfig);
+  const userBaseStore = UserBaseStore.withConfig(config.userBaseStoreConfig);
+  const snsService = SnsService.withConfig(config.emailToBeSentTopicConfig);
   return (record: Record) => {
     const _logger = logger.createChild();
-    return recordProcessor(record, auditTrailBaseStore, _logger);
+    setupLoggerForAuditStoreRecordProcessing(record.dynamodb.NewImage);
+    return recordProcessor(
+      record.dynamodb.NewImage,
+      config.alertThresholdConfig,
+      alertsBaseStore,
+      userBaseStore,
+      snsService,
+      _logger
+    );
   };
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function lambdaHandler(event: Event, context: Context): Promise<PartialItemFailureResponse> {
-  logger.info(`Processing sqs message in audit trail lambda`, { event });
+  logger.info(`Processing dynamoDb stream message in alert for missing phone number`, { event });
   return processPartialResponse(
     event,
     recordProcessorCurried(event.lambdaConfig),
-    new BatchProcessor(EventType.SQS)
+    new BatchProcessor(EventType.DynamoDBStreams)
   ).catch((error) => {
     logger.error(`Failed to process event`, { error });
     throw error;
   });
 }
 const handler = backgroundProcessingMiddleware(
-  () => readAuditTrailConfig(),
+  () => readAlertForMissingPhoneNumberConfig(),
   eventSchema
 ).handler<Event>(lambdaHandler);
 

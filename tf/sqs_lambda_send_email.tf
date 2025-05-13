@@ -9,7 +9,7 @@ data "aws_iam_policy_document" "send_email_iam_policydoc" {
     ]
 
     resources = [
-      module.send_email_queue.sqs_queue_arn
+      module.email_to_be_sent_queue.sqs_queue_arn
     ]
   }
   statement {
@@ -78,7 +78,7 @@ module "send_email_lambda" {
 
   event_source_mapping = {
     sqs = {
-      event_source_arn = module.send_email_queue.sqs_queue_arn
+      event_source_arn = module.email_to_be_sent_queue.sqs_queue_arn
       batch_size       = 1
       scaling_config = {
         maximum_concurrency = 20
@@ -92,7 +92,7 @@ module "send_email_lambda" {
   allowed_triggers = {
     AllowSQSInvoke = {
       principal  = "sqs.amazonaws.com"
-      source_arn = module.send_email_queue.sqs_queue_arn
+      source_arn = module.email_to_be_sent_queue.sqs_queue_arn
     }
   }
 

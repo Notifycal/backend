@@ -1,3 +1,4 @@
+import type { AlertThresholdConfig } from '@lambdas/dynamodb-streams/alert-for-missing-phone-number/config';
 import type {
   CorsConfig,
   CronRunConfig,
@@ -13,6 +14,7 @@ import type {
 } from '@model/Config';
 import type { MailgunConfig } from '@model/vendor/mailgun/config';
 import type { VonageConfig } from '@model/vendor/vonage/config';
+import type { AlertsBaseStoreConfig } from '@services/stores/alerts-base-store';
 import type { AuditTrailBaseStoreConfig } from '@services/stores/audit-trail-base-store';
 import type { RefreshTokenBaseStoreConfig } from '@services/stores/refresh-token-base-store';
 import type { UserBaseStoreConfig } from '@services/stores/user-base-store';
@@ -89,6 +91,10 @@ export function setEnvEmailingTopicConfig(config: SnsTopicConfig): void {
   process.env.EMAILING_TOPIC_ARN = config.topicArn;
 }
 
+export function setEnvEmailToBeSentTopicConfig(config: SnsTopicConfig): void {
+  process.env.EMAIL_TO_BE_SENT_TOPIC_ARN = config.topicArn;
+}
+
 export function setEnvApiRestTopicConfig(config: SnsTopicConfig): void {
   process.env.API_REST_TOPIC_ARN = config.topicArn;
 }
@@ -111,6 +117,10 @@ export function setEnvRefreshTokenBaseStoreConfig(config: RefreshTokenBaseStoreC
 
 export function setEnvAuditTrailBaseStoreConfig(config: AuditTrailBaseStoreConfig): void {
   process.env.AUDIT_TRAIL_TABLE_NAME = config.tableName;
+}
+
+export function setEnvAlertsBaseStoreConfig(config: AlertsBaseStoreConfig): void {
+  process.env.BUSINESS_ALERTS_TABLE_NAME = config.tableName;
 }
 
 export function setEnvEmailingConfig(config: EmailingConfig): void {
@@ -151,4 +161,10 @@ export function setEnvMaigunConfig(config: MailgunConfig): void {
   process.env.MAILGUN_API_KEY = config.apiKey;
   process.env.MAILGUN_BASE_URL = config.baseUrl;
   process.env.MAILGUN_DOMAIN_NAME = config.domainName;
+}
+
+export function setEnvAlertThresholdConfig(config: AlertThresholdConfig): void {
+  process.env.ERROR_RATE_THRESHOLD = config.errorRateThreshold.toString();
+  process.env.MAX_NOTIFICATIONS_PER_DAY = config.maxNotificationsPerDay.toString();
+  process.env.COUNT_THRESHOLD_TO_ENABLE_TRIGGER = config.countThresholdToEnableTrigger.toString();
 }

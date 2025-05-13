@@ -8,5 +8,8 @@ resource "aws_dynamodb_table" "audit_trail_events" {
     type = "S"
   }
 
-  deletion_protection_enabled = true
+  deletion_protection_enabled = var.deletion_protection_enabled
+
+  stream_enabled   = true
+  stream_view_type = "NEW_IMAGE"
 }
