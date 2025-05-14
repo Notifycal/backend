@@ -2,7 +2,7 @@ import type { AuthorizationForIdp } from '@model/IdpAuthorization';
 import type { ReminderConfigStoreRecord } from '@model/store/ReminderConfigStoreRecord';
 import type { UserIdpAuthorizationStoreRecord } from '@model/store/UserIdpAuthorizationStoreRecord';
 import type { UserStoreRecord } from '@model/store/UserStoreRecord';
-import type { IdpName, UserId, UserStatus } from '@notifycal/shared/types';
+import type { IdpName, LanguageCode, UserId, UserStatus } from '@notifycal/shared/types';
 import { BaseStore, type BaseStoreConfig } from '../common/base-store';
 
 export type UserBaseStoreConfig = BaseStoreConfig;
@@ -94,26 +94,20 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
       .then((result) => result?.Config);
   }
 
-  public getEmailAndConfigById(
+  // This will makes sense in terms of cost until row exceed 4KB - this is due to DynamoDb billing rules
+  public getEmailAndLanguageById(
     userId: UserId
-  ): Promise<Pick<UserStoreRecord<TIdpName>, 'Email' | 'Config'> | undefined> {
-    const projections: Array<keyof UserStoreRecord<IdpName>> = ['Email', 'Config'];
-    const queryCmd = {
-      KeyConditionExpression: 'UserId = :id',
-      ExpressionAttributeValues: {
-        ':id': userId
-      },
-      ProjectionExpression: projections.join(', ')
-    };
-    return this.queryCommandRunner<Pick<UserStoreRecord<TIdpName>, 'Email' | 'Config'>>(
-      queryCmd
-    ).catch((error) =>
-      Promise.reject(
-        new Error(`Email for user id '${userId}' could not be retrieved`, {
-          cause: error
-        })
-      )
-    );
+  ): Promise<(Pick<UserStoreRecord<TIdpName>, 'Email'> & { Language: LanguageCode }) | undefined> {
+    return this.getUserById(userId).then((user) => {
+      if (user) {
+        return {
+          Email: user.Email,
+          Language: 'es' // TODO:  user.Config?.Business?.Language || 'es'
+        };
+      } else {
+        return undefined;
+      }
+    });
   }
 
   public putUser(

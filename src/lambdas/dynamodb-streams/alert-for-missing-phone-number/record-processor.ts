@@ -217,19 +217,23 @@ export function recordProcessor(
     event.EventType,
     alertsBaseStore
   )
-    .then((result) => {
-      const _errorRate = errorRate(result.SuccessCount, result.FailureCount);
-      if (shouldAlert(result, _errorRate, config.alertThresholdConfig)) {
-        return userBaseStore.getEmailAndConfigById(event.UserId).then((emailAndConfig) => {
-          if (emailAndConfig) {
+    .then((updateCounterResult) => {
+      const _errorRate = errorRate(
+        updateCounterResult.SuccessCount,
+        updateCounterResult.FailureCount
+      );
+      if (shouldAlert(updateCounterResult, _errorRate, config.alertThresholdConfig)) {
+        return userBaseStore.getEmailAndLanguageById(event.UserId).then((emailAndLanguage) => {
+          if (emailAndLanguage) {
+            const { Email, Language } = emailAndLanguage;
             return sendAlert(
               event,
               alertName,
               alertDiscriminator,
-              emailAndConfig.Email,
+              Email,
               config.emailingSenderConfig.sender,
-              'es', // TODO: replace by emailAndConfig.config.Business once language is stored
-              result,
+              Language,
+              updateCounterResult,
               _errorRate,
               config.alertEmailConfig,
               alertsBaseStore,
