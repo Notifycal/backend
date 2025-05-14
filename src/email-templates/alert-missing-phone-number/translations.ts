@@ -1,6 +1,5 @@
 import { translations as commonTranslations } from '@email-templates/i18n/translations';
 import type { LanguageCode } from '@notifycal/shared/types';
-import { deepmerge } from 'deepmerge-ts';
 import type { EmailTextVariables, NotifycalTranslations } from './types';
 
 const specificTranslations: Record<LanguageCode, EmailTextVariables> = {
@@ -34,8 +33,6 @@ const specificTranslations: Record<LanguageCode, EmailTextVariables> = {
   }
 };
 
-export const translations: Record<LanguageCode, EmailTextVariables & NotifycalTranslations> =
-  deepmerge(specificTranslations, commonTranslations) as Record<
-    LanguageCode,
-    EmailTextVariables & NotifycalTranslations
-  >;
+export function translations(code: LanguageCode): NotifycalTranslations & EmailTextVariables {
+  return { ...commonTranslations[code], ...specificTranslations[code] };
+}

@@ -18,7 +18,7 @@ describe('alert-missing-phone-number template', () => {
     const supportedLanguages: Array<LanguageCode> = ['en', 'es'];
     supportedLanguages.forEach((lang) => {
       const templateData: EmailTextVariables & EmailDynamicVariables = {
-        ...translations[lang],
+        ...translations(lang),
         logoSrc: `data:image/png;base64,${logo}`,
         notifycalFaqUrl: 'https://notifycal.com/faq'
       };

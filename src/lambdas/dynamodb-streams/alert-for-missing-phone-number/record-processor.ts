@@ -102,7 +102,7 @@ function interpolateEmail(
     'NoPhoneNumberForCalendarEventFound';
 
   const compiledTemplate = new TemplateCompiler().compile(template);
-  const _translations = translations[language];
+  const _translations = translations(language);
   const logoFilename = 'logo.png';
   const templateData: EmailTextVariables & EmailDynamicVariables = {
     ..._translations,

@@ -46,7 +46,6 @@
     "@notifycal/shared": "^4.1.0",
     "@vonage/server-sdk": "^3.20.0",
     "axios": "^1.8.4",
-    "deepmerge-ts": "^7.1.5",
     "env-var": "^7.5.0",
     "form-data": "^4.0.2",
     "google-auth-library": "^9.15.1",
