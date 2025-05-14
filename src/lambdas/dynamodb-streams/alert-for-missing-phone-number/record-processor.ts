@@ -116,7 +116,7 @@ function interpolateEmail(
     to: email,
     subject: _translations.subject as EmailSubject,
     htmlBody: compiledTemplate(htmlBody) as EmailHtmlBody,
-    tags: [subEventType],
+    tags: [],
     subEventType,
     inlineAttachments: {
       [logoFilename]: {

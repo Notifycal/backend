@@ -81,7 +81,7 @@ export class Processor {
         happenedAt: event.happenedAt
       },
       event.data.inlineAttachments,
-      event.data.tags //TODO: add subEventType once we come up with a final structure for EmailToBeSent.
+      event.data.tags.concat(event.data.subEventType)
     );
   }
 }
