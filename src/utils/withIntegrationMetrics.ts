@@ -6,7 +6,7 @@ export interface MetricDimensions {
   [key: string]: string;
 }
 
-type IntegrationVendorName = 'Vonage' | 'Mailgun' | IdpName;
+export type IntegrationVendorName = 'Vonage' | 'Mailgun' | IdpName;
 
 export async function withIntegrationMetrics<T>(
   vendor: IntegrationVendorName,
@@ -20,9 +20,7 @@ export async function withIntegrationMetrics<T>(
     vendor,
     operation
   };
-
   const start = Date.now();
-
   try {
     const result = await fn();
     metrics.addMetric(`${INTEGRATION_LABEL_SUFFIX}Success`, MetricUnit.Count, 1, metricDimensions);

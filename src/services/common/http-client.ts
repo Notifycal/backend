@@ -1,5 +1,17 @@
 import { logger } from '@common/powertools';
-import axios, { type AxiosBasicCredentials, type AxiosInstance } from 'axios';
+import { type IntegrationVendorName, withIntegrationMetrics } from '@utils/withIntegrationMetrics';
+import axios, {
+  type AxiosAdapter,
+  type AxiosBasicCredentials,
+  type AxiosInstance,
+  type InternalAxiosRequestConfig
+} from 'axios';
+
+function extractOperationId(config: InternalAxiosRequestConfig): string {
+  const method = (config.method || 'unknown').toUpperCase();
+  const url = config.url || 'unknownUrl';
+  return `${method} ${url}`;
+}
 
 function withInterceptors(axios: AxiosInstance, targetName: string): AxiosInstance {
   axios.interceptors.request.use(
@@ -30,14 +42,27 @@ function withInterceptors(axios: AxiosInstance, targetName: string): AxiosInstan
   return axios;
 }
 
+function withMetricsAdapter(
+  axiosInstance: AxiosInstance,
+  targetName: IntegrationVendorName
+): AxiosInstance {
+  const originalAdapter = axios.getAdapter(axiosInstance.defaults.adapter);
+  const withMetricsAdapter: AxiosAdapter = async (config: InternalAxiosRequestConfig) => {
+    const operationId = extractOperationId(config);
+    return withIntegrationMetrics(targetName, operationId, () => originalAdapter(config));
+  };
+  axiosInstance.defaults.adapter = withMetricsAdapter;
+  return axiosInstance;
+}
+
 export function createHttpClient(
   baseUrl: string,
   auth: AxiosBasicCredentials,
-  target: string
+  target: IntegrationVendorName
 ): AxiosInstance {
   const _httpClient = axios.create({
     baseURL: baseUrl,
     auth: auth
   });
-  return withInterceptors(_httpClient, target);
+  return withMetricsAdapter(withInterceptors(_httpClient, target), target);
 }

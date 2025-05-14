@@ -26,7 +26,7 @@ export class EmailService {
         username: 'api',
         password: this.apiKey
       },
-      'Mailgun(Email Service)'
+      'Mailgun'
     );
   }
 
