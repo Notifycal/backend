@@ -7,7 +7,6 @@ import type { EmailAttachmentName, EmailHtmlBody, EmailSubject } from '@own-type
 import { throwError } from '@services/common/error-handling';
 import { createHttpClient } from '@services/common/http-client';
 import { capArray } from '@utils/array';
-import { withIntegrationMetrics } from '@utils/withIntegrationMetrics';
 import type { AxiosInstance } from 'axios';
 import FormData from 'form-data';
 
@@ -74,9 +73,8 @@ export class EmailService {
       }
     });
 
-    return withIntegrationMetrics('Mailgun', 'SendEmail', () =>
-      this.httpClient.post(`/v3/${this.domainName}/messages`, form)
-    )
+    return this.httpClient
+      .post(`/v3/${this.domainName}/messages`, form)
       .then((response) => {
         logger.info('Email response:', { response });
         return response.data as EmailSendSuccessResponse;

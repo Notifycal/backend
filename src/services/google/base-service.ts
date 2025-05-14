@@ -1,6 +1,6 @@
 import { logger } from '@common/powertools';
 import type { GoogleOAuthConfig } from '@model/Config';
-import { withIntegrationMetrics } from '@utils/withIntegrationMetrics';
+import { withIntegrationMetrics } from '@services/observability/metrics';
 import type {
   Gaxios,
   GaxiosInterceptor,
@@ -38,7 +38,6 @@ export abstract class BaseGoogle {
       defaultAdapter: (options: GaxiosOptions) => GaxiosPromise<T>
     ): GaxiosPromise<T> => {
       const operationId = this.extractOperationId(options);
-
       return withIntegrationMetrics(
         'google.com',
         operationId,

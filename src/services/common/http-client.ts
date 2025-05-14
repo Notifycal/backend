@@ -1,5 +1,8 @@
 import { logger } from '@common/powertools';
-import { type IntegrationVendorName, withIntegrationMetrics } from '@utils/withIntegrationMetrics';
+import {
+  type IntegrationVendorName,
+  withIntegrationMetrics
+} from '@services/observability/metrics';
 import axios, {
   type AxiosAdapter,
   type AxiosBasicCredentials,
