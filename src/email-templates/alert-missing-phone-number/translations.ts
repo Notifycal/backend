@@ -1,6 +1,22 @@
-import { translations as commonTranslations } from '@email-templates/i18n/translations';
+import { commonTranslations, type NotifycalTranslations } from '@email-templates/i18n/translations';
 import type { LanguageCode } from '@notifycal/shared/types';
-import type { EmailTextVariables, NotifycalTranslations } from './types';
+
+export interface EmailTextVariables {
+  subject: string;
+  header: string;
+  greeting: string;
+  mainMessage: string;
+  tipTitle: string;
+  tipContent: string;
+  visitNotifycalFaq: string;
+  helpOffer: string;
+  thankYou: string;
+}
+
+export interface EmailDynamicVariables {
+  logoSrc: string;
+  notifycalFaqUrl: string;
+}
 
 const specificTranslations: Record<LanguageCode, EmailTextVariables> = {
   es: {

@@ -1,7 +1,11 @@
 import type { LanguageCode } from '@notifycal/shared/types';
-import type { NotifycalTranslations } from '../alert-missing-phone-number/types';
 
-export const translations: Record<LanguageCode, NotifycalTranslations> = {
+export interface NotifycalTranslations {
+  appName: string;
+  rightsReserved: string;
+}
+
+export const commonTranslations: Record<LanguageCode, NotifycalTranslations> = {
   en: {
     appName: 'Notifycal',
     rightsReserved: 'All rights reserved'

@@ -1,10 +1,10 @@
 import type { Logger } from '@aws-lambda-powertools/logger';
 import { template } from '@email-templates/alert-missing-phone-number/alert-missing-phone-number.html.hbs';
-import { translations } from '@email-templates/alert-missing-phone-number/translations';
-import type {
-  EmailDynamicVariables,
-  EmailTextVariables
-} from '@email-templates/alert-missing-phone-number/types';
+import {
+  translations,
+  type EmailDynamicVariables,
+  type EmailTextVariables
+} from '@email-templates/alert-missing-phone-number/translations';
 import { logo } from '@email-templates/assets/logo.png.base64';
 import type { EmailWithName } from '@model/app-events/common';
 import type { EmailToBeSentEvent } from '@model/app-events/EmailToBeSentEvent';
