@@ -16,14 +16,19 @@ export interface AlertThresholdConfig {
   maxNotificationsPerDay: number;
   countThresholdToEnableTrigger: number;
 }
-export interface AlertThresholdEndpointConfig {
+export interface AlertEmailConfig {
+  faqUrl: URL;
+}
+
+export interface AlertEndpointConfig {
   alertThresholdConfig: AlertThresholdConfig;
+  alertEmailConfig: AlertEmailConfig;
 }
 
 export type AlertForMissingPhoneNumberConfig = AlertsBaseStoreEndpointConfig &
   UserBaseStoreEndpointConfig &
   EmailToBeSentTopicConfig &
-  AlertThresholdEndpointConfig &
+  AlertEndpointConfig &
   EmailingSenderEndpointConfig;
 
 export function readAlertForMissingPhoneNumberConfig(): Promise<AlertForMissingPhoneNumberConfig> {

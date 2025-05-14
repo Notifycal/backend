@@ -7,6 +7,7 @@ import {
 } from '@testing/data/app-events';
 import { validRawRecord } from '@testing/data/dynamodb-stream-events';
 import {
+  setEnvAlertEmailConfig,
   setEnvAlertsBaseStoreConfig,
   setEnvAlertThresholdConfig,
   setEnvEmailingSenderConfig,
@@ -52,6 +53,9 @@ function setEnv() {
         name: 'Notifycal',
         email: 'some@email.com' as Email
       }
+    },
+    alertEmailConfig: {
+      faqUrl: new URL('https://some.faq.url')
     }
   };
   setEnvAlertsBaseStoreConfig(config.alertsBaseStoreConfig);
@@ -59,6 +63,7 @@ function setEnv() {
   setEnvEmailToBeSentTopicConfig(config.emailToBeSentTopicConfig);
   setEnvAlertThresholdConfig(config.alertThresholdConfig);
   setEnvEmailingSenderConfig(config.emailingSenderConfig);
+  setEnvAlertEmailConfig(config.alertEmailConfig);
 }
 
 vi.mock('./record-processor');

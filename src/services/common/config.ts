@@ -1,4 +1,4 @@
-import type { AlertThresholdEndpointConfig } from '@lambdas/dynamodb-streams/alert-for-missing-phone-number/config';
+import type { AlertEndpointConfig } from '@lambdas/dynamodb-streams/alert-for-missing-phone-number/config';
 import type {
   ActionableEventFoundTopicConfig,
   Algorithm,
@@ -315,7 +315,7 @@ export function readEmailToBeSentTopicConfig(env: Environment): EmailToBeSentTop
   };
 }
 
-export function readAlertThresholdConfig(env: Environment): AlertThresholdEndpointConfig {
+export function readAlertThresholdConfig(env: Environment): AlertEndpointConfig {
   return {
     alertThresholdConfig: {
       errorRateThreshold: env.get('ERROR_RATE_THRESHOLD').default(5).asIntPositive(),
@@ -324,6 +324,9 @@ export function readAlertThresholdConfig(env: Environment): AlertThresholdEndpoi
         .get('COUNT_THRESHOLD_TO_ENABLE_TRIGGER')
         .default(0)
         .asIntPositive()
+    },
+    alertEmailConfig: {
+      faqUrl: env.get('FAQ_URL').default('https://notifycal.com/faq').asUrlObject()
     }
   };
 }

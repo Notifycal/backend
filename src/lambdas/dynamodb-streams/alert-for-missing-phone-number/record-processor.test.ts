@@ -11,7 +11,7 @@ import {
   auditTrailNoPhoneNumberForCalendarEventFoundEvent
 } from '@testing/data/app-events';
 import { describe, expect, it, vi } from 'vitest';
-import type { AlertThresholdEndpointConfig } from './config';
+import type { AlertEndpointConfig } from './config';
 import { recordProcessor } from './record-processor';
 import type {
   AuditTrailActionableEventFoundEvent,
@@ -26,7 +26,7 @@ describe('Alert for missing phone number record processor', () => {
     auditTrailNoPhoneNumberForCalendarEventFoundEvent as AuditTrailNoPhoneNumberForCalendarEventFoundEvent;
 
   const validEmail = 'test@notifycal.com' as Email;
-  const validConfig: AlertThresholdEndpointConfig & EmailingSenderEndpointConfig = {
+  const validConfig: AlertEndpointConfig & EmailingSenderEndpointConfig = {
     alertThresholdConfig: {
       errorRateThreshold: 5,
       maxNotificationsPerDay: 1,
@@ -37,6 +37,9 @@ describe('Alert for missing phone number record processor', () => {
         name: 'Notifycal',
         email: 'some@email.com' as Email
       }
+    },
+    alertEmailConfig: {
+      faqUrl: new URL('https://test.notifycal.com/faq')
     }
   };
   const validEmailAndConfig = {
@@ -175,8 +178,8 @@ describe('Alert for missing phone number record processor', () => {
         data: expect.objectContaining({
           from: validConfig.emailingSenderConfig.sender,
           to: validEmail,
-          subject: 'Aviso importante: Recordatorios de calendario no enviados',
-          tags: ['N/A', 'NoPhoneNumberForCalendarEventFound']
+          subject: 'Alerta: Recordatorio no enviado',
+          tags: ['NoPhoneNumberForCalendarEventFound']
         })
       })
     );
@@ -270,7 +273,7 @@ describe('Alert for missing phone number record processor', () => {
       Pick<UserStoreRecord<unknown>, 'Email' | 'Config'> | undefined
     >,
     publishFn: () => Promise<void>,
-    config: AlertThresholdEndpointConfig & EmailingSenderEndpointConfig = validConfig
+    config: AlertEndpointConfig & EmailingSenderEndpointConfig = validConfig
   ): Promise<void> {
     const alertsBaseStoreMock = {
       incrementCounter: incrementCounterFn

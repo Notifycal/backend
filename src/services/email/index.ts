@@ -1,4 +1,4 @@
-import { logger } from '@common/powertools';
+import { environment, logger } from '@common/powertools';
 import type { EmailWithName } from '@model/app-events/common';
 import type { EmailInlineAttachment } from '@model/app-events/EmailToBeSentEvent';
 import type { EmailSendSuccessResponse } from '@model/vendor/mailgun/schemas';
@@ -60,7 +60,7 @@ export class EmailService {
       form.append(`v:${key}`, value);
     });
     // Docs: https://documentation.mailgun.com/docs/mailgun/user-manual/tracking-messages/#tags
-    const { items: sanitizedTags, dropped: droppedTags } = capArray(tags, 10);
+    const { items: sanitizedTags, dropped: droppedTags } = capArray([environment, ...tags], 10);
     if (droppedTags.length > 0) {
       logger.warn(`Tags list has been capped as it exceeds vendor 10 limit.`, {
         droppedTags

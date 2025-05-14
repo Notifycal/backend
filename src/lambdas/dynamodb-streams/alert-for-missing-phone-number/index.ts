@@ -27,7 +27,8 @@ export function recordProcessorCurried(
       record.dynamodb.NewImage,
       {
         alertThresholdConfig: config.alertThresholdConfig,
-        emailingSenderConfig: config.emailingSenderConfig
+        emailingSenderConfig: config.emailingSenderConfig,
+        alertEmailConfig: config.alertEmailConfig
       },
       alertsBaseStore,
       userBaseStore,

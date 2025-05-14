@@ -1,5 +1,11 @@
 import type { Logger } from '@aws-lambda-powertools/logger';
-import { environment } from '@common/powertools';
+import { template } from '@email-templates/alert-missing-phone-number/alert-missing-phone-number.html.hbs';
+import { translations } from '@email-templates/alert-missing-phone-number/translations';
+import type {
+  EmailDynamicVariables,
+  EmailTextVariables
+} from '@email-templates/alert-missing-phone-number/types';
+import { logo } from '@email-templates/assets/logo.png.base64';
 import type { EmailWithName } from '@model/app-events/common';
 import type { EmailToBeSentEvent } from '@model/app-events/EmailToBeSentEvent';
 import type { EmailingSenderEndpointConfig } from '@model/Config';
@@ -16,16 +22,22 @@ import type {
   LanguageCode,
   UserId
 } from '@notifycal/shared/types';
-import type { EmailHtmlBody, EmailSubject } from '@own-types/model';
+import type {
+  ContentType,
+  EmailHtmlBody,
+  EmailInlineAttachementBase64,
+  EmailSubject
+} from '@own-types/model';
 import { throwError } from '@services/common/error-handling';
 import type { SnsService } from '@services/sns';
 import type { AlertsBaseStore } from '@services/stores/alerts-base-store';
 import type { UserBaseStore } from '@services/stores/user-base-store';
+import { TemplateCompiler } from '@services/template-compiler';
 import { tap } from '@utils/promises';
 import { DateTime as DT } from 'luxon';
 import { match } from 'ts-pattern';
 import { v4 } from 'uuid';
-import type { AlertThresholdConfig, AlertThresholdEndpointConfig } from './config';
+import type { AlertEmailConfig, AlertEndpointConfig, AlertThresholdConfig } from './config';
 import type {
   AuditTrailActionableEventFoundEvent,
   AuditTrailNoPhoneNumberForCalendarEventFoundEvent
@@ -83,19 +95,36 @@ function interpolateEmail(
   sender: EmailWithName,
   language: LanguageCode,
   updateCounterResult: AlertStoreRecord<EventTypeDate['value'], UserId>,
-  errorRate: number
+  errorRate: number,
+  alertEmailConfig: AlertEmailConfig
 ): EmailToBeSentEvent['data'] {
   const subEventType: EmailToBeSentEvent['data']['subEventType'] =
     'NoPhoneNumberForCalendarEventFound';
+
+  const compiledTemplate = new TemplateCompiler().compile(template);
+  const _translations = translations[language];
+  const logoFilename = 'logo.png';
+  const templateData: EmailTextVariables & EmailDynamicVariables = {
+    ..._translations,
+    logoSrc: `cid:${logoFilename}`,
+    notifycalFaqUrl: alertEmailConfig.faqUrl.toString()
+  };
+  const htmlBody = compiledTemplate(templateData);
+
   return {
     from: sender,
     to: email,
-    subject: 'Aviso importante: Recordatorios de calendario no enviados' as EmailSubject,
-    htmlBody:
-      `<p><strong>Atención:</strong> No pudimos encontrar números de teléfono para enviar recordatorios para ${updateCounterResult.FailureCount} evento(s) de tu calendario.</p>` as EmailHtmlBody,
-    tags: [environment, subEventType],
+    subject: _translations.subject as EmailSubject,
+    htmlBody: compiledTemplate(htmlBody) as EmailHtmlBody,
+    tags: [subEventType],
     subEventType,
-    inlineAttachments: {},
+    inlineAttachments: {
+      [logoFilename]: {
+        type: 'inline',
+        base64Content: logo as EmailInlineAttachementBase64,
+        contentType: 'image/png' as ContentType
+      }
+    },
     metadata: {
       actionableEventFoundCount: updateCounterResult.SuccessCount,
       noPhoneNumberForCalendarEventFoundCount: updateCounterResult.FailureCount,
@@ -114,12 +143,20 @@ function sendAlert(
   language: LanguageCode,
   updateCounterResult: AlertStoreRecord<EventTypeDate['value'], UserId>,
   errorRate: number,
+  alertEmailConfig: AlertEmailConfig,
   alertsBaseStore: AlertsBaseStore,
   snsService: SnsService,
   logger: Logger
 ): Promise<void> {
   logger.info(`Sending alert to user`);
-  const alertData = interpolateEmail(email, sender, language, updateCounterResult, errorRate);
+  const alertData = interpolateEmail(
+    email,
+    sender,
+    language,
+    updateCounterResult,
+    errorRate,
+    alertEmailConfig
+  );
   const alertEvent: EmailToBeSentEvent = emailToBeSent(event, alertData);
   return snsService
     .publish(alertEvent)
@@ -167,7 +204,7 @@ function errorHandler(eventId: EventId): (error: unknown) => Promise<void | unde
 
 export function recordProcessor(
   event: AuditTrailActionableEventFoundEvent | AuditTrailNoPhoneNumberForCalendarEventFoundEvent,
-  config: AlertThresholdEndpointConfig & EmailingSenderEndpointConfig,
+  config: AlertEndpointConfig & EmailingSenderEndpointConfig,
   alertsBaseStore: AlertsBaseStore,
   userBaseStore: UserBaseStore<IdpName>,
   snsService: SnsService,
@@ -194,6 +231,7 @@ export function recordProcessor(
               'es', // TODO: replace by emailAndConfig.config.Business once language is stored
               result,
               _errorRate,
+              config.alertEmailConfig,
               alertsBaseStore,
               snsService,
               logger

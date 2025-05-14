@@ -1,4 +1,7 @@
-import type { AlertThresholdConfig } from '@lambdas/dynamodb-streams/alert-for-missing-phone-number/config';
+import type {
+  AlertEmailConfig,
+  AlertThresholdConfig
+} from '@lambdas/dynamodb-streams/alert-for-missing-phone-number/config';
 import type {
   CorsConfig,
   CronRunConfig,
@@ -171,4 +174,8 @@ export function setEnvAlertThresholdConfig(config: AlertThresholdConfig): void {
   process.env.ERROR_RATE_THRESHOLD = config.errorRateThreshold.toString();
   process.env.MAX_NOTIFICATIONS_PER_DAY = config.maxNotificationsPerDay.toString();
   process.env.COUNT_THRESHOLD_TO_ENABLE_TRIGGER = config.countThresholdToEnableTrigger.toString();
+}
+
+export function setEnvAlertEmailConfig(config: AlertEmailConfig): void {
+  process.env.FAQ_URL = config.faqUrl.toString();
 }
