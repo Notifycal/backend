@@ -179,7 +179,7 @@ describe('Alert for missing phone number record processor', () => {
           from: validConfig.emailingSenderConfig.sender,
           to: validEmail,
           subject: 'Alerta: Recordatorio no enviado',
-          tags: ['NoPhoneNumberForCalendarEventFound']
+          tags: []
         })
       })
     );
