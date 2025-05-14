@@ -102,7 +102,7 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
       if (user) {
         return {
           Email: user.Email,
-          Language: 'es' // TODO:  user.Config?.Business?.Language || 'es'
+          Language: 'es' // TODO:  user.Config.Business.Language
         };
       } else {
         return undefined;
