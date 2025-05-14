@@ -107,12 +107,14 @@ export const template = /*html*/ `<!DOCTYPE html>
             color: var(--secondary-color);
             margin-right: 5px;
             vertical-align: middle;
+            font-size: 16px;
         }
         
         .tip-content {
             color: #555;
             display: block;
             margin-top: 8px;
+            font-size: 16px;
         }
         
         .action-link {
@@ -121,6 +123,7 @@ export const template = /*html*/ `<!DOCTYPE html>
             color: var(--secondary-color);
             text-decoration: none;
             font-weight: 500;
+            font-size: 16px;
         }
         
         .action-link:hover {
@@ -138,7 +141,7 @@ export const template = /*html*/ `<!DOCTYPE html>
         
         .help-box p {
             margin: 0;
-            font-size: 15px;
+            font-size: 13px;
         }
         
         .thanks {
