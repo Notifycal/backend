@@ -5,19 +5,30 @@ import { toStoreRecord } from '@model/store/ReminderConfigStoreRecord';
 import { reminderConfigSchema } from '@notifycal/shared/types';
 import { errorHandler, successHandler } from '@services/common/api-response-handlers';
 import { UserBaseStore } from '@services/stores/user-base-store';
+import { timezoneValidator } from '@utils/datetime';
 import { senderValidator } from '@utils/phone';
 import type { APIGatewayProxyResult, Context } from 'aws-lambda';
-import type { z } from 'zod';
+import { z } from 'zod';
 import { type PatchUserProfileConfig, readPatchUserConfig } from './config';
 
 const contactDetailsWithValidator =
   reminderConfigSchema.shape.business.shape.senderContact.superRefine(senderValidator);
 
+const timeZoneSchemaExtended =
+  reminderConfigSchema.shape.business.shape.timezone.superRefine(timezoneValidator);
+
 const updatedBusinessSchema = reminderConfigSchema.shape.business.extend({
-  senderContact: contactDetailsWithValidator
+  senderContact: contactDetailsWithValidator,
+  timezone: timeZoneSchemaExtended
+});
+const confirmationSchemaOverride = z.object({
+  termsAccepted: z.literal(true),
+  privacyAccepted: z.literal(true),
+  marketingOptInAccepted: z.boolean()
 });
 const bodySchema = reminderConfigSchema.extend({
-  business: updatedBusinessSchema
+  business: updatedBusinessSchema,
+  confirmation: confirmationSchemaOverride
 });
 
 const eventSchema = authedEventSchema<PatchUserProfileConfig>().extend({

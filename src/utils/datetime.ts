@@ -1,4 +1,6 @@
-import type { DateTime } from '@notifycal/shared/types';
+import type { DateTime, TimeZone } from '@notifycal/shared/types';
+import { DateTime as DT } from 'luxon';
+import { z } from 'zod';
 
 export function isWithinBoundaries(
   startTime: DateTime,
@@ -10,4 +12,25 @@ export function isWithinBoundaries(
     new Date(lowerBoundary).getTime() <= time.getTime() &&
     new Date(upperBoundary).getTime() >= time.getTime()
   );
+}
+
+export function timezoneValidator(): (arg: TimeZone, ctx: z.RefinementCtx) => boolean {
+  return (data, context) => {
+    const dt = DT.now().setZone(data);
+    if (!data || !dt.isValid) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `Invalid timezone: ${dt.invalidReason || 'invalid format - not in IANA TZDB format'}`
+      });
+      return false;
+    }
+    if (dt.invalidReason === 'unsupported zone') {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `Not supported timezone: ${data}`
+      });
+      return false;
+    }
+    return true;
+  };
 }
