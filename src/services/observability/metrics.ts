@@ -10,7 +10,7 @@ export type IntegrationVendorName = 'Vonage' | 'Mailgun' | IdpName;
 
 export async function withIntegrationMetrics<T>(
   vendor: IntegrationVendorName,
-  operation: string,
+  operationId: string,
   fn: () => Promise<T>,
   extraDimensions: MetricDimensions = {}
 ): Promise<T> {
@@ -18,7 +18,7 @@ export async function withIntegrationMetrics<T>(
   const metricDimensions = {
     ...extraDimensions,
     vendor,
-    operation
+    operation: operationId
   };
   const start = Date.now();
   try {

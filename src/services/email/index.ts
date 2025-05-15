@@ -5,21 +5,20 @@ import type { EmailSendSuccessResponse } from '@model/vendor/mailgun/schemas';
 import type { Email } from '@notifycal/shared/types';
 import type { EmailAttachmentName, EmailHtmlBody, EmailSubject } from '@own-types/model';
 import { throwError } from '@services/common/error-handling';
-import { createHttpClient } from '@services/common/http-client';
+import { HttpClient } from '@services/common/http-client';
 import { capArray } from '@utils/array';
-import type { AxiosInstance } from 'axios';
 import FormData from 'form-data';
 
 // Docs: https://documentation.mailgun.com/docs/mailgun/api-reference/openapi-final/tag/Messages/
 export class EmailService {
-  private readonly httpClient: AxiosInstance;
+  private readonly httpClient: HttpClient;
 
   public constructor(
     baseUrl: string,
     private readonly domainName: string,
     private readonly apiKey: string
   ) {
-    this.httpClient = createHttpClient(
+    this.httpClient = new HttpClient(
       baseUrl,
       {
         username: 'api',
@@ -74,7 +73,7 @@ export class EmailService {
     });
 
     return this.httpClient
-      .post(`/v3/${this.domainName}/messages`, form)
+      .post(`/v3/${this.domainName}/messages`, `${this.domainName} messages`, form)
       .then((response) => {
         logger.info('Email response:', { response });
         return response.data as EmailSendSuccessResponse;

@@ -4,68 +4,155 @@ import {
   withIntegrationMetrics
 } from '@services/observability/metrics';
 import axios, {
-  type AxiosAdapter,
   type AxiosBasicCredentials,
   type AxiosInstance,
+  type AxiosRequestConfig,
+  type AxiosResponse,
   type InternalAxiosRequestConfig
 } from 'axios';
 
-function extractOperationId(config: InternalAxiosRequestConfig): string {
-  const method = (config.method || 'unknown').toUpperCase();
-  const url = config.url || 'unknownUrl';
-  return `${method} ${url}`;
+declare module 'axios' {
+  interface AxiosRequestConfig {
+    restResourceName: string;
+  }
 }
 
-function withInterceptors(axios: AxiosInstance, targetName: string): AxiosInstance {
-  axios.interceptors.request.use(
-    (config) => {
-      logger.info(`${targetName} request`, { requestConfig: config });
-      return config;
-    },
-    (error) => {
-      logger.error(`Something unexpected went wrong prepping a request to ${targetName}`, {
-        requestError: error
-      });
-      // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
-      return Promise.reject(error);
+interface RequestWithrestResourceName extends Omit<AxiosRequestConfig, 'restResourceName'> {
+  restResourceName: string;
+}
+
+export class HttpClient {
+  private readonly axiosInstance: AxiosInstance;
+
+  public constructor(
+    baseUrl: string,
+    auth: AxiosBasicCredentials,
+    targetName: IntegrationVendorName
+  ) {
+    this.axiosInstance = axios.create({
+      baseURL: baseUrl,
+      auth: auth,
+      restResourceName: 'notused'
+    });
+    this.withInterceptors(this.axiosInstance, targetName);
+    this.withMetricsAdapter(this.axiosInstance, targetName);
+  }
+
+  private withInterceptors(axiosInstance: AxiosInstance, targetName: IntegrationVendorName): void {
+    axiosInstance.interceptors.request.use(
+      (config) => {
+        logger.info(`${targetName} request`, { requestConfig: config });
+        return config;
+      },
+      (error) => {
+        logger.error(`Something unexpected went wrong prepping a request to ${targetName}`, {
+          requestError: error
+        });
+        // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
+        return Promise.reject(error);
+      }
+    );
+
+    this.axiosInstance.interceptors.response.use(
+      (response) => {
+        logger.info(`${targetName} successful response`, { responseConfig: response });
+        return response;
+      },
+      (error) => {
+        logger.error(`${targetName} failed response`, { responseError: error });
+        // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
+        return Promise.reject(error);
+      }
+    );
+  }
+
+  private withMetricsAdapter(
+    axiosInstance: AxiosInstance,
+    targetName: IntegrationVendorName
+  ): void {
+    const originalAdapter = axios.getAdapter(axiosInstance.defaults.adapter);
+    function metricsAdapter(config: InternalAxiosRequestConfig): Promise<AxiosResponse> {
+      return withIntegrationMetrics(
+        targetName,
+        `${config.method?.toUpperCase()} ${config.restResourceName}`,
+        () => originalAdapter(config)
+      );
     }
-  );
+    axiosInstance.defaults.adapter = metricsAdapter;
+  }
 
-  axios.interceptors.response.use(
-    (response) => {
-      logger.info(`${targetName} successful response`, { responseConfig: response });
-      return response;
-    },
-    (error) => {
-      logger.error(`${targetName} failed response`, { responseError: error });
-      // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
-      return Promise.reject(error);
-    }
-  );
-  return axios;
-}
+  private async request<T>(config: RequestWithrestResourceName): Promise<AxiosResponse<T>> {
+    return this.axiosInstance.request<T>(config);
+  }
 
-function withMetricsAdapter(
-  axiosInstance: AxiosInstance,
-  targetName: IntegrationVendorName
-): AxiosInstance {
-  const originalAdapter = axios.getAdapter(axiosInstance.defaults.adapter);
-  const withMetricsAdapter: AxiosAdapter = async (config: InternalAxiosRequestConfig) => {
-    const operationId = extractOperationId(config);
-    return withIntegrationMetrics(targetName, operationId, () => originalAdapter(config));
-  };
-  axiosInstance.defaults.adapter = withMetricsAdapter;
-  return axiosInstance;
-}
+  public async get<T>(
+    url: string,
+    restResourceName: string,
+    config: Omit<AxiosRequestConfig, 'url' | 'method' | 'restResourceName'> = {}
+  ): Promise<AxiosResponse<T>> {
+    return this.request<T>({
+      ...config,
+      url,
+      method: 'get',
+      restResourceName
+    });
+  }
 
-export function createHttpClient(
-  baseUrl: string,
-  auth: AxiosBasicCredentials,
-  target: IntegrationVendorName
-): AxiosInstance {
-  const _httpClient = axios.create({
-    baseURL: baseUrl,
-    auth: auth
-  });
-  return withMetricsAdapter(withInterceptors(_httpClient, target), target);
+  public async post<T>(
+    url: string,
+    restResourceName: string,
+    data?: object,
+    config: Omit<AxiosRequestConfig, 'url' | 'method' | 'data' | 'restResourceName'> = {}
+  ): Promise<AxiosResponse<T>> {
+    return this.request<T>({
+      ...config,
+      url,
+      method: 'post',
+      data,
+      restResourceName
+    });
+  }
+
+  public async put<T>(
+    url: string,
+    restResourceName: string,
+    data?: object,
+    config: Omit<AxiosRequestConfig, 'url' | 'method' | 'data' | 'restResourceName'> = {}
+  ): Promise<AxiosResponse<T>> {
+    return this.request<T>({
+      ...config,
+      url,
+      method: 'put',
+      data,
+      restResourceName
+    });
+  }
+
+  public async delete<T>(
+    url: string,
+    restResourceName: string,
+    config: Omit<AxiosRequestConfig, 'url' | 'method' | 'restResourceName'> = {}
+  ): Promise<AxiosResponse<T>> {
+    return this.request<T>({
+      ...config,
+      url,
+      method: 'delete',
+      restResourceName
+    });
+  }
+
+  public async patch<T>(
+    url: string,
+    restResourceName: string,
+    data?: object,
+    config: Omit<AxiosRequestConfig, 'url' | 'method' | 'data' | 'restResourceName'> = {}
+  ): Promise<AxiosResponse<T>> {
+    return this.request<T>({
+      ...config,
+      url,
+      method: 'patch',
+      data,
+      restResourceName
+    });
+  }
 }
