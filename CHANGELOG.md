@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.33.0](https://github.com/Notifycal/backend/compare/v0.32.0...v0.33.0) (2025-05-15)
+
+
+### Features
+
+* beautify email ([#616](https://github.com/Notifycal/backend/issues/616)) ([c262972](https://github.com/Notifycal/backend/commit/c262972cea28d28a495871ee082aa57ebb4cda44))
+* capture metrics in http service as a replacement of manual calls to withintegrationMetrics. ([#620](https://github.com/Notifycal/backend/issues/620)) ([d673fde](https://github.com/Notifycal/backend/commit/d673fdee6db5b14b6f36c7ae16c5d398a2fb50a0))
+
 ## [0.32.0](https://github.com/Notifycal/backend/compare/v0.31.0...v0.32.0) (2025-05-15)
 
 
