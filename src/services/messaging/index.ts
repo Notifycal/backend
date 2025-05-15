@@ -7,7 +7,7 @@ import { throwError } from '@services/common/error-handling';
 import type { ReceiverStandardContact, SenderStandardContact } from '@model/app-events/common';
 import type { Brand, Uuid } from '@notifycal/shared/types';
 import type { Url } from '@own-types/model';
-import { withIntegrationMetrics } from '@utils/withIntegrationMetrics';
+import { withIntegrationMetrics } from '@services/observability/metrics';
 import { match } from 'ts-pattern';
 
 export type VonageApiKey = Brand<string, 'VonageApiKey'>;

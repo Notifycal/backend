@@ -14,6 +14,7 @@ import type {
 } from '@notifycal/shared/types';
 import type { JsonObject } from '@own-types/model';
 import { extractErrorMessage, throwError } from '@services/common/error-handling';
+import { withIntegrationMetrics } from '@services/observability/metrics';
 import { partitionByError } from '@utils/array';
 import { isWithinBoundaries } from '@utils/datetime';
 import { google, type calendar_v3 } from 'googleapis';
@@ -134,19 +135,18 @@ export class GoogleCalendar extends BaseGoogle {
 
   // CalendarEntryList Docs: https://developers.google.com/calendar/api/v3/reference/calendarList#resource
   private _calendarList(): Promise<Array<calendar_v3.Schema$CalendarListEntry>> {
-    const baseMsg = 'GET Calendar List';
+    const operationId = 'GET Calendar List';
     const calendar = google.calendar({ version: 'v3', auth: this._client });
-    return calendar.calendarList
-      .list()
+    return withIntegrationMetrics('google.com', operationId, () => calendar.calendarList.list())
       .then((response) => {
         if (response.status >= 200 && response.status <= 299) {
           return response.data.items || [];
         } else {
-          throwError(`${baseMsg}. Error in response`, {}, { response });
+          throwError(`${operationId}. Error in response`, {}, { response });
         }
       })
       .catch((error) => {
-        throwError(`Error in ` + baseMsg, error);
+        throwError(`Error in ` + operationId, error);
       });
   }
 
@@ -156,7 +156,7 @@ export class GoogleCalendar extends BaseGoogle {
     upperBoundStartTime: DateTime,
     lowerBoundEndTime: DateTime
   ): Promise<calendar_v3.Schema$Events> {
-    const baseMsg = 'GET Events List';
+    const operationId = 'GET Events List';
     const calendar = google.calendar({ version: 'v3', auth: this._client });
     const pageNumber = 0;
 
@@ -167,21 +167,22 @@ export class GoogleCalendar extends BaseGoogle {
         return response.data;
       }
       throwError(
-        `${baseMsg}. Error in response page number ${pageNumber}. Response:`,
+        `${operationId}. Error in response page number ${pageNumber}. Response:`,
         {},
         { response }
       );
     }
 
     function fetchEvents(currentPageToken?: string): Promise<calendar_v3.Schema$Events> {
-      return calendar.events
-        .list({
+      return withIntegrationMetrics('google.com', operationId, () =>
+        calendar.events.list({
           calendarId,
           timeMax: lowerBoundEndTime,
           timeMin: upperBoundStartTime,
           timeZone: 'UTC',
           pageToken: currentPageToken
         })
+      )
         .then(handleResponse)
         .then((events) => {
           if (!events.nextPageToken) {

@@ -10,11 +10,11 @@ import type { ServiceResponse } from '@model/ServiceResponse';
 import type { CalendarEvent, CountryCode, DateTime, EventId } from '@notifycal/shared/types';
 import type { PhoneNumberE164 } from '@own-types/model';
 import { eventsStartTimeWithin } from '@services/calendar-events';
+import type { MetricDimensions } from '@services/observability/metrics';
 import { phoneExtractor } from '@services/phone-extractor';
 import { SnsService } from '@services/sns';
 import { interpolate } from '@services/template';
 import { allSettledAllOrErrorHandler } from '@utils/promises';
-import { withIntegrationMetrics, type MetricDimensions } from '@utils/withIntegrationMetrics';
 import { DateTime as DT } from 'luxon';
 import { match } from 'ts-pattern';
 import { v4 } from 'uuid';
@@ -35,16 +35,14 @@ function fetchCalendarEvents(
   const includeAllDayEvents =
     calendarEventStartTime.get('hour') === 10 && calendarEventStartTime.get('minute') === 0;
 
-  return withIntegrationMetrics(event.idp, 'FetchCalendarEvents', () =>
-    eventsStartTimeWithin(
-      event.data.calendar.id,
-      event.data.run.lowerBoundStartTime,
-      event.data.run.upperBoundStartTime,
-      includeAllDayEvents,
-      idpAuthorization,
-      event.idp,
-      idpConfigs
-    )
+  return eventsStartTimeWithin(
+    event.data.calendar.id,
+    event.data.run.lowerBoundStartTime,
+    event.data.run.upperBoundStartTime,
+    includeAllDayEvents,
+    idpAuthorization,
+    event.idp,
+    idpConfigs
   );
 }
 
@@ -61,14 +59,12 @@ function fetchAttendeePhoneNumbersForCalendarEvent(
   idpConfigs: IdpConfigs,
   snsService: SnsService
 ): Promise<Array<CalendarEventWithAnAttendeePhoneNumber>> {
-  return withIntegrationMetrics(event.idp, 'GetAttendeePhoneNumbers', () =>
-    phoneExtractor(
-      calendarEvent,
-      extractCountryCode(event.data.senderDetails),
-      event.idp,
-      event.sensitiveData.idpAuthorization,
-      idpConfigs
-    )
+  return phoneExtractor(
+    calendarEvent,
+    extractCountryCode(event.data.senderDetails),
+    event.idp,
+    event.sensitiveData.idpAuthorization,
+    idpConfigs
   ).then((phoneNumbers) => {
     const dimensions: MetricDimensions = {
       idp: event.idp,

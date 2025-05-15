@@ -2,7 +2,6 @@ import { protectedEndpointMiddleware } from '@common/lambda-middleware';
 import { authedEventSchema } from '@model/lambda-events/ApiGatewayEvents';
 import { calendarList } from '@services/calendar';
 import { errorHandler, successHandler } from '@services/common/api-response-handlers';
-import { withIntegrationMetrics } from '@utils/withIntegrationMetrics';
 import type { APIGatewayProxyResult, Context } from 'aws-lambda';
 import type { z } from 'zod';
 import { type GetUserCalendarsConfig, readGetUserCalendarListConfig } from './config';
@@ -18,9 +17,10 @@ function lambdaHandler(
   const config = event.lambdaConfig;
   const userId = event.requestContext.authorizer.payload.userId;
   const idp = event.requestContext.authorizer.payload.idp;
-  return withIntegrationMetrics(idp, 'GetUserCalendars', () =>
-    calendarList(userId, idp, config.idpConfigs, config.userBaseStoreConfig)
-  ).then((calendars) => successHandler()({ result: calendars }), errorHandler(500));
+  return calendarList(userId, idp, config.idpConfigs, config.userBaseStoreConfig).then(
+    (calendars) => successHandler()({ result: calendars }),
+    errorHandler(500)
+  );
 }
 
 const handler = protectedEndpointMiddleware(
