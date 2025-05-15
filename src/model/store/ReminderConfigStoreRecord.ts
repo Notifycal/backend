@@ -7,8 +7,7 @@ import type {
   DateTime,
   LanguageCode,
   ReminderConfig,
-  TemplateId,
-  TimeZone
+  TemplateId
 } from '@notifycal/shared/types';
 import {
   fromStoreRecord as fromContactStoreRecord,
@@ -46,7 +45,6 @@ export interface ReminderConfigStoreRecord {
     Address: BusinessAddress;
     SenderContact: SenderContactStoreRecord;
     Language: LanguageCode;
-    TimeZone: TimeZone;
     CompanyIndustry: CompanyIndustryStoreRecord;
     CompanySize: string;
   };
@@ -68,7 +66,6 @@ export function fromStoreRecord(record: ReminderConfigStoreRecord): ReminderConf
       address: record.Business.Address,
       senderContact: fromContactStoreRecord(record.Business.SenderContact),
       language: record.Business.Language,
-      timezone: record.Business.TimeZone,
       companyIndustry: {
         category: record.Business.CompanyIndustry.Category,
         subcategory: record.Business.CompanyIndustry.Subcategory,
@@ -91,7 +88,6 @@ export function toStoreRecord(config: Event['body']): ReminderConfigStoreRecord 
       Address: config.business.address,
       SenderContact: toContactStoreRecord(config.business.senderContact),
       Language: config.business.language,
-      TimeZone: config.business.timezone,
       CompanyIndustry: {
         Category: config.business.companyIndustry.category,
         Subcategory: config.business.companyIndustry.subcategory,

@@ -69,7 +69,6 @@ const validUserConfig: LiveUserStoreRecord<unknown>['Config'] = {
     Name: 'Test Business' as BusinessName,
     Address: 'Test Address' as BusinessAddress,
     Language: 'en',
-    TimeZone: 'Europe/London' as TimeZone,
     CompanyIndustry: {
       Category: 'category',
       Subcategory: 'subcategory',

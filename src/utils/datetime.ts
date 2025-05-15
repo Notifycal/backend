@@ -20,7 +20,8 @@ export function timezoneValidator(): (arg: TimeZone, ctx: z.RefinementCtx) => bo
     if (!data || !dt.isValid) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
-        message: `Invalid timezone: ${dt.invalidReason || 'invalid format - not in IANA TZDB format'}`
+        message: `Invalid timezone: ${dt.invalidReason || 'invalid format - not in IANA TZDB format'}`,
+        fatal: true
       });
       return false;
     }

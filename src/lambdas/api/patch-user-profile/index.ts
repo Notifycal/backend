@@ -5,7 +5,6 @@ import { toStoreRecord } from '@model/store/ReminderConfigStoreRecord';
 import { type DateTime, reminderConfigSchema } from '@notifycal/shared/types';
 import { errorHandler, successHandler } from '@services/common/api-response-handlers';
 import { UserBaseStore } from '@services/stores/user-base-store';
-import { timezoneValidator } from '@utils/datetime';
 import { senderValidator } from '@utils/phone';
 import type { APIGatewayProxyResult, Context } from 'aws-lambda';
 import { DateTime as DT } from 'luxon';
@@ -15,12 +14,8 @@ import { type PatchUserProfileConfig, readPatchUserConfig } from './config';
 const contactDetailsWithValidator =
   reminderConfigSchema.shape.business.shape.senderContact.superRefine(senderValidator);
 
-const timeZoneSchemaExtended =
-  reminderConfigSchema.shape.business.shape.timezone.superRefine(timezoneValidator);
-
 const updatedBusinessSchema = reminderConfigSchema.shape.business.extend({
-  senderContact: contactDetailsWithValidator,
-  timezone: timeZoneSchemaExtended
+  senderContact: contactDetailsWithValidator
 });
 const confirmationSchemaOverride = z
   .object({

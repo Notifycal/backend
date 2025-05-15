@@ -9,7 +9,6 @@ import type {
   IdpId,
   PhoneNumber,
   TemplateId,
-  TimeZone,
   UnixTimestamp,
   User,
   UserId
@@ -44,7 +43,6 @@ export function validUserStoreRecord(userId: UserId): UserStoreRecord<'google.co
           CountryCode: 'ES'
         },
         Language: 'en',
-        TimeZone: 'Europe/London' as TimeZone,
         CompanyIndustry: {
           Category: 'category',
           Subcategory: 'subcategory',
@@ -90,7 +88,6 @@ export function validUser(userId: UserId): User<'google.com'> {
           phoneNumber: '666777888' as PhoneNumber
         },
         language: 'en',
-        timezone: 'Europe/London' as TimeZone,
         companyIndustry: {
           category: 'category',
           subcategory: 'subcategory',

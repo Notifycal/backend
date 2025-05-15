@@ -10,7 +10,6 @@ import {
   type IdpName,
   type PhoneNumber,
   type ReminderConfig,
-  type TimeZone,
   type UserId
 } from '@notifycal/shared/types';
 import { UserBaseStore } from '@services/stores/user-base-store';
@@ -52,7 +51,6 @@ describe('PATCH User profile', () => {
         phoneNumber: '666888999' as PhoneNumber
       },
       language: 'en',
-      timezone: 'Europe/London' as TimeZone,
       companyIndustry: {
         category: 'category',
         subcategory: 'subcategory',
