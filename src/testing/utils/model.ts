@@ -4,6 +4,7 @@ import type {
   BusinessName,
   CalendarId,
   CalendarName,
+  DateTime,
   Email,
   IdpId,
   PhoneNumber,
@@ -23,15 +24,6 @@ export function validUserStoreRecord(userId: UserId): UserStoreRecord<'google.co
     SignedUpAt: 1736254413865 as UnixTimestamp,
     UserStatus: 'live',
     Config: {
-      Business: {
-        Name: 'Test Business' as BusinessName,
-        Address: '123 Test St, Test City, TX 12345' as BusinessAddress,
-        SenderContact: {
-          Type: 'phone',
-          PhoneNumber: '666777888' as PhoneNumber,
-          CountryCode: 'ES'
-        }
-      },
       Calendars: [
         {
           Id: 'test-calendar-id' as CalendarId,
@@ -41,7 +33,28 @@ export function validUserStoreRecord(userId: UserId): UserStoreRecord<'google.co
             Language: 'en'
           }
         }
-      ]
+      ],
+      Business: {
+        Name: 'Test Business' as BusinessName,
+        Address: '123 Test St, Test City, TX 12345' as BusinessAddress,
+        SenderContact: {
+          Type: 'phone',
+          PhoneNumber: '666777888' as PhoneNumber,
+          CountryCode: 'ES'
+        },
+        Language: 'en',
+        CompanyIndustry: {
+          Category: 'category',
+          Subcategory: 'subcategory',
+          CustomIndustry: 'custom'
+        },
+        CompanySize: 'freelancer'
+      },
+      Confirmation: {
+        TermsAccepted: '2023-01-01T00:00:00Z' as DateTime,
+        PrivacyAccepted: '2023-01-01T00:00:00Z' as DateTime,
+        MarketingOptInAccepted: '2023-01-01T00:00:00Z' as DateTime
+      }
     }
   };
 }
@@ -73,7 +86,19 @@ export function validUser(userId: UserId): User<'google.com'> {
           type: 'phone',
           countryCode: 'ES',
           phoneNumber: '666777888' as PhoneNumber
-        }
+        },
+        language: 'en',
+        companyIndustry: {
+          category: 'category',
+          subcategory: 'subcategory',
+          customIndustry: 'custom'
+        },
+        companySize: 'freelancer'
+      },
+      confirmation: {
+        termsAccepted: '2023-01-01T00:00:00Z' as DateTime,
+        privacyAccepted: '2023-01-01T00:00:00Z' as DateTime,
+        marketingOptInAccepted: '2023-01-01T00:00:00Z' as DateTime
       }
     }
   };
