@@ -1,4 +1,4 @@
-import type { AlertThresholdEndpointConfig } from '@lambdas/dynamodb-streams/alert-for-missing-phone-number/config';
+import type { AlertEndpointConfig } from '@lambdas/dynamodb-streams/alert-for-missing-phone-number/config';
 import type {
   ActionableEventFoundTopicConfig,
   Algorithm,
@@ -11,6 +11,7 @@ import type {
   DecodeRefreshJwtConfig,
   DemoReminderToBeSentTopicConfig,
   EmailingEndpointConfig,
+  EmailingSenderEndpointConfig,
   EmailingTopicConfig,
   EmailToBeSentTopicConfig,
   EncodeAccessJwtConfig,
@@ -282,7 +283,14 @@ export function readMailgunConfig(env: Environment): MailgunEndpointConfig {
 export function readEmailingConfig(env: Environment): EmailingEndpointConfig {
   return {
     emailingConfig: {
-      enabled: env.get('EMAILING_ENABLED').required().default('true').asBool(),
+      enabled: env.get('EMAILING_ENABLED').required().default('true').asBool()
+    }
+  };
+}
+
+export function readEmailingSenderConfig(env: Environment): EmailingSenderEndpointConfig {
+  return {
+    emailingSenderConfig: {
       sender: {
         name: env.get('EMAILING_SENDER_DISPLAY_NAME').required().asString(),
         email: env.get('EMAILING_SENDER_EMAIL').required().asString() as Email
@@ -307,7 +315,7 @@ export function readEmailToBeSentTopicConfig(env: Environment): EmailToBeSentTop
   };
 }
 
-export function readAlertThresholdConfig(env: Environment): AlertThresholdEndpointConfig {
+export function readAlertThresholdConfig(env: Environment): AlertEndpointConfig {
   return {
     alertThresholdConfig: {
       errorRateThreshold: env.get('ERROR_RATE_THRESHOLD').default(5).asIntPositive(),
@@ -316,6 +324,9 @@ export function readAlertThresholdConfig(env: Environment): AlertThresholdEndpoi
         .get('COUNT_THRESHOLD_TO_ENABLE_TRIGGER')
         .default(0)
         .asIntPositive()
+    },
+    alertEmailConfig: {
+      faqUrl: env.get('FAQ_URL').default('https://notifycal.com/faq').asUrlObject()
     }
   };
 }

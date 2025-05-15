@@ -99,10 +99,8 @@ module "send_email_lambda" {
   environment_variables = merge({
     EMAILING_ENABLED = tostring(var.emailing_config.enabled)
 
-    MAILGUN_API_KEY              = var.mailgun_auth.api_key
-    MAILGUN_BASE_URL             = var.mailgun_config.base_url
-    MAILGUN_DOMAIN_NAME          = var.mailgun_config.domain_name
-    EMAILING_SENDER_DISPLAY_NAME = var.emailing_config.sender.displayName
-    EMAILING_SENDER_EMAIL        = var.emailing_config.sender.email
+    MAILGUN_API_KEY     = var.mailgun_auth.api_key
+    MAILGUN_BASE_URL    = var.mailgun_config.base_url
+    MAILGUN_DOMAIN_NAME = var.mailgun_config.domain_name
   }, local.emailing_topic_env_vars, local.idempotency_persistance_env_vars, local.common_lambda_env_vars)
 }

@@ -1,4 +1,5 @@
 import { createSqsHandlerTestSuite as createBatchProcessingHandlerTestSuite } from '@lambdas/batch-processing-lambda-handler-test.suite';
+import type { Email } from '@notifycal/shared/types';
 import type { AwsArn } from '@own-types/model';
 import {
   auditTrailActionableEventFoundEvent,
@@ -6,8 +7,10 @@ import {
 } from '@testing/data/app-events';
 import { validRawRecord } from '@testing/data/dynamodb-stream-events';
 import {
+  setEnvAlertEmailConfig,
   setEnvAlertsBaseStoreConfig,
   setEnvAlertThresholdConfig,
+  setEnvEmailingSenderConfig,
   setEnvEmailToBeSentTopicConfig,
   setEnvUserBaseStoreConfig
 } from '@testing/utils/config';
@@ -44,12 +47,23 @@ function setEnv() {
       errorRateThreshold: 5,
       maxNotificationsPerDay: 1,
       countThresholdToEnableTrigger: 10
+    },
+    emailingSenderConfig: {
+      sender: {
+        name: 'Notifycal',
+        email: 'some@email.com' as Email
+      }
+    },
+    alertEmailConfig: {
+      faqUrl: new URL('https://some.faq.url')
     }
   };
   setEnvAlertsBaseStoreConfig(config.alertsBaseStoreConfig);
   setEnvUserBaseStoreConfig(config.userBaseStoreConfig);
   setEnvEmailToBeSentTopicConfig(config.emailToBeSentTopicConfig);
   setEnvAlertThresholdConfig(config.alertThresholdConfig);
+  setEnvEmailingSenderConfig(config.emailingSenderConfig);
+  setEnvAlertEmailConfig(config.alertEmailConfig);
 }
 
 vi.mock('./record-processor');

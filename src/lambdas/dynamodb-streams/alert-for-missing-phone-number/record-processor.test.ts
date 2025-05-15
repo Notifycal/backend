@@ -1,6 +1,8 @@
 import { logger } from '@common/powertools';
+import type { EmailingSenderEndpointConfig } from '@model/Config';
 import type { AlertStoreRecord } from '@model/store/AlertStoreRecord';
-import type { Email, IdpName, UserId } from '@notifycal/shared/types';
+import type { UserStoreRecord } from '@model/store/UserStoreRecord';
+import type { Email, IdpName, LanguageCode, UserId } from '@notifycal/shared/types';
 import type { SnsService } from '@services/sns';
 import type { AlertsBaseStore } from '@services/stores/alerts-base-store';
 import type { UserBaseStore } from '@services/stores/user-base-store';
@@ -9,7 +11,7 @@ import {
   auditTrailNoPhoneNumberForCalendarEventFoundEvent
 } from '@testing/data/app-events';
 import { describe, expect, it, vi } from 'vitest';
-import type { AlertThresholdConfig } from './config';
+import type { AlertEndpointConfig } from './config';
 import { recordProcessor } from './record-processor';
 import type {
   AuditTrailActionableEventFoundEvent,
@@ -23,12 +25,27 @@ describe('Alert for missing phone number record processor', () => {
   const validNoPhoneNumberRecord: AuditTrailNoPhoneNumberForCalendarEventFoundEvent =
     auditTrailNoPhoneNumberForCalendarEventFoundEvent as AuditTrailNoPhoneNumberForCalendarEventFoundEvent;
 
-  const validConfig: AlertThresholdConfig = {
-    errorRateThreshold: 5,
-    maxNotificationsPerDay: 1,
-    countThresholdToEnableTrigger: 0
-  };
   const validEmail = 'test@notifycal.com' as Email;
+  const validConfig: AlertEndpointConfig & EmailingSenderEndpointConfig = {
+    alertThresholdConfig: {
+      errorRateThreshold: 5,
+      maxNotificationsPerDay: 1,
+      countThresholdToEnableTrigger: 0
+    },
+    emailingSenderConfig: {
+      sender: {
+        name: 'Notifycal',
+        email: 'some@email.com' as Email
+      }
+    },
+    alertEmailConfig: {
+      faqUrl: new URL('https://test.notifycal.com/faq')
+    }
+  };
+  const validEmailAndLanguage = {
+    Email: 'test@notifycal.com' as Email,
+    Language: 'es'
+  } as Pick<UserStoreRecord<unknown>, 'Email'> & { Language: LanguageCode };
 
   it('should process an ActionableEventFound event and increment SuccessCount', async () => {
     const incrementCounterFn = vi.fn().mockResolvedValue({
@@ -38,10 +55,15 @@ describe('Alert for missing phone number record processor', () => {
       FailureCount: 0,
       NotificationSentCount: 0
     });
-    const getEmailById = vi.fn().mockResolvedValue(validEmail);
+    const getEmailAndLanguageByIdFn = vi.fn().mockResolvedValue(validEmailAndLanguage);
     const publishFn = vi.fn().mockResolvedValue({});
 
-    await testIt(validActionableEventRecord, incrementCounterFn, getEmailById, publishFn);
+    await testIt(
+      validActionableEventRecord,
+      incrementCounterFn,
+      getEmailAndLanguageByIdFn,
+      publishFn
+    );
 
     expect(incrementCounterFn).toHaveBeenCalledTimes(1);
     expect(incrementCounterFn).toHaveBeenCalledWith(
@@ -60,10 +82,15 @@ describe('Alert for missing phone number record processor', () => {
       FailureCount: 1,
       NotificationSentCount: 0
     });
-    const getEmailById = vi.fn().mockResolvedValue(validEmail);
+    const getEmailAndLanguageByIdFn = vi.fn().mockResolvedValue(validEmailAndLanguage);
     const publishFn = vi.fn().mockResolvedValue({});
 
-    await testIt(validNoPhoneNumberRecord, incrementCounterFn, getEmailById, publishFn);
+    await testIt(
+      validNoPhoneNumberRecord,
+      incrementCounterFn,
+      getEmailAndLanguageByIdFn,
+      publishFn
+    );
 
     expect(incrementCounterFn).toHaveBeenCalledTimes(2);
     expect(incrementCounterFn).toHaveBeenCalledWith(
@@ -87,10 +114,15 @@ describe('Alert for missing phone number record processor', () => {
       FailureCount: 4,
       NotificationSentCount: 0
     });
-    const getEmailById = vi.fn().mockResolvedValue(validEmail);
+    const getEmailAndLanguageByIdFn = vi.fn().mockResolvedValue(validEmailAndLanguage);
     const publishFn = vi.fn().mockResolvedValue({});
 
-    await testIt(validActionableEventRecord, incrementCounterFn, getEmailById, publishFn);
+    await testIt(
+      validActionableEventRecord,
+      incrementCounterFn,
+      getEmailAndLanguageByIdFn,
+      publishFn
+    );
 
     expect(incrementCounterFn).toHaveBeenCalledTimes(1);
     expect(publishFn).not.toHaveBeenCalled();
@@ -113,10 +145,15 @@ describe('Alert for missing phone number record processor', () => {
         FailureCount: 10,
         NotificationSentCount: 1
       });
-    const getEmailById = vi.fn().mockResolvedValue(validEmail);
+    const getEmailAndLanguageByIdFn = vi.fn().mockResolvedValue(validEmailAndLanguage);
     const publishFn = vi.fn().mockResolvedValue({});
 
-    await testIt(validActionableEventRecord, incrementCounterFn, getEmailById, publishFn);
+    await testIt(
+      validActionableEventRecord,
+      incrementCounterFn,
+      getEmailAndLanguageByIdFn,
+      publishFn
+    );
 
     expect(incrementCounterFn).toHaveBeenCalledTimes(2);
     expect(incrementCounterFn).toHaveBeenNthCalledWith(
@@ -142,9 +179,10 @@ describe('Alert for missing phone number record processor', () => {
         userId: validActionableEventRecord.UserId,
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         data: expect.objectContaining({
+          from: validConfig.emailingSenderConfig.sender,
           to: validEmail,
-          subject: 'Aviso importante: Recordatorios de calendario no enviados',
-          tags: ['N/A', 'NoPhoneNumberForCalendarEventFound']
+          subject: 'Alerta: Recordatorio no enviado',
+          tags: []
         })
       })
     );
@@ -158,10 +196,15 @@ describe('Alert for missing phone number record processor', () => {
       FailureCount: 10,
       NotificationSentCount: 1
     });
-    const getEmailById = vi.fn().mockResolvedValue(validEmail);
+    const getEmailAndLanguageByIdFn = vi.fn().mockResolvedValue(validEmailAndLanguage);
     const publishFn = vi.fn().mockResolvedValue({});
 
-    await testIt(validActionableEventRecord, incrementCounterFn, getEmailById, publishFn);
+    await testIt(
+      validActionableEventRecord,
+      incrementCounterFn,
+      getEmailAndLanguageByIdFn,
+      publishFn
+    );
 
     expect(incrementCounterFn).toHaveBeenCalledTimes(1);
     expect(publishFn).not.toHaveBeenCalled();
@@ -175,10 +218,15 @@ describe('Alert for missing phone number record processor', () => {
       FailureCount: 10,
       NotificationSentCount: 1
     });
-    const getEmailById = vi.fn().mockResolvedValue(undefined);
+    const getEmailAndLanguageByIdFn = vi.fn().mockResolvedValue(undefined);
     const publishFn = vi.fn().mockResolvedValue({});
 
-    await testIt(validActionableEventRecord, incrementCounterFn, getEmailById, publishFn);
+    await testIt(
+      validActionableEventRecord,
+      incrementCounterFn,
+      getEmailAndLanguageByIdFn,
+      publishFn
+    );
 
     expect(incrementCounterFn).toHaveBeenCalledTimes(1);
     expect(publishFn).not.toHaveBeenCalled();
@@ -187,10 +235,15 @@ describe('Alert for missing phone number record processor', () => {
   it('should throw an error when processing fails', async () => {
     const error = new Error('Test error');
     const incrementCounterFn = vi.fn().mockRejectedValue(error);
-    const getEmailById = vi.fn().mockResolvedValue(validEmail);
+    const getEmailAndLanguageByIdFn = vi.fn().mockResolvedValue(validEmailAndLanguage);
     const publishFn = vi.fn().mockResolvedValue({});
 
-    const result = testIt(validActionableEventRecord, incrementCounterFn, getEmailById, publishFn);
+    const result = testIt(
+      validActionableEventRecord,
+      incrementCounterFn,
+      getEmailAndLanguageByIdFn,
+      publishFn
+    );
 
     await expect(result).rejects.toThrow(
       new Error('(Re)-Throwing error on purpose to notify of batch item failure', error)
@@ -206,10 +259,15 @@ describe('Alert for missing phone number record processor', () => {
       FailureCount: 10,
       NotificationSentCount: 0
     });
-    const getEmailById = vi.fn().mockRejectedValue(error);
+    const getEmailAndLanguageByIdFn = vi.fn().mockRejectedValue(error);
     const publishFn = vi.fn().mockResolvedValue({});
 
-    const result = testIt(validActionableEventRecord, incrementCounterFn, getEmailById, publishFn);
+    const result = testIt(
+      validActionableEventRecord,
+      incrementCounterFn,
+      getEmailAndLanguageByIdFn,
+      publishFn
+    );
 
     await expect(result).rejects.toThrow(
       new Error('(Re)-Throwing error on purpose to notify of batch item failure', error)
@@ -219,15 +277,17 @@ describe('Alert for missing phone number record processor', () => {
   function testIt(
     event: AuditTrailActionableEventFoundEvent | AuditTrailNoPhoneNumberForCalendarEventFoundEvent,
     incrementCounterFn: () => Promise<AlertStoreRecord<string, UserId>>,
-    getEmailByIdFn: () => Promise<Email | undefined>,
+    getEmailAndLanguageByIdFn: () => Promise<
+      (Pick<UserStoreRecord<unknown>, 'Email'> & { Language: LanguageCode }) | undefined
+    >,
     publishFn: () => Promise<void>,
-    config: AlertThresholdConfig = validConfig
+    config: AlertEndpointConfig & EmailingSenderEndpointConfig = validConfig
   ): Promise<void> {
     const alertsBaseStoreMock = {
       incrementCounter: incrementCounterFn
     } as unknown as AlertsBaseStore;
     const userBaseStoreMock = {
-      getEmailById: getEmailByIdFn
+      getEmailAndLanguageById: getEmailAndLanguageByIdFn
     } as unknown as UserBaseStore<IdpName>;
     const snsServiceMock = {
       publish: publishFn

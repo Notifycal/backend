@@ -5,3 +5,5 @@ tf/README.md
 CHANGELOG.md
 
 openapi/vendor/**
+
+src/email-templates/**/*.html

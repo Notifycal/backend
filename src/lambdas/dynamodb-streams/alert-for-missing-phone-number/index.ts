@@ -25,7 +25,11 @@ export function recordProcessorCurried(
     setupLoggerForAuditStoreRecordProcessing(record.dynamodb.NewImage);
     return recordProcessor(
       record.dynamodb.NewImage,
-      config.alertThresholdConfig,
+      {
+        alertThresholdConfig: config.alertThresholdConfig,
+        emailingSenderConfig: config.emailingSenderConfig,
+        alertEmailConfig: config.alertEmailConfig
+      },
       alertsBaseStore,
       userBaseStore,
       snsService,
