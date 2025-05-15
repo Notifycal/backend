@@ -99,10 +99,10 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
     userId: UserId
   ): Promise<(Pick<UserStoreRecord<TIdpName>, 'Email'> & { Language: LanguageCode }) | undefined> {
     return this.getUserById(userId).then((user) => {
-      if (user) {
+      if (user && user.Config) {
         return {
           Email: user.Email,
-          Language: 'es' // TODO:  user.Config.Business.Language
+          Language: user.Config.Business.Language
         };
       } else {
         return undefined;

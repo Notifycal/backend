@@ -42,7 +42,7 @@ describe('Alert for missing phone number record processor', () => {
       faqUrl: new URL('https://test.notifycal.com/faq')
     }
   };
-  const validEmailAndConfig = {
+  const validEmailAndLanguage = {
     Email: 'test@notifycal.com' as Email,
     Language: 'es'
   } as Pick<UserStoreRecord<unknown>, 'Email'> & { Language: LanguageCode };
@@ -55,7 +55,7 @@ describe('Alert for missing phone number record processor', () => {
       FailureCount: 0,
       NotificationSentCount: 0
     });
-    const getEmailAndLanguageByIdFn = vi.fn().mockResolvedValue(validEmailAndConfig);
+    const getEmailAndLanguageByIdFn = vi.fn().mockResolvedValue(validEmailAndLanguage);
     const publishFn = vi.fn().mockResolvedValue({});
 
     await testIt(
@@ -82,7 +82,7 @@ describe('Alert for missing phone number record processor', () => {
       FailureCount: 1,
       NotificationSentCount: 0
     });
-    const getEmailAndLanguageByIdFn = vi.fn().mockResolvedValue(validEmailAndConfig);
+    const getEmailAndLanguageByIdFn = vi.fn().mockResolvedValue(validEmailAndLanguage);
     const publishFn = vi.fn().mockResolvedValue({});
 
     await testIt(
@@ -114,7 +114,7 @@ describe('Alert for missing phone number record processor', () => {
       FailureCount: 4,
       NotificationSentCount: 0
     });
-    const getEmailAndLanguageByIdFn = vi.fn().mockResolvedValue(validEmailAndConfig);
+    const getEmailAndLanguageByIdFn = vi.fn().mockResolvedValue(validEmailAndLanguage);
     const publishFn = vi.fn().mockResolvedValue({});
 
     await testIt(
@@ -145,7 +145,7 @@ describe('Alert for missing phone number record processor', () => {
         FailureCount: 10,
         NotificationSentCount: 1
       });
-    const getEmailAndLanguageByIdFn = vi.fn().mockResolvedValue(validEmailAndConfig);
+    const getEmailAndLanguageByIdFn = vi.fn().mockResolvedValue(validEmailAndLanguage);
     const publishFn = vi.fn().mockResolvedValue({});
 
     await testIt(
@@ -196,7 +196,7 @@ describe('Alert for missing phone number record processor', () => {
       FailureCount: 10,
       NotificationSentCount: 1
     });
-    const getEmailAndLanguageByIdFn = vi.fn().mockResolvedValue(validEmailAndConfig);
+    const getEmailAndLanguageByIdFn = vi.fn().mockResolvedValue(validEmailAndLanguage);
     const publishFn = vi.fn().mockResolvedValue({});
 
     await testIt(
@@ -235,7 +235,7 @@ describe('Alert for missing phone number record processor', () => {
   it('should throw an error when processing fails', async () => {
     const error = new Error('Test error');
     const incrementCounterFn = vi.fn().mockRejectedValue(error);
-    const getEmailAndLanguageByIdFn = vi.fn().mockResolvedValue(validEmailAndConfig);
+    const getEmailAndLanguageByIdFn = vi.fn().mockResolvedValue(validEmailAndLanguage);
     const publishFn = vi.fn().mockResolvedValue({});
 
     const result = testIt(
