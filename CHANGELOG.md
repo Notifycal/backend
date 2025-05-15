@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.32.0](https://github.com/Notifycal/backend/compare/v0.31.0...v0.32.0) (2025-05-15)
+
+
+### Features
+
+* more info reminder config ([#619](https://github.com/Notifycal/backend/issues/619)) ([cb3b996](https://github.com/Notifycal/backend/commit/cb3b99607143aa4d8d419f6e7cf47b9786491915))
+
 ## [0.31.0](https://github.com/Notifycal/backend/compare/v0.30.2...v0.31.0) (2025-05-13)
 
 
