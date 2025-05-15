@@ -24,9 +24,10 @@ import {
 import { getDefaultDecodeAccessJwtConfig } from '@testing/utils/jwt';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { describe, it, vi } from 'vitest';
+import type { z } from 'zod';
 import type { PatchUserProfileConfig } from './config';
 // @ts-expect-error cjs handler export
-import { handler, type Event } from './index';
+import { handler, type Event, type bodySchema } from './index';
 
 describe('PATCH User profile', () => {
   const validIdentity = {
@@ -40,7 +41,7 @@ describe('PATCH User profile', () => {
     role: 'user',
     permissions: {}
   };
-  const validBody: ReminderConfig = {
+  const validBody: z.input<typeof bodySchema> = {
     business: {
       name: 'someBusinessName' as BusinessName,
       address: 'someBusinessAddress' as BusinessAddress,
@@ -48,7 +49,19 @@ describe('PATCH User profile', () => {
         type: 'phone',
         countryCode: 'ES',
         phoneNumber: '666888999' as PhoneNumber
-      }
+      },
+      language: 'en',
+      companyIndustry: {
+        category: 'category',
+        subcategory: 'subcategory',
+        customIndustry: 'custom'
+      },
+      companySize: 'freelancer'
+    },
+    confirmation: {
+      termsAccepted: true,
+      privacyAccepted: true,
+      marketingOptInAccepted: false
     },
     calendars: [
       {

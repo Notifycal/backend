@@ -67,7 +67,19 @@ const validUserConfig: LiveUserStoreRecord<unknown>['Config'] = {
       CountryCode: 'ES'
     },
     Name: 'Test Business' as BusinessName,
-    Address: 'Test Address' as BusinessAddress
+    Address: 'Test Address' as BusinessAddress,
+    Language: 'en',
+    CompanyIndustry: {
+      Category: 'category',
+      Subcategory: 'subcategory',
+      CustomIndustry: 'custom'
+    },
+    CompanySize: 'freelancer'
+  },
+  Confirmation: {
+    TermsAccepted: '2023-01-01T00:00:00Z' as DateTime,
+    PrivacyAccepted: '2023-01-01T00:00:00Z' as DateTime,
+    MarketingOptInAccepted: '2023-01-01T00:00:00Z' as DateTime
   }
 };
 

@@ -6,12 +6,14 @@ import type {
   BusinessName,
   CalendarId,
   CalendarName,
+  DateTime,
   Email,
   IdpId,
   IdpName,
   LanguageCode,
   PhoneNumber,
   TemplateId,
+  TimeZone,
   UnixTimestamp,
   UserId,
   UserStatus
@@ -62,7 +64,20 @@ async function* validLiveUsers(): AsyncGenerator<
             Type: 'phone',
             CountryCode: 'ES',
             PhoneNumber: '666777888' as PhoneNumber
-          }
+          },
+          Language: 'en',
+          TimeZone: 'Europe/London' as TimeZone,
+          CompanyIndustry: {
+            Category: 'category',
+            Subcategory: 'subcategory',
+            CustomIndustry: 'custom'
+          },
+          CompanySize: 'freelancer'
+        },
+        Confirmation: {
+          TermsAccepted: '2023-01-01T00:00:00Z' as DateTime,
+          PrivacyAccepted: '2023-01-01T00:00:00Z' as DateTime,
+          MarketingOptInAccepted: '2023-01-01T00:00:00Z' as DateTime
         }
       },
       UserStatus: 'live' as UserStatus,
@@ -86,7 +101,20 @@ async function* validLiveUsers(): AsyncGenerator<
             Type: 'phone',
             CountryCode: 'ES',
             PhoneNumber: '666777888' as PhoneNumber
-          }
+          },
+          Language: 'en',
+          TimeZone: 'Europe/London' as TimeZone,
+          CompanyIndustry: {
+            Category: 'category',
+            Subcategory: 'subcategory',
+            CustomIndustry: 'custom'
+          },
+          CompanySize: 'freelancer'
+        },
+        Confirmation: {
+          TermsAccepted: '2023-01-01T00:00:00Z' as DateTime,
+          PrivacyAccepted: '2023-01-01T00:00:00Z' as DateTime,
+          MarketingOptInAccepted: '2023-01-01T00:00:00Z' as DateTime
         }
       },
       UserStatus: 'live' as UserStatus,
@@ -113,7 +141,20 @@ async function* validLiveUsers(): AsyncGenerator<
             Type: 'phone',
             CountryCode: 'ES',
             PhoneNumber: '666777888' as PhoneNumber
-          }
+          },
+          Language: 'en',
+          TimeZone: 'Europe/London' as TimeZone,
+          CompanyIndustry: {
+            Category: 'category',
+            Subcategory: 'subcategory',
+            CustomIndustry: 'custom'
+          },
+          CompanySize: 'freelancer'
+        },
+        Confirmation: {
+          TermsAccepted: '2023-01-01T00:00:00Z' as DateTime,
+          PrivacyAccepted: '2023-01-01T00:00:00Z' as DateTime,
+          MarketingOptInAccepted: '2023-01-01T00:00:00Z' as DateTime
         }
       },
       UserStatus: 'live' as UserStatus,
@@ -146,7 +187,20 @@ async function* validLiveUsersWithoutACalendar(): AsyncGenerator<
             Type: 'phone',
             CountryCode: 'ES',
             PhoneNumber: '666777888' as PhoneNumber
-          }
+          },
+          Language: 'en',
+          TimeZone: 'Europe/London' as TimeZone,
+          CompanyIndustry: {
+            Category: 'category',
+            Subcategory: 'subcategory',
+            CustomIndustry: 'custom'
+          },
+          CompanySize: 'freelancer'
+        },
+        Confirmation: {
+          TermsAccepted: '2023-01-01T00:00:00Z' as DateTime,
+          PrivacyAccepted: '2023-01-01T00:00:00Z' as DateTime,
+          MarketingOptInAccepted: '2023-01-01T00:00:00Z' as DateTime
         }
       },
       UserStatus: 'live' as UserStatus,
@@ -170,7 +224,20 @@ async function* validLiveUsersWithoutACalendar(): AsyncGenerator<
             Type: 'phone',
             CountryCode: 'ES',
             PhoneNumber: '666777888' as PhoneNumber
-          }
+          },
+          Language: 'en',
+          TimeZone: 'Europe/London' as TimeZone,
+          CompanyIndustry: {
+            Category: 'category',
+            Subcategory: 'subcategory',
+            CustomIndustry: 'custom'
+          },
+          CompanySize: 'freelancer'
+        },
+        Confirmation: {
+          TermsAccepted: '2023-01-01T00:00:00Z' as DateTime,
+          PrivacyAccepted: '2023-01-01T00:00:00Z' as DateTime,
+          MarketingOptInAccepted: '2023-01-01T00:00:00Z' as DateTime
         }
       },
       UserStatus: 'live' as UserStatus,
@@ -203,7 +270,20 @@ async function* oneRejectionInBetweenLiveUsers(): AsyncGenerator<
             Type: 'phone',
             CountryCode: 'ES',
             PhoneNumber: '666777888' as PhoneNumber
-          }
+          },
+          Language: 'en',
+          TimeZone: 'Europe/London' as TimeZone,
+          CompanyIndustry: {
+            Category: 'category',
+            Subcategory: 'subcategory',
+            CustomIndustry: 'custom'
+          },
+          CompanySize: 'freelancer'
+        },
+        Confirmation: {
+          TermsAccepted: '2023-01-01T00:00:00Z' as DateTime,
+          PrivacyAccepted: '2023-01-01T00:00:00Z' as DateTime,
+          MarketingOptInAccepted: '2023-01-01T00:00:00Z' as DateTime
         }
       },
       UserStatus: 'live' as UserStatus,
@@ -232,7 +312,20 @@ async function* oneRejectionInBetweenLiveUsers(): AsyncGenerator<
             Type: 'phone',
             CountryCode: 'ES',
             PhoneNumber: '666777888' as PhoneNumber
-          }
+          },
+          Language: 'en',
+          TimeZone: 'Europe/London' as TimeZone,
+          CompanyIndustry: {
+            Category: 'category',
+            Subcategory: 'subcategory',
+            CustomIndustry: 'custom'
+          },
+          CompanySize: 'freelancer'
+        },
+        Confirmation: {
+          TermsAccepted: '2023-01-01T00:00:00Z' as DateTime,
+          PrivacyAccepted: '2023-01-01T00:00:00Z' as DateTime,
+          MarketingOptInAccepted: '2023-01-01T00:00:00Z' as DateTime
         }
       },
       UserStatus: 'live' as UserStatus,
