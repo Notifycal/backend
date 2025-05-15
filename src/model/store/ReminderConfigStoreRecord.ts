@@ -10,7 +10,6 @@ import type {
   TemplateId,
   TimeZone
 } from '@notifycal/shared/types';
-import { DateTime as DT } from 'luxon';
 import {
   fromStoreRecord as fromContactStoreRecord,
   toStoreRecord as toContactStoreRecord,
@@ -86,7 +85,6 @@ export function fromStoreRecord(record: ReminderConfigStoreRecord): ReminderConf
 }
 
 export function toStoreRecord(config: Event['body']): ReminderConfigStoreRecord {
-  const now = DT.now().toUTC().toISO() as DateTime;
   return {
     Business: {
       Name: config.business.name,
@@ -110,9 +108,9 @@ export function toStoreRecord(config: Event['body']): ReminderConfigStoreRecord 
       }
     })),
     Confirmation: {
-      TermsAccepted: now,
-      PrivacyAccepted: now,
-      MarketingOptInAccepted: config.confirmation.marketingOptInAccepted ? now : undefined
+      TermsAccepted: config.confirmation.termsAccepted,
+      PrivacyAccepted: config.confirmation.privacyAccepted,
+      MarketingOptInAccepted: config.confirmation.marketingOptInAccepted
     }
   };
 }

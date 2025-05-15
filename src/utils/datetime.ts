@@ -24,13 +24,6 @@ export function timezoneValidator(): (arg: TimeZone, ctx: z.RefinementCtx) => bo
       });
       return false;
     }
-    if (dt.invalidReason === 'unsupported zone') {
-      context.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: `Not supported timezone: ${data}`
-      });
-      return false;
-    }
     return true;
   };
 }

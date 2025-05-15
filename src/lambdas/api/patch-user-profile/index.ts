@@ -2,12 +2,13 @@ import { JSONStringified } from '@aws-lambda-powertools/parser/helpers';
 import { protectedEndpointMiddleware } from '@common/lambda-middleware';
 import { authedEventSchema } from '@model/lambda-events/ApiGatewayEvents';
 import { toStoreRecord } from '@model/store/ReminderConfigStoreRecord';
-import { reminderConfigSchema } from '@notifycal/shared/types';
+import { type DateTime, reminderConfigSchema } from '@notifycal/shared/types';
 import { errorHandler, successHandler } from '@services/common/api-response-handlers';
 import { UserBaseStore } from '@services/stores/user-base-store';
 import { timezoneValidator } from '@utils/datetime';
 import { senderValidator } from '@utils/phone';
 import type { APIGatewayProxyResult, Context } from 'aws-lambda';
+import { DateTime as DT } from 'luxon';
 import { z } from 'zod';
 import { type PatchUserProfileConfig, readPatchUserConfig } from './config';
 
@@ -21,12 +22,21 @@ const updatedBusinessSchema = reminderConfigSchema.shape.business.extend({
   senderContact: contactDetailsWithValidator,
   timezone: timeZoneSchemaExtended
 });
-const confirmationSchemaOverride = z.object({
-  termsAccepted: z.literal(true),
-  privacyAccepted: z.literal(true),
-  marketingOptInAccepted: z.boolean()
-});
-const bodySchema = reminderConfigSchema.extend({
+const confirmationSchemaOverride = z
+  .object({
+    termsAccepted: z.literal(true),
+    privacyAccepted: z.literal(true),
+    marketingOptInAccepted: z.boolean()
+  })
+  .transform((data) => {
+    const now = DT.now().toUTC().toISO() as DateTime;
+    return {
+      termsAccepted: now,
+      privacyAccepted: now,
+      marketingOptInAccepted: data.marketingOptInAccepted ? now : undefined
+    };
+  });
+export const bodySchema = reminderConfigSchema.extend({
   business: updatedBusinessSchema,
   confirmation: confirmationSchemaOverride
 });
