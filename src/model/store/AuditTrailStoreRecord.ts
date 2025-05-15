@@ -8,13 +8,14 @@ import {
 } from '@model/app-events/BaseEvent';
 import { eventIdSchema } from '@model/app-events/common';
 import { dateTimeSchema, idpIdSchema, userIdSchema } from '@notifycal/shared/schemas';
+import type { Brand } from '@notifycal/shared/types';
 import { z } from 'zod';
 
 export const dataSchema = z.object({}).passthrough();
 export type Data = z.infer<typeof dataSchema>;
 
-const originSchema = z.string().brand('Origin');
-export type AuditTrailStoreRecordOrigin = z.infer<typeof originSchema>;
+export type AuditTrailStoreRecordOrigin = Brand<string, 'AuditTrailStoreRecordOrigin'>;
+const originSchema = z.string().transform((data) => data as AuditTrailStoreRecordOrigin);
 
 export const genericAuditTrailStoreRecordSchema = z.object({
   UserId: z.union([userIdSchema, systemSchema]),

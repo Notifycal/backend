@@ -4,6 +4,7 @@ import { logger } from '@common/powertools';
 import { refreshTokenSchema } from '@model/Jwt';
 import { apiEventSchema } from '@model/lambda-events/ApiGatewayEvents';
 import { extractIdentity } from '@model/UserIdentity';
+import type { Jwt } from '@notifycal/shared/types';
 import { _successHandler, buildJwtsAndStoreRefreshJwt } from '@services/auth';
 import { errorHandler } from '@services/common/api-response-handlers';
 import { decodeAndVerifyJwtSignature } from '@services/jwt';
@@ -16,7 +17,7 @@ import { type RefreshConfig, readRefreshConfig } from './config';
 const schema = apiEventSchema<RefreshConfig>().extend({
   body: JSONStringified(
     z.object({
-      refreshToken: z.string().brand('Jwt')
+      refreshToken: z.string().transform((data) => data as Jwt)
     })
   )
 });

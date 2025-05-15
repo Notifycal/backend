@@ -1,4 +1,5 @@
 import { calendarSchema } from '@notifycal/shared/schemas';
+import type { BusinessAddress, BusinessName, TemplateId } from '@notifycal/shared/types';
 import { z } from 'zod';
 import { eventSchemaGenerator } from './BaseEvent';
 import { runSchema, senderStandardSchema } from './common';
@@ -8,11 +9,11 @@ const data = z.object({
   calendar: calendarSchema,
   senderDetails: senderStandardSchema,
   template: z.object({
-    id: z.string().brand('TemplateId'),
+    id: z.string().transform((data) => data as TemplateId),
     fields: z.object({
       business: z.object({
-        name: z.string().brand('BusinessName'),
-        address: z.string().brand('BusinessAddress')
+        name: z.string().transform((data) => data as BusinessName),
+        address: z.string().transform((data) => data as BusinessAddress)
       })
     })
   })

@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 import { dateTimeSchema, idpIdSchema, userIdSchema } from '@notifycal/shared/schemas';
+import type { CorrelationId } from '@notifycal/shared/types';
 import { eventIdSchema } from './common';
 
 // Docs: take your time to decide what type of event you are defining and what is aimed at. Pay attention to these silver bullets:
@@ -51,7 +52,10 @@ export type EventType = SuccessEventType | ErrorEventType;
 export const dataSchema = z.object({}).passthrough();
 export type Data = z.infer<typeof dataSchema>;
 export const googleIdpSchema = z.literal('google.com');
-export const correlationIdSchema = z.string().uuid().brand('CorrelationId');
+export const correlationIdSchema = z
+  .string()
+  .uuid()
+  .transform((data) => data as CorrelationId);
 export const notApplicableSchema = z.literal('N/A');
 export const systemSchema = z.literal('System');
 

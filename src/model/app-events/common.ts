@@ -1,5 +1,6 @@
 import { countryCodeSchema, emailSchema, rcsSenderSchema } from '@notifycal/shared/schemas';
-import type { RCSSenderContact } from '@notifycal/shared/types';
+import type { DateTime, EventId, RCSSenderContact } from '@notifycal/shared/types';
+import type { PhoneNumberE164 } from '@own-types/model';
 import { z } from 'zod';
 
 export const errorSchema = z.object({
@@ -8,16 +9,22 @@ export const errorSchema = z.object({
 });
 
 export const runSchema = z.object({
-  lowerBoundStartTime: z.string().brand('DateTime'),
-  upperBoundStartTime: z.string().brand('DateTime'),
+  lowerBoundStartTime: z.string().transform((data) => data as DateTime),
+  upperBoundStartTime: z.string().transform((data) => data as DateTime),
   slidingWindowInMinutes: z.number().int().positive()
 });
 
-export const eventIdSchema = z.string().uuid().brand('EventId');
+export const eventIdSchema = z
+  .string()
+  .uuid()
+  .transform((data) => data as EventId);
 
 export const phoneE164Schema = z.object({
   type: z.literal('phone'),
-  phoneNumber: z.string().describe('Standard E.164').brand('PhoneNumberE164'),
+  phoneNumber: z
+    .string()
+    .describe('Standard E.164')
+    .transform((data) => data as PhoneNumberE164),
   countryCode: countryCodeSchema
 });
 

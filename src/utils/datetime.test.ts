@@ -1,5 +1,5 @@
-import type { TimeZone } from '@notifycal/shared/types';
-import { DateTime } from 'luxon';
+import type { DateTime, TimeZone } from '@notifycal/shared/types';
+import { DateTime as DT } from 'luxon';
 import { describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
 import { timezoneValidator } from './datetime';
@@ -7,13 +7,13 @@ import { timezoneValidator } from './datetime';
 export const dateTimeSchema = z
   .string()
   .datetime()
-  .brand('DateTime')
-  .transform((v) => DateTime.fromISO(v).toUTC());
+  .transform((data) => data as DateTime)
+  .transform((v) => DT.fromISO(v).toUTC());
 
 describe('Working with datetimes', () => {
   it('handle UTC properly', () => {
     const input = '2024-01-01T15:00:00.000Z';
-    const result = DateTime.fromISO(input).toUTC();
+    const result = DT.fromISO(input).toUTC();
 
     expect(result.toISO()).toStrictEqual(input);
   });
@@ -21,7 +21,7 @@ describe('Working with datetimes', () => {
   it('handle timezones properly for display', () => {
     const input = '2025-03-29T00:00:00.000Z';
 
-    const result = DateTime.fromISO(input, { zone: 'Europe/Madrid' });
+    const result = DT.fromISO(input, { zone: 'Europe/Madrid' });
     const expectedResultForMadrileanGuy = '2025-03-29T01:00:00.000+01:00';
 
     expect(result.toISO()).toStrictEqual(expectedResultForMadrileanGuy);
@@ -30,7 +30,7 @@ describe('Working with datetimes', () => {
   it('handle timezones properly for display - summertime', () => {
     const input = '2025-03-30T10:00:00.000Z';
 
-    const result = DateTime.fromISO(input, { zone: 'Europe/Madrid' });
+    const result = DT.fromISO(input, { zone: 'Europe/Madrid' });
     const expectedResultForMadrileanGuy = '2025-03-30T12:00:00.000+02:00';
 
     expect(result.toISO()).toStrictEqual(expectedResultForMadrileanGuy);
@@ -120,7 +120,10 @@ describe(timezoneValidator, () => {
   });
 
   it('integration with Zod schema', () => {
-    const TimezoneSchema = z.string().brand('TimeZone').superRefine(timezoneValidator());
+    const TimezoneSchema = z
+      .string()
+      .transform((data) => data as TimeZone)
+      .superRefine(timezoneValidator());
 
     const validResult = TimezoneSchema.safeParse('America/Chicago');
 
