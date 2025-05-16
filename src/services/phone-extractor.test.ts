@@ -8,7 +8,7 @@ import { _findPhoneNumbersInText, phoneExtractor } from './phone-extractor';
 
 vi.mock('@services/contacts');
 
-describe('phoneExtractor', () => {
+describe(phoneExtractor, () => {
   const validIdp = 'google' as IdpName;
   const validIdpAuthorization = {} as AuthorizationForIdp<IdpName>;
   const validIdpConfigs = {} as IdpConfigs;
@@ -209,7 +209,7 @@ describe('phoneExtractor', () => {
   }
 });
 
-describe('_findPhoneNumbersInText', () => {
+describe(_findPhoneNumbersInText, () => {
   it('should extract phone numbers from text using default country code', async () => {
     const text = 'Text with phones: 612345678 and 698765432';
     const countryCode = 'ES' as CountryCode;

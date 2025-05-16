@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { capArray } from './array';
 
-describe('capArray', () => {
+describe(capArray, () => {
   it('returns the original array when not exceeding the limit', () => {
     const input = [1, 2, 3, 4, 5];
     const limit = 10;
