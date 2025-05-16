@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.33.1](https://github.com/Notifycal/backend/compare/v0.33.0...v0.33.1) (2025-05-16)
+
+
+### Bug Fixes
+
+* **deps:** Update AWS packages ([#606](https://github.com/Notifycal/backend/issues/606)) ([d74b882](https://github.com/Notifycal/backend/commit/d74b882ccd78a55939660a71cfa9a32d1d78768e))
+* **deps:** Update dependency libphonenumber-js to v1.12.8 ([#608](https://github.com/Notifycal/backend/issues/608)) ([fc6a3cb](https://github.com/Notifycal/backend/commit/fc6a3cb2c8a826dab109ad126bc21d0e19a3954e))
+* **deps:** Update Middy middleware packages to v6.3.0 ([#597](https://github.com/Notifycal/backend/issues/597)) ([904fe6f](https://github.com/Notifycal/backend/commit/904fe6f129e0355345a4f7ec1f4b04b762014db8))
+
 ## [0.33.0](https://github.com/Notifycal/backend/compare/v0.32.0...v0.33.0) (2025-05-15)
 
 
