@@ -66,20 +66,17 @@ export function unprotectedEndpointMiddleware<TConfig, T extends z.AnyZodObject>
   configReaderFn: ConfigReaderFn<Promise<TConfig>>,
   eventSchema: T,
   enableCors: boolean
-): middy.MiddyfiedHandler<APIGatewayProxyEvent, APIGatewayProxyResult> {
+): middy.MiddyfiedHandler {
   return baseConfigMiddleware(() => configReaderFn(), true)
     .use(setupMiddleware<APIGatewayProxyEvent>({ setupFn: setupLoggerCorrelationIdApi }))
     .use(eventParserMiddleware(eventSchema, true))
-    .use(enableCors ? corsMiddleware() : noOpMiddleware) as middy.MiddyfiedHandler<
-    APIGatewayProxyEvent,
-    APIGatewayProxyResult
-  >;
+    .use(enableCors ? corsMiddleware() : noOpMiddleware);
 }
 
 export function unprotectedCrossDomainEndpointMiddleware<TConfig, T extends z.AnyZodObject>(
   configReaderFn: ConfigReaderFn<Promise<TConfig>>,
   eventSchema: T
-): middy.MiddyfiedHandler<APIGatewayProxyEvent, APIGatewayProxyResult> {
+): middy.MiddyfiedHandler {
   const enableCors = true;
   return unprotectedEndpointMiddleware(configReaderFn, eventSchema, enableCors);
 }
@@ -100,7 +97,7 @@ export function protectedEndpointMiddlewareCustom<
   claimCheckerFn: JwtClaimCheckerFn<z.infer<typeof accessTokenSchema>, TConfig>,
   enableCors: boolean,
   loggerSetup: (req: z.infer<typeof accessTokenSchema>) => void
-): middy.MiddyfiedHandler<APIGatewayProxyEvent, APIGatewayProxyResult> {
+): middy.MiddyfiedHandler {
   return baseConfigMiddleware(() => configReaderFn(), true)
     .use(setupMiddleware<APIGatewayProxyEvent>({ setupFn: setupLoggerCorrelationIdApi }))
     .use(
@@ -114,10 +111,7 @@ export function protectedEndpointMiddlewareCustom<
       })
     )
     .use(eventParserMiddleware<TConfig, TEventSchema, APIGatewayProxyResult>(eventSchema, true))
-    .use(enableCors ? corsMiddleware() : noOpMiddleware) as middy.MiddyfiedHandler<
-    APIGatewayProxyEvent,
-    APIGatewayProxyResult
-  >;
+    .use(enableCors ? corsMiddleware() : noOpMiddleware);
 }
 
 export function protectedEndpointMiddleware<
@@ -127,7 +121,7 @@ export function protectedEndpointMiddleware<
 >(
   configReaderFn: ConfigReaderFn<Promise<TConfig>>,
   eventSchema: TEventSchema
-): middy.MiddyfiedHandler<APIGatewayProxyEvent, APIGatewayProxyResult> {
+): middy.MiddyfiedHandler {
   const enableCors = true;
   return protectedEndpointMiddlewareCustom<
     TDecodeAccessJwtConfig,
@@ -142,5 +136,5 @@ export function protectedEndpointMiddleware<
     checkClaims,
     enableCors,
     setupLoggerForAuthedApiRequest
-  ) as unknown as middy.MiddyfiedHandler<APIGatewayProxyEvent, APIGatewayProxyResult>;
+  );
 }
