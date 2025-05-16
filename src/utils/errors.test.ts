@@ -2,7 +2,7 @@
 import { describe, expect, it } from 'vitest';
 import { mergeErrors, mergeTypedErrors, normalizeToError } from './errors';
 
-describe('normalizeToError', () => {
+describe(normalizeToError, () => {
   it('should return the same object if it is already an Error', () => {
     const originalError = new Error('Original error');
     originalError.name = 'OriginalError';
@@ -75,7 +75,7 @@ describe('normalizeToError', () => {
   });
 });
 
-describe('mergeTypedErrors', () => {
+describe(mergeTypedErrors, () => {
   it('should merge multiple errors with default message', () => {
     const error1 = new Error('Error 1');
     const error2 = new Error('Error 2');
@@ -121,7 +121,7 @@ describe('mergeTypedErrors', () => {
   });
 });
 
-describe('mergeErrors', () => {
+describe(mergeErrors, () => {
   it('should normalize and merge various error types', () => {
     const mixedErrors = [
       new Error('Standard error'),

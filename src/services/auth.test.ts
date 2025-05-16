@@ -78,7 +78,7 @@ const existingUser: UserStoreRecord<'google.com'> = {
 };
 
 describe('Auth Service', () => {
-  describe('signInOrUp', () => {
+  describe(signInOrUp, () => {
     it('should sign in an existing user', async () => {
       const getUserByIdFn = vi.fn(() => Promise.resolve(existingUser));
       const putUserFn = vi.fn(() => Promise.resolve());
@@ -197,7 +197,7 @@ describe('Auth Service', () => {
     });
   });
 
-  describe('buildJwtsAndStoreRefreshJwt', () => {
+  describe(buildJwtsAndStoreRefreshJwt, () => {
     it('should build JWTs and store refresh token', async () => {
       const buildJwtsFn = vi.fn(() => Promise.resolve(validJwts));
       const putTokenFn = vi.fn(() => Promise.resolve());
@@ -256,7 +256,7 @@ describe('Auth Service', () => {
     });
   });
 
-  describe('_successHandler', () => {
+  describe(_successHandler, () => {
     it('should return API Gateway response with JWT information', () => {
       const result = _successHandler(validJwts);
 

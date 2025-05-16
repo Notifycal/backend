@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { toBase64 } from './crypto';
 
-describe('toBase64', () => {
+describe(toBase64, () => {
   it('converts an empty object to base64', () => {
     const input = {};
     const result = toBase64(input);

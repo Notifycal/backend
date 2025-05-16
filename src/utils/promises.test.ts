@@ -9,7 +9,7 @@ import {
   tap
 } from './promises';
 
-describe('doSafely', () => {
+describe(doSafely, () => {
   it('should call onSuccess when fn resolves', async () => {
     const fn = vi.fn().mockResolvedValue('success');
     const onError = vi.fn();
@@ -97,7 +97,7 @@ describe('doSafely', () => {
   });
 });
 
-describe('allSettledAllOrErrorHandler', () => {
+describe(allSettledAllOrErrorHandler, () => {
   it('returns a list of values when all promises are successful', () => {
     const results: Array<PromiseSettledResult<string>> = [
       { status: 'fulfilled', value: 'value1' },
@@ -142,7 +142,7 @@ describe('allSettledAllOrErrorHandler', () => {
   });
 });
 
-describe('promiseTry', () => {
+describe(promiseTry, () => {
   it('resolves with the return value when function executes successfully', async () => {
     const result = await promiseTry(() => 'success');
 
@@ -181,7 +181,7 @@ describe('promiseTry', () => {
 
 const doSomething = () => 4 + 4;
 
-describe('tap', () => {
+describe(tap, () => {
   it('calls the provided function with the input value in a promise chain', async () => {
     const mockFn = vi.fn(doSomething);
 
@@ -222,7 +222,7 @@ describe('tap', () => {
   });
 });
 
-describe('safeTap', () => {
+describe(safeTap, () => {
   it('calls the provided function with the input value in a promise chain', async () => {
     const mockFn = vi.fn(doSomething);
 
@@ -284,7 +284,7 @@ describe('safeTap', () => {
   });
 });
 
-describe('doAndRethrow', () => {
+describe(doAndRethrow, () => {
   it('should execute the provided function in a promise chain', async () => {
     const mockFn = vi.fn();
 
