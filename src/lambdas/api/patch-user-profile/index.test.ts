@@ -9,7 +9,7 @@ import {
   type IdpId,
   type IdpName,
   type PhoneNumber,
-  type ReminderConfig,
+  type ReminderConfigTransformed,
   type UserId
 } from '@notifycal/shared/types';
 import { UserBaseStore } from '@services/stores/user-base-store';
@@ -100,7 +100,7 @@ describe('PATCH User profile', () => {
         }
       },
       calendars: []
-    } as unknown as ReminderConfig;
+    } as unknown as ReminderConfigTransformed;
     const event = (await testAuthedEvent(
       invalidBody,
       {},

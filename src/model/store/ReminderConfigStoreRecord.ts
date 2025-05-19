@@ -1,4 +1,4 @@
-import type { Event } from '@lambdas/api/patch-user-profile/index';
+import type { OutputEvent } from '@lambdas/api/patch-user-profile/index';
 import type {
   BusinessAddress,
   BusinessName,
@@ -6,7 +6,7 @@ import type {
   CalendarName,
   DateTime,
   LanguageCode,
-  ReminderConfig,
+  ReminderConfigTransformed,
   TemplateId
 } from '@notifycal/shared/types';
 import {
@@ -51,7 +51,7 @@ export interface ReminderConfigStoreRecord {
   Confirmation: ConfirmationStoreRecord;
 }
 
-export function fromStoreRecord(record: ReminderConfigStoreRecord): ReminderConfig {
+export function fromStoreRecord(record: ReminderConfigStoreRecord): ReminderConfigTransformed {
   return {
     calendars: record.Calendars.map((calendar) => ({
       id: calendar.Id,
@@ -81,7 +81,7 @@ export function fromStoreRecord(record: ReminderConfigStoreRecord): ReminderConf
   };
 }
 
-export function toStoreRecord(config: Event['body']): ReminderConfigStoreRecord {
+export function toStoreRecord(config: OutputEvent['body']): ReminderConfigStoreRecord {
   return {
     Business: {
       Name: config.business.name,
