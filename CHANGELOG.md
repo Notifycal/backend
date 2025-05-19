@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.33.2](https://github.com/Notifycal/backend/compare/v0.33.1...v0.33.2) (2025-05-19)
+
+
+### Bug Fixes
+
+* **deps:** Update AWS packages to v3.812.0 ([#627](https://github.com/Notifycal/backend/issues/627)) ([ebe0388](https://github.com/Notifycal/backend/commit/ebe0388cc4a7397b1465448a4f2fc711122642ce))
+* use input/output types for reminder config ([#634](https://github.com/Notifycal/backend/issues/634)) ([43a2a9b](https://github.com/Notifycal/backend/commit/43a2a9bf087578e920371b855c23008067ef25d3))
+
 ## [0.33.1](https://github.com/Notifycal/backend/compare/v0.33.0...v0.33.1) (2025-05-16)
 
 
