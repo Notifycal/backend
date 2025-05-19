@@ -21,7 +21,6 @@ export const bodySchema = reminderConfigSchema.extend({
 const eventSchema = authedEventSchema<PatchUserProfileConfig>().extend({
   body: JSONStringified(bodySchema)
 });
-export type InputEvent = z.input<typeof eventSchema>;
 export type OutputEvent = z.output<typeof eventSchema>;
 
 function lambdaHandler(
