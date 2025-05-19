@@ -10,8 +10,6 @@ import type { APIGatewayProxyResult, Context } from 'aws-lambda';
 import type { z } from 'zod';
 import { type PatchUserProfileConfig, readPatchUserConfig } from './config';
 
-const foo = reminderConfigSchema.shape.business.shape;
-
 export const bodySchema = reminderConfigSchema.extend({
   business: reminderConfigSchema.shape.business.extend({
     ...reminderConfigSchema.shape.business.shape,
@@ -23,10 +21,11 @@ export const bodySchema = reminderConfigSchema.extend({
 const eventSchema = authedEventSchema<PatchUserProfileConfig>().extend({
   body: JSONStringified(bodySchema)
 });
-export type Event = z.infer<typeof eventSchema>;
+export type InputEvent = z.input<typeof eventSchema>;
+export type OutputEvent = z.output<typeof eventSchema>;
 
 function lambdaHandler(
-  event: Event,
+  event: OutputEvent,
   /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
   ctx: Context
 ): Promise<APIGatewayProxyResult> {

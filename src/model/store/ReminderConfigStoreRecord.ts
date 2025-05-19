@@ -1,5 +1,4 @@
-import type { Event } from '@lambdas/api/patch-user-profile/index';
-import type { LiveUserConfig } from '@model/LiveUser';
+import type { OutputEvent } from '@lambdas/api/patch-user-profile/index';
 import type {
   BusinessAddress,
   BusinessName,
@@ -7,6 +6,7 @@ import type {
   CalendarName,
   DateTime,
   LanguageCode,
+  ReminderConfigTransformed,
   TemplateId
 } from '@notifycal/shared/types';
 import {
@@ -51,7 +51,7 @@ export interface ReminderConfigStoreRecord {
   Confirmation: ConfirmationStoreRecord;
 }
 
-export function fromStoreRecord(record: ReminderConfigStoreRecord): LiveUserConfig {
+export function fromStoreRecord(record: ReminderConfigStoreRecord): ReminderConfigTransformed {
   return {
     calendars: record.Calendars.map((calendar) => ({
       id: calendar.Id,
@@ -81,7 +81,7 @@ export function fromStoreRecord(record: ReminderConfigStoreRecord): LiveUserConf
   };
 }
 
-export function toStoreRecord(config: Event['body']): ReminderConfigStoreRecord {
+export function toStoreRecord(config: OutputEvent['body']): ReminderConfigStoreRecord {
   return {
     Business: {
       Name: config.business.name,
