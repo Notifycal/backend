@@ -1,4 +1,5 @@
 import { accessTokenSchema, type OurAccessTokenClaims } from '@model/Jwt';
+import type { LiveUserConfig } from '@model/LiveUser';
 import {
   templateMap,
   type BusinessAddress,
@@ -9,7 +10,6 @@ import {
   type IdpId,
   type IdpName,
   type PhoneNumber,
-  type ReminderConfig,
   type UserId
 } from '@notifycal/shared/types';
 import { UserBaseStore } from '@services/stores/user-base-store';
@@ -100,7 +100,7 @@ describe('PATCH User profile', () => {
         }
       },
       calendars: []
-    } as unknown as ReminderConfig;
+    } as unknown as LiveUserConfig;
     const event = (await testAuthedEvent(
       invalidBody,
       {},
