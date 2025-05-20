@@ -29,7 +29,7 @@ export interface CalendarStoreRecord {
 export interface ConfirmationStoreRecord {
   TermsAccepted: DateTime;
   PrivacyAccepted: DateTime;
-  MarketingOptInAccepted: DateTime | undefined;
+  MarketingOptInAccepted?: DateTime;
 }
 
 export interface CompanyIndustryStoreRecord {
