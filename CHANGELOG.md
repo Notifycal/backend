@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.33.3](https://github.com/Notifycal/backend/compare/v0.33.2...v0.33.3) (2025-05-20)
+
+
+### Bug Fixes
+
+* let dynamo insert undefined values into table ([#636](https://github.com/Notifycal/backend/issues/636)) ([e5e1db7](https://github.com/Notifycal/backend/commit/e5e1db7488734cf9f833eefd2e843ff0a6ea4b7d))
+
 ## [0.33.2](https://github.com/Notifycal/backend/compare/v0.33.1...v0.33.2) (2025-05-19)
 
 
