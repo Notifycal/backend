@@ -7,13 +7,14 @@
 | <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 5.86 |
 | <a name="requirement_awscc"></a> [awscc](#requirement\_awscc) | ~> 1.28 |
 | <a name="requirement_cloudflare"></a> [cloudflare](#requirement\_cloudflare) | 4.52.0 |
+| <a name="requirement_stripe"></a> [stripe](#requirement\_stripe) | ~> 3.3.0 |
 
 ## Providers
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 5.97.0 |
-| <a name="provider_awscc"></a> [awscc](#provider\_awscc) | 1.40.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 5.99.0 |
+| <a name="provider_awscc"></a> [awscc](#provider\_awscc) | 1.43.0 |
 | <a name="provider_tls"></a> [tls](#provider\_tls) | 4.1.0 |
 
 ## Modules
@@ -49,10 +50,13 @@
 | <a name="module_post_demo_reminder_lambda_alias"></a> [post\_demo\_reminder\_lambda\_alias](#module\_post\_demo\_reminder\_lambda\_alias) | terraform-aws-modules/lambda/aws//modules/alias | ~> 7.17 |
 | <a name="module_post_login_lambda"></a> [post\_login\_lambda](#module\_post\_login\_lambda) | terraform-aws-modules/lambda/aws | ~> 7.17 |
 | <a name="module_post_login_lambda_alias"></a> [post\_login\_lambda\_alias](#module\_post\_login\_lambda\_alias) | terraform-aws-modules/lambda/aws//modules/alias | ~> 7.17 |
+| <a name="module_post_payment_session_lambda"></a> [post\_payment\_session\_lambda](#module\_post\_payment\_session\_lambda) | terraform-aws-modules/lambda/aws | ~> 7.17 |
+| <a name="module_post_payment_session_lambda_alias"></a> [post\_payment\_session\_lambda\_alias](#module\_post\_payment\_session\_lambda\_alias) | terraform-aws-modules/lambda/aws//modules/alias | ~> 7.17 |
 | <a name="module_post_refresh_lambda"></a> [post\_refresh\_lambda](#module\_post\_refresh\_lambda) | terraform-aws-modules/lambda/aws | ~> 7.17 |
 | <a name="module_post_refresh_lambda_alias"></a> [post\_refresh\_lambda\_alias](#module\_post\_refresh\_lambda\_alias) | terraform-aws-modules/lambda/aws//modules/alias | ~> 7.17 |
 | <a name="module_send_email_lambda"></a> [send\_email\_lambda](#module\_send\_email\_lambda) | terraform-aws-modules/lambda/aws | ~> 7.17 |
 | <a name="module_send_event_reminder_lambda"></a> [send\_event\_reminder\_lambda](#module\_send\_event\_reminder\_lambda) | terraform-aws-modules/lambda/aws | ~> 7.17 |
+| <a name="module_stripe"></a> [stripe](#module\_stripe) | ./modules/stripe | n/a |
 | <a name="module_user_calendar_fetched_queue"></a> [user\_calendar\_fetched\_queue](#module\_user\_calendar\_fetched\_queue) | ./modules/sqs | n/a |
 | <a name="module_user_calendar_fetched_topic"></a> [user\_calendar\_fetched\_topic](#module\_user\_calendar\_fetched\_topic) | ./modules/sns | n/a |
 
@@ -122,6 +126,7 @@
 | <a name="input_app_version"></a> [app\_version](#input\_app\_version) | n/a | `string` | n/a | yes |
 | <a name="input_aws_region"></a> [aws\_region](#input\_aws\_region) | n/a | `string` | n/a | yes |
 | <a name="input_base_domain"></a> [base\_domain](#input\_base\_domain) | n/a | `string` | `"notifycal.com"` | no |
+| <a name="input_currency"></a> [currency](#input\_currency) | Currency code for payments | `string` | `"eur"` | no |
 | <a name="input_deletion_protection_enabled"></a> [deletion\_protection\_enabled](#input\_deletion\_protection\_enabled) | n/a | `bool` | `true` | no |
 | <a name="input_domain_prefix"></a> [domain\_prefix](#input\_domain\_prefix) | n/a | `string` | `"api"` | no |
 | <a name="input_emailing_config"></a> [emailing\_config](#input\_emailing\_config) | n/a | <pre>object({<br/>    enabled = bool<br/>    sender = object({<br/>      displayName = optional(string, "Notifycal")<br/>      email       = string<br/>    })<br/>  })</pre> | <pre>{<br/>  "enabled": true,<br/>  "sender": {<br/>    "displayName": "Notifycal",<br/>    "email": "info@notifycal.com"<br/>  }<br/>}</pre> | no |
@@ -140,6 +145,9 @@
 | <a name="input_messaging_config"></a> [messaging\_config](#input\_messaging\_config) | n/a | <pre>object({<br/>    enabled = bool<br/>  })</pre> | <pre>{<br/>  "enabled": true<br/>}</pre> | no |
 | <a name="input_observability"></a> [observability](#input\_observability) | n/a | <pre>object({<br/>    alert_notifier = object({<br/>      slack_channel = string<br/>    })<br/>    alert_config = optional(object({<br/>      treat_missing_data       = optional(string, "missing")<br/>      notify_insufficient_data = optional(bool, true)<br/>      }), {<br/>      treat_missing_data       = "missing"<br/>      notify_insufficient_data = true<br/>    })<br/>  })</pre> | n/a | yes |
 | <a name="input_openapi_spec_file"></a> [openapi\_spec\_file](#input\_openapi\_spec\_file) | Name of the OpenAPI spec file for this API | `string` | `"spec.yaml"` | no |
+| <a name="input_spain_vat_percentage"></a> [spain\_vat\_percentage](#input\_spain\_vat\_percentage) | Spanish VAT percentage | `number` | `21` | no |
+| <a name="input_stripe_operating_api_key"></a> [stripe\_operating\_api\_key](#input\_stripe\_operating\_api\_key) | Stripe operating API key | `string` | n/a | yes |
+| <a name="input_subscription_tiers"></a> [subscription\_tiers](#input\_subscription\_tiers) | Configuration for subscription tiers. E.g.: Good, Better, Best | <pre>map(object({<br/>    name        = string<br/>    description = string<br/>    price_cents = number # Price in cents (e.g., 1000 = €10.00)<br/>  }))</pre> | <pre>{<br/>  "best": {<br/>    "description": "Premium plan with all features",<br/>    "name": "Best Plan",<br/>    "price_cents": 6000<br/>  },<br/>  "better": {<br/>    "description": "Enhanced plan with advanced features",<br/>    "name": "Better Plan",<br/>    "price_cents": 2500<br/>  },<br/>  "good": {<br/>    "description": "Basic plan with essential features",<br/>    "name": "Good Plan",<br/>    "price_cents": 1000<br/>  }<br/>}</pre> | no |
 | <a name="input_vendor_alarm_config"></a> [vendor\_alarm\_config](#input\_vendor\_alarm\_config) | Configuration for each integration vendor's error rate alarm | <pre>object({<br/>    Vonage = object({<br/>      error_rate_threshold      = number<br/>      evaluation_period_seconds = number<br/>      datapoints_to_alarm       = number<br/>      evaluation_periods        = number<br/>    })<br/>    Mailgun = object({<br/>      error_rate_threshold      = number<br/>      evaluation_period_seconds = number<br/>      datapoints_to_alarm       = number<br/>      evaluation_periods        = number<br/>    })<br/>    Google = object({<br/>      error_rate_threshold      = number<br/>      evaluation_period_seconds = number<br/>      datapoints_to_alarm       = number<br/>      evaluation_periods        = number<br/>    })<br/>  })</pre> | <pre>{<br/>  "Google": {<br/>    "datapoints_to_alarm": 1,<br/>    "error_rate_threshold": 2,<br/>    "evaluation_period_seconds": 3600,<br/>    "evaluation_periods": 1<br/>  },<br/>  "Mailgun": {<br/>    "datapoints_to_alarm": 1,<br/>    "error_rate_threshold": 5,<br/>    "evaluation_period_seconds": 3600,<br/>    "evaluation_periods": 1<br/>  },<br/>  "Vonage": {<br/>    "datapoints_to_alarm": 1,<br/>    "error_rate_threshold": 2,<br/>    "evaluation_period_seconds": 3600,<br/>    "evaluation_periods": 1<br/>  }<br/>}</pre> | no |
 | <a name="input_vonage_auth_config"></a> [vonage\_auth\_config](#input\_vonage\_auth\_config) | n/a | <pre>object({<br/>    api_key                    = string<br/>    application_id             = string<br/>    private_key_secret_path    = string<br/>    webhook_jwt_signing_secret = string<br/>  })</pre> | n/a | yes |
 
