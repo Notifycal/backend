@@ -1,5 +1,5 @@
 /* eslint-disable camelcase */
-import type { Email, UserId } from '@notifycal/shared/types';
+import type { Email, LanguageCode, UserId } from '@notifycal/shared/types';
 import type { Url } from '@own-types/model';
 import Stripe from 'stripe';
 import type { Tier } from './config';
@@ -9,6 +9,7 @@ export class StripeCheckoutService {
     userId: UserId,
     email: Email,
     tier: Tier,
+    language: LanguageCode,
     successRedirectUrl: Url,
     cancelRedirectUrl: Url,
     apiKey: string
@@ -23,6 +24,7 @@ export class StripeCheckoutService {
       customer_email: email,
       success_url: successRedirectUrl,
       cancel_url: cancelRedirectUrl,
+      locale: language,
       line_items: [
         {
           price: tier.priceId,

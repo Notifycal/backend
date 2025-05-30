@@ -25,6 +25,7 @@ async function lambdaHandler(
       userId,
       email,
       selectedTier,
+      event.body.language,
       successRedirectUrl,
       cancelRedirectUrl,
       apiKey
