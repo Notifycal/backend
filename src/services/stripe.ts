@@ -1,23 +1,27 @@
 /* eslint-disable camelcase */
 import type { Email, LanguageCode, UserId } from '@notifycal/shared/types';
 import type { Url } from '@own-types/model';
-import Stripe from 'stripe';
-import type { Tier } from './config';
+import { default as Stripe } from 'stripe';
+import type { Tier } from '../lambdas/api/post-payment-session/config';
 
-export class StripeCheckoutService {
+export class StripeService {
+  private readonly stripeClient: Stripe;
+
+  public constructor(apiKey: string) {
+    this.stripeClient = new Stripe(apiKey, {
+      apiVersion: '2025-05-28.basil'
+    });
+  }
+
   public async createCheckoutSession(
     userId: UserId,
     email: Email,
     tier: Tier,
     language: LanguageCode,
     successRedirectUrl: Url,
-    cancelRedirectUrl: Url,
-    apiKey: string
+    cancelRedirectUrl: Url
   ): Promise<string | null> {
-    const stripe = new Stripe(apiKey, {
-      apiVersion: '2025-05-28.basil'
-    });
-    const session = await stripe.checkout.sessions.create({
+    const session = await this.stripeClient.checkout.sessions.create({
       mode: 'subscription',
       ui_mode: 'hosted',
       payment_method_types: ['card'],

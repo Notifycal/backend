@@ -1,9 +1,9 @@
 import { protectedEndpointMiddleware } from '@common/lambda-middleware';
 import { logger } from '@common/powertools';
 import type { APIGatewayProxyResult, Context } from 'aws-lambda';
+import { StripeService } from '../../../services/stripe';
 import { readPostPaymentCheckoutSessionConfig } from './config';
 import { type Event, eventSchema } from './schemas';
-import { StripeCheckoutService } from './stripe';
 
 const failureResponse: APIGatewayProxyResult = {
   statusCode: 500,
@@ -18,17 +18,17 @@ async function lambdaHandler(
   const { userId, email } = event.requestContext.authorizer.payload;
   const apiKey = event.lambdaConfig.stripeAuthConfig.apiKey;
   const { successRedirectUrl, cancelRedirectUrl, tiers } = event.lambdaConfig.stripeCheckoutConfig;
-  const selectedTier = tiers[event.body.tier];
+  const { tier, language } = event.body;
+  const selectedTier = tiers[tier];
 
-  return new StripeCheckoutService()
+  return new StripeService(apiKey)
     .createCheckoutSession(
       userId,
       email,
       selectedTier,
-      event.body.language,
+      language,
       successRedirectUrl,
-      cancelRedirectUrl,
-      apiKey
+      cancelRedirectUrl
     )
     .then(
       (sessionUrl) => {
