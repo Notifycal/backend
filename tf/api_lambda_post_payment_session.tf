@@ -1,7 +1,3 @@
-# data "aws_iam_policy_document" "post_payment_session_iam_policydoc" {
-//TODO publish event PaymentSessionCreated?
-# }
-
 module "post_payment_session_lambda" {
   source  = "terraform-aws-modules/lambda/aws"
   version = "~> 7.17"
@@ -27,9 +23,6 @@ module "post_payment_session_lambda" {
   tags = merge({
     Api = "POST /payment-session"
   }, local.common_tags)
-
-  #   attach_policy_json = true
-  #   policy_json        = data.aws_iam_policy_document.post_payment_session_iam_policydoc.json
 
   attach_policies    = true
   policies           = local.lambdas_shared_iam_policies
