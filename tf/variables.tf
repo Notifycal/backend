@@ -238,40 +238,9 @@ variable "alert_for_missing_phone_number" {
 variable "subscription_tiers" {
   description = "Configuration for subscription tiers. E.g.: Good, Better, Best"
   type = map(object({
-    name        = string
-    description = string
-    price_cents = number # Price in cents (e.g., 1000 = €10.00)
+    price_id = string
+    name     = string
   }))
-
-  default = {
-    good = {
-      name        = "Good Plan"
-      description = "Basic plan with essential features"
-      price_cents = 1000 # €10.00
-    }
-    better = {
-      name        = "Better Plan"
-      description = "Enhanced plan with advanced features"
-      price_cents = 2500 # €25.00
-    }
-    best = {
-      name        = "Best Plan"
-      description = "Premium plan with all features"
-      price_cents = 6000 # €60.00
-    }
-  }
-}
-
-variable "currency" {
-  description = "Currency code for payments"
-  type        = string
-  default     = "eur"
-}
-
-variable "spain_vat_percentage" {
-  description = "Spanish VAT percentage"
-  type        = number
-  default     = 21.0
 }
 
 variable "stripe_operating_api_key" {

@@ -14,9 +14,5 @@ terraform {
       source  = "cloudflare/cloudflare"
       version = "4.52.0"
     }
-    stripe = {
-      source  = "lukasaron/stripe",
-      version = "~> 3.3.0"
-    }
   }
 }
