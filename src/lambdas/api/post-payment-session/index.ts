@@ -1,16 +1,12 @@
 import { MetricUnit } from '@aws-lambda-powertools/metrics';
 import { protectedEndpointMiddleware } from '@common/lambda-middleware';
-import { logger, metrics } from '@common/powertools';
+import { metrics } from '@common/powertools';
+import { errorHandler, successHandler } from '@services/common/api-response-handlers';
 import type { MetricDimensions } from '@services/observability/metrics';
+import { StripeService } from '@services/stripe';
 import type { APIGatewayProxyResult, Context } from 'aws-lambda';
-import { StripeService } from '../../../services/stripe';
 import { readPostPaymentCheckoutSessionConfig } from './config';
 import { type Event, eventSchema } from './schemas';
-
-const failureResponse: APIGatewayProxyResult = {
-  statusCode: 500,
-  body: JSON.stringify({ message: 'Failed to create checkout session' })
-};
 
 async function lambdaHandler(
   event: Event,
@@ -40,20 +36,17 @@ async function lambdaHandler(
       (sessionUrl) => {
         if (sessionUrl) {
           metrics.addMetric('PaymentSessionCreated', MetricUnit.Count, 1, dimensions);
-          return {
-            statusCode: 200,
-            body: JSON.stringify({ url: sessionUrl })
-          };
+          return successHandler()({ result: { url: sessionUrl } });
         } else {
-          logger.error(`No payment session was created for the user`);
           metrics.addMetric('PaymentSessionCancelled', MetricUnit.Count, 1, dimensions);
-          return failureResponse;
+          return errorHandler(500)(`No payment session was created for the user`);
         }
       },
       (error) => {
-        logger.error(`There was an error creating a payment session for the user`, { error });
         metrics.addMetric('PaymentSessionFailed', MetricUnit.Count, 1, dimensions);
-        return failureResponse;
+        return errorHandler(500)(`There was an error creating a payment session for the user`, {
+          error
+        });
       }
     );
 }

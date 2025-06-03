@@ -1,4 +1,8 @@
 import type {
+  StripeAuthConfig,
+  StripeCheckoutConfig
+} from '@lambdas/api/post-payment-session/config';
+import type {
   AlertEmailConfig,
   AlertThresholdConfig
 } from '@lambdas/dynamodb-streams/alert-for-missing-phone-number/config';
@@ -178,4 +182,16 @@ export function setEnvAlertThresholdConfig(config: AlertThresholdConfig): void {
 
 export function setEnvAlertEmailConfig(config: AlertEmailConfig): void {
   process.env.FAQ_URL = config.faqUrl.toString();
+}
+
+export function setEnvStripeAuthConfig(config: StripeAuthConfig): void {
+  process.env.STRIPE_API_KEY = config.apiKey;
+}
+
+export function setEnvStripeCheckoutConfig(config: StripeCheckoutConfig): void {
+  process.env.STRIPE_GOOD_TIER_PRICE_ID = config.tiers.good.priceId;
+  process.env.STRIPE_BETTER_TIER_PRICE_ID = config.tiers.better.priceId;
+  process.env.STRIPE_BEST_TIER_PRICE_ID = config.tiers.best.priceId;
+  process.env.STRIPE_SUCCESS_REDIRECT_URL = config.successRedirectUrl;
+  process.env.STRIPE_CANCEL_REDIRECT_URL = config.cancelRedirectUrl;
 }
