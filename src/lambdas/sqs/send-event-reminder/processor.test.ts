@@ -1,3 +1,5 @@
+import { Logger } from '@aws-lambda-powertools/logger';
+import type { LoggerInterface } from '@aws-lambda-powertools/logger/types';
 import { logger } from '@common/powertools';
 import type { ActionableEventFoundEvent } from '@model/app-events/ActionableEventFoundEvent';
 import type { DemoReminderToBeSentEvent } from '@model/app-events/DemoReminderToBeSentEvent';
@@ -25,7 +27,18 @@ import { describe, expect, it, vi } from 'vitest';
 import Processor from './processor';
 
 vi.mock('@services/sns');
-vi.mock('@common/powertools');
+vi.mock('@common/powertools', () => {
+  const mockLogger = Object.create(Logger.prototype) as LoggerInterface;
+  mockLogger.appendKeys = vi.fn();
+  mockLogger.info = vi.fn();
+  mockLogger.error = vi.fn();
+  mockLogger.warn = vi.fn();
+  mockLogger.debug = vi.fn();
+
+  return {
+    logger: mockLogger
+  };
+});
 vi.mock('@services/messaging');
 
 const defaultConfig: VonageEndpointConfig['vonageConfig'] = {
