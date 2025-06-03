@@ -22,7 +22,15 @@ import type { Event } from './schemas';
 import { handler } from './index';
 
 vi.mock('@services/stripe');
-vi.mock('@utils/MetricsAggregator');
+vi.mock('@utils/MetricsAggregator', () => {
+  class MockMetricsAggregator {
+    public addMetric = vi.fn();
+    public publishAll = vi.fn();
+  }
+  return {
+    default: MockMetricsAggregator
+  };
+});
 
 describe('POST Payment checkout session', () => {
   const validUserId = 'cfaa8471-f4cc-44da-bc22-ddc4b735a847' as UserId;

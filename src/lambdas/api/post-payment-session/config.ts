@@ -4,10 +4,10 @@ import { readAuthedEndpointConfig, readEnv } from '@services/common/config';
 import { promiseTry } from '@utils/promises';
 
 export const tierIdMap = {
-  good: 'good' as const,
-  better: 'better' as const,
-  best: 'best' as const
-};
+  good: 'good',
+  better: 'better',
+  best: 'best'
+} as const;
 export interface Tier {
   id: (typeof tierIdMap)[keyof typeof tierIdMap];
   priceId: string;
