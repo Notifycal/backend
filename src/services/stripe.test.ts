@@ -195,7 +195,7 @@ async function testIt(
   successRedirectUrl: Url,
   cancelRedirectUrl: Url,
   createSessionFn: () => Promise<Stripe.Response<Stripe.Checkout.Session>>
-): Promise<string | null> {
+): Promise<Url | null> {
   const mockStripeInstance = {
     checkout: {
       sessions: {

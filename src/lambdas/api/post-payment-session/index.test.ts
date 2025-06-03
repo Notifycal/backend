@@ -149,7 +149,7 @@ describe('POST Payment checkout session', () => {
 
 function testIt(
   event: APIGatewayProxyEvent,
-  createCheckoutSessionFn: () => Promise<string | null>,
+  createCheckoutSessionFn: () => Promise<Url | null>,
   config: PostPaymentCheckoutSessionConfig = defaultConfig
 ): Promise<APIGatewayProxyResult> {
   setEnv(config);

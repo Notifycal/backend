@@ -20,7 +20,7 @@ export class StripeService {
     language: LanguageCode,
     successRedirectUrl: Url,
     cancelRedirectUrl: Url
-  ): Promise<string | null> {
+  ): Promise<Url | null> {
     const session = await this.stripeClient.checkout.sessions.create({
       mode: 'subscription',
       ui_mode: 'hosted',
@@ -42,6 +42,6 @@ export class StripeService {
       },
       automatic_tax: { enabled: true }
     });
-    return session.url;
+    return session.url as Url | null;
   }
 }
