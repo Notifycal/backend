@@ -3,8 +3,8 @@ data "aws_caller_identity" "current" {}
 locals {
   aws_account_id = data.aws_caller_identity.current.account_id
   update_request_payload = {
-    name           = "EventBridge-${var.environment}"
-    description    = "EventBridge ${var.environment}"
+    name           = "event-bridge-bus-${var.environment}"
+    description    = "Event Bridge bus ${var.environment}"
     include        = []
     enabled_events = var.stripe_webhook_events
     metadata = {

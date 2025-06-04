@@ -27,7 +27,7 @@ EOT
 variable "streams_to_return" {
   type        = set(string)
   description = "EventBridge fanout. It creates as many EventBridge rules in the event bus as key-value pairs in this parameters. Keys aren't used for anything"
-  default     = ["all_events"]
+  default     = ["all-events"]
 }
 
 variable "api_version" {
