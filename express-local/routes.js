@@ -6,6 +6,7 @@ import { handler as patchUserProfile } from '../dist/lambdas/api/patch-user-prof
 import { handler as postDemoReminder } from '../dist/lambdas/api/post-demo-reminder/index.cjs';
 import { handler as postMessageDeliveryWebhook } from '../dist/lambdas/api/post-event-reminder-delivery-status-webhook/index.cjs';
 import { handler as postLogin } from '../dist/lambdas/api/post-login/index.cjs';
+import { handler as postPaymentSession } from '../dist/lambdas/api/post-payment-session/index.cjs';
 import { handler as postRefresh } from '../dist/lambdas/api/post-refresh/index.cjs';
 
 const routes = {
@@ -27,6 +28,9 @@ const routes = {
   },
   'webhook/reminder-status': {
     POST: postMessageDeliveryWebhook
+  },
+  'payment-session': {
+    POST: postPaymentSession
   }
 };
 

@@ -25,7 +25,7 @@ paths:
         '500': { $ref: './component-definitions.yaml#/components/responses/InternalServerError' }
       x-amazon-apigateway-integration:
         $ref: './aws-stuff.yaml#/components/x-notifycal/AWS_LAMBDA_PROXY'
-        uri: 'arn:aws:apigateway:${aws_region}:lambda:path/2015-03-31/functions/${lambda_functions.webhook_reminder_status}/invocations'
+        uri: 'arn:aws:apigateway:${aws_region}:lambda:path/2015-03-31/functions/${lambda_functions.webhook_reminder_status_arn}/invocations'
     options:
       $ref: './aws-stuff.yaml#/components/x-notifycal/CORS_OPTIONS'
 

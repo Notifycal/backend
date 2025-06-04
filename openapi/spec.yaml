@@ -213,6 +213,9 @@ paths:
   /api/v1/webhook/reminder-status:
     $ref: './messaging-webhook-vonage.yaml#/paths/~1api~1v1~1webhook~1reminder-status'
 
+  /api/v1/payment-session:
+    $ref: './payments-stripe.yaml#/paths/~1api~1v1~1payment-session'
+
 tags:
   - name: user
     description: user operations
@@ -224,5 +227,7 @@ tags:
     description: webhooks
   - name: messaging
     description: integration with messaging provider
+  - name: payments
+    description: integration with payment provider
   - name: demo
     description: demo operations

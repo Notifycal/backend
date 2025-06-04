@@ -12,8 +12,8 @@
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 5.97.0 |
-| <a name="provider_awscc"></a> [awscc](#provider\_awscc) | 1.40.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 5.99.1 |
+| <a name="provider_awscc"></a> [awscc](#provider\_awscc) | 1.43.0 |
 | <a name="provider_tls"></a> [tls](#provider\_tls) | 4.1.0 |
 
 ## Modules
@@ -49,6 +49,8 @@
 | <a name="module_post_demo_reminder_lambda_alias"></a> [post\_demo\_reminder\_lambda\_alias](#module\_post\_demo\_reminder\_lambda\_alias) | terraform-aws-modules/lambda/aws//modules/alias | ~> 7.17 |
 | <a name="module_post_login_lambda"></a> [post\_login\_lambda](#module\_post\_login\_lambda) | terraform-aws-modules/lambda/aws | ~> 7.17 |
 | <a name="module_post_login_lambda_alias"></a> [post\_login\_lambda\_alias](#module\_post\_login\_lambda\_alias) | terraform-aws-modules/lambda/aws//modules/alias | ~> 7.17 |
+| <a name="module_post_payment_session_lambda"></a> [post\_payment\_session\_lambda](#module\_post\_payment\_session\_lambda) | terraform-aws-modules/lambda/aws | ~> 7.17 |
+| <a name="module_post_payment_session_lambda_alias"></a> [post\_payment\_session\_lambda\_alias](#module\_post\_payment\_session\_lambda\_alias) | terraform-aws-modules/lambda/aws//modules/alias | ~> 7.17 |
 | <a name="module_post_refresh_lambda"></a> [post\_refresh\_lambda](#module\_post\_refresh\_lambda) | terraform-aws-modules/lambda/aws | ~> 7.17 |
 | <a name="module_post_refresh_lambda_alias"></a> [post\_refresh\_lambda\_alias](#module\_post\_refresh\_lambda\_alias) | terraform-aws-modules/lambda/aws//modules/alias | ~> 7.17 |
 | <a name="module_send_email_lambda"></a> [send\_email\_lambda](#module\_send\_email\_lambda) | terraform-aws-modules/lambda/aws | ~> 7.17 |
@@ -140,6 +142,8 @@
 | <a name="input_messaging_config"></a> [messaging\_config](#input\_messaging\_config) | n/a | <pre>object({<br/>    enabled = bool<br/>  })</pre> | <pre>{<br/>  "enabled": true<br/>}</pre> | no |
 | <a name="input_observability"></a> [observability](#input\_observability) | n/a | <pre>object({<br/>    alert_notifier = object({<br/>      slack_channel = string<br/>    })<br/>    alert_config = optional(object({<br/>      treat_missing_data       = optional(string, "missing")<br/>      notify_insufficient_data = optional(bool, true)<br/>      }), {<br/>      treat_missing_data       = "missing"<br/>      notify_insufficient_data = true<br/>    })<br/>  })</pre> | n/a | yes |
 | <a name="input_openapi_spec_file"></a> [openapi\_spec\_file](#input\_openapi\_spec\_file) | Name of the OpenAPI spec file for this API | `string` | `"spec.yaml"` | no |
+| <a name="input_stripe_operating_api_key"></a> [stripe\_operating\_api\_key](#input\_stripe\_operating\_api\_key) | Stripe operating API key | `string` | n/a | yes |
+| <a name="input_subscription_tiers"></a> [subscription\_tiers](#input\_subscription\_tiers) | Configuration for subscription tiers. E.g.: Good, Better, Best | <pre>map(object({<br/>    price_id = string<br/>    name     = string<br/>  }))</pre> | n/a | yes |
 | <a name="input_vendor_alarm_config"></a> [vendor\_alarm\_config](#input\_vendor\_alarm\_config) | Configuration for each integration vendor's error rate alarm | <pre>object({<br/>    Vonage = object({<br/>      error_rate_threshold      = number<br/>      evaluation_period_seconds = number<br/>      datapoints_to_alarm       = number<br/>      evaluation_periods        = number<br/>    })<br/>    Mailgun = object({<br/>      error_rate_threshold      = number<br/>      evaluation_period_seconds = number<br/>      datapoints_to_alarm       = number<br/>      evaluation_periods        = number<br/>    })<br/>    Google = object({<br/>      error_rate_threshold      = number<br/>      evaluation_period_seconds = number<br/>      datapoints_to_alarm       = number<br/>      evaluation_periods        = number<br/>    })<br/>  })</pre> | <pre>{<br/>  "Google": {<br/>    "datapoints_to_alarm": 1,<br/>    "error_rate_threshold": 2,<br/>    "evaluation_period_seconds": 3600,<br/>    "evaluation_periods": 1<br/>  },<br/>  "Mailgun": {<br/>    "datapoints_to_alarm": 1,<br/>    "error_rate_threshold": 5,<br/>    "evaluation_period_seconds": 3600,<br/>    "evaluation_periods": 1<br/>  },<br/>  "Vonage": {<br/>    "datapoints_to_alarm": 1,<br/>    "error_rate_threshold": 2,<br/>    "evaluation_period_seconds": 3600,<br/>    "evaluation_periods": 1<br/>  }<br/>}</pre> | no |
 | <a name="input_vonage_auth_config"></a> [vonage\_auth\_config](#input\_vonage\_auth\_config) | n/a | <pre>object({<br/>    api_key                    = string<br/>    application_id             = string<br/>    private_key_secret_path    = string<br/>    webhook_jwt_signing_secret = string<br/>  })</pre> | n/a | yes |
 

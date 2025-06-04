@@ -1,0 +1,48 @@
+---
+openapi: '3.0.1'
+info:
+  title: Payments
+paths:
+  /api/v1/payment-session:
+    post:
+      summary: Create payment session with vendor
+      operationId: paymentSession
+      description: Creates payment session with vendor
+      tags: [payments]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Request payload containing user shopping cart
+              properties:
+                tier:
+                  description: user's choice for monthly subscription plan
+                  type: string
+                  enum:
+                    - good
+                    - better
+                    - best
+              additionalProperties: false
+      responses:
+        '200':
+          description: 'OK'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  url:
+                    type: string
+                    format: url
+                    description: The returned URL by payment provider. Either a success redirect URL or a cancel URL.
+                required: [result]
+                additionalProperties: false
+        '401': { $ref: './component-definitions.yaml#/components/responses/Unauthorised' }
+        '500': { $ref: './component-definitions.yaml#/components/responses/InternalServerError' }
+      x-amazon-apigateway-integration:
+        $ref: './aws-stuff.yaml#/components/x-notifycal/AWS_LAMBDA_PROXY'
+        uri: 'arn:aws:apigateway:${aws_region}:lambda:path/2015-03-31/functions/${lambda_functions.post_payment_session_arn}/invocations'
+    options:
+      $ref: './aws-stuff.yaml#/components/x-notifycal/CORS_OPTIONS'

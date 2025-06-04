@@ -234,3 +234,17 @@ variable "alert_for_missing_phone_number" {
   })
   default = {}
 }
+
+variable "subscription_tiers" {
+  description = "Configuration for subscription tiers. E.g.: Good, Better, Best"
+  type = map(object({
+    price_id = string
+    name     = string
+  }))
+}
+
+variable "stripe_operating_api_key" {
+  description = "Stripe operating API key"
+  type        = string
+  sensitive   = true
+}
