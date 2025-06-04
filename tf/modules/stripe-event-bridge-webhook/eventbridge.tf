@@ -16,7 +16,7 @@ resource "aws_cloudwatch_event_bus" "stripe" {
 resource "aws_cloudwatch_event_rule" "stripe_event_rules" {
   for_each       = var.streams_to_return
   name           = "stripe-events-${each.value}-${var.environment}"
-  description    = "Capture all Stripe events defined in Stripe event-destination API (configurable via module variable var.stripe_webhook_events)"
+  description    = "Contains all Stripe events defined in Stripe event-destination API"
   event_bus_name = aws_cloudwatch_event_bus.stripe.name
   event_pattern = jsonencode({
     "source" = [{

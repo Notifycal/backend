@@ -26,7 +26,7 @@ EOT
 
 variable "streams_to_return" {
   type        = set(string)
-  description = "EventBridge fanout. It creates as many EventBridge rules in the event bus as key-value pairs in this parameters. Keys aren't used for anything"
+  description = "EventBridge fanout. It creates as many EventBridge rules off the event bus as items present in this set parameter."
   default     = ["all-events"]
 }
 
