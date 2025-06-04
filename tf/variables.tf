@@ -248,3 +248,11 @@ variable "stripe_operating_api_key" {
   type        = string
   sensitive   = true
 }
+variable "stripe_admin_api_key" {
+  type = string
+}
+
+variable "stripe_api_version" {
+  type    = string
+  default = "2025-05-28.basil"
+}
