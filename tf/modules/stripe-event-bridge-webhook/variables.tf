@@ -12,6 +12,24 @@ variable "stripe_webhook_events" {
   ]
 }
 
+variable "event_bus_dlq" {
+  type = object({
+    arn = optional(string, null)
+  })
+  description = <<EOT
+[Lifted from original docs] Configuration details of the Amazon SQS queue for EventBridge to use as a dead-letter queue (DLQ). 
+This block supports the following arguments:
+  arn - (Optional) The ARN of the SQS queue specified as the target for the dead-letter queue.
+EOT
+  default     = null
+}
+
+variable "streams_to_return" {
+  type        = set(string)
+  description = "EventBridge fanout. It creates as many EventBridge rules in the event bus as key-value pairs in this parameters. Keys aren't used for anything"
+  default     = ["all_events"]
+}
+
 variable "api_version" {
   type    = string
   default = "2025-05-28.basil"

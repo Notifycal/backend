@@ -1,3 +1,6 @@
+locals {
+  streams_to_return = ["all-events"]
+}
 module "stripe_webhook" {
   source               = "./modules/stripe-event-bridge-webhook"
   environment          = var.environment
@@ -10,7 +13,34 @@ module "stripe_webhook" {
     "customer.subscription.deleted",
     "invoice.payment_succeeded",
     "invoice.payment_failed",
-    "customer.subscription.trial_will_end",
     "checkout.session.completed"
   ]
+  streams_to_return = toset(local.streams_to_return)
+}
+
+resource "aws_cloudwatch_event_target" "all_events" {
+  for_each       = module.stripe_webhook.stripe_event_rules
+  rule           = each.value.event_bus_rule_name
+  event_bus_name = each.value.event_bus_name
+  target_id      = each.key
+  arn            = module.stripe_webhook_queue.sqs_queue_arn
+  sqs_target {
+    message_group_id = "stripe-events-${each.key}"
+  }
+}
+
+
+module "stripe_webhook_queue" {
+  source     = "./modules/sqs"
+  queue_name = "stripe-webhook-${var.environment}"
+  sender_arns = toset([
+    aws_cloudwatch_event_target.all_events[local.streams_to_return[0]].arn
+  ])
+  receiver_arn = "lambda consuming events" # TODO
+  tags         = local.common_tags
+
+  redrive_policy = {
+    max_receive_count      = 2
+    dead_letter_target_arn = aws_sqs_queue.global_dlq_unprocessable_sqs.arn
+  }
 }

@@ -3,8 +3,8 @@ data "aws_caller_identity" "current" {}
 locals {
   aws_account_id = data.aws_caller_identity.current.account_id
   update_request_payload = {
-    name           = "NotifyCal ${var.environment} EventBridge"
-    description    = "EventBridge integration for ${var.environment}"
+    name           = "EventBridge-${var.environment}"
+    description    = "EventBridge ${var.environment}"
     include        = []
     enabled_events = var.stripe_webhook_events
     metadata = {
@@ -63,30 +63,4 @@ resource "restapi_object" "stripe_event_destination" {
   update_path    = "/core/event_destinations/{id}"
   destroy_method = "DELETE"
   destroy_path   = "/core/event_destinations/{id}"
-}
-
-# outputs.tf actualizado
-output "manual_configuration_required" {
-  value = <<EOF
-⚠️  CONFIGURACIÓN MANUAL REQUERIDA:
-
-Si el script automático falla, configura manualmente:
-
-1. En Stripe Dashboard:
-   - Ve a https://dashboard.stripe.com/events/destinations
-   - Click "Add destination"
-   - Selecciona "AWS EventBridge"
-   - Ingresa:
-     * AWS Account ID: ${data.aws_caller_identity.current.account_id}
-     * AWS Region: ${var.aws_region}
-   - Selecciona los eventos que quieres recibir
-
-2. En AWS Console:
-   - Ve a EventBridge → Partner event sources
-   - Busca el source de Stripe
-   - Click "Associate with event bus"
-   - Selecciona: <El bus name>
-
-Una vez configurado, los eventos fluirán: Stripe → EventBridge → SQS
-EOF
 }
