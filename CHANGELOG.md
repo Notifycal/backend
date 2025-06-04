@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.34.0](https://github.com/Notifycal/backend/compare/v0.33.3...v0.34.0) (2025-06-04)
+
+
+### Features
+
+* stripe checkout. First pass ([#645](https://github.com/Notifycal/backend/issues/645)) ([54be660](https://github.com/Notifycal/backend/commit/54be66014084f57ac9c77ba89eff07b4f9be210e))
+
+
+### Bug Fixes
+
+* **deps:** Update @notifycal/shared and zod ([#657](https://github.com/Notifycal/backend/issues/657)) ([609088e](https://github.com/Notifycal/backend/commit/609088e868e07ac1be46274ec5bc33de486d40c6))
+* **deps:** Update AWS packages ([#637](https://github.com/Notifycal/backend/issues/637)) ([3cfdaad](https://github.com/Notifycal/backend/commit/3cfdaad6940a85200e1edb0e8c3f7f3924a36e49))
+* **deps:** Update AWS packages to v3.823.0 ([#660](https://github.com/Notifycal/backend/issues/660)) ([3018738](https://github.com/Notifycal/backend/commit/3018738761755c889e0c85b8b03a41b784cc9f17))
+* **deps:** Update dependency googleapis to v149 ([#640](https://github.com/Notifycal/backend/issues/640)) ([84d7163](https://github.com/Notifycal/backend/commit/84d7163003f6a4937862e8b571558132925cac04))
+* **deps:** Update Middy middleware packages to v6.3.1 ([#646](https://github.com/Notifycal/backend/issues/646)) ([7312fc4](https://github.com/Notifycal/backend/commit/7312fc41acd430d39a7238af4bf99fffb35a498a))
+
 ## [0.33.3](https://github.com/Notifycal/backend/compare/v0.33.2...v0.33.3) (2025-05-20)
 
 
