@@ -57,6 +57,7 @@
 | <a name="module_send_email_lambda"></a> [send\_email\_lambda](#module\_send\_email\_lambda) | terraform-aws-modules/lambda/aws | ~> 7.17 |
 | <a name="module_send_event_reminder_lambda"></a> [send\_event\_reminder\_lambda](#module\_send\_event\_reminder\_lambda) | terraform-aws-modules/lambda/aws | ~> 7.17 |
 | <a name="module_stripe_webhook"></a> [stripe\_webhook](#module\_stripe\_webhook) | ./modules/stripe-event-bridge-webhook | n/a |
+| <a name="module_stripe_webhook_lambda"></a> [stripe\_webhook\_lambda](#module\_stripe\_webhook\_lambda) | terraform-aws-modules/lambda/aws | ~> 7.17 |
 | <a name="module_stripe_webhook_queue"></a> [stripe\_webhook\_queue](#module\_stripe\_webhook\_queue) | ./modules/sqs | n/a |
 | <a name="module_user_calendar_fetched_queue"></a> [user\_calendar\_fetched\_queue](#module\_user\_calendar\_fetched\_queue) | ./modules/sqs | n/a |
 | <a name="module_user_calendar_fetched_topic"></a> [user\_calendar\_fetched\_topic](#module\_user\_calendar\_fetched\_topic) | ./modules/sns | n/a |
@@ -114,6 +115,7 @@
 | [aws_iam_policy_document.send_event_reminder_iam_policydoc](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
 | [aws_iam_policy_document.sns_feedback_assume_role_policydoc](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
 | [aws_iam_policy_document.sns_feedback_policydoc](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
+| [aws_iam_policy_document.stripe_webhook_iam_policydoc](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
 | [aws_iam_policy_document.xray_sns_policydoc](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
 | [aws_ssm_parameter.slack_bot_token](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
 | [aws_ssm_parameter.vonage_private_key](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
