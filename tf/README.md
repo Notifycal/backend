@@ -146,7 +146,7 @@
 | <a name="input_messaging_config"></a> [messaging\_config](#input\_messaging\_config) | n/a | <pre>object({<br/>    enabled = bool<br/>  })</pre> | <pre>{<br/>  "enabled": true<br/>}</pre> | no |
 | <a name="input_observability"></a> [observability](#input\_observability) | n/a | <pre>object({<br/>    alert_notifier = object({<br/>      slack_channel = string<br/>    })<br/>    alert_config = optional(object({<br/>      treat_missing_data       = optional(string, "missing")<br/>      notify_insufficient_data = optional(bool, true)<br/>      }), {<br/>      treat_missing_data       = "missing"<br/>      notify_insufficient_data = true<br/>    })<br/>  })</pre> | n/a | yes |
 | <a name="input_openapi_spec_file"></a> [openapi\_spec\_file](#input\_openapi\_spec\_file) | Name of the OpenAPI spec file for this API | `string` | `"spec.yaml"` | no |
-| <a name="input_stripe_admin_api_key"></a> [stripe\_admin\_api\_key](#input\_stripe\_admin\_api\_key) | n/a | `string` | n/a | yes |
+| <a name="input_stripe_admin_api_key"></a> [stripe\_admin\_api\_key](#input\_stripe\_admin\_api\_key) | Stripe admin API key | `string` | n/a | yes |
 | <a name="input_stripe_api_version"></a> [stripe\_api\_version](#input\_stripe\_api\_version) | n/a | `string` | `"2025-05-28.basil"` | no |
 | <a name="input_stripe_operating_api_key"></a> [stripe\_operating\_api\_key](#input\_stripe\_operating\_api\_key) | Stripe operating API key | `string` | n/a | yes |
 | <a name="input_subscription_tiers"></a> [subscription\_tiers](#input\_subscription\_tiers) | Configuration for subscription tiers. E.g.: Good, Better, Best | <pre>map(object({<br/>    price_id = string<br/>    name     = string<br/>  }))</pre> | n/a | yes |
