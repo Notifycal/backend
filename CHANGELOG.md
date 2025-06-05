@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.35.0](https://github.com/Notifycal/backend/compare/v0.34.0...v0.35.0) (2025-06-05)
+
+
+### Features
+
+* stripe webhook. ([#661](https://github.com/Notifycal/backend/issues/661)) ([566937f](https://github.com/Notifycal/backend/commit/566937f6e118a2c55b18ec04c912c617e2b0185f))
+
 ## [0.34.0](https://github.com/Notifycal/backend/compare/v0.33.3...v0.34.0) (2025-06-04)
 
 
