@@ -249,7 +249,9 @@ variable "stripe_operating_api_key" {
   sensitive   = true
 }
 variable "stripe_admin_api_key" {
-  type = string
+  description = "Stripe admin API key"
+  type        = string
+  sensitive   = true
 }
 
 variable "stripe_api_version" {

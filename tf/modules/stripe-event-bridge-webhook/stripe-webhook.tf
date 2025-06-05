@@ -40,7 +40,6 @@ resource "restapi_object" "stripe_event_destination" {
   provider     = restapi.stripe_v2
   path         = "/core/event_destinations"
   id_attribute = "id"
-  debug        = true
   ignore_changes_to = [
     "amazon_eventbridge",
     "created",
