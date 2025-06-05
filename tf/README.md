@@ -7,6 +7,7 @@
 | <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 5.86 |
 | <a name="requirement_awscc"></a> [awscc](#requirement\_awscc) | ~> 1.28 |
 | <a name="requirement_cloudflare"></a> [cloudflare](#requirement\_cloudflare) | 4.52.0 |
+| <a name="requirement_restapi"></a> [restapi](#requirement\_restapi) | ~> 2.0.1 |
 
 ## Providers
 
@@ -55,6 +56,8 @@
 | <a name="module_post_refresh_lambda_alias"></a> [post\_refresh\_lambda\_alias](#module\_post\_refresh\_lambda\_alias) | terraform-aws-modules/lambda/aws//modules/alias | ~> 7.17 |
 | <a name="module_send_email_lambda"></a> [send\_email\_lambda](#module\_send\_email\_lambda) | terraform-aws-modules/lambda/aws | ~> 7.17 |
 | <a name="module_send_event_reminder_lambda"></a> [send\_event\_reminder\_lambda](#module\_send\_event\_reminder\_lambda) | terraform-aws-modules/lambda/aws | ~> 7.17 |
+| <a name="module_stripe_webhook"></a> [stripe\_webhook](#module\_stripe\_webhook) | ./modules/stripe-event-bridge-webhook | n/a |
+| <a name="module_stripe_webhook_queue"></a> [stripe\_webhook\_queue](#module\_stripe\_webhook\_queue) | ./modules/sqs | n/a |
 | <a name="module_user_calendar_fetched_queue"></a> [user\_calendar\_fetched\_queue](#module\_user\_calendar\_fetched\_queue) | ./modules/sqs | n/a |
 | <a name="module_user_calendar_fetched_topic"></a> [user\_calendar\_fetched\_topic](#module\_user\_calendar\_fetched\_topic) | ./modules/sns | n/a |
 
@@ -67,6 +70,7 @@
 | [aws_api_gateway_rest_api.rest_api](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/api_gateway_rest_api) | resource |
 | [aws_api_gateway_stage.stage](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/api_gateway_stage) | resource |
 | [aws_cloudwatch_event_rule.fetch_user_calendars_trigger_rule](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_event_rule) | resource |
+| [aws_cloudwatch_event_target.all_events](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_event_target) | resource |
 | [aws_cloudwatch_event_target.fetch_user_calendars_event_target](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_event_target) | resource |
 | [aws_cloudwatch_log_data_protection_policy.no_credentials_in_logs](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_log_data_protection_policy) | resource |
 | [aws_cloudwatch_metric_alarm.integration_error_rate_alarms](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_metric_alarm) | resource |
@@ -142,6 +146,8 @@
 | <a name="input_messaging_config"></a> [messaging\_config](#input\_messaging\_config) | n/a | <pre>object({<br/>    enabled = bool<br/>  })</pre> | <pre>{<br/>  "enabled": true<br/>}</pre> | no |
 | <a name="input_observability"></a> [observability](#input\_observability) | n/a | <pre>object({<br/>    alert_notifier = object({<br/>      slack_channel = string<br/>    })<br/>    alert_config = optional(object({<br/>      treat_missing_data       = optional(string, "missing")<br/>      notify_insufficient_data = optional(bool, true)<br/>      }), {<br/>      treat_missing_data       = "missing"<br/>      notify_insufficient_data = true<br/>    })<br/>  })</pre> | n/a | yes |
 | <a name="input_openapi_spec_file"></a> [openapi\_spec\_file](#input\_openapi\_spec\_file) | Name of the OpenAPI spec file for this API | `string` | `"spec.yaml"` | no |
+| <a name="input_stripe_admin_api_key"></a> [stripe\_admin\_api\_key](#input\_stripe\_admin\_api\_key) | Stripe admin API key | `string` | n/a | yes |
+| <a name="input_stripe_api_version"></a> [stripe\_api\_version](#input\_stripe\_api\_version) | n/a | `string` | `"2025-05-28.basil"` | no |
 | <a name="input_stripe_operating_api_key"></a> [stripe\_operating\_api\_key](#input\_stripe\_operating\_api\_key) | Stripe operating API key | `string` | n/a | yes |
 | <a name="input_subscription_tiers"></a> [subscription\_tiers](#input\_subscription\_tiers) | Configuration for subscription tiers. E.g.: Good, Better, Best | <pre>map(object({<br/>    price_id = string<br/>    name     = string<br/>  }))</pre> | n/a | yes |
 | <a name="input_vendor_alarm_config"></a> [vendor\_alarm\_config](#input\_vendor\_alarm\_config) | Configuration for each integration vendor's error rate alarm | <pre>object({<br/>    Vonage = object({<br/>      error_rate_threshold      = number<br/>      evaluation_period_seconds = number<br/>      datapoints_to_alarm       = number<br/>      evaluation_periods        = number<br/>    })<br/>    Mailgun = object({<br/>      error_rate_threshold      = number<br/>      evaluation_period_seconds = number<br/>      datapoints_to_alarm       = number<br/>      evaluation_periods        = number<br/>    })<br/>    Google = object({<br/>      error_rate_threshold      = number<br/>      evaluation_period_seconds = number<br/>      datapoints_to_alarm       = number<br/>      evaluation_periods        = number<br/>    })<br/>  })</pre> | <pre>{<br/>  "Google": {<br/>    "datapoints_to_alarm": 1,<br/>    "error_rate_threshold": 2,<br/>    "evaluation_period_seconds": 3600,<br/>    "evaluation_periods": 1<br/>  },<br/>  "Mailgun": {<br/>    "datapoints_to_alarm": 1,<br/>    "error_rate_threshold": 5,<br/>    "evaluation_period_seconds": 3600,<br/>    "evaluation_periods": 1<br/>  },<br/>  "Vonage": {<br/>    "datapoints_to_alarm": 1,<br/>    "error_rate_threshold": 2,<br/>    "evaluation_period_seconds": 3600,<br/>    "evaluation_periods": 1<br/>  }<br/>}</pre> | no |
