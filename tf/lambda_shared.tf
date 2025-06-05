@@ -101,6 +101,8 @@ locals {
     send_event_reminder                  = module.send_event_reminder_lambda
     send_email                           = module.send_email_lambda
     alert_for_missing_phone_number       = module.alert_for_missing_phone_number_lambda
+    post_payment_session                 = module.post_payment_session_lambda
+    stripe_webhook                       = module.stripe_webhook_lambda
     # TODO: Add new lambdas here
   }
 }

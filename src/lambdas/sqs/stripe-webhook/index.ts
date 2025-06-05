@@ -1,0 +1,40 @@
+import { BatchProcessor, EventType, processPartialResponse } from '@aws-lambda-powertools/batch';
+import type { PartialItemFailureResponse } from '@aws-lambda-powertools/batch/types';
+import { backgroundProcessingMiddleware } from '@common/lambda-middleware';
+import { logger } from '@common/powertools';
+import type { Context } from 'aws-lambda';
+import { readStripeWebhookConfig, type StripeWebhookConfig } from './config';
+import { recordProcessor } from './record-processor';
+import { eventSchema, type Event, type Record } from './schema';
+
+export function recordProcessorCurried(
+  config: StripeWebhookConfig
+): (record: Record) => Promise<void> {
+  return (record: Record) => {
+    const _logger = logger.createChild();
+    // setupLoggerForEventProcessing(record.body, _logger);
+    _logger.appendKeys({
+      stripeEventType: record.body['detail-type']
+    });
+    return recordProcessor(record, config);
+  };
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function lambdaHandler(event: Event, context: Context): Promise<PartialItemFailureResponse> {
+  logger.info(`Processing sqs message in stripe webhook lambda`, { event });
+  return processPartialResponse(
+    event,
+    recordProcessorCurried(event.lambdaConfig),
+    new BatchProcessor(EventType.SQS)
+  ).catch((error) => {
+    logger.error(`Failed to process event.`, { error });
+    throw error;
+  });
+}
+const handler = backgroundProcessingMiddleware(
+  () => readStripeWebhookConfig(),
+  eventSchema
+).handler<Event>(lambdaHandler);
+
+module.exports = { handler };
