@@ -1,5 +1,5 @@
 import { createSqsHandlerTestSuite } from '@lambdas/batch-processing-lambda-handler-test.suite';
-import { userCalendarFetchedEvent } from '@testing/data/app-events';
+import { validStripeCheckoutSessionCompletedEvent } from '@testing/data/event-bridge-event';
 import { validRawRecord } from '@testing/data/sqs-events';
 import type { SQSEvent, SQSRecord } from 'aws-lambda';
 import { describe, vi } from 'vitest';
@@ -7,13 +7,13 @@ import { describe, vi } from 'vitest';
 import { handler } from './index';
 import { recordProcessor } from './record-processor';
 
-const validUserCalendarFetchedEvent = userCalendarFetchedEvent;
-const validSqsRecord: SQSRecord = validRawRecord(validUserCalendarFetchedEvent);
+const validSqsRecord: SQSRecord = validRawRecord(validStripeCheckoutSessionCompletedEvent);
 const validSqsBatchEvent: SQSEvent = {
   Records: [validSqsRecord]
 };
 
 function setEnv(): void {
+  //TODO when we actually have soime config onbce we add dependencies to the lambda
   // const config: StripeWebhookConfig = {};
   // setEnvActionableEventFoundTopicConfig(config);
 }
