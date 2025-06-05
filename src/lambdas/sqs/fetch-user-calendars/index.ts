@@ -22,10 +22,10 @@ import type { Context } from 'aws-lambda';
 import { DateTime as DT } from 'luxon';
 import { match, P } from 'ts-pattern';
 import { v4 } from 'uuid';
-import type { z } from 'zod';
+import { z } from 'zod';
 import { readFetchUserCalendarsConfig, type FetchUserCalendarsConfig } from './config';
 
-const eventBridgeEventSchema = _eventBridgeEventSchema();
+const eventBridgeEventSchema = _eventBridgeEventSchema(z.unknown());
 const eventSchema = eventSqsSchema<FetchUserCalendarsConfig, typeof eventBridgeEventSchema>(
   eventBridgeEventSchema
 );
