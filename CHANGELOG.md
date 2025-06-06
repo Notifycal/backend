@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.36.0](https://github.com/Notifycal/backend/compare/v0.35.0...v0.36.0) (2025-06-06)
+
+
+### Features
+
+* stripe webhook lambda ([#663](https://github.com/Notifycal/backend/issues/663)) ([13d8a78](https://github.com/Notifycal/backend/commit/13d8a78d4b318ab56bf16bd448169678f475d74c))
+
+
+### Bug Fixes
+
+* **deps:** Update AWS packages to v3.825.0 ([#668](https://github.com/Notifycal/backend/issues/668)) ([863007a](https://github.com/Notifycal/backend/commit/863007a65ab1352ec8837124dea1c59d11ba58db))
+* **deps:** Update Node.js Dependencies ([#628](https://github.com/Notifycal/backend/issues/628)) ([e2312fa](https://github.com/Notifycal/backend/commit/e2312fa82c6cc0e56de5aab613faaa8e19e3130c))
+
 ## [0.35.0](https://github.com/Notifycal/backend/compare/v0.34.0...v0.35.0) (2025-06-05)
 
 
