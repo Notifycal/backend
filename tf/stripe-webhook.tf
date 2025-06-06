@@ -35,7 +35,7 @@ module "stripe_webhook_queue" {
   sender_arns = toset([
     module.stripe_webhook.stripe_event_rules[local.streams_to_return[0]].event_bus_rule_arn
   ])
-  receiver_arn = "lambda consuming events" # TODO
+  receiver_arn = module.stripe_webhook_lambda.lambda_function_arn
   tags         = local.common_tags
 
   redrive_policy = {
