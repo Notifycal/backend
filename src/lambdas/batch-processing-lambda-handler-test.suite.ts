@@ -48,6 +48,9 @@ export const createSqsHandlerTestSuite =
           messageId: 'messageWithErrorId'
         }))
         .with({ eventID: P.string }, (validDynamoDbRecord) => validDynamoDbRecord)
+        .with({ messageId: P.optional(undefined), eventID: P.optional(undefined) }, () => {
+          throw new Error('Unexpected event record: no messageId or eventID');
+        })
         .exhaustive();
       const input: SQSEvent | DynamoDBStreamEvent = {
         Records: [validBatchEvent.Records[0], eventError]
@@ -61,6 +64,9 @@ export const createSqsHandlerTestSuite =
               itemIdentifier: match(eventError)
                 .with({ messageId: P.string }, (_eventError) => _eventError.messageId)
                 .with({ eventID: P.string }, (_eventError) => _eventError.dynamodb?.SequenceNumber)
+                .with({ messageId: P.optional(undefined), eventID: P.optional(undefined) }, () => {
+                  throw new Error('Unexpected event record: no messageId or eventID');
+                })
                 .exhaustive()
             }
           ]
