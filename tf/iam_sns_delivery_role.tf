@@ -34,7 +34,7 @@ data "aws_iam_policy_document" "sns_feedback_policydoc" {
 }
 
 resource "aws_iam_role" "sns_feedback_role" {
-  name               = "sns-delivery-feedback-role"
+  name               = "sns-delivery-feedback-role-${var.environment}"
   assume_role_policy = data.aws_iam_policy_document.sns_feedback_assume_role_policydoc.json
 
   inline_policy {
