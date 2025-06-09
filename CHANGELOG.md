@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.36.1](https://github.com/Notifycal/backend/compare/v0.36.0...v0.36.1) (2025-06-09)
+
+
+### Bug Fixes
+
+* **deps:** Update AWS packages to v3.826.0 ([#669](https://github.com/Notifycal/backend/issues/669)) ([43ce479](https://github.com/Notifycal/backend/commit/43ce479a4720e7f02eb0921544ce2b1a7eb026da))
+* ensure resources contain the env name to avoid collisions ([#672](https://github.com/Notifycal/backend/issues/672)) ([cf057ec](https://github.com/Notifycal/backend/commit/cf057ec8020f5e71c45ef262a98939e0affe9c69))
+
 ## [0.36.0](https://github.com/Notifycal/backend/compare/v0.35.0...v0.36.0) (2025-06-06)
 
 
