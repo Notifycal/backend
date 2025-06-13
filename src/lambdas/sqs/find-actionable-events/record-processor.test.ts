@@ -1,6 +1,5 @@
 import type { PublishCommandOutput } from '@aws-sdk/client-sns';
 import { ParsingError } from '@model/Errors';
-import type { ServiceResponse } from 'rrors';
 import type { ServiceResponse } from '@model/ServiceResponse';
 import type { CalendarEvent, DateTime, RCSSenderId, TimeZone } from '@notifycal/shared/types';
 import type { AwsArn, PhoneNumberE164 } from '@own-types/model';

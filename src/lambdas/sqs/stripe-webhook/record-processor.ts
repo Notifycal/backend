@@ -1,7 +1,10 @@
 /* eslint-disable no-use-before-define */
-import { logger } from '@common/powertools';
+import type { Logger } from '@aws-lambda-powertools/logger';
+import { toNotifycalEvent } from '@model/app-events/StripeWebhookEventFiredEvent';
 import type { TierId, Tiers } from '@model/PaymentPlans';
-import type { IdpName, UserId } from '@notifycal/shared/types';
+import type { Email, Identity, IdpId, IdpName, UserId } from '@notifycal/shared/types';
+import { throwError } from '@services/common/error-handling';
+import { SnsService } from '@services/sns';
 import { UserBaseStore } from '@services/stores/user-base-store';
 import { tap } from '@utils/promises';
 import type { Stripe } from 'stripe';
@@ -10,7 +13,11 @@ import type { StripeWebhookConfig } from './config';
 import { CreditsService } from './credit-service';
 import type { Record } from './schema';
 
-export function recordProcessor(record: Record, config: StripeWebhookConfig): Promise<void> {
+export function recordProcessor(
+  record: Record,
+  config: StripeWebhookConfig,
+  logger: Logger
+): Promise<void> {
   const stripeEvent = record.body.detail;
   logger.info('Processing Stripe webhook event', {
     eventId: stripeEvent.id,
@@ -22,44 +29,39 @@ export function recordProcessor(record: Record, config: StripeWebhookConfig): Pr
 
   const userStore = UserBaseStore.withConfig(config.userBaseStoreConfig);
   const creditsService = new CreditsService(userStore);
+  const snsService = SnsService.withConfig(config.paymentWebhookTopicConfig);
 
   return match(stripeEvent)
-    .with({ type: 'customer.created' }, (event) =>
-      handleCustomerCreated(event as Stripe.CustomerCreatedEvent)
-    )
-    .with({ type: 'customer.updated' }, (event) =>
-      handleCustomerUpdated(event as Stripe.CustomerUpdatedEvent)
-    )
-    .with({ type: 'customer.deleted' }, (event) =>
-      handleCustomerDeleted(event as Stripe.CustomerDeletedEvent)
-    )
+    .with({ type: 'customer.created' }, (event) => handleCustomerCreated(event, logger))
+    .with({ type: 'customer.updated' }, (event) => handleCustomerUpdated(event, logger))
+    .with({ type: 'customer.deleted' }, (event) => handleCustomerDeleted(event, logger))
     .with({ type: 'customer.subscription.created' }, (event) =>
-      handleSubscriptionCreated(event as Stripe.CustomerSubscriptionCreatedEvent)
+      handleSubscriptionCreated(event, logger)
     )
     .with({ type: 'customer.subscription.updated' }, (event) =>
-      handleSubscriptionUpdated(event as Stripe.CustomerSubscriptionUpdatedEvent)
+      handleSubscriptionUpdated(event, logger)
     )
     .with({ type: 'customer.subscription.deleted' }, (event) =>
-      handleSubscriptionDeleted(event as Stripe.CustomerSubscriptionDeletedEvent)
+      handleSubscriptionDeleted(event, logger)
     )
-    .with({ type: 'invoice.created' }, (event) =>
-      handleInvoiceCreated(event as Stripe.InvoiceCreatedEvent)
-    )
+    .with({ type: 'invoice.created' }, (event) => handleInvoiceCreated(event, logger))
     .with({ type: 'invoice.payment_succeeded' }, (event) =>
-      handleInvoicePaymentSucceeded(
-        event as Stripe.InvoicePaymentSucceededEvent,
-        creditsService,
-        config.paymentPlans.tiers
+      extractIdentity(event.data.object.metadata).then((identity) =>
+        handleInvoicePaymentSucceeded(
+          event,
+          identity,
+          creditsService,
+          config.paymentPlans.tiers,
+          logger
+        ).then(() => identity)
       )
     )
-    .with({ type: 'invoice.payment_failed' }, (event) =>
-      handleInvoicePaymentFailed(event as Stripe.InvoicePaymentFailedEvent)
-    )
+    .with({ type: 'invoice.payment_failed' }, (event) => handleInvoicePaymentFailed(event, logger))
     .with({ type: 'payment_intent.succeeded' }, (event) =>
-      handlePaymentIntentSucceeded(event as Stripe.PaymentIntentSucceededEvent)
+      handlePaymentIntentSucceeded(event, logger)
     )
     .with({ type: 'payment_intent.payment_failed' }, (event) =>
-      handlePaymentIntentFailed(event as Stripe.PaymentIntentPaymentFailedEvent)
+      handlePaymentIntentFailed(event, logger)
     )
     .otherwise((event) => {
       logger.error('Unhandled Stripe event type. Not retrying cause it will not fix anything', {
@@ -69,13 +71,24 @@ export function recordProcessor(record: Record, config: StripeWebhookConfig): Pr
       return Promise.resolve();
     })
     .then(
-      tap(() => {
+      tap((identity) => {
         logger.info('Successfully processed Stripe webhook event', {
           eventId: stripeEvent.id,
           eventType: stripeEvent.type
         });
+        return _publishEventToSns(stripeEvent, identity, snsService);
       })
-    );
+    )
+    .then();
+}
+
+function _publishEventToSns<TStripeEvent extends Stripe.Event>(
+  event: TStripeEvent,
+  identity: Identity<IdpName>,
+  snsService: SnsService
+): Promise<void> {
+  const ourEvent = toNotifycalEvent(event, identity.userId, identity.idp, identity.idpId);
+  return snsService.publish(ourEvent).then();
 }
 
 function extractTier(invoice: Stripe.Invoice, tiers: Tiers): TierId {
@@ -87,14 +100,26 @@ function extractTier(invoice: Stripe.Invoice, tiers: Tiers): TierId {
   return tier.id;
 }
 
-function extractUserId(metadata: Stripe.Metadata | null): Promise<UserId> {
-  if (!metadata || !metadata.userId) {
-    return Promise.reject(new Error('No userId found in Stripe metadata'));
+function extractIdentity(metadata: Stripe.Metadata | null): Promise<Identity<IdpName>> {
+  if (!metadata) {
+    return Promise.reject(new Error('No metadata found in Stripe event'));
   }
-  return Promise.resolve(metadata.userId as UserId);
+  const { userId, idp, idpId, email } = metadata;
+  const requiredFields = { userId, idp, idpId, email };
+  for (const [key, value] of Object.entries(requiredFields)) {
+    if (!value) {
+      return Promise.reject(new Error(`No ${key} found in Stripe metadata`));
+    }
+  }
+  return Promise.resolve({
+    userId: userId as UserId,
+    idp: idp as IdpName,
+    idpId: idpId as IdpId,
+    email: email as Email
+  });
 }
 
-function handleCustomerCreated(event: Stripe.CustomerCreatedEvent): Promise<void> {
+function handleCustomerCreated(event: Stripe.CustomerCreatedEvent, logger: Logger): Promise<void> {
   const customer = event.data.object;
   logger.info('Handling customer created', {
     customerId: customer.id,
@@ -103,7 +128,7 @@ function handleCustomerCreated(event: Stripe.CustomerCreatedEvent): Promise<void
   return Promise.resolve();
 }
 
-function handleCustomerUpdated(event: Stripe.CustomerUpdatedEvent): Promise<void> {
+function handleCustomerUpdated(event: Stripe.CustomerUpdatedEvent, logger: Logger): Promise<void> {
   const customer = event.data.object;
   const previousAttributes = event.data.previous_attributes;
   logger.info('Handling customer updated', {
@@ -113,7 +138,7 @@ function handleCustomerUpdated(event: Stripe.CustomerUpdatedEvent): Promise<void
   return Promise.resolve();
 }
 
-function handleCustomerDeleted(event: Stripe.CustomerDeletedEvent): Promise<void> {
+function handleCustomerDeleted(event: Stripe.CustomerDeletedEvent, logger: Logger): Promise<void> {
   const customer = event.data.object;
   logger.info('Handling customer deleted', {
     customerId: customer.id
@@ -121,7 +146,10 @@ function handleCustomerDeleted(event: Stripe.CustomerDeletedEvent): Promise<void
   return Promise.resolve();
 }
 
-function handleSubscriptionCreated(event: Stripe.CustomerSubscriptionCreatedEvent): Promise<void> {
+function handleSubscriptionCreated(
+  event: Stripe.CustomerSubscriptionCreatedEvent,
+  logger: Logger
+): Promise<void> {
   const subscription = event.data.object;
   logger.info('Handling subscription created', {
     subscriptionId: subscription.id,
@@ -131,7 +159,10 @@ function handleSubscriptionCreated(event: Stripe.CustomerSubscriptionCreatedEven
   return Promise.resolve();
 }
 
-function handleSubscriptionUpdated(event: Stripe.CustomerSubscriptionUpdatedEvent): Promise<void> {
+function handleSubscriptionUpdated(
+  event: Stripe.CustomerSubscriptionUpdatedEvent,
+  logger: Logger
+): Promise<void> {
   const subscription = event.data.object;
   const previousAttributes = event.data.previous_attributes;
   logger.info('Handling subscription updated', {
@@ -143,7 +174,10 @@ function handleSubscriptionUpdated(event: Stripe.CustomerSubscriptionUpdatedEven
   return Promise.resolve();
 }
 
-function handleSubscriptionDeleted(event: Stripe.CustomerSubscriptionDeletedEvent): Promise<void> {
+function handleSubscriptionDeleted(
+  event: Stripe.CustomerSubscriptionDeletedEvent,
+  logger: Logger
+): Promise<void> {
   const subscription = event.data.object;
   logger.info('Handling subscription deleted', {
     subscriptionId: subscription.id,
@@ -152,7 +186,7 @@ function handleSubscriptionDeleted(event: Stripe.CustomerSubscriptionDeletedEven
   return Promise.resolve();
 }
 
-function handleInvoiceCreated(event: Stripe.InvoiceCreatedEvent): Promise<void> {
+function handleInvoiceCreated(event: Stripe.InvoiceCreatedEvent, logger: Logger): Promise<void> {
   const invoice = event.data.object;
   logger.info('Handling invoice created', {
     invoiceId: invoice.id,
@@ -164,8 +198,10 @@ function handleInvoiceCreated(event: Stripe.InvoiceCreatedEvent): Promise<void> 
 
 function handleInvoicePaymentSucceeded(
   event: Stripe.InvoicePaymentSucceededEvent,
+  identity: Identity<IdpName>,
   creditsService: CreditsService<IdpName>,
-  tiers: Tiers
+  tiers: Tiers,
+  logger: Logger
 ): Promise<void> {
   const invoice = event.data.object;
   logger.info('Handling invoice payment succeeded', {
@@ -175,21 +211,23 @@ function handleInvoicePaymentSucceeded(
     billingReason: invoice.billing_reason
   });
   const tierId = extractTier(invoice, tiers);
-  return extractUserId(invoice.metadata).then((userId) => {
-    if (invoice.billing_reason === 'subscription_create') {
-      return creditsService.createSubscription(userId, tierId);
-    } else if (invoice.billing_reason === 'subscription_cycle') {
-      return creditsService.renewSubscription(userId, tierId);
-    } else {
-      logger.error('Unhandled billing reason for invoice payment succeeded', {
-        invoiceId: invoice.id,
-        billingReason: invoice.billing_reason
-      });
-    }
-  });
+  if (invoice.billing_reason === 'subscription_create') {
+    return creditsService.createSubscription(identity.userId, tierId);
+  } else if (invoice.billing_reason === 'subscription_cycle') {
+    return creditsService.renewSubscription(identity.userId, tierId);
+  } else {
+    logger.error('Unhandled billing reason for invoice payment succeeded', {
+      invoiceId: invoice.id,
+      billingReason: invoice.billing_reason
+    });
+    throwError('TODO');
+  }
 }
 
-function handleInvoicePaymentFailed(event: Stripe.InvoicePaymentFailedEvent): Promise<void> {
+function handleInvoicePaymentFailed(
+  event: Stripe.InvoicePaymentFailedEvent,
+  logger: Logger
+): Promise<void> {
   const invoice = event.data.object;
   logger.info('Handling invoice payment failed', {
     invoiceId: invoice.id,
@@ -199,7 +237,10 @@ function handleInvoicePaymentFailed(event: Stripe.InvoicePaymentFailedEvent): Pr
   return Promise.resolve();
 }
 
-function handlePaymentIntentSucceeded(event: Stripe.PaymentIntentSucceededEvent): Promise<void> {
+function handlePaymentIntentSucceeded(
+  event: Stripe.PaymentIntentSucceededEvent,
+  logger: Logger
+): Promise<void> {
   const paymentIntent = event.data.object;
   logger.info('Handling payment intent succeeded', {
     paymentIntentId: paymentIntent.id,
@@ -209,7 +250,10 @@ function handlePaymentIntentSucceeded(event: Stripe.PaymentIntentSucceededEvent)
   return Promise.resolve();
 }
 
-function handlePaymentIntentFailed(event: Stripe.PaymentIntentPaymentFailedEvent): Promise<void> {
+function handlePaymentIntentFailed(
+  event: Stripe.PaymentIntentPaymentFailedEvent,
+  logger: Logger
+): Promise<void> {
   const paymentIntent = event.data.object;
   logger.info('Handling payment intent failed', {
     paymentIntentId: paymentIntent.id,

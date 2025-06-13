@@ -16,7 +16,7 @@ export function recordProcessorCurried(
     _logger.appendKeys({
       stripeEventType: record.body['detail-type']
     });
-    return recordProcessor(record, config);
+    return recordProcessor(record, config, _logger);
   };
 }
 
