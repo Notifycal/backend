@@ -1,8 +1,9 @@
 import { JSONStringified } from '@aws-lambda-powertools/parser/helpers';
 import { authedEventSchema } from '@model/lambda-events/ApiGatewayEvents';
+import { tierIdMap } from '@model/PaymentPlans';
 import { languageCodeSchema } from '@notifycal/shared/schemas';
 import { z } from 'zod';
-import { tierIdMap, type PostPaymentCheckoutSessionConfig } from './config';
+import type { PostPaymentCheckoutSessionConfig } from './config';
 
 const tierIdSchemas = Object.values(tierIdMap).map((tier) => z.literal(tier));
 export const createCheckoutSessionSchema = z.object({

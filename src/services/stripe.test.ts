@@ -1,9 +1,9 @@
 /* eslint-disable camelcase */
+import type { Tier } from '@model/PaymentPlans';
 import type { Email, LanguageCode, UserId } from '@notifycal/shared/types';
 import type { Url } from '@own-types/model';
 import { default as Stripe } from 'stripe';
 import { describe, expect, it, vi } from 'vitest';
-import type { Tier } from '../lambdas/api/post-payment-session/config';
 import { StripeService } from './stripe';
 
 vi.mock('stripe');
