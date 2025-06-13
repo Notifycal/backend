@@ -123,22 +123,18 @@ variable "emailing_config" {
 variable "jwt_config" {
   type = object({
     access = object({
-      algorithm  = optional(string, "ES256")
-      audience   = optional(string, "notifycal.com")
-      expiration = optional(string, "5m")
-      issuer     = optional(string, "notifycal.com")
+      algorithm  = string
+      audience   = string
+      expiration = string
+      issuer     = string
     })
     refresh = object({
-      algorithm  = optional(string, "ES256")
-      audience   = optional(string, "notifycal.com")
-      expiration = optional(string, "7d")
-      issuer     = optional(string, "notifycal.com")
+      algorithm  = string
+      audience   = string
+      expiration = string
+      issuer     = string
     })
   })
-  default = {
-    access  = {}
-    refresh = {}
-  }
 
   validation {
     condition = (
@@ -149,6 +145,20 @@ variable "jwt_config" {
     )
     error_message = "The algorithm for both access and refresh tokens must be: ES224, ES256, ES384 or ES521"
   }
+}
+
+variable "jwt_keys" {
+  type = object({
+    access = object({
+      public_key  = string
+      private_key = string
+    })
+    refresh = object({
+      public_key  = string
+      private_key = string
+    })
+  })
+  sensitive = true
 }
 
 variable "enable_xray_active_tracing" {

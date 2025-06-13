@@ -13,9 +13,8 @@
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 5.99.1 |
-| <a name="provider_awscc"></a> [awscc](#provider\_awscc) | 1.44.0 |
-| <a name="provider_tls"></a> [tls](#provider\_tls) | 4.1.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 5.100.0 |
+| <a name="provider_awscc"></a> [awscc](#provider\_awscc) | 1.45.0 |
 
 ## Modules
 
@@ -92,11 +91,7 @@
 | [aws_sqs_queue.global_dlq_unprocessable_sqs](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/sqs_queue) | resource |
 | [aws_sqs_queue.global_unprocessable](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/sqs_queue) | resource |
 | [aws_sqs_queue_redrive_allow_policy.dlq_redrive_allow_policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/sqs_queue_redrive_allow_policy) | resource |
-| [aws_ssm_parameter.jwt_access_key](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) | resource |
-| [aws_ssm_parameter.jwt_refresh_key](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) | resource |
 | [awscc_xray_resource_policy.xray_sns_resource_policy](https://registry.terraform.io/providers/hashicorp/awscc/latest/docs/resources/xray_resource_policy) | resource |
-| [tls_private_key.jwt_access_key](https://registry.terraform.io/providers/hashicorp/tls/latest/docs/resources/private_key) | resource |
-| [tls_private_key.jwt_refresh_key](https://registry.terraform.io/providers/hashicorp/tls/latest/docs/resources/private_key) | resource |
 | [aws_caller_identity.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/caller_identity) | data source |
 | [aws_iam_policy.appsignals](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy) | data source |
 | [aws_iam_policy.insights](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy) | data source |
@@ -138,7 +133,8 @@
 | <a name="input_environment"></a> [environment](#input\_environment) | n/a | `string` | n/a | yes |
 | <a name="input_frontend_domain"></a> [frontend\_domain](#input\_frontend\_domain) | Allowed domain specified in response headers by API gateway lambdas(TLDR: CORS) | `string` | n/a | yes |
 | <a name="input_google_oauth_config"></a> [google\_oauth\_config](#input\_google\_oauth\_config) | n/a | <pre>object({<br/>    client_id     = string<br/>    client_secret = string<br/>    redirect_url  = string<br/>  })</pre> | n/a | yes |
-| <a name="input_jwt_config"></a> [jwt\_config](#input\_jwt\_config) | n/a | <pre>object({<br/>    access = object({<br/>      algorithm  = optional(string, "ES256")<br/>      audience   = optional(string, "notifycal.com")<br/>      expiration = optional(string, "5m")<br/>      issuer     = optional(string, "notifycal.com")<br/>    })<br/>    refresh = object({<br/>      algorithm  = optional(string, "ES256")<br/>      audience   = optional(string, "notifycal.com")<br/>      expiration = optional(string, "7d")<br/>      issuer     = optional(string, "notifycal.com")<br/>    })<br/>  })</pre> | <pre>{<br/>  "access": {},<br/>  "refresh": {}<br/>}</pre> | no |
+| <a name="input_jwt_config"></a> [jwt\_config](#input\_jwt\_config) | n/a | <pre>object({<br/>    access = object({<br/>      algorithm  = string<br/>      audience   = string<br/>      expiration = string<br/>      issuer     = string<br/>    })<br/>    refresh = object({<br/>      algorithm  = string<br/>      audience   = string<br/>      expiration = string<br/>      issuer     = string<br/>    })<br/>  })</pre> | n/a | yes |
+| <a name="input_jwt_keys"></a> [jwt\_keys](#input\_jwt\_keys) | n/a | <pre>object({<br/>    access = object({<br/>      public_key  = string<br/>      private_key = string<br/>    })<br/>    refresh = object({<br/>      public_key  = string<br/>      private_key = string<br/>    })<br/>  })</pre> | n/a | yes |
 | <a name="input_lambdas_handler_name"></a> [lambdas\_handler\_name](#input\_lambdas\_handler\_name) | n/a | `string` | `"index.handler"` | no |
 | <a name="input_lambdas_live_alias_name"></a> [lambdas\_live\_alias\_name](#input\_lambdas\_live\_alias\_name) | n/a | `string` | `"live"` | no |
 | <a name="input_lambdas_logging_log_format"></a> [lambdas\_logging\_log\_format](#input\_lambdas\_logging\_log\_format) | n/a | `string` | `"JSON"` | no |
