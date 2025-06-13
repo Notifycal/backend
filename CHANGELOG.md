@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.36.2](https://github.com/Notifycal/backend/compare/v0.36.1...v0.36.2) (2025-06-13)
+
+
+### Bug Fixes
+
+* **deps:** Update AWS packages to v3.828.0 ([#677](https://github.com/Notifycal/backend/issues/677)) ([5d995cb](https://github.com/Notifycal/backend/commit/5d995cbf92fb693d498e4775f26816cb1d217e12))
+* remove jwt keys and make them variables ([#676](https://github.com/Notifycal/backend/issues/676)) ([1e08474](https://github.com/Notifycal/backend/commit/1e08474340659b444fe0ffeb2accab283efde850))
+
 ## [0.36.1](https://github.com/Notifycal/backend/compare/v0.36.0...v0.36.1) (2025-06-09)
 
 
