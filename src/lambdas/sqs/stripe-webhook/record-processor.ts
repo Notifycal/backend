@@ -26,15 +26,16 @@ import {
   SubscriptionDeletedHandler,
   SubscriptionUpdatedHandler
 } from './event-handlers/subscription';
-import { GenericEventProcessor, createStripeEventPublisher } from './generic-event-processor';
+import { StripeEventPublisher } from './event-publisher';
+import { GenericEventProcessor } from './generic-event-processor';
 import { StripeIdentityExtractor } from './identity-extractor';
 import type { Record } from './schema';
 import type { StripeEventType } from './stripe-schemas';
 
-export function createEventHandlers(
-  logger: Logger,
+export function eventHandlers(
   creditsService: CreditsService<IdpName>,
-  tiers: Tiers
+  tiers: Tiers,
+  logger: Logger
 ): Map<StripeEventType, EventHandler<Stripe.Event>> {
   return new Map<StripeEventType, EventHandler<Stripe.Event>>([
     ['customer.created', new CustomerCreatedHandler(logger)],
@@ -64,19 +65,17 @@ export function recordProcessor(
     eventId: stripeEvent.id,
     eventType: stripeEvent.type,
     livemode: stripeEvent.livemode,
-    stripeApiVersion: stripeEvent.api_version,
-    config
+    stripeApiVersion: stripeEvent.api_version
   });
   const userStore = UserBaseStore.withConfig(config.userBaseStoreConfig);
   const creditsService = new CreditsService(userStore);
   const snsService = SnsService.withConfig(config.paymentWebhookTopicConfig);
-  const identityExtractor = new StripeIdentityExtractor();
-  const eventPublisher = createStripeEventPublisher(snsService);
-  const handlers = createEventHandlers(logger, creditsService, config.paymentPlans.tiers);
+
+  const handlers = eventHandlers(creditsService, config.paymentPlans.tiers, logger);
   const processor = new GenericEventProcessor<Stripe.Event>(
-    identityExtractor,
+    new StripeIdentityExtractor(),
     handlers,
-    eventPublisher,
+    new StripeEventPublisher(snsService),
     logger,
     (event) => Promise.reject(new Error(`Unhandled event type: ${event.type}`))
   );
