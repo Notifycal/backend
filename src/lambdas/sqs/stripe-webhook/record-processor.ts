@@ -1,19 +1,28 @@
 /* eslint-disable no-use-before-define */
 import { logger } from '@common/powertools';
+import type { TierId, Tiers } from '@model/PaymentPlans';
+import type { IdpName, UserId } from '@notifycal/shared/types';
+import { UserBaseStore } from '@services/stores/user-base-store';
 import { tap } from '@utils/promises';
-import type Stripe from 'stripe';
+import type { Stripe } from 'stripe';
 import { match } from 'ts-pattern';
 import type { StripeWebhookConfig } from './config';
+import { CreditsService } from './credit-service';
 import type { Record } from './schema';
 
-export async function recordProcessor(record: Record, config: StripeWebhookConfig): Promise<void> {
+export function recordProcessor(record: Record, config: StripeWebhookConfig): Promise<void> {
   const stripeEvent = record.body.detail;
   logger.info('Processing Stripe webhook event', {
     eventId: stripeEvent.id,
     eventType: stripeEvent.type,
     livemode: stripeEvent.livemode,
+    stripeApiVersion: stripeEvent.api_version,
     config
   });
+
+  const userStore = UserBaseStore.withConfig(config.userBaseStoreConfig);
+  const creditsService = new CreditsService(userStore);
+
   return match(stripeEvent)
     .with({ type: 'customer.created' }, (event) =>
       handleCustomerCreated(event as Stripe.CustomerCreatedEvent)
@@ -37,7 +46,11 @@ export async function recordProcessor(record: Record, config: StripeWebhookConfi
       handleInvoiceCreated(event as Stripe.InvoiceCreatedEvent)
     )
     .with({ type: 'invoice.payment_succeeded' }, (event) =>
-      handleInvoicePaymentSucceeded(event as Stripe.InvoicePaymentSucceededEvent)
+      handleInvoicePaymentSucceeded(
+        event as Stripe.InvoicePaymentSucceededEvent,
+        creditsService,
+        config.paymentPlans.tiers
+      )
     )
     .with({ type: 'invoice.payment_failed' }, (event) =>
       handleInvoicePaymentFailed(event as Stripe.InvoicePaymentFailedEvent)
@@ -65,7 +78,21 @@ export async function recordProcessor(record: Record, config: StripeWebhookConfi
     );
 }
 
-// TODO: turn event into Notifycal's and feed audit trail. We need userId and stuff for that
+function extractTier(invoice: Stripe.Invoice, tiers: Tiers): TierId {
+  const priceId = invoice.lines.data[0].pricing?.price_details?.price;
+  const tier = Object.values(tiers).find((tier) => tier.priceId === priceId);
+  if (!tier) {
+    throw new Error(`Unknown price ID: ${priceId}. No matching tier found.`);
+  }
+  return tier.id;
+}
+
+function extractUserId(metadata: Stripe.Metadata | null): Promise<UserId> {
+  if (!metadata || !metadata.userId) {
+    return Promise.reject(new Error('No userId found in Stripe metadata'));
+  }
+  return Promise.resolve(metadata.userId as UserId);
+}
 
 function handleCustomerCreated(event: Stripe.CustomerCreatedEvent): Promise<void> {
   const customer = event.data.object;
@@ -74,12 +101,6 @@ function handleCustomerCreated(event: Stripe.CustomerCreatedEvent): Promise<void
     email: customer.email
   });
   return Promise.resolve();
-
-  // TODO: Implement customer creation logic
-  // - Create user record in your database
-  // - Set up default preferences
-  // - Send welcome email
-  // - Initialize billing settings
 }
 
 function handleCustomerUpdated(event: Stripe.CustomerUpdatedEvent): Promise<void> {
@@ -90,11 +111,6 @@ function handleCustomerUpdated(event: Stripe.CustomerUpdatedEvent): Promise<void
     updatedFields: Object.keys(previousAttributes || {})
   });
   return Promise.resolve();
-
-  // TODO: Implement customer update logic
-  // - Update user profile in database
-  // - Sync email/phone changes
-  // - Update notification preferences if email changed
 }
 
 function handleCustomerDeleted(event: Stripe.CustomerDeletedEvent): Promise<void> {
@@ -103,12 +119,6 @@ function handleCustomerDeleted(event: Stripe.CustomerDeletedEvent): Promise<void
     customerId: customer.id
   });
   return Promise.resolve();
-
-  // TODO: Implement customer deletion logic
-  // - Mark user as deleted (soft delete recommended)
-  // - Cancel all active reminders
-  // - Clean up personal data (GDPR compliance)
-  // - Send account closure confirmation
 }
 
 function handleSubscriptionCreated(event: Stripe.CustomerSubscriptionCreatedEvent): Promise<void> {
@@ -119,12 +129,6 @@ function handleSubscriptionCreated(event: Stripe.CustomerSubscriptionCreatedEven
     status: subscription.status
   });
   return Promise.resolve();
-
-  // TODO: Implement subscription creation logic
-  // - Activate user account features
-  // - Set subscription limits (reminders per month, etc.)
-  // - Send subscription confirmation email
-  // - Schedule trial end reminder if in trial
 }
 
 function handleSubscriptionUpdated(event: Stripe.CustomerSubscriptionUpdatedEvent): Promise<void> {
@@ -137,13 +141,6 @@ function handleSubscriptionUpdated(event: Stripe.CustomerSubscriptionUpdatedEven
     updatedFields: Object.keys(previousAttributes || {})
   });
   return Promise.resolve();
-
-  // TODO: Implement subscription update logic
-  // - Handle status changes (active -> past_due, canceled, etc.)
-  // - Update feature limits based on new plan
-  // - Send notification emails for important changes
-  // - Handle plan upgrades/downgrades
-  // - Schedule reminders for trial ending
 }
 
 function handleSubscriptionDeleted(event: Stripe.CustomerSubscriptionDeletedEvent): Promise<void> {
@@ -153,13 +150,6 @@ function handleSubscriptionDeleted(event: Stripe.CustomerSubscriptionDeletedEven
     customerId: subscription.customer
   });
   return Promise.resolve();
-
-  // TODO: Implement subscription deletion logic
-  // - Deactivate premium features
-  // - Move to free tier or suspend account
-  // - Cancel all scheduled reminders beyond free limits
-  // - Send subscription cancellation email
-  // - Offer win-back campaign
 }
 
 function handleInvoiceCreated(event: Stripe.InvoiceCreatedEvent): Promise<void> {
@@ -170,27 +160,33 @@ function handleInvoiceCreated(event: Stripe.InvoiceCreatedEvent): Promise<void> 
     amount: invoice.amount_due
   });
   return Promise.resolve();
-
-  // TODO: Implement invoice creation logic
-  // - Send invoice notification email
-  // - Log billing event for analytics
-  // - Set up payment reminder if needed
 }
 
-function handleInvoicePaymentSucceeded(event: Stripe.InvoicePaymentSucceededEvent): Promise<void> {
+function handleInvoicePaymentSucceeded(
+  event: Stripe.InvoicePaymentSucceededEvent,
+  creditsService: CreditsService<IdpName>,
+  tiers: Tiers
+): Promise<void> {
   const invoice = event.data.object;
   logger.info('Handling invoice payment succeeded', {
     invoiceId: invoice.id,
     customerId: invoice.customer,
-    amount: invoice.amount_paid
+    amount: invoice.amount_paid,
+    billingReason: invoice.billing_reason
   });
-  return Promise.resolve();
-
-  // TODO: Implement successful payment logic
-  // - Send payment confirmation email
-  // - Extend service period
-  // - Clear any payment failure flags
-  // - Update billing analytics
+  const tierId = extractTier(invoice, tiers);
+  return extractUserId(invoice.metadata).then((userId) => {
+    if (invoice.billing_reason === 'subscription_create') {
+      return creditsService.createSubscription(userId, tierId);
+    } else if (invoice.billing_reason === 'subscription_cycle') {
+      return creditsService.renewSubscription(userId, tierId);
+    } else {
+      logger.error('Unhandled billing reason for invoice payment succeeded', {
+        invoiceId: invoice.id,
+        billingReason: invoice.billing_reason
+      });
+    }
+  });
 }
 
 function handleInvoicePaymentFailed(event: Stripe.InvoicePaymentFailedEvent): Promise<void> {
@@ -201,12 +197,6 @@ function handleInvoicePaymentFailed(event: Stripe.InvoicePaymentFailedEvent): Pr
     amount: invoice.amount_due
   });
   return Promise.resolve();
-
-  // TODO: Implement payment failure logic
-  // - Send payment failure notification
-  // - Set account to past due status
-  // - Schedule retry reminders
-  // - Potentially downgrade service after grace period
 }
 
 function handlePaymentIntentSucceeded(event: Stripe.PaymentIntentSucceededEvent): Promise<void> {
@@ -217,11 +207,6 @@ function handlePaymentIntentSucceeded(event: Stripe.PaymentIntentSucceededEvent)
     amount: paymentIntent.amount
   });
   return Promise.resolve();
-
-  // TODO: Implement payment success logic
-  // - Confirm one-time payment completion
-  // - Activate purchased features
-  // - Send receipt/confirmation
 }
 
 function handlePaymentIntentFailed(event: Stripe.PaymentIntentPaymentFailedEvent): Promise<void> {
@@ -232,9 +217,4 @@ function handlePaymentIntentFailed(event: Stripe.PaymentIntentPaymentFailedEvent
     amount: paymentIntent.amount
   });
   return Promise.resolve();
-
-  // TODO: Implement payment failure logic
-  // - Notify customer of payment failure
-  // - Provide retry options
-  // - Log failure for analytics
 }

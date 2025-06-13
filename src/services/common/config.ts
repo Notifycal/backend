@@ -21,8 +21,10 @@ import type {
   IdpEndpointConfig,
   MessagingEndpointConfig,
   MessagingTopicConfig,
+  PaymentPlansEndpointConfig,
   UserCalendarFetchedTopicConfig
 } from '@model/Config';
+import { tierIdMap } from '@model/PaymentPlans';
 import type { MailgunEndpointConfig } from '@model/vendor/mailgun/config';
 import type {
   DecodeVonageAccessJwtEndpointConfig,
@@ -330,6 +332,27 @@ export function readAlertThresholdConfig(env: Environment): AlertEndpointConfig 
     },
     alertEmailConfig: {
       faqUrl: env.get('FAQ_URL').default('https://notifycal.com/faq').asUrlObject()
+    }
+  };
+}
+
+export function readPaymentPlans(env: Environment): PaymentPlansEndpointConfig {
+  return {
+    paymentPlans: {
+      tiers: {
+        good: {
+          id: tierIdMap.good,
+          priceId: env.get('STRIPE_GOOD_TIER_PRICE_ID').required().asString()
+        },
+        better: {
+          id: tierIdMap.better,
+          priceId: env.get('STRIPE_BETTER_TIER_PRICE_ID').required().asString()
+        },
+        best: {
+          id: tierIdMap.best,
+          priceId: env.get('STRIPE_BEST_TIER_PRICE_ID').required().asString()
+        }
+      }
     }
   };
 }

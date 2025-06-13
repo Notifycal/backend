@@ -6,6 +6,7 @@ import type {
   SignOptions as jsonwebtokenSignOptions
 } from 'jsonwebtoken';
 import type { EmailWithName } from './app-events/common';
+import type { Tiers } from './PaymentPlans';
 
 export type SignOptions = jsonwebtokenSignOptions;
 export type Algorithm = jsonwebtokenAlgorithm;
@@ -135,4 +136,11 @@ export interface EmailingEndpointConfig {
 }
 export interface EmailingSenderEndpointConfig {
   emailingSenderConfig: EmailingSenderConfig;
+}
+
+export interface PaymentPlansConfig {
+  tiers: Tiers;
+}
+export interface PaymentPlansEndpointConfig {
+  paymentPlans: PaymentPlansConfig;
 }

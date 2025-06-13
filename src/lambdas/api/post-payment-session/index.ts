@@ -15,7 +15,8 @@ async function lambdaHandler(
 ): Promise<APIGatewayProxyResult> {
   const { userId, email } = event.requestContext.authorizer.payload;
   const apiKey = event.lambdaConfig.stripeAuthConfig.apiKey;
-  const { successRedirectUrl, cancelRedirectUrl, tiers } = event.lambdaConfig.stripeCheckoutConfig;
+  const { successRedirectUrl, cancelRedirectUrl } = event.lambdaConfig.stripeCheckoutConfig;
+  const { tiers } = event.lambdaConfig.paymentPlans;
   const { tier, language } = event.body;
   const selectedTier = tiers[tier];
 

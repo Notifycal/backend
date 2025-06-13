@@ -1,12 +1,14 @@
-// import { readEnv } from '@services/common/config';
+import type { PaymentPlansEndpointConfig } from '@model/Config';
+import { readEnv, readPaymentPlans, readUserBaseStoreConfig } from '@services/common/config';
+import type { UserBaseStoreEndpointConfig } from '@services/stores/user-base-store';
 import { promiseTry } from '@utils/promises';
 
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export type StripeWebhookConfig = {};
+export type StripeWebhookConfig = UserBaseStoreEndpointConfig & PaymentPlansEndpointConfig;
 
 export function readStripeWebhookConfig(): Promise<StripeWebhookConfig> {
-  // const env = readEnv();
-  return promiseTry(() => ({}));
+  const env = readEnv();
+  return promiseTry(() => ({
+    ...readUserBaseStoreConfig(env),
+    ...readPaymentPlans(env)
+  }));
 }
-
-// TODO
