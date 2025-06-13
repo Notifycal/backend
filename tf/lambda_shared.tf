@@ -17,7 +17,7 @@ locals {
     REFRESH_TOKENS_TABLE_NAME = aws_dynamodb_table.refresh_tokens.name
   }
   decode_access_jwt_env_vars = {
-    ACCESS_JWT_PUBLIC_KEY = tls_private_key.jwt_access_key.public_key_pem
+    ACCESS_JWT_PUBLIC_KEY = var.jwt_keys.access.public_key
     ACCESS_JWT_ALGORITHM  = var.jwt_config.access.algorithm
     ACCESS_JWT_ISSUER     = var.jwt_config.access.issuer
     ACCESS_JWT_AUDIENCE   = var.jwt_config.access.audience
@@ -26,9 +26,9 @@ locals {
   protected_endpoint_env_vars = merge(local.decode_access_jwt_env_vars, local.common_lambda_env_vars)
 
   login_and_refresh_env_vars = merge({
-    ACCESS_JWT_PRIVATE_KEY  = tls_private_key.jwt_access_key.private_key_pem
-    REFRESH_JWT_PUBLIC_KEY  = tls_private_key.jwt_refresh_key.public_key_pem
-    REFRESH_JWT_PRIVATE_KEY = tls_private_key.jwt_refresh_key.private_key_pem
+    ACCESS_JWT_PRIVATE_KEY  = var.jwt_keys.access.private_key
+    REFRESH_JWT_PUBLIC_KEY  = var.jwt_keys.refresh.public_key
+    REFRESH_JWT_PRIVATE_KEY = var.jwt_keys.refresh.private_key
     REFRESH_JWT_ALGORITHM   = var.jwt_config.refresh.algorithm
     REFRESH_JWT_ISSUER      = var.jwt_config.refresh.issuer
     REFRESH_JWT_AUDIENCE    = var.jwt_config.refresh.audience
