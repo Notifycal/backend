@@ -1,6 +1,6 @@
 /* eslint-disable camelcase */
 import type { Tier } from '@model/PaymentPlans';
-import type { Email, LanguageCode, UserId } from '@notifycal/shared/types';
+import type { Identity, IdpName, LanguageCode } from '@notifycal/shared/types';
 import type { Url } from '@own-types/model';
 import { default as Stripe } from 'stripe';
 
@@ -14,13 +14,13 @@ export class StripeService {
   }
 
   public async createCheckoutSession(
-    userId: UserId,
-    email: Email,
+    identity: Identity<IdpName>,
     tier: Tier,
     language: LanguageCode,
     successRedirectUrl: Url,
     cancelRedirectUrl: Url
   ): Promise<Url | null> {
+    const { userId, idp, idpId, email } = identity;
     const session = await this.stripeClient.checkout.sessions.create({
       mode: 'subscription',
       ui_mode: 'hosted',
@@ -37,6 +37,9 @@ export class StripeService {
       ],
       metadata: {
         userId,
+        idp,
+        idpId,
+        email,
         tier: tier.id,
         vatCountry: 'ES'
       },

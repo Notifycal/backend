@@ -1,6 +1,6 @@
 /* eslint-disable camelcase */
 import type { Tier } from '@model/PaymentPlans';
-import type { Email, LanguageCode, UserId } from '@notifycal/shared/types';
+import type { Email, Identity, IdpId, LanguageCode, UserId } from '@notifycal/shared/types';
 import type { Url } from '@own-types/model';
 import { default as Stripe } from 'stripe';
 import { describe, expect, it, vi } from 'vitest';
@@ -12,6 +12,12 @@ const validApiKey = 'sk_test_123456789';
 describe(StripeService, () => {
   const validUserId = 'cfaa8471-f4cc-44da-bc22-ddc4b735a847' as UserId;
   const validEmail = 'test@notifycal.com' as Email;
+  const validIdentity: Identity<'google.com'> = {
+    userId: validUserId,
+    idp: 'google.com',
+    idpId: '1234567890' as IdpId,
+    email: validEmail
+  };
   const validLanguage = 'en' as LanguageCode;
   const validSuccessUrl = 'https://example.com/success' as Url;
   const validCancelUrl = 'https://example.com/cancel' as Url;
@@ -38,8 +44,7 @@ describe(StripeService, () => {
     const createSessionFn = vi.fn().mockResolvedValue(mockSession);
 
     const result = await testIt(
-      validUserId,
-      validEmail,
+      validIdentity,
       validTier,
       validLanguage,
       validSuccessUrl,
@@ -77,8 +82,7 @@ describe(StripeService, () => {
     const createSessionFn = vi.fn().mockResolvedValue(mockSession);
 
     const result = await testIt(
-      validUserId,
-      validEmail,
+      validIdentity,
       validTier,
       validLanguage,
       validSuccessUrl,
@@ -95,8 +99,7 @@ describe(StripeService, () => {
     const createSessionFn = vi.fn().mockResolvedValue(mockSession);
 
     await testIt(
-      validUserId,
-      validEmail,
+      validIdentity,
       validTier,
       spanishLanguage,
       validSuccessUrl,
@@ -120,8 +123,7 @@ describe(StripeService, () => {
     const createSessionFn = vi.fn().mockResolvedValue(mockSession);
 
     await testIt(
-      validUserId,
-      validEmail,
+      validIdentity,
       betterTier,
       validLanguage,
       validSuccessUrl,
@@ -150,8 +152,7 @@ describe(StripeService, () => {
 
     await expect(
       testIt(
-        validUserId,
-        validEmail,
+        validIdentity,
         validTier,
         validLanguage,
         validSuccessUrl,
@@ -166,8 +167,7 @@ describe(StripeService, () => {
     const createSessionFn = vi.fn().mockResolvedValue(mockSession);
 
     await testIt(
-      validUserId,
-      validEmail,
+      validIdentity,
       validTier,
       validLanguage,
       validSuccessUrl,
@@ -188,8 +188,7 @@ describe(StripeService, () => {
 });
 
 async function testIt(
-  userId: UserId,
-  email: Email,
+  identity: Identity<'google.com'>,
   tier: Tier,
   language: LanguageCode,
   successRedirectUrl: Url,
@@ -208,8 +207,7 @@ async function testIt(
 
   const stripeService = new StripeService(validApiKey);
   return stripeService.createCheckoutSession(
-    userId,
-    email,
+    identity,
     tier,
     language,
     successRedirectUrl,
