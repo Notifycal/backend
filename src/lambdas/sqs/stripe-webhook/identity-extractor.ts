@@ -9,15 +9,12 @@ export interface IdentityExtractor<T extends Stripe.Event = Stripe.Event> {
 export class StripeIdentityExtractor implements IdentityExtractor<Stripe.Event> {
   public extract(event: Stripe.Event): Promise<Identity<IdpName>> {
     const metadata = this.getMetadataFromEvent(event);
-
     if (!metadata) {
       throw new Error(`No metadata found in Stripe event of type ${event.type}`);
     }
-
     const { userId, idp, idpId, email } = metadata;
-    const requiredFields = { userId, idp, idpId, email };
-
-    for (const [key, value] of Object.entries(requiredFields)) {
+    const identityFields = { userId, idp, idpId, email };
+    for (const [key, value] of Object.entries(identityFields)) {
       if (!value) {
         throw new Error(`No ${key} found in Stripe metadata for event ${event.type}`);
       }

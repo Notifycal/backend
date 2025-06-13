@@ -22,7 +22,6 @@ export class GenericEventProcessor<T extends Stripe.Event = Stripe.Event> {
 
   public process(event: T): Promise<void> {
     const handler = this.eventHandlers.get(event.type);
-
     if (!handler) {
       this.logger.error('Unhandled event type', { eventType: event.type });
       return this.onUnhandledEvent(event);
@@ -30,14 +29,20 @@ export class GenericEventProcessor<T extends Stripe.Event = Stripe.Event> {
 
     return this.identityExtractor
       .extract(event)
+      .then(
+        tap((identity) => {
+          this.logger.appendKeys({
+            ...identity
+          });
+        })
+      )
       .then((identity) =>
         handler
           .handle(event, identity)
           .then(
             tap(() => {
               this.logger.info('Successfully processed event', {
-                eventType: event.type,
-                userId: identity.userId
+                eventType: event.type
               });
             })
           )
