@@ -69,7 +69,7 @@ describe('POST Payment checkout session', () => {
       expect(createCheckoutSessionFn).toHaveBeenCalledWith(
         validUserId,
         validEmail,
-        defaultConfig.stripeCheckoutConfig.tiers.good,
+        defaultConfig.paymentPlans.tiers.good,
         'es',
         'http://localhost:3000/success',
         'http://localhost:3000/cancel'
@@ -179,7 +179,9 @@ const defaultConfig: PostPaymentCheckoutSessionConfig = {
   },
   stripeCheckoutConfig: {
     successRedirectUrl: 'http://localhost:3000/success' as Url,
-    cancelRedirectUrl: 'http://localhost:3000/cancel' as Url,
+    cancelRedirectUrl: 'http://localhost:3000/cancel' as Url
+  },
+  paymentPlans: {
     tiers: {
       good: {
         id: 'good',

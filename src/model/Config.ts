@@ -110,6 +110,10 @@ export type ApiRestTopicConfig = {
   apiRestTopicConfig: SnsTopicConfig;
 };
 
+export type PaymentWebhookTopicConfig = {
+  paymentWebhookTopicConfig: SnsTopicConfig;
+};
+
 export type IdempotencyPersistenceConfig = {
   idempotencyPersistenceConfig: DynamoDBPersistenceOptions;
 };

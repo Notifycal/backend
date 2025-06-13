@@ -17,6 +17,7 @@ import type {
   EncodeRefreshJwtConfig,
   IdempotencyPersistenceConfig,
   IdpConfigs,
+  PaymentPlansConfig,
   SnsTopicConfig,
   SqsQueueConfig
 } from '@model/Config';
@@ -111,6 +112,10 @@ export function setEnvDemoReminderToBeSentTopicConfig(config: SnsTopicConfig): v
   process.env.DEMO_REMINDER_TO_BE_SENT_TOPIC_ARN = config.topicArn;
 }
 
+export function setEnvPaymentWebhookTopicConfig(config: SnsTopicConfig): void {
+  process.env.PAYMENT_WEBHOOK_TOPIC_ARN = config.topicArn;
+}
+
 export function setEnvDeadLetterQueueConfig(config: SqsQueueConfig): void {
   process.env.DEAD_LETTER_QUEUE_URL = config.queueUrl;
 }
@@ -191,9 +196,12 @@ export function setEnvStripeAuthConfig(config: StripeAuthConfig): void {
 }
 
 export function setEnvStripeCheckoutConfig(config: StripeCheckoutConfig): void {
+  process.env.STRIPE_SUCCESS_REDIRECT_URL = config.successRedirectUrl;
+  process.env.STRIPE_CANCEL_REDIRECT_URL = config.cancelRedirectUrl;
+}
+
+export function setEnvPaymentPlansConfig(config: PaymentPlansConfig): void {
   process.env.STRIPE_GOOD_TIER_PRICE_ID = config.tiers.good.priceId;
   process.env.STRIPE_BETTER_TIER_PRICE_ID = config.tiers.better.priceId;
   process.env.STRIPE_BEST_TIER_PRICE_ID = config.tiers.best.priceId;
-  process.env.STRIPE_SUCCESS_REDIRECT_URL = config.successRedirectUrl;
-  process.env.STRIPE_CANCEL_REDIRECT_URL = config.cancelRedirectUrl;
 }

@@ -1,7 +1,12 @@
 import { createSqsHandlerTestSuite } from '@lambdas/batch-processing-lambda-handler-test.suite';
+import type { AwsArn } from '@own-types/model';
 import { validStripeCheckoutSessionCompletedEvent } from '@testing/data/event-bridge-event';
 import { validRawRecord } from '@testing/data/sqs-events';
-import { setEnvUserBaseStoreConfig } from '@testing/utils/config';
+import {
+  setEnvPaymentPlansConfig,
+  setEnvPaymentWebhookTopicConfig,
+  setEnvUserBaseStoreConfig
+} from '@testing/utils/config';
 import type { SQSEvent, SQSRecord } from 'aws-lambda';
 import { describe, vi } from 'vitest';
 import type { StripeWebhookConfig } from './config';
@@ -34,9 +39,14 @@ function setEnv(): void {
           priceId: 'wsdrvwefg'
         }
       }
+    },
+    paymentWebhookTopicConfig: {
+      topicArn: 'payment-webhook-topic' as AwsArn
     }
   };
   setEnvUserBaseStoreConfig(config.userBaseStoreConfig);
+  setEnvPaymentPlansConfig(config.paymentPlans);
+  setEnvPaymentWebhookTopicConfig(config.paymentWebhookTopicConfig);
 }
 
 vi.mock('./record-processor');

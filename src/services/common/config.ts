@@ -22,6 +22,7 @@ import type {
   MessagingEndpointConfig,
   MessagingTopicConfig,
   PaymentPlansEndpointConfig,
+  PaymentWebhookTopicConfig,
   UserCalendarFetchedTopicConfig
 } from '@model/Config';
 import { tierIdMap } from '@model/PaymentPlans';
@@ -316,6 +317,14 @@ export function readEmailToBeSentTopicConfig(env: Environment): EmailToBeSentTop
   return {
     emailToBeSentTopicConfig: {
       topicArn: env.get('EMAIL_TO_BE_SENT_TOPIC_ARN').required().asString() as AwsArn
+    }
+  };
+}
+
+export function readPaymentWebhookTopicConfig(env: Environment): PaymentWebhookTopicConfig {
+  return {
+    paymentWebhookTopicConfig: {
+      topicArn: env.get('PAYMENT_WEBHOOK_TOPIC_ARN').required().asString() as AwsArn
     }
   };
 }
