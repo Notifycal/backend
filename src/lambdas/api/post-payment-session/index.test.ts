@@ -10,6 +10,7 @@ import { assert } from '@testing/utils/assertions';
 import {
   setEnvBaseConfig,
   setEnvDecodeAccessJwtConfig,
+  setEnvPaymentPlansConfig,
   setEnvStripeAuthConfig,
   setEnvStripeCheckoutConfig
 } from '@testing/utils/config';
@@ -35,11 +36,14 @@ vi.mock('@utils/MetricsAggregator', () => {
 describe('POST Payment checkout session', () => {
   const validUserId = 'cfaa8471-f4cc-44da-bc22-ddc4b735a847' as UserId;
   const validEmail = 'test@notifycal.com' as Email;
-  const validAccessToken = {
+  const validIdentity = {
     userId: validUserId,
     email: validEmail,
     idp: 'google.com',
-    idpId: '246534735745767767',
+    idpId: '246534735745767767'
+  };
+  const validAccessToken = {
+    ...validIdentity,
     role: 'user',
     permissions: {}
   };
@@ -67,8 +71,7 @@ describe('POST Payment checkout session', () => {
 
       expect(createCheckoutSessionFn).toHaveBeenCalledTimes(1);
       expect(createCheckoutSessionFn).toHaveBeenCalledWith(
-        validUserId,
-        validEmail,
+        validIdentity,
         defaultConfig.paymentPlans.tiers.good,
         'es',
         'http://localhost:3000/success',
@@ -204,4 +207,5 @@ function setEnv(config: PostPaymentCheckoutSessionConfig) {
   setEnvBaseConfig(config.corsConfig);
   setEnvStripeAuthConfig(config.stripeAuthConfig);
   setEnvStripeCheckoutConfig(config.stripeCheckoutConfig);
+  setEnvPaymentPlansConfig(config.paymentPlans);
 }

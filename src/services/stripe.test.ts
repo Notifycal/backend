@@ -69,7 +69,7 @@ describe(StripeService, () => {
         }
       ],
       metadata: {
-        userId: validUserId,
+        ...validIdentity,
         tier: validTier.id,
         vatCountry: 'ES'
       },
@@ -178,7 +178,7 @@ describe(StripeService, () => {
     expect(createSessionFn).toHaveBeenCalledWith(
       expect.objectContaining({
         metadata: {
-          userId: validUserId,
+          ...validIdentity,
           tier: validTier.id,
           vatCountry: 'ES'
         }

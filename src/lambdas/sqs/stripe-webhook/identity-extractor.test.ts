@@ -1,12 +1,13 @@
 /* eslint-disable camelcase */
 import type { Email, Identity, IdpId, IdpName, UserId } from '@notifycal/shared/types';
 import type { Stripe } from 'stripe';
+import { v4 } from 'uuid';
 import { describe, expect, it } from 'vitest';
 import { StripeIdentityExtractor } from './identity-extractor';
 
 describe(StripeIdentityExtractor, () => {
-  const validUserId = 'user_123' as UserId;
-  const validIdp = 'google' as IdpName;
+  const validUserId = v4() as UserId;
+  const validIdp = 'google.com';
   const validIdpId = 'google_456' as IdpId;
   const validEmail = 'test@notifycal.com' as Email;
 
@@ -346,7 +347,7 @@ describe(StripeIdentityExtractor, () => {
       };
 
       await expect(testIt(event)).rejects.toThrow(
-        'No userId found in Stripe metadata for event customer.created'
+        'No identity data found in Stripe metadata for event customer.created'
       );
     });
 
@@ -376,7 +377,7 @@ describe(StripeIdentityExtractor, () => {
       };
 
       await expect(testIt(event)).rejects.toThrow(
-        'No idp found in Stripe metadata for event customer.created'
+        'No identity data found in Stripe metadata for event customer.created'
       );
     });
 
@@ -406,7 +407,7 @@ describe(StripeIdentityExtractor, () => {
       };
 
       await expect(testIt(event)).rejects.toThrow(
-        'No idpId found in Stripe metadata for event customer.created'
+        'No identity data found in Stripe metadata for event customer.created'
       );
     });
 
@@ -436,7 +437,7 @@ describe(StripeIdentityExtractor, () => {
       };
 
       await expect(testIt(event)).rejects.toThrow(
-        'No email found in Stripe metadata for event customer.created'
+        'No identity data found in Stripe metadata for event customer.created'
       );
     });
 
@@ -460,7 +461,7 @@ describe(StripeIdentityExtractor, () => {
       };
 
       await expect(testIt(event)).rejects.toThrow(
-        'No userId found in Stripe metadata for event customer.created'
+        'No identity data found in Stripe metadata for event customer.created'
       );
     });
   });
