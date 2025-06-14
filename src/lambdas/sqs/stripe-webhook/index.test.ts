@@ -1,6 +1,5 @@
 import { createSqsHandlerTestSuite } from '@lambdas/batch-processing-lambda-handler-test.suite';
 import type { AwsArn } from '@own-types/model';
-import { validStripeCheckoutSessionCompletedEvent } from '@testing/data/event-bridge-event';
 import { validRawRecord } from '@testing/data/sqs-events';
 import {
   setEnvPaymentPlansConfig,
@@ -10,6 +9,7 @@ import {
 import type { SQSEvent, SQSRecord } from 'aws-lambda';
 import { describe, vi } from 'vitest';
 import type { StripeWebhookConfig } from './config';
+import { validStripeCheckoutSessionCompletedEvent } from '@testing/data/stripe-event-bridge-event';
 // @ts-expect-error cjs handler export
 import { handler } from './index';
 import { recordProcessor } from './record-processor';

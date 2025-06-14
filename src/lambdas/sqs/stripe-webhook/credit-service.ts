@@ -4,7 +4,7 @@ import type { UserBaseStore } from '@services/stores/user-base-store';
 
 export class CreditsService<TIdpName extends IdpName> {
   //TODO: Move this to a config file
-  private static readonly tierToCreditsMap: Record<string, number> = {
+  private static readonly tierToCreditsMap: Record<TierId, number> = {
     good: 100,
     better: 250,
     best: 600

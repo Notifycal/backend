@@ -4,7 +4,7 @@ import { backgroundProcessingMiddleware } from '@common/lambda-middleware';
 import { logger } from '@common/powertools';
 import type { Context } from 'aws-lambda';
 import { readStripeWebhookConfig, type StripeWebhookConfig } from './config';
-import { recordProcessor } from './record-processor';
+import { defaultEventHandlers, recordProcessor } from './record-processor';
 import { eventSchema, type Event, type Record } from './schema';
 
 export function recordProcessorCurried(
@@ -16,7 +16,7 @@ export function recordProcessorCurried(
     _logger.appendKeys({
       stripeEventType: record.body['detail-type']
     });
-    return recordProcessor(record, config, _logger);
+    return recordProcessor(record.body, defaultEventHandlers, config, _logger);
   };
 }
 

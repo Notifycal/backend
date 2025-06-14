@@ -31,7 +31,7 @@ export const idp: Record<IdpName, IdpName> = {
   'google.com': 'google.com'
 };
 
-const identitySchema = z.object({
+export const identitySchema = z.object({
   userId: userIdSchema,
   email: emailSchema,
   idp: z.nativeEnum(idp),

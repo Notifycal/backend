@@ -40,7 +40,7 @@ function toOurEventType<T extends Stripe.Event['type']>(eventType: T): OurStripe
   }, 'Payment') as OurStripeEventType<T>;
 }
 
-export function toNotifycalEvent(
+export function fromStripeEvent(
   origin: Stripe.Event,
   userId: UserId,
   idp: IdpName,

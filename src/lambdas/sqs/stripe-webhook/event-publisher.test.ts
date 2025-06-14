@@ -1,6 +1,6 @@
 /* eslint-disable camelcase */
 import {
-  toNotifycalEvent,
+  fromStripeEvent,
   type PaymentWebhookFiredEvent
 } from '@model/app-events/StripeWebhookEventFiredEvent';
 import type { Email, Identity, IdpId, IdpName, UserId } from '@notifycal/shared/types';
@@ -8,6 +8,8 @@ import type { SnsService } from '@services/sns';
 import type Stripe from 'stripe';
 import { describe, expect, it, vi } from 'vitest';
 import { StripeEventPublisher } from './event-publisher';
+
+vi.mock('@model/app-events/StripeWebhookEventFiredEvent');
 
 describe(StripeEventPublisher, () => {
   const validIdentity: Identity<IdpName> = {
@@ -43,17 +45,12 @@ describe(StripeEventPublisher, () => {
       publish: publishFn
     } as unknown as SnsService;
 
-    vi.mocked(toNotifycalEvent).mockReturnValue(mockNotifycalEvent);
+    vi.mocked(fromStripeEvent).mockReturnValue(mockNotifycalEvent);
 
     await new StripeEventPublisher(snsServiceMock).publish(validEvent, validIdentity);
 
-    expect(toNotifycalEvent).toHaveBeenCalledTimes(1);
-    expect(toNotifycalEvent).toHaveBeenCalledWith(
-      validEvent,
-      'user-123',
-      'google',
-      'google-id-123'
-    );
+    expect(fromStripeEvent).toHaveBeenCalledTimes(1);
+    expect(fromStripeEvent).toHaveBeenCalledWith(validEvent, 'user-123', 'google', 'google-id-123');
 
     expect(publishFn).toHaveBeenCalledTimes(1);
     expect(publishFn).toHaveBeenCalledWith(mockNotifycalEvent);
@@ -66,12 +63,12 @@ describe(StripeEventPublisher, () => {
       publish: publishFn
     } as unknown as SnsService;
 
-    vi.mocked(toNotifycalEvent).mockReturnValue(mockNotifycalEvent);
+    vi.mocked(fromStripeEvent).mockReturnValue(mockNotifycalEvent);
 
     const publisher = new StripeEventPublisher(snsServiceMock);
 
     await expect(publisher.publish(validEvent, validIdentity)).rejects.toThrow(publishError);
 
-    expect(toNotifycalEvent).toHaveBeenCalledTimes(1);
+    expect(fromStripeEvent).toHaveBeenCalledTimes(1);
   });
 });

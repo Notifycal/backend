@@ -32,7 +32,7 @@ import { StripeIdentityExtractor } from './identity-extractor';
 import type { Record } from './schema';
 import type { StripeEventType } from './stripe-schemas';
 
-export function eventHandlers(
+export function defaultEventHandlers(
   creditsService: CreditsService<IdpName>,
   tiers: Tiers,
   logger: Logger
@@ -56,11 +56,16 @@ export function eventHandlers(
 }
 
 export function recordProcessor(
-  record: Record,
+  record: Record['body'],
+  eventHandlers: (
+    creditsService: CreditsService<IdpName>,
+    tiers: Tiers,
+    logger: Logger
+  ) => Map<StripeEventType, EventHandler<Stripe.Event>> = defaultEventHandlers,
   config: StripeWebhookConfig,
   logger: Logger
 ): Promise<void> {
-  const stripeEvent = record.body.detail;
+  const stripeEvent = record.detail;
   logger.info('Processing Stripe webhook event', {
     eventId: stripeEvent.id,
     eventType: stripeEvent.type,

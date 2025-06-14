@@ -2,8 +2,8 @@
 /* eslint-disable camelcase */
 import type { Logger } from '@aws-lambda-powertools/logger';
 import type { Email, Identity, IdpId, IdpName, UserId } from '@notifycal/shared/types';
-import { throwError } from '@services/common/error-handling';
 import type { Stripe } from 'stripe';
+import { v4 } from 'uuid';
 import { describe, expect, it, vi } from 'vitest';
 import type { EventHandler } from './event-handlers/common';
 import type { EventPublisher } from './event-publisher';
@@ -11,12 +11,10 @@ import { GenericEventProcessor } from './generic-event-processor';
 import type { IdentityExtractor } from './identity-extractor';
 import type { StripeEventType } from './stripe-schemas';
 
-vi.mock('@model/app-events/StripeWebhookEventFiredEvent');
-
 describe(GenericEventProcessor, () => {
   const validIdentity: Identity<IdpName> = {
-    userId: 'user-123' as UserId,
-    idp: 'google' as IdpName,
+    userId: v4() as UserId,
+    idp: 'google.com',
     idpId: 'google-id-123' as IdpId,
     email: 'test@notifycal.es' as Email
   };
@@ -92,16 +90,10 @@ describe(GenericEventProcessor, () => {
 
     it('should throw error when identity extraction fails', async () => {
       const extractionError = new Error('Failed to extract identity');
-      const throwErrorMock = vi.mocked(throwError);
 
       const result = testIt(validEvent, () => Promise.reject(extractionError));
 
-      await expect(result).rejects.toThrow(extractionError);
-
-      expect(throwErrorMock).toHaveBeenCalledTimes(1);
-      expect(throwErrorMock).toHaveBeenCalledWith('Error processing event', extractionError, {
-        eventType: 'customer.created'
-      });
+      await expect(result).rejects.toThrow('Error processing event');
 
       expect(handleFn).not.toHaveBeenCalled();
       expect(publishFn).not.toHaveBeenCalled();
@@ -109,39 +101,25 @@ describe(GenericEventProcessor, () => {
 
     it('should throw error when event handler fails', async () => {
       const handlerError = new Error('Handler failed');
-      const throwErrorMock = vi.mocked(throwError);
 
       const result = testIt(validEvent, undefined, () => Promise.reject(handlerError));
 
-      await expect(result).rejects.toThrow(handlerError);
+      await expect(result).rejects.toThrow('Error processing event');
 
       expect(extractFn).toHaveBeenCalledTimes(1);
       expect(appendKeysFn).toHaveBeenCalledTimes(1);
-
-      expect(throwErrorMock).toHaveBeenCalledTimes(1);
-      expect(throwErrorMock).toHaveBeenCalledWith('Error processing event', handlerError, {
-        eventType: 'customer.created'
-      });
-
       expect(publishFn).not.toHaveBeenCalled();
     });
 
     it('should throw error when event publisher fails', async () => {
       const publisherError = new Error('Publisher failed');
-      const throwErrorMock = vi.mocked(throwError);
 
       const result = testIt(validEvent, undefined, undefined, () => Promise.reject(publisherError));
 
-      await expect(result).rejects.toThrow(publisherError);
-
+      await expect(result).rejects.toThrow('Error processing event');
       expect(extractFn).toHaveBeenCalledTimes(1);
       expect(handleFn).toHaveBeenCalledTimes(1);
       expect(infoFn).toHaveBeenCalledTimes(1);
-
-      expect(throwErrorMock).toHaveBeenCalledTimes(1);
-      expect(throwErrorMock).toHaveBeenCalledWith('Error processing event', publisherError, {
-        eventType: 'customer.created'
-      });
     });
 
     function testIt(
