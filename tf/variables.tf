@@ -268,3 +268,4 @@ variable "stripe_api_version" {
   type    = string
   default = "2025-05-28.basil"
 }
+

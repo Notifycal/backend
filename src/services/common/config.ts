@@ -5,6 +5,7 @@ import type {
   ApiRestTopicConfig,
   AuthedEndpointConfig,
   CorsEndpointConfig,
+  CreditServiceEndpointConfig,
   CronRunEndpointConfig,
   DecodeAccessJwtConfig,
   DecodeAccessJwtEndpointConfig,
@@ -363,5 +364,14 @@ export function readPaymentPlans(env: Environment): PaymentPlansEndpointConfig {
         }
       }
     }
+  };
+}
+
+export function readCreditServiceConfig(env: Environment): CreditServiceEndpointConfig {
+  return {
+    countryToSMSCostCreditsMap: env.get('COUNTRY_CODE_TO_SMS_COST_MAP').asJsonObject() as Record<
+      'ES',
+      number
+    >
   };
 }

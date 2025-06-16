@@ -1,26 +1,31 @@
 import { getParameter } from '@aws-lambda-powertools/parameters/ssm';
 import { logger } from '@common/powertools';
 import type {
+  CreditServiceEndpointConfig,
   IdempotencyPersistenceConfig,
   MessagingEndpointConfig,
   MessagingTopicConfig
 } from '@model/Config';
-import type { VonageConfig } from '@model/vendor/vonage/config';
+import type { VonageEndpointConfig } from '@model/vendor/vonage/config';
 import {
+  readCreditServiceConfig,
   readEnv,
   readIdempotencyPersistenceConfig,
   readMessagingConfig,
   readMessagingTopicConfig,
+  readUserBaseStoreConfig,
   readVonageConfig
 } from '@services/common/config';
 import { throwError } from '@services/common/error-handling';
 import type { VonagePrivateKey } from '@services/messaging';
+import type { UserBaseStoreEndpointConfig } from '@services/stores/user-base-store';
 
-export type SendEventReminderConfig = {
-  vonageConfig: VonageConfig & { privateKey: VonagePrivateKey };
-} & IdempotencyPersistenceConfig &
+export type SendEventReminderConfig = VonageEndpointConfig &
+  IdempotencyPersistenceConfig &
   MessagingTopicConfig &
-  MessagingEndpointConfig;
+  MessagingEndpointConfig &
+  UserBaseStoreEndpointConfig &
+  CreditServiceEndpointConfig;
 
 export async function readSendEventReminderConfig(vonagePrivateKeyCache: {
   vonagePrivateKey?: string;
@@ -54,7 +59,9 @@ export async function readSendEventReminderConfig(vonagePrivateKeyCache: {
       },
       ...readIdempotencyPersistenceConfig(env),
       ...readMessagingTopicConfig(env),
-      ...readMessagingConfig(env)
+      ...readMessagingConfig(env),
+      ...readUserBaseStoreConfig(env),
+      ...readCreditServiceConfig(env)
     };
   } catch (err) {
     throwError(`Couldn't access SSM parameter`, err);

@@ -70,5 +70,9 @@ module "stripe_webhook_lambda" {
     }
   }
 
-  environment_variables = local.common_lambda_env_vars
+  environment_variables = merge({
+    COUNTRY_CODE_TO_SMS_COST_MAP = jsonencode({
+      ES = 7 //TODO: adjust for minimum smoke
+    })
+  }, local.common_lambda_env_vars, local.users_persistance_env_vars)
 }

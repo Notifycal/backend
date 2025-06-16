@@ -5,7 +5,7 @@ import type Stripe from 'stripe';
 
 export function fakeStripeEventBridgeEvent<TEventType extends StripeEventType>(
   eventType: TEventType
-): Omit<EventBridgeEvent<TEventType, object>, 'detail'> {
+): Omit<EventBridgeEvent<TEventType, Stripe.Event>, 'detail'> {
   return {
     id: 'fakeId',
     version: '97faefa0-b994-1c30-5dfa-95836afeb7b0',
@@ -31,7 +31,7 @@ export function validStripeEventBridgeEvent<T extends StripeEventType>(
 
 export const validStripeCheckoutSessionCompletedEvent: EventBridgeEvent<
   'checkout.session.completed',
-  object
+  Stripe.Event
 > = validStripeEventBridgeEvent<'checkout.session.completed'>({
   id: 'evt_1RWIaFPLMCn9OYH0FPPvZ1hz',
   object: 'event',

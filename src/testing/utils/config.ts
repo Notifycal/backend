@@ -8,6 +8,7 @@ import type {
 } from '@lambdas/dynamodb-streams/alert-for-missing-phone-number/config';
 import type {
   CorsConfig,
+  CreditServiceEndpointConfig,
   CronRunConfig,
   DecodeAccessJwtConfig,
   DecodeRefreshJwtConfig,
@@ -204,4 +205,8 @@ export function setEnvPaymentPlansConfig(config: PaymentPlansConfig): void {
   process.env.STRIPE_GOOD_TIER_PRICE_ID = config.tiers.good.priceId;
   process.env.STRIPE_BETTER_TIER_PRICE_ID = config.tiers.better.priceId;
   process.env.STRIPE_BEST_TIER_PRICE_ID = config.tiers.best.priceId;
+}
+
+export function setEnvCreditServiceConfig(config: CreditServiceEndpointConfig): void {
+  process.env.COUNTRY_CODE_TO_SMS_COST_MAP = JSON.stringify(config.countryToSMSCostCreditsMap);
 }

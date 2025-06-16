@@ -8,16 +8,20 @@ import type {
   DateTime,
   EventId,
   IdpId,
+  IdpName,
   TimeZone,
   UserId,
   Uuid
 } from '@notifycal/shared/types';
 import type { AwsArn, PhoneNumberE164, Url } from '@own-types/model';
 import type { VonageApplicationId } from '@services/messaging';
+import { UserBaseStore } from '@services/stores/user-base-store';
 import { validRawRecord as _validRawRecord } from '@testing/data/sqs-events';
 import {
+  setEnvCreditServiceConfig,
   setEnvIdempotencyPersistanceConfig,
   setEnvMessagingTopicConfig,
+  setEnvUserBaseStoreConfig,
   setEnvVonageConfig
 } from '@testing/utils/config';
 import type { Context, SQSEvent, SQSRecord } from 'aws-lambda';
@@ -30,6 +34,7 @@ vi.mock('@common/powertools');
 vi.mock('./idempotent-processor');
 vi.mock('@aws-lambda-powertools/parameters/ssm');
 vi.mock('@aws-lambda-powertools/metrics');
+vi.mock('@services/stores/user-base-store');
 
 const validActionableEventEvent: ActionableEventFoundEvent = {
   data: {
@@ -151,6 +156,8 @@ function testit(
 ): Promise<Uuid | 'MessageNotSentOutsideOfSpain'> {
   setEnv(config);
   // eslint-disable-next-line @typescript-eslint/unbound-method
+  vi.mocked(UserBaseStore.withConfig).mockReturnValue({} as unknown as UserBaseStore<IdpName>);
+  // eslint-disable-next-line @typescript-eslint/unbound-method
   vi.mocked(IdempotentProcessor.prototype.sendReminderIdempotently).mockImplementation(
     sendReminderIdempotentlyFn
   );
@@ -183,6 +190,12 @@ const defaultConfig: EndpointConfig = {
   },
   messagingConfig: {
     enabled: true
+  },
+  userBaseStoreConfig: {
+    tableName: 'Users-local'
+  },
+  countryToSMSCostCreditsMap: {
+    ES: 7
   }
 };
 
@@ -190,4 +203,6 @@ function setEnv(config: EndpointConfig): void {
   setEnvVonageConfig(config.vonageConfig);
   setEnvMessagingTopicConfig(config.messagingTopicConfig);
   setEnvIdempotencyPersistanceConfig(config);
+  setEnvUserBaseStoreConfig(config.userBaseStoreConfig);
+  setEnvCreditServiceConfig(config);
 }
