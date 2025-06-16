@@ -142,7 +142,8 @@ const vitestConfig = {
     'vitest/prefer-spy-on': 'off',
     'vitest/prefer-lowercase-title': 'off',
     'vitest/require-mock-type-parameters': 'off',
-    'vitest/no-importing-vitest-globals': 'off'
+    'vitest/no-importing-vitest-globals': 'off',
+    'vitest/prefer-importing-vitest-globals': 'off'
   },
   settings: {
     vitest: {
