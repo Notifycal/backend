@@ -148,3 +148,8 @@ export interface PaymentPlansConfig {
 export interface PaymentPlansEndpointConfig {
   paymentPlans: PaymentPlansConfig;
 }
+
+export type CountryToSMSCostCreditsMap = Record<'ES', number>;
+export interface CreditServiceEndpointConfig {
+  countryToSMSCostCreditsMap: CountryToSMSCostCreditsMap;
+}

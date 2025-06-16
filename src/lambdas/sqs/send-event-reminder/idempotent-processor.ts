@@ -5,10 +5,11 @@ import type { ActionableEventReminderAttemptSkippedEvent } from '@model/app-even
 import type { DemoReminderToBeSentAttemptFailedEvent } from '@model/app-events/DemoReminderToBeSentAttemptFailedEvent';
 import type { DemoReminderToBeSentAttemptSkippedEvent } from '@model/app-events/DemoReminderToBeSentAttemptSkippedEvent';
 import type { DemoReminderToBeSentEvent } from '@model/app-events/DemoReminderToBeSentEvent';
-import type { VonageConfig } from '@model/vendor/vonage/config';
-import type { Uuid } from '@notifycal/shared/types';
+import type { CreditServiceEndpointConfig } from '@model/Config';
+import type { VonageEndpointConfig } from '@model/vendor/vonage/config';
+import type { IdpName, Uuid } from '@notifycal/shared/types';
 import { AbstractIdempotentProcessor } from '@services/abstract-idempotent-processor';
-import type { VonagePrivateKey } from '@services/messaging';
+import type { CreditsService } from '@services/credits-service';
 import type { SnsService } from '@services/sns';
 import type { Context } from 'aws-lambda';
 import { match } from 'ts-pattern';
@@ -18,14 +19,15 @@ export class IdempotentProcessor extends AbstractIdempotentProcessor<Uuid> {
   private readonly processor: Processor;
 
   public constructor(
-    config: VonageConfig & { privateKey: VonagePrivateKey },
+    config: VonageEndpointConfig & CreditServiceEndpointConfig,
     persistanceConfig: DynamoDBPersistenceOptions,
     isEnabled: boolean,
     context: Context,
-    private readonly snsService: SnsService
+    private readonly snsService: SnsService,
+    creditService: CreditsService<IdpName>
   ) {
     super(persistanceConfig, context);
-    this.processor = new Processor(config, isEnabled, this.snsService);
+    this.processor = new Processor(config, isEnabled, snsService, creditService);
   }
 
   public sendReminderIdempotently(

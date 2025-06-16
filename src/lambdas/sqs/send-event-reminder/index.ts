@@ -7,7 +7,9 @@ import { eventSqsSchema } from '@model/lambda-events/SqsEvents';
 import type { Uuid } from '@notifycal/shared/types';
 import type { PhoneNumberE164 } from '@own-types/model';
 import { setupLoggerForEventProcessing } from '@services/common/logger';
+import { CreditsService } from '@services/credits-service';
 import { SnsService } from '@services/sns';
+import { UserBaseStore } from '@services/stores/user-base-store';
 import type { Context } from 'aws-lambda';
 import { z } from 'zod';
 import { readSendEventReminderConfig, type SendEventReminderConfig } from './config';
@@ -59,12 +61,15 @@ function lambdaHandler(
   }
 
   const snsService = SnsService.withConfig(config.messagingTopicConfig);
+  const userStore = UserBaseStore.withConfig(config.userBaseStoreConfig);
+  const creditsService = new CreditsService(userStore);
   const messageProcessor = new IdempotentProcessor(
-    config.vonageConfig,
+    config,
     config.idempotencyPersistenceConfig,
     config.messagingConfig.enabled,
     context,
-    snsService
+    snsService,
+    creditsService
   );
   return messageProcessor.sendReminderIdempotently(record.body);
 }

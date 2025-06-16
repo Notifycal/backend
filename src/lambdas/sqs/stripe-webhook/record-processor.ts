@@ -1,11 +1,13 @@
 import type { Logger } from '@aws-lambda-powertools/logger';
 import type { Tiers } from '@model/PaymentPlans';
 import type { IdpName } from '@notifycal/shared/types';
+import { CreditsService } from '@services/credits-service';
 import { SnsService } from '@services/sns';
 import { UserBaseStore } from '@services/stores/user-base-store';
+import type { EventBridgeEvent } from 'aws-lambda';
 import type { Stripe } from 'stripe';
+import { SubscriptionService } from '../../../services/subscription-service';
 import type { StripeWebhookConfig } from './config';
-import { CreditsService } from './credit-service';
 import type { EventHandler } from './event-handlers/common';
 import {
   CustomerCreatedHandler,
@@ -29,11 +31,10 @@ import {
 import { StripeEventPublisher } from './event-publisher';
 import { GenericEventProcessor } from './generic-event-processor';
 import { StripeIdentityExtractor } from './identity-extractor';
-import type { Record } from './schema';
 import type { StripeEventType } from './stripe-schemas';
 
 export function defaultEventHandlers(
-  creditsService: CreditsService<IdpName>,
+  subscriptionService: SubscriptionService<IdpName>,
   tiers: Tiers,
   logger: Logger
 ): Map<StripeEventType, EventHandler<Stripe.Event>> {
@@ -47,7 +48,7 @@ export function defaultEventHandlers(
     ['invoice.created', new InvoiceCreatedHandler(logger)],
     [
       'invoice.payment_succeeded',
-      new InvoicePaymentSucceededHandler(logger, creditsService, tiers)
+      new InvoicePaymentSucceededHandler(logger, subscriptionService, tiers)
     ],
     ['invoice.payment_failed', new InvoicePaymentFailedHandler(logger)],
     ['payment_intent.succeeded', new PaymentIntentSucceededHandler(logger)],
@@ -56,9 +57,9 @@ export function defaultEventHandlers(
 }
 
 export function recordProcessor(
-  record: Record['body'],
+  record: EventBridgeEvent<StripeEventType, Stripe.Event>,
   eventHandlerFactory: (
-    creditsService: CreditsService<IdpName>,
+    subscriptionService: SubscriptionService<IdpName>,
     tiers: Tiers,
     logger: Logger
   ) => Map<StripeEventType, EventHandler<Stripe.Event>> = defaultEventHandlers,
@@ -74,9 +75,14 @@ export function recordProcessor(
   });
   const userStore = UserBaseStore.withConfig(config.userBaseStoreConfig);
   const creditsService = new CreditsService(userStore);
+  const tierToCreditsMap = {
+    good: 100,
+    better: 250,
+    best: 600
+  };
+  const subscriptionService = new SubscriptionService(creditsService, tierToCreditsMap);
   const snsService = SnsService.withConfig(config.paymentWebhookTopicConfig);
-
-  const handlers = eventHandlerFactory(creditsService, config.paymentPlans.tiers, logger);
+  const handlers = eventHandlerFactory(subscriptionService, config.paymentPlans.tiers, logger);
   const processor = new GenericEventProcessor<Stripe.Event>(
     new StripeIdentityExtractor(),
     handlers,

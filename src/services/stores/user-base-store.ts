@@ -139,7 +139,10 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
     }).then(() => null);
   }
 
-  public deductCredits(userId: UserId, amount: number): Promise<UserStoreRecord<TIdpName>> {
+  public deductCredits(
+    userId: UserId,
+    amount: number
+  ): Promise<Pick<UserStoreRecord<TIdpName>, 'UserCredits'>> {
     return this.updateCommandRunner({
       Key: { UserId: userId },
       UpdateExpression: 'ADD Credits.subscriptionCreditBalance :amount',
@@ -156,13 +159,17 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
             new InsufficientCreditsError(`Failed to deduct credits for user '${userId}'`, {}, error)
           );
         }
-        throw error;
+        // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
+        return Promise.reject(error);
       }
     );
   }
 
-  public async addCredits(userId: UserId, amount: number): Promise<void> {
-    await this.updateCommandRunner({
+  public async addCredits(
+    userId: UserId,
+    amount: number
+  ): Promise<Pick<UserStoreRecord<TIdpName>, 'UserCredits'>> {
+    return this.updateCommandRunner({
       Key: { UserId: userId },
       UpdateExpression: 'ADD Credits.subscriptionCreditBalance :amount SET UserStatus = :status',
       ExpressionAttributeValues: {
@@ -172,9 +179,12 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
     }).then((r) => this.handleSuccessfulUpdate(r));
   }
 
-  private handleSuccessfulUpdate(output: UpdateCommandOutput): UserStoreRecord<TIdpName> {
+  private handleSuccessfulUpdate(
+    output: UpdateCommandOutput
+  ): Pick<UserStoreRecord<TIdpName>, 'UserCredits'> {
     if (output.Attributes) {
-      return output.Attributes as UserStoreRecord<TIdpName>;
+      const updatedUser = output.Attributes as UserStoreRecord<TIdpName>;
+      return { UserCredits: updatedUser.UserCredits };
     } else {
       throwError('Unexpected error while updating credits from persistance');
     }
