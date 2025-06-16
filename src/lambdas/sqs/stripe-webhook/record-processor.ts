@@ -57,7 +57,7 @@ export function defaultEventHandlers(
 
 export function recordProcessor(
   record: Record['body'],
-  eventHandlers: (
+  eventHandlerFactory: (
     creditsService: CreditsService<IdpName>,
     tiers: Tiers,
     logger: Logger
@@ -76,7 +76,7 @@ export function recordProcessor(
   const creditsService = new CreditsService(userStore);
   const snsService = SnsService.withConfig(config.paymentWebhookTopicConfig);
 
-  const handlers = eventHandlers(creditsService, config.paymentPlans.tiers, logger);
+  const handlers = eventHandlerFactory(creditsService, config.paymentPlans.tiers, logger);
   const processor = new GenericEventProcessor<Stripe.Event>(
     new StripeIdentityExtractor(),
     handlers,
@@ -85,5 +85,11 @@ export function recordProcessor(
     (event) => Promise.reject(new Error(`Unhandled event type: ${event.type}`))
   );
 
-  return processor.process(stripeEvent);
+  return processor.process(stripeEvent).catch((error) => {
+    logger.error(
+      'Failed to process Stripe webhook event. This is just a safety net to avoid double processing. This should NOT happen',
+      { error }
+    );
+    return;
+  });
 }

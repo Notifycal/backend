@@ -18,17 +18,21 @@ export class CreditsService<TIdpName extends IdpName> {
   public constructor(private readonly userStore: UserBaseStore<TIdpName>) {}
 
   public createSubscription(userId: UserId, tier: TierId): Promise<void> {
-    const newCredits = CreditsService.tierToCreditsMap[tier];
-    return this.userStore.addCredits(userId, newCredits);
+    return this.addCredits(userId, tier)
   }
 
   public renewSubscription(userId: UserId, tier: TierId): Promise<void> {
-    return this.createSubscription(userId, tier);
+    return this.addCredits(userId, tier);
   }
 
   public async deductCredits(userId: UserId, units: number, country: 'ES'): Promise<void> {
     const credictToDeductPerUnit = CreditsService.countryToSMSCostCreditsMap[country];
     const totalCreditsToDeduct = credictToDeductPerUnit * units;
     return this.userStore.deductCredits(userId, totalCreditsToDeduct).then();
+  }
+
+  private addCredits(userId: UserId, tier: TierId): Promise<void> {
+    const newCredits = CreditsService.tierToCreditsMap[tier];
+    return this.userStore.addCredits(userId, newCredits);
   }
 }

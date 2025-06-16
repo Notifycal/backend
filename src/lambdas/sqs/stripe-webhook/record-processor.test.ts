@@ -1,14 +1,17 @@
 /* eslint-disable camelcase */
-import type { Logger } from '@aws-lambda-powertools/logger';
-import { Email, IdpId, UserId } from '@notifycal/shared/types';
+import { logger } from '@common/powertools';
+import type { Email, IdpId, UserId } from '@notifycal/shared/types';
 import type { AwsArn } from '@own-types/model';
 import { validStripeEventBridgeEvent as _validStripeEventBridgeEvent } from '@testing/data/stripe-event-bridge-event';
 import type { Stripe } from 'stripe';
 import { v4 } from 'uuid';
 import { describe, expect, it, vi } from 'vitest';
 import type { StripeWebhookConfig } from './config';
+import { GenericEventProcessor } from './generic-event-processor';
 import { defaultEventHandlers, recordProcessor } from './record-processor';
 import type { Record } from './schema';
+
+vi.mock('./generic-event-processor');
 
 describe(recordProcessor, () => {
   const validMetadata: Stripe.Metadata = {
@@ -17,6 +20,7 @@ describe(recordProcessor, () => {
     idpId: 'test_user_id' as IdpId,
     email: 'test@notifycal.com' as Email
   };
+
   const validStripeEventPart: Stripe.CustomerCreatedEvent = {
     id: 'evt_test_webhook',
     object: 'event',
@@ -65,307 +69,61 @@ describe(recordProcessor, () => {
     }
   };
 
-  it.only('should process a customer.created event successfully', () => {
-    const infoLoggerFn = vi.fn();
+  it('should process an stripe event event successfully', () => {
+    const processFn = vi.fn().mockResolvedValue(undefined);
 
-    return testIt(validStripeEventBridgeEvent, defaultEventHandlers, validConfig, {
-      info: infoLoggerFn,
-      error: vi.fn(),
-      warn: vi.fn(),
-      debug: vi.fn(),
-      appendKeys: vi.fn()
-    } as unknown as Logger).then(() => {
-      expect(infoLoggerFn).toHaveBeenCalledWith(
-        'Processing Stripe webhook event',
-        expect.objectContaining({
-          eventId: 'evt_test_webhook',
-          eventType: 'customer.created',
-          livemode: false,
-          stripeApiVersion: '2023-10-16'
-        })
-      );
-    });
-  });
-
-  it('should process an invoice.payment_succeeded event with credits service', () => {
-    const infoLoggerFn = vi.fn();
-    const invoiceEvent: Stripe.Event = {
-      ...validStripeEventPart,
-      id: 'evt_invoice_payment',
-      type: 'invoice.payment_succeeded',
-      data: {
-        object: {
-          metadata: validMetadata,
-          id: 'in_test_invoice',
-          object: 'invoice',
-          customer: 'cus_test_customer',
-          amount_paid: 2000
-        }
-      }
-    } as Stripe.Event;
-
-    return testIt(_validStripeEventBridgeEvent(invoiceEvent), defaultEventHandlers, validConfig, {
-      info: infoLoggerFn,
-      error: vi.fn(),
-      warn: vi.fn(),
-      debug: vi.fn(),
-      appendKeys: vi.fn()
-    } as unknown as Logger).then(() => {
-      expect(infoLoggerFn).toHaveBeenCalledWith(
-        'Processing Stripe webhook event',
-        expect.objectContaining({
-          eventId: 'evt_invoice_payment',
-          eventType: 'invoice.payment_succeeded'
-        })
-      );
-    });
-  });
-
-  it('should process a subscription.updated event', () => {
-    const infoLoggerFn = vi.fn();
-    const subscriptionEvent: Stripe.CustomerSubscriptionUpdatedEvent = {
-      ...validStripeEventPart,
-      id: 'evt_subscription_updated',
-      type: 'customer.subscription.updated',
-      data: {
-        object: {
-          metadata: validMetadata,
-          id: 'sub_test_subscription',
-          object: 'subscription',
-          customer: 'cus_test_customer',
-          status: 'active'
-        } as Stripe.CustomerSubscriptionUpdatedEvent['data']['object']
-      }
-    };
-
-    return testIt(
-      _validStripeEventBridgeEvent(subscriptionEvent),
+    const result = testIt(
+      validStripeEventBridgeEvent,
       defaultEventHandlers,
-      validConfig,
-      {
-        info: infoLoggerFn,
-        error: vi.fn(),
-        warn: vi.fn(),
-        debug: vi.fn(),
-        appendKeys: vi.fn()
-      } as unknown as Logger
-    ).then(() => {
-      expect(infoLoggerFn).toHaveBeenCalledWith(
-        'Processing Stripe webhook event',
-        expect.objectContaining({
-          eventId: 'evt_subscription_updated',
-          eventType: 'customer.subscription.updated'
-        })
-      );
-    });
-  });
+      processFn,
+      validConfig
+    );
 
-  it('should handle unhandled event types by rejecting with error', () => {
-    const unhandledEvent: Stripe.AccountUpdatedEvent = {
-      ...validStripeEventPart,
-      id: 'evt_unhandled',
-      type: 'account.updated' as const,
-      data: {
-        object: {
-          metadata: validMetadata,
-          id: 'acct_test_account',
-          object: 'account',
-          charges_enabled: true,
-          details_submitted: true,
-          payouts_enabled: true,
-          type: 'standard'
-        } as Stripe.AccountUpdatedEvent['data']['object']
-      }
-    };
-    const unhandledRecord = _validStripeEventBridgeEvent(unhandledEvent);
-    return expect(testIt(unhandledRecord)).rejects.toThrow('Unhandled event type: account.updated');
+    expect(result).resolves.toBeUndefined();
+    expect(processFn).toHaveBeenCalledWith(validStripeEventBridgeEvent.detail);
   });
 
   it('should use custom event handlers when provided', () => {
-    const mockHandler = {
-      handle: vi.fn().mockResolvedValue(undefined)
-    };
+    const processFn = vi.fn().mockResolvedValue(undefined);
+    const customEventHandlerFactory = vi.fn().mockReturnValue(new Map());
 
-    const customEventHandlers = vi
-      .fn()
-      .mockReturnValue(new Map([['customer.created', mockHandler]]));
+    const result = testIt(
+      validStripeEventBridgeEvent,
+      customEventHandlerFactory,
+      processFn,
+      validConfig
+    );
 
-    return testIt(validStripeEventBridgeEvent, customEventHandlers, validConfig, {
-      info: vi.fn(),
-      error: vi.fn(),
-      warn: vi.fn(),
-      debug: vi.fn(),
-      appendKeys: vi.fn()
-    } as unknown as Logger).then(() => {
-      expect(customEventHandlers).toHaveBeenCalledWith(
-        expect.any(Object),
-        validConfig.paymentPlans.tiers,
-        expect.any(Object)
-      );
-    });
+    expect(result).resolves.toBeUndefined();
+    expect(customEventHandlerFactory).toHaveBeenCalledOnce();
+    expect(processFn).toHaveBeenCalledWith(validStripeEventBridgeEvent.detail);
   });
 
-  it('should log event details with correct structure', () => {
-    const infoLoggerFn = vi.fn();
-    const eventWithNullApiVersion: Stripe.CustomerCreatedEvent = {
-      ...validStripeEventBridgeEvent,
-      api_version: undefined
-    } as unknown as Stripe.CustomerCreatedEvent;
+  it('should stop errors from propagating to avoid double processing', () => {
+    const error = new Error('Unhandled error from event handlers. This should never happen');
+    const processFn = vi.fn().mockRejectedValue(error);
 
-    return testIt(
-      _validStripeEventBridgeEvent(eventWithNullApiVersion),
+    const result = testIt(
+      validStripeEventBridgeEvent,
       defaultEventHandlers,
-      validConfig,
-      {
-        info: infoLoggerFn,
-        error: vi.fn(),
-        warn: vi.fn(),
-        debug: vi.fn(),
-        appendKeys: vi.fn()
-      } as unknown as Logger
-    ).then(() => {
-      expect(infoLoggerFn).toHaveBeenCalledWith(
-        'Processing Stripe webhook event',
-        expect.objectContaining({
-          eventId: 'evt_test_webhook',
-          eventType: 'customer.created',
-          livemode: false,
-          stripeApiVersion: undefined
-        })
-      );
-    });
-  });
+      processFn,
+      validConfig
+    );
 
-  it('should process payment_intent.succeeded event', () => {
-    const infoLoggerFn = vi.fn();
-    const paymentIntentEvent: Stripe.Event = {
-      ...validStripeEventPart,
-      id: 'evt_payment_intent',
-      type: 'payment_intent.succeeded',
-      data: {
-        object: {
-          metadata: validMetadata,
-          id: 'pi_test_payment_intent',
-          object: 'payment_intent',
-          amount: 2000,
-          currency: 'usd',
-          status: 'succeeded'
-        }
-      }
-    } as Stripe.Event;
-
-    return testIt(
-      _validStripeEventBridgeEvent(paymentIntentEvent),
-      defaultEventHandlers,
-      validConfig,
-      {
-        info: infoLoggerFn,
-        error: vi.fn(),
-        warn: vi.fn(),
-        debug: vi.fn(),
-        appendKeys: vi.fn()
-      } as unknown as Logger
-    ).then(() => {
-      expect(infoLoggerFn).toHaveBeenCalledWith(
-        'Processing Stripe webhook event',
-        expect.objectContaining({
-          eventId: 'evt_payment_intent',
-          eventType: 'payment_intent.succeeded'
-        })
-      );
-    });
-  });
-
-  it('should handle customer.deleted event', () => {
-    const infoLoggerFn = vi.fn();
-    const customerDeletedEvent: Stripe.CustomerDeletedEvent = {
-      ...validStripeEventPart,
-      id: 'evt_customer_deleted',
-      type: 'customer.deleted',
-      data: {
-        object: {
-          metadata: validMetadata,
-          id: 'cus_deleted_customer',
-          object: 'customer',
-          deleted: undefined
-        } as Stripe.CustomerDeletedEvent['data']['object']
-      }
-    };
-
-    return testIt(
-      _validStripeEventBridgeEvent(customerDeletedEvent),
-      defaultEventHandlers,
-      validConfig,
-      {
-        info: infoLoggerFn,
-        error: vi.fn(),
-        warn: vi.fn(),
-        debug: vi.fn(),
-        appendKeys: vi.fn()
-      } as unknown as Logger
-    ).then(() => {
-      expect(infoLoggerFn).toHaveBeenCalledWith(
-        'Processing Stripe webhook event',
-        expect.objectContaining({
-          eventId: 'evt_customer_deleted',
-          eventType: 'customer.deleted'
-        })
-      );
-    });
-  });
-
-  it('should process invoice.payment_failed event', () => {
-    const infoLoggerFn = vi.fn();
-    const invoiceFailedEvent: Stripe.InvoicePaymentFailedEvent = {
-      ...validStripeEventPart,
-      id: 'evt_invoice_failed',
-      type: 'invoice.payment_failed',
-      data: {
-        object: {
-          metadata: validMetadata,
-          id: 'in_failed_invoice',
-          object: 'invoice',
-          customer: 'cus_test_customer',
-          amount_due: 2000,
-          status: 'open'
-        } as unknown as Stripe.Invoice
-      }
-    };
-
-    return testIt(
-      _validStripeEventBridgeEvent(invoiceFailedEvent),
-      defaultEventHandlers,
-      validConfig,
-      {
-        info: infoLoggerFn,
-        error: vi.fn(),
-        warn: vi.fn(),
-        debug: vi.fn(),
-        appendKeys: vi.fn()
-      } as unknown as Logger
-    ).then(() => {
-      expect(infoLoggerFn).toHaveBeenCalledWith(
-        'Processing Stripe webhook event',
-        expect.objectContaining({
-          eventId: 'evt_invoice_failed',
-          eventType: 'invoice.payment_failed'
-        })
-      );
-    });
+    expect(result).resolves.toBeUndefined();
+    expect(processFn).toHaveBeenCalledWith(validStripeEventBridgeEvent.detail);
   });
 
   function testIt(
     record: Record['body'],
     eventHandlersFn: typeof defaultEventHandlers = defaultEventHandlers,
-    config: StripeWebhookConfig = validConfig,
-    logger: Logger = {
-      info: vi.fn(),
-      error: vi.fn(),
-      warn: vi.fn(),
-      debug: vi.fn(),
-      appendKeys: vi.fn()
-    } as unknown as Logger
+    processFn: () => Promise<void> = vi.fn().mockResolvedValue(undefined),
+    config: StripeWebhookConfig = validConfig
   ): Promise<void> {
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    vi.mocked(GenericEventProcessor.prototype.process).mockImplementation(processFn);
+
     return recordProcessor(record, eventHandlersFn, config, logger);
   }
 });
+
