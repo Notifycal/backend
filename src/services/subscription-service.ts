@@ -10,26 +10,12 @@ export class SubscriptionService<TIdpName extends IdpName> {
 
   public async createSubscription(userId: UserId, tier: TierId): Promise<void> {
     const credits = this.tierToCreditsMap[tier];
-    return this.creditsService.addCredits(userId, credits).then();
+    return this.creditsService.addCredits(userId, credits).then(() => {});
   }
 
   public async renewSubscription(userId: UserId, tier: TierId): Promise<void> {
     const credits = this.tierToCreditsMap[tier];
-    return this.creditsService.addCredits(userId, credits).then();
+    return this.creditsService.addCredits(userId, credits).then(() => {});
   }
 
-  //   //TODO
-  //   public async upgradeSubscription(
-  //     userId: UserId,
-  //     fromTier: TierId,
-  //     toTier: TierId
-  //   ): Promise<void> {
-  //     const fromCredits = this.tierToCreditsMap[fromTier];
-  //     const toCredits = this.tierToCreditsMap[toTier];
-  //     const additionalCredits = toCredits - fromCredits;
-
-  //     if (additionalCredits > 0) {
-  //       return this.creditsService.addCredits(userId, additionalCredits).then();
-  //     }
-  //   }
 }
