@@ -1,7 +1,11 @@
 import { messagingSentPayloadSchema } from '@model/vendor/vonage/schemas';
+import type { Uuid } from '@notifycal/shared/types';
 import type { z } from 'zod';
 import { eventSchemaGenerator } from './BaseEvent';
-import { demoReminderToBeSentEventSchema } from './DemoReminderToBeSentEvent';
+import {
+  demoReminderToBeSentEventSchema,
+  type DemoReminderToBeSentEvent
+} from './DemoReminderToBeSentEvent';
 
 export const demoReminderToBeSentAttemptSentEventSchema = eventSchemaGenerator(
   'DemoReminderToBeSentAttemptSent',
@@ -11,3 +15,17 @@ export const demoReminderToBeSentAttemptSentEventSchema = eventSchemaGenerator(
 export type DemoReminderToBeSentAttemptSentEvent = z.infer<
   typeof demoReminderToBeSentAttemptSentEventSchema
 >;
+
+export function demoReminderToBeSentAttemptSent(
+  originalEvent: DemoReminderToBeSentEvent,
+  messageSentUUID: Uuid
+): DemoReminderToBeSentAttemptSentEvent {
+  return {
+    ...originalEvent,
+    eventType: 'DemoReminderToBeSentAttemptSent' as const,
+    data: {
+      ...originalEvent.data,
+      messageUUID: messageSentUUID
+    }
+  };
+}
