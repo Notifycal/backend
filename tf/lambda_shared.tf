@@ -25,7 +25,7 @@ locals {
     ACCESS_JWT_AUDIENCE   = var.jwt_config.access.audience
     ACCESS_JWT_EXPIRATION = var.jwt_config.access.expiration
   }
-  protected_endpoint_env_vars = merge(local.decode_access_jwt_env_vars, local.common_lambda_env_vars)
+  protected_endpoint_env_vars = local.decode_access_jwt_env_vars
 
   login_and_refresh_env_vars = merge({
     ACCESS_JWT_PRIVATE_KEY  = var.jwt_keys.access.private_key
