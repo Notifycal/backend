@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.36.3](https://github.com/Notifycal/backend/compare/v0.36.2...v0.36.3) (2025-06-17)
+
+
+### Bug Fixes
+
+* **deps:** Update @notifycal/shared and zod ([#687](https://github.com/Notifycal/backend/issues/687)) ([16e3579](https://github.com/Notifycal/backend/commit/16e3579f89d417ae08bac8c023ed2e04f1888c99))
+* **deps:** Update AWS packages to v3.830.0 ([#689](https://github.com/Notifycal/backend/issues/689)) ([dd248c2](https://github.com/Notifycal/backend/commit/dd248c2f3b7cfa0955b28e5916f1d4f7d8574657))
+* **deps:** Update dependency axios to v1.10.0 ([#690](https://github.com/Notifycal/backend/issues/690)) ([a81144b](https://github.com/Notifycal/backend/commit/a81144baa62a060ebd9dfdc752316035499627ab))
+* **deps:** Update Middy middleware packages to v6.3.2 ([#688](https://github.com/Notifycal/backend/issues/688)) ([1d0ff58](https://github.com/Notifycal/backend/commit/1d0ff58a50150fc11669a572263264fa59ac3a35))
+
 ## [0.36.2](https://github.com/Notifycal/backend/compare/v0.36.1...v0.36.2) (2025-06-13)
 
 
