@@ -1,6 +1,6 @@
 import type { TierId } from '@model/PaymentPlans';
 import type { IdpName, UserId } from '@notifycal/shared/types';
-import type { CreditsService } from './credits-service';
+import type { CreditAdditionResult, CreditsService } from './credits-service';
 
 export class SubscriptionService<TIdpName extends IdpName> {
   public constructor(
@@ -8,14 +8,13 @@ export class SubscriptionService<TIdpName extends IdpName> {
     private readonly tierToCreditsMap: Record<TierId, number>
   ) {}
 
-  public async createSubscription(userId: UserId, tier: TierId): Promise<void> {
+  public async createSubscription(userId: UserId, tier: TierId): Promise<CreditAdditionResult> {
     const credits = this.tierToCreditsMap[tier];
-    return this.creditsService.addCredits(userId, credits).then(() => {});
+    return this.creditsService.addCredits(userId, credits);
   }
 
-  public async renewSubscription(userId: UserId, tier: TierId): Promise<void> {
+  public async renewSubscription(userId: UserId, tier: TierId): Promise<CreditAdditionResult> {
     const credits = this.tierToCreditsMap[tier];
-    return this.creditsService.addCredits(userId, credits).then(() => {});
+    return this.creditsService.addCredits(userId, credits);
   }
-
 }

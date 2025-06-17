@@ -7,11 +7,11 @@ import { v4 } from 'uuid';
 import { describe, expect, it, vi } from 'vitest';
 import type { EventHandler } from './event-handlers/common';
 import type { EventPublisher } from './event-publisher';
-import { GenericEventProcessor } from './generic-event-processor';
 import type { IdentityExtractor } from './identity-extractor';
+import { StripeEventProcessor } from './stripe-event-processor';
 import type { StripeEventType } from './stripe-schemas';
 
-describe(GenericEventProcessor, () => {
+describe(StripeEventProcessor, () => {
   const validIdentity: Identity<IdpName> = {
     userId: v4() as UserId,
     idp: 'google.com',
@@ -54,16 +54,19 @@ describe(GenericEventProcessor, () => {
       expect(extractFn).toHaveBeenCalledTimes(1);
       expect(extractFn).toHaveBeenCalledWith(validEvent);
 
-      expect(appendKeysFn).toHaveBeenCalledTimes(1);
-      expect(appendKeysFn).toHaveBeenCalledWith(validIdentity);
+      expect(appendKeysFn).toHaveBeenCalledTimes(2);
+      expect(appendKeysFn).toHaveBeenCalledWith({
+        eventType: 'customer.created'
+      });
+      expect(appendKeysFn).toHaveBeenCalledWith({
+        ...validIdentity
+      });
 
       expect(handleFn).toHaveBeenCalledTimes(1);
       expect(handleFn).toHaveBeenCalledWith(validEvent, validIdentity);
 
       expect(infoFn).toHaveBeenCalledTimes(1);
-      expect(infoFn).toHaveBeenCalledWith('Successfully processed event', {
-        eventType: 'customer.created'
-      });
+      expect(infoFn).toHaveBeenCalledWith('Successfully processed event');
 
       expect(publishFn).toHaveBeenCalledTimes(1);
       expect(publishFn).toHaveBeenCalledWith(validEvent, validIdentity);
@@ -76,9 +79,9 @@ describe(GenericEventProcessor, () => {
       await testIt(invalidEvent, undefined, undefined, undefined, undefined, new Map());
 
       expect(errorFn).toHaveBeenCalledTimes(1);
-      expect(errorFn).toHaveBeenCalledWith('Unhandled event type', {
-        eventType: 'unknown.event.type'
-      });
+      expect(errorFn).toHaveBeenCalledWith(
+        'Unhandled event type. This means the integration on Stripe side is configured to send event types for which there is no event handlers in code'
+      );
 
       expect(onUnhandledEventFn).toHaveBeenCalledTimes(1);
       expect(onUnhandledEventFn).toHaveBeenCalledWith(invalidEvent);
@@ -107,19 +110,26 @@ describe(GenericEventProcessor, () => {
       await expect(result).rejects.toThrow('Error processing event');
 
       expect(extractFn).toHaveBeenCalledTimes(1);
-      expect(appendKeysFn).toHaveBeenCalledTimes(1);
+      expect(appendKeysFn).toHaveBeenCalledTimes(2);
       expect(publishFn).not.toHaveBeenCalled();
     });
 
-    it('should throw error when event publisher fails', async () => {
+    it('should not throw error when event publisher fails', async () => {
       const publisherError = new Error('Publisher failed');
 
       const result = testIt(validEvent, undefined, undefined, () => Promise.reject(publisherError));
 
-      await expect(result).rejects.toThrow('Error processing event');
+      await expect(result).resolves.toBeUndefined();
       expect(extractFn).toHaveBeenCalledTimes(1);
       expect(handleFn).toHaveBeenCalledTimes(1);
       expect(infoFn).toHaveBeenCalledTimes(1);
+      expect(errorFn).toHaveBeenCalledWith(
+        'There was an error publishing an Stripe event after having processed it',
+        {
+          cause: publisherError,
+          event: validEvent
+        }
+      );
     });
 
     function testIt(
@@ -159,7 +169,7 @@ describe(GenericEventProcessor, () => {
       const handlers =
         eventHandlers || new Map([['customer.created' as StripeEventType, eventHandlerMock]]);
 
-      const processor = new GenericEventProcessor(
+      const processor = new StripeEventProcessor(
         identityExtractorMock,
         handlers,
         eventPublisherMock,
