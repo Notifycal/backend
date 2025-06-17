@@ -9,7 +9,12 @@ import type { CreditServiceEndpointConfig } from '@model/Config';
 import type { VonageEndpointConfig } from '@model/vendor/vonage/config';
 import type { IdpName, UserId, Uuid } from '@notifycal/shared/types';
 import type { Url } from '@own-types/model';
-import type { CreditDeductionResult, CreditsService } from '@services/credits-service';
+import type {
+  CreditDeductionInsufficientCreditsError,
+  CreditDeductionResult,
+  CreditDeductionUnexpectedError,
+  CreditsService
+} from '@services/credits-service';
 import { MessagingService } from '@services/messaging';
 import type { SnsService } from '@services/sns';
 import { tap } from '@utils/promises';
@@ -68,15 +73,7 @@ export default class Processor {
     const result = await this.deductCredits(event.userId, message);
 
     if (!result.success) {
-      const error = new Error(
-        `A message could not be sent due to an issue while deducting the credits`,
-        { cause: result.error }
-      );
-      logger.warn(error.message, {
-        result
-      });
-      await this.publishLowCreditErrorEvent(event, result);
-      return Promise.reject(error);
+      return this.handleCreditDeductionFailure(result, event);
     }
 
     let messageUUID;
@@ -96,6 +93,31 @@ export default class Processor {
     await this.publishAttemptSentEvent(event, messageUUID);
 
     return messageUUID;
+  }
+
+  private async handleCreditDeductionFailure(
+    result: CreditDeductionInsufficientCreditsError | CreditDeductionUnexpectedError,
+    event: ActionableEventFoundEvent | DemoReminderToBeSentEvent
+  ): Promise<never> {
+    const error = await match(result)
+      .with({ operationId: 'InsufficientCredits' }, async (result) => {
+        const error = new Error(`A message could not be sent due to insufficient credits`, {
+          cause: result.error
+        });
+
+        await this.publishLowCreditErrorEvent(event, result);
+        return error;
+      })
+      .with({ operationId: 'UnknownError' }, (result) => {
+        return new Error(
+          `A message could not be sent due to an unknown issue while deducting the credits`,
+          { cause: result.error }
+        );
+      })
+      .exhaustive();
+
+    logger.warn(error.message, { result });
+    return Promise.reject(error);
   }
 
   private deductCredits(userId: UserId, message: string): Promise<CreditDeductionResult> {
