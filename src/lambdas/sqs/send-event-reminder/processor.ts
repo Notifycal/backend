@@ -1,9 +1,21 @@
 import { logger } from '@common/powertools';
 import type { ActionableEventFoundEvent } from '@model/app-events/ActionableEventFoundEvent';
-import type { ActionableEventReminderAttemptSentEvent } from '@model/app-events/ActionableEventReminderAttemptSentEvent';
-import type { ActionableEventReminderLowCreditNotSentEvent } from '@model/app-events/ActionableEventReminderLowCreditNotSentEvent';
-import type { DemoReminderLowCreditNotSentEventSchemaEvent } from '@model/app-events/DemoReminderLowBalandeNotSentEvent';
-import type { DemoReminderToBeSentAttemptSentEvent } from '@model/app-events/DemoReminderToBeSentAttemptSentEvent';
+import {
+  actionableEventReminderAttemptSent,
+  type ActionableEventReminderAttemptSentEvent
+} from '@model/app-events/ActionableEventReminderAttemptSentEvent';
+import {
+  actionableEventReminderInsufficientCreditNotSent,
+  type ActionableEventReminderInsufficientCreditNotSentEvent
+} from '@model/app-events/ActionableEventReminderLowCreditNotSentEvent';
+import {
+  demoReminderInsufficientCreditNotSent,
+  type DemoReminderInsufficientCreditNotSentEvent
+} from '@model/app-events/DemoReminderLowBalandeNotSentEvent';
+import {
+  demoReminderToBeSentAttemptSent,
+  type DemoReminderToBeSentAttemptSentEvent
+} from '@model/app-events/DemoReminderToBeSentAttemptSentEvent';
 import type { DemoReminderToBeSentEvent } from '@model/app-events/DemoReminderToBeSentEvent';
 import type { CreditServiceEndpointConfig } from '@model/Config';
 import type { VonageEndpointConfig } from '@model/vendor/vonage/config';
@@ -105,7 +117,7 @@ export default class Processor {
           cause: result.error
         });
 
-        await this.publishLowCreditErrorEvent(event, result);
+        await this.publishInsufficientCreditErrorEvent(event, result);
         return error;
       })
       .with({ operationId: 'UnknownError' }, (result) => {
@@ -140,59 +152,36 @@ export default class Processor {
   ): Promise<void> {
     logger.info('Publishing an event indicating the attempt to send a message');
     const attemptSentEvent = match(event)
-      .with({ eventType: 'ActionableEventFound' }, (e) => ({
-        ...e,
-        eventType: 'ActionableEventReminderAttemptSent' as const,
-        data: {
-          ...e.data,
-          messageUUID
-        }
-      }))
-      .with({ eventType: 'DemoReminderToBeSent' }, (e) => ({
-        ...e,
-        eventType: 'DemoReminderToBeSentAttemptSent' as const,
-        data: {
-          ...e.data,
-          messageUUID
-        }
-      }))
+      .with({ eventType: 'ActionableEventFound' }, (e) =>
+        actionableEventReminderAttemptSent(e, messageUUID)
+      )
+      .with({ eventType: 'DemoReminderToBeSent' }, (e) =>
+        demoReminderToBeSentAttemptSent(e, messageUUID)
+      )
       .exhaustive();
     return this.snsService.safePublish<
       ActionableEventReminderAttemptSentEvent | DemoReminderToBeSentAttemptSentEvent
     >(attemptSentEvent);
   }
 
-  private publishLowCreditErrorEvent(
+  private publishInsufficientCreditErrorEvent(
     event: ActionableEventFoundEvent | DemoReminderToBeSentEvent,
-    creditError: CreditDeductionResult
+    creditError: CreditDeductionInsufficientCreditsError
   ): Promise<void> {
     logger.info(
-      'Publishing an event indicating a message could not be sent due to user low credits'
+      'Publishing an event indicating a message could not be sent due to user having insufficient credits'
     );
-    const lowCreditEvent = match(event)
-      .with({ eventType: 'ActionableEventFound' }, (e) => ({
-        ...e,
-        eventType: 'ActionableEventReminderLowCreditNotSent' as const,
-        data: {
-          originalEvent: {
-            ...e.data
-          },
-          error: creditError
-        }
-      }))
-      .with({ eventType: 'DemoReminderToBeSent' }, (e) => ({
-        ...e,
-        eventType: 'DemoReminderLowCreditNotSent' as const,
-        data: {
-          originalEvent: {
-            ...e.data
-          },
-          error: creditError
-        }
-      }))
+    const insufficientCreditEvent = match(event)
+      .with({ eventType: 'ActionableEventFound' }, (e) =>
+        actionableEventReminderInsufficientCreditNotSent(e, creditError)
+      )
+      .with({ eventType: 'DemoReminderToBeSent' }, (e) =>
+        demoReminderInsufficientCreditNotSent(e, creditError)
+      )
       .exhaustive();
     return this.snsService.safePublish<
-      ActionableEventReminderLowCreditNotSentEvent | DemoReminderLowCreditNotSentEventSchemaEvent
-    >(lowCreditEvent);
+      | ActionableEventReminderInsufficientCreditNotSentEvent
+      | DemoReminderInsufficientCreditNotSentEvent
+    >(insufficientCreditEvent);
   }
 }
