@@ -161,7 +161,7 @@ describe('GoogleOAuth Service verifyIdentity', () => {
     const getTokenFn = () => Promise.resolve(validGetTokenResponse);
     const verifyIdTokenFn = () => Promise.resolve(validVerifyIdTokenResponse);
 
-    await expect(
+    await expect(async () =>
       testIt(getTokenFn, verifyIdTokenFn, validUserId, 'http://foobar.com' as Url)
     ).rejects.toThrow('Invalid Google OAuth redirect_uri');
   });
