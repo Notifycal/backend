@@ -35,7 +35,7 @@ module "post_payment_session_lambda" {
     STRIPE_BEST_TIER_PRICE_ID   = var.subscription_tiers["best"].price_id
     STRIPE_SUCCESS_REDIRECT_URL = "${var.frontend_domain}/#/payment-success"
     STRIPE_CANCEL_REDIRECT_URL  = "${var.frontend_domain}/#/payment-cancel"
-  }, local.protected_endpoint_env_vars, local.common_lambda_env_vars)
+  }, local.protected_endpoint_env_vars, local.common_lambda_env_vars, local.common_api_lambda_env_vars)
 }
 
 module "post_payment_session_lambda_alias" {

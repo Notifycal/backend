@@ -68,9 +68,7 @@ module "post_login_lambda" {
   policies           = local.lambdas_shared_iam_policies
   number_of_policies = length(local.lambdas_shared_iam_policies)
 
-  environment_variables = merge({
-
-  }, local.login_and_refresh_env_vars, local.idps_configs_env_vars, local.api_rest_topic_env_vars, local.common_lambda_env_vars)
+  environment_variables = merge(local.login_and_refresh_env_vars, local.idps_configs_env_vars, local.api_rest_topic_env_vars, local.common_lambda_env_vars, local.common_api_lambda_env_vars)
 }
 
 module "post_login_lambda_alias" {

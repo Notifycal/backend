@@ -3,9 +3,11 @@ locals {
     # This is required for sourcemaps to work
     NODE_OPTIONS            = "--enable-source-maps"
     ENVIRONMENT             = var.environment
-    FRONTEND_DOMAIN         = var.frontend_domain
     APP_VERSION             = var.app_version
     AWS_LAMBDA_EXEC_WRAPPER = "/opt/otel-instrument"
+  }
+  common_api_lambda_env_vars = {
+    FRONTEND_DOMAIN = var.frontend_domain
   }
   users_persistance_env_vars = {
     USERS_TABLE_NAME = aws_dynamodb_table.users.name
@@ -23,7 +25,7 @@ locals {
     ACCESS_JWT_AUDIENCE   = var.jwt_config.access.audience
     ACCESS_JWT_EXPIRATION = var.jwt_config.access.expiration
   }
-  protected_endpoint_env_vars = merge(local.decode_access_jwt_env_vars, local.common_lambda_env_vars)
+  protected_endpoint_env_vars = local.decode_access_jwt_env_vars
 
   login_and_refresh_env_vars = merge({
     ACCESS_JWT_PRIVATE_KEY  = var.jwt_keys.access.private_key
@@ -63,7 +65,7 @@ locals {
     GOOGLE_OAUTH_CLIENT_SECRET       = var.google_oauth_config.client_secret
     GOOGLE_OAUTH_CLIENT_REDIRECT_URI = var.google_oauth_config.redirect_url
   }
-  idps_configs_env_vars = merge({}, local.google_idp_config_env_vars)
+  idps_configs_env_vars = local.google_idp_config_env_vars
 
   common_tags = {}
 
