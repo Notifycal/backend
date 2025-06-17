@@ -57,7 +57,7 @@ export interface EncodeJwtsEndpointConfig {
 export interface GoogleOAuthConfig {
   clientId: string;
   clientSecret: string;
-  redirectUri: string;
+  redirectUriList: Array<string>;
 }
 export type IdpConfigMap = {
   'google.com': GoogleOAuthConfig;

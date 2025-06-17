@@ -188,7 +188,10 @@ export function readIdpConfigs(env: Environment): IdpEndpointConfig {
       'google.com': {
         clientId: env.get('GOOGLE_OAUTH_CLIENT_ID').required().asString(),
         clientSecret: env.get('GOOGLE_OAUTH_CLIENT_SECRET').required().asString(),
-        redirectUri: env.get('GOOGLE_OAUTH_CLIENT_REDIRECT_URI').required().asString()
+        redirectUriList: env
+          .get('GOOGLE_OAUTH_CLIENT_REDIRECT_URI_LIST')
+          .required()
+          .asJsonArray() as Array<Url>
       }
     }
   };

@@ -33,7 +33,7 @@ export const fakeIdpConfigs: IdpConfigs = {
   'google.com': {
     clientId: 'some_valid_google_app_url',
     clientSecret: 'some_valid_secret',
-    redirectUri: 'http://localhost:5173'
+    redirectUriList: ['http://localhost:5173']
   }
 };
 
@@ -150,7 +150,9 @@ export function setEnvIdpConfigs(configs: IdpConfigs): void {
       .with('google.com', (idp) => {
         process.env.GOOGLE_OAUTH_CLIENT_ID = configs[idp].clientId;
         process.env.GOOGLE_OAUTH_CLIENT_SECRET = configs[idp].clientSecret;
-        process.env.GOOGLE_OAUTH_CLIENT_REDIRECT_URI = configs[idp].redirectUri;
+        process.env.GOOGLE_OAUTH_CLIENT_REDIRECT_URI_LIST = JSON.stringify(
+          configs[idp].redirectUriList
+        );
       })
       .otherwise((v) => {
         throw new Error(`Environment could not be set for all Idps. Missing idp: ${v}`);

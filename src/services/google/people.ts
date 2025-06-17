@@ -9,7 +9,7 @@ import { BaseGoogle } from './base-service';
 
 export class GooglePeople extends BaseGoogle {
   public static withRefreshToken(config: GoogleOAuthConfig, refreshToken: string): GooglePeople {
-    return new this(config, refreshToken);
+    return new this(config, { refreshToken });
   }
 
   public getPhoneNumbersBy(email: Email): Promise<Array<PhoneNumberE164>> {

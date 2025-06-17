@@ -7,8 +7,8 @@ import { withIntegrationMetrics } from '@services/observability/metrics';
 import { BaseGoogle } from './base-service';
 
 export class GoogleOAuth extends BaseGoogle {
-  public static withConfig(config: GoogleOAuthConfig): GoogleOAuth {
-    return new this(config);
+  public static withConfig(config: GoogleOAuthConfig, originHeaderValue: string): GoogleOAuth {
+    return new this(config, { originHeaderValue });
   }
 
   public verifyIdentity<TIdpName extends 'google.com'>(

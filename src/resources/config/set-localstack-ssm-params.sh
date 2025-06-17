@@ -47,5 +47,5 @@ put_ssm_parameter "$key_stack_prefix/refresh-jwt-expiration" "$REFRESH_JWT_EXPIR
 put_ssm_parameter "$key_env_prefix/providers/google/oauth/client-id" "$GOOGLE_OAUTH_CLIENT_ID" "String"
 # Although, this one isn't defined in $ENV_FILE it will pick it up from your workstation - in case you have it defined
 put_ssm_parameter "$key_env_prefix/providers/google/oauth/client-secret" "$GOOGLE_OAUTH_CLIENT_SECRET" "SecureString"
-put_ssm_parameter "$key_env_prefix/providers/google/oauth/redirect-url" "$GOOGLE_OAUTH_CLIENT_REDIRECT_URI" "String"
+put_ssm_parameter "$key_env_prefix/providers/google/oauth/redirect-url" "$GOOGLE_OAUTH_CLIENT_REDIRECT_URI_LIST" "String"
 put_ssm_parameter "$key_stack_prefix/refresh-jwt-public-key" "$REFRESH_JWT_PUBLIC_KEY" "SecureString"

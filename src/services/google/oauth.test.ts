@@ -15,7 +15,7 @@ import { GoogleOAuth } from './oauth';
 const validConfig = {
   clientId: 'valid-client-id',
   clientSecret: 'valid-client-secret',
-  redirectUri: 'http://localhost/callback'
+  redirectUriList: ['http://localhost/callback']
 };
 
 const validGoogleCode = 'valid-google-code';
@@ -155,6 +155,8 @@ describe('GoogleOAuth Service verifyIdentity', () => {
 
     await expect(testIt(getTokenFn, verifyIdTokenFn)).rejects.toThrow('Failed to verify token');
   });
+
+  it.todo('should throw an error if the origin header is not an allowed redirect_uri');
 });
 
 function testIt(
@@ -172,5 +174,7 @@ function testIt(
   } as unknown as OAuth2Client);
   vi.mock('@services/id-generator');
   vi.mocked(idGenerator).mockReturnValue(mockIdGenerated);
-  return GoogleOAuth.withConfig(validConfig).verifyIdentity(validGoogleCode);
+  return GoogleOAuth.withConfig(validConfig, 'http://localhost/callback').verifyIdentity(
+    validGoogleCode
+  );
 }
