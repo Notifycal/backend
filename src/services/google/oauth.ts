@@ -1,13 +1,14 @@
 import type { GoogleOAuthConfig } from '@model/Config';
 import type { AuthorizationForIdp } from '@model/IdpAuthorization';
 import type { Email, Identity, IdpId } from '@notifycal/shared/types';
+import type { Url } from '@own-types/model';
 import { throwError } from '@services/common/error-handling';
 import { idGenerator } from '@services/id-generator';
 import { withIntegrationMetrics } from '@services/observability/metrics';
 import { BaseGoogle } from './base-service';
 
 export class GoogleOAuth extends BaseGoogle {
-  public static withConfig(config: GoogleOAuthConfig, originHeaderValue: string): GoogleOAuth {
+  public static withConfig(config: GoogleOAuthConfig, originHeaderValue: Url): GoogleOAuth {
     return new this(config, { originHeaderValue });
   }
 

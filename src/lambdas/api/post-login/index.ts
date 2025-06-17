@@ -5,6 +5,7 @@ import type { IdpConfigs } from '@model/Config';
 import type { AuthorizationForIdp } from '@model/IdpAuthorization';
 import { apiEventSchema } from '@model/lambda-events/ApiGatewayEvents';
 import type { Identity, IdpName } from '@notifycal/shared/types';
+import type { Url } from '@own-types/model';
 import { _successHandler, signInOrUp } from '@services/auth';
 import { errorHandler } from '@services/common/api-response-handlers';
 import { GoogleOAuth } from '@services/google/oauth';
@@ -35,7 +36,7 @@ function verifyIdentity(
     idpQueryParameter === 'google.com' &&
     event.headers?.origin
   ) {
-    return GoogleOAuth.withConfig(config['google.com'], event.headers.origin).verifyIdentity(
+    return GoogleOAuth.withConfig(config['google.com'], event.headers.origin as Url).verifyIdentity(
       event.body.googleCode
     );
   }

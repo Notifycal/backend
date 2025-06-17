@@ -1,6 +1,7 @@
 /* eslint-disable camelcase */
 import type { AuthorizationForIdp } from '@model/IdpAuthorization';
 import type { Identity, Uuid } from '@notifycal/shared/types';
+import type { Url } from '@own-types/model';
 import {
   type Credentials,
   type LoginTicket,
@@ -156,13 +157,21 @@ describe('GoogleOAuth Service verifyIdentity', () => {
     await expect(testIt(getTokenFn, verifyIdTokenFn)).rejects.toThrow('Failed to verify token');
   });
 
-  it.todo('should throw an error if the origin header is not an allowed redirect_uri');
+  it('should throw an error if the origin header is not an allowed redirect_uri', async () => {
+    const getTokenFn = () => Promise.resolve(validGetTokenResponse);
+    const verifyIdTokenFn = () => Promise.resolve(validVerifyIdTokenResponse);
+
+    await expect(
+      testIt(getTokenFn, verifyIdTokenFn, validUserId, 'http://foobar.com' as Url)
+    ).rejects.toThrow('Invalid Google OAuth redirect_uri');
+  });
 });
 
 function testIt(
   getTokenFn: () => Promise<GetTokenResponse>,
   verifyIdTokenFn: () => Promise<Omit<LoginTicket, 'getEnvelope' | 'getAttributes'>>,
-  mockIdGenerated: Uuid = validUserId
+  mockIdGenerated: Uuid = validUserId,
+  originHeaderValue: Url = 'http://localhost/callback' as Url
 ): Promise<[Identity<'google.com'>, AuthorizationForIdp<'google.com'>]> {
   vi.mock('google-auth-library');
   vi.mocked(OAuth2Client).mockReturnValue({
@@ -174,7 +183,5 @@ function testIt(
   } as unknown as OAuth2Client);
   vi.mock('@services/id-generator');
   vi.mocked(idGenerator).mockReturnValue(mockIdGenerated);
-  return GoogleOAuth.withConfig(validConfig, 'http://localhost/callback').verifyIdentity(
-    validGoogleCode
-  );
+  return GoogleOAuth.withConfig(validConfig, originHeaderValue).verifyIdentity(validGoogleCode);
 }
