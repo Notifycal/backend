@@ -15,7 +15,7 @@ resource "aws_sns_topic" "topic" {
   sqs_success_feedback_role_arn    = var.sns_feedback_iam_role_arn
   sqs_success_feedback_sample_rate = 100
 
-  tags = merge({}, var.tags)
+  tags = var.tags
 }
 
 resource "aws_sns_topic_subscription" "topic_subscriptions" {

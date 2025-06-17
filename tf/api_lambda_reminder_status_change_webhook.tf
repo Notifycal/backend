@@ -51,7 +51,7 @@ module "event_reminder_status_change_webhook_lambda" {
     VONAGE_WEBHOOK_JWT_SIGNING_SECRET = var.vonage_auth_config.webhook_jwt_signing_secret
     VONAGE_JWT_ALGORITHM              = "HS256"
     VONAGE_JWT_ISSUER                 = "Vonage"
-  }, local.messaging_topic_env_vars, local.common_lambda_env_vars)
+  }, local.messaging_topic_env_vars, local.common_lambda_env_vars, local.common_api_lambda_env_vars)
 }
 
 module "event_reminder_status_change_webhook_lambda_alias" {

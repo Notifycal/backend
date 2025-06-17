@@ -45,8 +45,7 @@ module "get_idp_user_calendars_lambda" {
   policies           = local.lambdas_shared_iam_policies
   number_of_policies = length(local.lambdas_shared_iam_policies)
 
-  environment_variables = merge({
-  }, local.protected_endpoint_env_vars, local.idps_configs_env_vars, local.users_persistance_env_vars)
+  environment_variables = merge(local.protected_endpoint_env_vars, local.idps_configs_env_vars, local.users_persistance_env_vars, local.common_lambda_env_vars, local.common_api_lambda_env_vars)
 }
 
 module "get_idp_user_calendars_lambda_alias" {
