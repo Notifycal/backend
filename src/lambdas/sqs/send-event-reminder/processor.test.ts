@@ -239,7 +239,7 @@ describe('Messaging processor', () => {
       const result = testIt(validEvent, sendMessageSpy, safePublishSpy, deductCreditsFn, true);
 
       await expect(result).rejects.toThrow(
-        'A message could not be sent due to an issue while deducting the credits'
+        'A message could not be sent due to insufficient credits'
       );
       expect(sendMessageSpy).not.toHaveBeenCalled();
       expect(safePublishSpy).toHaveBeenCalledWith({
@@ -267,19 +267,10 @@ describe('Messaging processor', () => {
       const result = testIt(validEvent, sendMessageSpy, safePublishSpy, deductCreditsFn, true);
 
       await expect(result).rejects.toThrow(
-        'A message could not be sent due to an issue while deducting the credits'
+        'A message could not be sent due to an unknown issue while deducting the credits'
       );
       expect(sendMessageSpy).not.toHaveBeenCalled();
-      expect(safePublishSpy).toHaveBeenCalledWith({
-        ...validEvent,
-        eventType: 'ActionableEventReminderLowCreditNotSent',
-        data: {
-          originalEvent: {
-            ...validEvent.data
-          },
-          error: creditOperationResult
-        }
-      });
+      expect(safePublishSpy).not.toHaveBeenCalled();
     });
 
     function testIt(
