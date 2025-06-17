@@ -51,7 +51,7 @@ describe(SubscriptionService, () => {
 
       const result = testCreateSubscription(addCreditsFn, validUserId, validBestTier);
 
-      await expect(result).resolves.toBeUndefined();
+      await expect(result).resolves.toStrictEqual(validSuccessResult);
       expect(addCreditsFn).toHaveBeenCalledWith(validUserId, 1000);
     });
 
@@ -60,7 +60,7 @@ describe(SubscriptionService, () => {
 
       const result = testCreateSubscription(addCreditsFn, validUserId, validBestTier);
 
-      await expect(result).resolves.toBeUndefined();
+      await expect(result).resolves.toStrictEqual(validErrorResult);
     });
 
     it('should passthrough credits service rejection', async () => {
@@ -92,7 +92,7 @@ describe(SubscriptionService, () => {
       userId: UserId = validUserId,
       tier: TierId = validGoodTier,
       tierToCreditsMap = validTierToCreditsMap
-    ): Promise<void> {
+    ): Promise<CreditAdditionResult> {
       const creditsServiceMock = {
         addCredits: addCreditsFn
       } as unknown as CreditsService<IdpName>;
@@ -133,7 +133,7 @@ describe(SubscriptionService, () => {
 
       const result = testRenewSubscription(addCreditsFn, validUserId, validBestTier);
 
-      await expect(result).resolves.toBeUndefined();
+      await expect(result).resolves.toStrictEqual(validErrorResult);
     });
 
     it('should handle credits service rejection', async () => {
@@ -165,7 +165,7 @@ describe(SubscriptionService, () => {
       userId: UserId = validUserId,
       tier: TierId = validGoodTier,
       tierToCreditsMap = validTierToCreditsMap
-    ): Promise<void> {
+    ): Promise<CreditAdditionResult> {
       const creditsServiceMock = {
         addCredits: addCreditsFn
       } as unknown as CreditsService<IdpName>;

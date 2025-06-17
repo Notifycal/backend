@@ -1,9 +1,11 @@
+/* eslint-disable camelcase */
 import type { Logger } from '@aws-lambda-powertools/logger';
 import type { TierId, Tiers } from '@model/PaymentPlans';
 import type { Identity, IdpName } from '@notifycal/shared/types';
-import { throwError } from '@services/common/error-handling';
+import type { CreditAdditionResult } from '@services/credits-service';
+import type { SubscriptionService } from '@services/subscription-service';
 import type Stripe from 'stripe';
-import type { SubscriptionService } from '../../../../services/subscription-service';
+import { match } from 'ts-pattern';
 import type { EventHandler } from './common';
 
 export class InvoiceCreatedHandler implements EventHandler<Stripe.InvoiceCreatedEvent> {
@@ -21,7 +23,9 @@ export class InvoiceCreatedHandler implements EventHandler<Stripe.InvoiceCreated
   }
 }
 
-export class InvoicePaymentSucceededHandler implements EventHandler<Stripe.InvoicePaymentSucceededEvent> {
+export class InvoicePaymentSucceededHandler
+  implements EventHandler<Stripe.InvoicePaymentSucceededEvent>
+{
   public constructor(
     private readonly logger: Logger,
     private readonly subscriptionService: SubscriptionService<IdpName>,
@@ -41,28 +45,45 @@ export class InvoicePaymentSucceededHandler implements EventHandler<Stripe.Invoi
       userId: identity.userId
     });
 
-    const tierId = this.extractTier(invoice, this.tiers);
-
-    if (invoice.billing_reason === 'subscription_create') {
-      return this.subscriptionService.createSubscription(identity.userId, tierId);
-    } else if (invoice.billing_reason === 'subscription_cycle') {
-      return this.subscriptionService.renewSubscription(identity.userId, tierId);
-    } else {
-      this.logger.error('Unhandled billing reason for invoice payment succeeded', {
-        invoiceId: invoice.id,
-        billingReason: invoice.billing_reason
-      });
-      throwError('Unhandled billing reason');
-    }
+    return this.extractTier(invoice, this.tiers).then((tierId) =>
+      match(invoice)
+        .with({ billing_reason: 'subscription_create' }, () =>
+          this.subscriptionService
+            .createSubscription(identity.userId, tierId)
+            .then((r) => this.subscriptionHandler(r))
+        )
+        .with({ billing_reason: 'subscription_cycle' }, () =>
+          this.subscriptionService
+            .renewSubscription(identity.userId, tierId)
+            .then((r) => this.subscriptionHandler(r))
+        )
+        .otherwise((invoice) => {
+          this.logger.warn('Unhandled billing reason', {
+            invoiceId: invoice.id,
+            billingReason: invoice.billing_reason
+          });
+          return Promise.resolve();
+        })
+    );
   }
 
-  private extractTier(invoice: Stripe.Invoice, tiers: Tiers): TierId {
+  private subscriptionHandler(result: CreditAdditionResult): Promise<void> {
+    return (
+      match(result)
+        .with({ operationId: 'Success' }, () => Promise.resolve())
+        // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
+        .with({ operationId: 'UnknownError' }, (r) => Promise.reject(r.error))
+        .exhaustive()
+    );
+  }
+
+  private extractTier(invoice: Stripe.Invoice, tiers: Tiers): Promise<TierId> {
     const priceId = invoice.lines.data[0].pricing?.price_details?.price;
     const tier = Object.values(tiers).find((tier) => tier.priceId === priceId);
     if (!tier) {
-      throw new Error(`Unknown price ID: ${priceId}. No matching tier found.`);
+      return Promise.reject(new Error(`Unknown price ID: ${priceId}. No matching tier found.`));
     }
-    return tier.id;
+    return Promise.resolve(tier.id);
   }
 }
 

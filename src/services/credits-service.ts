@@ -23,8 +23,16 @@ export type CreditDeductionResult =
   | CreditDeductionInsufficientCreditsError
   | CreditDeductionUnexpectedError;
 
-export type CreditAdditionUnexpectedError = CreditDeductionUnexpectedError;
-export type CreditAdditionSuccess = CreditDeductionResult;
+export interface CreditAdditionSuccess {
+  readonly success: true;
+  readonly operationId: 'Success';
+  subscriptionCreditBalance: number;
+}
+export interface CreditAdditionUnexpectedError {
+  readonly success: false;
+  readonly operationId: 'UnknownError';
+  error: unknown;
+}
 
 export type CreditAdditionResult = CreditAdditionSuccess | CreditAdditionUnexpectedError;
 

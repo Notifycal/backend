@@ -7,11 +7,11 @@ import type { Stripe } from 'stripe';
 import { v4 } from 'uuid';
 import { describe, expect, it, vi } from 'vitest';
 import type { StripeWebhookConfig } from './config';
-import { GenericEventProcessor } from './generic-event-processor';
 import { defaultEventHandlers, recordProcessor } from './record-processor';
 import type { Record } from './schema';
+import { StripeEventProcessor } from './stripe-event-processor';
 
-vi.mock('./generic-event-processor');
+vi.mock('./stripe-event-processor');
 
 describe(recordProcessor, () => {
   const validMetadata: Stripe.Metadata = {
@@ -69,7 +69,7 @@ describe(recordProcessor, () => {
     }
   };
 
-  it('should process an stripe event event successfully', () => {
+  it('should process an stripe event event successfully', async () => {
     const processFn = vi.fn().mockResolvedValue(undefined);
 
     const result = testIt(
@@ -79,11 +79,11 @@ describe(recordProcessor, () => {
       validConfig
     );
 
-    expect(result).resolves.toBeUndefined();
+    await expect(result).resolves.toBeUndefined();
     expect(processFn).toHaveBeenCalledWith(validStripeEventBridgeEvent.detail);
   });
 
-  it('should use custom event handlers when provided', () => {
+  it('should use custom event handlers when provided', async () => {
     const processFn = vi.fn().mockResolvedValue(undefined);
     const customEventHandlerFactory = vi.fn().mockReturnValue(new Map());
 
@@ -94,23 +94,8 @@ describe(recordProcessor, () => {
       validConfig
     );
 
-    expect(result).resolves.toBeUndefined();
+    await expect(result).resolves.toBeUndefined();
     expect(customEventHandlerFactory).toHaveBeenCalledOnce();
-    expect(processFn).toHaveBeenCalledWith(validStripeEventBridgeEvent.detail);
-  });
-
-  it('should stop errors from propagating to avoid double processing', () => {
-    const error = new Error('Unhandled error from event handlers. This should never happen');
-    const processFn = vi.fn().mockRejectedValue(error);
-
-    const result = testIt(
-      validStripeEventBridgeEvent,
-      defaultEventHandlers,
-      processFn,
-      validConfig
-    );
-
-    expect(result).resolves.toBeUndefined();
     expect(processFn).toHaveBeenCalledWith(validStripeEventBridgeEvent.detail);
   });
 
@@ -121,9 +106,8 @@ describe(recordProcessor, () => {
     config: StripeWebhookConfig = validConfig
   ): Promise<void> {
     // eslint-disable-next-line @typescript-eslint/unbound-method
-    vi.mocked(GenericEventProcessor.prototype.process).mockImplementation(processFn);
+    vi.mocked(StripeEventProcessor.prototype.process).mockImplementation(processFn);
 
     return recordProcessor(record, eventHandlersFn, config, logger);
   }
 });
-

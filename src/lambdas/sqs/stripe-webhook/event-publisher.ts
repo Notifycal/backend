@@ -12,6 +12,6 @@ export class StripeEventPublisher implements EventPublisher<Stripe.Event> {
 
   public async publish(event: Stripe.Event, identity: Identity<IdpName>): Promise<void> {
     const notifycalEvent = fromStripeEvent(event, identity.userId, identity.idp, identity.idpId);
-    await this.snsService.publish(notifycalEvent);
+    await this.snsService.safePublish(notifycalEvent);
   }
 }

@@ -40,9 +40,9 @@ describe(StripeEventPublisher, () => {
   } as unknown as PaymentWebhookFiredEvent;
 
   it('should create a publisher that transforms and publishes events', async () => {
-    const publishFn = vi.fn().mockResolvedValue(undefined);
+    const safePublishFn = vi.fn().mockResolvedValue(undefined);
     const snsServiceMock = {
-      publish: publishFn
+      safePublish: safePublishFn
     } as unknown as SnsService;
 
     vi.mocked(fromStripeEvent).mockReturnValue(mockNotifycalEvent);
@@ -52,15 +52,15 @@ describe(StripeEventPublisher, () => {
     expect(fromStripeEvent).toHaveBeenCalledTimes(1);
     expect(fromStripeEvent).toHaveBeenCalledWith(validEvent, 'user-123', 'google', 'google-id-123');
 
-    expect(publishFn).toHaveBeenCalledTimes(1);
-    expect(publishFn).toHaveBeenCalledWith(mockNotifycalEvent);
+    expect(safePublishFn).toHaveBeenCalledTimes(1);
+    expect(safePublishFn).toHaveBeenCalledWith(mockNotifycalEvent);
   });
 
   it('should propagate errors from SNS publish', async () => {
     const publishError = new Error('SNS publish failed');
-    const publishFn = vi.fn().mockRejectedValue(publishError);
+    const safePublishFn = vi.fn().mockRejectedValue(publishError);
     const snsServiceMock = {
-      publish: publishFn
+      safePublish: safePublishFn
     } as unknown as SnsService;
 
     vi.mocked(fromStripeEvent).mockReturnValue(mockNotifycalEvent);
