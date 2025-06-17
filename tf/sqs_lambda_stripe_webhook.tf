@@ -70,6 +70,5 @@ module "stripe_webhook_lambda" {
     }
   }
 
-  environment_variables = merge({
-  }, local.common_lambda_env_vars)
+  environment_variables = local.common_lambda_env_vars
 }
