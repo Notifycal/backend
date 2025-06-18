@@ -13,8 +13,8 @@
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 5.100.0 |
-| <a name="provider_awscc"></a> [awscc](#provider\_awscc) | 1.45.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 5.86 |
+| <a name="provider_awscc"></a> [awscc](#provider\_awscc) | ~> 1.28 |
 
 ## Modules
 
