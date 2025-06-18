@@ -88,13 +88,13 @@ describe(SubscriptionService, () => {
     });
 
     function testCreateSubscription(
-      addCreditsFn: () => Promise<CreditAdditionResult>,
+      resetSubscriptionCreditsFn: () => Promise<CreditAdditionResult>,
       userId: UserId = validUserId,
       tier: TierId = validGoodTier,
       tierToCreditsMap = validTierToCreditsMap
     ): Promise<CreditAdditionResult> {
       const creditsServiceMock = {
-        addCredits: addCreditsFn
+        resetSubscriptionCredits: resetSubscriptionCreditsFn
       } as unknown as CreditsService<IdpName>;
 
       const subscriptionService = new SubscriptionService(creditsServiceMock, tierToCreditsMap);
@@ -161,13 +161,13 @@ describe(SubscriptionService, () => {
     });
 
     function testRenewSubscription(
-      addCreditsFn: () => Promise<CreditAdditionResult>,
+      resetSubscriptionCreditsFn: () => Promise<CreditAdditionResult>,
       userId: UserId = validUserId,
       tier: TierId = validGoodTier,
       tierToCreditsMap = validTierToCreditsMap
     ): Promise<CreditAdditionResult> {
       const creditsServiceMock = {
-        addCredits: addCreditsFn
+        resetSubscriptionCredits: resetSubscriptionCreditsFn
       } as unknown as CreditsService<IdpName>;
 
       const subscriptionService = new SubscriptionService(creditsServiceMock, tierToCreditsMap);

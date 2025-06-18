@@ -78,8 +78,8 @@ export class CreditsService<TIdpName extends IdpName> {
     );
   }
 
-  public addCredits(userId: UserId, credits: number): Promise<CreditAdditionResult> {
-    return this.userStore.addCredits(userId, credits).then(
+  public resetSubscriptionCredits(userId: UserId, credits: number): Promise<CreditAdditionResult> {
+    return this.userStore.resetSubscriptionCredits(userId, credits).then(
       (user) => {
         const creditDeductionOperation: CreditAdditionSuccess = {
           success: true,

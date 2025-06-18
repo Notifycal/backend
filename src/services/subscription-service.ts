@@ -10,11 +10,11 @@ export class SubscriptionService<TIdpName extends IdpName> {
 
   public async createSubscription(userId: UserId, tier: TierId): Promise<CreditAdditionResult> {
     const credits = this.tierToCreditsMap[tier];
-    return this.creditsService.addCredits(userId, credits);
+    return this.creditsService.resetSubscriptionCredits(userId, credits);
   }
 
   public async renewSubscription(userId: UserId, tier: TierId): Promise<CreditAdditionResult> {
     const credits = this.tierToCreditsMap[tier];
-    return this.creditsService.addCredits(userId, credits);
+    return this.creditsService.resetSubscriptionCredits(userId, credits);
   }
 }
