@@ -7,11 +7,11 @@ import {
 import {
   actionableEventReminderInsufficientCreditNotSent,
   type ActionableEventReminderInsufficientCreditNotSentEvent
-} from '@model/app-events/ActionableEventReminderLowCreditNotSentEvent';
+} from '@model/app-events/ActionableEventReminderInsufficientCreditNotSentEvent';
 import {
   demoReminderInsufficientCreditNotSent,
   type DemoReminderInsufficientCreditNotSentEvent
-} from '@model/app-events/DemoReminderLowBalandeNotSentEvent';
+} from '@model/app-events/DemoReminderInsufficientCreditNotSentEvent';
 import {
   demoReminderToBeSentAttemptSent,
   type DemoReminderToBeSentAttemptSentEvent
