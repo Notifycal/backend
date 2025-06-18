@@ -37,7 +37,3 @@ export type EmailInlineAttachementBase64 = Brand<string, 'EmailInlineAttachement
 export type EmailAttachmentName = Brand<string, 'EmailAttachmentName'>;
 
 export type ContentType = Brand<string, 'ContentType'>;
-
-export type CapitalizeFirst<T extends string> = T extends `${infer First}${infer Rest}`
-  ? `${Uppercase<First>}${Rest}`
-  : T;
