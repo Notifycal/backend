@@ -23,7 +23,7 @@ import {
 } from '@testing/utils/config';
 import { getDefaultDecodeAccessJwtConfig } from '@testing/utils/jwt';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import { describe, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { z } from 'zod';
 import type { PatchUserProfileConfig } from './config';
 // @ts-expect-error cjs handler export
@@ -82,10 +82,50 @@ describe('PATCH User profile', () => {
       accessTokenSchema,
       validAccessToken
     )) as unknown as APIGatewayProxyEvent;
-    const updateUserFn = () => Promise.resolve(null);
+    const updateUserFn = vi.fn().mockResolvedValue(null);
 
     return testit(event, updateUserFn).then((resp) => {
       assert(resp, responseSuccess(undefined, 204));
+
+      expect(updateUserFn).toHaveBeenCalledWith(
+        validAccessToken.userId,
+        'unsubscribed',
+        expect.objectContaining({
+          Business: {
+            Name: 'someBusinessName' as BusinessName,
+            Address: 'someBusinessAddress' as BusinessAddress,
+            SenderContact: {
+              Type: 'phone',
+              CountryCode: 'ES',
+              PhoneNumber: '666888999' as PhoneNumber
+            },
+            Language: 'en',
+            CompanyIndustry: {
+              Category: 'category',
+              Subcategory: 'subcategory',
+              CustomIndustry: 'custom'
+            },
+            CompanySize: 'freelancer'
+          },
+          Confirmation: {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            TermsAccepted: expect.any(String),
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            PrivacyAccepted: expect.any(String),
+            MarketingOptInAccepted: undefined
+          },
+          Calendars: [
+            {
+              Id: 'aCalendarId' as CalendarId,
+              Name: 'aCalendarName' as CalendarName,
+              Template: {
+                Id: templateMap['formal-en-01'].id,
+                Language: templateMap['formal-en-01'].language
+              }
+            }
+          ]
+        })
+      );
     });
   });
 
@@ -107,10 +147,12 @@ describe('PATCH User profile', () => {
       accessTokenSchema,
       validAccessToken
     )) as unknown as APIGatewayProxyEvent;
-    const updateUserFn = () => Promise.resolve(null);
+    const updateUserFn = vi.fn();
 
     return testit(event, updateUserFn).then((resp) => {
       assert(resp, responseError(400));
+
+      expect(updateUserFn).not.toHaveBeenCalled();
     });
   });
 
@@ -133,19 +175,23 @@ describe('PATCH User profile', () => {
       accessTokenSchema,
       validAccessToken
     )) as unknown as APIGatewayProxyEvent;
-    const updateUserFn = () => Promise.resolve(null);
+    const updateUserFn = vi.fn();
 
     return testit(event, updateUserFn).then((resp) => {
       assert(resp, responseError(400));
+
+      expect(updateUserFn).not.toHaveBeenCalled();
     });
   });
 
   it('fail to return a user with 401 if no authorization present', async () => {
     const event = testEvent({}, {}) as unknown as APIGatewayProxyEvent;
-    const updateUserFn = () => Promise.resolve(null);
+    const updateUserFn = vi.fn();
 
     return testit(event, updateUserFn).then((resp) => {
       assert(resp, responseError(401));
+
+      expect(updateUserFn).not.toHaveBeenCalled();
     });
   });
 
@@ -156,10 +202,12 @@ describe('PATCH User profile', () => {
       accessTokenSchema,
       validAccessToken
     )) as unknown as APIGatewayProxyEvent;
-    const updateUserFn = () => Promise.reject(new Error('Boom!'));
+    const updateUserFn = vi.fn().mockRejectedValue(new Error('Boom!'));
 
     return testit(event, updateUserFn).then((resp) => {
       assert(resp, responseError(500));
+
+      expect(updateUserFn).toHaveBeenCalledOnce();
     });
   });
 });

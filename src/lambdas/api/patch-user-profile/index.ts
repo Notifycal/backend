@@ -33,7 +33,7 @@ function lambdaHandler(
   const userProvider = UserBaseStore.withConfig(config.userBaseStoreConfig);
   const userId = event.requestContext.authorizer.payload.userId;
   return userProvider
-    .updateUser(userId, 'live', toStoreRecord(body))
+    .updateUser(userId, 'unsubscribed', toStoreRecord(body))
     .then(() => successHandler(204)(), errorHandler(500));
 }
 

@@ -26,8 +26,9 @@ describe(CreditsService, () => {
   describe('deductCredits', () => {
     it('should successfully deduct credits and return success result with balance', async () => {
       const deductCreditsFn = vi.fn().mockResolvedValue(validUserWithCredits);
+      const updateStatusFn = vi.fn();
 
-      const result = await testDeductCredits(deductCreditsFn);
+      const result = await testDeductCredits(deductCreditsFn, updateStatusFn);
 
       expect(deductCreditsFn).toHaveBeenCalledTimes(1);
       expect(deductCreditsFn).toHaveBeenCalledWith(validUserId, 10);
@@ -36,6 +37,7 @@ describe(CreditsService, () => {
         operationId: 'Success',
         subscriptionCreditBalance: 150
       });
+      expect(updateStatusFn).not.toHaveBeenCalled();
     });
 
     it('should handle insufficient credits error', async () => {
@@ -45,9 +47,11 @@ describe(CreditsService, () => {
         'Not enough credits'
       );
       const deductCreditsFn = vi.fn().mockRejectedValue(insufficientCreditsError);
+      const updateStatusFn = vi.fn().mockResolvedValue(undefined);
 
-      const result = await testDeductCredits(deductCreditsFn);
+      const result = await testDeductCredits(deductCreditsFn, updateStatusFn);
 
+      expect(updateStatusFn).toHaveBeenCalledWith(validUserId, 'out-of-credits');
       expect(result).toStrictEqual({
         success: false,
         operationId: 'InsufficientCredits',
@@ -58,9 +62,11 @@ describe(CreditsService, () => {
     it('should handle unexpected errors', async () => {
       const unexpectedError = new Error('Database connection failed');
       const deductCreditsFn = vi.fn().mockRejectedValue(unexpectedError);
+      const updateStatusFn = vi.fn();
 
-      const result = await testDeductCredits(deductCreditsFn);
+      const result = await testDeductCredits(deductCreditsFn, updateStatusFn);
 
+      expect(updateStatusFn).not.toHaveBeenCalled();
       expect(result).toStrictEqual({
         success: false,
         operationId: 'UnknownError',
@@ -71,13 +77,15 @@ describe(CreditsService, () => {
 
   function testDeductCredits(
     deductCreditsFn: () => Promise<CreditDeductionResult>,
+    updateStatusFn: () => Promise<void>,
     userId: UserId = validUserId,
     units: number = validUnits,
     country: 'ES' = validCountry,
     countryToSMSCostCreditsMap = validCountryToSMSCostCreditsMap
   ): Promise<CreditDeductionResult> {
     const userStoreMock = {
-      deductCredits: deductCreditsFn
+      deductCredits: deductCreditsFn,
+      updateStatus: updateStatusFn
     } as unknown as UserBaseStore<IdpName>;
 
     const creditsService = new CreditsService(userStoreMock);
@@ -87,8 +95,9 @@ describe(CreditsService, () => {
   describe('addCredits', () => {
     it('should successfully add credits and return success result with balance', async () => {
       const addCreditsFn = vi.fn().mockResolvedValue(validUserWithCredits);
+      const updateStatusFn = vi.fn().mockResolvedValue(undefined);
 
-      const result = await testAddCredits(addCreditsFn);
+      const result = await testAddCredits(addCreditsFn, updateStatusFn);
 
       expect(addCreditsFn).toHaveBeenCalledTimes(1);
       expect(addCreditsFn).toHaveBeenCalledWith(validUserId, validCreditsToAdd);
@@ -97,14 +106,17 @@ describe(CreditsService, () => {
         operationId: 'Success',
         subscriptionCreditBalance: 150
       });
+      expect(updateStatusFn).toHaveBeenCalledWith(validUserId, 'live');
     });
 
     it('should handle unexpected errors during credit addition', async () => {
       const unexpectedError = new Error('Database write failed');
       const addCreditsFn = vi.fn().mockRejectedValue(unexpectedError);
+      const updateStatusFn = vi.fn();
 
-      const result = await testAddCredits(addCreditsFn);
+      const result = await testAddCredits(addCreditsFn, updateStatusFn);
 
+      expect(updateStatusFn).not.toHaveBeenCalled();
       expect(result).toStrictEqual({
         success: false,
         operationId: 'UnknownError',
@@ -114,11 +126,13 @@ describe(CreditsService, () => {
 
     function testAddCredits(
       addCreditsFn: () => Promise<CreditAdditionResult>,
+      updateStatusFn: () => Promise<void>,
       userId: UserId = validUserId,
       credits: number = validCreditsToAdd
     ): Promise<CreditAdditionResult> {
       const userStoreMock = {
-        addCredits: addCreditsFn
+        addCredits: addCreditsFn,
+        updateStatus: updateStatusFn
       } as unknown as UserBaseStore<IdpName>;
 
       const creditsService = new CreditsService(userStoreMock);

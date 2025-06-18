@@ -56,7 +56,7 @@ export class CreditsService<TIdpName extends IdpName> {
         };
         return creditDeductionOperation;
       },
-      (error: unknown) => {
+      async (error): Promise<CreditDeductionResult> => {
         return match(error)
           .with(P.instanceOf(InsufficientCreditsError), (insufficientError) => {
             const result: CreditDeductionInsufficientCreditsError = {
@@ -64,10 +64,10 @@ export class CreditsService<TIdpName extends IdpName> {
               operationId: 'InsufficientCredits',
               error: insufficientError
             };
-            return result;
+            return this.userStore.updateStatus(userId, 'out-of-credits').then(() => result);
           })
           .otherwise((unexpectedError) => {
-            const result: CreditAdditionUnexpectedError = {
+            const result: CreditDeductionUnexpectedError = {
               success: false,
               operationId: 'UnknownError',
               error: unexpectedError
@@ -86,7 +86,7 @@ export class CreditsService<TIdpName extends IdpName> {
           operationId: 'Success',
           subscriptionCreditBalance: user.UserCredits?.SubscriptionCreditBalance || 0
         };
-        return creditDeductionOperation;
+        return this.userStore.updateStatus(userId, 'live').then(() => creditDeductionOperation);
       },
       (error: unknown) => {
         const result: CreditAdditionUnexpectedError = {
