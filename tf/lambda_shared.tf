@@ -67,6 +67,10 @@ locals {
   }
   idps_configs_env_vars = local.google_idp_config_env_vars
 
+  payment_plans_env_vars = {
+    PAYMENT_PLANS = jsonencode(local.payment_plans)
+  }
+
   common_tags = {}
 
   # Timeout for API Lambdas. API Gateway will timeout after 30s in any case

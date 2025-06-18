@@ -23,7 +23,8 @@ describe(StripeService, () => {
   const validCancelUrl = 'https://example.com/cancel' as Url;
   const validTier: Tier = {
     id: 'good',
-    priceId: 'price_123456789'
+    priceId: 'price_123456789',
+    credits: 100
   };
   const validCheckoutUrl = 'https://checkout.stripe.com/pay/cs_test_123456789';
 
@@ -117,7 +118,8 @@ describe(StripeService, () => {
   it('should handle different tier configurations correctly', async () => {
     const betterTier: Tier = {
       id: 'better',
-      priceId: 'price_better_123'
+      priceId: 'price_better_123',
+      credits: 500
     };
     const mockSession = { url: validCheckoutUrl };
     const createSessionFn = vi.fn().mockResolvedValue(mockSession);

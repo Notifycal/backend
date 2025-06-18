@@ -2,6 +2,7 @@
 import { logger } from '@common/powertools';
 import type { Email, IdpId, UserId } from '@notifycal/shared/types';
 import type { AwsArn } from '@own-types/model';
+import { validPaymentPlans } from '@testing/data/pricing';
 import { validStripeEventBridgeEvent as _validStripeEventBridgeEvent } from '@testing/data/stripe-event-bridge-event';
 import type { Stripe } from 'stripe';
 import { v4 } from 'uuid';
@@ -48,22 +49,7 @@ describe(recordProcessor, () => {
     userBaseStoreConfig: {
       tableName: 'Users-local'
     },
-    paymentPlans: {
-      tiers: {
-        good: {
-          id: 'good',
-          priceId: 'wsdrvwefg'
-        },
-        better: {
-          id: 'better',
-          priceId: 'wsdrvwefg'
-        },
-        best: {
-          id: 'best',
-          priceId: 'wsdrvwefg'
-        }
-      }
-    },
+    paymentPlans: validPaymentPlans,
     paymentWebhookTopicConfig: {
       topicArn: 'payment-webhook-topic' as AwsArn
     }

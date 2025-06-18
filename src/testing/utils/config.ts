@@ -202,9 +202,7 @@ export function setEnvStripeCheckoutConfig(config: StripeCheckoutConfig): void {
 }
 
 export function setEnvPaymentPlansConfig(config: PaymentPlansConfig): void {
-  process.env.STRIPE_GOOD_TIER_PRICE_ID = config.tiers.good.priceId;
-  process.env.STRIPE_BETTER_TIER_PRICE_ID = config.tiers.better.priceId;
-  process.env.STRIPE_BEST_TIER_PRICE_ID = config.tiers.best.priceId;
+  process.env.PAYMENT_PLANS = JSON.stringify(config);
 }
 
 export function setEnvCreditServiceConfig(config: CreditServiceEndpointConfig): void {
