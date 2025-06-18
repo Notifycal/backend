@@ -7,18 +7,12 @@ import type {
   IdpName,
   UserId
 } from '@notifycal/shared/types';
-import type { CapitalizeFirst } from '@own-types/model';
 import { toPascalCase } from '@utils/case';
+import type { PascalCaseEventType } from '@utils/types';
 import type Stripe from 'stripe';
 import type { z } from 'zod';
 import type { baseEventSchema } from './BaseEvent';
 
-export type PascalCaseEventType<T extends string> =
-  T extends `${infer Part1}.${infer Part2}.${infer Part3}`
-    ? `${CapitalizeFirst<Part1>}${CapitalizeFirst<Part2>}Event${CapitalizeFirst<Part3>}`
-    : T extends `${infer Part1}.${infer Part2}`
-      ? `${CapitalizeFirst<Part1>}Event${CapitalizeFirst<Part2>}`
-      : T;
 type OurStripeEventType<T extends Stripe.Event['type']> = PascalCaseEventType<T>;
 
 export type PaymentWebhookFiredEvent = z.infer<typeof baseEventSchema>;
