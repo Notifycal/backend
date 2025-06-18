@@ -128,7 +128,7 @@ describe(SubscriptionService, () => {
       expect(addCreditsFn).toHaveBeenCalledWith(validUserId, 1000);
     });
 
-    it('should handle credits service error result as a success', async () => {
+    it('should passthough credits service error result as a success', async () => {
       const addCreditsFn = vi.fn().mockResolvedValue(validErrorResult);
 
       const result = testRenewSubscription(addCreditsFn, validUserId, validBestTier);
@@ -136,7 +136,7 @@ describe(SubscriptionService, () => {
       await expect(result).resolves.toStrictEqual(validErrorResult);
     });
 
-    it('should handle credits service rejection', async () => {
+    it('should passthrough credits service rejection', async () => {
       const addCreditsFn = vi.fn().mockRejectedValue(new Error('Database error'));
 
       await expect(testRenewSubscription(addCreditsFn)).rejects.toThrow('Database error');

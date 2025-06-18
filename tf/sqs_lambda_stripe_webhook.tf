@@ -12,6 +12,28 @@ data "aws_iam_policy_document" "stripe_webhook_iam_policydoc" {
       module.stripe_webhook_queue.sqs_queue_arn
     ]
   }
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "dynamodb:UpdateItem"
+    ]
+
+    resources = [
+      aws_dynamodb_table.users.arn
+    ]
+  }
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "sns:Publish",
+    ]
+
+    resources = [
+      module.payment_webhook_topic.sns_topic_arn
+    ]
+  }
 }
 
 module "stripe_webhook_lambda" {
@@ -74,5 +96,6 @@ module "stripe_webhook_lambda" {
     COUNTRY_CODE_TO_SMS_COST_MAP = jsonencode({
       ES = 7 //TODO: adjust for minimum smoke
     })
+    PAYMENT_WEBHOOK_TOPIC_ARN = module.payment_webhook_topic.sns_topic_arn
   }, local.common_lambda_env_vars, local.users_persistance_env_vars)
 }
