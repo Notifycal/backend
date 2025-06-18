@@ -61,9 +61,9 @@ locals {
   }
 
   google_idp_config_env_vars = {
-    GOOGLE_OAUTH_CLIENT_ID           = var.google_oauth_config.client_id
-    GOOGLE_OAUTH_CLIENT_SECRET       = var.google_oauth_config.client_secret
-    GOOGLE_OAUTH_CLIENT_REDIRECT_URI = var.google_oauth_config.redirect_url
+    GOOGLE_OAUTH_CLIENT_ID                = var.google_oauth_config.client_id
+    GOOGLE_OAUTH_CLIENT_SECRET            = var.google_oauth_config.client_secret
+    GOOGLE_OAUTH_CLIENT_REDIRECT_URI_LIST = jsonencode(var.google_oauth_config.redirect_url_list)
   }
   idps_configs_env_vars = local.google_idp_config_env_vars
 

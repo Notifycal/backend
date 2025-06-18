@@ -3,11 +3,22 @@ import type { GoogleOAuthConfig } from '@model/Config';
 import type { Gaxios, GaxiosInterceptor, GaxiosOptions, GaxiosResponse } from 'gaxios';
 import { OAuth2Client } from 'google-auth-library';
 
+type BaseGoogleOptions = {
+  refreshToken?: string;
+  originHeaderValue?: string;
+};
+
 export abstract class BaseGoogle {
   protected _client: OAuth2Client;
   protected _config: GoogleOAuthConfig;
-  protected constructor(config: GoogleOAuthConfig, refreshToken?: string) {
-    this._client = new OAuth2Client(config.clientId, config.clientSecret, config.redirectUri);
+  protected constructor(config: GoogleOAuthConfig, options: BaseGoogleOptions = {}) {
+    const { originHeaderValue, refreshToken } = options;
+
+    if (originHeaderValue && !config.redirectUriList.includes(originHeaderValue)) {
+      throw new Error('Invalid Google OAuth redirect_uri');
+    }
+
+    this._client = new OAuth2Client(config.clientId, config.clientSecret, originHeaderValue);
     this._config = config;
     if (refreshToken) {
       // eslint-disable-next-line camelcase

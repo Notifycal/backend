@@ -23,7 +23,7 @@ import { BaseGoogle } from './base-service';
 
 export class GoogleCalendar extends BaseGoogle {
   public static withRefreshToken(config: GoogleOAuthConfig, refreshToken: string): GoogleCalendar {
-    return new this(config, refreshToken);
+    return new this(config, { refreshToken });
   }
 
   public calendarList(): Promise<Array<Calendar>> {

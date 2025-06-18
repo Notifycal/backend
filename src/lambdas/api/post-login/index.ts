@@ -5,6 +5,7 @@ import type { IdpConfigs } from '@model/Config';
 import type { AuthorizationForIdp } from '@model/IdpAuthorization';
 import { apiEventSchema } from '@model/lambda-events/ApiGatewayEvents';
 import type { Identity, IdpName } from '@notifycal/shared/types';
+import type { Url } from '@own-types/model';
 import { _successHandler, signInOrUp } from '@services/auth';
 import { errorHandler } from '@services/common/api-response-handlers';
 import { GoogleOAuth } from '@services/google/oauth';
@@ -30,8 +31,14 @@ function verifyIdentity(
   idpQueryParameter: string | undefined,
   config: IdpConfigs
 ): Promise<[Identity<IdpName>, AuthorizationForIdp<IdpName>]> {
-  if (isValidIdpName(idpQueryParameter) && idpQueryParameter === 'google.com') {
-    return GoogleOAuth.withConfig(config['google.com']).verifyIdentity(event.body.googleCode);
+  if (
+    isValidIdpName(idpQueryParameter) &&
+    idpQueryParameter === 'google.com' &&
+    event.headers?.origin
+  ) {
+    return GoogleOAuth.withConfig(config['google.com'], event.headers.origin as Url).verifyIdentity(
+      event.body.googleCode
+    );
   }
   return Promise.reject(
     new Error(`Idp identity verification not implemented. Query parameter: ${idpQueryParameter}`)

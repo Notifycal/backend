@@ -63,9 +63,9 @@ variable "api_gateway_custom_domain_enabled" {
 
 variable "google_oauth_config" {
   type = object({
-    client_id     = string
-    client_secret = string
-    redirect_url  = string
+    client_id         = string
+    client_secret     = string
+    redirect_url_list = list(string)
   })
   sensitive = true
 }
