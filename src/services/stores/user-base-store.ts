@@ -177,16 +177,15 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
     );
   }
 
-  public async addCredits(
+  public async resetSubscriptionCredits(
     userId: UserId,
     amount: number
   ): Promise<Pick<UserStoreRecord<TIdpName>, 'UserCredits'>> {
     return this.updateCommandRunner({
       Key: { UserId: userId },
-      UpdateExpression: 'ADD Credits.subscriptionCreditBalance :amount SET UserStatus = :status',
+      UpdateExpression: 'SET Credits.subscriptionCreditBalance :amount',
       ExpressionAttributeValues: {
-        ':amount': amount,
-        ':status': 'live'
+        ':amount': amount
       }
     }).then((r) => this.handleSuccessfulUpdate(r));
   }

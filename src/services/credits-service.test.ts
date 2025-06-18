@@ -92,12 +92,12 @@ describe(CreditsService, () => {
     return creditsService.deductCredits(userId, units, country, countryToSMSCostCreditsMap);
   }
 
-  describe('addCredits', () => {
-    it('should successfully add credits and return success result with balance', async () => {
+  describe('resetSubscriptionCredits', () => {
+    it('should successfully reset credits and return success result with balance', async () => {
       const addCreditsFn = vi.fn().mockResolvedValue(validUserWithCredits);
       const updateStatusFn = vi.fn().mockResolvedValue(undefined);
 
-      const result = await testAddCredits(addCreditsFn, updateStatusFn);
+      const result = await testResetSubscriptionCredits(addCreditsFn, updateStatusFn);
 
       expect(addCreditsFn).toHaveBeenCalledTimes(1);
       expect(addCreditsFn).toHaveBeenCalledWith(validUserId, validCreditsToAdd);
@@ -109,12 +109,12 @@ describe(CreditsService, () => {
       expect(updateStatusFn).toHaveBeenCalledWith(validUserId, 'live');
     });
 
-    it('should handle unexpected errors during credit addition', async () => {
+    it('should handle unexpected errors during credit reset', async () => {
       const unexpectedError = new Error('Database write failed');
       const addCreditsFn = vi.fn().mockRejectedValue(unexpectedError);
       const updateStatusFn = vi.fn();
 
-      const result = await testAddCredits(addCreditsFn, updateStatusFn);
+      const result = await testResetSubscriptionCredits(addCreditsFn, updateStatusFn);
 
       expect(updateStatusFn).not.toHaveBeenCalled();
       expect(result).toStrictEqual({
@@ -124,19 +124,19 @@ describe(CreditsService, () => {
       });
     });
 
-    function testAddCredits(
-      addCreditsFn: () => Promise<CreditAdditionResult>,
+    function testResetSubscriptionCredits(
+      resetSubscriptionCreditsFn: () => Promise<CreditAdditionResult>,
       updateStatusFn: () => Promise<void>,
       userId: UserId = validUserId,
       credits: number = validCreditsToAdd
     ): Promise<CreditAdditionResult> {
       const userStoreMock = {
-        addCredits: addCreditsFn,
+        resetSubscriptionCredits: resetSubscriptionCreditsFn,
         updateStatus: updateStatusFn
       } as unknown as UserBaseStore<IdpName>;
 
       const creditsService = new CreditsService(userStoreMock);
-      return creditsService.addCredits(userId, credits);
+      return creditsService.resetSubscriptionCredits(userId, credits);
     }
   });
 });
