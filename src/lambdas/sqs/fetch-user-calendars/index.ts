@@ -95,6 +95,7 @@ function runDataFromConfig(config: CronRunConfig, event: Record['body']): CronRu
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function lambdaHandler(event: Event, context: Context): Promise<void> {
+  logger.info('Processing SQS message', { event });
   const { userLiveIndexStoreConfig, userCalendarFetchedTopicConfig, cronRunConfig } =
     event.lambdaConfig;
   const record = event.Records[0].body;

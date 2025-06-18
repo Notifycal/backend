@@ -1,4 +1,5 @@
 import { protectedEndpointMiddleware } from '@common/lambda-middleware';
+import { logger } from '@common/powertools';
 import { authedEventSchema } from '@model/lambda-events/ApiGatewayEvents';
 import { extractUser } from '@model/store/UserStoreRecord';
 import { errorHandler, successHandler } from '@services/common/api-response-handlers';
@@ -15,6 +16,7 @@ function lambdaHandler(
   /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
   ctx: Context
 ): Promise<APIGatewayProxyResult> {
+  logger.info('Lambda API event', { event });
   const config = event.lambdaConfig;
   const userProvider = UserBaseStore.withConfig(config.userBaseStoreConfig);
   const userId = event.requestContext.authorizer.payload.userId;

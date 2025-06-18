@@ -1,5 +1,6 @@
 import { JSONStringified } from '@aws-lambda-powertools/parser/helpers';
 import { protectedEndpointMiddleware } from '@common/lambda-middleware';
+import { logger } from '@common/powertools';
 import { authedEventSchema } from '@model/lambda-events/ApiGatewayEvents';
 import { toStoreRecord } from '@model/store/ReminderConfigStoreRecord';
 import { reminderConfigSchema } from '@notifycal/shared/types';
@@ -28,6 +29,7 @@ function lambdaHandler(
   /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
   ctx: Context
 ): Promise<APIGatewayProxyResult> {
+  logger.info('Lambda API event', { event });
   const config = event.lambdaConfig;
   const body = event.body;
   const userProvider = UserBaseStore.withConfig(config.userBaseStoreConfig);

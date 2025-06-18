@@ -1,6 +1,6 @@
 import { MetricUnit } from '@aws-lambda-powertools/metrics';
 import { protectedEndpointMiddleware } from '@common/lambda-middleware';
-import { metrics } from '@common/powertools';
+import { logger, metrics } from '@common/powertools';
 import { errorHandler, successHandler } from '@services/common/api-response-handlers';
 import type { MetricDimensions } from '@services/observability/metrics';
 import { StripeService } from '@services/stripe';
@@ -13,6 +13,7 @@ async function lambdaHandler(
   /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
   ctx: Context
 ): Promise<APIGatewayProxyResult> {
+  logger.info('Lambda API event', { event });
   const { userId, email } = event.requestContext.authorizer.payload;
   const apiKey = event.lambdaConfig.stripeAuthConfig.apiKey;
   const { successRedirectUrl, cancelRedirectUrl, tiers } = event.lambdaConfig.stripeCheckoutConfig;

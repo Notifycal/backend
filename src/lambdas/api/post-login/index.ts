@@ -50,6 +50,7 @@ function lambdaHandler(
   /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
   ctx: Context
 ): Promise<APIGatewayProxyResult> {
+  logger.info('Lambda API event', { event });
   const config = event.lambdaConfig;
   const idpQueryPath = event.queryStringParameters?.['idp'];
 
