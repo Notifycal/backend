@@ -139,6 +139,18 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
     }).then(() => null);
   }
 
+  public updateStatus(id: UserId, status: UserStatus): Promise<null> {
+    return this.updateCommandRunner({
+      Key: {
+        UserId: id
+      },
+      ExpressionAttributeValues: {
+        ':userStatus': status
+      },
+      UpdateExpression: 'set UserStatus = :userStatus'
+    }).then(() => null);
+  }
+
   public deductCredits(
     userId: UserId,
     amount: number
