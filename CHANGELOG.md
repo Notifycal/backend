@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.37.0](https://github.com/Notifycal/backend/compare/v0.36.3...v0.37.0) (2025-06-18)
+
+
+### Features
+
+* allow multiple Google OAuth redirect URIs (dev envs) ([#696](https://github.com/Notifycal/backend/issues/696)) ([cca2b47](https://github.com/Notifycal/backend/commit/cca2b47d2e5c0948c6089f76500036ca3a2999b7))
+
+
+### Bug Fixes
+
+* common lambda env vars ([#692](https://github.com/Notifycal/backend/issues/692)) ([b2dc6d5](https://github.com/Notifycal/backend/commit/b2dc6d543f56994a7e2b5b68803955bb787ba105))
+* **deps:** Update dependency @aws-sdk/client-sqs to v3.831.0 ([#694](https://github.com/Notifycal/backend/issues/694)) ([4ff22a6](https://github.com/Notifycal/backend/commit/4ff22a6a4d907c89f828e20f818ddf14354b718e))
+
 ## [0.36.3](https://github.com/Notifycal/backend/compare/v0.36.2...v0.36.3) (2025-06-17)
 
 
