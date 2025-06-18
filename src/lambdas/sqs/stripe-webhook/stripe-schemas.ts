@@ -2,21 +2,7 @@
 import type Stripe from 'stripe';
 import { z } from 'zod';
 
-type ValidateEventTypes<T extends ReadonlyArray<string>> = Stripe.Event['type'] extends T[number]
-  ? T
-  : T & {
-      ERROR: `Missing Stripe event types`;
-      MISSING: Exclude<Stripe.Event['type'], T[number]>;
-      HINT: 'Add the missing types to the array above';
-    };
-
-function createExhaustiveEventList<T extends ReadonlyArray<Stripe.Event['type']>>(
-  events: ValidateEventTypes<T>
-): T {
-  return events as T;
-}
-
-export const stripeEventTypes = createExhaustiveEventList([
+export const stripeEventTypes = [
   'account.application.authorized',
   'account.application.deauthorized',
   'account.external_account.created',
@@ -265,7 +251,7 @@ export const stripeEventTypes = createExhaustiveEventList([
   'treasury.received_credit.failed',
   'treasury.received_credit.succeeded',
   'treasury.received_debit.created'
-] as const);
+] as const satisfies ReadonlyArray<Stripe.Event['type']>;
 export const stripeEventTypeSchema = z.enum(stripeEventTypes);
 
 export const stripeEventBaseSchema = z
