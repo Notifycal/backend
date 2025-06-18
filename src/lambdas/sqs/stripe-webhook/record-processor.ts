@@ -1,5 +1,5 @@
 import type { Logger } from '@aws-lambda-powertools/logger';
-import type { Tiers } from '@model/PaymentPlans';
+import type { TierId, Tiers } from '@model/PaymentPlans';
 import type { IdpName } from '@notifycal/shared/types';
 import { CreditsService } from '@services/credits-service';
 import { SnsService } from '@services/sns';
@@ -75,11 +75,9 @@ export function recordProcessor(
   });
   const userStore = UserBaseStore.withConfig(config.userBaseStoreConfig);
   const creditsService = new CreditsService(userStore);
-  const tierToCreditsMap = {
-    good: 100,
-    better: 250,
-    best: 600
-  };
+  const tierToCreditsMap = Object.fromEntries(
+    Object.values(config.paymentPlans.tiers).map((value) => [value.id, value.credits])
+  ) as Record<TierId, number>;
   const subscriptionService = new SubscriptionService(creditsService, tierToCreditsMap);
   const snsService = SnsService.withConfig(config.paymentWebhookTopicConfig);
   const ourHandlers = eventHandlerFactory(subscriptionService, config.paymentPlans.tiers, logger);
