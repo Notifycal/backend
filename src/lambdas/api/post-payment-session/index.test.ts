@@ -5,6 +5,7 @@ import type { Email, UserId } from '@notifycal/shared/types';
 import type { Url } from '@own-types/model';
 import { StripeService } from '@services/stripe';
 import { testAuthedEvent } from '@testing/data/apigateway';
+import { validPaymentPlans } from '@testing/data/pricing';
 import { responseError, responseSuccess } from '@testing/utils/api-response-handlers';
 import { assert } from '@testing/utils/assertions';
 import {
@@ -184,22 +185,7 @@ const defaultConfig: PostPaymentCheckoutSessionConfig = {
     successRedirectUrl: 'http://localhost:3000/success' as Url,
     cancelRedirectUrl: 'http://localhost:3000/cancel' as Url
   },
-  paymentPlans: {
-    tiers: {
-      good: {
-        id: 'good',
-        priceId: 'price_123456789'
-      },
-      better: {
-        id: 'better',
-        priceId: 'price_123456999'
-      },
-      best: {
-        id: 'best',
-        priceId: 'price_999456789'
-      }
-    }
-  }
+  paymentPlans: validPaymentPlans
 };
 
 function setEnv(config: PostPaymentCheckoutSessionConfig) {

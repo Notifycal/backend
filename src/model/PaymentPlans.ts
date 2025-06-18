@@ -10,5 +10,6 @@ export type TierId = (typeof tierIds)[number];
 export interface Tier {
   id: TierId;
   priceId: string;
+  credits: number;
 }
 export type Tiers = Record<TierId, Tier>;

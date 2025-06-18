@@ -1,9 +1,10 @@
 /* eslint-disable camelcase */
 import type { Logger } from '@aws-lambda-powertools/logger';
-import type { TierId, Tiers } from '@model/PaymentPlans';
+import type { Tiers } from '@model/PaymentPlans';
 import type { Email, Identity, IdpId, IdpName, UserId } from '@notifycal/shared/types';
 import type { CreditAdditionResult } from '@services/credits-service';
 import type { SubscriptionService } from '@services/subscription-service';
+import { validPaymentPlans } from '@testing/data/pricing';
 import type Stripe from 'stripe';
 import { describe, expect, it, vi } from 'vitest';
 import { InvoicePaymentSucceededHandler } from './invoice';
@@ -16,20 +17,7 @@ describe(InvoicePaymentSucceededHandler, () => {
     idpId: '42524352354' as IdpId
   };
 
-  const validTiers: Tiers = {
-    good: {
-      id: 'tier-basic' as TierId,
-      priceId: 'price_basic_123'
-    },
-    better: {
-      id: 'tier-premium' as TierId,
-      priceId: 'price_premium_456'
-    },
-    best: {
-      id: 'tier-best' as TierId,
-      priceId: 'price_best_456'
-    }
-  };
+  const validTiers: Tiers = validPaymentPlans.tiers;
 
   const validInvoiceBase = {
     id: 'in_test123',
@@ -40,7 +28,7 @@ describe(InvoicePaymentSucceededHandler, () => {
         {
           pricing: {
             price_details: {
-              price: 'price_basic_123'
+              price: validTiers.good.priceId
             }
           }
         }
@@ -132,7 +120,7 @@ describe(InvoicePaymentSucceededHandler, () => {
       })
     );
     expect(createSubscriptionFn).toHaveBeenCalledTimes(1);
-    expect(createSubscriptionFn).toHaveBeenCalledWith(validIdentity.userId, 'tier-basic');
+    expect(createSubscriptionFn).toHaveBeenCalledWith(validIdentity.userId, validTiers.good.id);
     expect(renewSubscriptionFn).not.toHaveBeenCalled();
   });
 
@@ -156,7 +144,7 @@ describe(InvoicePaymentSucceededHandler, () => {
     );
 
     expect(renewSubscriptionFn).toHaveBeenCalledTimes(1);
-    expect(renewSubscriptionFn).toHaveBeenCalledWith(validIdentity.userId, 'tier-basic');
+    expect(renewSubscriptionFn).toHaveBeenCalledWith(validIdentity.userId, validTiers.good.id);
     expect(createSubscriptionFn).not.toHaveBeenCalled();
   });
 
@@ -172,7 +160,7 @@ describe(InvoicePaymentSucceededHandler, () => {
           {
             pricing: {
               price_details: {
-                price: 'price_premium_456'
+                price: validTiers.best.priceId
               }
             }
           }
@@ -194,7 +182,7 @@ describe(InvoicePaymentSucceededHandler, () => {
       validTiers
     );
 
-    expect(createSubscriptionFn).toHaveBeenCalledWith(validIdentity.userId, 'tier-premium');
+    expect(createSubscriptionFn).toHaveBeenCalledWith(validIdentity.userId, validTiers.best.id);
   });
 
   it('should handle unknown billing reason without throwing error', async () => {
