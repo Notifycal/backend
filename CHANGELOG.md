@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.37.1](https://github.com/Notifycal/backend/compare/v0.37.0...v0.37.1) (2025-06-19)
+
+
+### Bug Fixes
+
+* group API responses in component-definitions.yaml ([#702](https://github.com/Notifycal/backend/issues/702)) ([a533767](https://github.com/Notifycal/backend/commit/a5337674cc4c151f8d75f79318134484bd728ef7))
+
 ## [0.37.0](https://github.com/Notifycal/backend/compare/v0.36.3...v0.37.0) (2025-06-18)
 
 
