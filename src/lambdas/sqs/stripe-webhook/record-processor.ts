@@ -35,11 +35,12 @@ import type { StripeEventType } from './stripe-schemas';
 
 export function defaultEventHandlers(
   subscriptionService: SubscriptionService<IdpName>,
+  userBaseStore: UserBaseStore<IdpName>,
   tiers: Tiers,
   logger: Logger
 ): Map<StripeEventType, EventHandler<Stripe.Event>> {
   return new Map<StripeEventType, EventHandler<Stripe.Event>>([
-    ['customer.created', new CustomerCreatedHandler(logger)],
+    ['customer.created', new CustomerCreatedHandler(userBaseStore, logger)],
     ['customer.updated', new CustomerUpdatedHandler(logger)],
     ['customer.deleted', new CustomerDeletedHandler(logger)],
     ['customer.subscription.created', new SubscriptionCreatedHandler(logger)],
@@ -60,6 +61,7 @@ export function recordProcessor(
   record: EventBridgeEvent<StripeEventType, Stripe.Event>,
   eventHandlerFactory: (
     subscriptionService: SubscriptionService<IdpName>,
+    userBaseStore: UserBaseStore<IdpName>,
     tiers: Tiers,
     logger: Logger
   ) => Map<StripeEventType, EventHandler<Stripe.Event>> = defaultEventHandlers,
@@ -80,7 +82,12 @@ export function recordProcessor(
   ) as Record<TierId, number>;
   const subscriptionService = new SubscriptionService(creditsService, tierToCreditsMap);
   const snsService = SnsService.withConfig(config.paymentWebhookTopicConfig);
-  const ourHandlers = eventHandlerFactory(subscriptionService, config.paymentPlans.tiers, logger);
+  const ourHandlers = eventHandlerFactory(
+    subscriptionService,
+    userStore,
+    config.paymentPlans.tiers,
+    logger
+  );
   const processor = new StripeEventProcessor(
     new StripeIdentityExtractor(),
     ourHandlers,

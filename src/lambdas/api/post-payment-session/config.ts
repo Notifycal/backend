@@ -1,6 +1,11 @@
 import type { AuthedEndpointConfig, PaymentPlansEndpointConfig } from '@model/Config';
 import type { Environment, Url } from '@own-types/model';
-import { readAuthedEndpointConfig, readEnv, readPaymentPlans } from '@services/common/config';
+import {
+  readAuthedEndpointConfig,
+  readEnv,
+  readPaymentPlans,
+  readStripeAuthConfig
+} from '@services/common/config';
 import { promiseTry } from '@utils/promises';
 
 export interface StripeCheckoutConfig {
@@ -33,14 +38,6 @@ function readStripeConfig(env: Environment): StripeCheckoutEndpointConfig {
         .required()
         .asString() as Url,
       cancelRedirectUrlPath: env.get('STRIPE_CANCEL_REDIRECT_URL_PATH').required().asString() as Url
-    }
-  };
-}
-
-function readStripeAuthConfig(env: Environment): StripeAuthEndpointConfig {
-  return {
-    stripeAuthConfig: {
-      apiKey: env.get('STRIPE_API_KEY').required().asString()
     }
   };
 }

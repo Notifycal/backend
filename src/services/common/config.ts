@@ -1,3 +1,4 @@
+import type { StripeAuthEndpointConfig } from '@lambdas/api/post-payment-session/config';
 import type { AlertEndpointConfig } from '@lambdas/dynamodb-streams/alert-for-missing-phone-number/config';
 import type {
   ActionableEventFoundTopicConfig,
@@ -342,6 +343,14 @@ export function readAlertThresholdConfig(env: Environment): AlertEndpointConfig 
     },
     alertEmailConfig: {
       faqUrl: env.get('FAQ_URL').default('https://notifycal.com/faq').asUrlObject()
+    }
+  };
+}
+
+export function readStripeAuthConfig(env: Environment): StripeAuthEndpointConfig {
+  return {
+    stripeAuthConfig: {
+      apiKey: env.get('STRIPE_API_KEY').required().asString()
     }
   };
 }
