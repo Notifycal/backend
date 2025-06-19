@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.37.2](https://github.com/Notifycal/backend/compare/v0.37.1...v0.37.2) (2025-06-19)
+
+
+### Bug Fixes
+
+* logging parsed lambda event ([#706](https://github.com/Notifycal/backend/issues/706)) ([b6384d7](https://github.com/Notifycal/backend/commit/b6384d734a3221239b0e0fdbb16155bdb95518e8))
+* unset `AWS_LAMBDA_EXEC` when `var.observability` is null ([#704](https://github.com/Notifycal/backend/issues/704)) ([55ab368](https://github.com/Notifycal/backend/commit/55ab368eb38f7cdf5987fa5501855622fa706f19))
+
 ## [0.37.1](https://github.com/Notifycal/backend/compare/v0.37.0...v0.37.1) (2025-06-19)
 
 
