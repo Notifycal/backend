@@ -8,7 +8,7 @@ import type { APIGatewayProxyResult, Context } from 'aws-lambda';
 function configureMiddleware<TConfig extends CorsEndpointConfig>(
   request: Request<AuthedAPIEventWithConfig<TConfig>, APIGatewayProxyResult, Error, Context>
 ): MiddlewareObj {
-  const frontendDomain = request.event.lambdaConfig.corsConfig.frontendDomain;
+  const frontendDomain = request.event.lambdaConfig?.corsConfig?.frontendDomain || '';
   const options = {
     headers: 'GET,POST,OPTIONS,PUT,DELETE,PATCH',
     methods: 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token',

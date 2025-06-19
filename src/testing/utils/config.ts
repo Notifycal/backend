@@ -150,6 +150,10 @@ export function setEnvBaseConfig(config: CorsConfig): void {
   process.env.ALLOWED_DOMAINS = JSON.stringify([config.frontendDomain]);
 }
 
+export function setEnvBaseConfigMultipleDomains(config: Array<string>): void {
+  process.env.ALLOWED_DOMAINS = JSON.stringify(config);
+}
+
 export function setEnvIdpConfigs(configs: IdpConfigs): void {
   Object.keys(configs).forEach((idp) => {
     match(idp)

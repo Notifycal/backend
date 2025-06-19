@@ -1,5 +1,6 @@
 import type { MiddlewareObj, Request } from '@middy/core';
 
+import { CorsError } from '@model/Errors';
 import type { EventWithConfig } from '@model/lambda-events/Event';
 import type { ConfigReaderFn } from '@own-types/model';
 import { errorHandler } from '@services/common/api-response-handlers';
@@ -7,7 +8,7 @@ import type { Context } from 'aws-lambda';
 import type { SupportedEvents } from './lambda-middleware';
 import { logger } from './powertools';
 
-async function configReader<TRequest extends SupportedEvents, TConfig, TResult>(
+function configReader<TRequest extends SupportedEvents, TConfig, TResult>(
   request: Request<TRequest, TResult, Error, Context>,
   configReaderFn: ConfigReaderFn<TRequest, Promise<TConfig>>,
   isApiRequest: boolean = true
@@ -17,12 +18,20 @@ async function configReader<TRequest extends SupportedEvents, TConfig, TResult>(
       (request.event as EventWithConfig<TConfig>).lambdaConfig = config;
     },
     (error) => {
+      console.error('yeeeeeeee');
+      console.error(error);
       if (isApiRequest) {
-        return errorHandler(500)(`Endpoint config could not be loaded`, { error }) as TResult;
+        if (error instanceof CorsError) {
+          return errorHandler(403)('CORS error', { error }) as TResult;
+        } else {
+          return errorHandler(500)('Endpoint config could not be loaded', {
+            error
+          }) as TResult;
+        }
       } else {
-        const errorMsg = `Lambda config could not be loaded`;
+        const errorMsg = 'Lambda config could not be loaded';
         logger.error(errorMsg, { error });
-        return Promise.reject(new Error(errorMsg, { cause: error }));
+        throw new Error(errorMsg, { cause: error });
       }
     }
   );
