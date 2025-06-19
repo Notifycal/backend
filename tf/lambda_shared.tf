@@ -4,7 +4,7 @@ locals {
     NODE_OPTIONS            = "--enable-source-maps"
     ENVIRONMENT             = var.environment
     APP_VERSION             = var.app_version
-    AWS_LAMBDA_EXEC_WRAPPER = "/opt/otel-instrument"
+    AWS_LAMBDA_EXEC_WRAPPER = var.observability != null ? "/opt/otel-instrument" : null
   }
   common_api_lambda_env_vars = {
     FRONTEND_DOMAIN = var.frontend_domain
