@@ -24,7 +24,7 @@ function lambdaHandler(
 }
 
 const handler = protectedEndpointMiddleware(
-  () => readGetUserCalendarListConfig(),
+  readGetUserCalendarListConfig,
   eventSchema
 ).handler<Event>(lambdaHandler);
 

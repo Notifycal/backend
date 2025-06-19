@@ -5,7 +5,7 @@ locals {
   rendered_openapi_spec = templatefile("${path.root}/../dist/${var.openapi_spec_file}", {
     version     = var.app_version
     aws_region  = var.aws_region
-    cors_origin = var.frontend_domain
+    cors_origin = "*"
     lambda_functions = {
       post_login_arn              = module.post_login_lambda_alias.lambda_alias_arn
       post_refresh_arn            = module.post_refresh_lambda_alias.lambda_alias_arn

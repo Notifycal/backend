@@ -81,9 +81,8 @@ async function lambdaHandler(
     .catch(errorHandler(500));
 }
 
-const handler = protectedEndpointMiddleware(
-  () => readPostDemoReminderConfig(),
-  eventSchema
-).handler<Event>(lambdaHandler);
+const handler = protectedEndpointMiddleware(readPostDemoReminderConfig, eventSchema).handler<Event>(
+  lambdaHandler
+);
 
 module.exports = { handler };

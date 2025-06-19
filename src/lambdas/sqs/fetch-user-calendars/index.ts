@@ -18,7 +18,7 @@ import { setupLoggerCorrelationIdEventBridge } from '@services/common/logger';
 import { SnsService } from '@services/sns';
 import { UserLiveIndexStore } from '@services/stores/user-live-index-store';
 import { senderToCanonicalForm } from '@utils/phone';
-import type { Context } from 'aws-lambda';
+import type { Context, EventBridgeEvent } from 'aws-lambda';
 import { DateTime as DT } from 'luxon';
 import { match, P } from 'ts-pattern';
 import { v4 } from 'uuid';
@@ -147,10 +147,8 @@ async function lambdaHandler(event: Event, context: Context): Promise<void> {
     );
   }
 }
-const handler = backgroundProcessingMiddleware(
-  () => readFetchUserCalendarsConfig(),
-  eventSchema,
-  setupLoggerCorrelationIdEventBridge
-).handler<Event>(lambdaHandler);
+const handler = backgroundProcessingMiddleware(readFetchUserCalendarsConfig, eventSchema, (e) => {
+  setupLoggerCorrelationIdEventBridge(e as EventBridgeEvent<string, unknown>);
+}).handler<Event>(lambdaHandler);
 
 module.exports = { handler };

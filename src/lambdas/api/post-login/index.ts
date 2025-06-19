@@ -67,9 +67,8 @@ function lambdaHandler(
     .catch(errorHandler(401));
 }
 
-const handler = unprotectedCrossDomainEndpointMiddleware(
-  () => readLoginConfig(),
-  schema
-).handler<Event>(lambdaHandler);
+const handler = unprotectedCrossDomainEndpointMiddleware(readLoginConfig, schema).handler<Event>(
+  lambdaHandler
+);
 
 module.exports = { handler };

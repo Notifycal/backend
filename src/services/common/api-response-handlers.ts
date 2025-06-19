@@ -13,6 +13,22 @@ export function baseHeaders(): ResponseHeaders {
   };
 }
 
+export function validateRequestOriginDomain(
+  allowedDomains: Array<string>,
+  requestHeaders: Record<string, string | undefined>
+): string {
+  const origin = requestHeaders['origin'] || requestHeaders['Origin'];
+  if (!origin) {
+    throw new Error('Origin header is missing from the request');
+  }
+  if (!allowedDomains.includes(origin)) {
+    throw new Error(
+      `Origin '${origin}' is not in the list of allowed domains: ${allowedDomains.join(', ')}`
+    );
+  }
+  return origin;
+}
+
 export function headers(allowedOrigin: string): ResponseHeaders {
   return {
     ...baseHeaders(),

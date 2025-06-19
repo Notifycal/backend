@@ -21,7 +21,7 @@ import {
   setupLoggerForAuthedApiRequest
 } from '@services/common/logger';
 import { decodeAndVerifyJwtSignature } from '@services/jwt';
-import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
+import type { APIGatewayProxyEvent, EventBridgeEvent, SQSEvent } from 'aws-lambda';
 import type { z } from 'zod';
 import { configReaderMiddleware } from './config-reader-middleware';
 import { corsMiddleware } from './cors-middleware';
@@ -29,6 +29,8 @@ import { eventParserMiddleware } from './event-parser-middleware';
 import { checkClaims, jwtVerificationMiddleware } from './jwt-verification-middleware';
 import { metricsMiddleware } from './metrics-middleware';
 import { setupMiddleware } from './setup-middleware';
+
+export type SupportedEvents = APIGatewayProxyEvent | EventBridgeEvent<string, unknown> | SQSEvent;
 
 function baseMiddleware(): middy.MiddyfiedHandler {
   return middy({
@@ -39,46 +41,56 @@ function baseMiddleware(): middy.MiddyfiedHandler {
     .use(metricsMiddleware(metrics, { captureColdStartMetric: true }));
 }
 
-function baseConfigMiddleware<TConfig, TResult>(
-  configReaderFn: ConfigReaderFn<Promise<TConfig>>,
+function baseConfigMiddleware<TEvent extends SupportedEvents, TConfig>(
+  configReaderFn: ConfigReaderFn<TEvent, Promise<TConfig>>,
   isApiRequest: boolean
 ): middy.MiddyfiedHandler {
-  return baseMiddleware().use(
-    configReaderMiddleware<TConfig, TResult>(configReaderFn, isApiRequest)
-  );
+  return baseMiddleware().use(configReaderMiddleware(configReaderFn, isApiRequest));
 }
 
-export function backgroundProcessingMiddleware<TConfig, T extends z.AnyZodObject, TRequest>(
-  configReaderFn: ConfigReaderFn<Promise<TConfig>>,
-  eventSchema: T,
-  loggerSetup?: (req: TRequest) => void
+export function backgroundProcessingMiddleware<
+  TConfig,
+  TEventSchema extends z.AnyZodObject,
+  TEvent extends SupportedEvents
+>(
+  configReaderFn: ConfigReaderFn<TEvent, Promise<TConfig>>,
+  eventSchema: TEventSchema,
+  loggerSetup?: (event: TEvent) => void
 ): middy.MiddyfiedHandler {
   const apiRequest = false;
-  return baseConfigMiddleware(() => configReaderFn(), false)
+  return baseConfigMiddleware(configReaderFn, false)
     .use(setupMiddleware({ setupFn: loggerSetup }))
     .use(eventParserMiddleware(eventSchema, apiRequest))
-    .use(setupMiddleware<TRequest>({ setupFn: logEvent }));
+    .use(setupMiddleware({ setupFn: logEvent }));
 }
 
 const noOpMiddleware: MiddlewareObj = {
   before: () => {}
 };
 
-export function unprotectedEndpointMiddleware<TConfig, T extends z.AnyZodObject>(
-  configReaderFn: ConfigReaderFn<Promise<TConfig>>,
-  eventSchema: T,
+export function unprotectedEndpointMiddleware<
+  TEvent extends SupportedEvents,
+  TConfig,
+  TEventSchema extends z.AnyZodObject
+>(
+  configReaderFn: ConfigReaderFn<TEvent, Promise<TConfig>>,
+  eventSchema: TEventSchema,
   enableCors: boolean
 ): middy.MiddyfiedHandler {
-  return baseConfigMiddleware(() => configReaderFn(), true)
-    .use(setupMiddleware<APIGatewayProxyEvent>({ setupFn: setupLoggerCorrelationIdApi }))
+  return baseConfigMiddleware(configReaderFn, true)
+    .use(setupMiddleware({ setupFn: setupLoggerCorrelationIdApi }))
     .use(eventParserMiddleware(eventSchema, true))
     .use(enableCors ? corsMiddleware() : noOpMiddleware)
     .use(setupMiddleware({ setupFn: logEvent }));
 }
 
-export function unprotectedCrossDomainEndpointMiddleware<TConfig, T extends z.AnyZodObject>(
-  configReaderFn: ConfigReaderFn<Promise<TConfig>>,
-  eventSchema: T
+export function unprotectedCrossDomainEndpointMiddleware<
+  TEvent extends SupportedEvents,
+  TConfig,
+  TEventSchema extends z.AnyZodObject
+>(
+  configReaderFn: ConfigReaderFn<TEvent, Promise<TConfig>>,
+  eventSchema: TEventSchema
 ): middy.MiddyfiedHandler {
   const enableCors = true;
   return unprotectedEndpointMiddleware(configReaderFn, eventSchema, enableCors);
@@ -88,9 +100,10 @@ export function protectedEndpointMiddlewareCustom<
   TDecodeAccessJwtConfig,
   TConfig extends AuthedEndpointConfig<OptionalCorsEndpointConfig, TDecodeAccessJwtConfig>,
   TEventSchema extends z.AnyZodObject,
-  TAccessTokenSchema extends z.AnyZodObject
+  TAccessTokenSchema extends z.AnyZodObject,
+  TEvent extends SupportedEvents
 >(
-  configReaderFn: ConfigReaderFn<Promise<TConfig>>,
+  configReaderFn: ConfigReaderFn<TEvent, Promise<TConfig>>,
   eventSchema: TEventSchema,
   accessTokenSchema: TAccessTokenSchema,
   jwtDecoderAndSignatureVerifierFn: JwtDecoderAndSignatureVerifierFn<
@@ -101,8 +114,8 @@ export function protectedEndpointMiddlewareCustom<
   enableCors: boolean,
   loggerSetup: (req: z.infer<typeof accessTokenSchema>) => void
 ): middy.MiddyfiedHandler {
-  return baseConfigMiddleware(() => configReaderFn(), true)
-    .use(setupMiddleware<APIGatewayProxyEvent>({ setupFn: setupLoggerCorrelationIdApi }))
+  return baseConfigMiddleware(configReaderFn, true)
+    .use(setupMiddleware({ setupFn: setupLoggerCorrelationIdApi }))
     .use(
       jwtVerificationMiddleware(accessTokenSchema, jwtDecoderAndSignatureVerifierFn, claimCheckerFn)
     )
@@ -113,7 +126,7 @@ export function protectedEndpointMiddlewareCustom<
         }
       })
     )
-    .use(eventParserMiddleware<TConfig, TEventSchema, APIGatewayProxyResult>(eventSchema, true))
+    .use(eventParserMiddleware(eventSchema, true))
     .use(enableCors ? corsMiddleware() : noOpMiddleware)
     .use(setupMiddleware({ setupFn: logEvent }));
 }
@@ -121,9 +134,10 @@ export function protectedEndpointMiddlewareCustom<
 export function protectedEndpointMiddleware<
   TDecodeAccessJwtConfig extends DecodeAccessJwtConfig,
   TConfig extends AuthedEndpointConfig<CorsEndpointConfig, TDecodeAccessJwtConfig>,
-  TEventSchema extends z.AnyZodObject
+  TEventSchema extends z.AnyZodObject,
+  TEvent extends SupportedEvents
 >(
-  configReaderFn: ConfigReaderFn<Promise<TConfig>>,
+  configReaderFn: ConfigReaderFn<TEvent, Promise<TConfig>>,
   eventSchema: TEventSchema
 ): middy.MiddyfiedHandler {
   const enableCors = true;
@@ -131,7 +145,8 @@ export function protectedEndpointMiddleware<
     TDecodeAccessJwtConfig,
     AuthedEndpointConfig<CorsEndpointConfig, TDecodeAccessJwtConfig>,
     TEventSchema,
-    typeof accessTokenSchema
+    typeof accessTokenSchema,
+    TEvent
   >(
     configReaderFn,
     eventSchema,

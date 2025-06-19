@@ -7,7 +7,7 @@ locals {
     AWS_LAMBDA_EXEC_WRAPPER = var.observability != null ? "/opt/otel-instrument" : null
   }
   common_api_lambda_env_vars = {
-    FRONTEND_DOMAIN = var.frontend_domain
+    ALLOWED_DOMAINS = jsonencode(var.allowed_domains)
   }
   users_persistance_env_vars = {
     USERS_TABLE_NAME = aws_dynamodb_table.users.name

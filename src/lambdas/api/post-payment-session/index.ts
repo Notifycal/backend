@@ -47,7 +47,7 @@ async function lambdaHandler(
 }
 
 const handler = protectedEndpointMiddleware(
-  () => readPostPaymentCheckoutSessionConfig(),
+  readPostPaymentCheckoutSessionConfig,
   eventSchema
 ).handler<Event>(lambdaHandler);
 
