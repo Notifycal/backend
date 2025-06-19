@@ -59,3 +59,7 @@ export function setupLoggerCorrelationIdEventBridge(
     _logger.setCorrelationId(requestId);
   }
 }
+
+export function logEvent<TRequest>(event: TRequest, _logger: Logger = logger): void {
+  _logger.info('Lambda processing event', { event });
+}

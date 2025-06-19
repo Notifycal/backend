@@ -40,7 +40,6 @@ export function recordProcessorCurried(
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function lambdaHandler(event: Event, context: Context): Promise<PartialItemFailureResponse> {
-  logger.info(`Processing dynamoDb stream message in alert for missing phone number`, { event });
   return processPartialResponse(
     event,
     recordProcessorCurried(event.lambdaConfig),

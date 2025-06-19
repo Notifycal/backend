@@ -46,7 +46,6 @@ function lambdaHandler(
   event: Event,
   context: Context
 ): Promise<Uuid | 'MessageNotSentOutsideOfSpain'> {
-  logger.info(`Processing sqs message in third lambda`, { event });
   const config = event.lambdaConfig;
   const record = event.Records[0];
   setupLoggerForEventProcessing(record.body);

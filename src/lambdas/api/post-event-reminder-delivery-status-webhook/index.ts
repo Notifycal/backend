@@ -129,7 +129,6 @@ async function lambdaHandler(
   /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
   ctx: Context
 ): Promise<APIGatewayProxyResult> {
-  logger.info('Processing API call in messaging-webhook lambda', { event });
   const config = event.lambdaConfig;
   const snsService = SnsService.withConfig(config.messagingTopicConfig);
 
