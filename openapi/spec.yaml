@@ -117,16 +117,7 @@ paths:
       description: Returns the user profile of the caller
       tags: [user]
       responses:
-        '200':
-          description: 'OK'
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  result: { $ref: './component-definitions.yaml#/components/schemas/User' }
-                required: [result]
-                additionalProperties: false
+        '200': { $ref: './component-definitions.yaml#/components/responses/UserProfile' }
         '401': { $ref: './component-definitions.yaml#/components/responses/Unauthorised' }
         '404': { $ref: './component-definitions.yaml#/components/responses/NotFound' }
         '500': { $ref: './component-definitions.yaml#/components/responses/InternalServerError' }
@@ -144,8 +135,7 @@ paths:
             schema:
               $ref: './component-definitions.yaml#/components/schemas/ReminderConfig'
       responses:
-        '204':
-          description: 'No Content'
+        '204': { $ref: './component-definitions.yaml#/components/responses/Response204' }
         '400': { $ref: './component-definitions.yaml#/components/responses/BadRequest' }
         '401': { $ref: './component-definitions.yaml#/components/responses/Unauthorised' }
         '500': { $ref: './component-definitions.yaml#/components/responses/InternalServerError' }
@@ -162,16 +152,7 @@ paths:
       description: Returns the user calendar list of the caller from idp
       tags: [user, idp-proxy]
       responses:
-        '200':
-          description: 'OK'
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  result: { $ref: './component-definitions.yaml#/components/schemas/CalendarList' }
-                required: [result]
-                additionalProperties: false
+        '200': { $ref: './component-definitions.yaml#/components/responses/UserIdpCalendars' }
         '401': { $ref: './component-definitions.yaml#/components/responses/Unauthorised' }
         '500': { $ref: './component-definitions.yaml#/components/responses/InternalServerError' }
       x-amazon-apigateway-integration:
@@ -199,8 +180,7 @@ paths:
                   $ref: './component-definitions.yaml#/components/schemas/DateTime'
               additionalProperties: true
       responses:
-        '202':
-          description: 'Accepted'
+        '202': { $ref: './component-definitions.yaml#/components/responses/Response202' }
         '400': { $ref: './component-definitions.yaml#/components/responses/BadRequest' }
         '401': { $ref: './component-definitions.yaml#/components/responses/Unauthorised' }
         '500': { $ref: './component-definitions.yaml#/components/responses/InternalServerError' }

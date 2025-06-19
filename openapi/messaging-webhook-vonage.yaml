@@ -18,8 +18,7 @@ paths:
               $ref: '#/components/schemas/MessageDeliveryWebhookPayload'
 
       responses:
-        '200':
-          description: 'OK'
+        '200': { $ref: './component-definitions.yaml#/components/responses/Response200' }
         '401': { $ref: './component-definitions.yaml#/components/responses/Unauthorised' }
         '404': { $ref: './component-definitions.yaml#/components/responses/NotFound' }
         '500': { $ref: './component-definitions.yaml#/components/responses/InternalServerError' }
