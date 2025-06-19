@@ -30,7 +30,6 @@ function setupLogger(record: Record): void {
 }
 
 function lambdaHandler(event: Event, context: Context): Promise<EmailSendSuccessResponse> {
-  logger.info(`Processing sqs message in email lambda`, { event });
   const config = event.lambdaConfig;
   const record = event.Records[0];
   setupLogger(record);

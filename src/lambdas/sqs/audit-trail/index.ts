@@ -20,7 +20,6 @@ export function recordProcessorCurried(
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function lambdaHandler(event: Event, context: Context): Promise<PartialItemFailureResponse> {
-  logger.info(`Processing sqs message in audit trail lambda`, { event });
   return processPartialResponse(
     event,
     recordProcessorCurried(event.lambdaConfig),

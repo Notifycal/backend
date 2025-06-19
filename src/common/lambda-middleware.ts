@@ -16,6 +16,7 @@ import type {
   JwtDecoderAndSignatureVerifierFn
 } from '@own-types/model';
 import {
+  logEvent,
   setupLoggerCorrelationIdApi,
   setupLoggerForAuthedApiRequest
 } from '@services/common/logger';
@@ -55,7 +56,8 @@ export function backgroundProcessingMiddleware<TConfig, T extends z.AnyZodObject
   const apiRequest = false;
   return baseConfigMiddleware(() => configReaderFn(), false)
     .use(setupMiddleware({ setupFn: loggerSetup }))
-    .use(eventParserMiddleware(eventSchema, apiRequest));
+    .use(eventParserMiddleware(eventSchema, apiRequest))
+    .use(setupMiddleware<TRequest>({ setupFn: logEvent }));
 }
 
 const noOpMiddleware: MiddlewareObj = {
@@ -70,7 +72,8 @@ export function unprotectedEndpointMiddleware<TConfig, T extends z.AnyZodObject>
   return baseConfigMiddleware(() => configReaderFn(), true)
     .use(setupMiddleware<APIGatewayProxyEvent>({ setupFn: setupLoggerCorrelationIdApi }))
     .use(eventParserMiddleware(eventSchema, true))
-    .use(enableCors ? corsMiddleware() : noOpMiddleware);
+    .use(enableCors ? corsMiddleware() : noOpMiddleware)
+    .use(setupMiddleware({ setupFn: logEvent }));
 }
 
 export function unprotectedCrossDomainEndpointMiddleware<TConfig, T extends z.AnyZodObject>(
@@ -111,7 +114,8 @@ export function protectedEndpointMiddlewareCustom<
       })
     )
     .use(eventParserMiddleware<TConfig, TEventSchema, APIGatewayProxyResult>(eventSchema, true))
-    .use(enableCors ? corsMiddleware() : noOpMiddleware);
+    .use(enableCors ? corsMiddleware() : noOpMiddleware)
+    .use(setupMiddleware({ setupFn: logEvent }));
 }
 
 export function protectedEndpointMiddleware<
