@@ -15,11 +15,11 @@ async function lambdaHandler(
 ): Promise<APIGatewayProxyResult> {
   const { userId, idp, idpId, email } = event.requestContext.authorizer.payload;
   const identity = { userId, idp, idpId, email };
-  const apiKey = event.lambdaConfig.stripeAuthConfig.apiKey;
-  const { successRedirectUrl, cancelRedirectUrl } = event.lambdaConfig.stripeCheckoutConfig;
-  const { tiers } = event.lambdaConfig.paymentPlans;
+  const { stripeAuthConfig, stripeCheckoutConfig, paymentPlans } = event.lambdaConfig;
+  const apiKey = stripeAuthConfig.apiKey;
+  const { successRedirectUrl, cancelRedirectUrl } = stripeCheckoutConfig;
   const { tier, language } = event.body;
-  const selectedTier = tiers[tier];
+  const selectedTier = paymentPlans.tiers[tier];
 
   const dimensions: MetricDimensions = {
     tier: selectedTier.id,

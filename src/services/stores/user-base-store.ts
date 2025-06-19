@@ -4,7 +4,13 @@ import type { AuthorizationForIdp } from '@model/IdpAuthorization';
 import type { ReminderConfigStoreRecord } from '@model/store/ReminderConfigStoreRecord';
 import type { UserIdpAuthorizationStoreRecord } from '@model/store/UserIdpAuthorizationStoreRecord';
 import type { UserStoreRecord } from '@model/store/UserStoreRecord';
-import type { IdpName, LanguageCode, UserId, UserStatus } from '@notifycal/shared/types';
+import type {
+  IdpName,
+  LanguageCode,
+  StripeCustomerId,
+  UserId,
+  UserStatus
+} from '@notifycal/shared/types';
 import { throwError } from '@services/common/error-handling';
 import { BaseStore, type BaseStoreConfig } from '../common/base-store';
 
@@ -31,7 +37,8 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
       'LastSignInAt',
       'SignedUpAt',
       'UserStatus',
-      'Config'
+      'Config',
+      'StripeCustomerId'
     ];
     const queryCmdInput = {
       KeyConditionExpression: 'UserId = :id',
@@ -97,6 +104,10 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
       .then((result) => result?.Config);
   }
 
+  public getStripeCustomerId(userId: UserId): Promise<StripeCustomerId | undefined> {
+    return this.getUserById(userId).then((user) => (user ? user.StripeCustomerId : undefined));
+  }
+
   // This will makes sense in terms of cost until row exceed 4KB - this is due to DynamoDb billing rules
   public getEmailAndLanguageById(
     userId: UserId
@@ -136,6 +147,18 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
         ':config': config
       },
       UpdateExpression: 'set UserStatus = :userStatus, Config = :config'
+    }).then(() => null);
+  }
+
+  public updateStripeCustomerId(id: UserId, stripeCustomerId: StripeCustomerId): Promise<null> {
+    return this.updateCommandRunner({
+      Key: {
+        UserId: id
+      },
+      ExpressionAttributeValues: {
+        ':stripeCustomerId': stripeCustomerId
+      },
+      UpdateExpression: 'set StripeCustomerId = :stripeCustomerId'
     }).then(() => null);
   }
 

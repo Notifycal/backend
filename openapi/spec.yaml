@@ -216,6 +216,9 @@ paths:
   /api/v1/payment-session:
     $ref: './payments-stripe.yaml#/paths/~1api~1v1~1payment-session'
 
+  /api/v1/customer-portal-session:
+    $ref: './payments-stripe.yaml#/paths/~1api~1v1~1customer-portal-session'
+
 tags:
   - name: user
     description: user operations

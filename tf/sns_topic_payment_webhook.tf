@@ -1,4 +1,4 @@
-module "messaging_topic" {
+module "payment_webhook_topic" {
   source             = "./modules/sns"
   topic_name         = "payment-webhook-${var.environment}"
   topic_display_name = "Payment Webhook ${var.environment}"

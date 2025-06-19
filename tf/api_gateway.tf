@@ -7,14 +7,15 @@ locals {
     aws_region  = var.aws_region
     cors_origin = var.frontend_domain
     lambda_functions = {
-      post_login_arn              = module.post_login_lambda_alias.lambda_alias_arn
-      post_refresh_arn            = module.post_refresh_lambda_alias.lambda_alias_arn
-      get_user_profile_arn        = module.get_user_profile_lambda_alias.lambda_alias_arn
-      patch_user_profile_arn      = module.patch_user_profile_lambda_alias.lambda_alias_arn
-      get_idp_user_calendars_arn  = module.get_idp_user_calendars_lambda_alias.lambda_alias_arn
-      post_demo_reminder_arn      = module.post_demo_reminder_lambda_alias.lambda_alias_arn
-      webhook_reminder_status_arn = module.event_reminder_status_change_webhook_lambda_alias.lambda_alias_arn
-      post_payment_session_arn    = module.post_payment_session_lambda_alias.lambda_alias_arn
+      post_login_arn                   = module.post_login_lambda_alias.lambda_alias_arn
+      post_refresh_arn                 = module.post_refresh_lambda_alias.lambda_alias_arn
+      get_user_profile_arn             = module.get_user_profile_lambda_alias.lambda_alias_arn
+      patch_user_profile_arn           = module.patch_user_profile_lambda_alias.lambda_alias_arn
+      get_idp_user_calendars_arn       = module.get_idp_user_calendars_lambda_alias.lambda_alias_arn
+      post_demo_reminder_arn           = module.post_demo_reminder_lambda_alias.lambda_alias_arn
+      webhook_reminder_status_arn      = module.event_reminder_status_change_webhook_lambda_alias.lambda_alias_arn
+      post_payment_session_arn         = module.post_payment_session_lambda_alias.lambda_alias_arn
+      post_customer_portal_session_arn = module.post_customer_portal_session_lambda_alias.lambda_alias_arn
     }
   })
 }
