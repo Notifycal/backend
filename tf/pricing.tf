@@ -1,27 +1,20 @@
-//TODO: adjust for minimum smoke
 locals {
-  payment_plans = {
-    tiers = {
-      good = {
-        id      = "good"
-        priceId = var.subscription_tiers["good"].price_id
-        credits = 100
-      },
-      better = {
-        id : "better"
-        priceId = var.subscription_tiers["better"].price_id
-        credits = 350
-      },
-      best = {
-        id      = "best"
-        priceId = var.subscription_tiers["best"].price_id
-        credits = 1000
-      }
-    }
-  }
-
-
   country_to_sms_cost_map = {
     ES = 1.3
+  }
+  credits_per_tier = {
+    good   = 100
+    better = 350
+    best   = 1000
+  }
+  payment_plans = {
+    tiers = {
+      for tier, data in var.subscription_tiers :
+      tier => {
+        id      = tier
+        priceId = data.price_id
+        credits = local.credits_per_tier[tier]
+      }
+    }
   }
 }
