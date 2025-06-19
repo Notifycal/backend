@@ -89,7 +89,7 @@ describe('PATCH User profile', () => {
 
       expect(updateUserFn).toHaveBeenCalledWith(
         validAccessToken.userId,
-        'unsubscribed',
+        'demo',
         expect.objectContaining({
           Business: {
             Name: 'someBusinessName' as BusinessName,
