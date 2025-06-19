@@ -23,25 +23,6 @@ servers:
         enum:
           - v1
 
-x-amazon-apigateway-gateway-responses:
-  DEFAULT_4XX:
-    responseParameters:
-      gatewayresponse.header.Access-Control-Allow-Origin: "'${cors_origin}'"
-      gatewayresponse.header.Access-Control-Allow-Methods: "'GET,POST,OPTIONS,PUT,DELETE,PATCH'"
-      gatewayresponse.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
-    responseTemplates:
-      application/json: '{"message":"Client Error"}'
-    statusCode: 400
-
-  DEFAULT_5XX:
-    responseParameters:
-      gatewayresponse.header.Access-Control-Allow-Origin: "'${cors_origin}'"
-      gatewayresponse.header.Access-Control-Allow-Methods: "'GET,POST,OPTIONS,PUT,DELETE,PATCH'"
-      gatewayresponse.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
-    responseTemplates:
-      application/json: '{"message":"Server Error"}'
-    statusCode: 500
-
 paths:
   /api/v1/login:
     post:
