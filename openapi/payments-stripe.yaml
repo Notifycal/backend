@@ -26,19 +26,7 @@ paths:
                     - best
               additionalProperties: false
       responses:
-        '200':
-          description: 'OK'
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  url:
-                    type: string
-                    format: url
-                    description: The returned URL by payment provider. Either a success redirect URL or a cancel URL.
-                required: [result]
-                additionalProperties: false
+        '200': { $ref: './component-definitions.yaml#/components/responses/PaymentSessionResult' }
         '401': { $ref: './component-definitions.yaml#/components/responses/Unauthorised' }
         '500': { $ref: './component-definitions.yaml#/components/responses/InternalServerError' }
       x-amazon-apigateway-integration:

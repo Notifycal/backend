@@ -100,9 +100,9 @@ components:
       description: Data containing user choice to send reminder
       properties:
         business:
-          $ref: './component-definitions.yaml#/components/schemas/BusinessWithContact'
+          $ref: '#/components/schemas/BusinessWithContact'
         calendars:
-          $ref: './component-definitions.yaml#/components/schemas/CalendarListWithTemplateSelection'
+          $ref: '#/components/schemas/CalendarListWithTemplateSelection'
 
     SenderContact:
       type: object
@@ -241,6 +241,51 @@ components:
               - accessToken
               - tokenType
               - refreshToken
+
+    UserProfile:
+      description: 'OK'
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              result: { $ref: '#/components/schemas/User' }
+            required: [result]
+            additionalProperties: false
+
+    UserIdpCalendars:
+      description: 'OK'
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              result: { $ref: '#/components/schemas/CalendarList' }
+            required: [result]
+            additionalProperties: false
+
+    PaymentSessionResult:
+      description: 'OK'
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              url:
+                type: string
+                format: url
+                description: The returned URL by payment provider. Either a success redirect URL or a cancel URL.
+            required: [result]
+            additionalProperties: false
+
+    Response200:
+      description: 'OK'
+
+    Response202:
+      description: 'Accepted'
+
+    Response204:
+      description: 'No Content'
 
     BadRequest:
       description: Bad Request response payload
