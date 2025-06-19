@@ -5,11 +5,13 @@ import type { Email, UserId } from '@notifycal/shared/types';
 import type { Url } from '@own-types/model';
 import { StripeService } from '@services/stripe';
 import { testAuthedEvent } from '@testing/data/apigateway';
+import { validPaymentPlans } from '@testing/data/pricing';
 import { responseError, responseSuccess } from '@testing/utils/api-response-handlers';
 import { assert } from '@testing/utils/assertions';
 import {
   setEnvBaseConfig,
   setEnvDecodeAccessJwtConfig,
+  setEnvPaymentPlansConfig,
   setEnvStripeAuthConfig,
   setEnvStripeCheckoutConfig
 } from '@testing/utils/config';
@@ -35,11 +37,14 @@ vi.mock('@utils/MetricsAggregator', () => {
 describe('POST Payment checkout session', () => {
   const validUserId = 'cfaa8471-f4cc-44da-bc22-ddc4b735a847' as UserId;
   const validEmail = 'test@notifycal.com' as Email;
-  const validAccessToken = {
+  const validIdentity = {
     userId: validUserId,
     email: validEmail,
     idp: 'google.com',
-    idpId: '246534735745767767',
+    idpId: '246534735745767767'
+  };
+  const validAccessToken = {
+    ...validIdentity,
     role: 'user',
     permissions: {}
   };
@@ -67,9 +72,8 @@ describe('POST Payment checkout session', () => {
 
       expect(createCheckoutSessionFn).toHaveBeenCalledTimes(1);
       expect(createCheckoutSessionFn).toHaveBeenCalledWith(
-        validUserId,
-        validEmail,
-        defaultConfig.stripeCheckoutConfig.tiers.good,
+        validIdentity,
+        defaultConfig.paymentPlans.tiers.good,
         'es',
         'http://localhost:3000/success',
         'http://localhost:3000/cancel'
@@ -179,22 +183,9 @@ const defaultConfig: PostPaymentCheckoutSessionConfig = {
   },
   stripeCheckoutConfig: {
     successRedirectUrl: 'http://localhost:3000/success' as Url,
-    cancelRedirectUrl: 'http://localhost:3000/cancel' as Url,
-    tiers: {
-      good: {
-        id: 'good',
-        priceId: 'price_123456789'
-      },
-      better: {
-        id: 'better',
-        priceId: 'price_123456999'
-      },
-      best: {
-        id: 'best',
-        priceId: 'price_999456789'
-      }
-    }
-  }
+    cancelRedirectUrl: 'http://localhost:3000/cancel' as Url
+  },
+  paymentPlans: validPaymentPlans
 };
 
 function setEnv(config: PostPaymentCheckoutSessionConfig) {
@@ -202,4 +193,5 @@ function setEnv(config: PostPaymentCheckoutSessionConfig) {
   setEnvBaseConfig(config.corsConfig);
   setEnvStripeAuthConfig(config.stripeAuthConfig);
   setEnvStripeCheckoutConfig(config.stripeCheckoutConfig);
+  setEnvPaymentPlansConfig(config.paymentPlans);
 }

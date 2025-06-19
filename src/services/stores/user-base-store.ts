@@ -1,8 +1,11 @@
+import type { UpdateCommandOutput } from '@aws-sdk/lib-dynamodb';
+import { InsufficientCreditsError } from '@model/Errors';
 import type { AuthorizationForIdp } from '@model/IdpAuthorization';
 import type { ReminderConfigStoreRecord } from '@model/store/ReminderConfigStoreRecord';
 import type { UserIdpAuthorizationStoreRecord } from '@model/store/UserIdpAuthorizationStoreRecord';
 import type { UserStoreRecord } from '@model/store/UserStoreRecord';
 import type { IdpName, LanguageCode, UserId, UserStatus } from '@notifycal/shared/types';
+import { throwError } from '@services/common/error-handling';
 import { BaseStore, type BaseStoreConfig } from '../common/base-store';
 
 export type UserBaseStoreConfig = BaseStoreConfig;
@@ -134,5 +137,67 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
       },
       UpdateExpression: 'set UserStatus = :userStatus, Config = :config'
     }).then(() => null);
+  }
+
+  public updateStatus(id: UserId, status: UserStatus): Promise<null> {
+    return this.updateCommandRunner({
+      Key: {
+        UserId: id
+      },
+      ExpressionAttributeValues: {
+        ':userStatus': status
+      },
+      UpdateExpression: 'set UserStatus = :userStatus'
+    }).then(() => null);
+  }
+
+  public deductCredits(
+    userId: UserId,
+    amount: number
+  ): Promise<Pick<UserStoreRecord<TIdpName>, 'UserCredits'>> {
+    return this.updateCommandRunner({
+      Key: { UserId: userId },
+      UpdateExpression: 'ADD Credits.subscriptionCreditBalance :amount',
+      ConditionExpression: 'Credits.subscriptionCreditBalance >= :amount',
+      ExpressionAttributeValues: {
+        ':amount': -amount
+      }
+    }).then(
+      (r) => this.handleSuccessfulUpdate(r),
+      (error) => {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        if (error.name === 'ConditionalCheckFailedException') {
+          return Promise.reject(
+            new InsufficientCreditsError(`Failed to deduct credits for user '${userId}'`, {}, error)
+          );
+        }
+        // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
+        return Promise.reject(error);
+      }
+    );
+  }
+
+  public async resetSubscriptionCredits(
+    userId: UserId,
+    amount: number
+  ): Promise<Pick<UserStoreRecord<TIdpName>, 'UserCredits'>> {
+    return this.updateCommandRunner({
+      Key: { UserId: userId },
+      UpdateExpression: 'SET Credits.subscriptionCreditBalance :amount',
+      ExpressionAttributeValues: {
+        ':amount': amount
+      }
+    }).then((r) => this.handleSuccessfulUpdate(r));
+  }
+
+  private handleSuccessfulUpdate(
+    output: UpdateCommandOutput
+  ): Pick<UserStoreRecord<TIdpName>, 'UserCredits'> {
+    if (output.Attributes) {
+      const updatedUser = output.Attributes as UserStoreRecord<TIdpName>;
+      return { UserCredits: updatedUser.UserCredits };
+    } else {
+      throwError('Unexpected error while updating credits from persistance');
+    }
   }
 }

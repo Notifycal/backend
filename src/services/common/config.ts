@@ -5,6 +5,7 @@ import type {
   ApiRestTopicConfig,
   AuthedEndpointConfig,
   CorsEndpointConfig,
+  CreditServiceEndpointConfig,
   CronRunEndpointConfig,
   DecodeAccessJwtConfig,
   DecodeAccessJwtEndpointConfig,
@@ -21,6 +22,9 @@ import type {
   IdpEndpointConfig,
   MessagingEndpointConfig,
   MessagingTopicConfig,
+  PaymentPlansConfig,
+  PaymentPlansEndpointConfig,
+  PaymentWebhookTopicConfig,
   UserCalendarFetchedTopicConfig
 } from '@model/Config';
 import type { MailgunEndpointConfig } from '@model/vendor/mailgun/config';
@@ -318,6 +322,14 @@ export function readEmailToBeSentTopicConfig(env: Environment): EmailToBeSentTop
   };
 }
 
+export function readPaymentWebhookTopicConfig(env: Environment): PaymentWebhookTopicConfig {
+  return {
+    paymentWebhookTopicConfig: {
+      topicArn: env.get('PAYMENT_WEBHOOK_TOPIC_ARN').required().asString() as AwsArn
+    }
+  };
+}
+
 export function readAlertThresholdConfig(env: Environment): AlertEndpointConfig {
   return {
     alertThresholdConfig: {
@@ -331,5 +343,20 @@ export function readAlertThresholdConfig(env: Environment): AlertEndpointConfig 
     alertEmailConfig: {
       faqUrl: env.get('FAQ_URL').default('https://notifycal.com/faq').asUrlObject()
     }
+  };
+}
+
+export function readPaymentPlans(env: Environment): PaymentPlansEndpointConfig {
+  return {
+    paymentPlans: env.get('PAYMENT_PLANS').asJsonObject() as PaymentPlansConfig
+  };
+}
+
+export function readCreditServiceConfig(env: Environment): CreditServiceEndpointConfig {
+  return {
+    countryToSMSCostCreditsMap: env.get('COUNTRY_CODE_TO_SMS_COST_MAP').asJsonObject() as Record<
+      'ES',
+      number
+    >
   };
 }

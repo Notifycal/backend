@@ -1,9 +1,9 @@
 /* eslint-disable camelcase */
-import type { Email, LanguageCode, UserId } from '@notifycal/shared/types';
+import type { Tier } from '@model/PaymentPlans';
+import type { Email, Identity, IdpId, LanguageCode, UserId } from '@notifycal/shared/types';
 import type { Url } from '@own-types/model';
 import { default as Stripe } from 'stripe';
 import { describe, expect, it, vi } from 'vitest';
-import type { Tier } from '../lambdas/api/post-payment-session/config';
 import { StripeService } from './stripe';
 
 vi.mock('stripe');
@@ -12,12 +12,19 @@ const validApiKey = 'sk_test_123456789';
 describe(StripeService, () => {
   const validUserId = 'cfaa8471-f4cc-44da-bc22-ddc4b735a847' as UserId;
   const validEmail = 'test@notifycal.com' as Email;
+  const validIdentity: Identity<'google.com'> = {
+    userId: validUserId,
+    idp: 'google.com',
+    idpId: '1234567890' as IdpId,
+    email: validEmail
+  };
   const validLanguage = 'en' as LanguageCode;
   const validSuccessUrl = 'https://example.com/success' as Url;
   const validCancelUrl = 'https://example.com/cancel' as Url;
   const validTier: Tier = {
     id: 'good',
-    priceId: 'price_123456789'
+    priceId: 'price_123456789',
+    credits: 100
   };
   const validCheckoutUrl = 'https://checkout.stripe.com/pay/cs_test_123456789';
 
@@ -38,8 +45,7 @@ describe(StripeService, () => {
     const createSessionFn = vi.fn().mockResolvedValue(mockSession);
 
     const result = await testIt(
-      validUserId,
-      validEmail,
+      validIdentity,
       validTier,
       validLanguage,
       validSuccessUrl,
@@ -64,7 +70,7 @@ describe(StripeService, () => {
         }
       ],
       metadata: {
-        userId: validUserId,
+        ...validIdentity,
         tier: validTier.id,
         vatCountry: 'ES'
       },
@@ -77,8 +83,7 @@ describe(StripeService, () => {
     const createSessionFn = vi.fn().mockResolvedValue(mockSession);
 
     const result = await testIt(
-      validUserId,
-      validEmail,
+      validIdentity,
       validTier,
       validLanguage,
       validSuccessUrl,
@@ -95,8 +100,7 @@ describe(StripeService, () => {
     const createSessionFn = vi.fn().mockResolvedValue(mockSession);
 
     await testIt(
-      validUserId,
-      validEmail,
+      validIdentity,
       validTier,
       spanishLanguage,
       validSuccessUrl,
@@ -114,14 +118,14 @@ describe(StripeService, () => {
   it('should handle different tier configurations correctly', async () => {
     const betterTier: Tier = {
       id: 'better',
-      priceId: 'price_better_123'
+      priceId: 'price_better_123',
+      credits: 500
     };
     const mockSession = { url: validCheckoutUrl };
     const createSessionFn = vi.fn().mockResolvedValue(mockSession);
 
     await testIt(
-      validUserId,
-      validEmail,
+      validIdentity,
       betterTier,
       validLanguage,
       validSuccessUrl,
@@ -150,8 +154,7 @@ describe(StripeService, () => {
 
     await expect(
       testIt(
-        validUserId,
-        validEmail,
+        validIdentity,
         validTier,
         validLanguage,
         validSuccessUrl,
@@ -166,8 +169,7 @@ describe(StripeService, () => {
     const createSessionFn = vi.fn().mockResolvedValue(mockSession);
 
     await testIt(
-      validUserId,
-      validEmail,
+      validIdentity,
       validTier,
       validLanguage,
       validSuccessUrl,
@@ -178,7 +180,7 @@ describe(StripeService, () => {
     expect(createSessionFn).toHaveBeenCalledWith(
       expect.objectContaining({
         metadata: {
-          userId: validUserId,
+          ...validIdentity,
           tier: validTier.id,
           vatCountry: 'ES'
         }
@@ -188,8 +190,7 @@ describe(StripeService, () => {
 });
 
 async function testIt(
-  userId: UserId,
-  email: Email,
+  identity: Identity<'google.com'>,
   tier: Tier,
   language: LanguageCode,
   successRedirectUrl: Url,
@@ -208,8 +209,7 @@ async function testIt(
 
   const stripeService = new StripeService(validApiKey);
   return stripeService.createCheckoutSession(
-    userId,
-    email,
+    identity,
     tier,
     language,
     successRedirectUrl,

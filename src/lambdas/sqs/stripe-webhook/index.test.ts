@@ -1,8 +1,16 @@
 import { createSqsHandlerTestSuite } from '@lambdas/batch-processing-lambda-handler-test.suite';
-import { validStripeCheckoutSessionCompletedEvent } from '@testing/data/event-bridge-event';
+import type { AwsArn } from '@own-types/model';
+import { validPaymentPlans } from '@testing/data/pricing';
 import { validRawRecord } from '@testing/data/sqs-events';
+import { validStripeCheckoutSessionCompletedEvent } from '@testing/data/stripe-event-bridge-event';
+import {
+  setEnvPaymentPlansConfig,
+  setEnvPaymentWebhookTopicConfig,
+  setEnvUserBaseStoreConfig
+} from '@testing/utils/config';
 import type { SQSEvent, SQSRecord } from 'aws-lambda';
 import { describe, vi } from 'vitest';
+import type { StripeWebhookConfig } from './config';
 // @ts-expect-error cjs handler export
 import { handler } from './index';
 import { recordProcessor } from './record-processor';
@@ -13,9 +21,18 @@ const validSqsBatchEvent: SQSEvent = {
 };
 
 function setEnv(): void {
-  //TODO when we actually have soime config onbce we add dependencies to the lambda
-  // const config: StripeWebhookConfig = {};
-  // setEnvActionableEventFoundTopicConfig(config);
+  const config: StripeWebhookConfig = {
+    userBaseStoreConfig: {
+      tableName: 'Users-local'
+    },
+    paymentPlans: validPaymentPlans,
+    paymentWebhookTopicConfig: {
+      topicArn: 'payment-webhook-topic' as AwsArn
+    }
+  };
+  setEnvUserBaseStoreConfig(config.userBaseStoreConfig);
+  setEnvPaymentPlansConfig(config.paymentPlans);
+  setEnvPaymentWebhookTopicConfig(config.paymentWebhookTopicConfig);
 }
 
 vi.mock('./record-processor');

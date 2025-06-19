@@ -6,6 +6,7 @@ import type {
   SignOptions as jsonwebtokenSignOptions
 } from 'jsonwebtoken';
 import type { EmailWithName } from './app-events/common';
+import type { Tiers } from './PaymentPlans';
 
 export type SignOptions = jsonwebtokenSignOptions;
 export type Algorithm = jsonwebtokenAlgorithm;
@@ -109,6 +110,10 @@ export type ApiRestTopicConfig = {
   apiRestTopicConfig: SnsTopicConfig;
 };
 
+export type PaymentWebhookTopicConfig = {
+  paymentWebhookTopicConfig: SnsTopicConfig;
+};
+
 export type IdempotencyPersistenceConfig = {
   idempotencyPersistenceConfig: DynamoDBPersistenceOptions;
 };
@@ -135,4 +140,16 @@ export interface EmailingEndpointConfig {
 }
 export interface EmailingSenderEndpointConfig {
   emailingSenderConfig: EmailingSenderConfig;
+}
+
+export interface PaymentPlansConfig {
+  tiers: Tiers;
+}
+export interface PaymentPlansEndpointConfig {
+  paymentPlans: PaymentPlansConfig;
+}
+
+export type CountryToSMSCostCreditsMap = Record<'ES', number>;
+export interface CreditServiceEndpointConfig {
+  countryToSMSCostCreditsMap: CountryToSMSCostCreditsMap;
 }

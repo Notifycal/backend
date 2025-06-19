@@ -45,6 +45,7 @@
 | <a name="module_notify_slack"></a> [notify\_slack](#module\_notify\_slack) | git@github.com:Notifycal/tofu-module-aws-slack-notify.git | v7.0.0 |
 | <a name="module_patch_user_profile_lambda"></a> [patch\_user\_profile\_lambda](#module\_patch\_user\_profile\_lambda) | terraform-aws-modules/lambda/aws | ~> 7.17 |
 | <a name="module_patch_user_profile_lambda_alias"></a> [patch\_user\_profile\_lambda\_alias](#module\_patch\_user\_profile\_lambda\_alias) | terraform-aws-modules/lambda/aws//modules/alias | ~> 7.17 |
+| <a name="module_payment_webhook_topic"></a> [payment\_webhook\_topic](#module\_payment\_webhook\_topic) | ./modules/sns | n/a |
 | <a name="module_post_demo_reminder_lambda"></a> [post\_demo\_reminder\_lambda](#module\_post\_demo\_reminder\_lambda) | terraform-aws-modules/lambda/aws | ~> 7.17 |
 | <a name="module_post_demo_reminder_lambda_alias"></a> [post\_demo\_reminder\_lambda\_alias](#module\_post\_demo\_reminder\_lambda\_alias) | terraform-aws-modules/lambda/aws//modules/alias | ~> 7.17 |
 | <a name="module_post_login_lambda"></a> [post\_login\_lambda](#module\_post\_login\_lambda) | terraform-aws-modules/lambda/aws | ~> 7.17 |

@@ -13,9 +13,11 @@ async function lambdaHandler(
   /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
   ctx: Context
 ): Promise<APIGatewayProxyResult> {
-  const { userId, email } = event.requestContext.authorizer.payload;
+  const { userId, idp, idpId, email } = event.requestContext.authorizer.payload;
+  const identity = { userId, idp, idpId, email };
   const apiKey = event.lambdaConfig.stripeAuthConfig.apiKey;
-  const { successRedirectUrl, cancelRedirectUrl, tiers } = event.lambdaConfig.stripeCheckoutConfig;
+  const { successRedirectUrl, cancelRedirectUrl } = event.lambdaConfig.stripeCheckoutConfig;
+  const { tiers } = event.lambdaConfig.paymentPlans;
   const { tier, language } = event.body;
   const selectedTier = tiers[tier];
 
@@ -24,14 +26,7 @@ async function lambdaHandler(
     userId: userId
   };
   return new StripeService(apiKey)
-    .createCheckoutSession(
-      userId,
-      email,
-      selectedTier,
-      language,
-      successRedirectUrl,
-      cancelRedirectUrl
-    )
+    .createCheckoutSession(identity, selectedTier, language, successRedirectUrl, cancelRedirectUrl)
     .then(
       (sessionUrl) => {
         if (sessionUrl) {

@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { dateTimeSchema, idpIdSchema, userIdSchema } from '@notifycal/shared/schemas';
 import type { CorrelationId } from '@notifycal/shared/types';
 import { eventIdSchema } from './common';
+import { ourStripeEventTypeSchema as ourStripeEventTypeSchemas } from './StripeWebhookEventFiredEvent';
 
 // Docs: take your time to decide what type of event you are defining and what is aimed at. Pay attention to these silver bullets:
 // SuccessEvent:
@@ -16,6 +17,7 @@ import { eventIdSchema } from './common';
 export const noPhoneNumberForCalendarEventFoundEventType = z.literal(
   'NoPhoneNumberForCalendarEventFound'
 );
+
 export const successEventTypeSchema = z.union([
   z.literal('UserCalendarFetched'),
   z.literal('ActionableEventFound'),
@@ -23,11 +25,13 @@ export const successEventTypeSchema = z.union([
   z.literal('ActionableEventReminderAttemptSent'),
   z.literal('ActionableEventReminderAttemptSkipped'),
   z.literal('ActionableEventReminderStatusUpdated'),
+  z.literal('ActionableEventReminderInsufficientCreditNotSent'),
   z.literal('DemoReminderToBeSent'),
   z.literal('DemoReminderToBeSentAttemptFailed'),
   z.literal('DemoReminderToBeSentAttemptSent'),
   z.literal('DemoReminderToBeSentAttemptSkipped'),
   z.literal('DemoReminderToBeSentStatusUpdated'),
+  z.literal('DemoReminderInsufficientCreditNotSent'),
   z.literal('UserSignInSucceeded'),
   z.literal('UserSignUpSucceeded'),
   noPhoneNumberForCalendarEventFoundEventType,
@@ -36,7 +40,8 @@ export const successEventTypeSchema = z.union([
   z.literal('EmailToBeSent'),
   z.literal('EmailToBeSentAttemptSent'),
   z.literal('EmailToBeSentAttemptSkipped'),
-  z.literal('EmailToBeSentAttemptFailed')
+  z.literal('EmailToBeSentAttemptFailed'),
+  ourStripeEventTypeSchemas
 ]);
 export const errorEventTypeSchema = z.union([
   z.literal('UserFetchedEventsParsingFailed'),
