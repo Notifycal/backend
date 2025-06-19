@@ -1,3 +1,7 @@
+variable "environment" {
+  type = string
+}
+
 variable "subscription_tiers" {
   description = "Configuration for subscription tiers. Eg: Good, Better, Best"
   type = map(object({
