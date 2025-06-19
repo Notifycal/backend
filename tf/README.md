@@ -121,6 +121,7 @@
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | <a name="input_alert_for_missing_phone_number"></a> [alert\_for\_missing\_phone\_number](#input\_alert\_for\_missing\_phone\_number) | n/a | <pre>object({<br/>    error_rate_threshold              = optional(number, 5)<br/>    max_notifications_per_day         = optional(number, 1)<br/>    count_threshold_to_enable_trigger = optional(number, 0)<br/>  })</pre> | `{}` | no |
+| <a name="input_allowed_domains"></a> [allowed\_domains](#input\_allowed\_domains) | Allowed domains specified in response headers by API gateway lambdas(TLDR: CORS). The value matching the request header origin will be set in the response | `string` | n/a | yes |
 | <a name="input_api_gateway_custom_domain_enabled"></a> [api\_gateway\_custom\_domain\_enabled](#input\_api\_gateway\_custom\_domain\_enabled) | Controls the creation of a custom domain for API Gateway and the domain it is accessible from | `bool` | `true` | no |
 | <a name="input_api_stage_name"></a> [api\_stage\_name](#input\_api\_stage\_name) | n/a | `string` | n/a | yes |
 | <a name="input_app_version"></a> [app\_version](#input\_app\_version) | n/a | `string` | n/a | yes |
@@ -132,7 +133,6 @@
 | <a name="input_enable_data_protection"></a> [enable\_data\_protection](#input\_enable\_data\_protection) | n/a | `bool` | `true` | no |
 | <a name="input_enable_xray_active_tracing"></a> [enable\_xray\_active\_tracing](#input\_enable\_xray\_active\_tracing) | n/a | `bool` | `true` | no |
 | <a name="input_environment"></a> [environment](#input\_environment) | n/a | `string` | n/a | yes |
-| <a name="input_frontend_domain"></a> [frontend\_domain](#input\_frontend\_domain) | Allowed domain specified in response headers by API gateway lambdas(TLDR: CORS) | `string` | n/a | yes |
 | <a name="input_google_oauth_config"></a> [google\_oauth\_config](#input\_google\_oauth\_config) | n/a | <pre>object({<br/>    client_id         = string<br/>    client_secret     = string<br/>    redirect_url_list = list(string)<br/>  })</pre> | n/a | yes |
 | <a name="input_jwt_config"></a> [jwt\_config](#input\_jwt\_config) | n/a | <pre>object({<br/>    access = object({<br/>      algorithm  = string<br/>      audience   = string<br/>      expiration = string<br/>      issuer     = string<br/>    })<br/>    refresh = object({<br/>      algorithm  = string<br/>      audience   = string<br/>      expiration = string<br/>      issuer     = string<br/>    })<br/>  })</pre> | n/a | yes |
 | <a name="input_jwt_keys"></a> [jwt\_keys](#input\_jwt\_keys) | n/a | <pre>object({<br/>    access = object({<br/>      public_key  = string<br/>      private_key = string<br/>    })<br/>    refresh = object({<br/>      public_key  = string<br/>      private_key = string<br/>    })<br/>  })</pre> | n/a | yes |
