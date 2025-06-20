@@ -147,7 +147,7 @@ export function setEnvEmailingSenderConfig(config: EmailingSenderConfig): void {
 }
 
 export function setEnvBaseConfig(config: CorsConfig): void {
-  process.env.FRONTEND_DOMAIN = config.frontendDomain;
+  process.env.ALLOWED_ORIGINS = JSON.stringify(config.allowedOrigins);
 }
 
 export function setEnvIdpConfigs(configs: IdpConfigs): void {
@@ -197,8 +197,8 @@ export function setEnvStripeAuthConfig(config: StripeAuthConfig): void {
 }
 
 export function setEnvStripeCheckoutConfig(config: StripeCheckoutConfig): void {
-  process.env.STRIPE_SUCCESS_REDIRECT_URL = config.successRedirectUrl;
-  process.env.STRIPE_CANCEL_REDIRECT_URL = config.cancelRedirectUrl;
+  process.env.STRIPE_SUCCESS_REDIRECT_URL_PATH = config.successRedirectUrlPath;
+  process.env.STRIPE_CANCEL_REDIRECT_URL_PATH = config.cancelRedirectUrlPath;
 }
 
 export function setEnvPaymentPlansConfig(config: PaymentPlansConfig): void {

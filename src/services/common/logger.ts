@@ -50,16 +50,15 @@ export function setupLoggerCorrelationIdApi(
   }
 }
 
-export function setupLoggerCorrelationIdEventBridge(
-  event: EventBridgeEvent<string, unknown>,
-  _logger: Logger = logger
-): void {
+export function setupLoggerCorrelationIdEventBridge<
+  TEvent extends EventBridgeEvent<string, unknown>
+>(event: TEvent, _logger: Logger = logger): void {
   const requestId = event.id;
   if (requestId) {
     _logger.setCorrelationId(requestId);
   }
 }
 
-export function logEvent<TRequest>(event: TRequest, _logger: Logger = logger): void {
+export function logEvent<TEvent>(event: TEvent, _logger: Logger = logger): void {
   _logger.info('Lambda processing event', { event });
 }

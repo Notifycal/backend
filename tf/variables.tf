@@ -20,9 +20,9 @@ variable "environment" {
   type = string
 }
 
-variable "frontend_domain" {
-  type        = string
-  description = "Allowed domain specified in response headers by API gateway lambdas(TLDR: CORS)"
+variable "allowed_origins" {
+  type        = list(string)
+  description = "Allowed origins specified in response headers by API gateway lambdas(TLDR: CORS). The value matching the request header origin will be set in the response"
 }
 
 variable "base_domain" {

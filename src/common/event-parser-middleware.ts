@@ -3,7 +3,12 @@ import type { MiddlewareObj, Request } from '@middy/core';
 
 import type { OptionalCorsEndpointConfig } from '@model/Config';
 import type { EventWithConfig } from '@model/lambda-events/Event';
-import { baseHeaders, errorHandler, headers } from '@services/common/api-response-handlers';
+import {
+  _validateRequestHeaderOrigin,
+  baseHeaders,
+  errorHandler,
+  headers
+} from '@services/common/api-response-handlers';
 import type { Context } from 'aws-lambda';
 import type { z } from 'zod';
 import { logger } from './powertools';
@@ -29,7 +34,12 @@ function eventParser<
         return errorHandler(
           400,
           hasCorsConfig(request.event.lambdaConfig)
-            ? headers(request.event.lambdaConfig.corsConfig.frontendDomain)
+            ? headers(
+                _validateRequestHeaderOrigin(
+                  request.event.lambdaConfig.corsConfig.allowedOrigins,
+                  request.event.headers
+                ) || ''
+              )
             : baseHeaders()
         )(`Request ${baseMsg}`, { error: error, schema: schema.shape }) as TResult;
       } else {

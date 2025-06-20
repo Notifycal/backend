@@ -5,9 +5,10 @@ import type { AuthedAPIEventWithConfig } from '@model/lambda-events/ApiGatewayEv
 import type { Jwt } from '@notifycal/shared/types';
 import type { JwtClaimCheckerFn, JwtDecoderAndSignatureVerifierFn } from '@own-types/model';
 import {
-  headers as _headers,
+  _validateRequestHeaderOrigin,
   baseHeaders,
-  errorHandler
+  errorHandler,
+  headers
 } from '@services/common/api-response-handlers';
 import type { APIGatewayProxyResult, Context } from 'aws-lambda';
 import type { z } from 'zod';
@@ -36,7 +37,9 @@ function jwtVerification<
   const requestContext = request.event.requestContext;
   const config = request.event.lambdaConfig;
   const earlyResponseHeaders = hasCorsConfig(config)
-    ? _headers(config.corsConfig.frontendDomain)
+    ? headers(
+        _validateRequestHeaderOrigin(config.corsConfig.allowedOrigins, request.event.headers) || ''
+      )
     : baseHeaders();
   if (!authorization) {
     return Promise.resolve(errorHandler(401, earlyResponseHeaders)('Missing Authorization'));

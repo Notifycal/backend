@@ -45,9 +45,8 @@ function lambdaHandler(event: Event, context: Context): Promise<EmailSendSuccess
   return messageProcessor.sendEmailIdempotently(record.body);
 }
 
-const handler = backgroundProcessingMiddleware(
-  () => readSendEmailConfig(),
-  eventSchema
-).handler<Event>(lambdaHandler);
+const handler = backgroundProcessingMiddleware(readSendEmailConfig, eventSchema).handler<Event>(
+  lambdaHandler
+);
 
 module.exports = { handler };

@@ -4,8 +4,8 @@ import { readAuthedEndpointConfig, readEnv, readPaymentPlans } from '@services/c
 import { promiseTry } from '@utils/promises';
 
 export interface StripeCheckoutConfig {
-  successRedirectUrl: Url;
-  cancelRedirectUrl: Url;
+  successRedirectUrlPath: Url;
+  cancelRedirectUrlPath: Url;
 }
 
 export interface StripeCheckoutEndpointConfig {
@@ -28,8 +28,11 @@ export type PostPaymentCheckoutSessionConfig = AuthedEndpointConfig &
 function readStripeConfig(env: Environment): StripeCheckoutEndpointConfig {
   return {
     stripeCheckoutConfig: {
-      successRedirectUrl: env.get('STRIPE_SUCCESS_REDIRECT_URL').required().asString() as Url,
-      cancelRedirectUrl: env.get('STRIPE_CANCEL_REDIRECT_URL').required().asString() as Url
+      successRedirectUrlPath: env
+        .get('STRIPE_SUCCESS_REDIRECT_URL_PATH')
+        .required()
+        .asString() as Url,
+      cancelRedirectUrlPath: env.get('STRIPE_CANCEL_REDIRECT_URL_PATH').required().asString() as Url
     }
   };
 }

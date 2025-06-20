@@ -33,7 +33,7 @@ function lambdaHandler(event: Event, context: Context): Promise<PartialItemFailu
   });
 }
 const handler = backgroundProcessingMiddleware(
-  () => readActionableEventsConfig(),
+  readActionableEventsConfig,
   eventSchema
 ).handler<Event>(lambdaHandler);
 

@@ -31,12 +31,9 @@ function verifyIdentity(
   idpQueryParameter: string | undefined,
   config: IdpConfigs
 ): Promise<[Identity<IdpName>, AuthorizationForIdp<IdpName>]> {
-  if (
-    isValidIdpName(idpQueryParameter) &&
-    idpQueryParameter === 'google.com' &&
-    event.headers?.origin
-  ) {
-    return GoogleOAuth.withConfig(config['google.com'], event.headers.origin as Url).verifyIdentity(
+  const origin = event.headers?.origin || event.headers?.Origin || event.headers?.ORIGIN;
+  if (isValidIdpName(idpQueryParameter) && idpQueryParameter === 'google.com' && origin) {
+    return GoogleOAuth.withConfig(config['google.com'], origin as Url).verifyIdentity(
       event.body.googleCode
     );
   }
@@ -67,9 +64,8 @@ function lambdaHandler(
     .catch(errorHandler(401));
 }
 
-const handler = unprotectedCrossDomainEndpointMiddleware(
-  () => readLoginConfig(),
-  schema
-).handler<Event>(lambdaHandler);
+const handler = unprotectedCrossDomainEndpointMiddleware(readLoginConfig, schema).handler<Event>(
+  lambdaHandler
+);
 
 module.exports = { handler };

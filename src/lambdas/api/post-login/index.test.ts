@@ -303,7 +303,7 @@ const defaultEnv: LoginConfig = {
     topicArn: 'topic-arn' as AwsArn
   },
   corsConfig: {
-    frontendDomain: 'http://localhost:5173'
+    allowedOrigins: ['http://localhost:5173']
   }
 };
 

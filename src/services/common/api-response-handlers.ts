@@ -1,5 +1,7 @@
 import type { LogItemExtraInput, LogItemMessage } from '@aws-lambda-powertools/logger/types';
+import type { APIGatewayProxyEvent } from '@aws-lambda-powertools/parser/types';
 import { logger } from '@common/powertools';
+import type { CorsEndpointConfig } from '@model/Config';
 import type {
   ErrorResponseBody,
   ResponseHeaders,
@@ -11,6 +13,29 @@ export function baseHeaders(): ResponseHeaders {
   return {
     'Content-Type': 'application/json'
   };
+}
+
+export function _validateRequestHeaderOrigin(
+  allowedOrigins: Array<string>,
+  requestHeaders: Record<string, string | undefined>
+): string | undefined {
+  const origin = requestHeaders['origin'] || requestHeaders['Origin'] || requestHeaders['ORIGIN'];
+  if (!origin) {
+    return;
+  }
+  if (!allowedOrigins.includes(origin)) {
+    return;
+  }
+  return origin;
+}
+
+export function validateRequestHeaderOrigin<TConfig extends { lambdaConfig: CorsEndpointConfig }>(
+  event: Pick<APIGatewayProxyEvent, 'headers'> & TConfig
+): string | undefined {
+  return _validateRequestHeaderOrigin(
+    event.lambdaConfig.corsConfig.allowedOrigins,
+    event.headers || {}
+  );
 }
 
 export function headers(allowedOrigin: string): ResponseHeaders {

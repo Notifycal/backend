@@ -2,7 +2,7 @@ import type { Brand, Jwt } from '@notifycal/shared/types';
 import type { ExtenderTypeOptional, IEnv, IOptionalVariable } from 'env-var';
 import type { z } from 'zod';
 
-export type ConfigReaderFn<TConfig> = () => TConfig;
+export type ConfigReaderFn<TEvent, TConfig> = (e: TEvent) => TConfig;
 export type JwtDecoderAndSignatureVerifierFn<T extends z.ZodTypeAny, TJwtConfig> = (
   jwt: Jwt,
   schema: T,

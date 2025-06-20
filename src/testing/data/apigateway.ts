@@ -28,7 +28,7 @@ function ttestEvent(
       'accept-language': 'en-GB,en-US;q=0.9,en;q=0.8',
       'content-type': 'application/json',
       Host: 'a4dry64voi.execute-api.eu-west-1.amazonaws.com',
-      origin: 'http://localhost:5173',
+      Origin: 'http://localhost:5173',
       priority: 'u=1, i',
       referer: 'http://localhost:5173/',
       'sec-ch-ua': '"Google Chrome";v="131", "Chromium";v="131", "Not_A Brand";v="24"',

@@ -222,7 +222,7 @@ const defaultEnv = {
     topicArn: 'arn:aws:sns:eu-west-1:123456789012:DemoReminderToBeSent' as AwsArn
   },
   corsConfig: {
-    frontendDomain: 'http://localhost:5173'
+    allowedOrigins: ['http://localhost:5173']
   }
 };
 

@@ -299,7 +299,7 @@ describe('POST Refresh', () => {
       tableName: 'Users-local'
     },
     corsConfig: {
-      frontendDomain: 'http://localhost:5173'
+      allowedOrigins: ['http://localhost:5173']
     }
   };
 
