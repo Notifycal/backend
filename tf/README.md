@@ -121,7 +121,7 @@
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | <a name="input_alert_for_missing_phone_number"></a> [alert\_for\_missing\_phone\_number](#input\_alert\_for\_missing\_phone\_number) | n/a | <pre>object({<br/>    error_rate_threshold              = optional(number, 5)<br/>    max_notifications_per_day         = optional(number, 1)<br/>    count_threshold_to_enable_trigger = optional(number, 0)<br/>  })</pre> | `{}` | no |
-| <a name="input_allowed_domains"></a> [allowed\_domains](#input\_allowed\_domains) | Allowed domains specified in response headers by API gateway lambdas(TLDR: CORS). The value matching the request header origin will be set in the response | `string` | n/a | yes |
+| <a name="input_allowed_domains"></a> [allowed\_domains](#input\_allowed\_domains) | Allowed domains specified in response headers by API gateway lambdas(TLDR: CORS). The value matching the request header origin will be set in the response | `list(string)` | n/a | yes |
 | <a name="input_api_gateway_custom_domain_enabled"></a> [api\_gateway\_custom\_domain\_enabled](#input\_api\_gateway\_custom\_domain\_enabled) | Controls the creation of a custom domain for API Gateway and the domain it is accessible from | `bool` | `true` | no |
 | <a name="input_api_stage_name"></a> [api\_stage\_name](#input\_api\_stage\_name) | n/a | `string` | n/a | yes |
 | <a name="input_app_version"></a> [app\_version](#input\_app\_version) | n/a | `string` | n/a | yes |
