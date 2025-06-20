@@ -21,6 +21,7 @@ import { describe, expect, it, vi } from 'vitest';
 import type { PostPaymentCheckoutSessionConfig } from './config';
 import type { Event } from './schemas';
 // @ts-expect-error cjs handler export
+import { corsErrorResponse } from '@common/cors-middleware';
 import { handler } from './index';
 
 vi.mock('@services/stripe');
@@ -75,8 +76,8 @@ describe('POST Payment checkout session', () => {
         validIdentity,
         defaultConfig.paymentPlans.tiers.good,
         'es',
-        'http://localhost:3000/success',
-        'http://localhost:3000/cancel'
+        `${defaultConfig.corsConfig.allowedDomains[0]}/success`,
+        `${defaultConfig.corsConfig.allowedDomains[0]}/cancel`
       );
       expect(addMetricFn).toHaveBeenCalledWith('PaymentSessionCreated', MetricUnit.Count, 1, {
         tier: validRequestBody.tier,
@@ -157,6 +158,25 @@ describe('POST Payment checkout session', () => {
       });
     });
   });
+
+  it('should return a cors error if frontend domain cannot be trusted', async () => {
+    const event = (await testAuthedEvent(
+      validRequestBody,
+      {
+        Origin: 'http://maliciousDommain:8080'
+      },
+      accessTokenSchema,
+      validAccessToken
+    )) as unknown as APIGatewayProxyEvent;
+
+    const createCheckoutSessionFn = vi.fn().mockResolvedValue(validCheckoutUrl);
+
+    return testIt(event, createCheckoutSessionFn).then((resp) => {
+      assert(resp, corsErrorResponse);
+
+      expect(createCheckoutSessionFn).toHaveBeenCalledTimes(0);
+    });
+  });
 });
 
 function testIt(
@@ -182,8 +202,8 @@ const defaultConfig: PostPaymentCheckoutSessionConfig = {
     apiKey: 'sk_test_123456789'
   },
   stripeCheckoutConfig: {
-    successRedirectUrl: 'http://localhost:3000/success' as Url,
-    cancelRedirectUrl: 'http://localhost:3000/cancel' as Url
+    successRedirectUrlPath: '/success' as Url,
+    cancelRedirectUrlPath: '/cancel' as Url
   },
   paymentPlans: validPaymentPlans
 };

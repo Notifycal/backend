@@ -5,10 +5,10 @@ import type { AuthedAPIEventWithConfig } from '@model/lambda-events/ApiGatewayEv
 import type { Jwt } from '@notifycal/shared/types';
 import type { JwtClaimCheckerFn, JwtDecoderAndSignatureVerifierFn } from '@own-types/model';
 import {
-  headers as _headers,
+  _validateRequestOriginDomain,
   baseHeaders,
   errorHandler,
-  validateRequestOriginDomain
+  headers
 } from '@services/common/api-response-handlers';
 import type { APIGatewayProxyResult, Context } from 'aws-lambda';
 import type { z } from 'zod';
@@ -37,8 +37,8 @@ function jwtVerification<
   const requestContext = request.event.requestContext;
   const config = request.event.lambdaConfig;
   const earlyResponseHeaders = hasCorsConfig(config)
-    ? _headers(
-        validateRequestOriginDomain(config.corsConfig.allowedDomains, request.event.headers) || ''
+    ? headers(
+        _validateRequestOriginDomain(config.corsConfig.allowedDomains, request.event.headers) || ''
       )
     : baseHeaders();
   if (!authorization) {

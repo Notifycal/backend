@@ -1,7 +1,13 @@
 import { MetricUnit } from '@aws-lambda-powertools/metrics';
+import { corsErrorResponse } from '@common/cors-middleware';
 import { protectedEndpointMiddleware } from '@common/lambda-middleware';
 import { metrics } from '@common/powertools';
-import { errorHandler, successHandler } from '@services/common/api-response-handlers';
+import type { Url } from '@own-types/model';
+import {
+  errorHandler,
+  successHandler,
+  validateRequestOriginDomain
+} from '@services/common/api-response-handlers';
 import type { MetricDimensions } from '@services/observability/metrics';
 import { StripeService } from '@services/stripe';
 import type { APIGatewayProxyResult, Context } from 'aws-lambda';
@@ -16,10 +22,20 @@ async function lambdaHandler(
   const { userId, idp, idpId, email } = event.requestContext.authorizer.payload;
   const identity = { userId, idp, idpId, email };
   const apiKey = event.lambdaConfig.stripeAuthConfig.apiKey;
-  const { successRedirectUrl, cancelRedirectUrl } = event.lambdaConfig.stripeCheckoutConfig;
+  const { successRedirectUrlPath, cancelRedirectUrlPath } = event.lambdaConfig.stripeCheckoutConfig;
   const { tiers } = event.lambdaConfig.paymentPlans;
   const { tier, language } = event.body;
   const selectedTier = tiers[tier];
+
+  const frontendUrl = validateRequestOriginDomain({
+    headers: event.headers || {},
+    lambdaConfig: event.lambdaConfig
+  });
+  if (!frontendUrl) {
+    return corsErrorResponse;
+  }
+  const successRedirectUrl = `${frontendUrl}${successRedirectUrlPath}` as Url;
+  const cancelRedirectUrl = `${frontendUrl}${cancelRedirectUrlPath}` as Url;
 
   const dimensions: MetricDimensions = {
     tier: selectedTier.id,

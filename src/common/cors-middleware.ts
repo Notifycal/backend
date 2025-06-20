@@ -5,6 +5,12 @@ import httpCors from '@middy/http-cors';
 import type { CorsEndpointConfig } from '@model/Config';
 import type { APIGatewayProxyResult, Context } from 'aws-lambda';
 
+export const corsErrorResponse: APIGatewayProxyResult = {
+  statusCode: 403,
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ message: 'Origin not allowed' })
+};
+
 function corsCheck<TConfig extends CorsEndpointConfig>(): MiddlewareObj<
   AuthedAPIEventWithConfig<TConfig>,
   APIGatewayProxyResult
@@ -15,11 +21,7 @@ function corsCheck<TConfig extends CorsEndpointConfig>(): MiddlewareObj<
       const allowedOrigins = request.event.lambdaConfig.corsConfig.allowedDomains;
 
       if (!origin || !allowedOrigins.includes(origin)) {
-        return {
-          statusCode: 403,
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: 'Origin not allowed' })
-        };
+        return corsErrorResponse;
       }
     }
   };
