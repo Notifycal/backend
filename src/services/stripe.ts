@@ -1,5 +1,4 @@
 /* eslint-disable camelcase */
-import type { StripeCustomerPortalConfig } from '@lambdas/api/post-customer-portal-session/config';
 import type { Tier } from '@model/PaymentPlans';
 import type { Identity, IdpName, LanguageCode, StripeCustomerId } from '@notifycal/shared/types';
 import type { Url } from '@own-types/model';
@@ -52,12 +51,12 @@ export class StripeService {
 
   public createCustomerPortalSession(
     stripeCustomerId: StripeCustomerId,
-    config: StripeCustomerPortalConfig
+    returnUrl: Url
   ): Promise<Url> {
     return this.stripeClient.billingPortal.sessions
       .create({
         customer: stripeCustomerId,
-        return_url: config.returnUrl
+        return_url: returnUrl
       })
       .then((session) => session.url as Url);
   }

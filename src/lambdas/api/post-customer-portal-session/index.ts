@@ -1,7 +1,13 @@
 import { MetricUnit } from '@aws-lambda-powertools/metrics';
+import { corsErrorResponse } from '@common/cors-middleware';
 import { protectedEndpointMiddleware } from '@common/lambda-middleware';
 import { metrics } from '@common/powertools';
-import { errorHandler, successHandler } from '@services/common/api-response-handlers';
+import type { Url } from '@own-types/model';
+import {
+  errorHandler,
+  successHandler,
+  validateRequestHeaderOrigin
+} from '@services/common/api-response-handlers';
 import type { MetricDimensions } from '@services/observability/metrics';
 import { UserBaseStore } from '@services/stores/user-base-store';
 import { StripeService } from '@services/stripe';
@@ -21,6 +27,15 @@ function lambdaHandler(
   const userBaseStore = UserBaseStore.withConfig(userBaseStoreConfig);
   const stripeService = new StripeService(apiKey);
 
+  const frontendUrl = validateRequestHeaderOrigin({
+    headers: event.headers || {},
+    lambdaConfig: event.lambdaConfig
+  });
+  if (!frontendUrl) {
+    return Promise.resolve(corsErrorResponse);
+  }
+  const returnUrl = `${frontendUrl}${stripeCustomerPortalConfig.returnUrlPath}` as Url;
+
   const dimensions: MetricDimensions = {
     userId: userId
   };
@@ -30,27 +45,25 @@ function lambdaHandler(
       metrics.addMetric('CustomerPortalSessionNoCustomer', MetricUnit.Count, 1, dimensions);
       return errorHandler(400)('User does not have a Stripe customer ID');
     }
-    return stripeService
-      .createCustomerPortalSession(stripeCustomerId, stripeCustomerPortalConfig)
-      .then(
-        (sessionUrl) => {
-          if (sessionUrl) {
-            metrics.addMetric('CustomerPortalSessionCreated', MetricUnit.Count, 1, dimensions);
-            return successHandler()({ result: { url: sessionUrl } });
-          }
-          metrics.addMetric('CustomerPortalSessionCancelled', MetricUnit.Count, 1, dimensions);
-          return errorHandler(500)('No customer portal session was created for the user');
-        },
-        (error) => {
-          metrics.addMetric('CustomerPortalSessionFailed', MetricUnit.Count, 1, dimensions);
-          return errorHandler(500)(
-            'There was an error creating a customer portal session for the user',
-            {
-              error
-            }
-          );
+    return stripeService.createCustomerPortalSession(stripeCustomerId, returnUrl).then(
+      (sessionUrl) => {
+        if (sessionUrl) {
+          metrics.addMetric('CustomerPortalSessionCreated', MetricUnit.Count, 1, dimensions);
+          return successHandler()({ result: { url: sessionUrl } });
         }
-      );
+        metrics.addMetric('CustomerPortalSessionCancelled', MetricUnit.Count, 1, dimensions);
+        return errorHandler(500)('No customer portal session was created for the user');
+      },
+      (error) => {
+        metrics.addMetric('CustomerPortalSessionFailed', MetricUnit.Count, 1, dimensions);
+        return errorHandler(500)(
+          'There was an error creating a customer portal session for the user',
+          {
+            error
+          }
+        );
+      }
+    );
   });
 }
 

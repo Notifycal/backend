@@ -10,7 +10,7 @@ import type { UserBaseStoreEndpointConfig } from '@services/stores/user-base-sto
 import { promiseTry } from '@utils/promises';
 
 export interface StripeCustomerPortalConfig {
-  returnUrl: Url;
+  returnUrlPath: Url;
 }
 
 export interface StripeCustomerPortalEndpointConfig {
@@ -33,7 +33,7 @@ export type PostCustomerPortalSessionConfig = AuthedEndpointConfig &
 function readStripeConfig(env: Environment): StripeCustomerPortalEndpointConfig {
   return {
     stripeCustomerPortalConfig: {
-      returnUrl: env.get('STRIPE_CUSTOMER_PORTAL_RETURN_URL').required().asString() as Url
+      returnUrlPath: env.get('STRIPE_CUSTOMER_PORTAL_RETURN_URL_PATH').required().asString() as Url
     }
   };
 }
