@@ -4,7 +4,7 @@ import type { MiddlewareObj, Request } from '@middy/core';
 import type { OptionalCorsEndpointConfig } from '@model/Config';
 import type { EventWithConfig } from '@model/lambda-events/Event';
 import {
-  _validateRequestOriginDomain,
+  _validateRequestHeaderOrigin,
   baseHeaders,
   errorHandler,
   headers
@@ -35,7 +35,7 @@ function eventParser<
           400,
           hasCorsConfig(request.event.lambdaConfig)
             ? headers(
-                _validateRequestOriginDomain(
+                _validateRequestHeaderOrigin(
                   request.event.lambdaConfig.corsConfig.allowedOrigins,
                   request.event.headers
                 ) || ''

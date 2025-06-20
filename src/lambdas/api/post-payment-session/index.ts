@@ -6,7 +6,7 @@ import type { Url } from '@own-types/model';
 import {
   errorHandler,
   successHandler,
-  validateRequestOriginDomain
+  validateRequestHeaderOrigin
 } from '@services/common/api-response-handlers';
 import type { MetricDimensions } from '@services/observability/metrics';
 import { StripeService } from '@services/stripe';
@@ -27,7 +27,7 @@ async function lambdaHandler(
   const { tier, language } = event.body;
   const selectedTier = tiers[tier];
 
-  const frontendUrl = validateRequestOriginDomain({
+  const frontendUrl = validateRequestHeaderOrigin({
     headers: event.headers || {},
     lambdaConfig: event.lambdaConfig
   });

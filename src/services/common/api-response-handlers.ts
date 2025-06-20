@@ -15,7 +15,7 @@ export function baseHeaders(): ResponseHeaders {
   };
 }
 
-export function _validateRequestOriginDomain(
+export function _validateRequestHeaderOrigin(
   allowedOrigins: Array<string>,
   requestHeaders: Record<string, string | undefined>
 ): string | undefined {
@@ -29,10 +29,10 @@ export function _validateRequestOriginDomain(
   return origin;
 }
 
-export function validateRequestOriginDomain<TConfig extends { lambdaConfig: CorsEndpointConfig }>(
+export function validateRequestHeaderOrigin<TConfig extends { lambdaConfig: CorsEndpointConfig }>(
   event: Pick<APIGatewayProxyEvent, 'headers'> & TConfig
 ): string | undefined {
-  return _validateRequestOriginDomain(
+  return _validateRequestHeaderOrigin(
     event.lambdaConfig.corsConfig.allowedOrigins,
     event.headers || {}
   );

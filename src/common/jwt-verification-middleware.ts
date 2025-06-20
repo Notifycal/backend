@@ -5,7 +5,7 @@ import type { AuthedAPIEventWithConfig } from '@model/lambda-events/ApiGatewayEv
 import type { Jwt } from '@notifycal/shared/types';
 import type { JwtClaimCheckerFn, JwtDecoderAndSignatureVerifierFn } from '@own-types/model';
 import {
-  _validateRequestOriginDomain,
+  _validateRequestHeaderOrigin,
   baseHeaders,
   errorHandler,
   headers
@@ -38,7 +38,7 @@ function jwtVerification<
   const config = request.event.lambdaConfig;
   const earlyResponseHeaders = hasCorsConfig(config)
     ? headers(
-        _validateRequestOriginDomain(config.corsConfig.allowedOrigins, request.event.headers) || ''
+        _validateRequestHeaderOrigin(config.corsConfig.allowedOrigins, request.event.headers) || ''
       )
     : baseHeaders();
   if (!authorization) {
