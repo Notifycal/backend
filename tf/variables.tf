@@ -21,7 +21,7 @@ variable "environment" {
 }
 
 variable "allowed_domains" {
-  type        = string
+  type        = list(string)
   description = "Allowed domains specified in response headers by API gateway lambdas(TLDR: CORS). The value matching the request header origin will be set in the response"
 }
 
