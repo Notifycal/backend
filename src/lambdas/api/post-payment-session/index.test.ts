@@ -76,8 +76,8 @@ describe('POST Payment checkout session', () => {
         validIdentity,
         defaultConfig.paymentPlans.tiers.good,
         'es',
-        `${defaultConfig.corsConfig.allowedDomains[0]}/success`,
-        `${defaultConfig.corsConfig.allowedDomains[0]}/cancel`
+        `${defaultConfig.corsConfig.allowedOrigins[0]}/success`,
+        `${defaultConfig.corsConfig.allowedOrigins[0]}/cancel`
       );
       expect(addMetricFn).toHaveBeenCalledWith('PaymentSessionCreated', MetricUnit.Count, 1, {
         tier: validRequestBody.tier,
@@ -196,7 +196,7 @@ function testIt(
 const defaultConfig: PostPaymentCheckoutSessionConfig = {
   decodeAccessJwtConfig: getDefaultDecodeAccessJwtConfig(),
   corsConfig: {
-    allowedDomains: ['http://localhost:5173']
+    allowedOrigins: ['http://localhost:5173']
   },
   stripeAuthConfig: {
     apiKey: 'sk_test_123456789'

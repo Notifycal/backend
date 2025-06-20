@@ -18,7 +18,7 @@ function corsCheck<TConfig extends CorsEndpointConfig>(): MiddlewareObj<
   return {
     before: (request): APIGatewayProxyResult | void => {
       const origin = request.event.headers.origin || request.event.headers.Origin;
-      const allowedOrigins = request.event.lambdaConfig.corsConfig.allowedDomains;
+      const allowedOrigins = request.event.lambdaConfig.corsConfig.allowedOrigins;
 
       if (!origin || !allowedOrigins.includes(origin)) {
         return corsErrorResponse;
@@ -33,7 +33,7 @@ function configureMiddleware<TConfig extends CorsEndpointConfig>(
   const options = {
     headers: 'GET,POST,OPTIONS,PUT,DELETE,PATCH',
     methods: 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token',
-    origins: request.event.lambdaConfig.corsConfig.allowedDomains,
+    origins: request.event.lambdaConfig.corsConfig.allowedOrigins,
     vary: 'Origin'
   };
   return httpCors(options) as MiddlewareObj<

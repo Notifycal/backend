@@ -66,7 +66,7 @@ function readJwtConfig<
 export function readBaseConfig(env: Environment): CorsEndpointConfig {
   return {
     corsConfig: {
-      allowedDomains: env.get(`ALLOWED_DOMAINS`).required().asJsonArray() as Array<string>
+      allowedOrigins: env.get(`ALLOWED_ORIGINS`).required().asJsonArray() as Array<string>
     }
   };
 }

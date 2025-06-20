@@ -147,7 +147,7 @@ export function setEnvEmailingSenderConfig(config: EmailingSenderConfig): void {
 }
 
 export function setEnvBaseConfig(config: CorsConfig): void {
-  process.env.ALLOWED_DOMAINS = JSON.stringify(config.allowedDomains);
+  process.env.ALLOWED_ORIGINS = JSON.stringify(config.allowedOrigins);
 }
 
 export function setEnvIdpConfigs(configs: IdpConfigs): void {

@@ -29,22 +29,22 @@ describe('CORS', () => {
     permissions: {}
   };
 
-  it('should allow for multiple domains when origin matches first domain', async () => {
-    const allowedDomains = ['http://localhost:8080', 'https://privatedev-2.test.com'];
+  it('should allow for multiple origins when origin matches first domain', async () => {
+    const allowedOrigins = ['http://localhost:8080', 'https://privatedev-2.test.com'];
     const event = (await testAuthedEvent(
       {},
       {
-        Origin: allowedDomains[0]
+        Origin: allowedOrigins[0]
       },
       accessTokenSchema,
       validAccessToken
     )) as unknown as APIGatewayProxyEvent;
     const getUserByIdFn = () => Promise.resolve(validUserStoreRecord(validAccessToken.userId));
 
-    return testit(event, getUserByIdFn, config(allowedDomains)).then((resp) => {
+    return testit(event, getUserByIdFn, config(allowedOrigins)).then((resp) => {
       expect(resp.statusCode).toBe(200);
       expect(resp.headers).toStrictEqual({
-        'Access-Control-Allow-Origin': allowedDomains[0],
+        'Access-Control-Allow-Origin': allowedOrigins[0],
         'Access-Control-Allow-Headers': 'GET,POST,OPTIONS,PUT,DELETE,PATCH',
         'Access-Control-Allow-Methods':
           'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token',
@@ -54,22 +54,22 @@ describe('CORS', () => {
     });
   });
 
-  it('should allow for multiple domains when origin matches second domain', async () => {
-    const allowedDomains = ['http://localhost:8080', 'https://privatedev-2.test.com'];
+  it('should allow for multiple origins when origin matches second domain', async () => {
+    const allowedOrigins = ['http://localhost:8080', 'https://privatedev-2.test.com'];
     const event = (await testAuthedEvent(
       {},
       {
-        Origin: allowedDomains[1]
+        Origin: allowedOrigins[1]
       },
       accessTokenSchema,
       validAccessToken
     )) as unknown as APIGatewayProxyEvent;
     const getUserByIdFn = () => Promise.resolve(validUserStoreRecord(validAccessToken.userId));
 
-    return testit(event, getUserByIdFn, config(allowedDomains)).then((resp) => {
+    return testit(event, getUserByIdFn, config(allowedOrigins)).then((resp) => {
       expect(resp.statusCode).toBe(200);
       expect(resp.headers).toStrictEqual({
-        'Access-Control-Allow-Origin': allowedDomains[1],
+        'Access-Control-Allow-Origin': allowedOrigins[1],
         'Access-Control-Allow-Headers': 'GET,POST,OPTIONS,PUT,DELETE,PATCH',
         'Access-Control-Allow-Methods':
           'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token',
@@ -80,7 +80,7 @@ describe('CORS', () => {
   });
 
   it('should reject request when origin does not match any allowed domain', async () => {
-    const allowedDomains = ['http://localhost:8080', 'https://privatedev-2.test.com'];
+    const allowedOrigins = ['http://localhost:8080', 'https://privatedev-2.test.com'];
     const event = (await testAuthedEvent(
       {},
       {
@@ -91,14 +91,14 @@ describe('CORS', () => {
     )) as unknown as APIGatewayProxyEvent;
     const getUserByIdFn = () => Promise.resolve(validUserStoreRecord(validAccessToken.userId));
 
-    return testit(event, getUserByIdFn, config(allowedDomains)).then((resp) => {
+    return testit(event, getUserByIdFn, config(allowedOrigins)).then((resp) => {
       expect(resp.statusCode).toBe(403);
       expect(resp.headers).toStrictEqual({ 'Content-Type': 'application/json' });
     });
   });
 
   it('should reject request when origin is undefined', async () => {
-    const allowedDomains = ['http://localhost:8080', 'https://privatedev-2.test.com'];
+    const allowedOrigins = ['http://localhost:8080', 'https://privatedev-2.test.com'];
     const event = (await testAuthedEvent(
       {},
       {},
@@ -107,14 +107,14 @@ describe('CORS', () => {
     )) as unknown as APIGatewayProxyEvent;
     const getUserByIdFn = () => Promise.resolve(validUserStoreRecord(validAccessToken.userId));
 
-    return testit(event, getUserByIdFn, config(allowedDomains)).then((resp) => {
+    return testit(event, getUserByIdFn, config(allowedOrigins)).then((resp) => {
       expect(resp.statusCode).toBe(403);
       expect(resp.headers).toStrictEqual({ 'Content-Type': 'application/json' });
     });
   });
 
   it('should reject request when origin is null', async () => {
-    const allowedDomains = ['http://localhost:8080', 'https://privatedev-2.test.com'];
+    const allowedOrigins = ['http://localhost:8080', 'https://privatedev-2.test.com'];
     const event = (await testAuthedEvent(
       {},
       {
@@ -125,14 +125,14 @@ describe('CORS', () => {
     )) as unknown as APIGatewayProxyEvent;
     const getUserByIdFn = () => Promise.resolve(validUserStoreRecord(validAccessToken.userId));
 
-    return testit(event, getUserByIdFn, config(allowedDomains)).then((resp) => {
+    return testit(event, getUserByIdFn, config(allowedOrigins)).then((resp) => {
       expect(resp.statusCode).toBe(403);
       expect(resp.headers).toStrictEqual({ 'Content-Type': 'application/json' });
     });
   });
 
   it('should reject request when origin is empty string', async () => {
-    const allowedDomains = ['http://localhost:8080', 'https://privatedev-2.test.com'];
+    const allowedOrigins = ['http://localhost:8080', 'https://privatedev-2.test.com'];
     const event = (await testAuthedEvent(
       {},
       {
@@ -143,14 +143,14 @@ describe('CORS', () => {
     )) as unknown as APIGatewayProxyEvent;
     const getUserByIdFn = () => Promise.resolve(validUserStoreRecord(validAccessToken.userId));
 
-    return testit(event, getUserByIdFn, config(allowedDomains)).then((resp) => {
+    return testit(event, getUserByIdFn, config(allowedOrigins)).then((resp) => {
       expect(resp.statusCode).toBe(403);
       expect(resp.headers).toStrictEqual({ 'Content-Type': 'application/json' });
     });
   });
 
   it('should handle case-sensitive domain matching', async () => {
-    const allowedDomains = ['http://localhost:8080', 'https://privatedev-2.test.com'];
+    const allowedOrigins = ['http://localhost:8080', 'https://privatedev-2.test.com'];
     const event = (await testAuthedEvent(
       {},
       {
@@ -161,14 +161,14 @@ describe('CORS', () => {
     )) as unknown as APIGatewayProxyEvent;
     const getUserByIdFn = () => Promise.resolve(validUserStoreRecord(validAccessToken.userId));
 
-    return testit(event, getUserByIdFn, config(allowedDomains)).then((resp) => {
+    return testit(event, getUserByIdFn, config(allowedOrigins)).then((resp) => {
       expect(resp.statusCode).toBe(403);
       expect(resp.headers).toStrictEqual({ 'Content-Type': 'application/json' });
     });
   });
 
   it('should handle partial domain matching rejection', async () => {
-    const allowedDomains = ['http://localhost:8080', 'https://privatedev-2.test.com'];
+    const allowedOrigins = ['http://localhost:8080', 'https://privatedev-2.test.com'];
     const event = (await testAuthedEvent(
       {},
       {
@@ -179,14 +179,14 @@ describe('CORS', () => {
     )) as unknown as APIGatewayProxyEvent;
     const getUserByIdFn = () => Promise.resolve(validUserStoreRecord(validAccessToken.userId));
 
-    return testit(event, getUserByIdFn, config(allowedDomains)).then((resp) => {
+    return testit(event, getUserByIdFn, config(allowedOrigins)).then((resp) => {
       expect(resp.statusCode).toBe(403);
       expect(resp.headers).toStrictEqual({ 'Content-Type': 'application/json' });
     });
   });
 
-  it('should handle empty allowed domains array', async () => {
-    const allowedDomains: Array<string> = [];
+  it('should handle empty allowed origins array', async () => {
+    const allowedOrigins: Array<string> = [];
     const event = (await testAuthedEvent(
       {},
       {
@@ -197,14 +197,14 @@ describe('CORS', () => {
     )) as unknown as APIGatewayProxyEvent;
     const getUserByIdFn = () => Promise.resolve(validUserStoreRecord(validAccessToken.userId));
 
-    return testit(event, getUserByIdFn, config(allowedDomains)).then((resp) => {
+    return testit(event, getUserByIdFn, config(allowedOrigins)).then((resp) => {
       expect(resp.statusCode).toBe(403);
       expect(resp.headers).toStrictEqual({ 'Content-Type': 'application/json' });
     });
   });
 
   it('should handle single allowed domain', async () => {
-    const allowedDomains = ['https://app.notifycal.com'];
+    const allowedOrigins = ['https://app.notifycal.com'];
     const event = (await testAuthedEvent(
       {},
       {
@@ -215,7 +215,7 @@ describe('CORS', () => {
     )) as unknown as APIGatewayProxyEvent;
     const getUserByIdFn = () => Promise.resolve(validUserStoreRecord(validAccessToken.userId));
 
-    return testit(event, getUserByIdFn, config(allowedDomains)).then((resp) => {
+    return testit(event, getUserByIdFn, config(allowedOrigins)).then((resp) => {
       expect(resp.statusCode).toBe(200);
       expect(resp.headers).toStrictEqual({
         'Access-Control-Allow-Origin': 'https://app.notifycal.com',
@@ -249,14 +249,14 @@ describe('CORS', () => {
   }
 });
 
-function config(allowedDomains: Array<string> = ['http://localhost:5173']): GetUserProfileConfig {
+function config(allowedOrigins: Array<string> = ['http://localhost:5173']): GetUserProfileConfig {
   return {
     decodeAccessJwtConfig: getDefaultDecodeAccessJwtConfig(),
     userBaseStoreConfig: {
       tableName: 'Users-local'
     },
     corsConfig: {
-      allowedDomains: allowedDomains
+      allowedOrigins: allowedOrigins
     }
   };
 }

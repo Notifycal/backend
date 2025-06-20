@@ -36,7 +36,7 @@ function eventParser<
           hasCorsConfig(request.event.lambdaConfig)
             ? headers(
                 _validateRequestOriginDomain(
-                  request.event.lambdaConfig.corsConfig.allowedDomains,
+                  request.event.lambdaConfig.corsConfig.allowedOrigins,
                   request.event.headers
                 ) || ''
               )

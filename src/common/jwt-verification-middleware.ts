@@ -38,7 +38,7 @@ function jwtVerification<
   const config = request.event.lambdaConfig;
   const earlyResponseHeaders = hasCorsConfig(config)
     ? headers(
-        _validateRequestOriginDomain(config.corsConfig.allowedDomains, request.event.headers) || ''
+        _validateRequestOriginDomain(config.corsConfig.allowedOrigins, request.event.headers) || ''
       )
     : baseHeaders();
   if (!authorization) {

@@ -16,14 +16,14 @@ export function baseHeaders(): ResponseHeaders {
 }
 
 export function _validateRequestOriginDomain(
-  allowedDomains: Array<string>,
+  allowedOrigins: Array<string>,
   requestHeaders: Record<string, string | undefined>
 ): string | undefined {
   const origin = requestHeaders['origin'] || requestHeaders['Origin'] || requestHeaders['ORIGIN'];
   if (!origin) {
     return;
   }
-  if (!allowedDomains.includes(origin)) {
+  if (!allowedOrigins.includes(origin)) {
     return;
   }
   return origin;
@@ -33,7 +33,7 @@ export function validateRequestOriginDomain<TConfig extends { lambdaConfig: Cors
   event: Pick<APIGatewayProxyEvent, 'headers'> & TConfig
 ): string | undefined {
   return _validateRequestOriginDomain(
-    event.lambdaConfig.corsConfig.allowedDomains,
+    event.lambdaConfig.corsConfig.allowedOrigins,
     event.headers || {}
   );
 }

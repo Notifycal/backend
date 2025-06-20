@@ -25,7 +25,7 @@ export interface DecodeAccessJwtConfig extends CommonJwtConfig {
 export type DecodeRefreshJwtConfig = DecodeAccessJwtConfig;
 
 export interface CorsConfig {
-  allowedDomains: Array<string>;
+  allowedOrigins: Array<string>;
 }
 export interface CorsEndpointConfig {
   corsConfig: CorsConfig;
