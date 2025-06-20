@@ -1,4 +1,5 @@
 import { MetricUnit } from '@aws-lambda-powertools/metrics';
+import { corsErrorResponse } from '@common/cors-middleware';
 import { logger, metrics } from '@common/powertools';
 import { accessTokenSchema } from '@model/Jwt';
 import type { Email, UserId } from '@notifycal/shared/types';
@@ -21,7 +22,6 @@ import { describe, expect, it, vi } from 'vitest';
 import type { PostPaymentCheckoutSessionConfig } from './config';
 import type { Event } from './schemas';
 // @ts-expect-error cjs handler export
-import { corsErrorResponse } from '@common/cors-middleware';
 import { handler } from './index';
 
 vi.mock('@services/stripe');
