@@ -113,7 +113,7 @@ describe('CORS', () => {
     });
   });
 
-  it('should return 200 OK but without CORS headers when origin is null', async () => {
+  it('should return 400 with empty Allow-Origin in the response when Origin header is null while it should be a string', async () => {
     const allowedOrigins = ['http://localhost:8080', 'https://privatedev-2.test.com'];
     const event = (await testAuthedEvent(
       {},
@@ -126,8 +126,15 @@ describe('CORS', () => {
     const getUserByIdFn = () => Promise.resolve(validUserStoreRecord(validAccessToken.userId));
 
     return testIt(event, getUserByIdFn, config(allowedOrigins)).then((resp) => {
-      expect(resp.statusCode).toBe(200);
-      expect(resp.headers).toStrictEqual({ 'Content-Type': 'application/json' });
+      expect(resp.statusCode).toBe(400);
+      expect(resp.headers).toStrictEqual({
+        'Access-Control-Allow-Origin': '',
+        'Access-Control-Allow-Headers': 'GET,POST,OPTIONS,PUT,DELETE,PATCH',
+        'Access-Control-Allow-Methods':
+          'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token',
+        'Content-Type': 'application/json',
+        Vary: 'Origin'
+      });
     });
   });
 

@@ -79,9 +79,9 @@ export function unprotectedEndpointMiddleware<
 ): middy.MiddyfiedHandler {
   return baseConfigMiddleware(configReaderFn, true)
     .use(setupMiddleware({ setupFn: setupLoggerCorrelationIdApi }))
-    .use(enableCors ? corsMiddleware() : noOpMiddleware)
     .use(eventParserMiddleware(eventSchema, true))
-    .use(setupMiddleware({ setupFn: logEvent }));
+    .use(setupMiddleware({ setupFn: logEvent }))
+    .use(enableCors ? corsMiddleware() : noOpMiddleware);
 }
 
 export function unprotectedCrossDomainEndpointMiddleware<
@@ -116,7 +116,6 @@ export function protectedEndpointMiddlewareCustom<
 ): middy.MiddyfiedHandler {
   return baseConfigMiddleware(configReaderFn, true)
     .use(setupMiddleware({ setupFn: setupLoggerCorrelationIdApi }))
-    .use(enableCors ? corsMiddleware() : noOpMiddleware)
     .use(
       jwtVerificationMiddleware(accessTokenSchema, jwtDecoderAndSignatureVerifierFn, claimCheckerFn)
     )
@@ -128,7 +127,8 @@ export function protectedEndpointMiddlewareCustom<
       })
     )
     .use(eventParserMiddleware(eventSchema, true))
-    .use(setupMiddleware({ setupFn: logEvent }));
+    .use(setupMiddleware({ setupFn: logEvent }))
+    .use(enableCors ? corsMiddleware() : noOpMiddleware);
 }
 
 export function protectedEndpointMiddleware<
