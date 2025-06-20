@@ -6,7 +6,7 @@ import type { CorsEndpointConfig } from '@model/Config';
 import type { APIGatewayProxyResult, Context } from 'aws-lambda';
 
 export const corsErrorResponse: APIGatewayProxyResult = {
-  statusCode: 403,
+  statusCode: 200,
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({ message: 'Origin not allowed' })
 };

@@ -41,7 +41,7 @@ describe('CORS', () => {
     )) as unknown as APIGatewayProxyEvent;
     const getUserByIdFn = () => Promise.resolve(validUserStoreRecord(validAccessToken.userId));
 
-    return testit(event, getUserByIdFn, config(allowedOrigins)).then((resp) => {
+    return testIt(event, getUserByIdFn, config(allowedOrigins)).then((resp) => {
       expect(resp.statusCode).toBe(200);
       expect(resp.headers).toStrictEqual({
         'Access-Control-Allow-Origin': allowedOrigins[0],
@@ -66,7 +66,7 @@ describe('CORS', () => {
     )) as unknown as APIGatewayProxyEvent;
     const getUserByIdFn = () => Promise.resolve(validUserStoreRecord(validAccessToken.userId));
 
-    return testit(event, getUserByIdFn, config(allowedOrigins)).then((resp) => {
+    return testIt(event, getUserByIdFn, config(allowedOrigins)).then((resp) => {
       expect(resp.statusCode).toBe(200);
       expect(resp.headers).toStrictEqual({
         'Access-Control-Allow-Origin': allowedOrigins[1],
@@ -79,7 +79,7 @@ describe('CORS', () => {
     });
   });
 
-  it('should reject request when origin does not match any allowed origin', async () => {
+  it('should return 200 OK but without CORS headers when origin does not match any allowed origin', async () => {
     const allowedOrigins = ['http://localhost:8080', 'https://privatedev-2.test.com'];
     const event = (await testAuthedEvent(
       {},
@@ -91,13 +91,13 @@ describe('CORS', () => {
     )) as unknown as APIGatewayProxyEvent;
     const getUserByIdFn = () => Promise.resolve(validUserStoreRecord(validAccessToken.userId));
 
-    return testit(event, getUserByIdFn, config(allowedOrigins)).then((resp) => {
-      expect(resp.statusCode).toBe(403);
+    return testIt(event, getUserByIdFn, config(allowedOrigins)).then((resp) => {
+      expect(resp.statusCode).toBe(200);
       expect(resp.headers).toStrictEqual({ 'Content-Type': 'application/json' });
     });
   });
 
-  it('should reject request when origin is undefined', async () => {
+  it('should return 200 OK but without CORS headers when origin is undefined', async () => {
     const allowedOrigins = ['http://localhost:8080', 'https://privatedev-2.test.com'];
     const event = (await testAuthedEvent(
       {},
@@ -107,13 +107,13 @@ describe('CORS', () => {
     )) as unknown as APIGatewayProxyEvent;
     const getUserByIdFn = () => Promise.resolve(validUserStoreRecord(validAccessToken.userId));
 
-    return testit(event, getUserByIdFn, config(allowedOrigins)).then((resp) => {
-      expect(resp.statusCode).toBe(403);
+    return testIt(event, getUserByIdFn, config(allowedOrigins)).then((resp) => {
+      expect(resp.statusCode).toBe(200);
       expect(resp.headers).toStrictEqual({ 'Content-Type': 'application/json' });
     });
   });
 
-  it('should reject request when origin is null', async () => {
+  it('should return 200 OK but without CORS headers when origin is null', async () => {
     const allowedOrigins = ['http://localhost:8080', 'https://privatedev-2.test.com'];
     const event = (await testAuthedEvent(
       {},
@@ -125,13 +125,13 @@ describe('CORS', () => {
     )) as unknown as APIGatewayProxyEvent;
     const getUserByIdFn = () => Promise.resolve(validUserStoreRecord(validAccessToken.userId));
 
-    return testit(event, getUserByIdFn, config(allowedOrigins)).then((resp) => {
-      expect(resp.statusCode).toBe(403);
+    return testIt(event, getUserByIdFn, config(allowedOrigins)).then((resp) => {
+      expect(resp.statusCode).toBe(200);
       expect(resp.headers).toStrictEqual({ 'Content-Type': 'application/json' });
     });
   });
 
-  it('should reject request when origin is empty string', async () => {
+  it('should return 200 OK but without CORS headers when origin is empty string', async () => {
     const allowedOrigins = ['http://localhost:8080', 'https://privatedev-2.test.com'];
     const event = (await testAuthedEvent(
       {},
@@ -143,8 +143,8 @@ describe('CORS', () => {
     )) as unknown as APIGatewayProxyEvent;
     const getUserByIdFn = () => Promise.resolve(validUserStoreRecord(validAccessToken.userId));
 
-    return testit(event, getUserByIdFn, config(allowedOrigins)).then((resp) => {
-      expect(resp.statusCode).toBe(403);
+    return testIt(event, getUserByIdFn, config(allowedOrigins)).then((resp) => {
+      expect(resp.statusCode).toBe(200);
       expect(resp.headers).toStrictEqual({ 'Content-Type': 'application/json' });
     });
   });
@@ -161,8 +161,8 @@ describe('CORS', () => {
     )) as unknown as APIGatewayProxyEvent;
     const getUserByIdFn = () => Promise.resolve(validUserStoreRecord(validAccessToken.userId));
 
-    return testit(event, getUserByIdFn, config(allowedOrigins)).then((resp) => {
-      expect(resp.statusCode).toBe(403);
+    return testIt(event, getUserByIdFn, config(allowedOrigins)).then((resp) => {
+      expect(resp.statusCode).toBe(200);
       expect(resp.headers).toStrictEqual({ 'Content-Type': 'application/json' });
     });
   });
@@ -179,8 +179,8 @@ describe('CORS', () => {
     )) as unknown as APIGatewayProxyEvent;
     const getUserByIdFn = () => Promise.resolve(validUserStoreRecord(validAccessToken.userId));
 
-    return testit(event, getUserByIdFn, config(allowedOrigins)).then((resp) => {
-      expect(resp.statusCode).toBe(403);
+    return testIt(event, getUserByIdFn, config(allowedOrigins)).then((resp) => {
+      expect(resp.statusCode).toBe(200);
       expect(resp.headers).toStrictEqual({ 'Content-Type': 'application/json' });
     });
   });
@@ -197,8 +197,8 @@ describe('CORS', () => {
     )) as unknown as APIGatewayProxyEvent;
     const getUserByIdFn = () => Promise.resolve(validUserStoreRecord(validAccessToken.userId));
 
-    return testit(event, getUserByIdFn, config(allowedOrigins)).then((resp) => {
-      expect(resp.statusCode).toBe(403);
+    return testIt(event, getUserByIdFn, config(allowedOrigins)).then((resp) => {
+      expect(resp.statusCode).toBe(200);
       expect(resp.headers).toStrictEqual({ 'Content-Type': 'application/json' });
     });
   });
@@ -215,7 +215,7 @@ describe('CORS', () => {
     )) as unknown as APIGatewayProxyEvent;
     const getUserByIdFn = () => Promise.resolve(validUserStoreRecord(validAccessToken.userId));
 
-    return testit(event, getUserByIdFn, config(allowedOrigins)).then((resp) => {
+    return testIt(event, getUserByIdFn, config(allowedOrigins)).then((resp) => {
       expect(resp.statusCode).toBe(200);
       expect(resp.headers).toStrictEqual({
         'Access-Control-Allow-Origin': 'https://app.notifycal.com',
@@ -228,12 +228,10 @@ describe('CORS', () => {
     });
   });
 
-  const defaultEnv = config();
-
-  function testit(
+  function testIt(
     event: APIGatewayProxyEvent,
     getUserByIdFn: () => Promise<UserStoreRecord<IdpName> | undefined>,
-    env: GetUserProfileConfig = defaultEnv
+    env: GetUserProfileConfig = config()
   ): Promise<APIGatewayProxyResult> {
     setEnv(env);
     vi.mock('@services/stores/user-base-store');
