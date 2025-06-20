@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.38.0](https://github.com/Notifycal/backend/compare/v0.37.2...v0.38.0) (2025-06-20)
+
+
+### Features
+
+* allow multiple domains as long as one matches request header or… ([#711](https://github.com/Notifycal/backend/issues/711)) ([e99b00a](https://github.com/Notifycal/backend/commit/e99b00a16af7fb5d1c9b703b583ba74d8c6124c9))
+* store payment_plan info in SSM ([#710](https://github.com/Notifycal/backend/issues/710)) ([6235145](https://github.com/Notifycal/backend/commit/623514520db7965e323eb017264c67c93cb5579c))
+* stripe webhook ([#681](https://github.com/Notifycal/backend/issues/681)) ([6ebdd48](https://github.com/Notifycal/backend/commit/6ebdd4891861b4730d26066c2b8d271eb6f3a7f2))
+
+
+### Bug Fixes
+
+* drop unused cors stuff ([#708](https://github.com/Notifycal/backend/issues/708)) ([7fdf061](https://github.com/Notifycal/backend/commit/7fdf0610429eae839ca3504d2b6ed84de6cccc8d))
+
 ## [0.37.2](https://github.com/Notifycal/backend/compare/v0.37.1...v0.37.2) (2025-06-19)
 
 
