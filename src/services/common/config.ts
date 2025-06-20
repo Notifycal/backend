@@ -45,7 +45,6 @@ import type { RefreshTokenBaseStoreConfigEndpointConfig } from '@services/stores
 import type { UserBaseStoreEndpointConfig } from '@services/stores/user-base-store';
 import type { UserLiveIndexStoreEndpointConfig } from '@services/stores/user-live-index-store';
 import { from } from 'env-var';
-import { validateRequestOriginDomain } from './api-response-handlers';
 
 export function readEnv(): Environment {
   return from(process.env, {});
@@ -64,14 +63,10 @@ function readJwtConfig<
   } as TResult;
 }
 
-export function readBaseConfig(
-  env: Environment,
-  requestHeaders: Record<string, string | undefined>
-): CorsEndpointConfig {
-  const allowedDomains = env.get(`ALLOWED_DOMAINS`).required().asJsonArray() as Array<string>;
+export function readBaseConfig(env: Environment): CorsEndpointConfig {
   return {
     corsConfig: {
-      frontendDomain: validateRequestOriginDomain(allowedDomains, requestHeaders)
+      allowedDomains: env.get(`ALLOWED_DOMAINS`).required().asJsonArray() as Array<string>
     }
   };
 }
@@ -110,13 +105,10 @@ export function readDecodeAccessJwtConfig(env: Environment): DecodeAccessJwtEndp
   };
 }
 
-export function readAuthedEndpointConfig(
-  env: Environment,
-  requestHeaders: Record<string, string | undefined>
-): AuthedEndpointConfig {
+export function readAuthedEndpointConfig(env: Environment): AuthedEndpointConfig {
   return {
     ...readDecodeAccessJwtConfig(env),
-    ...readBaseConfig(env, requestHeaders)
+    ...readBaseConfig(env)
   };
 }
 

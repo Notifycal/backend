@@ -176,7 +176,7 @@ function testIt(
 const defaultConfig: PostPaymentCheckoutSessionConfig = {
   decodeAccessJwtConfig: getDefaultDecodeAccessJwtConfig(),
   corsConfig: {
-    frontendDomain: 'http://localhost:5173'
+    allowedDomains: ['http://localhost:5173']
   },
   stripeAuthConfig: {
     apiKey: 'sk_test_123456789'

@@ -4,7 +4,7 @@ import type { Email, IdpId, IdpName, UserId } from '@notifycal/shared/types';
 import { UserBaseStore } from '@services/stores/user-base-store';
 import { c, testAuthedEvent } from '@testing/data/apigateway';
 import {
-  setEnvBaseConfigMultipleDomains,
+  setEnvBaseConfig,
   setEnvDecodeAccessJwtConfig,
   setEnvUserBaseStoreConfig
 } from '@testing/utils/config';
@@ -41,7 +41,7 @@ describe('CORS', () => {
     )) as unknown as APIGatewayProxyEvent;
     const getUserByIdFn = () => Promise.resolve(validUserStoreRecord(validAccessToken.userId));
 
-    return testit(event, getUserByIdFn, allowedDomains).then((resp) => {
+    return testit(event, getUserByIdFn, config(allowedDomains)).then((resp) => {
       expect(resp.statusCode).toBe(200);
       expect(resp.headers).toStrictEqual({
         'Access-Control-Allow-Origin': allowedDomains[0],
@@ -49,7 +49,7 @@ describe('CORS', () => {
         'Access-Control-Allow-Methods':
           'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token',
         'Content-Type': 'application/json',
-        Vary: 'Origin'
+        Vary: 'Origin, Origin'
       });
     });
   });
@@ -66,7 +66,7 @@ describe('CORS', () => {
     )) as unknown as APIGatewayProxyEvent;
     const getUserByIdFn = () => Promise.resolve(validUserStoreRecord(validAccessToken.userId));
 
-    return testit(event, getUserByIdFn, allowedDomains).then((resp) => {
+    return testit(event, getUserByIdFn, config(allowedDomains)).then((resp) => {
       expect(resp.statusCode).toBe(200);
       expect(resp.headers).toStrictEqual({
         'Access-Control-Allow-Origin': allowedDomains[1],
@@ -74,7 +74,7 @@ describe('CORS', () => {
         'Access-Control-Allow-Methods':
           'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token',
         'Content-Type': 'application/json',
-        Vary: 'Origin'
+        Vary: 'Origin, Origin'
       });
     });
   });
@@ -91,7 +91,7 @@ describe('CORS', () => {
     )) as unknown as APIGatewayProxyEvent;
     const getUserByIdFn = () => Promise.resolve(validUserStoreRecord(validAccessToken.userId));
 
-    return testit(event, getUserByIdFn, allowedDomains).then((resp) => {
+    return testit(event, getUserByIdFn, config(allowedDomains)).then((resp) => {
       expect(resp.statusCode).toBe(403);
       expect(resp.headers).toStrictEqual({ 'Content-Type': 'application/json' });
     });
@@ -107,7 +107,7 @@ describe('CORS', () => {
     )) as unknown as APIGatewayProxyEvent;
     const getUserByIdFn = () => Promise.resolve(validUserStoreRecord(validAccessToken.userId));
 
-    return testit(event, getUserByIdFn, allowedDomains).then((resp) => {
+    return testit(event, getUserByIdFn, config(allowedDomains)).then((resp) => {
       expect(resp.statusCode).toBe(403);
       expect(resp.headers).toStrictEqual({ 'Content-Type': 'application/json' });
     });
@@ -125,7 +125,7 @@ describe('CORS', () => {
     )) as unknown as APIGatewayProxyEvent;
     const getUserByIdFn = () => Promise.resolve(validUserStoreRecord(validAccessToken.userId));
 
-    return testit(event, getUserByIdFn, allowedDomains).then((resp) => {
+    return testit(event, getUserByIdFn, config(allowedDomains)).then((resp) => {
       expect(resp.statusCode).toBe(403);
       expect(resp.headers).toStrictEqual({ 'Content-Type': 'application/json' });
     });
@@ -143,7 +143,7 @@ describe('CORS', () => {
     )) as unknown as APIGatewayProxyEvent;
     const getUserByIdFn = () => Promise.resolve(validUserStoreRecord(validAccessToken.userId));
 
-    return testit(event, getUserByIdFn, allowedDomains).then((resp) => {
+    return testit(event, getUserByIdFn, config(allowedDomains)).then((resp) => {
       expect(resp.statusCode).toBe(403);
       expect(resp.headers).toStrictEqual({ 'Content-Type': 'application/json' });
     });
@@ -161,7 +161,7 @@ describe('CORS', () => {
     )) as unknown as APIGatewayProxyEvent;
     const getUserByIdFn = () => Promise.resolve(validUserStoreRecord(validAccessToken.userId));
 
-    return testit(event, getUserByIdFn, allowedDomains).then((resp) => {
+    return testit(event, getUserByIdFn, config(allowedDomains)).then((resp) => {
       expect(resp.statusCode).toBe(403);
       expect(resp.headers).toStrictEqual({ 'Content-Type': 'application/json' });
     });
@@ -179,7 +179,7 @@ describe('CORS', () => {
     )) as unknown as APIGatewayProxyEvent;
     const getUserByIdFn = () => Promise.resolve(validUserStoreRecord(validAccessToken.userId));
 
-    return testit(event, getUserByIdFn, allowedDomains).then((resp) => {
+    return testit(event, getUserByIdFn, config(allowedDomains)).then((resp) => {
       expect(resp.statusCode).toBe(403);
       expect(resp.headers).toStrictEqual({ 'Content-Type': 'application/json' });
     });
@@ -197,7 +197,7 @@ describe('CORS', () => {
     )) as unknown as APIGatewayProxyEvent;
     const getUserByIdFn = () => Promise.resolve(validUserStoreRecord(validAccessToken.userId));
 
-    return testit(event, getUserByIdFn, allowedDomains).then((resp) => {
+    return testit(event, getUserByIdFn, config(allowedDomains)).then((resp) => {
       expect(resp.statusCode).toBe(403);
       expect(resp.headers).toStrictEqual({ 'Content-Type': 'application/json' });
     });
@@ -215,7 +215,7 @@ describe('CORS', () => {
     )) as unknown as APIGatewayProxyEvent;
     const getUserByIdFn = () => Promise.resolve(validUserStoreRecord(validAccessToken.userId));
 
-    return testit(event, getUserByIdFn, allowedDomains).then((resp) => {
+    return testit(event, getUserByIdFn, config(allowedDomains)).then((resp) => {
       expect(resp.statusCode).toBe(200);
       expect(resp.headers).toStrictEqual({
         'Access-Control-Allow-Origin': 'https://app.notifycal.com',
@@ -228,13 +228,14 @@ describe('CORS', () => {
     });
   });
 
+  const defaultEnv = config();
+
   function testit(
     event: APIGatewayProxyEvent,
     getUserByIdFn: () => Promise<UserStoreRecord<IdpName> | undefined>,
-    allowedDomains: Array<string>,
     env: GetUserProfileConfig = defaultEnv
   ): Promise<APIGatewayProxyResult> {
-    setEnv(env, allowedDomains);
+    setEnv(env);
     vi.mock('@services/stores/user-base-store');
     const userBaseStoreMock = {
       getUserById: vi.fn().mockImplementation(getUserByIdFn)
@@ -248,18 +249,20 @@ describe('CORS', () => {
   }
 });
 
-const defaultEnv = {
-  decodeAccessJwtConfig: getDefaultDecodeAccessJwtConfig(),
-  userBaseStoreConfig: {
-    tableName: 'Users-local'
-  },
-  corsConfig: {
-    frontendDomain: 'http://localhost:5173'
-  }
-};
+function config(allowedDomains: Array<string> = ['http://localhost:5173']): GetUserProfileConfig {
+  return {
+    decodeAccessJwtConfig: getDefaultDecodeAccessJwtConfig(),
+    userBaseStoreConfig: {
+      tableName: 'Users-local'
+    },
+    corsConfig: {
+      allowedDomains: allowedDomains
+    }
+  };
+}
 
-function setEnv(config: GetUserProfileConfig, allowedDomains: Array<string>): void {
+function setEnv(config: GetUserProfileConfig): void {
   setEnvDecodeAccessJwtConfig(config.decodeAccessJwtConfig);
   setEnvUserBaseStoreConfig(config.userBaseStoreConfig);
-  setEnvBaseConfigMultipleDomains(allowedDomains);
+  setEnvBaseConfig(config.corsConfig);
 }

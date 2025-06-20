@@ -7,7 +7,8 @@ import type { JwtClaimCheckerFn, JwtDecoderAndSignatureVerifierFn } from '@own-t
 import {
   headers as _headers,
   baseHeaders,
-  errorHandler
+  errorHandler,
+  validateRequestOriginDomain
 } from '@services/common/api-response-handlers';
 import type { APIGatewayProxyResult, Context } from 'aws-lambda';
 import type { z } from 'zod';
@@ -36,7 +37,9 @@ function jwtVerification<
   const requestContext = request.event.requestContext;
   const config = request.event.lambdaConfig;
   const earlyResponseHeaders = hasCorsConfig(config)
-    ? _headers(config.corsConfig.frontendDomain)
+    ? _headers(
+        validateRequestOriginDomain(config.corsConfig.allowedDomains, request.event.headers) || ''
+      )
     : baseHeaders();
   if (!authorization) {
     return Promise.resolve(errorHandler(401, earlyResponseHeaders)('Missing Authorization'));

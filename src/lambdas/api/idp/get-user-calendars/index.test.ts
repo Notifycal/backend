@@ -109,7 +109,7 @@ const defaultEnv = {
   },
   idpConfigs: fakeIdpConfigs,
   corsConfig: {
-    frontendDomain: 'http://localhost:5173'
+    allowedDomains: ['http://localhost:5173']
   }
 };
 

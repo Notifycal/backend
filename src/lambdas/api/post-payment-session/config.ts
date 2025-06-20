@@ -2,7 +2,6 @@ import type { AuthedEndpointConfig, PaymentPlansEndpointConfig } from '@model/Co
 import type { Environment, Url } from '@own-types/model';
 import { readAuthedEndpointConfig, readEnv, readPaymentPlans } from '@services/common/config';
 import { promiseTry } from '@utils/promises';
-import type { APIGatewayProxyEvent } from 'aws-lambda';
 
 export interface StripeCheckoutConfig {
   successRedirectUrl: Url;
@@ -43,12 +42,10 @@ function readStripeAuthConfig(env: Environment): StripeAuthEndpointConfig {
   };
 }
 
-export function readPostPaymentCheckoutSessionConfig(
-  event: APIGatewayProxyEvent
-): Promise<PostPaymentCheckoutSessionConfig> {
+export function readPostPaymentCheckoutSessionConfig(): Promise<PostPaymentCheckoutSessionConfig> {
   const env = readEnv();
   return promiseTry(() => ({
-    ...readAuthedEndpointConfig(env, event.headers),
+    ...readAuthedEndpointConfig(env),
     ...readStripeConfig(env),
     ...readPaymentPlans(env),
     ...readStripeAuthConfig(env)

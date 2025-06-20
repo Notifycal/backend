@@ -1,6 +1,5 @@
 import type { MiddlewareObj, Request } from '@middy/core';
 
-import { CorsError } from '@model/Errors';
 import type { EventWithConfig } from '@model/lambda-events/Event';
 import type { ConfigReaderFn } from '@own-types/model';
 import { errorHandler } from '@services/common/api-response-handlers';
@@ -18,20 +17,14 @@ function configReader<TRequest extends SupportedEvents, TConfig, TResult>(
       (request.event as EventWithConfig<TConfig>).lambdaConfig = config;
     },
     (error) => {
-      console.error('yeeeeeeee');
-      console.error(error);
       if (isApiRequest) {
-        if (error instanceof CorsError) {
-          return errorHandler(403)('CORS error', { error }) as TResult;
-        } else {
-          return errorHandler(500)('Endpoint config could not be loaded', {
-            error
-          }) as TResult;
-        }
+        return errorHandler(500)('Endpoint config could not be loaded', {
+          error
+        }) as TResult;
       } else {
         const errorMsg = 'Lambda config could not be loaded';
         logger.error(errorMsg, { error });
-        throw new Error(errorMsg, { cause: error });
+        return Promise.reject(new Error(errorMsg, { cause: error }));
       }
     }
   );

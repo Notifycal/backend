@@ -1,6 +1,5 @@
 import type { LogItemExtraInput, LogItemMessage } from '@aws-lambda-powertools/logger/types';
 import { logger } from '@common/powertools';
-import { CorsError } from '@model/Errors';
 import type {
   ErrorResponseBody,
   ResponseHeaders,
@@ -17,15 +16,13 @@ export function baseHeaders(): ResponseHeaders {
 export function validateRequestOriginDomain(
   allowedDomains: Array<string>,
   requestHeaders: Record<string, string | undefined>
-): string {
+): string | undefined {
   const origin = requestHeaders['origin'] || requestHeaders['Origin'] || requestHeaders['ORIGIN'];
   if (!origin) {
-    throw new CorsError('Origin header is missing from the request');
+    return;
   }
   if (!allowedDomains.includes(origin)) {
-    throw new CorsError(
-      `Origin '${origin}' is not in the list of allowed domains: ${allowedDomains.join(', ')}`
-    );
+    return;
   }
   return origin;
 }

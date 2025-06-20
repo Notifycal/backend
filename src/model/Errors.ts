@@ -31,10 +31,3 @@ export type MergedErrorResult = Error & {
     };
   };
 };
-
-export class CorsError extends Error {
-  public constructor(message: string) {
-    super(message);
-    this.name = 'CorsError';
-  }
-}

@@ -15,7 +15,6 @@ import {
 import type { RefreshTokenBaseStoreConfig } from '@services/stores/refresh-token-base-store';
 import type { UserBaseStoreEndpointConfig } from '@services/stores/user-base-store';
 import { promiseTry } from '@utils/promises';
-import type { APIGatewayProxyEvent } from 'aws-lambda';
 export interface BaseRefreshConfig {
   encodeAccessJwtConfig: EncodeAccessJwtConfig;
   encodeRefreshJwtConfig: EncodeRefreshJwtConfig;
@@ -24,13 +23,13 @@ export interface BaseRefreshConfig {
 }
 export type RefreshConfig = BaseRefreshConfig & CorsEndpointConfig & UserBaseStoreEndpointConfig;
 
-export function readRefreshConfig(event: APIGatewayProxyEvent): Promise<RefreshConfig> {
+export function readRefreshConfig(): Promise<RefreshConfig> {
   const env = readEnv();
   return promiseTry(() => ({
     ...readEncodeJwtsConfig(env),
     decodeRefreshJwtConfig: readDecodeRefreshJwtConfig(env),
     ...readRefreshTokenStoreConfig(env),
     ...readUserBaseStoreConfig(env),
-    ...readBaseConfig(env, event.headers)
+    ...readBaseConfig(env)
   }));
 }
