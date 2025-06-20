@@ -29,7 +29,7 @@ describe('CORS', () => {
     permissions: {}
   };
 
-  it('should allow for multiple origins when origin matches first domain', async () => {
+  it('should allow for multiple origins when origin matches first origin', async () => {
     const allowedOrigins = ['http://localhost:8080', 'https://privatedev-2.test.com'];
     const event = (await testAuthedEvent(
       {},
@@ -54,7 +54,7 @@ describe('CORS', () => {
     });
   });
 
-  it('should allow for multiple origins when origin matches second domain', async () => {
+  it('should allow for multiple origins when origin matches second origin', async () => {
     const allowedOrigins = ['http://localhost:8080', 'https://privatedev-2.test.com'];
     const event = (await testAuthedEvent(
       {},
@@ -79,7 +79,7 @@ describe('CORS', () => {
     });
   });
 
-  it('should reject request when origin does not match any allowed domain', async () => {
+  it('should reject request when origin does not match any allowed origin', async () => {
     const allowedOrigins = ['http://localhost:8080', 'https://privatedev-2.test.com'];
     const event = (await testAuthedEvent(
       {},
@@ -149,7 +149,7 @@ describe('CORS', () => {
     });
   });
 
-  it('should handle case-sensitive domain matching', async () => {
+  it('should handle case-sensitive origin matching', async () => {
     const allowedOrigins = ['http://localhost:8080', 'https://privatedev-2.test.com'];
     const event = (await testAuthedEvent(
       {},
@@ -167,7 +167,7 @@ describe('CORS', () => {
     });
   });
 
-  it('should handle partial domain matching rejection', async () => {
+  it('should handle partial origin matching rejection', async () => {
     const allowedOrigins = ['http://localhost:8080', 'https://privatedev-2.test.com'];
     const event = (await testAuthedEvent(
       {},
@@ -203,7 +203,7 @@ describe('CORS', () => {
     });
   });
 
-  it('should handle single allowed domain', async () => {
+  it('should handle single allowed origin', async () => {
     const allowedOrigins = ['https://app.notifycal.com'];
     const event = (await testAuthedEvent(
       {},
