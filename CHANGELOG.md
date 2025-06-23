@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.38.2](https://github.com/Notifycal/backend/compare/v0.38.1...v0.38.2) (2025-06-23)
+
+
+### Bug Fixes
+
+* **deps:** Update Terraform github.com/Notifycal/tofu-module-aws-slack-notify to v7.0.2 ([#722](https://github.com/Notifycal/backend/issues/722)) ([87e747e](https://github.com/Notifycal/backend/commit/87e747e77de46b94642dc918ecbec07b82d2e073))
+
 ## [0.38.1](https://github.com/Notifycal/backend/compare/v0.38.0...v0.38.1) (2025-06-23)
 
 
