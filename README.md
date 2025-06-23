@@ -73,7 +73,6 @@ Usage: `npmts run test`
 Chosen option for fast development:
 
 1. Run a REST server (express) where we define the routes and the target function (already built).
-
    - Need to tie it together with the esbuild process to stop and restart the express server when changes are made to a function.
 
 Options discarded (for now):
