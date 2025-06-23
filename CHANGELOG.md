@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.38.1](https://github.com/Notifycal/backend/compare/v0.38.0...v0.38.1) (2025-06-23)
+
+
+### Bug Fixes
+
+* **deps:** Update AWS packages to v2.22.0 ([#716](https://github.com/Notifycal/backend/issues/716)) ([46d1dc9](https://github.com/Notifycal/backend/commit/46d1dc902c085b675e82afe58fba137fa0ae56fd))
+* **deps:** Update dependency @vonage/server-sdk to v3.21.2 ([#715](https://github.com/Notifycal/backend/issues/715)) ([5bf3672](https://github.com/Notifycal/backend/commit/5bf36725ee48ac3fbc1204cd9f71dcac065d5f3a))
+* follow TF module versioning best practices ([#721](https://github.com/Notifycal/backend/issues/721)) ([f694050](https://github.com/Notifycal/backend/commit/f69405007ef1df35827577a634481d173e7439d2))
+
 ## [0.38.0](https://github.com/Notifycal/backend/compare/v0.37.2...v0.38.0) (2025-06-20)
 
 
