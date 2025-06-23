@@ -4,11 +4,11 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 5.86"
+      version = ">= 5.0"
     }
     awscc = {
       source  = "hashicorp/awscc"
-      version = "~> 1.28"
+      version = ">= 1.0"
     }
     cloudflare = {
       source  = "cloudflare/cloudflare"
@@ -16,7 +16,7 @@ terraform {
     }
     restapi = {
       source  = "Mastercard/restapi"
-      version = "~> 2.0.1"
+      version = ">= 2.0.1"
     }
   }
 }
