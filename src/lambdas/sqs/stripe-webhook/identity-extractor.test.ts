@@ -568,11 +568,11 @@ describe(StripeIdentityExtractor, () => {
 
   function testIt(
     event: Stripe.Event,
-    getIdentityByStripeCustomerIdFn: () => Promise<Identity<IdpName> | null | undefined>,
+    getPaymentUserByStripeCustomerIdFn: () => Promise<Identity<IdpName> | null | undefined>,
     errorLoggerFn: () => void
   ): Promise<Identity<IdpName>> {
     const userPaymentIndexStoreMock = {
-      getIdentityByStripeCustomerId: getIdentityByStripeCustomerIdFn
+      getPaymentUserByStripeCustomerId: getPaymentUserByStripeCustomerIdFn
     } as unknown as PaymentUserIndexStore<IdpName>;
 
     const loggerMock = {
