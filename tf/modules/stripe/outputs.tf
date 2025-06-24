@@ -11,3 +11,7 @@ output "spain_tax_rate" {
     inclusive  = stripe_tax_rate.spain_vat.inclusive
   }
 }
+
+output "country_to_sms_cost_map" {
+  value = local.country_to_sms_cost_map
+}
