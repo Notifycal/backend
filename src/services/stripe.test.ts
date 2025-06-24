@@ -5,16 +5,17 @@ import type {
   Email,
   Identity,
   IdpId,
+  IdpName,
   LanguageCode,
   StripeCustomerId,
   UserId
 } from '@notifycal/shared/types';
 import type { Url } from '@own-types/model';
 import { HttpClient } from '@services/common/http-client';
+import type { AxiosInstance } from 'axios';
 import { default as Stripe } from 'stripe';
 import { describe, expect, it, vi } from 'vitest';
 import { StripeService } from './stripe';
-import { AxiosHttpClient } from './stripe-axios-client';
 
 vi.mock('stripe');
 vi.mock('@common/powertools', () => ({
@@ -50,25 +51,15 @@ describe(StripeService, () => {
   const validStripeCustomerId = 'cus_123456789' as StripeCustomerId;
   const validTaxId = 'tx_srfgwrgwrg';
 
-  it('should initialize Stripe client with correct API key, version and httpClient', () => {
+  it('should initialize Stripe client with correct API key and version', () => {
     const mockConstructor = vi.fn();
-    const mockAxiosInstance = {};
-    const mockGetAxiosInstance = vi.fn().mockReturnValue(mockAxiosInstance);
-
-    vi.mocked(HttpClient).mockImplementation(
-      () =>
-        ({
-          getAxiosInstance: mockGetAxiosInstance
-        }) as unknown as HttpClient
-    );
-    vi.mocked(AxiosHttpClient).mockImplementation(() => ({}) as AxiosHttpClient);
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    vi.mocked(HttpClient.prototype.getAxiosInstance).mockResolvedValue({} as AxiosInstance);
     vi.mocked(Stripe).mockImplementation(mockConstructor);
 
     new StripeService(validApiKey);
 
     expect(HttpClient).toHaveBeenCalledWith(undefined, undefined, 'Stripe');
-    expect(mockGetAxiosInstance).toHaveBeenCalledTimes(1);
-    expect(AxiosHttpClient).toHaveBeenCalledWith(mockAxiosInstance);
     expect(mockConstructor).toHaveBeenCalledTimes(1);
     expect(mockConstructor).toHaveBeenCalledWith(validApiKey, {
       apiVersion: '2025-05-28.basil',
@@ -324,14 +315,14 @@ describe(StripeService, () => {
   });
 
   function testCreateCustomer(
-    identity: Identity<'google.com'>,
+    identity: Identity<IdpName>,
     createCustomerFn: () => Promise<{ id: string }>
   ): Promise<StripeCustomerId> {
     const mockStripeInstance = {
       customers: {
         create: createCustomerFn
       }
-    };
+    } as unknown as Stripe;
 
     setupMocks(mockStripeInstance);
 
@@ -354,7 +345,7 @@ describe(StripeService, () => {
           create: createSessionFn
         }
       }
-    };
+    } as unknown as Stripe;
 
     setupMocks(mockStripeInstance);
 
@@ -381,7 +372,7 @@ describe(StripeService, () => {
           create: createPortalSessionFn
         }
       }
-    };
+    } as unknown as Stripe;
 
     setupMocks(mockStripeInstance);
 
@@ -389,16 +380,12 @@ describe(StripeService, () => {
     return stripeService.createCustomerPortalSession(stripeCustomerId, returnUrl);
   }
 
-  function setupMocks(mockStripeInstance: unknown): void {
+  function setupMocks(mockStripeInstance: Stripe): void {
     const mockAxiosInstance = {};
-
-    vi.mocked(HttpClient).mockImplementation(
-      () =>
-        ({
-          getAxiosInstance: () => mockAxiosInstance
-        }) as unknown as HttpClient
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    vi.mocked(HttpClient.prototype.getAxiosInstance).mockResolvedValue(
+      mockAxiosInstance as AxiosInstance
     );
-    vi.mocked(AxiosHttpClient).mockImplementation(() => ({}) as AxiosHttpClient);
-    vi.mocked(Stripe).mockImplementation(() => mockStripeInstance as Stripe);
+    vi.mocked(Stripe).mockImplementation(() => mockStripeInstance);
   }
 });
