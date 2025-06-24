@@ -127,6 +127,7 @@
 | <a name="input_app_version"></a> [app\_version](#input\_app\_version) | n/a | `string` | n/a | yes |
 | <a name="input_aws_region"></a> [aws\_region](#input\_aws\_region) | n/a | `string` | n/a | yes |
 | <a name="input_base_domain"></a> [base\_domain](#input\_base\_domain) | n/a | `string` | `"notifycal.com"` | no |
+| <a name="input_country_to_sms_cost_map"></a> [country\_to\_sms\_cost\_map](#input\_country\_to\_sms\_cost\_map) | n/a | `map(number)` | n/a | yes |
 | <a name="input_deletion_protection_enabled"></a> [deletion\_protection\_enabled](#input\_deletion\_protection\_enabled) | n/a | `bool` | `true` | no |
 | <a name="input_domain_prefix"></a> [domain\_prefix](#input\_domain\_prefix) | n/a | `string` | `"api"` | no |
 | <a name="input_emailing_config"></a> [emailing\_config](#input\_emailing\_config) | n/a | <pre>object({<br/>    enabled = bool<br/>    sender = object({<br/>      displayName = optional(string, "Notifycal")<br/>      email       = string<br/>    })<br/>  })</pre> | <pre>{<br/>  "enabled": true,<br/>  "sender": {<br/>    "displayName": "Notifycal",<br/>    "email": "info@notifycal.com"<br/>  }<br/>}</pre> | no |

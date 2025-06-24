@@ -1,7 +1,4 @@
 locals {
-  country_to_sms_cost_map = {
-    ES = 1.3
-  }
   credits_per_tier = {
     good   = 100
     better = 350

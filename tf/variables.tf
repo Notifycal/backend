@@ -269,3 +269,6 @@ variable "stripe_api_version" {
   default = "2025-05-28.basil"
 }
 
+variable "country_to_sms_cost_map" {
+  type = map(number)
+}
