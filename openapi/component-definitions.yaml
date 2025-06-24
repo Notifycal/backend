@@ -286,9 +286,11 @@ components:
                     type: string
                     format: url
                     description: The returned checkout session URL by payment provider. Either a success redirect URL or a cancel URL.
-                  required: [url]
+                required:
+                  - url
                 additionalProperties: false
-            required: [result]
+            required:
+              - result
             additionalProperties: false
 
     CustomerPortalSessionResult:
@@ -305,9 +307,11 @@ components:
                     type: string
                     format: url
                     description: The returned customer portal session URL by payment provider.
-                  required: [url]
+                required:
+                  - url
                 additionalProperties: false
-            required: [result]
+            required:
+              - result
             additionalProperties: false
 
     Response200:
