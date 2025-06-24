@@ -1,7 +1,7 @@
 import type { Logger } from '@aws-lambda-powertools/logger';
 import { extractIdentity } from '@model/UserIdentity';
 import type { Identity, IdpName, StripeCustomerId } from '@notifycal/shared/types';
-import type { PaymentUserIndexStore } from '@services/stores/user-payment-index-store';
+import type { PaymentUserIndexStore } from '@services/stores/payment-user-index-store';
 import type { Stripe } from 'stripe';
 import { match, P } from 'ts-pattern';
 
@@ -23,7 +23,7 @@ export class StripeIdentityExtractor implements IdentityExtractor<Stripe.Event> 
       );
     }
 
-    return this.userPaymentIndexStore.getIdentityByStripeCustomerId(stripeCustomerId).then(
+    return this.userPaymentIndexStore.getPaymentUserByStripeCustomerId(stripeCustomerId).then(
       (paymentUser) => {
         if (paymentUser) {
           return extractIdentity(paymentUser);

@@ -6,8 +6,8 @@ import {
   readPaymentWebhookTopicConfig,
   readUserBaseStoreConfig
 } from '@services/common/config';
+import type { PaymentUserIndexStoreEndpointConfig } from '@services/stores/payment-user-index-store';
 import type { UserBaseStoreEndpointConfig } from '@services/stores/user-base-store';
-import type { PaymentUserIndexStoreEndpointConfig } from '@services/stores/user-payment-index-store';
 import { promiseTry } from '@utils/promises';
 
 export type StripeWebhookConfig = UserBaseStoreEndpointConfig &

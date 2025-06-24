@@ -27,10 +27,10 @@ import type { MailgunConfig } from '@model/vendor/mailgun/config';
 import type { VonageConfig } from '@model/vendor/vonage/config';
 import type { AlertsBaseStoreConfig } from '@services/stores/alerts-base-store';
 import type { AuditTrailBaseStoreConfig } from '@services/stores/audit-trail-base-store';
+import type { PaymentUserIndexStoreConfig } from '@services/stores/payment-user-index-store';
 import type { RefreshTokenBaseStoreConfig } from '@services/stores/refresh-token-base-store';
 import type { UserBaseStoreConfig } from '@services/stores/user-base-store';
 import type { UserLiveIndexStoreConfig } from '@services/stores/user-live-index-store';
-import type { PaymentUserIndexStoreConfig } from '@services/stores/user-payment-index-store';
 import { match } from 'ts-pattern';
 
 export const fakeIdpConfigs: IdpConfigs = {

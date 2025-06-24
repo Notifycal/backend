@@ -1,7 +1,6 @@
 /* eslint-disable camelcase */
 import type { Logger } from '@aws-lambda-powertools/logger';
 import type { PaymentUserStoreRecord } from '@model/store/UserPaymentStoreRecord';
-import type { UserIdentity } from '@model/UserIdentity';
 import type {
   Email,
   Identity,
@@ -10,7 +9,7 @@ import type {
   StripeCustomerId,
   UserId
 } from '@notifycal/shared/types';
-import type { PaymentUserIndexStore } from '@services/stores/user-payment-index-store';
+import type { PaymentUserIndexStore } from '@services/stores/payment-user-index-store';
 import type { Stripe } from 'stripe';
 import { v4 } from 'uuid';
 import { describe, expect, it, vi } from 'vitest';

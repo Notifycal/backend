@@ -20,7 +20,7 @@ export class PaymentUserIndexStore<
     super(config);
   }
 
-  public getIdentityByStripeCustomerId(
+  public getPaymentUserByStripeCustomerId(
     id: StripeCustomerId
   ): Promise<PaymentUserStoreRecord<TIdpName> | undefined> {
     const getCommand = {

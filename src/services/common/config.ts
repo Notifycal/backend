@@ -42,10 +42,10 @@ import type {
 } from '@services/messaging';
 import type { AlertsBaseStoreEndpointConfig } from '@services/stores/alerts-base-store';
 import type { AuditTrailBaseStoreEndpointConfig } from '@services/stores/audit-trail-base-store';
+import type { PaymentUserIndexStoreEndpointConfig } from '@services/stores/payment-user-index-store';
 import type { RefreshTokenBaseStoreConfigEndpointConfig } from '@services/stores/refresh-token-base-store';
 import type { UserBaseStoreEndpointConfig } from '@services/stores/user-base-store';
 import type { UserLiveIndexStoreEndpointConfig } from '@services/stores/user-live-index-store';
-import type { PaymentUserIndexStoreEndpointConfig } from '@services/stores/user-payment-index-store';
 import { from } from 'env-var';
 
 export function readEnv(): Environment {
