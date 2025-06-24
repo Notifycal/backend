@@ -150,7 +150,7 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
     }).then(() => null);
   }
 
-  public updateStripeCustomerId(id: UserId, stripeCustomerId: StripeCustomerId): Promise<null> {
+  public setStripeCustomerId(id: UserId, stripeCustomerId: StripeCustomerId): Promise<null> {
     return this.updateCommandRunner({
       Key: {
         UserId: id

@@ -29,7 +29,7 @@ function createCustomerOrRetrieve(
         .createCustomer(identity)
         .then((stripeCustomerId) =>
           userBaseStore
-            .updateStripeCustomerId(identity.userId, stripeCustomerId)
+            .setStripeCustomerId(identity.userId, stripeCustomerId)
             .then(() => stripeCustomerId)
         );
     }
