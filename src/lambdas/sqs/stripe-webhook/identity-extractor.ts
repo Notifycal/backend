@@ -24,25 +24,25 @@ export class StripeIdentityExtractor implements IdentityExtractor<Stripe.Event> 
     }
 
     return this.userPaymentIndexStore.getIdentityByStripeCustomerId(stripeCustomerId).then(
-      (identity) => {
-        if (identity) {
-          return extractIdentity(identity);
+      (paymentUser) => {
+        if (paymentUser) {
+          return extractIdentity(paymentUser);
         } else {
           return Promise.reject(
             new Error(
-              `No customer found our persistance with id ${stripeCustomerId}. Result ${identity}`
+              `No customer found in our persistence with id ${stripeCustomerId}. Result ${paymentUser}`
             )
           );
         }
       },
       (error) => {
         return Promise.reject(
-          new Error(`No customer found our persistance with id ${stripeCustomerId}`, {
+          new Error(`No customer found in our persistence with id ${stripeCustomerId}`, {
             cause: error
           })
         );
       }
-    )
+    );
   }
 
   private getStripeCustomerId(event: Stripe.Event): StripeCustomerId | null {
