@@ -78,7 +78,9 @@ export class AxiosHttpClient implements Stripe.HttpClient<AxiosHttpClientRespons
       .then(
         (response) => new AxiosHttpClientResponse(response),
         (error) => {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
           if (error.response) {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
             return new AxiosHttpClientResponse(error.response);
           }
           throw error;
