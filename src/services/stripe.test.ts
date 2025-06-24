@@ -1,4 +1,5 @@
 /* eslint-disable camelcase */
+import { logger } from '@common/powertools';
 import type { Tier } from '@model/PaymentPlans';
 import type {
   Email,
@@ -9,11 +10,21 @@ import type {
   UserId
 } from '@notifycal/shared/types';
 import type { Url } from '@own-types/model';
+import { HttpClient } from '@services/common/http-client';
 import { default as Stripe } from 'stripe';
 import { describe, expect, it, vi } from 'vitest';
 import { StripeService } from './stripe';
+import { AxiosHttpClient } from './stripe-axios-client';
 
 vi.mock('stripe');
+vi.mock('@common/powertools', () => ({
+  logger: {
+    info: vi.fn()
+  }
+}));
+vi.mock('@services/common/http-client');
+vi.mock('./stripe-axios-client');
+
 const validApiKey = 'sk_test_123456789';
 
 describe(StripeService, () => {
@@ -39,15 +50,63 @@ describe(StripeService, () => {
   const validStripeCustomerId = 'cus_123456789' as StripeCustomerId;
   const validTaxId = 'tx_srfgwrgwrg';
 
-  it('should initialize Stripe client with correct API key and version', () => {
+  it('should initialize Stripe client with correct API key, version and httpClient', () => {
     const mockConstructor = vi.fn();
+    const mockAxiosInstance = {};
+    const mockGetAxiosInstance = vi.fn().mockReturnValue(mockAxiosInstance);
+
+    vi.mocked(HttpClient).mockImplementation(
+      () =>
+        ({
+          getAxiosInstance: mockGetAxiosInstance
+        }) as unknown as HttpClient
+    );
+    vi.mocked(AxiosHttpClient).mockImplementation(() => ({}) as AxiosHttpClient);
     vi.mocked(Stripe).mockImplementation(mockConstructor);
 
     new StripeService(validApiKey);
 
+    expect(HttpClient).toHaveBeenCalledWith(undefined, undefined, 'Stripe');
+    expect(mockGetAxiosInstance).toHaveBeenCalledTimes(1);
+    expect(AxiosHttpClient).toHaveBeenCalledWith(mockAxiosInstance);
     expect(mockConstructor).toHaveBeenCalledTimes(1);
     expect(mockConstructor).toHaveBeenCalledWith(validApiKey, {
-      apiVersion: '2025-05-28.basil'
+      apiVersion: '2025-05-28.basil',
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      httpClient: expect.any(Object)
+    });
+  });
+
+  describe('createCustomer', () => {
+    it('should create customer successfully and return customer ID', async () => {
+      const createCustomerFn = vi.fn().mockResolvedValue({ id: validStripeCustomerId });
+
+      const result = await testCreateCustomer(validIdentity, createCustomerFn);
+
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      expect(logger.info).toHaveBeenCalledWith('Creating customer in Stripe for identity', {
+        identity: validIdentity
+      });
+      expect(result).toBe(validStripeCustomerId);
+      expect(createCustomerFn).toHaveBeenCalledTimes(1);
+      expect(createCustomerFn).toHaveBeenCalledWith({
+        email: validEmail,
+        metadata: {
+          userId: validUserId,
+          idp: 'google.com',
+          idpId: '1234567890',
+          email: validEmail
+        }
+      });
+    });
+
+    it('should throw error when Stripe API fails', async () => {
+      const stripeError = new Error('Customer creation failed');
+      const createCustomerFn = vi.fn().mockRejectedValue(stripeError);
+
+      await expect(testCreateCustomer(validIdentity, createCustomerFn)).rejects.toThrow(
+        'Customer creation failed'
+      );
     });
   });
 
@@ -72,22 +131,35 @@ describe(StripeService, () => {
         mode: 'subscription',
         ui_mode: 'hosted',
         payment_method_types: ['card'],
-        customer_email: validEmail,
+        customer: validStripeCustomerId,
+        customer_update: {
+          name: 'auto',
+          address: 'auto'
+        },
+        client_reference_id: validUserId,
         success_url: validSuccessUrl,
         cancel_url: validCancelUrl,
         locale: validLanguage,
         line_items: [
           {
             price: validTier.priceId,
-            quantity: 1
+            quantity: 1,
+            tax_rates: [validTaxId]
           }
         ],
         metadata: {
-          ...validIdentity,
+          userId: validUserId,
+          idp: 'google.com',
+          idpId: '1234567890',
+          email: validEmail,
           tier: validTier.id,
           vatCountry: 'ES'
         },
-        automatic_tax: { enabled: true }
+        automatic_tax: { enabled: false },
+        billing_address_collection: 'required',
+        tax_id_collection: {
+          enabled: true
+        }
       });
     });
 
@@ -154,7 +226,8 @@ describe(StripeService, () => {
           line_items: [
             {
               price: betterTier.priceId,
-              quantity: 1
+              quantity: 1,
+              tax_rates: [validTaxId]
             }
           ],
           metadata: expect.objectContaining({
@@ -181,7 +254,7 @@ describe(StripeService, () => {
       ).rejects.toThrow('Stripe API error');
     });
 
-    it('should include all required metadata in checkout session', async () => {
+    it('should include all required fields in checkout session', async () => {
       const mockSession = { url: validCheckoutUrl };
       const createSessionFn = vi.fn().mockResolvedValue(mockSession);
 
@@ -197,46 +270,29 @@ describe(StripeService, () => {
 
       expect(createSessionFn).toHaveBeenCalledWith(
         expect.objectContaining({
+          customer: validStripeCustomerId,
+          customer_update: {
+            name: 'auto',
+            address: 'auto'
+          },
+          client_reference_id: validUserId,
           metadata: {
-            ...validIdentity,
+            userId: validUserId,
+            idp: 'google.com',
+            idpId: '1234567890',
+            email: validEmail,
             tier: validTier.id,
             vatCountry: 'ES'
+          },
+          automatic_tax: { enabled: false },
+          billing_address_collection: 'required',
+          tax_id_collection: {
+            enabled: true
           }
         })
       );
     });
   });
-
-  function testCheckoutSession(
-    stripeCustomerId: StripeCustomerId,
-    identity: Identity<'google.com'>,
-    tier: Tier,
-    language: LanguageCode,
-    successRedirectUrl: Url,
-    cancelRedirectUrl: Url,
-    createSessionFn: () => Promise<Stripe.Response<Stripe.Checkout.Session>>
-  ): Promise<Url | null> {
-    const mockStripeInstance = {
-      checkout: {
-        sessions: {
-          create: createSessionFn
-        }
-      }
-    };
-
-    vi.mocked(Stripe).mockImplementation(() => mockStripeInstance as unknown as Stripe);
-
-    const stripeService = new StripeService(validApiKey);
-    return stripeService.createCheckoutSession(
-      stripeCustomerId,
-      identity,
-      tier,
-      language,
-      successRedirectUrl,
-      cancelRedirectUrl,
-      validTaxId
-    );
-  }
 
   describe('createCustomerPortalSession', () => {
     it('should create customer portal session successfully and return session URL', async () => {
@@ -267,6 +323,53 @@ describe(StripeService, () => {
     });
   });
 
+  function testCreateCustomer(
+    identity: Identity<'google.com'>,
+    createCustomerFn: () => Promise<{ id: string }>
+  ): Promise<StripeCustomerId> {
+    const mockStripeInstance = {
+      customers: {
+        create: createCustomerFn
+      }
+    };
+
+    setupMocks(mockStripeInstance);
+
+    const stripeService = new StripeService(validApiKey);
+    return stripeService.createCustomer(identity);
+  }
+
+  function testCheckoutSession(
+    stripeCustomerId: StripeCustomerId,
+    identity: Identity<'google.com'>,
+    tier: Tier,
+    language: LanguageCode,
+    successRedirectUrl: Url,
+    cancelRedirectUrl: Url,
+    createSessionFn: () => Promise<Stripe.Response<Stripe.Checkout.Session>>
+  ): Promise<Url | null> {
+    const mockStripeInstance = {
+      checkout: {
+        sessions: {
+          create: createSessionFn
+        }
+      }
+    };
+
+    setupMocks(mockStripeInstance);
+
+    const stripeService = new StripeService(validApiKey);
+    return stripeService.createCheckoutSession(
+      stripeCustomerId,
+      identity,
+      tier,
+      language,
+      successRedirectUrl,
+      cancelRedirectUrl,
+      validTaxId
+    );
+  }
+
   function testCustomerPortalSession(
     stripeCustomerId: StripeCustomerId,
     returnUrl: Url,
@@ -280,9 +383,22 @@ describe(StripeService, () => {
       }
     };
 
-    vi.mocked(Stripe).mockImplementation(() => mockStripeInstance as unknown as Stripe);
+    setupMocks(mockStripeInstance);
 
     const stripeService = new StripeService(validApiKey);
     return stripeService.createCustomerPortalSession(stripeCustomerId, returnUrl);
+  }
+
+  function setupMocks(mockStripeInstance: unknown): void {
+    const mockAxiosInstance = {};
+
+    vi.mocked(HttpClient).mockImplementation(
+      () =>
+        ({
+          getAxiosInstance: () => mockAxiosInstance
+        }) as unknown as HttpClient
+    );
+    vi.mocked(AxiosHttpClient).mockImplementation(() => ({}) as AxiosHttpClient);
+    vi.mocked(Stripe).mockImplementation(() => mockStripeInstance as Stripe);
   }
 });
