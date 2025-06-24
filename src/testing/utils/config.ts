@@ -1,3 +1,4 @@
+import type { StripeCustomerPortalConfig } from '@lambdas/api/post-customer-portal-session/config';
 import type {
   StripeAuthConfig,
   StripeCheckoutConfig
@@ -201,6 +202,10 @@ export function setEnvAlertEmailConfig(config: AlertEmailConfig): void {
 
 export function setEnvStripeAuthConfig(config: StripeAuthConfig): void {
   process.env.STRIPE_API_KEY = config.apiKey;
+}
+
+export function setEnvCustomerPortalConfig(config: StripeCustomerPortalConfig): void {
+  process.env.STRIPE_CUSTOMER_PORTAL_RETURN_URL_PATH = config.returnUrlPath;
 }
 
 export function setEnvStripeCheckoutConfig(config: StripeCheckoutConfig): void {
