@@ -5,6 +5,7 @@ import { validRawRecord } from '@testing/data/sqs-events';
 import { validStripeCheckoutSessionCompletedEvent } from '@testing/data/stripe-event-bridge-event';
 import {
   setEnvPaymentPlansConfig,
+  setEnvPaymentUserStoreConfig,
   setEnvPaymentWebhookTopicConfig,
   setEnvUserBaseStoreConfig
 } from '@testing/utils/config';
@@ -25,12 +26,18 @@ function setEnv(): void {
     userBaseStoreConfig: {
       tableName: 'Users-local'
     },
+    paymentUserIndexStoreConfig: {
+      tableName: 'Users-local',
+      indexName: 'PaymentUsers-local',
+      pageSize: 100
+    },
     paymentPlans: validPaymentPlans,
     paymentWebhookTopicConfig: {
       topicArn: 'payment-webhook-topic' as AwsArn
     }
   };
   setEnvUserBaseStoreConfig(config.userBaseStoreConfig);
+  setEnvPaymentUserStoreConfig(config.paymentUserIndexStoreConfig);
   setEnvPaymentPlansConfig(config.paymentPlans);
   setEnvPaymentWebhookTopicConfig(config.paymentWebhookTopicConfig);
 }

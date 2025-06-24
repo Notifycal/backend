@@ -37,6 +37,7 @@ describe(StripeService, () => {
   const validCheckoutUrl = 'https://checkout.stripe.com/pay/cs_test_123456789';
   const validPortalUrl = 'https://billing.stripe.com/session/ps_test_123456789';
   const validStripeCustomerId = 'cus_123456789' as StripeCustomerId;
+  const validTaxId = 'tx_srfgwrgwrg';
 
   it('should initialize Stripe client with correct API key and version', () => {
     const mockConstructor = vi.fn();
@@ -56,6 +57,7 @@ describe(StripeService, () => {
       const createSessionFn = vi.fn().mockResolvedValue(mockSession);
 
       const result = await testCheckoutSession(
+        validStripeCustomerId,
         validIdentity,
         validTier,
         validLanguage,
@@ -94,6 +96,7 @@ describe(StripeService, () => {
       const createSessionFn = vi.fn().mockResolvedValue(mockSession);
 
       const result = await testCheckoutSession(
+        validStripeCustomerId,
         validIdentity,
         validTier,
         validLanguage,
@@ -111,6 +114,7 @@ describe(StripeService, () => {
       const createSessionFn = vi.fn().mockResolvedValue(mockSession);
 
       await testCheckoutSession(
+        validStripeCustomerId,
         validIdentity,
         validTier,
         spanishLanguage,
@@ -136,6 +140,7 @@ describe(StripeService, () => {
       const createSessionFn = vi.fn().mockResolvedValue(mockSession);
 
       await testCheckoutSession(
+        validStripeCustomerId,
         validIdentity,
         betterTier,
         validLanguage,
@@ -165,6 +170,7 @@ describe(StripeService, () => {
 
       await expect(
         testCheckoutSession(
+          validStripeCustomerId,
           validIdentity,
           validTier,
           validLanguage,
@@ -180,6 +186,7 @@ describe(StripeService, () => {
       const createSessionFn = vi.fn().mockResolvedValue(mockSession);
 
       await testCheckoutSession(
+        validStripeCustomerId,
         validIdentity,
         validTier,
         validLanguage,
@@ -201,6 +208,7 @@ describe(StripeService, () => {
   });
 
   function testCheckoutSession(
+    stripeCustomerId: StripeCustomerId,
     identity: Identity<'google.com'>,
     tier: Tier,
     language: LanguageCode,
@@ -220,11 +228,13 @@ describe(StripeService, () => {
 
     const stripeService = new StripeService(validApiKey);
     return stripeService.createCheckoutSession(
+      stripeCustomerId,
       identity,
       tier,
       language,
       successRedirectUrl,
-      cancelRedirectUrl
+      cancelRedirectUrl,
+      validTaxId
     );
   }
 

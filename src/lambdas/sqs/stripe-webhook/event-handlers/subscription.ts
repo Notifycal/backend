@@ -63,3 +63,41 @@ export class SubscriptionDeletedHandler
     return Promise.resolve();
   }
 }
+
+export class SubscriptionPausedHandler
+  implements EventHandler<Stripe.CustomerSubscriptionPausedEvent>
+{
+  public constructor(private readonly logger: Logger) {}
+
+  public handle(
+    event: Stripe.CustomerSubscriptionPausedEvent,
+    identity: Identity<IdpName>
+  ): Promise<void> {
+    const subscription = event.data.object;
+    this.logger.info('Handling subscription paused', {
+      subscriptionId: subscription.id,
+      customerId: subscription.customer,
+      userId: identity.userId
+    });
+    return Promise.resolve();
+  }
+}
+
+export class SubscriptionResumedHandler
+  implements EventHandler<Stripe.CustomerSubscriptionResumedEvent>
+{
+  public constructor(private readonly logger: Logger) {}
+
+  public handle(
+    event: Stripe.CustomerSubscriptionResumedEvent,
+    identity: Identity<IdpName>
+  ): Promise<void> {
+    const subscription = event.data.object;
+    this.logger.info('Handling subscription resumed', {
+      subscriptionId: subscription.id,
+      customerId: subscription.customer,
+      userId: identity.userId
+    });
+    return Promise.resolve();
+  }
+}

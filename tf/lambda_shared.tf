@@ -15,6 +15,10 @@ locals {
   live_users_index_persistance_env_vars = {
     LIVE_USERS_INDEX_NAME = local.live_users_index_name
   }
+
+  payment_users_index_persistance_env_vars = {
+    PAYMENT_USERS_INDEX_NAME = local.payment_users_index_name
+  }
   refresh_token_persistance_env_vars = {
     REFRESH_TOKENS_TABLE_NAME = aws_dynamodb_table.refresh_tokens.name
   }

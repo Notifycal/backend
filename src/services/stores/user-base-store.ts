@@ -180,10 +180,12 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
   ): Promise<Pick<UserStoreRecord<TIdpName>, 'UserCredits'>> {
     return this.updateCommandRunner({
       Key: { UserId: userId },
-      UpdateExpression: 'ADD Credits.subscriptionCreditBalance :amount',
-      ConditionExpression: 'Credits.subscriptionCreditBalance >= :amount',
+      UpdateExpression:
+        'SET Credits.subscriptionCreditBalance = Credits.subscriptionCreditBalance - :amount',
+      ConditionExpression:
+        'attribute_exists(Credits.subscriptionCreditBalance) AND Credits.subscriptionCreditBalance >= :amount',
       ExpressionAttributeValues: {
-        ':amount': -amount
+        ':amount': amount
       }
     }).then(
       (r) => this.handleSuccessfulUpdate(r),
@@ -206,9 +208,11 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
   ): Promise<Pick<UserStoreRecord<TIdpName>, 'UserCredits'>> {
     return this.updateCommandRunner({
       Key: { UserId: userId },
-      UpdateExpression: 'SET Credits.subscriptionCreditBalance :amount',
+      UpdateExpression: 'SET Credits = :creditsObj',
       ExpressionAttributeValues: {
-        ':amount': amount
+        ':creditsObj': {
+          subscriptionCreditBalance: amount
+        }
       }
     }).then((r) => this.handleSuccessfulUpdate(r));
   }

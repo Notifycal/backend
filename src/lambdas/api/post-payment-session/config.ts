@@ -4,13 +4,16 @@ import {
   readAuthedEndpointConfig,
   readEnv,
   readPaymentPlans,
-  readStripeAuthConfig
+  readStripeAuthConfig,
+  readUserBaseStoreConfig
 } from '@services/common/config';
+import type { UserBaseStoreEndpointConfig } from '@services/stores/user-base-store';
 import { promiseTry } from '@utils/promises';
 
 export interface StripeCheckoutConfig {
   successRedirectUrlPath: Url;
   cancelRedirectUrlPath: Url;
+  taxId: string;
 }
 
 export interface StripeCheckoutEndpointConfig {
@@ -28,7 +31,8 @@ export interface StripeAuthEndpointConfig {
 export type PostPaymentCheckoutSessionConfig = AuthedEndpointConfig &
   StripeCheckoutEndpointConfig &
   PaymentPlansEndpointConfig &
-  StripeAuthEndpointConfig;
+  StripeAuthEndpointConfig &
+  UserBaseStoreEndpointConfig;
 
 function readStripeConfig(env: Environment): StripeCheckoutEndpointConfig {
   return {
@@ -37,7 +41,11 @@ function readStripeConfig(env: Environment): StripeCheckoutEndpointConfig {
         .get('STRIPE_SUCCESS_REDIRECT_URL_PATH')
         .required()
         .asString() as Url,
-      cancelRedirectUrlPath: env.get('STRIPE_CANCEL_REDIRECT_URL_PATH').required().asString() as Url
+      cancelRedirectUrlPath: env
+        .get('STRIPE_CANCEL_REDIRECT_URL_PATH')
+        .required()
+        .asString() as Url,
+      taxId: env.get('STRIPE_TAX_ID').required().asString()
     }
   };
 }
@@ -48,6 +56,7 @@ export function readPostPaymentCheckoutSessionConfig(): Promise<PostPaymentCheck
     ...readAuthedEndpointConfig(env),
     ...readStripeConfig(env),
     ...readPaymentPlans(env),
-    ...readStripeAuthConfig(env)
+    ...readStripeAuthConfig(env),
+    ...readUserBaseStoreConfig(env)
   }));
 }

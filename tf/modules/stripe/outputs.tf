@@ -3,7 +3,7 @@ output "subscription_tiers" {
   value       = local.payment_plans
 }
 
-output "spain_tax_rate" {
+output "spain_tax_config" {
   description = "Spain VAT tax rate configuration"
   value = {
     id         = stripe_tax_rate.spain_vat.id

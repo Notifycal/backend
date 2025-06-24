@@ -43,7 +43,9 @@ function lambdaHandler(
   return userBaseStore.getStripeCustomerId(userId).then((stripeCustomerId) => {
     if (!stripeCustomerId) {
       metrics.addMetric('CustomerPortalSessionNoCustomer', MetricUnit.Count, 1, dimensions);
-      return errorHandler(400)('User does not have a Stripe customer ID');
+      return errorHandler(500)(
+        'User does not have a Stripe customer ID while it should have one. This is totally unexpected'
+      );
     }
     return stripeService.createCustomerPortalSession(stripeCustomerId, returnUrl).then(
       (sessionUrl) => {

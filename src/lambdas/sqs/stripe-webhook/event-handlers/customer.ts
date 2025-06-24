@@ -1,14 +1,10 @@
 import type { Logger } from '@aws-lambda-powertools/logger';
-import type { Identity, IdpName, StripeCustomerId } from '@notifycal/shared/types';
-import type { UserBaseStore } from '@services/stores/user-base-store';
+import type { Identity, IdpName } from '@notifycal/shared/types';
 import type Stripe from 'stripe';
 import type { EventHandler } from './common';
 
 export class CustomerCreatedHandler implements EventHandler<Stripe.CustomerCreatedEvent> {
-  public constructor(
-    private readonly userBaseStore: UserBaseStore<IdpName>,
-    private readonly logger: Logger
-  ) {}
+  public constructor(private readonly logger: Logger) {}
 
   public handle(event: Stripe.CustomerCreatedEvent, identity: Identity<IdpName>): Promise<void> {
     const customer = event.data.object;
@@ -17,9 +13,7 @@ export class CustomerCreatedHandler implements EventHandler<Stripe.CustomerCreat
       email: customer.email,
       userId: identity.userId
     });
-    return this.userBaseStore
-      .updateStripeCustomerId(identity.userId, customer.id as StripeCustomerId)
-      .then();
+    return Promise.resolve();
   }
 }
 

@@ -29,6 +29,7 @@ import type { AuditTrailBaseStoreConfig } from '@services/stores/audit-trail-bas
 import type { RefreshTokenBaseStoreConfig } from '@services/stores/refresh-token-base-store';
 import type { UserBaseStoreConfig } from '@services/stores/user-base-store';
 import type { UserLiveIndexStoreConfig } from '@services/stores/user-live-index-store';
+import type { PaymentUserIndexStoreConfig } from '@services/stores/user-payment-index-store';
 import { match } from 'ts-pattern';
 
 export const fakeIdpConfigs: IdpConfigs = {
@@ -83,6 +84,12 @@ export function setEnvUserLiveStoreConfig(config: UserLiveIndexStoreConfig): voi
   process.env.USERS_TABLE_NAME = config.tableName;
   process.env.LIVE_USERS_INDEX_NAME = config.indexName;
   process.env.USERS_PAGE_SIZE = config.pageSize.toString();
+}
+
+export function setEnvPaymentUserStoreConfig(config: PaymentUserIndexStoreConfig): void {
+  process.env.USERS_TABLE_NAME = config.tableName;
+  process.env.PAYMENT_USERS_INDEX_NAME = config.indexName;
+  process.env.PAYMENT_USERS_PAGE_SIZE = config.pageSize.toString();
 }
 
 export function setEnvUserCalendarFetchedTopicConfig(config: SnsTopicConfig): void {

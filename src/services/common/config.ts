@@ -45,6 +45,7 @@ import type { AuditTrailBaseStoreEndpointConfig } from '@services/stores/audit-t
 import type { RefreshTokenBaseStoreConfigEndpointConfig } from '@services/stores/refresh-token-base-store';
 import type { UserBaseStoreEndpointConfig } from '@services/stores/user-base-store';
 import type { UserLiveIndexStoreEndpointConfig } from '@services/stores/user-live-index-store';
+import type { PaymentUserIndexStoreEndpointConfig } from '@services/stores/user-payment-index-store';
 import { from } from 'env-var';
 
 export function readEnv(): Environment {
@@ -121,10 +122,14 @@ export function readDecodeRefreshJwtConfig(env: Environment): DecodeRefreshJwtCo
 }
 
 const userBaseTableEnvVarName = 'USERS_TABLE_NAME';
+function readUserStoreTableName(env: Environment): string {
+  return env.get(userBaseTableEnvVarName).required().asString();
+}
+
 export function readUserBaseStoreConfig(env: Environment): UserBaseStoreEndpointConfig {
   return {
     userBaseStoreConfig: {
-      tableName: env.get(userBaseTableEnvVarName).required().asString()
+      tableName: readUserStoreTableName(env)
     }
   };
 }
@@ -132,9 +137,19 @@ export function readUserBaseStoreConfig(env: Environment): UserBaseStoreEndpoint
 export function readUserLiveIndexConfig(env: Environment): UserLiveIndexStoreEndpointConfig {
   return {
     userLiveIndexStoreConfig: {
-      tableName: env.get(userBaseTableEnvVarName).required().asString(),
+      tableName: readUserStoreTableName(env),
       indexName: env.get('LIVE_USERS_INDEX_NAME').required().asString(),
       pageSize: env.get('USERS_PAGE_SIZE').default(100).asInt()
+    }
+  };
+}
+
+export function readPaymentUserIndexConfig(env: Environment): PaymentUserIndexStoreEndpointConfig {
+  return {
+    paymentUserIndexStoreConfig: {
+      tableName: readUserStoreTableName(env),
+      indexName: env.get('PAYMENT_USERS_INDEX_NAME').required().asString(),
+      pageSize: env.get('PAYMENT_USERS_PAGE_SIZE').default(100).asInt()
     }
   };
 }

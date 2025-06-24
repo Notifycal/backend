@@ -203,9 +203,13 @@ const defaultConfig: PostPaymentCheckoutSessionConfig = {
   },
   stripeCheckoutConfig: {
     successRedirectUrlPath: '/success' as Url,
-    cancelRedirectUrlPath: '/cancel' as Url
+    cancelRedirectUrlPath: '/cancel' as Url,
+    taxId: 'tx_dtftbhetrhgertgh'
   },
-  paymentPlans: validPaymentPlans
+  paymentPlans: validPaymentPlans,
+  userBaseStoreConfig: {
+    tableName: 'Users-local'
+  }
 };
 
 function setEnv(config: PostPaymentCheckoutSessionConfig) {

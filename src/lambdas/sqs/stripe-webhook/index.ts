@@ -12,9 +12,13 @@ export function recordProcessorCurried(
 ): (record: Record) => Promise<void> {
   return (record: Record) => {
     const _logger = logger.createChild();
-    // setupLoggerForEventProcessing(record.body, _logger);
+    const stripeEvent = record.body.detail;
     _logger.appendKeys({
-      stripeEventType: record.body['detail-type']
+      stripeEventId: stripeEvent.id,
+      stripeEventType: stripeEvent.type,
+      eventType: stripeEvent.type,
+      livemode: stripeEvent.livemode,
+      stripeApiVersion: stripeEvent.api_version
     });
     return recordProcessor(record.body, defaultEventHandlers, config, _logger);
   };

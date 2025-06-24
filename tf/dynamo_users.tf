@@ -1,6 +1,7 @@
 locals {
-  users_table_name      = "Users-${var.environment}"
-  live_users_index_name = "Live${local.users_table_name}"
+  users_table_name         = "Users-${var.environment}"
+  live_users_index_name    = "Live${local.users_table_name}"
+  payment_users_index_name = "Payment${local.users_table_name}"
 }
 
 resource "aws_dynamodb_table" "users" {
@@ -19,6 +20,11 @@ resource "aws_dynamodb_table" "users" {
     type = "S"
   }
 
+  attribute {
+    name = "StripeCustomerId"
+    type = "S"
+  }
+
   global_secondary_index {
     name            = local.live_users_index_name
     hash_key        = "UserStatus"
@@ -32,6 +38,20 @@ resource "aws_dynamodb_table" "users" {
       "Idp",
       "IdpId",
       "IdpAuthorization"
+    ]
+  }
+
+  global_secondary_index {
+    name            = local.payment_users_index_name
+    hash_key        = "StripeCustomerId"
+    range_key       = "UserId"
+    projection_type = "INCLUDE"
+
+    # Key attributes (from index and table) are included by default
+    non_key_attributes = [
+      "Email",
+      "Idp",
+      "IdpId",
     ]
   }
 
