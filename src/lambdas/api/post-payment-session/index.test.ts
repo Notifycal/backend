@@ -1,9 +1,11 @@
+/* eslint-disable vitest/max-expects */
 import { MetricUnit } from '@aws-lambda-powertools/metrics';
 import { corsErrorResponse } from '@common/cors-middleware';
 import { logger, metrics } from '@common/powertools';
 import { accessTokenSchema } from '@model/Jwt';
-import type { Email, UserId } from '@notifycal/shared/types';
+import type { Email, IdpName, StripeCustomerId, UserId } from '@notifycal/shared/types';
 import type { Url } from '@own-types/model';
+import { UserBaseStore } from '@services/stores/user-base-store';
 import { StripeService } from '@services/stripe';
 import { testAuthedEvent } from '@testing/data/apigateway';
 import { validPaymentPlans } from '@testing/data/pricing';
@@ -14,7 +16,8 @@ import {
   setEnvDecodeAccessJwtConfig,
   setEnvPaymentPlansConfig,
   setEnvStripeAuthConfig,
-  setEnvStripeCheckoutConfig
+  setEnvStripeCheckoutConfig,
+  setEnvUserBaseStoreConfig
 } from '@testing/utils/config';
 import { getDefaultDecodeAccessJwtConfig } from '@testing/utils/jwt';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from 'aws-lambda';
@@ -25,6 +28,7 @@ import type { Event } from './schemas';
 import { handler } from './index';
 
 vi.mock('@services/stripe');
+vi.mock('@services/stores/user-base-store');
 vi.mock('@utils/MetricsAggregator', () => {
   class MockMetricsAggregator {
     public addMetric = vi.fn();
@@ -38,6 +42,7 @@ vi.mock('@utils/MetricsAggregator', () => {
 describe('POST Payment checkout session', () => {
   const validUserId = 'cfaa8471-f4cc-44da-bc22-ddc4b735a847' as UserId;
   const validEmail = 'test@notifycal.com' as Email;
+  const validStripeCustomerId = 'cus_test_123456789' as StripeCustomerId;
   const validIdentity = {
     userId: validUserId,
     email: validEmail,
@@ -57,7 +62,7 @@ describe('POST Payment checkout session', () => {
 
   const validCheckoutUrl = 'https://checkout.stripe.com/pay/cs_test_123456789';
 
-  it('should create checkout session successfully', async () => {
+  it('should create checkout session successfully with existing stripe customer', async () => {
     const event = (await testAuthedEvent(
       validRequestBody,
       {},
@@ -65,24 +70,85 @@ describe('POST Payment checkout session', () => {
       validAccessToken
     )) as unknown as APIGatewayProxyEvent;
 
+    const getStripeCustomerIdFn = vi.fn().mockResolvedValue(validStripeCustomerId);
+    const setStripeCustomerIdFn = vi.fn().mockResolvedValue(undefined);
+    const createCustomerFn = vi.fn().mockResolvedValue(validStripeCustomerId);
     const createCheckoutSessionFn = vi.fn().mockResolvedValue(validCheckoutUrl);
     const addMetricFn = vi.spyOn(metrics, 'addMetric');
 
-    return testIt(event, createCheckoutSessionFn).then((resp) => {
-      assert(resp, responseSuccess({ result: { url: validCheckoutUrl } }));
+    const resp = await testIt(
+      event,
+      getStripeCustomerIdFn,
+      setStripeCustomerIdFn,
+      createCustomerFn,
+      createCheckoutSessionFn
+    );
 
-      expect(createCheckoutSessionFn).toHaveBeenCalledTimes(1);
-      expect(createCheckoutSessionFn).toHaveBeenCalledWith(
-        validIdentity,
-        defaultConfig.paymentPlans.tiers.good,
-        'es',
-        `${defaultConfig.corsConfig.allowedOrigins[0]}/success`,
-        `${defaultConfig.corsConfig.allowedOrigins[0]}/cancel`
-      );
-      expect(addMetricFn).toHaveBeenCalledWith('PaymentSessionCreated', MetricUnit.Count, 1, {
-        tier: validRequestBody.tier,
-        userId: validUserId
-      });
+    assert(resp, responseSuccess({ result: { url: validCheckoutUrl } }));
+
+    expect(getStripeCustomerIdFn).toHaveBeenCalledTimes(1);
+    expect(getStripeCustomerIdFn).toHaveBeenCalledWith(validUserId);
+    expect(createCustomerFn).not.toHaveBeenCalled();
+    expect(setStripeCustomerIdFn).not.toHaveBeenCalled();
+    expect(createCheckoutSessionFn).toHaveBeenCalledTimes(1);
+    expect(createCheckoutSessionFn).toHaveBeenCalledWith(
+      validStripeCustomerId,
+      validIdentity,
+      defaultConfig.paymentPlans.tiers.good,
+      'es',
+      `${defaultConfig.corsConfig.allowedOrigins[0]}/success`,
+      `${defaultConfig.corsConfig.allowedOrigins[0]}/cancel`,
+      defaultConfig.stripeCheckoutConfig.taxId
+    );
+    expect(addMetricFn).toHaveBeenCalledWith('PaymentSessionCreated', MetricUnit.Count, 1, {
+      tier: validRequestBody.tier,
+      userId: validUserId
+    });
+  });
+
+  it('should create checkout session successfully with new stripe customer', async () => {
+    const event = (await testAuthedEvent(
+      validRequestBody,
+      {},
+      accessTokenSchema,
+      validAccessToken
+    )) as unknown as APIGatewayProxyEvent;
+
+    const getStripeCustomerIdFn = vi.fn().mockResolvedValue(undefined);
+    const setStripeCustomerIdFn = vi.fn().mockResolvedValue(undefined);
+    const createCustomerFn = vi.fn().mockResolvedValue(validStripeCustomerId);
+    const createCheckoutSessionFn = vi.fn().mockResolvedValue(validCheckoutUrl);
+    const addMetricFn = vi.spyOn(metrics, 'addMetric');
+
+    const resp = await testIt(
+      event,
+      getStripeCustomerIdFn,
+      setStripeCustomerIdFn,
+      createCustomerFn,
+      createCheckoutSessionFn
+    );
+
+    assert(resp, responseSuccess({ result: { url: validCheckoutUrl } }));
+
+    expect(getStripeCustomerIdFn).toHaveBeenCalledTimes(1);
+    expect(getStripeCustomerIdFn).toHaveBeenCalledWith(validUserId);
+    expect(createCustomerFn).toHaveBeenCalledTimes(1);
+    expect(createCustomerFn).toHaveBeenCalledWith(validIdentity);
+    expect(setStripeCustomerIdFn).toHaveBeenCalledTimes(1);
+    expect(setStripeCustomerIdFn).toHaveBeenCalledWith(validUserId, validStripeCustomerId);
+    expect(createCheckoutSessionFn).toHaveBeenCalledTimes(1);
+    expect(createCheckoutSessionFn).toHaveBeenCalledWith(
+      validStripeCustomerId,
+      validIdentity,
+      defaultConfig.paymentPlans.tiers.good,
+      'es',
+      `${defaultConfig.corsConfig.allowedOrigins[0]}/success`,
+      `${defaultConfig.corsConfig.allowedOrigins[0]}/cancel`,
+      defaultConfig.stripeCheckoutConfig.taxId
+    );
+    expect(addMetricFn).toHaveBeenCalledWith('PaymentSessionCreated', MetricUnit.Count, 1, {
+      tier: validRequestBody.tier,
+      userId: validUserId
     });
   });
 
@@ -94,18 +160,29 @@ describe('POST Payment checkout session', () => {
       validAccessToken
     )) as unknown as APIGatewayProxyEvent;
 
+    const getStripeCustomerIdFn = vi.fn().mockResolvedValue(validStripeCustomerId);
+    const setStripeCustomerIdFn = vi.fn().mockResolvedValue(undefined);
+    const createCustomerFn = vi.fn().mockResolvedValue(validStripeCustomerId);
     const createCheckoutSessionFn = vi.fn().mockResolvedValue(null);
     const loggerErrorFn = vi.spyOn(logger, 'error');
     const addMetricFn = vi.spyOn(metrics, 'addMetric');
 
-    return testIt(event, createCheckoutSessionFn).then((resp) => {
-      assert(resp, responseError(500));
+    const resp = await testIt(
+      event,
+      getStripeCustomerIdFn,
+      setStripeCustomerIdFn,
+      createCustomerFn,
+      createCheckoutSessionFn
+    );
 
-      expect(loggerErrorFn).toHaveBeenCalledWith('No payment session was created for the user');
-      expect(addMetricFn).toHaveBeenCalledWith('PaymentSessionCancelled', MetricUnit.Count, 1, {
-        tier: validRequestBody.tier,
-        userId: validUserId
-      });
+    assert(resp, responseError(500));
+
+    expect(loggerErrorFn).toHaveBeenCalledWith('No payment session was created for the user', {
+      userId: validUserId
+    });
+    expect(addMetricFn).toHaveBeenCalledWith('PaymentSessionCancelled', MetricUnit.Count, 1, {
+      tier: validRequestBody.tier,
+      userId: validUserId
     });
   });
 
@@ -117,22 +194,33 @@ describe('POST Payment checkout session', () => {
       validAccessToken
     )) as unknown as APIGatewayProxyEvent;
 
+    const getStripeCustomerIdFn = vi.fn().mockResolvedValue(validStripeCustomerId);
+    const setStripeCustomerIdFn = vi.fn().mockResolvedValue(undefined);
+    const createCustomerFn = vi.fn().mockResolvedValue(validStripeCustomerId);
     const createCheckoutSessionFn = vi.fn().mockResolvedValue(undefined);
     const loggerErrorFn = vi.spyOn(logger, 'error');
     const addMetricFn = vi.spyOn(metrics, 'addMetric');
 
-    return testIt(event, createCheckoutSessionFn).then((resp) => {
-      assert(resp, responseError(500));
+    const resp = await testIt(
+      event,
+      getStripeCustomerIdFn,
+      setStripeCustomerIdFn,
+      createCustomerFn,
+      createCheckoutSessionFn
+    );
 
-      expect(loggerErrorFn).toHaveBeenCalledWith('No payment session was created for the user');
-      expect(addMetricFn).toHaveBeenCalledWith('PaymentSessionCancelled', MetricUnit.Count, 1, {
-        tier: validRequestBody.tier,
-        userId: validUserId
-      });
+    assert(resp, responseError(500));
+
+    expect(loggerErrorFn).toHaveBeenCalledWith('No payment session was created for the user', {
+      userId: validUserId
+    });
+    expect(addMetricFn).toHaveBeenCalledWith('PaymentSessionCancelled', MetricUnit.Count, 1, {
+      tier: validRequestBody.tier,
+      userId: validUserId
     });
   });
 
-  it('should handle stripe service error and return failure response', async () => {
+  it('should handle get stripe customer id error and return failure response', async () => {
     const event = (await testAuthedEvent(
       validRequestBody,
       {},
@@ -140,22 +228,153 @@ describe('POST Payment checkout session', () => {
       validAccessToken
     )) as unknown as APIGatewayProxyEvent;
 
-    const stripeError = new Error('Stripe API error');
+    const dbError = new Error('Database error');
+    const getStripeCustomerIdFn = vi.fn().mockRejectedValue(dbError);
+    const setStripeCustomerIdFn = vi.fn().mockResolvedValue(undefined);
+    const createCustomerFn = vi.fn().mockResolvedValue(validStripeCustomerId);
+    const createCheckoutSessionFn = vi.fn().mockResolvedValue(validCheckoutUrl);
+    const loggerErrorFn = vi.spyOn(logger, 'error');
+    const addMetricFn = vi.spyOn(metrics, 'addMetric');
+
+    const resp = await testIt(
+      event,
+      getStripeCustomerIdFn,
+      setStripeCustomerIdFn,
+      createCustomerFn,
+      createCheckoutSessionFn
+    );
+
+    assert(resp, responseError(500));
+
+    expect(loggerErrorFn).toHaveBeenCalledWith('Failed to get stripe customer ID from database', {
+      userId: validUserId,
+      error: dbError
+    });
+    expect(createCustomerFn).not.toHaveBeenCalled();
+    expect(createCheckoutSessionFn).not.toHaveBeenCalled();
+    expect(addMetricFn).toHaveBeenCalledWith('PaymentSessionFailed', MetricUnit.Count, 1, {
+      tier: validRequestBody.tier,
+      userId: validUserId
+    });
+  });
+
+  it('should handle create customer error and return failure response', async () => {
+    const event = (await testAuthedEvent(
+      validRequestBody,
+      {},
+      accessTokenSchema,
+      validAccessToken
+    )) as unknown as APIGatewayProxyEvent;
+
+    const stripeError = new Error('Stripe customer creation error');
+    const getStripeCustomerIdFn = vi.fn().mockResolvedValue(undefined);
+    const setStripeCustomerIdFn = vi.fn().mockResolvedValue(undefined);
+    const createCustomerFn = vi.fn().mockRejectedValue(stripeError);
+    const createCheckoutSessionFn = vi.fn().mockResolvedValue(validCheckoutUrl);
+    const loggerErrorFn = vi.spyOn(logger, 'error');
+    const addMetricFn = vi.spyOn(metrics, 'addMetric');
+
+    const resp = await testIt(
+      event,
+      getStripeCustomerIdFn,
+      setStripeCustomerIdFn,
+      createCustomerFn,
+      createCheckoutSessionFn
+    );
+
+    assert(resp, responseError(500));
+
+    expect(loggerErrorFn).toHaveBeenCalledWith('Failed to create stripe customer', {
+      userId: validUserId,
+      email: validEmail,
+      error: stripeError
+    });
+    expect(getStripeCustomerIdFn).toHaveBeenCalledTimes(1);
+    expect(createCustomerFn).toHaveBeenCalledTimes(1);
+    expect(setStripeCustomerIdFn).not.toHaveBeenCalled();
+    expect(createCheckoutSessionFn).not.toHaveBeenCalled();
+    expect(addMetricFn).toHaveBeenCalledWith('PaymentSessionFailed', MetricUnit.Count, 1, {
+      tier: validRequestBody.tier,
+      userId: validUserId
+    });
+  });
+
+  it('should handle set stripe customer id error and return failure response', async () => {
+    const event = (await testAuthedEvent(
+      validRequestBody,
+      {},
+      accessTokenSchema,
+      validAccessToken
+    )) as unknown as APIGatewayProxyEvent;
+
+    const dbError = new Error('Database save error');
+    const getStripeCustomerIdFn = vi.fn().mockResolvedValue(undefined);
+    const setStripeCustomerIdFn = vi.fn().mockRejectedValue(dbError);
+    const createCustomerFn = vi.fn().mockResolvedValue(validStripeCustomerId);
+    const createCheckoutSessionFn = vi.fn().mockResolvedValue(validCheckoutUrl);
+    const loggerErrorFn = vi.spyOn(logger, 'error');
+    const addMetricFn = vi.spyOn(metrics, 'addMetric');
+
+    const resp = await testIt(
+      event,
+      getStripeCustomerIdFn,
+      setStripeCustomerIdFn,
+      createCustomerFn,
+      createCheckoutSessionFn
+    );
+
+    assert(resp, responseError(500));
+
+    expect(loggerErrorFn).toHaveBeenCalledWith('Failed to save stripe customer ID to database', {
+      userId: validUserId,
+      stripeCustomerId: validStripeCustomerId,
+      error: dbError
+    });
+    expect(getStripeCustomerIdFn).toHaveBeenCalledTimes(1);
+    expect(createCustomerFn).toHaveBeenCalledTimes(1);
+    expect(setStripeCustomerIdFn).toHaveBeenCalledTimes(1);
+    expect(createCheckoutSessionFn).not.toHaveBeenCalled();
+    expect(addMetricFn).toHaveBeenCalledWith('PaymentSessionFailed', MetricUnit.Count, 1, {
+      tier: validRequestBody.tier,
+      userId: validUserId
+    });
+  });
+
+  it('should handle create checkout session error and return failure response', async () => {
+    const event = (await testAuthedEvent(
+      validRequestBody,
+      {},
+      accessTokenSchema,
+      validAccessToken
+    )) as unknown as APIGatewayProxyEvent;
+
+    const stripeError = new Error('Stripe checkout session error');
+    const getStripeCustomerIdFn = vi.fn().mockResolvedValue(validStripeCustomerId);
+    const setStripeCustomerIdFn = vi.fn().mockResolvedValue(undefined);
+    const createCustomerFn = vi.fn().mockResolvedValue(validStripeCustomerId);
     const createCheckoutSessionFn = vi.fn().mockRejectedValue(stripeError);
     const loggerErrorFn = vi.spyOn(logger, 'error');
     const addMetricFn = vi.spyOn(metrics, 'addMetric');
 
-    return testIt(event, createCheckoutSessionFn).then((resp) => {
-      assert(resp, responseError(500));
+    const resp = await testIt(
+      event,
+      getStripeCustomerIdFn,
+      setStripeCustomerIdFn,
+      createCustomerFn,
+      createCheckoutSessionFn
+    );
 
-      expect(loggerErrorFn).toHaveBeenCalledWith(
-        'There was an error creating a payment session for the user',
-        { error: stripeError }
-      );
-      expect(addMetricFn).toHaveBeenCalledWith('PaymentSessionFailed', MetricUnit.Count, 1, {
-        tier: validRequestBody.tier,
-        userId: validUserId
-      });
+    assert(resp, responseError(500));
+
+    expect(loggerErrorFn).toHaveBeenCalledWith('Failed to create stripe checkout session', {
+      userId: validUserId,
+      stripeCustomerId: validStripeCustomerId,
+      tier: validRequestBody.tier,
+      error: stripeError
+    });
+    expect(addMetricFn).toHaveBeenCalledWith('PaymentSessionFailed', MetricUnit.Count, 1, {
+      tier: validRequestBody.tier,
+      userId: validUserId
     });
   });
 
@@ -169,29 +388,53 @@ describe('POST Payment checkout session', () => {
       validAccessToken
     )) as unknown as APIGatewayProxyEvent;
 
+    const getStripeCustomerIdFn = vi.fn().mockResolvedValue(validStripeCustomerId);
+    const setStripeCustomerIdFn = vi.fn().mockResolvedValue(undefined);
+    const createCustomerFn = vi.fn().mockResolvedValue(validStripeCustomerId);
     const createCheckoutSessionFn = vi.fn().mockResolvedValue(validCheckoutUrl);
 
-    return testIt(event, createCheckoutSessionFn).then((resp) => {
-      assert(resp, corsErrorResponse);
+    const resp = await testIt(
+      event,
+      getStripeCustomerIdFn,
+      setStripeCustomerIdFn,
+      createCustomerFn,
+      createCheckoutSessionFn
+    );
 
-      expect(createCheckoutSessionFn).toHaveBeenCalledTimes(0);
-    });
+    assert(resp, corsErrorResponse);
+
+    expect(getStripeCustomerIdFn).not.toHaveBeenCalled();
+    expect(createCustomerFn).not.toHaveBeenCalled();
+    expect(createCheckoutSessionFn).not.toHaveBeenCalled();
   });
-});
 
-function testIt(
-  event: APIGatewayProxyEvent,
-  createCheckoutSessionFn: () => Promise<Url | null>,
-  config: PostPaymentCheckoutSessionConfig = defaultConfig
-): Promise<APIGatewayProxyResult> {
-  setEnv(config);
-  // eslint-disable-next-line @typescript-eslint/unbound-method
-  vi.mocked(StripeService.prototype.createCheckoutSession).mockImplementation(
-    createCheckoutSessionFn
-  );
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
-  return handler(event as unknown as Event, {} as Context);
-}
+  function testIt(
+    event: APIGatewayProxyEvent,
+    getStripeCustomerIdFn: () => Promise<StripeCustomerId | undefined>,
+    setStripeCustomerIdFn: () => Promise<void>,
+    createCustomerFn: () => Promise<StripeCustomerId>,
+    createCheckoutSessionFn: () => Promise<Url | null>,
+    config: PostPaymentCheckoutSessionConfig = defaultConfig
+  ): Promise<APIGatewayProxyResult> {
+    setEnv(config);
+
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    vi.mocked(UserBaseStore.withConfig).mockReturnValue({
+      getStripeCustomerId: getStripeCustomerIdFn,
+      setStripeCustomerId: setStripeCustomerIdFn
+    } as unknown as UserBaseStore<IdpName>);
+
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    vi.mocked(StripeService.prototype.createCustomer).mockImplementation(createCustomerFn);
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    vi.mocked(StripeService.prototype.createCheckoutSession).mockImplementation(
+      createCheckoutSessionFn
+    );
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
+    return handler(event as unknown as Event, {} as Context);
+  }
+});
 
 const defaultConfig: PostPaymentCheckoutSessionConfig = {
   decodeAccessJwtConfig: getDefaultDecodeAccessJwtConfig(),
@@ -218,4 +461,5 @@ function setEnv(config: PostPaymentCheckoutSessionConfig) {
   setEnvStripeAuthConfig(config.stripeAuthConfig);
   setEnvStripeCheckoutConfig(config.stripeCheckoutConfig);
   setEnvPaymentPlansConfig(config.paymentPlans);
+  setEnvUserBaseStoreConfig(config.userBaseStoreConfig);
 }

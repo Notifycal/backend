@@ -1,7 +1,7 @@
 import { MetricUnit } from '@aws-lambda-powertools/metrics';
 import { corsErrorResponse } from '@common/cors-middleware';
 import { protectedEndpointMiddleware } from '@common/lambda-middleware';
-import { metrics } from '@common/powertools';
+import { logger, metrics } from '@common/powertools';
 import type { Identity, IdpName, StripeCustomerId } from '@notifycal/shared/types';
 import type { Url } from '@own-types/model';
 import {
@@ -21,19 +21,44 @@ function createCustomerOrRetrieve(
   userBaseStore: UserBaseStore<IdpName>,
   stripeService: StripeService
 ): Promise<StripeCustomerId> {
-  return userBaseStore.getStripeCustomerId(identity.userId).then((stripeUserIrOrNot) => {
-    if (stripeUserIrOrNot) {
-      return Promise.resolve(stripeUserIrOrNot);
-    } else {
-      return stripeService
-        .createCustomer(identity)
-        .then((stripeCustomerId) =>
-          userBaseStore
-            .setStripeCustomerId(identity.userId, stripeCustomerId)
-            .then(() => stripeCustomerId)
-        );
-    }
-  });
+  return userBaseStore
+    .getStripeCustomerId(identity.userId)
+    .catch((error) => {
+      logger.error('Failed to get stripe customer ID from database', {
+        userId: identity.userId,
+        error
+      });
+      throw error;
+    })
+    .then((stripeCustomerIdOrNot) => {
+      if (stripeCustomerIdOrNot) {
+        return Promise.resolve(stripeCustomerIdOrNot);
+      } else {
+        return stripeService
+          .createCustomer(identity)
+          .catch((error) => {
+            logger.error('Failed to create stripe customer', {
+              userId: identity.userId,
+              email: identity.email,
+              error
+            });
+            throw error;
+          })
+          .then((stripeCustomerId) =>
+            userBaseStore
+              .setStripeCustomerId(identity.userId, stripeCustomerId)
+              .catch((error) => {
+                logger.error('Failed to save stripe customer ID to database', {
+                  userId: identity.userId,
+                  stripeCustomerId,
+                  error
+                });
+                throw error;
+              })
+              .then(() => stripeCustomerId)
+          );
+      }
+    });
 }
 
 async function lambdaHandler(
@@ -66,17 +91,28 @@ async function lambdaHandler(
   };
   const userBaseStore = UserBaseStore.withConfig(userBaseStoreConfig);
   const stripeService = new StripeService(apiKey);
+
   return createCustomerOrRetrieve(identity, userBaseStore, stripeService)
     .then((stripeCustomerId) =>
-      stripeService.createCheckoutSession(
-        stripeCustomerId,
-        identity,
-        selectedTier,
-        language,
-        successRedirectUrl,
-        cancelRedirectUrl,
-        taxId
-      )
+      stripeService
+        .createCheckoutSession(
+          stripeCustomerId,
+          identity,
+          selectedTier,
+          language,
+          successRedirectUrl,
+          cancelRedirectUrl,
+          taxId
+        )
+        .catch((error) => {
+          logger.error('Failed to create stripe checkout session', {
+            userId: identity.userId,
+            stripeCustomerId,
+            tier: selectedTier.id,
+            error
+          });
+          throw error;
+        })
     )
     .then(
       (sessionUrl) => {
@@ -84,6 +120,7 @@ async function lambdaHandler(
           metrics.addMetric('PaymentSessionCreated', MetricUnit.Count, 1, dimensions);
           return successHandler()({ result: { url: sessionUrl } });
         } else {
+          logger.error('No payment session was created for the user', { userId });
           metrics.addMetric('PaymentSessionCancelled', MetricUnit.Count, 1, dimensions);
           return errorHandler(500)(`No payment session was created for the user`);
         }
