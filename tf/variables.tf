@@ -258,6 +258,11 @@ variable "tax_id" {
   type        = string
 }
 
+variable "customer_portal_configuration_id" {
+  description = "ID to reference the customer portal configuration"
+  type        = string
+}
+
 variable "stripe_operating_api_key" {
   description = "Stripe operating API key"
   type        = string

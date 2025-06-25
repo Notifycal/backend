@@ -1,4 +1,5 @@
-import type { DateTime, TimeZone } from '@notifycal/shared/types';
+import type { DateTime, Percentage, TimeZone, UnixTimestamp } from '@notifycal/shared/types';
+import type { Period } from '@own-types/model';
 import { DateTime as DT } from 'luxon';
 import { z } from 'zod';
 
@@ -27,4 +28,17 @@ export function timezoneValidator(): (arg: TimeZone, ctx: z.RefinementCtx) => bo
     }
     return true;
   };
+}
+
+export function remainingPeriodPercentage(period: Period, now: UnixTimestamp): Percentage {
+  const totalPeriodDuration = period.end - period.start;
+  if (totalPeriodDuration <= 0) {
+    return 0 as Percentage;
+  }
+  if (now < period.start || now >= period.end) {
+    return 0 as Percentage;
+  }
+  const remainingDuration = period.end - now;
+  const percentage = (remainingDuration / totalPeriodDuration) * 100;
+  return Math.round(percentage * 100) / 100;
 }

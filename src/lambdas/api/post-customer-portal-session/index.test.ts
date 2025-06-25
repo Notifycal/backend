@@ -27,6 +27,8 @@ vi.mock('@common/powertools');
 vi.mock('@services/stores/user-base-store');
 vi.mock('@services/stripe');
 
+const validStripeCustomerPortalConfigId = 'cng_rdtsghethergwrg';
+
 describe('Customer Portal Session Handler', () => {
   const validUserId = 'cfaa8471-f4cc-44da-bc22-ddc4b735a847' as UserId;
   const validStripeCustomerId = 'cus_123';
@@ -68,7 +70,8 @@ describe('Customer Portal Session Handler', () => {
     expect(getStripeCustomerIdFn).toHaveBeenCalledWith(validUserId);
     expect(createCustomerPortalSessionFn).toHaveBeenCalledWith(
       validStripeCustomerId,
-      validReturnUrl
+      validReturnUrl,
+      validStripeCustomerPortalConfigId
     );
     expect(addMetricFn).toHaveBeenCalledWith('CustomerPortalSessionCreated', MetricUnit.Count, 1, {
       userId: validUserId
@@ -157,7 +160,8 @@ describe('Customer Portal Session Handler', () => {
 
     expect(createCustomerPortalSessionFn).toHaveBeenCalledWith(
       validStripeCustomerId,
-      validReturnUrl
+      validReturnUrl,
+      validStripeCustomerPortalConfigId
     );
     expect(addMetricFn).toHaveBeenCalledWith(
       'CustomerPortalSessionCancelled',
@@ -192,7 +196,8 @@ describe('Customer Portal Session Handler', () => {
 
     expect(createCustomerPortalSessionFn).toHaveBeenCalledWith(
       validStripeCustomerId,
-      validReturnUrl
+      validReturnUrl,
+      validStripeCustomerPortalConfigId
     );
     expect(addMetricFn).toHaveBeenCalledWith('CustomerPortalSessionFailed', MetricUnit.Count, 1, {
       userId: validUserId
@@ -234,7 +239,8 @@ const defaultConfig: PostCustomerPortalSessionConfig = {
     tableName: 'Users-local'
   },
   stripeCustomerPortalConfig: {
-    returnUrlPath: '/#/somepath' as Url
+    returnUrlPath: '/#/somepath' as Url,
+    configId: validStripeCustomerPortalConfigId
   }
 };
 

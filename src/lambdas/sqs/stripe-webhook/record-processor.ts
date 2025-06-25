@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
 import type { Logger } from '@aws-lambda-powertools/logger';
 import type { TierId, Tiers } from '@model/PaymentPlans';
 import type { IdpName } from '@notifycal/shared/types';
@@ -10,7 +11,7 @@ import type { Stripe } from 'stripe';
 import { SubscriptionService } from '../../../services/subscription-service';
 import type { StripeWebhookConfig } from './config';
 import { CheckoutSessionCompletedHandler } from './event-handlers/checkout';
-import type { EventHandler } from './event-handlers/common';
+import type { EventHandlerBuilder } from './event-handlers/common';
 import {
   CustomerCreatedHandler,
   CustomerDeletedHandler,
@@ -24,7 +25,7 @@ import {
 import {
   PaymentIntentFailedHandler,
   PaymentIntentSucceededHandler
-} from './event-handlers/payments';
+} from './event-handlers/payment-intent';
 import {
   SubscriptionCreatedHandler,
   SubscriptionDeletedHandler,
@@ -41,25 +42,31 @@ export function defaultEventHandlers(
   subscriptionService: SubscriptionService<IdpName>,
   tiers: Tiers,
   logger: Logger
-): Map<StripeEventType, EventHandler<Stripe.Event>> {
-  return new Map<StripeEventType, EventHandler<Stripe.Event>>([
-    ['checkout.session.completed', new CheckoutSessionCompletedHandler(logger)],
-    ['customer.created', new CustomerCreatedHandler(logger)],
-    ['customer.updated', new CustomerUpdatedHandler(logger)],
-    ['customer.deleted', new CustomerDeletedHandler(logger)],
-    ['customer.subscription.created', new SubscriptionCreatedHandler(logger)],
-    ['customer.subscription.updated', new SubscriptionUpdatedHandler(logger)],
-    ['customer.subscription.deleted', new SubscriptionDeletedHandler(logger)],
-    ['customer.subscription.paused', new SubscriptionPausedHandler(logger)],
-    ['customer.subscription.resumed', new SubscriptionResumedHandler(logger)],
-    ['invoice.created', new InvoiceCreatedHandler(logger)],
+): Map<StripeEventType, EventHandlerBuilder<Stripe.Event>> {
+  return new Map<StripeEventType, EventHandlerBuilder<Stripe.Event>>([
+    ['checkout.session.completed', (e) => new CheckoutSessionCompletedHandler(e, logger)],
+    ['customer.created', (e) => new CustomerCreatedHandler(e, logger)],
+    ['customer.updated', (e) => new CustomerUpdatedHandler(e, logger)],
+    ['customer.deleted', (e) => new CustomerDeletedHandler(e, logger)],
+    ['customer.subscription.created', (e) => new SubscriptionCreatedHandler(e, logger)],
+    [
+      'customer.subscription.updated',
+      (e) => new SubscriptionUpdatedHandler(e, subscriptionService, logger)
+    ],
+    [
+      'customer.subscription.deleted',
+      (e) => new SubscriptionDeletedHandler(e, subscriptionService, logger)
+    ],
+    ['customer.subscription.paused', (e) => new SubscriptionPausedHandler(e, logger)],
+    ['customer.subscription.resumed', (e) => new SubscriptionResumedHandler(e, logger)],
+    ['invoice.created', (e) => new InvoiceCreatedHandler(e, logger)],
     [
       'invoice.payment_succeeded',
-      new InvoicePaymentSucceededHandler(logger, subscriptionService, tiers)
+      (e) => new InvoicePaymentSucceededHandler(e, tiers, subscriptionService, logger)
     ],
-    ['invoice.payment_failed', new InvoicePaymentFailedHandler(logger)],
-    ['payment_intent.succeeded', new PaymentIntentSucceededHandler(logger)],
-    ['payment_intent.payment_failed', new PaymentIntentFailedHandler(logger)]
+    ['invoice.payment_failed', (e) => new InvoicePaymentFailedHandler(e, logger)],
+    ['payment_intent.succeeded', (e) => new PaymentIntentSucceededHandler(e, logger)],
+    ['payment_intent.payment_failed', (e) => new PaymentIntentFailedHandler(e, logger)]
   ]);
 }
 
@@ -69,7 +76,7 @@ export function recordProcessor(
     subscriptionService: SubscriptionService<IdpName>,
     tiers: Tiers,
     logger: Logger
-  ) => Map<StripeEventType, EventHandler<Stripe.Event>> = defaultEventHandlers,
+  ) => Map<StripeEventType, EventHandlerBuilder<Stripe.Event>> = defaultEventHandlers,
   config: StripeWebhookConfig,
   logger: Logger
 ): Promise<void> {

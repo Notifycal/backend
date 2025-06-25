@@ -37,3 +37,8 @@ export type EmailInlineAttachementBase64 = Brand<string, 'EmailInlineAttachement
 export type EmailAttachmentName = Brand<string, 'EmailAttachmentName'>;
 
 export type ContentType = Brand<string, 'ContentType'>;
+
+export interface Period {
+  start: number;
+  end: number;
+}
