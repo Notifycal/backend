@@ -44,28 +44,30 @@ function lambdaHandler(
     if (!stripeCustomerId) {
       metrics.addMetric('CustomerPortalSessionNoCustomer', MetricUnit.Count, 1, dimensions);
       return errorHandler(500)(
-        'User does not have a Stripe customer ID while it should have one. This is totally unexpected'
+        'User does not have a Stripe customer ID whereas it should have one. This is totally unexpected'
       );
     }
-    return stripeService.createCustomerPortalSession(stripeCustomerId, returnUrl).then(
-      (sessionUrl) => {
-        if (sessionUrl) {
-          metrics.addMetric('CustomerPortalSessionCreated', MetricUnit.Count, 1, dimensions);
-          return successHandler()({ result: { url: sessionUrl } });
-        }
-        metrics.addMetric('CustomerPortalSessionCancelled', MetricUnit.Count, 1, dimensions);
-        return errorHandler(500)('No customer portal session was created for the user');
-      },
-      (error) => {
-        metrics.addMetric('CustomerPortalSessionFailed', MetricUnit.Count, 1, dimensions);
-        return errorHandler(500)(
-          'There was an error creating a customer portal session for the user',
-          {
-            error
+    return stripeService
+      .createCustomerPortalSession(stripeCustomerId, returnUrl, stripeCustomerPortalConfig.configId)
+      .then(
+        (sessionUrl) => {
+          if (sessionUrl) {
+            metrics.addMetric('CustomerPortalSessionCreated', MetricUnit.Count, 1, dimensions);
+            return successHandler()({ result: { url: sessionUrl } });
           }
-        );
-      }
-    );
+          metrics.addMetric('CustomerPortalSessionCancelled', MetricUnit.Count, 1, dimensions);
+          return errorHandler(500)('No customer portal session was created for the user');
+        },
+        (error) => {
+          metrics.addMetric('CustomerPortalSessionFailed', MetricUnit.Count, 1, dimensions);
+          return errorHandler(500)(
+            'There was an error creating a customer portal session for the user',
+            {
+              error
+            }
+          );
+        }
+      );
   });
 }
 

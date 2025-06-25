@@ -206,6 +206,7 @@ export function setEnvStripeAuthConfig(config: StripeAuthConfig): void {
 
 export function setEnvCustomerPortalConfig(config: StripeCustomerPortalConfig): void {
   process.env.STRIPE_CUSTOMER_PORTAL_RETURN_URL_PATH = config.returnUrlPath;
+  process.env.STRIPE_CUSTOMER_PORTAL_CONFIG_ID = config.configId;
 }
 
 export function setEnvStripeCheckoutConfig(config: StripeCheckoutConfig): void {

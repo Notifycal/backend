@@ -38,3 +38,42 @@ resource "stripe_tax_rate" "spain_vat" {
     type    = "VAT"
   }
 }
+
+resource "stripe_portal_configuration" "portal_configuration" {
+  active = true
+  business_profile {}
+  features {
+    payment_method_update {
+      enabled = true
+    }
+    customer_update {
+      enabled         = true
+      allowed_updates = ["address", "tax_id"]
+    }
+    invoice_history {
+      enabled = true
+    }
+    subscription_cancel {
+      enabled = true
+      cancellation_reason {
+        enabled = true
+        options = ["too_expensive", "missing_features", "switched_service", "unused", "customer_service", "too_complex", "low_quality", "other"]
+      }
+      mode               = "at_period_end"
+      proration_behavior = "none"
+    }
+    subscription_update {
+      enabled                 = true
+      default_allowed_updates = ["price"]
+      proration_behavior      = "always_invoice"
+
+      dynamic "products" {
+        for_each = local.payment_plans
+        content {
+          product = products.value.product_id
+          prices  = [products.value.price_id]
+        }
+      }
+    }
+  }
+}

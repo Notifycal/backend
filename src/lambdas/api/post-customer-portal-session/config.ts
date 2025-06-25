@@ -11,6 +11,7 @@ import { promiseTry } from '@utils/promises';
 
 export interface StripeCustomerPortalConfig {
   returnUrlPath: Url;
+  configId: string;
 }
 
 export interface StripeCustomerPortalEndpointConfig {
@@ -33,7 +34,8 @@ export type PostCustomerPortalSessionConfig = AuthedEndpointConfig &
 function readStripeConfig(env: Environment): StripeCustomerPortalEndpointConfig {
   return {
     stripeCustomerPortalConfig: {
-      returnUrlPath: env.get('STRIPE_CUSTOMER_PORTAL_RETURN_URL_PATH').required().asString() as Url
+      returnUrlPath: env.get('STRIPE_CUSTOMER_PORTAL_RETURN_URL_PATH').required().asString() as Url,
+      configId: env.get('STRIPE_CUSTOMER_PORTAL_CONFIG_ID').required().asString()
     }
   };
 }
