@@ -89,7 +89,7 @@ async function lambdaHandler(
     tier: selectedTier.id,
     userId: userId
   };
-  const userBaseStore = UserBaseStore.withConfig(userBaseStoreConfig);
+  const userBaseStore = UserBaseStore.withConfig(userBaseStoreConfig, logger);
   const stripeService = new StripeService(apiKey);
 
   return createCustomerOrRetrieve(identity, userBaseStore, stripeService)

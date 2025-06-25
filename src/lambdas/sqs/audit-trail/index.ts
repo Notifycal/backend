@@ -11,7 +11,10 @@ import { eventSchema, type Event, type Record } from './schema';
 export function recordProcessorCurried(
   config: AuditTrailConfig
 ): (record: Record) => Promise<void> {
-  const auditTrailBaseStore = AuditTrailBaseStore.withConfig(config.auditTrailBaseStoreConfig);
+  const auditTrailBaseStore = AuditTrailBaseStore.withConfig(
+    config.auditTrailBaseStoreConfig,
+    logger
+  );
   return (record: Record) => {
     const _logger = logger.createChild();
     return recordProcessor(record, auditTrailBaseStore, _logger);

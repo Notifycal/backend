@@ -1,10 +1,11 @@
+import type { Logger } from '@aws-lambda-powertools/logger';
 import { environment, logger } from '@common/powertools';
 import type { EmailWithName } from '@model/app-events/common';
 import type { EmailInlineAttachment } from '@model/app-events/EmailToBeSentEvent';
 import type { EmailSendSuccessResponse } from '@model/vendor/mailgun/schemas';
 import type { Email } from '@notifycal/shared/types';
 import type { EmailAttachmentName, EmailHtmlBody, EmailSubject } from '@own-types/model';
-import { throwError } from '@services/common/error-handling';
+import { rethrowError } from '@services/common/error-handling';
 import { HttpClient } from '@services/common/http-client';
 import { capArray } from '@utils/array';
 import FormData from 'form-data';
@@ -16,7 +17,8 @@ export class EmailService {
   public constructor(
     baseUrl: string,
     private readonly domainName: string,
-    private readonly apiKey: string
+    private readonly apiKey: string,
+    private readonly logger: Logger
   ) {
     this.httpClient = new HttpClient(
       baseUrl,
@@ -79,7 +81,7 @@ export class EmailService {
         return response.data as EmailSendSuccessResponse;
       })
       .catch((error) => {
-        throwError('Email error', error);
+        rethrowError('Email error', error, logger);
       });
   }
 }

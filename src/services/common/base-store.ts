@@ -1,3 +1,4 @@
+import type { Logger } from '@aws-lambda-powertools/logger';
 import {
   GetCommand,
   PutCommand,
@@ -20,7 +21,10 @@ export abstract class BaseStore<TConfig extends BaseStoreConfig> {
   protected _dynamoDbClient: DynamoDBDocumentClient;
   protected _tableName: string;
 
-  public constructor(config: TConfig) {
+  public constructor(
+    config: TConfig,
+    protected readonly logger: Logger
+  ) {
     this._dynamoDbClient = dynamodbClient();
     this._tableName = config.tableName;
   }

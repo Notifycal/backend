@@ -1,3 +1,4 @@
+import { logger } from '@common/powertools';
 import type { BaseLoginConfig } from '@lambdas/api/post-login/config';
 import * as userSignedInModule from '@model/app-events/UserSignedInEvent';
 import * as userSignedUpModule from '@model/app-events/UserSignedUpEvent';
@@ -304,7 +305,7 @@ describe('Auth Service', () => {
     }));
     vi.mocked(buildJwts).mockImplementation(buildJwtsFn);
 
-    return signInOrUp(identity, authorization, validConfig);
+    return signInOrUp(identity, authorization, validConfig, logger);
   }
 
   function testBuildJwtsAndStoreRefreshJwt<TIdpName extends IdpName>(
@@ -323,7 +324,7 @@ describe('Auth Service', () => {
     const refreshTokenStoreMock = {
       putToken: vi.fn().mockImplementation(putTokenFn)
     };
-    const store = new RefreshTokenBaseStore(validConfig.refreshTokenBaseStoreConfig);
+    const store = new RefreshTokenBaseStore(validConfig.refreshTokenBaseStoreConfig, logger);
     vi.spyOn(store, 'putToken').mockImplementation(refreshTokenStoreMock.putToken);
 
     return buildJwtsAndStoreRefreshJwt(

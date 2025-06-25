@@ -1,6 +1,5 @@
 import type { Logger } from '@aws-lambda-powertools/logger';
 import type { LogItemExtraInput } from '@aws-lambda-powertools/logger/types';
-import { logger as _logger } from '@common/powertools';
 
 export function extractErrorMessage(error: unknown): string {
   if (error instanceof Error) {
@@ -32,15 +31,15 @@ function _throwError(
   throw new Error(msg, { cause: error, ...extraInput });
 }
 
-export function throwError(msg: string, error?: unknown, ...extraInput: LogItemExtraInput): never {
-  _throwError(msg, _logger, error, 'error', ...[...extraInput]);
-}
-
-export function throwErrorV2(
+export function rethrowError(
   msg: string,
+  error: unknown,
   logger: Logger,
-  error?: unknown,
   ...extraInput: LogItemExtraInput
 ): never {
   _throwError(msg, logger, error, 'error', ...[...extraInput]);
+}
+
+export function throwError(msg: string, logger: Logger, ...extraInput: LogItemExtraInput): never {
+  _throwError(msg, logger, undefined, 'error', ...[...extraInput]);
 }

@@ -33,13 +33,14 @@ function lambdaHandler(event: Event, context: Context): Promise<EmailSendSuccess
   const config = event.lambdaConfig;
   const record = event.Records[0];
   setupLogger(record);
-  const snsService = SnsService.withConfig(config.emailingTopicConfig);
+  const snsService = SnsService.withConfig(config.emailingTopicConfig, logger);
   const messageProcessor = new IdempotentProcessor(
     config,
     config.idempotencyPersistenceConfig,
     config.emailingConfig.enabled,
     context,
-    snsService
+    snsService,
+    logger
   );
 
   return messageProcessor.sendEmailIdempotently(record.body);

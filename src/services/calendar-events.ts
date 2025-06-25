@@ -1,3 +1,4 @@
+import type { Logger } from '@aws-lambda-powertools/logger';
 import type { GoogleOAuthConfig, IdpConfigs } from '@model/Config';
 import type { ParsingError } from '@model/Errors';
 import type { AuthorizationForIdp, UserGoogleAuthorization } from '@model/IdpAuthorization';
@@ -12,11 +13,13 @@ function googleEventsStartTimeWithin(
   upperBoundStartTime: DateTime,
   includeAllDayEvents: boolean,
   idpAuthorization: UserGoogleAuthorization,
-  config: GoogleOAuthConfig
+  config: GoogleOAuthConfig,
+  logger: Logger
 ): Promise<ServiceResponse<CalendarEvent, ParsingError>> {
   return GoogleCalendar.withRefreshToken(
     config,
-    idpAuthorization.refreshToken
+    idpAuthorization.refreshToken,
+    logger
   ).eventsStartTimeWithin(
     calendarId,
     lowerBoundStartTime,
@@ -32,7 +35,8 @@ export function eventsStartTimeWithin(
   includeAllDayEvents: boolean,
   idpAuthorization: AuthorizationForIdp<IdpName>,
   idp: IdpName,
-  idpConfigs: IdpConfigs
+  idpConfigs: IdpConfigs,
+  logger: Logger
 ): Promise<ServiceResponse<CalendarEvent, ParsingError>> {
   return match(idp)
     .with('google.com', () =>
@@ -42,7 +46,8 @@ export function eventsStartTimeWithin(
         upperBoundStartTime,
         includeAllDayEvents,
         idpAuthorization,
-        idpConfigs[idp]
+        idpConfigs[idp],
+        logger
       )
     )
     .exhaustive();

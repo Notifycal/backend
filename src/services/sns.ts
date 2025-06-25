@@ -1,3 +1,4 @@
+import type { Logger } from '@aws-lambda-powertools/logger';
 import { PublishCommand, type PublishCommandOutput, type SNSClient } from '@aws-sdk/client-sns';
 import { snsClient } from '@clients/sns';
 import { logger } from '@common/powertools';
@@ -5,19 +6,22 @@ import type { BaseEvent, BaseSystemEvent } from '@model/app-events/BaseEvent';
 import type { SnsTopicConfig } from '@model/Config';
 import { doSafely } from '@utils/promises';
 import { BaseAwsMessagingService } from './common/base-aws-messaging-service';
-import { throwError } from './common/error-handling';
+import { rethrowError } from './common/error-handling';
 
 export class SnsService extends BaseAwsMessagingService {
   private readonly _client: SNSClient;
   private readonly _config: SnsTopicConfig;
-  private constructor(config: SnsTopicConfig) {
+  private constructor(
+    config: SnsTopicConfig,
+    private readonly logger: Logger
+  ) {
     super();
     this._config = config;
     this._client = snsClient();
   }
 
-  public static withConfig(config: SnsTopicConfig): SnsService {
-    return new this(config);
+  public static withConfig(config: SnsTopicConfig, logger: Logger): SnsService {
+    return new this(config, logger);
   }
 
   public publish<TEvent extends BaseEvent | BaseSystemEvent>(
@@ -37,7 +41,7 @@ export class SnsService extends BaseAwsMessagingService {
       },
       (error) => {
         const msg = `Error publishing an event to SNS`;
-        throwError(msg, error, { eventId: event.eventId });
+        rethrowError(msg, error, this.logger, { eventId: event.eventId });
       }
     );
   }

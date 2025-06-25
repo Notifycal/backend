@@ -28,7 +28,7 @@ import type {
   EmailInlineAttachementBase64,
   EmailSubject
 } from '@own-types/model';
-import { throwError } from '@services/common/error-handling';
+import { rethrowError } from '@services/common/error-handling';
 import type { SnsService } from '@services/sns';
 import type { AlertsBaseStore } from '@services/stores/alerts-base-store';
 import type { UserBaseStore } from '@services/stores/user-base-store';
@@ -96,12 +96,13 @@ function interpolateEmail(
   language: LanguageCode,
   updateCounterResult: AlertStoreRecord<EventTypeDate['value'], UserId>,
   errorRate: number,
-  alertEmailConfig: AlertEmailConfig
+  alertEmailConfig: AlertEmailConfig,
+  logger: Logger
 ): EmailToBeSentEvent['data'] {
   const subEventType: EmailToBeSentEvent['data']['subEventType'] =
     'NoPhoneNumberForCalendarEventFound';
 
-  const compiledTemplate = new TemplateCompiler().compile(template);
+  const compiledTemplate = new TemplateCompiler(logger).compile(template);
   const _translations = translations(language);
   const logoFilename = 'logo.png';
   const templateData: EmailTextVariables & EmailDynamicVariables = {
@@ -155,7 +156,8 @@ function sendAlert(
     language,
     updateCounterResult,
     errorRate,
-    alertEmailConfig
+    alertEmailConfig,
+    logger
   );
   const alertEvent: EmailToBeSentEvent = emailToBeSent(event, alertData);
   return snsService
@@ -194,9 +196,12 @@ function shouldAlert(
   );
 }
 
-function errorHandler(eventId: EventId): (error: unknown) => Promise<void | undefined> {
+function errorHandler(
+  eventId: EventId,
+  logger: Logger
+): (error: unknown) => Promise<void | undefined> {
   return (error: unknown) => {
-    throwError(`(Re)-Throwing error on purpose to notify of batch item failure`, error, {
+    rethrowError(`(Re)-Throwing error on purpose to notify of batch item failure`, error, logger, {
       eventId: eventId
     });
   };
@@ -249,6 +254,6 @@ export function recordProcessor(
         });
       }
     })
-    .catch(errorHandler(event.EventId))
+    .catch(errorHandler(event.EventId, logger))
     .then();
 }

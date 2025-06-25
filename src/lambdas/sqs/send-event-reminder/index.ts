@@ -59,16 +59,17 @@ function lambdaHandler(
     return nonSpanishPhoneReceiverHandler(record);
   }
 
-  const snsService = SnsService.withConfig(config.messagingTopicConfig);
-  const userStore = UserBaseStore.withConfig(config.userBaseStoreConfig);
-  const creditsService = new CreditsService(userStore);
+  const snsService = SnsService.withConfig(config.messagingTopicConfig, logger);
+  const userStore = UserBaseStore.withConfig(config.userBaseStoreConfig, logger);
+  const creditsService = new CreditsService(userStore, logger);
   const messageProcessor = new IdempotentProcessor(
     config,
     config.idempotencyPersistenceConfig,
     config.messagingConfig.enabled,
     context,
     snsService,
-    creditsService
+    creditsService,
+    logger
   );
   return messageProcessor.sendReminderIdempotently(record.body);
 }

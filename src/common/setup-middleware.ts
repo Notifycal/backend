@@ -1,5 +1,6 @@
 import type { MiddlewareObj, Request } from '@middy/core';
-import { throwError } from '@services/common/error-handling';
+import { rethrowError } from '@services/common/error-handling';
+import { logger } from './powertools';
 
 interface RunOptions<TRequest> {
   handler: (arg0: TRequest) => void | Promise<void>;
@@ -14,7 +15,7 @@ function run<TRequest>({
     try {
       await handler(request.event);
     } catch (error) {
-      throwError(`Error during ${action} middleware`, error);
+      rethrowError(`Error during ${action} middleware`, error, logger);
     }
   };
 }

@@ -9,6 +9,7 @@ import { senderValidator } from '@utils/phone';
 import type { APIGatewayProxyResult, Context } from 'aws-lambda';
 import type { z } from 'zod';
 import { type PatchUserProfileConfig, readPatchUserConfig } from './config';
+import { logger } from '@common/powertools';
 
 export const bodySchema = reminderConfigSchema.extend({
   business: reminderConfigSchema.shape.business.extend({
@@ -30,7 +31,7 @@ function lambdaHandler(
 ): Promise<APIGatewayProxyResult> {
   const config = event.lambdaConfig;
   const body = event.body;
-  const userProvider = UserBaseStore.withConfig(config.userBaseStoreConfig);
+  const userProvider = UserBaseStore.withConfig(config.userBaseStoreConfig, logger);
   const userId = event.requestContext.authorizer.payload.userId;
   return userProvider
     .updateUser(userId, 'demo', toStoreRecord(body))

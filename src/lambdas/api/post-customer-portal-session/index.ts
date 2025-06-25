@@ -1,7 +1,7 @@
 import { MetricUnit } from '@aws-lambda-powertools/metrics';
 import { corsErrorResponse } from '@common/cors-middleware';
 import { protectedEndpointMiddleware } from '@common/lambda-middleware';
-import { metrics } from '@common/powertools';
+import { logger, metrics } from '@common/powertools';
 import type { Url } from '@own-types/model';
 import {
   errorHandler,
@@ -24,7 +24,7 @@ function lambdaHandler(
   const { userBaseStoreConfig, stripeAuthConfig, stripeCustomerPortalConfig } = event.lambdaConfig;
   const apiKey = stripeAuthConfig.apiKey;
 
-  const userBaseStore = UserBaseStore.withConfig(userBaseStoreConfig);
+  const userBaseStore = UserBaseStore.withConfig(userBaseStoreConfig, logger);
   const stripeService = new StripeService(apiKey);
 
   const frontendUrl = validateRequestHeaderOrigin({

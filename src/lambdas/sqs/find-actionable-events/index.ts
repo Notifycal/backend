@@ -17,7 +17,7 @@ export function recordProcessorCurried(
     _logger.appendKeys({
       run: record.body.data.run
     });
-    return recordProcessor(record, config);
+    return recordProcessor(record, config, _logger);
   };
 }
 

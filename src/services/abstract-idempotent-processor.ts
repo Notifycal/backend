@@ -6,16 +6,18 @@ import type {
   IdempotencyConfigOptions,
   ItempotentFunctionOptions
 } from '@aws-lambda-powertools/idempotency/types';
+import type { Logger } from '@aws-lambda-powertools/logger';
 import { logger } from '@common/powertools';
 import type { AsyncFunction } from '@own-types/model';
-import { throwError } from '@services/common/error-handling';
+import { rethrowError } from '@services/common/error-handling';
 import { tap } from '@utils/promises';
 import type { Context } from 'aws-lambda';
 
 export abstract class AbstractIdempotentProcessor<TSuccessResponse> {
   protected constructor(
     protected readonly persistanceConfig: DynamoDBPersistenceOptions,
-    protected readonly context: Context
+    protected readonly context: Context,
+    protected readonly logger: Logger
   ) {}
 
   protected processIdempotently<TArgs extends Array<unknown>>(
@@ -51,7 +53,7 @@ export abstract class AbstractIdempotentProcessor<TSuccessResponse> {
       }),
       async (err) => {
         await onError(err);
-        throwError('Error while processing idempotently', err);
+        rethrowError('Error while processing idempotently', err, this.logger);
       }
     );
   }

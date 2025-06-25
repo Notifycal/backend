@@ -166,12 +166,17 @@ describe('Email processor', () => {
       };
       // eslint-disable-next-line @typescript-eslint/unbound-method
       vi.mocked(SnsService.withConfig).mockReturnValue(snsServiceMock as unknown as SnsService);
-      const snsService = SnsService.withConfig({} as SnsTopicConfig);
+      const snsService = SnsService.withConfig({} as SnsTopicConfig, logger);
       vi.mocked(EmailService).mockReturnValue({
         sendEmail: sendEmailFn
       } as unknown as EmailService);
 
-      const messageProcessor = new Processor(config.mailgunConfig, emailingEnabled, snsService);
+      const messageProcessor = new Processor(
+        config.mailgunConfig,
+        emailingEnabled,
+        snsService,
+        logger
+      );
       return messageProcessor.process(event);
     }
   });

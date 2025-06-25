@@ -1,3 +1,4 @@
+import { logger } from '@common/powertools';
 import { ParsingError } from '@model/Errors';
 import type { AuthorizationForIdp } from '@model/IdpAuthorization';
 import type { ServiceResponse } from '@model/ServiceResponse';
@@ -117,7 +118,8 @@ describe('Calendar Events Service', () => {
       includeAllDayEvents,
       idpAuthorization,
       'google.com',
-      idpConfigs
+      idpConfigs,
+      logger
     );
   }
 });
