@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.39.0](https://github.com/Notifycal/backend/compare/v0.38.3...v0.39.0) (2025-06-25)
+
+
+### Features
+
+* customer portal + fixes to webhook and payment session([#714](https://github.com/Notifycal/backend/issues/714)) ([5472896](https://github.com/Notifycal/backend/commit/5472896c0936a1717b29366d79e78aaabb239624))
+
+
+### Bug Fixes
+
+* **deps:** Update dependency @notifycal/shared to v4.4.0 ([#707](https://github.com/Notifycal/backend/issues/707)) ([19e85c9](https://github.com/Notifycal/backend/commit/19e85c9afe72c51bda5f4fcbac2989bd17659a70))
+
 ## [0.38.3](https://github.com/Notifycal/backend/compare/v0.38.2...v0.38.3) (2025-06-24)
 
 
