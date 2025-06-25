@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.38.3](https://github.com/Notifycal/backend/compare/v0.38.2...v0.38.3) (2025-06-24)
+
+
+### Bug Fixes
+
+* **deps:** Update AWS packages to v3.835.0 ([#725](https://github.com/Notifycal/backend/issues/725)) ([5d8dab4](https://github.com/Notifycal/backend/commit/5d8dab466556bba3af07a30694b0f552d6607dd2))
+* move SMS cost map to pricing_plans ([#728](https://github.com/Notifycal/backend/issues/728)) ([945873d](https://github.com/Notifycal/backend/commit/945873d2c0d6c6bd132bcb1f2b63409f7ba490c8))
+
 ## [0.38.2](https://github.com/Notifycal/backend/compare/v0.38.1...v0.38.2) (2025-06-23)
 
 
