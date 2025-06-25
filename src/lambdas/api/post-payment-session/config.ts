@@ -1,11 +1,19 @@
 import type { AuthedEndpointConfig, PaymentPlansEndpointConfig } from '@model/Config';
 import type { Environment, Url } from '@own-types/model';
-import { readAuthedEndpointConfig, readEnv, readPaymentPlans } from '@services/common/config';
+import {
+  readAuthedEndpointConfig,
+  readEnv,
+  readPaymentPlans,
+  readStripeAuthConfig,
+  readUserBaseStoreConfig
+} from '@services/common/config';
+import type { UserBaseStoreEndpointConfig } from '@services/stores/user-base-store';
 import { promiseTry } from '@utils/promises';
 
 export interface StripeCheckoutConfig {
   successRedirectUrlPath: Url;
   cancelRedirectUrlPath: Url;
+  taxId: string;
 }
 
 export interface StripeCheckoutEndpointConfig {
@@ -23,7 +31,8 @@ export interface StripeAuthEndpointConfig {
 export type PostPaymentCheckoutSessionConfig = AuthedEndpointConfig &
   StripeCheckoutEndpointConfig &
   PaymentPlansEndpointConfig &
-  StripeAuthEndpointConfig;
+  StripeAuthEndpointConfig &
+  UserBaseStoreEndpointConfig;
 
 function readStripeConfig(env: Environment): StripeCheckoutEndpointConfig {
   return {
@@ -32,15 +41,11 @@ function readStripeConfig(env: Environment): StripeCheckoutEndpointConfig {
         .get('STRIPE_SUCCESS_REDIRECT_URL_PATH')
         .required()
         .asString() as Url,
-      cancelRedirectUrlPath: env.get('STRIPE_CANCEL_REDIRECT_URL_PATH').required().asString() as Url
-    }
-  };
-}
-
-function readStripeAuthConfig(env: Environment): StripeAuthEndpointConfig {
-  return {
-    stripeAuthConfig: {
-      apiKey: env.get('STRIPE_API_KEY').required().asString()
+      cancelRedirectUrlPath: env
+        .get('STRIPE_CANCEL_REDIRECT_URL_PATH')
+        .required()
+        .asString() as Url,
+      taxId: env.get('STRIPE_TAX_ID').required().asString()
     }
   };
 }
@@ -51,6 +56,7 @@ export function readPostPaymentCheckoutSessionConfig(): Promise<PostPaymentCheck
     ...readAuthedEndpointConfig(env),
     ...readStripeConfig(env),
     ...readPaymentPlans(env),
-    ...readStripeAuthConfig(env)
+    ...readStripeAuthConfig(env),
+    ...readUserBaseStoreConfig(env)
   }));
 }

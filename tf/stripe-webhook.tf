@@ -8,9 +8,14 @@ module "stripe_webhook" {
   api_version          = var.stripe_api_version
   stripe_admin_api_key = var.stripe_admin_api_key
   stripe_webhook_events = [
+    "customer.created",
+    "customer.updated",
+    "customer.deleted",
     "customer.subscription.created",
     "customer.subscription.updated",
     "customer.subscription.deleted",
+    "customer.subscription.paused",
+    "customer.subscription.resumed",
     "invoice.payment_succeeded",
     "invoice.payment_failed",
     "checkout.session.completed"

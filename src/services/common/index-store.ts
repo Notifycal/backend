@@ -1,5 +1,6 @@
 import {
   paginateQuery,
+  QueryCommand,
   type DynamoDBDocumentClient,
   type QueryCommandInput
 } from '@aws-sdk/lib-dynamodb';
@@ -22,6 +23,26 @@ export abstract class IndexStore<TConfig extends IndexStoreConfig> {
     this._tableName = config.tableName;
     this._indexName = config.indexName;
     this._pageSize = config.pageSize;
+  }
+
+  protected getCommandRunner<T>(
+    cmdInput: Omit<QueryCommandInput, 'TableName' | 'IndexName'>
+  ): Promise<T | undefined> {
+    return this._dynamoDbClient
+      .send(
+        new QueryCommand({
+          TableName: this._tableName,
+          IndexName: this._indexName,
+          Limit: 1,
+          ...cmdInput
+        })
+      )
+      .then((result) => {
+        if (result.Items && result.Items.length > 0) {
+          return result.Items[0] as T;
+        }
+        return undefined;
+      });
   }
 
   protected async *queryCommandRunner<T>(

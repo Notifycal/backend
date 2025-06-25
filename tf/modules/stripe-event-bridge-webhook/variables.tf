@@ -2,12 +2,16 @@ variable "stripe_webhook_events" {
   description = "List of Stripe webhook events to listen for"
   type        = list(string)
   default = [
+    "customer.created",
+    "customer.updated",
+    "customer.deleted",
     "customer.subscription.created",
     "customer.subscription.updated",
     "customer.subscription.deleted",
+    "customer.subscription.paused",
+    "customer.subscription.resumed",
     "invoice.payment_succeeded",
     "invoice.payment_failed",
-    "customer.subscription.trial_will_end",
     "checkout.session.completed"
   ]
 }

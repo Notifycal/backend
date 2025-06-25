@@ -73,7 +73,7 @@ jobs:
       - run: npm ci
       - name: Lint files
         id: lint
-        run: npm run lint
+        run: NODE_OPTIONS="--max-old-space-size=4096" npm run lint
         continue-on-error: true
       - name: Check formatting
         id: format

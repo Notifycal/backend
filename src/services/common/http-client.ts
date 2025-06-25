@@ -25,8 +25,8 @@ export class HttpClient {
   private readonly axiosInstance: AxiosInstance;
 
   public constructor(
-    baseUrl: string,
-    auth: AxiosBasicCredentials,
+    baseUrl: string | undefined,
+    auth: AxiosBasicCredentials | undefined,
     targetName: IntegrationVendorName
   ) {
     this.axiosInstance = axios.create({
@@ -154,5 +154,9 @@ export class HttpClient {
       data,
       restResourceName
     });
+  }
+
+  public getAxiosInstance(): AxiosInstance {
+    return this.axiosInstance;
   }
 }

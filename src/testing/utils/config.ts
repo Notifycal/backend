@@ -1,3 +1,4 @@
+import type { StripeCustomerPortalConfig } from '@lambdas/api/post-customer-portal-session/config';
 import type {
   StripeAuthConfig,
   StripeCheckoutConfig
@@ -26,6 +27,7 @@ import type { MailgunConfig } from '@model/vendor/mailgun/config';
 import type { VonageConfig } from '@model/vendor/vonage/config';
 import type { AlertsBaseStoreConfig } from '@services/stores/alerts-base-store';
 import type { AuditTrailBaseStoreConfig } from '@services/stores/audit-trail-base-store';
+import type { PaymentUserIndexStoreConfig } from '@services/stores/payment-user-index-store';
 import type { RefreshTokenBaseStoreConfig } from '@services/stores/refresh-token-base-store';
 import type { UserBaseStoreConfig } from '@services/stores/user-base-store';
 import type { UserLiveIndexStoreConfig } from '@services/stores/user-live-index-store';
@@ -83,6 +85,12 @@ export function setEnvUserLiveStoreConfig(config: UserLiveIndexStoreConfig): voi
   process.env.USERS_TABLE_NAME = config.tableName;
   process.env.LIVE_USERS_INDEX_NAME = config.indexName;
   process.env.USERS_PAGE_SIZE = config.pageSize.toString();
+}
+
+export function setEnvPaymentUserStoreConfig(config: PaymentUserIndexStoreConfig): void {
+  process.env.USERS_TABLE_NAME = config.tableName;
+  process.env.PAYMENT_USERS_INDEX_NAME = config.indexName;
+  process.env.PAYMENT_USERS_PAGE_SIZE = config.pageSize.toString();
 }
 
 export function setEnvUserCalendarFetchedTopicConfig(config: SnsTopicConfig): void {
@@ -196,9 +204,14 @@ export function setEnvStripeAuthConfig(config: StripeAuthConfig): void {
   process.env.STRIPE_API_KEY = config.apiKey;
 }
 
+export function setEnvCustomerPortalConfig(config: StripeCustomerPortalConfig): void {
+  process.env.STRIPE_CUSTOMER_PORTAL_RETURN_URL_PATH = config.returnUrlPath;
+}
+
 export function setEnvStripeCheckoutConfig(config: StripeCheckoutConfig): void {
   process.env.STRIPE_SUCCESS_REDIRECT_URL_PATH = config.successRedirectUrlPath;
   process.env.STRIPE_CANCEL_REDIRECT_URL_PATH = config.cancelRedirectUrlPath;
+  process.env.STRIPE_TAX_ID = config.taxId;
 }
 
 export function setEnvPaymentPlansConfig(config: PaymentPlansConfig): void {

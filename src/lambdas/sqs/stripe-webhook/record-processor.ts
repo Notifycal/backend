@@ -3,11 +3,13 @@ import type { TierId, Tiers } from '@model/PaymentPlans';
 import type { IdpName } from '@notifycal/shared/types';
 import { CreditsService } from '@services/credits-service';
 import { SnsService } from '@services/sns';
+import { PaymentUserIndexStore } from '@services/stores/payment-user-index-store';
 import { UserBaseStore } from '@services/stores/user-base-store';
 import type { EventBridgeEvent } from 'aws-lambda';
 import type { Stripe } from 'stripe';
 import { SubscriptionService } from '../../../services/subscription-service';
 import type { StripeWebhookConfig } from './config';
+import { CheckoutSessionCompletedHandler } from './event-handlers/checkout';
 import type { EventHandler } from './event-handlers/common';
 import {
   CustomerCreatedHandler,
@@ -26,6 +28,8 @@ import {
 import {
   SubscriptionCreatedHandler,
   SubscriptionDeletedHandler,
+  SubscriptionPausedHandler,
+  SubscriptionResumedHandler,
   SubscriptionUpdatedHandler
 } from './event-handlers/subscription';
 import { StripeEventPublisher } from './event-publisher';
@@ -39,12 +43,15 @@ export function defaultEventHandlers(
   logger: Logger
 ): Map<StripeEventType, EventHandler<Stripe.Event>> {
   return new Map<StripeEventType, EventHandler<Stripe.Event>>([
+    ['checkout.session.completed', new CheckoutSessionCompletedHandler(logger)],
     ['customer.created', new CustomerCreatedHandler(logger)],
     ['customer.updated', new CustomerUpdatedHandler(logger)],
     ['customer.deleted', new CustomerDeletedHandler(logger)],
     ['customer.subscription.created', new SubscriptionCreatedHandler(logger)],
     ['customer.subscription.updated', new SubscriptionUpdatedHandler(logger)],
     ['customer.subscription.deleted', new SubscriptionDeletedHandler(logger)],
+    ['customer.subscription.paused', new SubscriptionPausedHandler(logger)],
+    ['customer.subscription.resumed', new SubscriptionResumedHandler(logger)],
     ['invoice.created', new InvoiceCreatedHandler(logger)],
     [
       'invoice.payment_succeeded',
@@ -67,13 +74,11 @@ export function recordProcessor(
   logger: Logger
 ): Promise<void> {
   const stripeEvent = record.detail;
-  logger.info('Processing Stripe webhook event', {
-    eventId: stripeEvent.id,
-    eventType: stripeEvent.type,
-    livemode: stripeEvent.livemode,
-    stripeApiVersion: stripeEvent.api_version
-  });
+  logger.info('Processing Stripe webhook event');
   const userStore = UserBaseStore.withConfig(config.userBaseStoreConfig);
+  const userPaymentIndexStore = PaymentUserIndexStore.withConfig(
+    config.paymentUserIndexStoreConfig
+  );
   const creditsService = new CreditsService(userStore);
   const tierToCreditsMap = Object.fromEntries(
     Object.values(config.paymentPlans.tiers).map((value) => [value.id, value.credits])
@@ -82,7 +87,7 @@ export function recordProcessor(
   const snsService = SnsService.withConfig(config.paymentWebhookTopicConfig);
   const ourHandlers = eventHandlerFactory(subscriptionService, config.paymentPlans.tiers, logger);
   const processor = new StripeEventProcessor(
-    new StripeIdentityExtractor(),
+    new StripeIdentityExtractor(userPaymentIndexStore, logger),
     ourHandlers,
     new StripeEventPublisher(snsService),
     logger,

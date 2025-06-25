@@ -49,6 +49,11 @@ describe(recordProcessor, () => {
     userBaseStoreConfig: {
       tableName: 'Users-local'
     },
+    paymentUserIndexStoreConfig: {
+      tableName: 'Users-local',
+      indexName: 'PaymentUsers-local',
+      pageSize: 100
+    },
     paymentPlans: validPaymentPlans,
     paymentWebhookTopicConfig: {
       topicArn: 'payment-webhook-topic' as AwsArn

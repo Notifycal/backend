@@ -17,13 +17,7 @@ paths:
               type: object
               description: Request payload containing user shopping cart
               properties:
-                tier:
-                  description: user's choice for monthly subscription plan
-                  type: string
-                  enum:
-                    - good
-                    - better
-                    - best
+                tier: { $ref: './component-definitions.yaml#/components/schemas/Tier' }
               additionalProperties: false
       responses:
         '200': { $ref: './component-definitions.yaml#/components/responses/PaymentSessionResult' }
@@ -32,5 +26,22 @@ paths:
       x-amazon-apigateway-integration:
         $ref: './aws-stuff.yaml#/components/x-notifycal/AWS_LAMBDA_PROXY'
         uri: 'arn:aws:apigateway:${aws_region}:lambda:path/2015-03-31/functions/${lambda_functions.post_payment_session_arn}/invocations'
+    options:
+      $ref: './aws-stuff.yaml#/components/x-notifycal/CORS_OPTIONS'
+
+  /api/v1/customer-portal-session:
+    post:
+      summary: Create customer portal session with vendor
+      operationId: customerPortalSession
+      description: Creates customer portal session with vendor
+      tags: [payments]
+      responses:
+        '200':
+          { $ref: './component-definitions.yaml#/components/responses/CustomerPortalSessionResult' }
+        '401': { $ref: './component-definitions.yaml#/components/responses/Unauthorised' }
+        '500': { $ref: './component-definitions.yaml#/components/responses/InternalServerError' }
+      x-amazon-apigateway-integration:
+        $ref: './aws-stuff.yaml#/components/x-notifycal/AWS_LAMBDA_PROXY'
+        uri: 'arn:aws:apigateway:${aws_region}:lambda:path/2015-03-31/functions/${lambda_functions.post_customer_portal_session_arn}/invocations'
     options:
       $ref: './aws-stuff.yaml#/components/x-notifycal/CORS_OPTIONS'

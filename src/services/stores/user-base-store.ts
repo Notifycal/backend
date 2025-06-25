@@ -4,7 +4,13 @@ import type { AuthorizationForIdp } from '@model/IdpAuthorization';
 import type { ReminderConfigStoreRecord } from '@model/store/ReminderConfigStoreRecord';
 import type { UserIdpAuthorizationStoreRecord } from '@model/store/UserIdpAuthorizationStoreRecord';
 import type { UserStoreRecord } from '@model/store/UserStoreRecord';
-import type { IdpName, LanguageCode, UserId, UserStatus } from '@notifycal/shared/types';
+import type {
+  IdpName,
+  LanguageCode,
+  StripeCustomerId,
+  UserId,
+  UserStatus
+} from '@notifycal/shared/types';
 import { throwError } from '@services/common/error-handling';
 import { BaseStore, type BaseStoreConfig } from '../common/base-store';
 
@@ -31,7 +37,8 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
       'LastSignInAt',
       'SignedUpAt',
       'UserStatus',
-      'Config'
+      'Config',
+      'StripeCustomerId'
     ];
     const queryCmdInput = {
       KeyConditionExpression: 'UserId = :id',
@@ -97,6 +104,10 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
       .then((result) => result?.Config);
   }
 
+  public getStripeCustomerId(userId: UserId): Promise<StripeCustomerId | undefined> {
+    return this.getUserById(userId).then((user) => (user ? user.StripeCustomerId : undefined));
+  }
+
   // This will makes sense in terms of cost until row exceed 4KB - this is due to DynamoDb billing rules
   public getEmailAndLanguageById(
     userId: UserId
@@ -139,6 +150,18 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
     }).then(() => null);
   }
 
+  public setStripeCustomerId(id: UserId, stripeCustomerId: StripeCustomerId): Promise<null> {
+    return this.updateCommandRunner({
+      Key: {
+        UserId: id
+      },
+      ExpressionAttributeValues: {
+        ':stripeCustomerId': stripeCustomerId
+      },
+      UpdateExpression: 'set StripeCustomerId = :stripeCustomerId'
+    }).then(() => null);
+  }
+
   public updateStatus(id: UserId, status: UserStatus): Promise<null> {
     return this.updateCommandRunner({
       Key: {
@@ -157,10 +180,12 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
   ): Promise<Pick<UserStoreRecord<TIdpName>, 'UserCredits'>> {
     return this.updateCommandRunner({
       Key: { UserId: userId },
-      UpdateExpression: 'ADD Credits.subscriptionCreditBalance :amount',
-      ConditionExpression: 'Credits.subscriptionCreditBalance >= :amount',
+      UpdateExpression:
+        'SET Credits.subscriptionCreditBalance = Credits.subscriptionCreditBalance - :amount',
+      ConditionExpression:
+        'attribute_exists(Credits.subscriptionCreditBalance) AND Credits.subscriptionCreditBalance >= :amount',
       ExpressionAttributeValues: {
-        ':amount': -amount
+        ':amount': amount
       }
     }).then(
       (r) => this.handleSuccessfulUpdate(r),
@@ -183,9 +208,11 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
   ): Promise<Pick<UserStoreRecord<TIdpName>, 'UserCredits'>> {
     return this.updateCommandRunner({
       Key: { UserId: userId },
-      UpdateExpression: 'SET Credits.subscriptionCreditBalance :amount',
+      UpdateExpression: 'SET Credits = :creditsObj',
       ExpressionAttributeValues: {
-        ':amount': amount
+        ':creditsObj': {
+          subscriptionCreditBalance: amount
+        }
       }
     }).then((r) => this.handleSuccessfulUpdate(r));
   }

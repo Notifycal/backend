@@ -253,6 +253,11 @@ variable "subscription_tiers" {
   }))
 }
 
+variable "tax_id" {
+  description = "ID to reference to tax resource in Stripe. Typically, it will be a tax id that involves adding 21% of VAT (Spanish IVA)"
+  type        = string
+}
+
 variable "stripe_operating_api_key" {
   description = "Stripe operating API key"
   type        = string

@@ -1,7 +1,7 @@
+import type { Logger } from '@aws-lambda-powertools/logger';
 import type { Identity, IdpName } from '@notifycal/shared/types';
 import type Stripe from 'stripe';
 import type { EventHandler } from './common';
-import type { Logger } from '@aws-lambda-powertools/logger';
 
 export class CustomerCreatedHandler implements EventHandler<Stripe.CustomerCreatedEvent> {
   public constructor(private readonly logger: Logger) {}

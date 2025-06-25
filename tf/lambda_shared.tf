@@ -15,6 +15,10 @@ locals {
   live_users_index_persistance_env_vars = {
     LIVE_USERS_INDEX_NAME = local.live_users_index_name
   }
+
+  payment_users_index_persistance_env_vars = {
+    PAYMENT_USERS_INDEX_NAME = local.payment_users_index_name
+  }
   refresh_token_persistance_env_vars = {
     REFRESH_TOKENS_TABLE_NAME = aws_dynamodb_table.refresh_tokens.name
   }
@@ -108,6 +112,7 @@ locals {
     send_email                           = module.send_email_lambda
     alert_for_missing_phone_number       = module.alert_for_missing_phone_number_lambda
     post_payment_session                 = module.post_payment_session_lambda
+    post_customer_portal_session         = module.post_customer_portal_session_lambda
     stripe_webhook                       = module.stripe_webhook_lambda
     # TODO: Add new lambdas here
   }

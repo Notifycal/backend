@@ -1,3 +1,4 @@
+import type { StripeAuthEndpointConfig } from '@lambdas/api/post-payment-session/config';
 import type { AlertEndpointConfig } from '@lambdas/dynamodb-streams/alert-for-missing-phone-number/config';
 import type {
   ActionableEventFoundTopicConfig,
@@ -41,6 +42,7 @@ import type {
 } from '@services/messaging';
 import type { AlertsBaseStoreEndpointConfig } from '@services/stores/alerts-base-store';
 import type { AuditTrailBaseStoreEndpointConfig } from '@services/stores/audit-trail-base-store';
+import type { PaymentUserIndexStoreEndpointConfig } from '@services/stores/payment-user-index-store';
 import type { RefreshTokenBaseStoreConfigEndpointConfig } from '@services/stores/refresh-token-base-store';
 import type { UserBaseStoreEndpointConfig } from '@services/stores/user-base-store';
 import type { UserLiveIndexStoreEndpointConfig } from '@services/stores/user-live-index-store';
@@ -120,10 +122,14 @@ export function readDecodeRefreshJwtConfig(env: Environment): DecodeRefreshJwtCo
 }
 
 const userBaseTableEnvVarName = 'USERS_TABLE_NAME';
+function readUserStoreTableName(env: Environment): string {
+  return env.get(userBaseTableEnvVarName).required().asString();
+}
+
 export function readUserBaseStoreConfig(env: Environment): UserBaseStoreEndpointConfig {
   return {
     userBaseStoreConfig: {
-      tableName: env.get(userBaseTableEnvVarName).required().asString()
+      tableName: readUserStoreTableName(env)
     }
   };
 }
@@ -131,9 +137,19 @@ export function readUserBaseStoreConfig(env: Environment): UserBaseStoreEndpoint
 export function readUserLiveIndexConfig(env: Environment): UserLiveIndexStoreEndpointConfig {
   return {
     userLiveIndexStoreConfig: {
-      tableName: env.get(userBaseTableEnvVarName).required().asString(),
+      tableName: readUserStoreTableName(env),
       indexName: env.get('LIVE_USERS_INDEX_NAME').required().asString(),
       pageSize: env.get('USERS_PAGE_SIZE').default(100).asInt()
+    }
+  };
+}
+
+export function readPaymentUserIndexConfig(env: Environment): PaymentUserIndexStoreEndpointConfig {
+  return {
+    paymentUserIndexStoreConfig: {
+      tableName: readUserStoreTableName(env),
+      indexName: env.get('PAYMENT_USERS_INDEX_NAME').required().asString(),
+      pageSize: env.get('PAYMENT_USERS_PAGE_SIZE').default(100).asInt()
     }
   };
 }
@@ -342,6 +358,14 @@ export function readAlertThresholdConfig(env: Environment): AlertEndpointConfig 
     },
     alertEmailConfig: {
       faqUrl: env.get('FAQ_URL').default('https://notifycal.com/faq').asUrlObject()
+    }
+  };
+}
+
+export function readStripeAuthConfig(env: Environment): StripeAuthEndpointConfig {
+  return {
+    stripeAuthConfig: {
+      apiKey: env.get('STRIPE_API_KEY').required().asString()
     }
   };
 }

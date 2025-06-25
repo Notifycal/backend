@@ -202,6 +202,14 @@ components:
         - en
         - es
 
+    Tier:
+      type: string
+      description: user's choice for monthly subscription plan
+      enum:
+        - good
+        - better
+        - best
+
     ErrorResponse:
       type: object
       properties:
@@ -271,11 +279,39 @@ components:
           schema:
             type: object
             properties:
-              url:
-                type: string
-                format: url
-                description: The returned URL by payment provider. Either a success redirect URL or a cancel URL.
-            required: [result]
+              result:
+                type: object
+                properties:
+                  url:
+                    type: string
+                    format: url
+                    description: The returned checkout session URL by payment provider. Either a success redirect URL or a cancel URL.
+                required:
+                  - url
+                additionalProperties: false
+            required:
+              - result
+            additionalProperties: false
+
+    CustomerPortalSessionResult:
+      description: 'OK'
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              result:
+                type: object
+                properties:
+                  url:
+                    type: string
+                    format: url
+                    description: The returned customer portal session URL by payment provider.
+                required:
+                  - url
+                additionalProperties: false
+            required:
+              - result
             additionalProperties: false
 
     Response200:
