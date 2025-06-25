@@ -86,12 +86,14 @@ export class StripeService {
 
   public createCustomerPortalSession(
     stripeCustomerId: StripeCustomerId,
-    returnUrl: Url
+    returnUrl: Url,
+    configId: string
   ): Promise<Url> {
     return this.stripeClient.billingPortal.sessions
       .create({
         customer: stripeCustomerId,
-        return_url: returnUrl
+        return_url: returnUrl,
+        configuration: configId
       })
       .then((session) => session.url as Url);
   }

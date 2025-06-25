@@ -5,7 +5,7 @@ import type { Email, Identity, IdpId, IdpName, UserId } from '@notifycal/shared/
 import type { Stripe } from 'stripe';
 import { v4 } from 'uuid';
 import { describe, expect, it, vi } from 'vitest';
-import type { EventHandler } from './event-handlers/common';
+import type { EventHandler, EventHandlerBuilder } from './event-handlers/common';
 import type { EventPublisher } from './event-publisher';
 import type { IdentityExtractor } from './identity-extractor';
 import { StripeEventProcessor } from './stripe-event-processor';
@@ -138,7 +138,7 @@ describe(StripeEventProcessor, () => {
       handleFnImpl = () => Promise.resolve(),
       publishFnImpl = () => Promise.resolve(),
       onUnhandledEventFnImpl = () => Promise.resolve(),
-      eventHandlers?: Map<StripeEventType, EventHandler<Stripe.Event>>
+      eventHandlers?: Map<StripeEventType, EventHandlerBuilder<Stripe.Event>>
     ): Promise<void> {
       extractFn.mockReset().mockImplementation(extractFnImpl);
       handleFn.mockReset().mockImplementation(handleFnImpl);
@@ -167,7 +167,7 @@ describe(StripeEventProcessor, () => {
       } as unknown as Logger;
 
       const handlers =
-        eventHandlers || new Map([['customer.created' as StripeEventType, eventHandlerMock]]);
+        eventHandlers || new Map([['customer.created' as StripeEventType, () => eventHandlerMock]]);
 
       const processor = new StripeEventProcessor(
         identityExtractorMock,

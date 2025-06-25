@@ -1,12 +1,21 @@
 import type { Logger } from '@aws-lambda-powertools/logger';
 import type { Identity, IdpName } from '@notifycal/shared/types';
+import type { SubscriptionService } from '@services/subscription-service';
 import type Stripe from 'stripe';
+import type { StripeEventType } from '../stripe-schemas';
+import { BaseHandler } from './base-handler';
 import type { EventHandler } from './common';
 
 export class SubscriptionCreatedHandler
+  extends BaseHandler
   implements EventHandler<Stripe.CustomerSubscriptionCreatedEvent>
 {
-  public constructor(private readonly logger: Logger) {}
+  public constructor(
+    stripeEventType: StripeEventType,
+    private readonly logger: Logger
+  ) {
+    super(stripeEventType);
+  }
 
   public handle(
     event: Stripe.CustomerSubscriptionCreatedEvent,
@@ -24,9 +33,16 @@ export class SubscriptionCreatedHandler
 }
 
 export class SubscriptionUpdatedHandler
+  extends BaseHandler
   implements EventHandler<Stripe.CustomerSubscriptionUpdatedEvent>
 {
-  public constructor(private readonly logger: Logger) {}
+  public constructor(
+    stripeEventType: StripeEventType,
+    private readonly subscriptionService: SubscriptionService<IdpName>,
+    private readonly logger: Logger
+  ) {
+    super(stripeEventType);
+  }
 
   public handle(
     event: Stripe.CustomerSubscriptionUpdatedEvent,
@@ -41,14 +57,36 @@ export class SubscriptionUpdatedHandler
       updatedFields: Object.keys(previousAttributes || {}),
       userId: identity.userId
     });
+    // Docs: https://docs.stripe.com/billing/subscriptions/overview#handle-recurring-charge-failures
+    // Docs2: https://docs.stripe.com/billing/collection-method?locale=en-GB#failed-incomplete-subscriptions
+    // Explanation: Notifycal desires to remove all the subscription credits as soon as we notice customer has not paid.
+    // Because the collection_method = charge_automatically we expect the subscription status will go to past_due first. Nonetheless,
+    // since the event handler is idempotent we defensively apply it on canceled and unpaid too.
+    const subscriptionStatuses: Array<Stripe.Subscription.Status> = [
+      'past_due',
+      'canceled',
+      'unpaid'
+    ];
+    if (subscriptionStatuses.includes(subscription.status)) {
+      return this.subscriptionService
+        .cancel(identity.userId, 'unpaid')
+        .then(() => {}, this.handleError('subscription-unpaid'));
+    }
     return Promise.resolve();
   }
 }
 
 export class SubscriptionDeletedHandler
+  extends BaseHandler
   implements EventHandler<Stripe.CustomerSubscriptionDeletedEvent>
 {
-  public constructor(private readonly logger: Logger) {}
+  public constructor(
+    stripeEventType: StripeEventType,
+    private readonly subscriptionService: SubscriptionService<IdpName>,
+    private readonly logger: Logger
+  ) {
+    super(stripeEventType);
+  }
 
   public handle(
     event: Stripe.CustomerSubscriptionDeletedEvent,
@@ -60,14 +98,22 @@ export class SubscriptionDeletedHandler
       customerId: subscription.customer,
       userId: identity.userId
     });
-    return Promise.resolve();
+    return this.subscriptionService
+      .cancel(identity.userId, 'cancelled')
+      .then(() => {}, this.handleError('subscription-cancelled'));
   }
 }
 
 export class SubscriptionPausedHandler
+  extends BaseHandler
   implements EventHandler<Stripe.CustomerSubscriptionPausedEvent>
 {
-  public constructor(private readonly logger: Logger) {}
+  public constructor(
+    stripeEventType: StripeEventType,
+    private readonly logger: Logger
+  ) {
+    super(stripeEventType);
+  }
 
   public handle(
     event: Stripe.CustomerSubscriptionPausedEvent,
@@ -84,9 +130,15 @@ export class SubscriptionPausedHandler
 }
 
 export class SubscriptionResumedHandler
+  extends BaseHandler
   implements EventHandler<Stripe.CustomerSubscriptionResumedEvent>
 {
-  public constructor(private readonly logger: Logger) {}
+  public constructor(
+    stripeEventType: StripeEventType,
+    private readonly logger: Logger
+  ) {
+    super(stripeEventType);
+  }
 
   public handle(
     event: Stripe.CustomerSubscriptionResumedEvent,

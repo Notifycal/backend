@@ -19,7 +19,7 @@ export interface UserStoreRecord<TIdpName> extends UserIdentity<TIdpName> {
   SignedUpAt: UnixTimestamp;
   UserStatus: UserStatus;
   Config?: ReminderConfigStoreRecord;
-  UserCredits?: UserCreditsRecordStore;
+  Credits?: UserCreditsRecordStore;
   StripeCustomerId?: StripeCustomerId;
 }
 

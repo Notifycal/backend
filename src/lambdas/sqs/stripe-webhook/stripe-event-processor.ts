@@ -10,7 +10,10 @@ import type { StripeEventType } from './stripe-schemas';
 export class StripeEventProcessor {
   public constructor(
     private readonly identityExtractor: IdentityExtractor<Stripe.Event>,
-    private readonly eventHandlers: Map<StripeEventType, EventHandler<Stripe.Event>>,
+    private readonly eventHandlers: Map<
+      StripeEventType,
+      (type: StripeEventType) => EventHandler<Stripe.Event>
+    >,
     private readonly eventPublisher: EventPublisher<Stripe.Event>,
     private readonly logger: Logger,
     private readonly onUnhandledEvent: (event: Stripe.Event) => Promise<void>
@@ -20,8 +23,8 @@ export class StripeEventProcessor {
     this.logger.appendKeys({
       eventType: event.type
     });
-    const handler = this.eventHandlers.get(event.type);
-    if (!handler) {
+    const handlerFn = this.eventHandlers.get(event.type);
+    if (!handlerFn) {
       this.logger.error(
         'Unhandled event type. This means the integration on Stripe side is configured to send event types for which there is no event handlers in code'
       );
@@ -38,7 +41,7 @@ export class StripeEventProcessor {
         })
       )
       .then((identity) =>
-        handler
+        handlerFn(event.type)
           .handle(event, identity)
           .then(
             tap(() => {
