@@ -1,4 +1,5 @@
 import type { DynamoDBPersistenceOptions } from '@aws-lambda-powertools/idempotency/dynamodb/types';
+import type { Logger } from '@aws-lambda-powertools/logger';
 import type { ActionableEventFoundEvent } from '@model/app-events/ActionableEventFoundEvent';
 import type { ActionableEventReminderAttemptFailedEvent } from '@model/app-events/ActionableEventReminderAttemptFailedEvent';
 import type { ActionableEventReminderAttemptSkippedEvent } from '@model/app-events/ActionableEventReminderAttemptSkippedEvent';
@@ -24,10 +25,11 @@ export class IdempotentProcessor extends AbstractIdempotentProcessor<Uuid> {
     isEnabled: boolean,
     context: Context,
     private readonly snsService: SnsService,
-    creditService: CreditsService<IdpName>
+    creditService: CreditsService<IdpName>,
+    logger: Logger
   ) {
-    super(persistanceConfig, context);
-    this.processor = new Processor(config, isEnabled, snsService, creditService);
+    super(persistanceConfig, context, logger);
+    this.processor = new Processor(config, isEnabled, snsService, creditService, logger);
   }
 
   public sendReminderIdempotently(

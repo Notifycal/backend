@@ -1,4 +1,6 @@
+import { Logger } from '@aws-lambda-powertools/logger';
 import type { PublishCommandOutput } from '@aws-sdk/client-sns';
+import { logger } from '@common/powertools';
 import { ParsingError } from '@model/Errors';
 import type { ServiceResponse } from '@model/ServiceResponse';
 import type { CalendarEvent, DateTime, RCSSenderId, TimeZone } from '@notifycal/shared/types';
@@ -77,13 +79,15 @@ describe('Find actionable events record processor', () => {
       false,
       eventInRecord.sensitiveData.idpAuthorization,
       eventInRecord.idp,
-      defaultConfig.idpConfigs
+      defaultConfig.idpConfigs,
+      expect.any(Logger)
     );
     expect(phoneNumberByEmail).toHaveBeenCalledWith(
       'attendee@test.com',
       eventInRecord.sensitiveData.idpAuthorization,
       eventInRecord.idp,
-      defaultConfig.idpConfigs
+      defaultConfig.idpConfigs,
+      expect.any(Logger)
     );
   });
 
@@ -137,7 +141,8 @@ describe('Find actionable events record processor', () => {
       true,
       eventInRecord.sensitiveData.idpAuthorization,
       eventInRecord.idp,
-      defaultConfig.idpConfigs
+      defaultConfig.idpConfigs,
+      expect.any(Logger)
     );
   });
 
@@ -378,5 +383,5 @@ function testit(
   vi.mocked(eventsStartTimeWithin).mockImplementation(getEventsFn);
   vi.mocked(phoneNumberByEmail).mockImplementation(getPhoneNumbersFn);
 
-  return recordProcessor(record, config);
+  return recordProcessor(record, config, logger);
 }

@@ -1,3 +1,4 @@
+import type { Logger } from '@aws-lambda-powertools/logger';
 import type { AlertCounterKeyNames, AlertStoreRecord } from '@model/store/AlertStoreRecord';
 import { BaseStore, type BaseStoreConfig } from '@services/common/base-store';
 import { throwError } from '@services/common/error-handling';
@@ -9,12 +10,12 @@ export type AlertsBaseStoreEndpointConfig = {
 };
 
 export class AlertsBaseStore extends BaseStore<AlertsBaseStoreConfig> {
-  public static withConfig(config: AlertsBaseStoreConfig): AlertsBaseStore {
-    return new AlertsBaseStore(config);
+  public static withConfig(config: AlertsBaseStoreConfig, logger: Logger): AlertsBaseStore {
+    return new AlertsBaseStore(config, logger);
   }
 
-  private constructor(config: AlertsBaseStoreConfig) {
-    super(config);
+  private constructor(config: AlertsBaseStoreConfig, logger: Logger) {
+    super(config, logger);
   }
 
   public incrementCounter<
@@ -45,7 +46,7 @@ export class AlertsBaseStore extends BaseStore<AlertsBaseStoreConfig> {
       if (output.Attributes) {
         return output.Attributes as AlertStoreRecord<TAlertName, TAlertDiscriminator>;
       } else {
-        throwError('Error incrementing counter');
+        throwError('Error incrementing counter', this.logger);
       }
     });
   }

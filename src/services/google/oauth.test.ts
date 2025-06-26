@@ -1,4 +1,5 @@
 /* eslint-disable camelcase */
+import { logger } from '@common/powertools';
 import type { AuthorizationForIdp } from '@model/IdpAuthorization';
 import type { Identity, Uuid } from '@notifycal/shared/types';
 import type { Url } from '@own-types/model';
@@ -183,5 +184,7 @@ function testIt(
   } as unknown as OAuth2Client);
   vi.mock('@services/id-generator');
   vi.mocked(idGenerator).mockReturnValue(mockIdGenerated);
-  return GoogleOAuth.withConfig(validConfig, originHeaderValue).verifyIdentity(validGoogleCode);
+  return GoogleOAuth.withConfig(validConfig, originHeaderValue, logger).verifyIdentity(
+    validGoogleCode
+  );
 }

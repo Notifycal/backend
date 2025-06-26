@@ -2,8 +2,9 @@ import { Auth } from '@vonage/auth';
 import { RCSText, SMS } from '@vonage/messages';
 import { Vonage } from '@vonage/server-sdk';
 
-import { throwError } from '@services/common/error-handling';
+import { rethrowError } from '@services/common/error-handling';
 
+import type { Logger } from '@aws-lambda-powertools/logger';
 import type { ReceiverStandardContact, SenderStandardContact } from '@model/app-events/common';
 import type { Brand, Uuid } from '@notifycal/shared/types';
 import type { Url } from '@own-types/model';
@@ -18,7 +19,11 @@ export type VonageJwtSigningSecret = Brand<string, 'JwtSigningSecret'>;
 export class MessagingService {
   protected _client: Vonage;
 
-  public constructor(applicationId: VonageApplicationId, privateKey: VonagePrivateKey) {
+  public constructor(
+    applicationId: VonageApplicationId,
+    privateKey: VonagePrivateKey,
+    private readonly logger: Logger
+  ) {
     this._client = new Vonage(
       new Auth({
         privateKey,
@@ -56,7 +61,7 @@ export class MessagingService {
 
       return messageUUID as Uuid;
     } catch (error) {
-      throwError(`Vonage API failed to send the reminder: ${clientRef}`, error);
+      rethrowError(`Vonage API failed to send the reminder: ${clientRef}`, error, this.logger);
     }
   }
 }

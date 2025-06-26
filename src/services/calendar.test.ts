@@ -1,3 +1,4 @@
+import { logger } from '@common/powertools';
 import type { AuthorizationForIdp, UserGoogleAuthorization } from '@model/IdpAuthorization';
 import type { Calendar, CalendarId, CalendarName, IdpName, UserId } from '@notifycal/shared/types';
 import { fakeIdpConfigs } from '@testing/utils/config';
@@ -91,6 +92,6 @@ describe('Calendar Service', () => {
       mockInstance2 as unknown as GoogleCalendar
     );
 
-    return calendarList(userId, idp, idpConfigs, userBaseStoreConfig);
+    return calendarList(userId, idp, idpConfigs, userBaseStoreConfig, logger);
   }
 });

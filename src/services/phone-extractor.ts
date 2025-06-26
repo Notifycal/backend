@@ -1,3 +1,4 @@
+import type { Logger } from '@aws-lambda-powertools/logger';
 import type { IdpConfigs } from '@model/Config';
 import type { AuthorizationForIdp } from '@model/IdpAuthorization';
 import type { CalendarEvent, CountryCode, Email, IdpName } from '@notifycal/shared/types';
@@ -22,17 +23,22 @@ export function phoneExtractor(
   senderCountryCode: CountryCode | undefined,
   idp: IdpName,
   idpAuthorization: AuthorizationForIdp<IdpName>,
-  idpConfigs: IdpConfigs
+  idpConfigs: IdpConfigs,
+  logger: Logger
 ): Promise<Set<PhoneNumberE164>> {
   const fromContactIntegrationPromise = Promise.allSettled(
     calendarEvent.attendees.map((attendee) =>
-      phoneNumberByEmail(attendee.id as Email, idpAuthorization, idp, idpConfigs).then(
+      phoneNumberByEmail(attendee.id as Email, idpAuthorization, idp, idpConfigs, logger).then(
         (phoneNumbers) => (phoneNumbers.length > 0 ? [phoneNumbers[0]] : []) // if attendee has more than 1 phone number set, pick the first one.
       )
     )
   )
     .then((results) =>
-      allSettledAllOrErrorHandler(results, 'obtaining phone numbers from contact integration')
+      allSettledAllOrErrorHandler(
+        results,
+        'obtaining phone numbers from contact integration',
+        logger
+      )
     )
     .then((results) => results.flat());
   const fromCalendarEventSummaryPromise = _findPhoneNumbersInText(
@@ -51,7 +57,8 @@ export function phoneExtractor(
     .then((results) => {
       return allSettledAllOrErrorHandler(
         results,
-        'obtaining phone numbers from contact integration, calendar event description and summary'
+        'obtaining phone numbers from contact integration, calendar event description and summary',
+        logger
       );
     })
     .then((results) => new Set(results.flat()));

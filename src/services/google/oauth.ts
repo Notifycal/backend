@@ -1,3 +1,4 @@
+import type { Logger } from '@aws-lambda-powertools/logger';
 import type { GoogleOAuthConfig } from '@model/Config';
 import type { AuthorizationForIdp } from '@model/IdpAuthorization';
 import type { Email, Identity, IdpId } from '@notifycal/shared/types';
@@ -8,8 +9,12 @@ import { withIntegrationMetrics } from '@services/observability/metrics';
 import { BaseGoogle } from './base-service';
 
 export class GoogleOAuth extends BaseGoogle {
-  public static withConfig(config: GoogleOAuthConfig, originHeaderValue: Url): GoogleOAuth {
-    return new this(config, { originHeaderValue });
+  public static withConfig(
+    config: GoogleOAuthConfig,
+    originHeaderValue: Url,
+    logger: Logger
+  ): GoogleOAuth {
+    return new this(config, logger, { originHeaderValue });
   }
 
   public verifyIdentity<TIdpName extends 'google.com'>(
@@ -22,14 +27,14 @@ export class GoogleOAuth extends BaseGoogle {
       if (!tokenResponse.tokens.id_token) {
         throwError(
           `Google token id was not present in token obtained from Google using user's google code`,
-          {},
+          this.logger,
           { tokenResponse }
         );
       }
       if (!tokenResponse.tokens.refresh_token) {
         throwError(
           `Google refresh token was not present in token obtained from Google using user's google code`,
-          {},
+          this.logger,
           { tokenResponse }
         );
       }
@@ -46,21 +51,21 @@ export class GoogleOAuth extends BaseGoogle {
         if (!id) {
           throwError(
             `Id could not be extracted out of Google token id. Extracted id: '${id}' and email: '${email}'`,
-            {},
+            this.logger,
             { ticket }
           );
         }
         if (!email) {
           throwError(
             `Email could not be extracted out of Google token id. Extracted id: '${id}' and email: '${email}'`,
-            {},
+            this.logger,
             { ticket }
           );
         }
         if (!ticket.getPayload()?.email_verified) {
           throwError(
             `Google user with id: '${id}' and email: '${email}' isn't verified at google. We cannot let them in.`,
-            {},
+            this.logger,
             { ticket }
           );
         }

@@ -1,4 +1,5 @@
 /* eslint-disable camelcase */
+import { logger } from '@common/powertools';
 import type { Email, PhoneNumber } from '@notifycal/shared/types';
 import type { PhoneNumberE164 } from '@own-types/model';
 import { fakeIdpConfigs } from '@testing/utils/config';
@@ -94,7 +95,7 @@ describe('GooglePeople Service', () => {
         searchContacts: vi.fn().mockImplementation(searchContactsFn)
       }
     } as unknown as people_v1.People);
-    return GooglePeople.withRefreshToken(config, 'some-refresh-token').getPhoneNumbersBy(
+    return GooglePeople.withRefreshToken(config, 'some-refresh-token', logger).getPhoneNumbersBy(
       'test@example.com' as Email
     );
   }

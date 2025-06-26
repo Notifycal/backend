@@ -1,5 +1,6 @@
 import { JSONStringified } from '@aws-lambda-powertools/parser/helpers';
 import { protectedEndpointMiddleware } from '@common/lambda-middleware';
+import { logger } from '@common/powertools';
 import type { PhoneStandardContact } from '@model/app-events/common';
 import type { DemoReminderToBeSentEvent } from '@model/app-events/DemoReminderToBeSentEvent';
 import { authedEventSchema } from '@model/lambda-events/ApiGatewayEvents';
@@ -63,8 +64,8 @@ async function lambdaHandler(
   ctx: Context
 ): Promise<APIGatewayProxyResult> {
   const config = event.lambdaConfig;
-  const snsService = SnsService.withConfig(config.demoReminderToBeSentTopicConfig);
-  const userBaseStore = UserBaseStore.withConfig(config.userBaseStoreConfig);
+  const snsService = SnsService.withConfig(config.demoReminderToBeSentTopicConfig, logger);
+  const userBaseStore = UserBaseStore.withConfig(config.userBaseStoreConfig, logger);
   const requestBody = event.body;
   const callerIdentity = event.requestContext.authorizer.payload;
   const userId = callerIdentity.userId;

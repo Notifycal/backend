@@ -1,5 +1,6 @@
 import type { GaxiosResponse } from 'gaxios';
 /* eslint-disable camelcase */
+import type { Logger } from '@aws-lambda-powertools/logger';
 import type { GoogleOAuthConfig } from '@model/Config';
 import { ParsingError } from '@model/Errors';
 import type { ServiceResponse } from '@model/ServiceResponse';
@@ -13,7 +14,7 @@ import type {
   TimeZone
 } from '@notifycal/shared/types';
 import type { JsonObject } from '@own-types/model';
-import { extractErrorMessage, throwError } from '@services/common/error-handling';
+import { extractErrorMessage, rethrowError, throwError } from '@services/common/error-handling';
 import { withIntegrationMetrics } from '@services/observability/metrics';
 import { partitionByError } from '@utils/array';
 import { isWithinBoundaries } from '@utils/datetime';
@@ -22,8 +23,12 @@ import { z } from 'zod';
 import { BaseGoogle } from './base-service';
 
 export class GoogleCalendar extends BaseGoogle {
-  public static withRefreshToken(config: GoogleOAuthConfig, refreshToken: string): GoogleCalendar {
-    return new this(config, { refreshToken });
+  public static withRefreshToken(
+    config: GoogleOAuthConfig,
+    refreshToken: string,
+    logger: Logger
+  ): GoogleCalendar {
+    return new this(config, logger, { refreshToken });
   }
 
   public calendarList(): Promise<Array<Calendar>> {
@@ -142,11 +147,11 @@ export class GoogleCalendar extends BaseGoogle {
         if (response.status >= 200 && response.status <= 299) {
           return response.data.items || [];
         } else {
-          throwError(`${operationId}. Error in response`, {}, { response });
+          throwError(`${operationId}. Error in response`, this.logger, { response });
         }
       })
       .catch((error) => {
-        throwError(`Error in ` + operationId, error);
+        rethrowError(`Error in ` + operationId, error, this.logger);
       });
   }
 
@@ -159,6 +164,7 @@ export class GoogleCalendar extends BaseGoogle {
     const operationId = 'GET Events List';
     const calendar = google.calendar({ version: 'v3', auth: this._client });
     const pageNumber = 0;
+    const _logger = this.logger;
 
     function handleResponse(
       response: GaxiosResponse<calendar_v3.Schema$Events>
@@ -168,7 +174,7 @@ export class GoogleCalendar extends BaseGoogle {
       }
       throwError(
         `${operationId}. Error in response page number ${pageNumber}. Response:`,
-        {},
+        _logger,
         { response }
       );
     }

@@ -1,3 +1,5 @@
+import { Logger } from '@aws-lambda-powertools/logger';
+import { logger } from '@common/powertools';
 import { InsufficientCreditsError } from '@model/Errors';
 import type { UserStoreRecord } from '@model/store/UserStoreRecord';
 import type { IdpName, UserId } from '@notifycal/shared/types';
@@ -31,7 +33,7 @@ describe(CreditsService, () => {
       const result = await testDeductCredits(deductCreditsFn, updateStatusFn);
 
       expect(deductCreditsFn).toHaveBeenCalledTimes(1);
-      expect(deductCreditsFn).toHaveBeenCalledWith(validUserId, 10);
+      expect(deductCreditsFn).toHaveBeenCalledWith(validUserId, 10, expect.any(Logger));
       expect(result).toStrictEqual({
         success: true,
         operationId: 'Success',
@@ -88,19 +90,23 @@ describe(CreditsService, () => {
       updateStatus: updateStatusFn
     } as unknown as UserBaseStore<IdpName>;
 
-    const creditsService = new CreditsService(userStoreMock);
+    const creditsService = new CreditsService(userStoreMock, logger);
     return creditsService.deductCredits(userId, units, country, countryToSMSCostCreditsMap);
   }
 
   describe('resetSubscriptionCredits', () => {
     it('should successfully reset credits and return success result with balance', async () => {
-      const addCreditsFn = vi.fn().mockResolvedValue(validUserWithCredits);
+      const resetSubscriptionCreditsFn = vi.fn().mockResolvedValue(validUserWithCredits);
       const updateStatusFn = vi.fn().mockResolvedValue(undefined);
 
-      const result = await testResetSubscriptionCredits(addCreditsFn, updateStatusFn);
+      const result = await testResetSubscriptionCredits(resetSubscriptionCreditsFn, updateStatusFn);
 
-      expect(addCreditsFn).toHaveBeenCalledTimes(1);
-      expect(addCreditsFn).toHaveBeenCalledWith(validUserId, validCreditsToAdd);
+      expect(resetSubscriptionCreditsFn).toHaveBeenCalledTimes(1);
+      expect(resetSubscriptionCreditsFn).toHaveBeenCalledWith(
+        validUserId,
+        validCreditsToAdd,
+        expect.any(Logger)
+      );
       expect(result).toStrictEqual({
         success: true,
         operationId: 'Success',
@@ -111,10 +117,10 @@ describe(CreditsService, () => {
 
     it('should handle unexpected errors during credit reset', async () => {
       const unexpectedError = new Error('Database write failed');
-      const addCreditsFn = vi.fn().mockRejectedValue(unexpectedError);
+      const resetSubscriptionCreditsFn = vi.fn().mockRejectedValue(unexpectedError);
       const updateStatusFn = vi.fn();
 
-      const result = await testResetSubscriptionCredits(addCreditsFn, updateStatusFn);
+      const result = await testResetSubscriptionCredits(resetSubscriptionCreditsFn, updateStatusFn);
 
       expect(updateStatusFn).not.toHaveBeenCalled();
       expect(result).toStrictEqual({
@@ -135,7 +141,7 @@ describe(CreditsService, () => {
         updateStatus: updateStatusFn
       } as unknown as UserBaseStore<IdpName>;
 
-      const creditsService = new CreditsService(userStoreMock);
+      const creditsService = new CreditsService(userStoreMock, logger);
       return creditsService.resetSubscriptionCredits(userId, credits);
     }
   });

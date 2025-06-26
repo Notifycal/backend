@@ -1,3 +1,4 @@
+import type { Logger } from '@aws-lambda-powertools/logger';
 import type { RefreshTokenStoreRecord } from '@model/store/RefreshTokenStoreRecord';
 import type { UserId, Uuid } from '@notifycal/shared/types';
 import { BaseStore, type BaseStoreConfig } from '../common/base-store';
@@ -8,8 +9,8 @@ export type RefreshTokenBaseStoreConfigEndpointConfig = {
 };
 
 export class RefreshTokenBaseStore extends BaseStore<RefreshTokenBaseStoreConfig> {
-  public constructor(config: RefreshTokenBaseStoreConfig) {
-    super(config);
+  public constructor(config: RefreshTokenBaseStoreConfig, logger: Logger) {
+    super(config, logger);
   }
 
   public getTokenBy(userId: UserId, jwtId: Uuid): Promise<RefreshTokenStoreRecord | undefined> {

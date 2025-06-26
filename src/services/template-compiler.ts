@@ -1,8 +1,9 @@
-import { throwError } from '@services/common/error-handling';
+import type { Logger } from '@aws-lambda-powertools/logger';
 import Handlebars from 'handlebars';
+import { rethrowError } from './common/error-handling';
 
 export class TemplateCompiler {
-  public constructor() {
+  public constructor(private readonly logger: Logger) {
     this.registerHelpers();
   }
 
@@ -10,7 +11,7 @@ export class TemplateCompiler {
     try {
       return Handlebars.compile(templateContent);
     } catch (error) {
-      throwError(`Template could not be compiled`, error);
+      rethrowError(`Template could not be compiled`, error, this.logger);
     }
   }
 

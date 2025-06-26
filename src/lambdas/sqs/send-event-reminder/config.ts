@@ -16,7 +16,7 @@ import {
   readUserBaseStoreConfig,
   readVonageConfig
 } from '@services/common/config';
-import { throwError } from '@services/common/error-handling';
+import { rethrowError, throwError } from '@services/common/error-handling';
 import type { VonagePrivateKey } from '@services/messaging';
 import type { UserBaseStoreEndpointConfig } from '@services/stores/user-base-store';
 
@@ -45,7 +45,7 @@ export async function readSendEventReminderConfig(vonagePrivateKeyCache: {
         // eslint-disable-next-line require-atomic-updates
         vonagePrivateKeyCache.vonagePrivateKey = vonagePrivateKey;
       } else {
-        throwError(`Vonage Private key not found. Path: ${vonagePrivateKeyPath}`);
+        throwError(`Vonage Private key not found. Path: ${vonagePrivateKeyPath}`, logger);
       }
       logger.info('SSM parameter retrieved.');
     } else {
@@ -64,6 +64,6 @@ export async function readSendEventReminderConfig(vonagePrivateKeyCache: {
       ...readCreditServiceConfig(env)
     };
   } catch (err) {
-    throwError(`Couldn't access SSM parameter`, err);
+    rethrowError(`Couldn't access SSM parameter`, err, logger);
   }
 }

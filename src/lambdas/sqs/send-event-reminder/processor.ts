@@ -1,3 +1,4 @@
+import type { Logger } from '@aws-lambda-powertools/logger';
 import { logger } from '@common/powertools';
 import type { ActionableEventFoundEvent } from '@model/app-events/ActionableEventFoundEvent';
 import {
@@ -41,11 +42,13 @@ export default class Processor {
     private readonly config: VonageEndpointConfig & CreditServiceEndpointConfig,
     private readonly isEnabled: boolean,
     private readonly snsService: SnsService,
-    private readonly creditsService: CreditsService<IdpName>
+    private readonly creditsService: CreditsService<IdpName>,
+    logger: Logger
   ) {
     this._messagingService = new MessagingService(
       config.vonageConfig.applicationId,
-      config.vonageConfig.privateKey
+      config.vonageConfig.privateKey,
+      logger
     );
   }
 

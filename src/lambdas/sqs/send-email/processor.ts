@@ -1,3 +1,4 @@
+import type { Logger } from '@aws-lambda-powertools/logger';
 import { logger } from '@common/powertools';
 import type { EmailToBeSentAttemptSentEvent } from '@model/app-events/EmailToBeSentAttemptSentEvent';
 import type { EmailToBeSentEvent } from '@model/app-events/EmailToBeSentEvent';
@@ -17,9 +18,10 @@ export class Processor {
   public constructor(
     config: MailgunConfig,
     private readonly isEnabled: boolean,
-    private readonly snsService: SnsService
+    private readonly snsService: SnsService,
+    logger: Logger
   ) {
-    this.emailService = new EmailService(config.baseUrl, config.domainName, config.apiKey);
+    this.emailService = new EmailService(config.baseUrl, config.domainName, config.apiKey, logger);
   }
 
   public async process(event: EmailToBeSentEvent): Promise<EmailSendSuccessResponse> {

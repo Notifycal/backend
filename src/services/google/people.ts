@@ -1,15 +1,20 @@
 /* eslint-disable camelcase */
+import type { Logger } from '@aws-lambda-powertools/logger';
 import type { GoogleOAuthConfig } from '@model/Config';
 import type { Email } from '@notifycal/shared/types';
 import type { PhoneNumberE164 } from '@own-types/model';
-import { throwError } from '@services/common/error-handling';
+import { rethrowError, throwError } from '@services/common/error-handling';
 import { withIntegrationMetrics } from '@services/observability/metrics';
 import { google, type people_v1 } from 'googleapis';
 import { BaseGoogle } from './base-service';
 
 export class GooglePeople extends BaseGoogle {
-  public static withRefreshToken(config: GoogleOAuthConfig, refreshToken: string): GooglePeople {
-    return new this(config, { refreshToken });
+  public static withRefreshToken(
+    config: GoogleOAuthConfig,
+    refreshToken: string,
+    logger: Logger
+  ): GooglePeople {
+    return new this(config, logger, { refreshToken });
   }
 
   public getPhoneNumbersBy(email: Email): Promise<Array<PhoneNumberE164>> {
@@ -61,11 +66,11 @@ export class GooglePeople extends BaseGoogle {
         if (response.status >= 200 && response.status <= 299) {
           return response.data;
         } else {
-          throwError(`Error in ${operationId}. Error in response:`, {}, { response });
+          throwError(`Error in ${operationId}. Error in response:`, this.logger, { response });
         }
       })
       .catch((error) => {
-        throwError(`Error in ` + operationId, error);
+        rethrowError(`Error in ` + operationId, error, this.logger);
       });
   }
 }

@@ -1,4 +1,4 @@
-import { logger } from '@common/powertools';
+import type { Logger } from '@aws-lambda-powertools/logger';
 import type { GoogleOAuthConfig } from '@model/Config';
 import type { Gaxios, GaxiosInterceptor, GaxiosOptions, GaxiosResponse } from 'gaxios';
 import { OAuth2Client } from 'google-auth-library';
@@ -11,7 +11,11 @@ type BaseGoogleOptions = {
 export abstract class BaseGoogle {
   protected _client: OAuth2Client;
   protected _config: GoogleOAuthConfig;
-  protected constructor(config: GoogleOAuthConfig, options: BaseGoogleOptions = {}) {
+  protected constructor(
+    config: GoogleOAuthConfig,
+    protected readonly logger: Logger,
+    options: BaseGoogleOptions = {}
+  ) {
     const { originHeaderValue, refreshToken } = options;
 
     if (originHeaderValue && !config.redirectUriList.includes(originHeaderValue)) {
@@ -33,22 +37,22 @@ export abstract class BaseGoogle {
   protected setInterceptors(gaxios: Gaxios): void {
     const requestInterceptor: GaxiosInterceptor<GaxiosOptions> = {
       resolved: (config) => {
-        logger.info('Google request', { requestConfig: config });
+        this.logger.info('Google request', { requestConfig: config });
         return Promise.resolve(config);
       },
       rejected: (error) => {
-        logger.error('Something unexpected went wrong prepping a request to Google', {
+        this.logger.error('Something unexpected went wrong prepping a request to Google', {
           requestError: error
         });
       }
     };
     const responseInterceptor: GaxiosInterceptor<GaxiosResponse> = {
       resolved: (config) => {
-        logger.info('Google successful response', { responseConfig: config });
+        this.logger.info('Google successful response', { responseConfig: config });
         return Promise.resolve(config);
       },
       rejected: (error) => {
-        logger.error('Google failed response', { responseError: error });
+        this.logger.error('Google failed response', { responseError: error });
       }
     };
     gaxios.interceptors.request.add(requestInterceptor);

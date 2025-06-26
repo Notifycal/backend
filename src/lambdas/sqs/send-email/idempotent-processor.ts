@@ -1,4 +1,5 @@
 import type { DynamoDBPersistenceOptions } from '@aws-lambda-powertools/idempotency/dynamodb/types';
+import type { Logger } from '@aws-lambda-powertools/logger';
 import type { EmailToBeSentAttemptFailedEvent } from '@model/app-events/EmailToBeSentAttemptFailedEvent';
 import type { EmailToBeSentAttemptSkippedEvent } from '@model/app-events/EmailToBeSentAttemptSkippedEvent';
 import type { EmailToBeSentEvent } from '@model/app-events/EmailToBeSentEvent';
@@ -18,11 +19,12 @@ export class IdempotentProcessor extends AbstractIdempotentProcessor<EmailSendSu
     persistanceConfig: DynamoDBPersistenceOptions,
     isEnabled: boolean,
     context: Context,
-    private readonly snsService: SnsService
+    private readonly snsService: SnsService,
+    logger: Logger
   ) {
-    super(persistanceConfig, context);
-    this.snsService = SnsService.withConfig(config.emailingTopicConfig);
-    this.processor = new Processor(config.mailgunConfig, isEnabled, this.snsService);
+    super(persistanceConfig, context, logger);
+    this.snsService = SnsService.withConfig(config.emailingTopicConfig, logger);
+    this.processor = new Processor(config.mailgunConfig, isEnabled, this.snsService, logger);
   }
 
   public sendEmailIdempotently(event: EmailToBeSentEvent): Promise<EmailSendSuccessResponse> {
