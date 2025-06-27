@@ -84,7 +84,7 @@ locals {
 }
 module "send_event_reminder_lambda" {
   source  = "terraform-aws-modules/lambda/aws"
-  version = "~> 7.17"
+  version = "~> 8.0"
 
   function_name          = "send-event-reminder-${var.environment}"
   publish                = local.lambdas_publish

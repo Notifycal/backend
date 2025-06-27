@@ -50,7 +50,7 @@ data "aws_iam_policy_document" "stripe_webhook_iam_policydoc" {
 
 module "stripe_webhook_lambda" {
   source  = "terraform-aws-modules/lambda/aws"
-  version = "~> 7.17"
+  version = "~> 8.0"
 
   function_name          = "stripe-webhook-${var.environment}"
   publish                = local.lambdas_publish
