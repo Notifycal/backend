@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { dateTimeSchema, idpIdSchema, userIdSchema } from '@notifycal/shared/schemas';
 import type { CorrelationId } from '@notifycal/shared/types';
 import { eventIdSchema } from './common';
-import { ourStripeEventTypeSchema as ourStripeEventTypeSchemas } from './StripeWebhookEventFiredEvent';
+import { ourStripeEventTypeZodLiteralArray } from './StripeWebhookEventFiredEvent';
 
 // Docs: take your time to decide what type of event you are defining and what is aimed at. Pay attention to these silver bullets:
 // SuccessEvent:
@@ -41,7 +41,7 @@ export const successEventTypeSchema = z.union([
   z.literal('EmailToBeSentAttemptSent'),
   z.literal('EmailToBeSentAttemptSkipped'),
   z.literal('EmailToBeSentAttemptFailed'),
-  ourStripeEventTypeSchemas
+  ...ourStripeEventTypeZodLiteralArray
 ]);
 export const errorEventTypeSchema = z.union([
   z.literal('UserFetchedEventsParsingFailed'),
