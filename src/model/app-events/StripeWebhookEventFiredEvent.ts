@@ -7,6 +7,7 @@ import type {
   IdpName,
   UserId
 } from '@notifycal/shared/types';
+import { toPascalCase } from '@utils/case';
 import type { CapitalizeFirst, ReplaceUnderscoreWithDot, SplitByDot } from '@utils/types';
 import type Stripe from 'stripe';
 import { v4 } from 'uuid';
@@ -45,13 +46,7 @@ type OurStripeEventType = PascalCaseEventType<Stripe.Event['type']>;
 export type PaymentWebhookFiredEvent = z.infer<typeof baseEventSchema>;
 
 function toOurEventType(eventType: Stripe.Event['type']): OurStripeEventType {
-  const result: OurStripeEventType = eventType
-    .replaceAll('_', '.')
-    .split('.')
-    .reduce((acc, part) => {
-      return acc + part.charAt(0).toUpperCase() + part.slice(1);
-    }, 'Payment') as OurStripeEventType;
-  return result;
+  return `Payment${toPascalCase(eventType)}` as OurStripeEventType;
 }
 
 export const ourStripeEventTypeZodLiteralArray = stripeEventTypes.map((type) => {
