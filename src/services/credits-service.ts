@@ -46,20 +46,20 @@ export class CreditsService<TIdpName extends IdpName> {
 
   public async deductCredits(
     userId: UserId,
-    units: number,
+    credits: number,
     country: 'ES',
     countryToSMSCostCreditsMap: Record<'ES', number>
   ): Promise<CreditDeductionResult> {
-    if (units <= 0) {
+    if (credits <= 0) {
       return {
         success: false,
         operationId: 'UnknownError',
-        error: new Error('Units must be greater than 0')
+        error: new Error('Credits must be greater than 0')
       };
     }
 
     const creditToDeductPerUnit = countryToSMSCostCreditsMap[country];
-    const totalCreditsToDeduct = creditToDeductPerUnit * units;
+    const totalCreditsToDeduct = creditToDeductPerUnit * credits;
 
     return this.userStore.deductSubscriptionCredits(userId, totalCreditsToDeduct, this.logger).then(
       (user) => {

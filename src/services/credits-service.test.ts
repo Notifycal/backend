@@ -14,7 +14,7 @@ import {
 
 describe(CreditsService, () => {
   const validUserId = 'user-123' as UserId;
-  const validUnits = 5;
+  const validCredits = 5;
   const validCountry = 'ES' as const;
   const validCountryToSMSCostCreditsMap = { ES: 2 };
   const validCreditsToAdd = 100;
@@ -44,7 +44,7 @@ describe(CreditsService, () => {
       const result = await testDeductCredits(
         deductSubscriptionCreditsFn,
         updateStatusFn,
-        validUnits
+        validCredits
       );
 
       expect(deductSubscriptionCreditsFn).toHaveBeenCalledTimes(1);
@@ -65,7 +65,7 @@ describe(CreditsService, () => {
       const result = await testDeductCredits(
         deductSubscriptionCreditsFn,
         updateStatusFn,
-        validUnits
+        validCredits
       );
 
       expect(result).toStrictEqual({
@@ -87,7 +87,7 @@ describe(CreditsService, () => {
       const result = await testDeductCredits(
         deductSubscriptionCreditsFn,
         updateStatusFn,
-        validUnits
+        validCredits
       );
 
       expect(updateStatusFn).toHaveBeenCalledWith(validUserId, 'out-of-credits');
@@ -109,7 +109,7 @@ describe(CreditsService, () => {
       const updateStatusFn = vi.fn().mockRejectedValue(updateStatusError);
 
       await expect(
-        testDeductCredits(deductSubscriptionCreditsFn, updateStatusFn, validUnits)
+        testDeductCredits(deductSubscriptionCreditsFn, updateStatusFn, validCredits)
       ).rejects.toThrow(
         'Error while handling deductCredits-while-out-of-credits. Throwing error so that it gets retried cause the operation is idempotent. Error: Failed to update status'
       );
@@ -123,7 +123,7 @@ describe(CreditsService, () => {
       const result = await testDeductCredits(
         deductSubscriptionCreditsFn,
         updateStatusFn,
-        validUnits
+        validCredits
       );
 
       expect(updateStatusFn).not.toHaveBeenCalled();
@@ -134,7 +134,7 @@ describe(CreditsService, () => {
       });
     });
 
-    it('should calculate correct total credits for multiple units', async () => {
+    it('should calculate correct total credits for multiple credits', async () => {
       const deductSubscriptionCreditsFn = vi.fn().mockResolvedValue(validUserWithCredits);
       const updateStatusFn = vi.fn();
 
@@ -143,7 +143,7 @@ describe(CreditsService, () => {
       expect(deductSubscriptionCreditsFn).toHaveBeenCalledWith(validUserId, 20, expect.any(Logger));
     });
 
-    it('should validate units is positive', async () => {
+    it('should validate credits is positive', async () => {
       const deductSubscriptionCreditsFn = vi.fn();
       const updateStatusFn = vi.fn();
 
@@ -152,12 +152,12 @@ describe(CreditsService, () => {
       expect(result).toStrictEqual({
         success: false,
         operationId: 'UnknownError',
-        error: new Error('Units must be greater than 0')
+        error: new Error('Credits must be greater than 0')
       });
       expect(deductSubscriptionCreditsFn).not.toHaveBeenCalled();
     });
 
-    it('should validate negative units', async () => {
+    it('should validate negative credits', async () => {
       const deductSubscriptionCreditsFn = vi.fn();
       const updateStatusFn = vi.fn();
 
@@ -166,7 +166,7 @@ describe(CreditsService, () => {
       expect(result).toStrictEqual({
         success: false,
         operationId: 'UnknownError',
-        error: new Error('Units must be greater than 0')
+        error: new Error('Credits must be greater than 0')
       });
       expect(deductSubscriptionCreditsFn).not.toHaveBeenCalled();
     });
@@ -492,7 +492,7 @@ describe(CreditsService, () => {
   function testDeductCredits(
     deductSubscriptionCreditsFn: () => Promise<Pick<UserStoreRecord<unknown>, 'Credits'>>,
     updateStatusFn: () => Promise<void>,
-    units: number,
+    credits: number,
     userId: UserId = validUserId,
     country: 'ES' = validCountry,
     countryToSMSCostCreditsMap = validCountryToSMSCostCreditsMap
@@ -503,7 +503,7 @@ describe(CreditsService, () => {
     } as unknown as UserBaseStore<IdpName>;
 
     const creditsService = new CreditsService(userStoreMock, logger);
-    return creditsService.deductCredits(userId, units, country, countryToSMSCostCreditsMap);
+    return creditsService.deductCredits(userId, credits, country, countryToSMSCostCreditsMap);
   }
 
   function testResetSubscriptionCredits(
