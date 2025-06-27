@@ -42,7 +42,7 @@ data "aws_iam_policy_document" "send_email_iam_policydoc" {
 
 module "send_email_lambda" {
   source  = "terraform-aws-modules/lambda/aws"
-  version = "~> 7.17"
+  version = "~> 8.0"
 
   function_name          = "send-email-${var.environment}"
   publish                = local.lambdas_publish
