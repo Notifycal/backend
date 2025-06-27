@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.40.0](https://github.com/Notifycal/backend/compare/v0.39.1...v0.40.0) (2025-06-27)
+
+
+### Features
+
+* subscription cancellation upgrade and downgrade. Customer portal configuration ([#742](https://github.com/Notifycal/backend/issues/742)) ([2eebb76](https://github.com/Notifycal/backend/commit/2eebb7629d7942e1db5c5d5274c1d41fa9df8f61))
+
+
+### Bug Fixes
+
+* **deps:** Update dependency @notifycal/shared to v4.5.0 ([#746](https://github.com/Notifycal/backend/issues/746)) ([82a6698](https://github.com/Notifycal/backend/commit/82a6698112838d71f781bbbcefc030161b6cf889))
+* **deps:** Update Terraform terraform-aws-modules/lambda/aws to v8 ([#744](https://github.com/Notifycal/backend/issues/744)) ([fc1dc61](https://github.com/Notifycal/backend/commit/fc1dc618d19ad5a8d099547e5b00faebeae916cf))
+* stripe events ingestion ([#734](https://github.com/Notifycal/backend/issues/734)) ([50faf37](https://github.com/Notifycal/backend/commit/50faf37a3e8b8d52b71d41c052a784e731b11101))
+
 ## [0.39.1](https://github.com/Notifycal/backend/compare/v0.39.0...v0.39.1) (2025-06-27)
 
 
