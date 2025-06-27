@@ -186,6 +186,28 @@ describe(SubscriptionService, () => {
       expect(result).toStrictEqual(validSuccessResult);
     });
 
+    it('should throw an error cause now is outside of the period', async () => {
+      const addFn = vi.fn().mockResolvedValue(validSuccessResult);
+      const result = await testItUpgrade(
+        addFn,
+        validUserId,
+        validGoodTier,
+        validBetterTier,
+        validPeriod,
+        (validPeriod.start - 1) as UnixTimestamp
+      );
+
+      expect(result).toStrictEqual({
+        success: false,
+        operationId: 'UnknownError',
+        error: new Error(
+          `There is not bylling cycle remaining. Most likely 'at' was out of boudaries of 'period'. Resulting percentage: 0`
+        )
+      });
+
+      expect(addFn).not.toHaveBeenCalled();
+    });
+
     it('should return error result from service', async () => {
       const addFn = vi.fn().mockResolvedValue(validErrorResult);
       const result = await testItUpgrade(

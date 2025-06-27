@@ -47,7 +47,16 @@ export class SubscriptionService<TIdpName extends IdpName> {
     period: Period,
     at: UnixTimestamp
   ): Promise<CreditAdditionResult> {
-    const _remainingPeriodPercenage: Percentage = remainingPeriodPercentage(period, at);
+    const _remainingPeriodPercenage = remainingPeriodPercentage(period, at);
+    if (_remainingPeriodPercenage <= 0 || _remainingPeriodPercenage >= 100) {
+      return Promise.resolve({
+        success: false,
+        operationId: 'UnknownError',
+        error: new Error(
+          `There is not bylling cycle remaining. Most likely 'at' was out of boudaries of 'period'. Resulting percentage: ${_remainingPeriodPercenage}`
+        )
+      });
+    }
     const creditsToAdd = calculateUpgradeCredits(
       previousTier,
       currentTier,
@@ -55,7 +64,7 @@ export class SubscriptionService<TIdpName extends IdpName> {
       this.tierToCreditsMap
     );
 
-    if (creditsToAdd < 0) {
+    if (creditsToAdd <= 0) {
       return Promise.resolve({
         success: false,
         operationId: 'UnknownError',
