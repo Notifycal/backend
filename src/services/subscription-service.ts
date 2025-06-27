@@ -1,16 +1,9 @@
 import { logger } from '@common/powertools';
 import type { TierId } from '@model/PaymentPlans';
-import type {
-  IdpName,
-  Percentage,
-  UnixTimestamp,
-  UserId,
-  UserStatus
-} from '@notifycal/shared/types';
+import type { IdpName, Percentage, UnixTimestamp, UserId } from '@notifycal/shared/types';
 import type { Period } from '@own-types/model';
 import { remainingPeriodPercentage } from '@utils/datetime';
 import { DateTime } from 'luxon';
-import { match } from 'ts-pattern';
 import type {
   CreditAdditionResult,
   CreditDeductionResult,
@@ -88,10 +81,6 @@ export class SubscriptionService<TIdpName extends IdpName> {
   }
 
   public cancel(userId: UserId, reason: 'unpaid' | 'cancelled'): Promise<CreditDeductionResult> {
-    const userStatusToGo: UserStatus = match(reason)
-      .with('unpaid', () => 'unpaid' as const)
-      .with('cancelled', () => 'cancelled' as const)
-      .exhaustive();
-    return this.creditsService.deleteSubscriptionCredits(userId, userStatusToGo);
+    return this.creditsService.deleteSubscriptionCredits(userId, reason);
   }
 }
