@@ -1,6 +1,6 @@
 /* eslint-disable camelcase */
 import type { Logger } from '@aws-lambda-powertools/logger';
-import type { TierId, Tiers } from '@model/PaymentPlans';
+import type { TierId, Tiers, Topups } from '@model/PaymentPlans';
 import type {
   Email,
   Identity,
@@ -12,6 +12,7 @@ import type {
 import type { Period } from '@own-types/model';
 import type { CreditAdditionResult } from '@services/credits-service';
 import type { SubscriptionService } from '@services/subscription-service';
+import type { TopupService } from '@services/topup-service';
 import { validPaymentPlans } from '@testing/data/pricing';
 import type Stripe from 'stripe';
 import { describe, expect, it, vi, type Mock } from 'vitest';
@@ -26,6 +27,7 @@ describe(InvoicePaymentSucceededHandler, () => {
   };
 
   const validTiers: Tiers = validPaymentPlans.tiers;
+  const validTopups: Topups = validPaymentPlans.topups;
 
   const validInvoiceLineItem: Stripe.InvoiceLineItem = {
     id: 'il_test123',
@@ -146,7 +148,8 @@ describe(InvoicePaymentSucceededHandler, () => {
   const validSuccessResult: CreditAdditionResult = {
     success: true,
     operationId: 'Success',
-    subscriptionCreditBalance: 40
+    subscriptionCreditBalance: 40,
+    topupCreditBalance: 10
   };
 
   const validErrorResult: CreditAdditionResult = {
@@ -575,7 +578,8 @@ describe(InvoicePaymentSucceededHandler, () => {
       created: UnixTimestamp
     ) => Promise<void>,
     downgradeFn: (userId: UserId) => Promise<void>,
-    tiers: Tiers
+    tiers: Tiers,
+    topups: Topups = validTopups
   ): Promise<void> {
     const subscriptionServiceMock = {
       create: createFn,
@@ -583,6 +587,8 @@ describe(InvoicePaymentSucceededHandler, () => {
       upgrade: upgradeFn,
       downgrade: downgradeFn
     } as unknown as SubscriptionService<IdpName>;
+
+    const topupServiceMock = {} as unknown as TopupService<IdpName>;
 
     const loggerMock = {
       info: vi.fn(),
@@ -593,7 +599,9 @@ describe(InvoicePaymentSucceededHandler, () => {
     const handler = new InvoicePaymentSucceededHandler(
       'invoice.payment_succeeded',
       tiers,
+      topups,
       subscriptionServiceMock,
+      topupServiceMock,
       loggerMock
     );
 

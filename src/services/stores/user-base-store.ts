@@ -5,7 +5,7 @@ import type { AuthorizationForIdp } from '@model/IdpAuthorization';
 import type { TierId } from '@model/PaymentPlans';
 import type { ReminderConfigStoreRecord } from '@model/store/ReminderConfigStoreRecord';
 import type { UserIdpAuthorizationStoreRecord } from '@model/store/UserIdpAuthorizationStoreRecord';
-import type { UserStoreRecord } from '@model/store/UserStoreRecord';
+import type { CreditBalanceType, UserStoreRecord } from '@model/store/UserStoreRecord';
 import type {
   IdpName,
   LanguageCode,
@@ -178,6 +178,7 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
     }).then(() => null);
   }
 
+  //TODO topups
   public deductSubscriptionCredits(
     userId: UserId,
     amount: number,
@@ -207,21 +208,28 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
     );
   }
 
-  public addSubscriptionCredits(
+  private addCredits(
     userId: UserId,
     amount: number,
-    tierId: TierId,
+    creditType: CreditBalanceType,
+    tierId: TierId | undefined,
     logger: Logger
   ): Promise<Pick<UserStoreRecord<TIdpName>, 'Credits'>> {
+    const shouldUpdateTier = tierId && creditType === 'SubscriptionCreditBalance';
+    const updateExpressionParts = [
+      `SET Credits.${creditType} = if_not_exists(Credits.${creditType}, :zero) + :amount`,
+      ...(shouldUpdateTier ? ['Credits.Tier = :tierId'] : [])
+    ];
+    const expressionAttributeValues = {
+      ':amount': amount,
+      ':zero': 0,
+      ...(shouldUpdateTier ? { ':tierId': tierId } : {})
+    };
     return this.updateCommandRunner({
       Key: { UserId: userId },
-      UpdateExpression:
-        'SET Credits.SubscriptionCreditBalance = Credits.SubscriptionCreditBalance + :amount, Credits.Tier = :tierId',
-      ConditionExpression: 'attribute_exists(Credits.SubscriptionCreditBalance)',
-      ExpressionAttributeValues: {
-        ':amount': amount,
-        ':tierId': tierId
-      }
+      UpdateExpression: updateExpressionParts.join(', '),
+      ConditionExpression: 'attribute_exists(Credits)',
+      ExpressionAttributeValues: expressionAttributeValues
     }).then(
       (r) => this.handleSuccessfulUpdate(r, logger),
       (error) => {
@@ -241,7 +249,24 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
     );
   }
 
-  public async resetSubscriptionCredits(
+  public addSubscriptionCredits(
+    userId: UserId,
+    amount: number,
+    tierId: TierId,
+    logger: Logger
+  ): Promise<Pick<UserStoreRecord<TIdpName>, 'Credits'>> {
+    return this.addCredits(userId, amount, 'SubscriptionCreditBalance', tierId, logger);
+  }
+
+  public addTopupCredits(
+    userId: UserId,
+    amount: number,
+    logger: Logger
+  ): Promise<Pick<UserStoreRecord<TIdpName>, 'Credits'>> {
+    return this.addCredits(userId, amount, 'TopupCreditBalance', undefined, logger);
+  }
+
+  public resetSubscriptionCredits(
     userId: UserId,
     tierId: TierId,
     amount: number,
@@ -249,26 +274,22 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
   ): Promise<Pick<UserStoreRecord<TIdpName>, 'Credits'>> {
     return this.updateCommandRunner({
       Key: { UserId: userId },
-      UpdateExpression: 'SET Credits = :creditsObj',
+      UpdateExpression: 'SET Credits.SubscriptionCreditBalance = :amount, Credits.Tier = :tierId',
       ExpressionAttributeValues: {
-        ':creditsObj': {
-          Tier: tierId,
-          SubscriptionCreditBalance: amount
-        }
+        ':amount': amount,
+        ':tierId': tierId
       }
     }).then((r) => this.handleSuccessfulUpdate(r, logger));
   }
 
-  public async clearSubscriptionCredits(
+  public clearSubscriptionCredits(
     userId: UserId,
     logger: Logger
   ): Promise<Pick<UserStoreRecord<TIdpName>, 'Credits'>> {
     return this.updateCommandRunner({
       Key: { UserId: userId },
-      UpdateExpression: 'SET Credits = :creditsObj',
-      ExpressionAttributeValues: {
-        ':creditsObj': {}
-      }
+      UpdateExpression: 'REMOVE Credits.SubscriptionCreditBalance, Credits.Tier',
+      ExpressionAttributeValues: {}
     }).then((r) => this.handleSuccessfulUpdate(r, logger));
   }
 

@@ -257,13 +257,26 @@ variable "alert_for_missing_phone_number" {
   default = {}
 }
 
-variable "subscription_tiers" {
-  description = "Configuration for subscription tiers. E.g.: Good, Better, Best"
-  type = map(object({
-    price_id = string
-    name     = string
-  }))
+variable "payment_plans" {
+  description = "Configuration for subscription tiers. E.g.: Good, Better, Best and topups E.g.: x100"
+  type = object({
+    tiers = map(object({
+      price_id = string
+      name     = string
+      credits  = number
+    }))
+    topups = map(object({
+      price_id = string
+      name     = string
+      credits  = number
+    }))
+  })
 }
+
+variable "country_to_sms_cost_map" {
+  type = map(number)
+}
+
 
 variable "tax_id" {
   description = "ID to reference to tax resource in Stripe. Typically, it will be a tax id that involves adding 21% of VAT (Spanish IVA)"
@@ -289,8 +302,4 @@ variable "stripe_admin_api_key" {
 variable "stripe_api_version" {
   type    = string
   default = "2025-05-28.basil"
-}
-
-variable "country_to_sms_cost_map" {
-  type = map(number)
 }

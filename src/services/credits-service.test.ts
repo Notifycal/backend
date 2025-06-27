@@ -25,14 +25,16 @@ describe(CreditsService, () => {
   const validUserWithCredits: Pick<UserStoreRecord<unknown>, 'Credits'> = {
     Credits: {
       SubscriptionCreditBalance: 150,
-      Tier: 'good'
+      Tier: 'good',
+      TopupCreditBalance: 44
     }
   };
 
   const validUserWithZeroCredits: Pick<UserStoreRecord<unknown>, 'Credits'> = {
     Credits: {
       SubscriptionCreditBalance: 0,
-      Tier: 'good'
+      Tier: 'good',
+      TopupCreditBalance: 0
     }
   };
 

@@ -1,6 +1,6 @@
 /* eslint-disable camelcase */
 import { logger } from '@common/powertools';
-import type { Tier } from '@model/PaymentPlans';
+import type { Tier, Topup } from '@model/PaymentPlans';
 import type {
   Email,
   Identity,
@@ -11,6 +11,7 @@ import type {
 import type { Url } from '@own-types/model';
 import { HttpClient } from '@services/common/http-client';
 import { default as Stripe } from 'stripe';
+import { match } from 'ts-pattern';
 import { AxiosHttpClient } from './stripe-axios-client';
 
 export class StripeService {
@@ -85,7 +86,7 @@ export class StripeService {
   public createCheckoutSession(
     stripeCustomerId: StripeCustomerId,
     identity: Identity<IdpName>,
-    tier: Tier,
+    product: Tier | Topup,
     language: LanguageCode,
     successRedirectUrl: Url,
     cancelRedirectUrl: Url,
@@ -94,7 +95,10 @@ export class StripeService {
     const { userId, idp, idpId, email } = identity;
     return this.stripeClient.checkout.sessions
       .create({
-        mode: 'subscription',
+        mode: match(product)
+          .with({ type: 'tier' }, () => 'subscription' as const)
+          .with({ type: 'topup' }, () => 'payment' as const)
+          .exhaustive(),
         ui_mode: 'hosted',
         payment_method_types: ['card'],
         customer: stripeCustomerId,
@@ -108,7 +112,7 @@ export class StripeService {
         locale: language,
         line_items: [
           {
-            price: tier.priceId,
+            price: product.priceId,
             quantity: 1,
             tax_rates: [taxId]
           }
@@ -118,8 +122,11 @@ export class StripeService {
           idp,
           idpId,
           email,
-          tier: tier.id,
+          product: product.id,
           vatCountry: 'ES'
+        },
+        invoice_creation: {
+          enabled: true
         },
         automatic_tax: { enabled: false },
         billing_address_collection: 'required',

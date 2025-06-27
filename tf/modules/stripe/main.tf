@@ -26,6 +26,30 @@ resource "stripe_price" "monthly_prices" {
   }
 }
 
+resource "stripe_product" "topups" {
+  for_each = var.topups
+
+  name        = each.value.name
+  description = each.value.description
+  metadata = {
+    tier = each.key
+  }
+}
+
+resource "stripe_price" "topup_prices" {
+  for_each = var.topups
+
+  product        = stripe_product.topups[each.key].id
+  currency       = var.currency
+  unit_amount    = each.value.price_cents
+  tax_behavior   = "inclusive"
+  billing_scheme = "per_unit"
+  metadata = {
+    topup     = each.key
+    price_eur = each.value.price_cents / 100
+  }
+}
+
 resource "stripe_tax_rate" "spain_vat" {
   display_name = "Spanish VAT"
   description  = "Spanish Value Added Tax"
@@ -68,7 +92,7 @@ resource "stripe_portal_configuration" "portal_configuration" {
       proration_behavior      = "always_invoice"
 
       dynamic "products" {
-        for_each = local.payment_plans
+        for_each = local.payment_plans.tiers
         content {
           product = products.value.product_id
           prices  = [products.value.price_id]

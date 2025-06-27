@@ -12,7 +12,13 @@ import { type ReminderConfigStoreRecord, fromStoreRecord } from './ReminderConfi
 export interface UserCreditsRecordStore {
   SubscriptionCreditBalance: number;
   Tier: TierId;
+  TopupCreditBalance: number;
 }
+
+export type CreditBalanceType = keyof Pick<
+  UserCreditsRecordStore,
+  'SubscriptionCreditBalance' | 'TopupCreditBalance'
+>;
 
 export interface UserStoreRecord<TIdpName> extends UserIdentity<TIdpName> {
   LastSignInAt: UnixTimestamp;

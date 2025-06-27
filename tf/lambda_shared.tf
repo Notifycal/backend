@@ -71,8 +71,23 @@ locals {
   }
   idps_configs_env_vars = local.google_idp_config_env_vars
 
+  type_mapping = {
+    tiers  = "tier"
+    topups = "topup"
+  }
   payment_plans_env_vars = {
-    PAYMENT_PLANS = jsonencode(local.payment_plans)
+    PAYMENT_PLANS = jsonencode({
+      for type, data_set in var.payment_plans :
+      type => {
+        for key, data in data_set :
+        key => {
+          id      = key
+          priceId = data.price_id
+          credits = data.credits
+          type    = local.type_mapping[type]
+        }
+      }
+    })
   }
 
   common_tags = {}

@@ -1,11 +1,12 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import type { Logger } from '@aws-lambda-powertools/logger';
-import type { TierId, Tiers } from '@model/PaymentPlans';
+import type { TierId, Tiers, TopupId, Topups } from '@model/PaymentPlans';
 import type { IdpName } from '@notifycal/shared/types';
 import { CreditsService } from '@services/credits-service';
 import { SnsService } from '@services/sns';
 import { PaymentUserIndexStore } from '@services/stores/payment-user-index-store';
 import { UserBaseStore } from '@services/stores/user-base-store';
+import { TopupService } from '@services/topup-service';
 import type { EventBridgeEvent } from 'aws-lambda';
 import type { Stripe } from 'stripe';
 import { SubscriptionService } from '../../../services/subscription-service';
@@ -40,7 +41,9 @@ import type { StripeEventType } from './stripe-schemas';
 
 export function defaultEventHandlers(
   subscriptionService: SubscriptionService<IdpName>,
+  topupService: TopupService<IdpName>,
   tiers: Tiers,
+  topups: Topups,
   logger: Logger
 ): Map<StripeEventType, EventHandlerBuilder<Stripe.Event>> {
   return new Map<StripeEventType, EventHandlerBuilder<Stripe.Event>>([
@@ -62,7 +65,15 @@ export function defaultEventHandlers(
     ['invoice.created', (e) => new InvoiceCreatedHandler(e, logger)],
     [
       'invoice.payment_succeeded',
-      (e) => new InvoicePaymentSucceededHandler(e, tiers, subscriptionService, logger)
+      (e) =>
+        new InvoicePaymentSucceededHandler(
+          e,
+          tiers,
+          topups,
+          subscriptionService,
+          topupService,
+          logger
+        )
     ],
     ['invoice.payment_failed', (e) => new InvoicePaymentFailedHandler(e, logger)],
     ['payment_intent.succeeded', (e) => new PaymentIntentSucceededHandler(e, logger)],
@@ -74,7 +85,9 @@ export function recordProcessor(
   record: EventBridgeEvent<StripeEventType, Stripe.Event>,
   eventHandlerFactory: (
     subscriptionService: SubscriptionService<IdpName>,
+    topupService: TopupService<IdpName>,
     tiers: Tiers,
+    topups: Topups,
     logger: Logger
   ) => Map<StripeEventType, EventHandlerBuilder<Stripe.Event>> = defaultEventHandlers,
   config: StripeWebhookConfig,
@@ -87,12 +100,17 @@ export function recordProcessor(
     config.paymentUserIndexStoreConfig
   );
   const creditsService = new CreditsService(userStore, logger);
+  const { tiers, topups } = config.paymentPlans;
   const tierToCreditsMap = Object.fromEntries(
-    Object.values(config.paymentPlans.tiers).map((value) => [value.id, value.credits])
+    Object.values(tiers).map((value) => [value.id, value.credits])
   ) as Record<TierId, number>;
+  const topupToCreditsMap = Object.fromEntries(
+    Object.values(topups).map((value) => [value.id, value.credits])
+  ) as Record<TopupId, number>;
   const subscriptionService = new SubscriptionService(creditsService, tierToCreditsMap);
+  const topupService = new TopupService(creditsService, topupToCreditsMap);
   const snsService = SnsService.withConfig(config.paymentWebhookTopicConfig, logger);
-  const ourHandlers = eventHandlerFactory(subscriptionService, config.paymentPlans.tiers, logger);
+  const ourHandlers = eventHandlerFactory(subscriptionService, topupService, tiers, topups, logger);
   const processor = new StripeEventProcessor(
     new StripeIdentityExtractor(userPaymentIndexStore, logger),
     ourHandlers,

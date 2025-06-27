@@ -8,7 +8,8 @@ import { P, match } from 'ts-pattern';
 export interface CreditDeductionSuccess {
   readonly success: true;
   readonly operationId: 'Success';
-  subscriptionCreditBalance: number;
+  readonly subscriptionCreditBalance: number;
+  readonly topupCreditBalance: number;
 }
 export interface CreditDeductionInsufficientCreditsError {
   readonly success: false;
@@ -28,7 +29,8 @@ export type CreditDeductionResult =
 export interface CreditAdditionSuccess {
   readonly success: true;
   readonly operationId: 'Success';
-  subscriptionCreditBalance: number;
+  readonly subscriptionCreditBalance: number;
+  readonly topupCreditBalance: number;
 }
 export interface CreditAdditionUnexpectedError {
   readonly success: false;
@@ -44,6 +46,7 @@ export class CreditsService<TIdpName extends IdpName> {
     private readonly logger: Logger
   ) {}
 
+  //TODO topups
   public async deductCredits(
     userId: UserId,
     credits: number,
@@ -66,7 +69,8 @@ export class CreditsService<TIdpName extends IdpName> {
         const creditDeductionOperation: CreditDeductionSuccess = {
           success: true,
           operationId: 'Success',
-          subscriptionCreditBalance: user.Credits?.SubscriptionCreditBalance || 0
+          subscriptionCreditBalance: user.Credits?.SubscriptionCreditBalance || 0,
+          topupCreditBalance: user.Credits?.TopupCreditBalance || 0
         };
         return creditDeductionOperation;
       },
@@ -115,11 +119,60 @@ export class CreditsService<TIdpName extends IdpName> {
         const creditAdditionOperation: CreditAdditionSuccess = {
           success: true,
           operationId: 'Success',
-          subscriptionCreditBalance: user.Credits?.SubscriptionCreditBalance || 0
+          subscriptionCreditBalance: user.Credits?.SubscriptionCreditBalance || 0,
+          topupCreditBalance: user.Credits?.TopupCreditBalance || 0
         };
         return this.userStore
           .updateStatus(userId, 'live')
           .then(() => creditAdditionOperation, this.errorHandlerForIdempotentOp('resetCredits'));
+      },
+      (error: unknown) => {
+        const result: CreditAdditionUnexpectedError = {
+          success: false,
+          operationId: 'UnknownError',
+          error
+        };
+        return result;
+      }
+    );
+  }
+
+  private addCreditsOperation(
+    userId: UserId,
+    credits: number,
+    options:
+      | {
+          type: 'subscription';
+          tierId: TierId;
+        }
+      | {
+          type: 'topup';
+        }
+  ): Promise<CreditAdditionResult> {
+    if (credits <= 0) {
+      return Promise.resolve({
+        success: false,
+        operationId: 'UnknownError',
+        error: new Error('Credits to add must be greater or equal than 0')
+      });
+    }
+
+    const storeOperation =
+      options.type === 'subscription'
+        ? this.userStore.addSubscriptionCredits(userId, credits, options.tierId, this.logger)
+        : this.userStore.addTopupCredits(userId, credits, this.logger);
+
+    return storeOperation.then(
+      (user) => {
+        const creditAdditionOperation: CreditAdditionSuccess = {
+          success: true,
+          operationId: 'Success',
+          subscriptionCreditBalance: user.Credits?.SubscriptionCreditBalance || 0,
+          topupCreditBalance: user.Credits?.TopupCreditBalance || 0
+        };
+        return this.userStore
+          .updateStatus(userId, 'live')
+          .then(() => creditAdditionOperation, this.errorHandlerForNonIdempotentOp('addCredits'));
       },
       (error: unknown) => {
         const result: CreditAdditionUnexpectedError = {
@@ -137,34 +190,11 @@ export class CreditsService<TIdpName extends IdpName> {
     credits: number,
     tierId: TierId
   ): Promise<CreditAdditionResult> {
-    if (credits <= 0) {
-      return Promise.resolve({
-        success: false,
-        operationId: 'UnknownError',
-        error: new Error('Credits to add must be greater or equal than 0')
-      });
-    }
+    return this.addCreditsOperation(userId, credits, { type: 'subscription', tierId });
+  }
 
-    return this.userStore.addSubscriptionCredits(userId, credits, tierId, this.logger).then(
-      (user) => {
-        const creditAdditionOperation: CreditAdditionSuccess = {
-          success: true,
-          operationId: 'Success',
-          subscriptionCreditBalance: user.Credits?.SubscriptionCreditBalance || 0
-        };
-        return this.userStore
-          .updateStatus(userId, 'live')
-          .then(() => creditAdditionOperation, this.errorHandlerForNonIdempotentOp('addCredits'));
-      },
-      (error: unknown) => {
-        const result: CreditAdditionUnexpectedError = {
-          success: false,
-          operationId: 'UnknownError',
-          error
-        };
-        return result;
-      }
-    );
+  public addTopupCredits(userId: UserId, credits: number): Promise<CreditAdditionResult> {
+    return this.addCreditsOperation(userId, credits, { type: 'topup' });
   }
 
   public clearSubscriptionCredits(
@@ -176,7 +206,8 @@ export class CreditsService<TIdpName extends IdpName> {
         const creditDeductionOperation: CreditDeductionSuccess = {
           success: true,
           operationId: 'Success',
-          subscriptionCreditBalance: user.Credits?.SubscriptionCreditBalance || 0
+          subscriptionCreditBalance: user.Credits?.SubscriptionCreditBalance || 0,
+          topupCreditBalance: user.Credits?.TopupCreditBalance || 0
         };
         return this.userStore
           .updateStatus(userId, status)

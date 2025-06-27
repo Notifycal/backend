@@ -25,7 +25,8 @@ describe(SubscriptionService, () => {
   const validSuccessResult: CreditAdditionResult = {
     success: true,
     operationId: 'Success',
-    subscriptionCreditBalance: 150
+    subscriptionCreditBalance: 150,
+    topupCreditBalance: 44
   };
 
   const validErrorResult: CreditAdditionResult = {
@@ -44,7 +45,8 @@ describe(SubscriptionService, () => {
   const validSuccessDeduction: CreditDeductionResult = {
     success: true,
     operationId: 'Success',
-    subscriptionCreditBalance: 55
+    subscriptionCreditBalance: 55,
+    topupCreditBalance: 4
   };
 
   describe('createSubscription', () => {
