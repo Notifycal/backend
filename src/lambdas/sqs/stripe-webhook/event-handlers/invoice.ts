@@ -63,7 +63,7 @@ export class InvoicePaymentSucceededHandler
       .with({ billing_reason: 'subscription_create' }, () => this.createHandler(invoice, userId))
       .with({ billing_reason: 'subscription_cycle' }, () => this.renewHandler(invoice, userId))
       .with({ billing_reason: 'subscription_update' }, (invoice) =>
-        this.upgradeOrDowngradeHandler(userId, invoice)
+        this.handleSubscriptionUpdate(userId, invoice)
       )
       .otherwise((invoice) => {
         this.logger.warn('Unhandled billing reason', {
@@ -90,63 +90,67 @@ export class InvoicePaymentSucceededHandler
     );
   }
 
-  private upgradeOrDowngradeHandler(userId: UserId, invoice: Stripe.Invoice): Promise<void> {
-    const previousTierInvoiceLineItem = invoice.lines.data[0];
-    const currentTierInvoiceLineItem = invoice.lines.data[1];
-    return this.extractTiers(
-      previousTierInvoiceLineItem,
-      currentTierInvoiceLineItem,
-      this.tiers
-    ).then(
-      (t) =>
-        match(this.isUpgradeOrDowngrade(invoice))
-          .with('upgrade', () => {
-            const period = invoice.lines.data[0].period;
-            return this.subscriptionService
-              .upgrade(
-                userId,
-                t.previousTier,
-                t.currentTier,
-                period,
-                invoice.created as UnixTimestamp
-              )
-              .then(
-                () => {},
-                (e) => this.errorHandler('upgrade')(e)
-              );
-          })
-          .with('downgrade', () =>
-            this.subscriptionService
-              .downgrade(userId)
-              .catch((error) => this.errorHandler('downgrade')(error))
-          )
-          .exhaustive(),
+  private handleSubscriptionUpdate(userId: UserId, invoice: Stripe.Invoice): Promise<void> {
+    const updateType = this.determineUpdateType(invoice);
+    return this.extractUpdateTiers(invoice).then(
+      (tiers) => this.executeSubscriptionUpdate(userId, invoice, tiers, updateType),
       (error) =>
         Promise.reject(
           new Error(
-            `Error while doing ${this.isUpgradeOrDowngrade(invoice)}: tiers could not be extracted out of the invoice`,
+            `Error while doing ${updateType}: tiers could not be extracted out of the invoice`,
             { cause: error }
           )
         )
     );
   }
 
-  private isUpgradeOrDowngrade(invoice: Stripe.Invoice): 'upgrade' | 'downgrade' {
+  private determineUpdateType(invoice: Stripe.Invoice): 'upgrade' | 'downgrade' {
     return invoice.amount_paid > 0 ? 'upgrade' : 'downgrade';
   }
 
-  private extractTiers(
-    invoiceItemPrevious: Stripe.InvoiceLineItem,
-    invoiceItemCurrent: Stripe.InvoiceLineItem,
-    tiers: Tiers
+  private extractUpdateTiers(
+    invoice: Stripe.Invoice
   ): Promise<{ previousTier: TierId; currentTier: TierId }> {
+    const previousTierInvoiceLineItem = invoice.lines.data[0];
+    const currentTierInvoiceLineItem = invoice.lines.data[1];
+
     return Promise.all([
-      this.extractTier(invoiceItemPrevious, tiers),
-      this.extractTier(invoiceItemCurrent, tiers)
+      this.extractTier(previousTierInvoiceLineItem, this.tiers),
+      this.extractTier(currentTierInvoiceLineItem, this.tiers)
     ]).then(([previousTier, currentTier]) => ({
       previousTier,
       currentTier
     }));
+  }
+
+  private executeSubscriptionUpdate(
+    userId: UserId,
+    invoice: Stripe.Invoice,
+    tiers: { previousTier: TierId; currentTier: TierId },
+    updateType: 'upgrade' | 'downgrade'
+  ): Promise<void> {
+    return match(updateType)
+      .with('upgrade', () => {
+        const period = invoice.lines.data[0].period;
+        return this.subscriptionService
+          .upgrade(
+            userId,
+            tiers.previousTier,
+            tiers.currentTier,
+            period,
+            invoice.created as UnixTimestamp
+          )
+          .then(
+            () => {},
+            (e) => this.errorHandler('upgrade')(e)
+          );
+      })
+      .with('downgrade', () =>
+        this.subscriptionService
+          .downgrade(userId)
+          .catch((error) => this.errorHandler('downgrade')(error))
+      )
+      .exhaustive();
   }
 
   private creditAdditionHandler(result: CreditAdditionResult): Promise<void> {
