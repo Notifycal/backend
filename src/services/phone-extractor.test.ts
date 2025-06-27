@@ -1,3 +1,5 @@
+import { Logger } from '@aws-lambda-powertools/logger';
+import { logger } from '@common/powertools';
 import type { IdpConfigs } from '@model/Config';
 import type { AuthorizationForIdp } from '@model/IdpAuthorization';
 import type { CalendarEvent, CountryCode, Email, IdpName } from '@notifycal/shared/types';
@@ -42,7 +44,8 @@ describe(phoneExtractor, () => {
       validAttendeeId,
       validIdpAuthorization,
       validIdp,
-      validIdpConfigs
+      validIdpConfigs,
+      expect.any(Logger)
     );
     expect([...result]).toStrictEqual(['+34677888999', '+34644555666', '+34611222333']);
     expect(phoneNumberByEmailFn).toHaveBeenCalledTimes(2);
@@ -72,7 +75,8 @@ describe(phoneExtractor, () => {
       validAttendeeId,
       validIdpAuthorization,
       validIdp,
-      validIdpConfigs
+      validIdpConfigs,
+      expect.any(Logger)
     );
     expect([...result]).toStrictEqual([]);
     expect(phoneNumberByEmailFn).toHaveBeenCalledTimes(1);
@@ -190,7 +194,8 @@ describe(phoneExtractor, () => {
       validCalendarEvent.attendees[0].id,
       validIdpAuthorization,
       validIdp,
-      validIdpConfigs
+      validIdpConfigs,
+      expect.any(Logger)
     );
     expect(phoneNumberByEmailFn).toHaveBeenCalledOnce();
   });
@@ -205,7 +210,7 @@ describe(phoneExtractor, () => {
   ) {
     vi.mocked(phoneNumberByEmail).mockImplementation(phoneByEmailFn);
 
-    return phoneExtractor(calendarEvent, countryCode, idp, idpAuthorization, idpConfigs);
+    return phoneExtractor(calendarEvent, countryCode, idp, idpAuthorization, idpConfigs, logger);
   }
 });
 

@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.39.1](https://github.com/Notifycal/backend/compare/v0.39.0...v0.39.1) (2025-06-27)
+
+
+### Bug Fixes
+
+* **deps:** Update dependency google-auth-library to v10 ([#679](https://github.com/Notifycal/backend/issues/679)) ([ce75e04](https://github.com/Notifycal/backend/commit/ce75e0442f3cd9317afa3fc2c223688fbff080c4))
+* undo renovate merges w/o status checks passing ([#737](https://github.com/Notifycal/backend/issues/737)) ([2c8f4a7](https://github.com/Notifycal/backend/commit/2c8f4a7545d567643a29d8e6b4606ee2dcad0d36))
+
 ## [0.39.0](https://github.com/Notifycal/backend/compare/v0.38.3...v0.39.0) (2025-06-25)
 
 

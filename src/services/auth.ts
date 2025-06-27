@@ -1,3 +1,4 @@
+import type { Logger } from '@aws-lambda-powertools/logger';
 import type { BaseLoginConfig } from '@lambdas/api/post-login/config';
 import { userSignedIn } from '@model/app-events/UserSignedInEvent';
 import { userSignedUp } from '@model/app-events/UserSignedUpEvent';
@@ -89,9 +90,10 @@ function handleFailureToGetUserById<TIdpName extends IdpName>(
 
 function generateAuthentication<TIdpName extends IdpName>(
   user: UserIdentity<TIdpName>,
-  config: BaseLoginConfig
+  config: BaseLoginConfig,
+  logger: Logger
 ): Promise<EncodedAndDecodedJwts> {
-  const store = new RefreshTokenBaseStore(config.refreshTokenBaseStoreConfig);
+  const store = new RefreshTokenBaseStore(config.refreshTokenBaseStoreConfig, logger);
   return buildJwtsAndStoreRefreshJwt(
     extractIdentity(user),
     config.encodeAccessJwtConfig,
@@ -103,22 +105,23 @@ function generateAuthentication<TIdpName extends IdpName>(
 export function signInOrUp<TIdpName extends IdpName>(
   identity: Identity<TIdpName>,
   authorization: AuthorizationForIdp<TIdpName>,
-  config: BaseLoginConfig & ApiRestTopicConfig
+  config: BaseLoginConfig & ApiRestTopicConfig,
+  logger: Logger
 ): Promise<EncodedAndDecodedJwts> {
-  const userProvider = UserBaseStore.withConfig<TIdpName>(config.userBaseStoreConfig);
-  const snsService = SnsService.withConfig(config.apiRestTopicConfig);
+  const userProvider = UserBaseStore.withConfig<TIdpName>(config.userBaseStoreConfig, logger);
+  const snsService = SnsService.withConfig(config.apiRestTopicConfig, logger);
 
   return userProvider.getUserById(identity.userId).then((userOrNot) => {
     if (userOrNot) {
       return signIn(userOrNot, identity, authorization, userProvider)
-        .then((user) => generateAuthentication(user, config))
+        .then((user) => generateAuthentication(user, config, logger))
         .then(
           tap(() => snsService.safePublish(userSignedIn(identity, userOrNot))),
           doAndRethrow(() => snsService.safePublish(userSignInFailed(identity, userOrNot)))
         );
     } else {
       return signUp(identity, authorization, userProvider)
-        .then((user) => generateAuthentication(user, config))
+        .then((user) => generateAuthentication(user, config, logger))
         .then(
           tap(() => snsService.safePublish(userSignedUp(identity))),
           doAndRethrow(() => snsService.safePublish(userSignUpFailed(identity)))

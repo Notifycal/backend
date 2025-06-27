@@ -8,19 +8,23 @@ import { logger } from '@common/powertools';
 import type { BaseEvent, BaseSystemEvent } from '@model/app-events/BaseEvent';
 import type { SqsQueueConfig } from '@model/Config';
 import { BaseAwsMessagingService } from './common/base-aws-messaging-service';
-import { throwError } from './common/error-handling';
+import { rethrowError } from './common/error-handling';
+import type { Logger } from '@aws-lambda-powertools/logger';
 
 export class SqsService extends BaseAwsMessagingService {
   private readonly _client: SQSClient;
   private readonly _config: SqsQueueConfig;
-  private constructor(config: SqsQueueConfig) {
+  private constructor(
+    config: SqsQueueConfig,
+    private readonly logger: Logger
+  ) {
     super();
     this._config = config;
     this._client = sqsClient();
   }
 
-  public static withConfig(config: SqsQueueConfig): SqsService {
-    return new this(config);
+  public static withConfig(config: SqsQueueConfig, logger: Logger): SqsService {
+    return new this(config, logger);
   }
 
   public send<TEvent extends BaseEvent | BaseSystemEvent>(
@@ -43,7 +47,10 @@ export class SqsService extends BaseAwsMessagingService {
         logger.info(`SQS send result`, { eventId: event.eventId, result: result });
         return result;
       },
-      (error) => throwError(`Error sending an event to SQS`, error, { eventId: event.eventId })
+      (error) =>
+        rethrowError(`Error sending an event to SQS`, error, this.logger, {
+          eventId: event.eventId
+        })
     );
   }
 }

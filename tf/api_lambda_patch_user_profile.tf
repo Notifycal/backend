@@ -14,7 +14,7 @@ data "aws_iam_policy_document" "patch_user_profile_iam_policydoc" {
 
 module "patch_user_profile_lambda" {
   source  = "terraform-aws-modules/lambda/aws"
-  version = "~> 7.17"
+  version = "~> 8.0"
 
   function_name          = "patch-user-profile-${var.environment}"
   publish                = local.lambdas_publish
@@ -50,7 +50,7 @@ module "patch_user_profile_lambda" {
 
 module "patch_user_profile_lambda_alias" {
   source  = "terraform-aws-modules/lambda/aws//modules/alias"
-  version = "~> 7.17"
+  version = "~> 8.0"
 
   function_name    = module.patch_user_profile_lambda.lambda_function_name
   function_version = module.patch_user_profile_lambda.lambda_function_version

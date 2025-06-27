@@ -1,3 +1,4 @@
+import type { Logger } from '@aws-lambda-powertools/logger';
 import { InsufficientCreditsError } from '@model/Errors';
 import type { IdpName, UserId } from '@notifycal/shared/types';
 import type { UserBaseStore } from '@services/stores/user-base-store';
@@ -37,7 +38,10 @@ export interface CreditAdditionUnexpectedError {
 export type CreditAdditionResult = CreditAdditionSuccess | CreditAdditionUnexpectedError;
 
 export class CreditsService<TIdpName extends IdpName> {
-  public constructor(private readonly userStore: UserBaseStore<TIdpName>) {}
+  public constructor(
+    private readonly userStore: UserBaseStore<TIdpName>,
+    private readonly logger: Logger
+  ) {}
 
   public async deductCredits(
     userId: UserId,
@@ -47,7 +51,7 @@ export class CreditsService<TIdpName extends IdpName> {
   ): Promise<CreditDeductionResult> {
     const creditToDeductPerUnit = countryToSMSCostCreditsMap[country];
     const totalCreditsToDeduct = creditToDeductPerUnit * units;
-    return this.userStore.deductCredits(userId, totalCreditsToDeduct).then(
+    return this.userStore.deductCredits(userId, totalCreditsToDeduct, this.logger).then(
       (user) => {
         const creditDeductionOperation: CreditDeductionSuccess = {
           success: true,
@@ -79,7 +83,7 @@ export class CreditsService<TIdpName extends IdpName> {
   }
 
   public resetSubscriptionCredits(userId: UserId, credits: number): Promise<CreditAdditionResult> {
-    return this.userStore.resetSubscriptionCredits(userId, credits).then(
+    return this.userStore.resetSubscriptionCredits(userId, credits, this.logger).then(
       (user) => {
         const creditDeductionOperation: CreditAdditionSuccess = {
           success: true,

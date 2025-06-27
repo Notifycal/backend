@@ -25,7 +25,7 @@ data "aws_iam_policy_document" "demo_reminder_to_be_sent_iam_policydoc" {
 
 module "post_demo_reminder_lambda" {
   source  = "terraform-aws-modules/lambda/aws"
-  version = "~> 7.17"
+  version = "~> 8.0"
 
   function_name          = "post-demo-reminder-${var.environment}"
   publish                = local.lambdas_publish
@@ -63,7 +63,7 @@ module "post_demo_reminder_lambda" {
 
 module "post_demo_reminder_lambda_alias" {
   source  = "terraform-aws-modules/lambda/aws//modules/alias"
-  version = "~> 7.17"
+  version = "~> 8.0"
 
   function_name    = module.post_demo_reminder_lambda.lambda_function_name
   function_version = module.post_demo_reminder_lambda.lambda_function_version

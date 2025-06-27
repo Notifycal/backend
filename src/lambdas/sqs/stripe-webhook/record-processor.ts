@@ -75,16 +75,16 @@ export function recordProcessor(
 ): Promise<void> {
   const stripeEvent = record.detail;
   logger.info('Processing Stripe webhook event');
-  const userStore = UserBaseStore.withConfig(config.userBaseStoreConfig);
+  const userStore = UserBaseStore.withConfig(config.userBaseStoreConfig, logger);
   const userPaymentIndexStore = PaymentUserIndexStore.withConfig(
     config.paymentUserIndexStoreConfig
   );
-  const creditsService = new CreditsService(userStore);
+  const creditsService = new CreditsService(userStore, logger);
   const tierToCreditsMap = Object.fromEntries(
     Object.values(config.paymentPlans.tiers).map((value) => [value.id, value.credits])
   ) as Record<TierId, number>;
   const subscriptionService = new SubscriptionService(creditsService, tierToCreditsMap);
-  const snsService = SnsService.withConfig(config.paymentWebhookTopicConfig);
+  const snsService = SnsService.withConfig(config.paymentWebhookTopicConfig, logger);
   const ourHandlers = eventHandlerFactory(subscriptionService, config.paymentPlans.tiers, logger);
   const processor = new StripeEventProcessor(
     new StripeIdentityExtractor(userPaymentIndexStore, logger),

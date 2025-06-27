@@ -1,4 +1,5 @@
 import { protectedEndpointMiddleware } from '@common/lambda-middleware';
+import { logger } from '@common/powertools';
 import { authedEventSchema } from '@model/lambda-events/ApiGatewayEvents';
 import { calendarList } from '@services/calendar';
 import { errorHandler, successHandler } from '@services/common/api-response-handlers';
@@ -17,7 +18,7 @@ function lambdaHandler(
   const config = event.lambdaConfig;
   const userId = event.requestContext.authorizer.payload.userId;
   const idp = event.requestContext.authorizer.payload.idp;
-  return calendarList(userId, idp, config.idpConfigs, config.userBaseStoreConfig).then(
+  return calendarList(userId, idp, config.idpConfigs, config.userBaseStoreConfig, logger).then(
     (calendars) => successHandler()({ result: calendars }),
     errorHandler(500)
   );

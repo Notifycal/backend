@@ -1,3 +1,4 @@
+import type { Logger } from '@aws-lambda-powertools/logger';
 import type { UpdateCommandOutput } from '@aws-sdk/lib-dynamodb';
 import { InsufficientCreditsError } from '@model/Errors';
 import type { AuthorizationForIdp } from '@model/IdpAuthorization';
@@ -19,13 +20,14 @@ export type UserBaseStoreEndpointConfig = { userBaseStoreConfig: UserBaseStoreCo
 
 export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseStoreConfig> {
   public static withConfig<TIdpName extends IdpName>(
-    config: UserBaseStoreConfig
+    config: UserBaseStoreConfig,
+    logger: Logger
   ): UserBaseStore<TIdpName> {
-    return new UserBaseStore<TIdpName>(config);
+    return new UserBaseStore<TIdpName>(config, logger);
   }
 
-  private constructor(config: UserBaseStoreConfig) {
-    super(config);
+  private constructor(config: UserBaseStoreConfig, logger: Logger) {
+    super(config, logger);
   }
 
   public getUserById(id: UserId): Promise<UserStoreRecord<TIdpName> | undefined> {
@@ -176,7 +178,8 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
 
   public deductCredits(
     userId: UserId,
-    amount: number
+    amount: number,
+    logger: Logger
   ): Promise<Pick<UserStoreRecord<TIdpName>, 'UserCredits'>> {
     return this.updateCommandRunner({
       Key: { UserId: userId },
@@ -188,7 +191,7 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
         ':amount': amount
       }
     }).then(
-      (r) => this.handleSuccessfulUpdate(r),
+      (r) => this.handleSuccessfulUpdate(r, logger),
       (error) => {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         if (error.name === 'ConditionalCheckFailedException') {
@@ -204,7 +207,8 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
 
   public async resetSubscriptionCredits(
     userId: UserId,
-    amount: number
+    amount: number,
+    logger: Logger
   ): Promise<Pick<UserStoreRecord<TIdpName>, 'UserCredits'>> {
     return this.updateCommandRunner({
       Key: { UserId: userId },
@@ -214,17 +218,18 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
           subscriptionCreditBalance: amount
         }
       }
-    }).then((r) => this.handleSuccessfulUpdate(r));
+    }).then((r) => this.handleSuccessfulUpdate(r, logger));
   }
 
   private handleSuccessfulUpdate(
-    output: UpdateCommandOutput
+    output: UpdateCommandOutput,
+    logger: Logger
   ): Pick<UserStoreRecord<TIdpName>, 'UserCredits'> {
     if (output.Attributes) {
       const updatedUser = output.Attributes as UserStoreRecord<TIdpName>;
       return { UserCredits: updatedUser.UserCredits };
     } else {
-      throwError('Unexpected error while updating credits from persistance');
+      throwError('Unexpected error while updating credits from persistance', logger);
     }
   }
 }

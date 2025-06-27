@@ -27,7 +27,7 @@ data "aws_iam_policy_document" "find_actionable_events_iam_policydoc" {
 
 module "find_actionable_events_lambda" {
   source  = "terraform-aws-modules/lambda/aws"
-  version = "~> 7.17"
+  version = "~> 8.0"
 
   function_name          = "find-actionable-events-${var.environment}"
   publish                = local.lambdas_publish

@@ -13,8 +13,8 @@
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.0.0 |
-| <a name="provider_awscc"></a> [awscc](#provider\_awscc) | 1.46.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.1.0 |
+| <a name="provider_awscc"></a> [awscc](#provider\_awscc) | 1.47.0 |
 
 ## Modules
 
@@ -22,44 +22,44 @@
 |------|--------|---------|
 | <a name="module_actionable_event_found_queue"></a> [actionable\_event\_found\_queue](#module\_actionable\_event\_found\_queue) | ./modules/sqs | n/a |
 | <a name="module_actionable_event_found_topic"></a> [actionable\_event\_found\_topic](#module\_actionable\_event\_found\_topic) | ./modules/sns | n/a |
-| <a name="module_alert_for_missing_phone_number_lambda"></a> [alert\_for\_missing\_phone\_number\_lambda](#module\_alert\_for\_missing\_phone\_number\_lambda) | terraform-aws-modules/lambda/aws | ~> 7.17 |
+| <a name="module_alert_for_missing_phone_number_lambda"></a> [alert\_for\_missing\_phone\_number\_lambda](#module\_alert\_for\_missing\_phone\_number\_lambda) | terraform-aws-modules/lambda/aws | ~> 8.0 |
 | <a name="module_api_rest_topic"></a> [api\_rest\_topic](#module\_api\_rest\_topic) | ./modules/sns | n/a |
 | <a name="module_apigateway_custom_domain"></a> [apigateway\_custom\_domain](#module\_apigateway\_custom\_domain) | ./modules/api_gateway_external_domain | n/a |
-| <a name="module_audit_trail_lambda"></a> [audit\_trail\_lambda](#module\_audit\_trail\_lambda) | terraform-aws-modules/lambda/aws | ~> 7.17 |
+| <a name="module_audit_trail_lambda"></a> [audit\_trail\_lambda](#module\_audit\_trail\_lambda) | terraform-aws-modules/lambda/aws | ~> 8.0 |
 | <a name="module_audit_trail_queue"></a> [audit\_trail\_queue](#module\_audit\_trail\_queue) | ./modules/sqs | n/a |
 | <a name="module_demo_reminder_to_be_sent_queue"></a> [demo\_reminder\_to\_be\_sent\_queue](#module\_demo\_reminder\_to\_be\_sent\_queue) | ./modules/sqs | n/a |
 | <a name="module_demo_reminder_to_be_sent_topic"></a> [demo\_reminder\_to\_be\_sent\_topic](#module\_demo\_reminder\_to\_be\_sent\_topic) | ./modules/sns | n/a |
 | <a name="module_email_to_be_sent_queue"></a> [email\_to\_be\_sent\_queue](#module\_email\_to\_be\_sent\_queue) | ./modules/sqs | n/a |
 | <a name="module_email_to_be_sent_topic"></a> [email\_to\_be\_sent\_topic](#module\_email\_to\_be\_sent\_topic) | ./modules/sns | n/a |
 | <a name="module_emailing_topic"></a> [emailing\_topic](#module\_emailing\_topic) | ./modules/sns | n/a |
-| <a name="module_event_reminder_status_change_webhook_lambda"></a> [event\_reminder\_status\_change\_webhook\_lambda](#module\_event\_reminder\_status\_change\_webhook\_lambda) | terraform-aws-modules/lambda/aws | ~> 7.17 |
-| <a name="module_event_reminder_status_change_webhook_lambda_alias"></a> [event\_reminder\_status\_change\_webhook\_lambda\_alias](#module\_event\_reminder\_status\_change\_webhook\_lambda\_alias) | terraform-aws-modules/lambda/aws//modules/alias | ~> 7.17 |
-| <a name="module_fetch_user_calendars_lambda"></a> [fetch\_user\_calendars\_lambda](#module\_fetch\_user\_calendars\_lambda) | terraform-aws-modules/lambda/aws | ~> 7.17 |
+| <a name="module_event_reminder_status_change_webhook_lambda"></a> [event\_reminder\_status\_change\_webhook\_lambda](#module\_event\_reminder\_status\_change\_webhook\_lambda) | terraform-aws-modules/lambda/aws | ~> 8.0 |
+| <a name="module_event_reminder_status_change_webhook_lambda_alias"></a> [event\_reminder\_status\_change\_webhook\_lambda\_alias](#module\_event\_reminder\_status\_change\_webhook\_lambda\_alias) | terraform-aws-modules/lambda/aws//modules/alias | ~> 8.0 |
+| <a name="module_fetch_user_calendars_lambda"></a> [fetch\_user\_calendars\_lambda](#module\_fetch\_user\_calendars\_lambda) | terraform-aws-modules/lambda/aws | ~> 8.0 |
 | <a name="module_fetch_user_calendars_queue"></a> [fetch\_user\_calendars\_queue](#module\_fetch\_user\_calendars\_queue) | ./modules/sqs | n/a |
-| <a name="module_find_actionable_events_lambda"></a> [find\_actionable\_events\_lambda](#module\_find\_actionable\_events\_lambda) | terraform-aws-modules/lambda/aws | ~> 7.17 |
-| <a name="module_get_idp_user_calendars_lambda"></a> [get\_idp\_user\_calendars\_lambda](#module\_get\_idp\_user\_calendars\_lambda) | terraform-aws-modules/lambda/aws | ~> 7.17 |
-| <a name="module_get_idp_user_calendars_lambda_alias"></a> [get\_idp\_user\_calendars\_lambda\_alias](#module\_get\_idp\_user\_calendars\_lambda\_alias) | terraform-aws-modules/lambda/aws//modules/alias | ~> 7.17 |
-| <a name="module_get_user_profile_lambda"></a> [get\_user\_profile\_lambda](#module\_get\_user\_profile\_lambda) | terraform-aws-modules/lambda/aws | ~> 7.17 |
-| <a name="module_get_user_profile_lambda_alias"></a> [get\_user\_profile\_lambda\_alias](#module\_get\_user\_profile\_lambda\_alias) | terraform-aws-modules/lambda/aws//modules/alias | ~> 7.17 |
+| <a name="module_find_actionable_events_lambda"></a> [find\_actionable\_events\_lambda](#module\_find\_actionable\_events\_lambda) | terraform-aws-modules/lambda/aws | ~> 8.0 |
+| <a name="module_get_idp_user_calendars_lambda"></a> [get\_idp\_user\_calendars\_lambda](#module\_get\_idp\_user\_calendars\_lambda) | terraform-aws-modules/lambda/aws | ~> 8.0 |
+| <a name="module_get_idp_user_calendars_lambda_alias"></a> [get\_idp\_user\_calendars\_lambda\_alias](#module\_get\_idp\_user\_calendars\_lambda\_alias) | terraform-aws-modules/lambda/aws//modules/alias | ~> 8.0 |
+| <a name="module_get_user_profile_lambda"></a> [get\_user\_profile\_lambda](#module\_get\_user\_profile\_lambda) | terraform-aws-modules/lambda/aws | ~> 8.0 |
+| <a name="module_get_user_profile_lambda_alias"></a> [get\_user\_profile\_lambda\_alias](#module\_get\_user\_profile\_lambda\_alias) | terraform-aws-modules/lambda/aws//modules/alias | ~> 8.0 |
 | <a name="module_messaging_topic"></a> [messaging\_topic](#module\_messaging\_topic) | ./modules/sns | n/a |
 | <a name="module_notify_slack"></a> [notify\_slack](#module\_notify\_slack) | git@github.com:Notifycal/tofu-module-aws-slack-notify.git | v7.0.2 |
-| <a name="module_patch_user_profile_lambda"></a> [patch\_user\_profile\_lambda](#module\_patch\_user\_profile\_lambda) | terraform-aws-modules/lambda/aws | ~> 7.17 |
-| <a name="module_patch_user_profile_lambda_alias"></a> [patch\_user\_profile\_lambda\_alias](#module\_patch\_user\_profile\_lambda\_alias) | terraform-aws-modules/lambda/aws//modules/alias | ~> 7.17 |
+| <a name="module_patch_user_profile_lambda"></a> [patch\_user\_profile\_lambda](#module\_patch\_user\_profile\_lambda) | terraform-aws-modules/lambda/aws | ~> 8.0 |
+| <a name="module_patch_user_profile_lambda_alias"></a> [patch\_user\_profile\_lambda\_alias](#module\_patch\_user\_profile\_lambda\_alias) | terraform-aws-modules/lambda/aws//modules/alias | ~> 8.0 |
 | <a name="module_payment_webhook_topic"></a> [payment\_webhook\_topic](#module\_payment\_webhook\_topic) | ./modules/sns | n/a |
-| <a name="module_post_customer_portal_session_lambda"></a> [post\_customer\_portal\_session\_lambda](#module\_post\_customer\_portal\_session\_lambda) | terraform-aws-modules/lambda/aws | ~> 7.17 |
-| <a name="module_post_customer_portal_session_lambda_alias"></a> [post\_customer\_portal\_session\_lambda\_alias](#module\_post\_customer\_portal\_session\_lambda\_alias) | terraform-aws-modules/lambda/aws//modules/alias | ~> 7.17 |
-| <a name="module_post_demo_reminder_lambda"></a> [post\_demo\_reminder\_lambda](#module\_post\_demo\_reminder\_lambda) | terraform-aws-modules/lambda/aws | ~> 7.17 |
-| <a name="module_post_demo_reminder_lambda_alias"></a> [post\_demo\_reminder\_lambda\_alias](#module\_post\_demo\_reminder\_lambda\_alias) | terraform-aws-modules/lambda/aws//modules/alias | ~> 7.17 |
-| <a name="module_post_login_lambda"></a> [post\_login\_lambda](#module\_post\_login\_lambda) | terraform-aws-modules/lambda/aws | ~> 7.17 |
-| <a name="module_post_login_lambda_alias"></a> [post\_login\_lambda\_alias](#module\_post\_login\_lambda\_alias) | terraform-aws-modules/lambda/aws//modules/alias | ~> 7.17 |
-| <a name="module_post_payment_session_lambda"></a> [post\_payment\_session\_lambda](#module\_post\_payment\_session\_lambda) | terraform-aws-modules/lambda/aws | ~> 7.17 |
-| <a name="module_post_payment_session_lambda_alias"></a> [post\_payment\_session\_lambda\_alias](#module\_post\_payment\_session\_lambda\_alias) | terraform-aws-modules/lambda/aws//modules/alias | ~> 7.17 |
-| <a name="module_post_refresh_lambda"></a> [post\_refresh\_lambda](#module\_post\_refresh\_lambda) | terraform-aws-modules/lambda/aws | ~> 7.17 |
-| <a name="module_post_refresh_lambda_alias"></a> [post\_refresh\_lambda\_alias](#module\_post\_refresh\_lambda\_alias) | terraform-aws-modules/lambda/aws//modules/alias | ~> 7.17 |
-| <a name="module_send_email_lambda"></a> [send\_email\_lambda](#module\_send\_email\_lambda) | terraform-aws-modules/lambda/aws | ~> 7.17 |
-| <a name="module_send_event_reminder_lambda"></a> [send\_event\_reminder\_lambda](#module\_send\_event\_reminder\_lambda) | terraform-aws-modules/lambda/aws | ~> 7.17 |
+| <a name="module_post_customer_portal_session_lambda"></a> [post\_customer\_portal\_session\_lambda](#module\_post\_customer\_portal\_session\_lambda) | terraform-aws-modules/lambda/aws | ~> 8.0 |
+| <a name="module_post_customer_portal_session_lambda_alias"></a> [post\_customer\_portal\_session\_lambda\_alias](#module\_post\_customer\_portal\_session\_lambda\_alias) | terraform-aws-modules/lambda/aws//modules/alias | ~> 8.0 |
+| <a name="module_post_demo_reminder_lambda"></a> [post\_demo\_reminder\_lambda](#module\_post\_demo\_reminder\_lambda) | terraform-aws-modules/lambda/aws | ~> 8.0 |
+| <a name="module_post_demo_reminder_lambda_alias"></a> [post\_demo\_reminder\_lambda\_alias](#module\_post\_demo\_reminder\_lambda\_alias) | terraform-aws-modules/lambda/aws//modules/alias | ~> 8.0 |
+| <a name="module_post_login_lambda"></a> [post\_login\_lambda](#module\_post\_login\_lambda) | terraform-aws-modules/lambda/aws | ~> 8.0 |
+| <a name="module_post_login_lambda_alias"></a> [post\_login\_lambda\_alias](#module\_post\_login\_lambda\_alias) | terraform-aws-modules/lambda/aws//modules/alias | ~> 8.0 |
+| <a name="module_post_payment_session_lambda"></a> [post\_payment\_session\_lambda](#module\_post\_payment\_session\_lambda) | terraform-aws-modules/lambda/aws | ~> 8.0 |
+| <a name="module_post_payment_session_lambda_alias"></a> [post\_payment\_session\_lambda\_alias](#module\_post\_payment\_session\_lambda\_alias) | terraform-aws-modules/lambda/aws//modules/alias | ~> 8.0 |
+| <a name="module_post_refresh_lambda"></a> [post\_refresh\_lambda](#module\_post\_refresh\_lambda) | terraform-aws-modules/lambda/aws | ~> 8.0 |
+| <a name="module_post_refresh_lambda_alias"></a> [post\_refresh\_lambda\_alias](#module\_post\_refresh\_lambda\_alias) | terraform-aws-modules/lambda/aws//modules/alias | ~> 8.0 |
+| <a name="module_send_email_lambda"></a> [send\_email\_lambda](#module\_send\_email\_lambda) | terraform-aws-modules/lambda/aws | ~> 8.0 |
+| <a name="module_send_event_reminder_lambda"></a> [send\_event\_reminder\_lambda](#module\_send\_event\_reminder\_lambda) | terraform-aws-modules/lambda/aws | ~> 8.0 |
 | <a name="module_stripe_webhook"></a> [stripe\_webhook](#module\_stripe\_webhook) | ./modules/stripe-event-bridge-webhook | n/a |
-| <a name="module_stripe_webhook_lambda"></a> [stripe\_webhook\_lambda](#module\_stripe\_webhook\_lambda) | terraform-aws-modules/lambda/aws | ~> 7.17 |
+| <a name="module_stripe_webhook_lambda"></a> [stripe\_webhook\_lambda](#module\_stripe\_webhook\_lambda) | terraform-aws-modules/lambda/aws | ~> 8.0 |
 | <a name="module_stripe_webhook_queue"></a> [stripe\_webhook\_queue](#module\_stripe\_webhook\_queue) | ./modules/sqs | n/a |
 | <a name="module_user_calendar_fetched_queue"></a> [user\_calendar\_fetched\_queue](#module\_user\_calendar\_fetched\_queue) | ./modules/sqs | n/a |
 | <a name="module_user_calendar_fetched_topic"></a> [user\_calendar\_fetched\_topic](#module\_user\_calendar\_fetched\_topic) | ./modules/sns | n/a |

@@ -130,7 +130,7 @@ async function lambdaHandler(
   ctx: Context
 ): Promise<APIGatewayProxyResult> {
   const config = event.lambdaConfig;
-  const snsService = SnsService.withConfig(config.messagingTopicConfig);
+  const snsService = SnsService.withConfig(config.messagingTopicConfig, logger);
 
   return rebuildEvent(event.queryStringParameters || {}, event.body)
     .then((rebuiltEvent) => snsService.safePublish(rebuiltEvent))

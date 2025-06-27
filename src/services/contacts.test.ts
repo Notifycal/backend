@@ -1,3 +1,4 @@
+import { logger } from '@common/powertools';
 import type { AuthorizationForIdp } from '@model/IdpAuthorization';
 import type { Email, IdpName, PhoneNumber } from '@notifycal/shared/types';
 import type { PhoneNumberE164 } from '@own-types/model';
@@ -50,6 +51,6 @@ describe('Contacts Service', () => {
       mockInstance2 as unknown as GooglePeople
     );
 
-    return phoneNumberByEmail(email, idpAuthorization, idp, idpConfigs);
+    return phoneNumberByEmail(email, idpAuthorization, idp, idpConfigs, logger);
   }
 });

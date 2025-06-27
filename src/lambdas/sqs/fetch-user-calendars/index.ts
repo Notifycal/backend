@@ -99,7 +99,7 @@ async function lambdaHandler(event: Event, context: Context): Promise<void> {
     event.lambdaConfig;
   const record = event.Records[0].body;
   const userLiveProvider = UserLiveIndexStore.withConfig(userLiveIndexStoreConfig);
-  const snsService = SnsService.withConfig(userCalendarFetchedTopicConfig);
+  const snsService = SnsService.withConfig(userCalendarFetchedTopicConfig, logger);
 
   const systemEvent = scheduledFetchUserCalendarEventFired(record, cronRunConfig);
   await snsService.safePublish(systemEvent);

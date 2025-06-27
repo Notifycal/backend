@@ -1,3 +1,4 @@
+import type { Logger } from '@aws-lambda-powertools/logger';
 import { MetricUnit } from '@aws-lambda-powertools/metrics';
 import { metrics } from '@common/powertools';
 import type { ActionableEventFoundEvent } from '@model/app-events/ActionableEventFoundEvent';
@@ -28,7 +29,8 @@ interface CalendarEventWithAnAttendeePhoneNumber {
 
 function fetchCalendarEvents(
   event: Record['body'],
-  idpConfigs: IdpConfigs
+  idpConfigs: IdpConfigs,
+  logger: Logger
 ): Promise<ServiceResponse<CalendarEvent, ParsingError>> {
   const { idpAuthorization } = event.sensitiveData;
   const calendarEventStartTime = DT.fromISO(event.data.run.lowerBoundStartTime).toUTC();
@@ -42,7 +44,8 @@ function fetchCalendarEvents(
     includeAllDayEvents,
     idpAuthorization,
     event.idp,
-    idpConfigs
+    idpConfigs,
+    logger
   );
 }
 
@@ -57,14 +60,16 @@ function fetchAttendeePhoneNumbersForCalendarEvent(
   calendarEvent: CalendarEvent,
   event: Record['body'],
   idpConfigs: IdpConfigs,
-  snsService: SnsService
+  snsService: SnsService,
+  logger: Logger
 ): Promise<Array<CalendarEventWithAnAttendeePhoneNumber>> {
   return phoneExtractor(
     calendarEvent,
     extractCountryCode(event.data.senderDetails),
     event.idp,
     event.sensitiveData.idpAuthorization,
-    idpConfigs
+    idpConfigs,
+    logger
   ).then((phoneNumbers) => {
     const dimensions: MetricDimensions = {
       idp: event.idp,
@@ -132,7 +137,8 @@ function handleFetchedCalendarEvents(
   successList: Array<CalendarEvent>,
   failureList: Array<ParsingError>,
   event: Record['body'],
-  snsService: SnsService
+  snsService: SnsService,
+  logger: Logger
 ): Promise<Array<CalendarEvent>> {
   if ((successList && successList?.length > 0) || (failureList && failureList?.length > 0)) {
     return Promise.allSettled(
@@ -141,7 +147,7 @@ function handleFetchedCalendarEvents(
       )
     )
       .then((results) =>
-        allSettledAllOrErrorHandler(results, 'publish calendar event fetch failures')
+        allSettledAllOrErrorHandler(results, 'publish calendar event fetch failures', logger)
       )
       .then(() => successList);
   } else {
@@ -153,7 +159,8 @@ function handleCalendarEventAttendees(
   calendarEvents: Array<CalendarEvent>,
   event: Record['body'],
   idpConfigs: IdpConfigs,
-  snsService: SnsService
+  snsService: SnsService,
+  logger: Logger
 ): Promise<Array<CalendarEventWithAnAttendeePhoneNumber>> {
   return Promise.allSettled(
     calendarEvents.map((calendarEvent) => {
@@ -171,13 +178,15 @@ function handleCalendarEventAttendees(
         calendarEvent,
         event,
         idpConfigs,
-        snsService
+        snsService,
+        logger
       );
     })
   ).then((results) => {
     return allSettledAllOrErrorHandler(
       results,
-      'fetch all atteendee phone number for every calendar event'
+      'fetch all atteendee phone number for every calendar event',
+      logger
     ).flat();
   });
 }
@@ -185,29 +194,39 @@ function handleCalendarEventAttendees(
 function buildAndPublishActionableEvents(
   eventWithAttendeePhoneNumbers: Array<CalendarEventWithAnAttendeePhoneNumber>,
   event: Record['body'],
-  snsService: SnsService
+  snsService: SnsService,
+  logger: Logger
 ): Promise<void> {
   const actionableEvents = buildActionableEvents(eventWithAttendeePhoneNumbers, event);
   return Promise.allSettled(
     actionableEvents.map((actionableEvent) => snsService.publish(actionableEvent))
   )
-    .then((results) => allSettledAllOrErrorHandler(results, 'publish actionable events'))
+    .then((results) => allSettledAllOrErrorHandler(results, 'publish actionable events', logger))
     .then(() => {
       return;
     });
 }
 
-export function recordProcessor(record: Record, config: ActionableEventsConfig): Promise<void> {
-  const snsService = SnsService.withConfig(config.actionableEventFoundTopicConfig);
+export function recordProcessor(
+  record: Record,
+  config: ActionableEventsConfig,
+  logger: Logger
+): Promise<void> {
+  const snsService = SnsService.withConfig(config.actionableEventFoundTopicConfig, logger);
   const event = record.body;
-  return fetchCalendarEvents(event, config.idpConfigs)
+  return fetchCalendarEvents(event, config.idpConfigs, logger)
     .then(({ successList, failureList }) =>
-      handleFetchedCalendarEvents(successList, failureList, event, snsService)
+      handleFetchedCalendarEvents(successList, failureList, event, snsService, logger)
     )
     .then((calendarEvents) =>
-      handleCalendarEventAttendees(calendarEvents, event, config.idpConfigs, snsService)
+      handleCalendarEventAttendees(calendarEvents, event, config.idpConfigs, snsService, logger)
     )
     .then((eventWithAttendeePhoneNumbers) => {
-      return buildAndPublishActionableEvents(eventWithAttendeePhoneNumbers, event, snsService);
+      return buildAndPublishActionableEvents(
+        eventWithAttendeePhoneNumbers,
+        event,
+        snsService,
+        logger
+      );
     });
 }

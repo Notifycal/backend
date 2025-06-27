@@ -1,4 +1,5 @@
 /* eslint-disable camelcase */
+import { logger } from '@common/powertools';
 import type { ParsingError } from '@model/Errors';
 import type { ServiceResponse } from '@model/ServiceResponse';
 import type {
@@ -82,7 +83,7 @@ describe('GoogleCalendar Service calendarList', () => {
         list: vi.fn().mockImplementation(calendarListFn)
       }
     } as unknown as calendar_v3.Calendar);
-    return GoogleCalendar.withRefreshToken(config, 'some-refresh-token').calendarList();
+    return GoogleCalendar.withRefreshToken(config, 'some-refresh-token', logger).calendarList();
   }
 });
 
@@ -261,7 +262,11 @@ describe('GoogleCalendar Service eventsWithinPeriod', () => {
         list: eventsListMock
       }
     } as unknown as calendar_v3.Calendar);
-    return GoogleCalendar.withRefreshToken(config, 'some-refresh-token').eventsStartTimeWithin(
+    return GoogleCalendar.withRefreshToken(
+      config,
+      'some-refresh-token',
+      logger
+    ).eventsStartTimeWithin(
       calendarId,
       lowerBoundStartTime,
       upperBoundStartTime,
@@ -339,7 +344,8 @@ describe('toCalendarEventEntry', () => {
 
     const result = GoogleCalendar.withRefreshToken(
       fakeIdpConfigs['google.com'],
-      'wsrgrgrg'
+      'wsrgrgrg',
+      logger
     ).toCalendarEventEntry(input, 'irrelevant' as CalendarId, 'Europe/Madrid' as TimeZone);
 
     expect(result).toStrictEqual({

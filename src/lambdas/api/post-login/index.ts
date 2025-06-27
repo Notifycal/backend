@@ -33,7 +33,7 @@ function verifyIdentity(
 ): Promise<[Identity<IdpName>, AuthorizationForIdp<IdpName>]> {
   const origin = event.headers?.origin || event.headers?.Origin || event.headers?.ORIGIN;
   if (isValidIdpName(idpQueryParameter) && idpQueryParameter === 'google.com' && origin) {
-    return GoogleOAuth.withConfig(config['google.com'], origin as Url).verifyIdentity(
+    return GoogleOAuth.withConfig(config['google.com'], origin as Url, logger).verifyIdentity(
       event.body.googleCode
     );
   }
@@ -57,7 +57,7 @@ function lambdaHandler(
         idp: identity.idp,
         idpId: identity.idpId
       });
-      return signInOrUp(identity, idpAuthorization, config)
+      return signInOrUp(identity, idpAuthorization, config, logger)
         .then(_successHandler)
         .catch(errorHandler(500));
     })

@@ -51,6 +51,6 @@ function testit(event: UserCalendarFetchedEvent) {
   const config: SnsTopicConfig = {
     topicArn: 'arn:aws:sns:us-east-1:123456789012:MyTopic' as AwsArn
   };
-  const snsService = SnsService.withConfig(config);
+  const snsService = SnsService.withConfig(config, logger);
   return snsService.publish(event);
 }

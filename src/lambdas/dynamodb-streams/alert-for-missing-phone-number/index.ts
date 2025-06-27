@@ -17,12 +17,12 @@ import { eventSchema, type Event, type Record } from './schema';
 export function recordProcessorCurried(
   config: AlertForMissingPhoneNumberConfig
 ): (record: Record) => Promise<void> {
-  const alertsBaseStore = AlertsBaseStore.withConfig(config.alertsBaseStoreConfig);
-  const userBaseStore = UserBaseStore.withConfig(config.userBaseStoreConfig);
-  const snsService = SnsService.withConfig(config.emailToBeSentTopicConfig);
   return (record: Record) => {
     const _logger = logger.createChild();
     setupLoggerForAuditStoreRecordProcessing(record.dynamodb.NewImage);
+    const alertsBaseStore = AlertsBaseStore.withConfig(config.alertsBaseStoreConfig, _logger);
+    const userBaseStore = UserBaseStore.withConfig(config.userBaseStoreConfig, _logger);
+    const snsService = SnsService.withConfig(config.emailToBeSentTopicConfig, _logger);
     return recordProcessor(
       record.dynamodb.NewImage,
       {

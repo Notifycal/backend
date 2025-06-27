@@ -1,3 +1,4 @@
+import { logger } from '@common/powertools';
 import { sleep } from '@testing/utils/utils';
 import { describe, expect, it, vi } from 'vitest';
 import {
@@ -105,7 +106,7 @@ describe(allSettledAllOrErrorHandler, () => {
       { status: 'fulfilled', value: 'value3' }
     ];
 
-    const output = allSettledAllOrErrorHandler(results, 'test action');
+    const output = allSettledAllOrErrorHandler(results, 'test action', logger);
 
     expect(output).toStrictEqual(['value1', 'value2', 'value3']);
   });
@@ -118,13 +119,13 @@ describe(allSettledAllOrErrorHandler, () => {
     ];
 
     expect(() => {
-      allSettledAllOrErrorHandler(results, 'test action');
+      allSettledAllOrErrorHandler(results, 'test action', logger);
     }).toThrow(`There were 1 failures to test action. Successes: 2. Total: 3. All results:`);
   });
 
   it('handles an empty array correctly', () => {
     const results: Array<PromiseSettledResult<string>> = [];
-    const output = allSettledAllOrErrorHandler(results, 'test action');
+    const output = allSettledAllOrErrorHandler(results, 'test action', logger);
 
     expect(output).toStrictEqual([]);
   });
@@ -137,7 +138,7 @@ describe(allSettledAllOrErrorHandler, () => {
     ];
 
     expect(() => {
-      allSettledAllOrErrorHandler(results, 'test action');
+      allSettledAllOrErrorHandler(results, 'test action', logger);
     }).toThrow(`There were 2 failures to test action. Successes: 1. Total: 3. All results:`);
   });
 });

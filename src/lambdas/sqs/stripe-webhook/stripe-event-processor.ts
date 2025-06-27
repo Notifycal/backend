@@ -1,5 +1,5 @@
 import type { Logger } from '@aws-lambda-powertools/logger';
-import { throwErrorV2 } from '@services/common/error-handling';
+import { rethrowError } from '@services/common/error-handling';
 import { tap } from '@utils/promises';
 import type { Stripe } from 'stripe';
 import type { EventHandler } from './event-handlers/common';
@@ -55,7 +55,7 @@ export class StripeEventProcessor {
           )
       )
       .catch((error) => {
-        throwErrorV2('Error processing event', this.logger, error);
+        rethrowError('Error processing event', error, this.logger);
       });
   }
 }

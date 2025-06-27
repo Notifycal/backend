@@ -7,7 +7,7 @@ import type {
   AuditTrailStoreRecordOrigin
 } from '@model/store/AuditTrailStoreRecord';
 import type { CorrelationId, DateTime, EventId, UserId } from '@notifycal/shared/types';
-import { throwError } from '@services/common/error-handling';
+import { rethrowError } from '@services/common/error-handling';
 import { setupLoggerForAuditStoreRecordProcessing } from '@services/common/logger';
 import type { AuditTrailBaseStore } from '@services/stores/audit-trail-base-store';
 import type MetricsAggregator from '@utils/MetricsAggregator';
@@ -97,6 +97,6 @@ export function recordProcessor(
       (storeRecord) => {
         logger.info(`Event has been successfully processed`, { eventId: storeRecord.EventId });
       },
-      (error) => throwError(`Failed to process event`, error, { event: record.body })
+      (error) => rethrowError(`Failed to process event`, error, logger, { event: record.body })
     );
 }

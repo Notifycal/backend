@@ -290,11 +290,20 @@ describe('Messaging processor', () => {
       };
       // eslint-disable-next-line @typescript-eslint/unbound-method
       vi.mocked(SnsService.withConfig).mockReturnValue(snsServiceMock as unknown as SnsService);
-      const snsService = SnsService.withConfig({} as SnsTopicConfig);
+      const snsService = SnsService.withConfig({} as SnsTopicConfig, logger);
       // eslint-disable-next-line @typescript-eslint/unbound-method
       vi.mocked(CreditsService.prototype.deductCredits).mockImplementation(deductCreditsFn);
-      const creditService = new CreditsService({} as unknown as UserBaseStore<'google.com'>);
-      const messageProcessor = new Processor(config, messagingEnabled, snsService, creditService);
+      const creditService = new CreditsService(
+        {} as unknown as UserBaseStore<'google.com'>,
+        logger
+      );
+      const messageProcessor = new Processor(
+        config,
+        messagingEnabled,
+        snsService,
+        creditService,
+        logger
+      );
       return messageProcessor.process(event);
     }
   });

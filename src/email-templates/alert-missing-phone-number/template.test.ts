@@ -1,3 +1,4 @@
+import { logger } from '@common/powertools';
 import { logo } from '@email-templates/assets/logo.png.base64';
 import type { LanguageCode } from '@notifycal/shared/types';
 import { TemplateCompiler } from '@services/template-compiler';
@@ -9,7 +10,7 @@ import { type EmailDynamicVariables, type EmailTextVariables, translations } fro
 
 describe('alert-missing-phone-number template', () => {
   it('should compile the template', () => {
-    const templateCompiler = new TemplateCompiler();
+    const templateCompiler = new TemplateCompiler(logger);
     const compiledTemplate = templateCompiler.compile(template);
 
     expect(compiledTemplate).toBeInstanceOf(Function);
