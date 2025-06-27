@@ -1,4 +1,4 @@
-import { stripeEventTypeSchema } from '@lambdas/sqs/stripe-webhook/stripe-schemas';
+import { stripeEventTypes } from '@lambdas/sqs/stripe-webhook/stripe-schemas';
 import type {
   CorrelationId,
   DateTime,
@@ -8,31 +8,55 @@ import type {
   UserId
 } from '@notifycal/shared/types';
 import { toPascalCase } from '@utils/case';
-import type { PascalCaseEventType } from '@utils/types';
+import type { CapitalizeFirst, ReplaceUnderscoreWithDot, SplitByDot } from '@utils/types';
 import type Stripe from 'stripe';
-import type { z } from 'zod';
+import { v4 } from 'uuid';
+import { z } from 'zod';
 import type { baseEventSchema } from './BaseEvent';
 
-type OurStripeEventType<T extends Stripe.Event['type']> = PascalCaseEventType<T>;
+type JoinWithPaymentPrefix<T extends ReadonlyArray<string>> = T extends readonly [
+  infer First,
+  ...infer Rest
+]
+  ? First extends string
+    ? Rest extends ReadonlyArray<string>
+      ? Rest['length'] extends 0
+        ? `Payment${CapitalizeFirst<First>}`
+        : `Payment${CapitalizeFirst<First>}${JoinWithPaymentPrefix<Rest>}`
+      : never
+    : never
+  : 'Payment';
+
+export type PascalCaseEventType<T extends string> = T extends string
+  ? ReplaceUnderscoreWithDot<T> extends infer Normalized
+    ? Normalized extends string
+      ? SplitByDot<Normalized> extends infer Parts
+        ? Parts extends ReadonlyArray<string>
+          ? Parts['length'] extends 1
+            ? `Payment${CapitalizeFirst<Normalized>}`
+            : JoinWithPaymentPrefix<Parts>
+          : never
+        : never
+      : never
+    : never
+  : never;
+
+type OurStripeEventType = PascalCaseEventType<Stripe.Event['type']>;
 
 export type PaymentWebhookFiredEvent = z.infer<typeof baseEventSchema>;
 
-function formatEventName(parts: Array<string>): OurStripeEventType<Stripe.Event['type']> {
-  const lastPart = parts.pop();
-  return (parts.join('') + 'Event' + lastPart) as OurStripeEventType<Stripe.Event['type']>;
+function toOurEventType(eventType: Stripe.Event['type']): OurStripeEventType {
+  return `Payment${toPascalCase(eventType)}` as OurStripeEventType;
 }
 
-function convertToOurEventType(stripeEventType: string): OurStripeEventType<Stripe.Event['type']> {
-  return formatEventName(stripeEventType.split('.').map(toPascalCase));
-}
-
-export const ourStripeEventTypeSchema = stripeEventTypeSchema.transform(convertToOurEventType);
-
-function toOurEventType<T extends Stripe.Event['type']>(eventType: T): OurStripeEventType<T> {
-  return eventType.split('.').reduce((acc, part) => {
-    return acc + part.charAt(0).toUpperCase() + part.slice(1);
-  }, 'Payment') as OurStripeEventType<T>;
-}
+export const ourStripeEventTypeZodLiteralArray = stripeEventTypes.map((type) => {
+  const ourEventType = toOurEventType(type);
+  return z.literal(ourEventType);
+}) as [
+  z.ZodLiteral<OurStripeEventType>,
+  z.ZodLiteral<OurStripeEventType>,
+  ...Array<z.ZodLiteral<OurStripeEventType>>
+];
 
 export function fromStripeEvent(
   origin: Stripe.Event,
@@ -40,7 +64,7 @@ export function fromStripeEvent(
   idp: IdpName,
   idpId: IdpId
 ): PaymentWebhookFiredEvent {
-  const eventId = origin.id;
+  const eventId = v4();
   const stripeEventType = origin.type;
   return {
     eventId: eventId as EventId,

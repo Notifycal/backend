@@ -49,7 +49,7 @@ data "aws_iam_policy_document" "audit_trail_iam_policydoc" {
 
 module "audit_trail_lambda" {
   source  = "terraform-aws-modules/lambda/aws"
-  version = "~> 7.17"
+  version = "~> 8.0"
 
   function_name          = "audit-trail-${var.environment}"
   publish                = local.lambdas_publish

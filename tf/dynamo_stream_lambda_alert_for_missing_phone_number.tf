@@ -102,7 +102,7 @@ data "aws_iam_policy_document" "alert_for_missing_phone_number_iam_policydoc" {
 
 module "alert_for_missing_phone_number_lambda" {
   source  = "terraform-aws-modules/lambda/aws"
-  version = "~> 7.17"
+  version = "~> 8.0"
 
   function_name          = "alert-for-missing-phone-number-${var.environment}"
   publish                = local.lambdas_publish

@@ -41,7 +41,7 @@ data "aws_iam_policy_document" "fetch_user_calendars_iam_policydoc" {
 
 module "fetch_user_calendars_lambda" {
   source  = "terraform-aws-modules/lambda/aws"
-  version = "~> 7.17"
+  version = "~> 8.0"
 
   function_name          = "fetch-user-calendars-${var.environment}"
   publish                = local.lambdas_publish

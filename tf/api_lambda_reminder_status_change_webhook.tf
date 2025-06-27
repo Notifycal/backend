@@ -14,7 +14,7 @@ data "aws_iam_policy_document" "event_reminder_status_change_webhook_iam_policyd
 
 module "event_reminder_status_change_webhook_lambda" {
   source  = "terraform-aws-modules/lambda/aws"
-  version = "~> 7.17"
+  version = "~> 8.0"
 
   function_name          = "post-event-reminder-delivery-status-webhook-${var.environment}"
   publish                = local.lambdas_publish
@@ -56,7 +56,7 @@ module "event_reminder_status_change_webhook_lambda" {
 
 module "event_reminder_status_change_webhook_lambda_alias" {
   source  = "terraform-aws-modules/lambda/aws//modules/alias"
-  version = "~> 7.17"
+  version = "~> 8.0"
 
   function_name    = module.event_reminder_status_change_webhook_lambda.lambda_function_name
   function_version = module.event_reminder_status_change_webhook_lambda.lambda_function_version

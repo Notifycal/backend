@@ -14,7 +14,7 @@ data "aws_iam_policy_document" "get_user_profile_iam_policydoc" {
 
 module "get_user_profile_lambda" {
   source  = "terraform-aws-modules/lambda/aws"
-  version = "~> 7.17"
+  version = "~> 8.0"
 
   function_name          = "get-user-profile-${var.environment}"
   publish                = local.lambdas_publish
@@ -50,7 +50,7 @@ module "get_user_profile_lambda" {
 
 module "get_user_profile_lambda_alias" {
   source  = "terraform-aws-modules/lambda/aws//modules/alias"
-  version = "~> 7.17"
+  version = "~> 8.0"
 
   function_name    = module.get_user_profile_lambda.lambda_function_name
   function_version = module.get_user_profile_lambda.lambda_function_version

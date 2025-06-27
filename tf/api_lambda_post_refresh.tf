@@ -26,7 +26,7 @@ data "aws_iam_policy_document" "post_refresh_iam_policydoc" {
 
 module "post_refresh_lambda" {
   source  = "terraform-aws-modules/lambda/aws"
-  version = "~> 7.17"
+  version = "~> 8.0"
 
   function_name          = "post-refresh-${var.environment}"
   publish                = local.lambdas_publish
@@ -62,7 +62,7 @@ module "post_refresh_lambda" {
 
 module "post_refresh_lambda_alias" {
   source  = "terraform-aws-modules/lambda/aws//modules/alias"
-  version = "~> 7.17"
+  version = "~> 8.0"
 
   function_name    = module.post_refresh_lambda.lambda_function_name
   function_version = module.post_refresh_lambda.lambda_function_version

@@ -13,7 +13,7 @@ data "aws_iam_policy_document" "post_customer_portal_session_iam_policydoc" {
 }
 module "post_customer_portal_session_lambda" {
   source  = "terraform-aws-modules/lambda/aws"
-  version = "~> 7.17"
+  version = "~> 8.0"
 
   function_name          = "post-customer-portal-session-${var.environment}"
   publish                = local.lambdas_publish
@@ -53,7 +53,7 @@ module "post_customer_portal_session_lambda" {
 
 module "post_customer_portal_session_lambda_alias" {
   source  = "terraform-aws-modules/lambda/aws//modules/alias"
-  version = "~> 7.17"
+  version = "~> 8.0"
 
   function_name    = module.post_customer_portal_session_lambda.lambda_function_name
   function_version = module.post_customer_portal_session_lambda.lambda_function_version
