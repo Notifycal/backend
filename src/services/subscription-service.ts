@@ -90,6 +90,6 @@ export class SubscriptionService<TIdpName extends IdpName> {
   }
 
   public cancel(userId: UserId, reason: 'unpaid' | 'cancelled'): Promise<CreditDeductionResult> {
-    return this.creditsService.deleteSubscriptionCredits(userId, reason);
+    return this.creditsService.clearSubscriptionCredits(userId, reason);
   }
 }

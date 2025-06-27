@@ -167,11 +167,11 @@ export class CreditsService<TIdpName extends IdpName> {
     );
   }
 
-  public deleteSubscriptionCredits(
+  public clearSubscriptionCredits(
     userId: UserId,
     status: UserStatus
   ): Promise<CreditDeductionResult> {
-    return this.userStore.deleteSubscriptionCredits(userId, this.logger).then(
+    return this.userStore.clearSubscriptionCredits(userId, this.logger).then(
       (user) => {
         const creditDeductionOperation: CreditDeductionSuccess = {
           success: true,

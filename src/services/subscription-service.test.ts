@@ -301,7 +301,7 @@ describe(SubscriptionService, () => {
       reason: 'unpaid' | 'cancelled'
     ): Promise<CreditDeductionResult> {
       const service = new SubscriptionService(
-        { deleteSubscriptionCredits: deleteFn } as unknown as CreditsService<IdpName>,
+        { clearSubscriptionCredits: deleteFn } as unknown as CreditsService<IdpName>,
         validTierToCreditsMap
       );
       return service.cancel(validUserId, reason);

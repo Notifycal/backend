@@ -259,7 +259,7 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
     }).then((r) => this.handleSuccessfulUpdate(r, logger));
   }
 
-  public async deleteSubscriptionCredits(
+  public async clearSubscriptionCredits(
     userId: UserId,
     logger: Logger
   ): Promise<Pick<UserStoreRecord<TIdpName>, 'Credits'>> {

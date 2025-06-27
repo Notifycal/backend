@@ -406,18 +406,15 @@ describe(CreditsService, () => {
     });
   });
 
-  describe('deleteSubscriptionCredits', () => {
+  describe('clearSubscriptionCredits', () => {
     it('should successfully delete credits and return success result with zero balance', async () => {
-      const deleteSubscriptionCreditsFn = vi.fn().mockResolvedValue(validUserWithZeroCredits);
+      const clearSubscriptionCreditsFn = vi.fn().mockResolvedValue(validUserWithZeroCredits);
       const updateStatusFn = vi.fn().mockResolvedValue(undefined);
 
-      const result = await testDeleteSubscriptionCredits(
-        deleteSubscriptionCreditsFn,
-        updateStatusFn
-      );
+      const result = await testclearSubscriptionCredits(clearSubscriptionCreditsFn, updateStatusFn);
 
-      expect(deleteSubscriptionCreditsFn).toHaveBeenCalledTimes(1);
-      expect(deleteSubscriptionCreditsFn).toHaveBeenCalledWith(validUserId, expect.any(Logger));
+      expect(clearSubscriptionCreditsFn).toHaveBeenCalledTimes(1);
+      expect(clearSubscriptionCreditsFn).toHaveBeenCalledWith(validUserId, expect.any(Logger));
       expect(result).toStrictEqual({
         success: true,
         operationId: 'Success',
@@ -428,13 +425,10 @@ describe(CreditsService, () => {
 
     it('should handle user with no Credits object', async () => {
       const userWithoutCredits = {};
-      const deleteSubscriptionCreditsFn = vi.fn().mockResolvedValue(userWithoutCredits);
+      const clearSubscriptionCreditsFn = vi.fn().mockResolvedValue(userWithoutCredits);
       const updateStatusFn = vi.fn().mockResolvedValue(undefined);
 
-      const result = await testDeleteSubscriptionCredits(
-        deleteSubscriptionCreditsFn,
-        updateStatusFn
-      );
+      const result = await testclearSubscriptionCredits(clearSubscriptionCreditsFn, updateStatusFn);
 
       expect(result).toStrictEqual({
         success: true,
@@ -445,13 +439,10 @@ describe(CreditsService, () => {
 
     it('should handle unexpected errors during credit deletion', async () => {
       const unexpectedError = new Error('Database write failed');
-      const deleteSubscriptionCreditsFn = vi.fn().mockRejectedValue(unexpectedError);
+      const clearSubscriptionCreditsFn = vi.fn().mockRejectedValue(unexpectedError);
       const updateStatusFn = vi.fn();
 
-      const result = await testDeleteSubscriptionCredits(
-        deleteSubscriptionCreditsFn,
-        updateStatusFn
-      );
+      const result = await testclearSubscriptionCredits(clearSubscriptionCreditsFn, updateStatusFn);
 
       expect(updateStatusFn).not.toHaveBeenCalled();
       expect(result).toStrictEqual({
@@ -463,23 +454,23 @@ describe(CreditsService, () => {
 
     it('should reject with idempotent operation error when updateStatus fails', async () => {
       const updateStatusError = new Error('Failed to update status');
-      const deleteSubscriptionCreditsFn = vi.fn().mockResolvedValue(validUserWithZeroCredits);
+      const clearSubscriptionCreditsFn = vi.fn().mockResolvedValue(validUserWithZeroCredits);
       const updateStatusFn = vi.fn().mockRejectedValue(updateStatusError);
 
       await expect(
-        testDeleteSubscriptionCredits(deleteSubscriptionCreditsFn, updateStatusFn)
+        testclearSubscriptionCredits(clearSubscriptionCreditsFn, updateStatusFn)
       ).rejects.toThrow(
         'Error while handling deleteCredits. Throwing error so that it gets retried cause the operation is idempotent. Error: Failed to update status'
       );
     });
 
     it('should update to different status based on parameter', async () => {
-      const deleteSubscriptionCreditsFn = vi.fn().mockResolvedValue(validUserWithZeroCredits);
+      const clearSubscriptionCreditsFn = vi.fn().mockResolvedValue(validUserWithZeroCredits);
       const updateStatusFn = vi.fn().mockResolvedValue(undefined);
       const customStatus = 'suspended' as UserStatus;
 
-      await testDeleteSubscriptionCredits(
-        deleteSubscriptionCreditsFn,
+      await testclearSubscriptionCredits(
+        clearSubscriptionCreditsFn,
         updateStatusFn,
         validUserId,
         customStatus
@@ -538,18 +529,18 @@ describe(CreditsService, () => {
     return creditsService.addSubscriptionCredits(userId, credits, tierId);
   }
 
-  function testDeleteSubscriptionCredits(
-    deleteSubscriptionCreditsFn: () => Promise<Pick<UserStoreRecord<unknown>, 'Credits'>>,
+  function testclearSubscriptionCredits(
+    clearSubscriptionCreditsFn: () => Promise<Pick<UserStoreRecord<unknown>, 'Credits'>>,
     updateStatusFn: () => Promise<void>,
     userId: UserId = validUserId,
     status: UserStatus = validUserStatus
   ): Promise<CreditDeductionResult> {
     const userStoreMock = {
-      deleteSubscriptionCredits: deleteSubscriptionCreditsFn,
+      clearSubscriptionCredits: clearSubscriptionCreditsFn,
       updateStatus: updateStatusFn
     } as unknown as UserBaseStore<IdpName>;
 
     const creditsService = new CreditsService(userStoreMock, logger);
-    return creditsService.deleteSubscriptionCredits(userId, status);
+    return creditsService.clearSubscriptionCredits(userId, status);
   }
 });
