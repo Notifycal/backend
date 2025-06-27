@@ -1,8 +1,9 @@
-import type { DateTime, TimeZone } from '@notifycal/shared/types';
+import type { DateTime, Percentage, TimeZone, UnixTimestamp } from '@notifycal/shared/types';
+import type { Period } from '@own-types/model';
 import { DateTime as DT } from 'luxon';
 import { describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
-import { timezoneValidator } from './datetime';
+import { remainingPeriodPercentage, timezoneValidator } from './datetime';
 
 export const dateTimeSchema = z
   .string()
@@ -147,4 +148,93 @@ describe(timezoneValidator, () => {
     expect(result).toBe(true);
     expect(mockContext.addIssue).not.toHaveBeenCalled();
   });
+});
+
+describe(remainingPeriodPercentage, () => {
+  const validPeriod: Period = {
+    start: 1000 as UnixTimestamp,
+    end: 2000 as UnixTimestamp
+  };
+
+  const validNowInMiddle = 1500 as UnixTimestamp;
+  const validNowAtStart = 1000 as UnixTimestamp;
+  const validNowAtEnd = 2000 as UnixTimestamp;
+  const validNowBeforeStart = 500 as UnixTimestamp;
+  const validNowAfterEnd = 2500 as UnixTimestamp;
+
+  const validZeroDurationPeriod: Period = {
+    start: 1000 as UnixTimestamp,
+    end: 1000 as UnixTimestamp
+  };
+
+  it('should return 50 when now is at middle of period', () => {
+    const result = testIt(validPeriod, validNowInMiddle);
+
+    expect(result).toBe(50);
+  });
+
+  it('should return 100 when now is at start of period', () => {
+    const result = testIt(validPeriod, validNowAtStart);
+
+    expect(result).toBe(100);
+  });
+
+  it('should return 0 when now is at end of period', () => {
+    const result = testIt(validPeriod, validNowAtEnd);
+
+    expect(result).toBe(0);
+  });
+
+  it('should return 0 when now is after end of period', () => {
+    const result = testIt(validPeriod, validNowAfterEnd);
+
+    expect(result).toBe(0);
+  });
+
+  it('should return 0 when now is before start of period', () => {
+    const result = testIt(validPeriod, validNowBeforeStart);
+
+    expect(result).toBe(0);
+  });
+
+  it('should round result to 2 decimal places for percentage display', () => {
+    const periodWith3Digits: Period = {
+      start: 1000 as UnixTimestamp,
+      end: 1003 as UnixTimestamp
+    };
+    const nowWith1Remaining = 1002 as UnixTimestamp;
+
+    const result = testIt(periodWith3Digits, nowWith1Remaining);
+
+    expect(result).toBe(33.33);
+  });
+
+  it('should handle very small remaining percentages', () => {
+    const largePeriod: Period = {
+      start: 0 as UnixTimestamp,
+      end: 10000 as UnixTimestamp
+    };
+    const almostAtEnd = 9999 as UnixTimestamp;
+
+    const result = testIt(largePeriod, almostAtEnd);
+
+    expect(result).toBe(0.01);
+  });
+
+  it('should return 0 when period has zero duration', () => {
+    const result = testIt(validZeroDurationPeriod, validNowInMiddle);
+
+    expect(result).toBe(0);
+  });
+
+  it('should return 0 when period has zero duration and now equals period timestamps', () => {
+    const nowAtZeroDurationPeriod = 1000 as UnixTimestamp;
+    const result = testIt(validZeroDurationPeriod, nowAtZeroDurationPeriod);
+
+    expect(result).toBe(0);
+  });
+
+  function testIt(period: Period, now: UnixTimestamp): Percentage {
+    return remainingPeriodPercentage(period, now);
+  }
 });

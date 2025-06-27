@@ -286,6 +286,8 @@ describe(StripeService, () => {
   });
 
   describe('createCustomerPortalSession', () => {
+    const validStripeCustomerPortalConfigId = 'cng_rdtsghethergwrg';
+
     it('should create customer portal session successfully and return session URL', async () => {
       const mockSession = { url: validPortalUrl };
       const createPortalSessionFn = vi.fn().mockResolvedValue(mockSession);
@@ -293,6 +295,7 @@ describe(StripeService, () => {
       const result = await testCustomerPortalSession(
         validStripeCustomerId,
         validReturnUrl,
+        validStripeCustomerPortalConfigId,
         createPortalSessionFn
       );
 
@@ -300,7 +303,8 @@ describe(StripeService, () => {
       expect(createPortalSessionFn).toHaveBeenCalledTimes(1);
       expect(createPortalSessionFn).toHaveBeenCalledWith({
         customer: validStripeCustomerId,
-        return_url: validReturnUrl
+        return_url: validReturnUrl,
+        configuration: validStripeCustomerPortalConfigId
       });
     });
 
@@ -309,7 +313,12 @@ describe(StripeService, () => {
       const createPortalSessionFn = vi.fn().mockRejectedValue(stripeError);
 
       await expect(
-        testCustomerPortalSession(validStripeCustomerId, validReturnUrl, createPortalSessionFn)
+        testCustomerPortalSession(
+          validStripeCustomerId,
+          validReturnUrl,
+          validStripeCustomerPortalConfigId,
+          createPortalSessionFn
+        )
       ).rejects.toThrow('Portal session creation failed');
     });
   });
@@ -364,6 +373,7 @@ describe(StripeService, () => {
   function testCustomerPortalSession(
     stripeCustomerId: StripeCustomerId,
     returnUrl: Url,
+    configId: string,
     createPortalSessionFn: () => Promise<Stripe.Response<Stripe.BillingPortal.Session>>
   ): Promise<Url> {
     const mockStripeInstance = {
@@ -377,7 +387,7 @@ describe(StripeService, () => {
     setupMocks(mockStripeInstance);
 
     const stripeService = new StripeService(validApiKey);
-    return stripeService.createCustomerPortalSession(stripeCustomerId, returnUrl);
+    return stripeService.createCustomerPortalSession(stripeCustomerId, returnUrl, configId);
   }
 
   function setupMocks(mockStripeInstance: Stripe): void {

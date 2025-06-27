@@ -1,10 +1,20 @@
 import type { Logger } from '@aws-lambda-powertools/logger';
 import type { Identity, IdpName } from '@notifycal/shared/types';
 import type Stripe from 'stripe';
+import type { StripeEventType } from '../stripe-schemas';
+import { BaseHandler } from './base-handler';
 import type { EventHandler } from './common';
 
-export class CustomerCreatedHandler implements EventHandler<Stripe.CustomerCreatedEvent> {
-  public constructor(private readonly logger: Logger) {}
+export class CustomerCreatedHandler
+  extends BaseHandler
+  implements EventHandler<Stripe.CustomerCreatedEvent>
+{
+  public constructor(
+    stripeEventType: StripeEventType,
+    private readonly logger: Logger
+  ) {
+    super(stripeEventType);
+  }
 
   public handle(event: Stripe.CustomerCreatedEvent, identity: Identity<IdpName>): Promise<void> {
     const customer = event.data.object;
@@ -17,8 +27,16 @@ export class CustomerCreatedHandler implements EventHandler<Stripe.CustomerCreat
   }
 }
 
-export class CustomerUpdatedHandler implements EventHandler<Stripe.CustomerUpdatedEvent> {
-  public constructor(private readonly logger: Logger) {}
+export class CustomerUpdatedHandler
+  extends BaseHandler
+  implements EventHandler<Stripe.CustomerUpdatedEvent>
+{
+  public constructor(
+    stripeEventType: StripeEventType,
+    private readonly logger: Logger
+  ) {
+    super(stripeEventType);
+  }
 
   public handle(event: Stripe.CustomerUpdatedEvent, identity: Identity<IdpName>): Promise<void> {
     const customer = event.data.object;
@@ -32,8 +50,16 @@ export class CustomerUpdatedHandler implements EventHandler<Stripe.CustomerUpdat
   }
 }
 
-export class CustomerDeletedHandler implements EventHandler<Stripe.CustomerDeletedEvent> {
-  public constructor(private readonly logger: Logger) {}
+export class CustomerDeletedHandler
+  extends BaseHandler
+  implements EventHandler<Stripe.CustomerDeletedEvent>
+{
+  public constructor(
+    stripeEventType: StripeEventType,
+    private readonly logger: Logger
+  ) {
+    super(stripeEventType);
+  }
 
   public handle(event: Stripe.CustomerDeletedEvent, identity: Identity<IdpName>): Promise<void> {
     const customer = event.data.object;

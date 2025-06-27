@@ -12,6 +12,10 @@ output "spain_tax_config" {
   }
 }
 
+output "customer_portal_configuration_id" {
+  value = stripe_portal_configuration.portal_configuration.id
+}
+
 output "country_to_sms_cost_map" {
   value = local.country_to_sms_cost_map
 }
