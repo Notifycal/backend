@@ -125,6 +125,9 @@ export class StripeService {
           product: product.id,
           vatCountry: 'ES'
         },
+        // From Docs: Generate a post-purchase Invoice for one-time payments.
+        // If you disable it is highly recommended the topups event handler, currently located
+        // in 'invoice.payment_succeeded', in the webhook gets relocated to 'payment_intent.succeeded' or something
         invoice_creation: {
           enabled: true
         },
