@@ -271,8 +271,7 @@ function testIt(
 
   // eslint-disable-next-line @typescript-eslint/unbound-method
   vi.mocked(UserBaseStore.withConfig).mockReturnValue(userBaseStoreMock);
-  // eslint-disable-next-line @typescript-eslint/unbound-method
-  vi.mocked(StripeService.withConfig).mockResolvedValue(stripeServiceMock);
+  vi.mocked(StripeService).mockImplementation(() => stripeServiceMock);
   // eslint-disable-next-line @typescript-eslint/unbound-method
   vi.mocked(metrics.addMetric).mockImplementation(addMetricFn);
 

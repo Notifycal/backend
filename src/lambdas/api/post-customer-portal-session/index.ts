@@ -15,7 +15,7 @@ import type { APIGatewayProxyResult, Context } from 'aws-lambda';
 import { readPostCustomerPortalSessionConfig } from './config';
 import { type Event, eventSchema } from './schemas';
 
-async function lambdaHandler(
+function lambdaHandler(
   event: Event,
   /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
   ctx: Context
@@ -25,7 +25,7 @@ async function lambdaHandler(
   const apiKey = stripeAuthConfig.apiKey;
 
   const userBaseStore = UserBaseStore.withConfig(userBaseStoreConfig, logger);
-  const stripeService = await StripeService.withConfig(apiKey);
+  const stripeService = new StripeService(apiKey);
 
   const frontendUrl = validateRequestHeaderOrigin({
     headers: event.headers || {},

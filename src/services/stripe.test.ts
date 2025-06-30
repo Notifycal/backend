@@ -70,7 +70,7 @@ describe(StripeService, () => {
     vi.mocked(HttpClient.prototype.getAxiosInstance).mockResolvedValue({} as AxiosInstance);
     vi.mocked(Stripe).mockImplementation(mockConstructor);
 
-    await StripeService.withConfig(validApiKey);
+    new StripeService(validApiKey);
 
     expect(HttpClient).toHaveBeenCalledWith(undefined, undefined, 'Stripe');
     expect(mockConstructor).toHaveBeenCalledTimes(1);
@@ -468,7 +468,7 @@ describe(StripeService, () => {
     });
   });
 
-  async function testCreateCustomer(
+  function testCreateCustomer(
     identity: Identity<IdpName>,
     createCustomerFn: () => Promise<{ id: string }>,
     testClockListFn: MockInstance = vi.fn().mockRejectedValue(new Error('Testing in anger')),
@@ -483,11 +483,11 @@ describe(StripeService, () => {
 
     setupMocks(mockStripeInstance);
 
-    const stripeService = await StripeService.withConfig(validApiKey);
+    const stripeService = new StripeService(validApiKey);
     return stripeService.createCustomer(identity);
   }
 
-  async function testCheckoutSession(
+  function testCheckoutSession(
     stripeCustomerId: StripeCustomerId,
     identity: Identity<'google.com'>,
     tier: Tier,
@@ -507,7 +507,7 @@ describe(StripeService, () => {
 
     setupMocks(mockStripeInstance);
 
-    const stripeService = await StripeService.withConfig(validApiKey);
+    const stripeService = new StripeService(validApiKey);
     return stripeService.createCheckoutSession(
       stripeCustomerId,
       identity,
@@ -519,7 +519,7 @@ describe(StripeService, () => {
     );
   }
 
-  async function testCustomerPortalSession(
+  function testCustomerPortalSession(
     stripeCustomerId: StripeCustomerId,
     returnUrl: Url,
     configId: string,
@@ -536,7 +536,7 @@ describe(StripeService, () => {
 
     setupMocks(mockStripeInstance);
 
-    const stripeService = await StripeService.withConfig(validApiKey);
+    const stripeService = new StripeService(validApiKey);
     return stripeService.createCustomerPortalSession(stripeCustomerId, returnUrl, configId);
   }
 
