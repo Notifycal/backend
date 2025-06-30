@@ -13,7 +13,7 @@
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.1.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.0.0 |
 | <a name="provider_awscc"></a> [awscc](#provider\_awscc) | 1.47.0 |
 
 ## Modules
@@ -127,6 +127,7 @@
 | <a name="input_alert_for_missing_phone_number"></a> [alert\_for\_missing\_phone\_number](#input\_alert\_for\_missing\_phone\_number) | n/a | <pre>object({<br/>    error_rate_threshold              = optional(number, 5)<br/>    max_notifications_per_day         = optional(number, 1)<br/>    count_threshold_to_enable_trigger = optional(number, 0)<br/>  })</pre> | `{}` | no |
 | <a name="input_allowed_origins"></a> [allowed\_origins](#input\_allowed\_origins) | Allowed origins specified in response headers by API gateway lambdas(TLDR: CORS). The value matching the request header origin will be set in the response | `list(string)` | n/a | yes |
 | <a name="input_api_gateway_custom_domain_enabled"></a> [api\_gateway\_custom\_domain\_enabled](#input\_api\_gateway\_custom\_domain\_enabled) | Controls the creation of a custom domain for API Gateway and the domain it is accessible from | `bool` | `true` | no |
+| <a name="input_api_gateway_custom_domain_ttl"></a> [api\_gateway\_custom\_domain\_ttl](#input\_api\_gateway\_custom\_domain\_ttl) | TTL for the custom DNS record for API Gateway. | `number` | `300` | no |
 | <a name="input_api_stage_name"></a> [api\_stage\_name](#input\_api\_stage\_name) | n/a | `string` | n/a | yes |
 | <a name="input_app_version"></a> [app\_version](#input\_app\_version) | n/a | `string` | n/a | yes |
 | <a name="input_aws_region"></a> [aws\_region](#input\_aws\_region) | n/a | `string` | n/a | yes |
@@ -134,6 +135,7 @@
 | <a name="input_country_to_sms_cost_map"></a> [country\_to\_sms\_cost\_map](#input\_country\_to\_sms\_cost\_map) | n/a | `map(number)` | n/a | yes |
 | <a name="input_customer_portal_configuration_id"></a> [customer\_portal\_configuration\_id](#input\_customer\_portal\_configuration\_id) | ID to reference the customer portal configuration | `string` | n/a | yes |
 | <a name="input_deletion_protection_enabled"></a> [deletion\_protection\_enabled](#input\_deletion\_protection\_enabled) | n/a | `bool` | `true` | no |
+| <a name="input_disable_execute_api_endpoint"></a> [disable\_execute\_api\_endpoint](#input\_disable\_execute\_api\_endpoint) | Controls whether the API Gateway will be accessible through the AWS-generated URL when var.api\_gateway\_custom\_domain\_enabled is set to true. | `bool` | `true` | no |
 | <a name="input_domain_prefix"></a> [domain\_prefix](#input\_domain\_prefix) | n/a | `string` | `"api"` | no |
 | <a name="input_emailing_config"></a> [emailing\_config](#input\_emailing\_config) | n/a | <pre>object({<br/>    enabled = bool<br/>    sender = object({<br/>      displayName = optional(string, "Notifycal")<br/>      email       = string<br/>    })<br/>  })</pre> | <pre>{<br/>  "enabled": true,<br/>  "sender": {<br/>    "displayName": "Notifycal",<br/>    "email": "info@notifycal.com"<br/>  }<br/>}</pre> | no |
 | <a name="input_enable_data_protection"></a> [enable\_data\_protection](#input\_enable\_data\_protection) | n/a | `bool` | `true` | no |
