@@ -93,12 +93,21 @@ export class StripeService {
     taxId: string
   ): Promise<Url | null> {
     const { userId, idp, idpId, email } = identity;
+    const productConfig: Partial<Stripe.Checkout.SessionCreateParams> = match(product)
+      .with({ type: 'tier' }, () => ({ mode: 'subscription' as const }))
+      .with({ type: 'topup' }, () => ({
+        mode: 'payment' as const,
+        // From Docs: Generate a post-purchase Invoice for one-time payments.
+        // If you disable it is highly recommended the topups event handler, currently located
+        // in 'invoice.payment_succeeded', in the webhook gets relocated to 'payment_intent.succeeded' or something
+        invoice_creation: {
+          enabled: true
+        }
+      }))
+      .exhaustive();
     return this.stripeClient.checkout.sessions
       .create({
-        mode: match(product)
-          .with({ type: 'tier' }, () => 'subscription' as const)
-          .with({ type: 'topup' }, () => 'payment' as const)
-          .exhaustive(),
+        ...productConfig,
         ui_mode: 'hosted',
         payment_method_types: ['card'],
         customer: stripeCustomerId,
@@ -124,12 +133,6 @@ export class StripeService {
           email,
           product: product.id,
           vatCountry: 'ES'
-        },
-        // From Docs: Generate a post-purchase Invoice for one-time payments.
-        // If you disable it is highly recommended the topups event handler, currently located
-        // in 'invoice.payment_succeeded', in the webhook gets relocated to 'payment_intent.succeeded' or something
-        invoice_creation: {
-          enabled: true
         },
         automatic_tax: { enabled: false },
         billing_address_collection: 'required',
