@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.41.0](https://github.com/Notifycal/backend/compare/v0.40.0...v0.41.0) (2025-06-30)
+
+
+### Features
+
+* customize AWS-generated URL block. customize TTL value ([#756](https://github.com/Notifycal/backend/issues/756)) ([0bbb856](https://github.com/Notifycal/backend/commit/0bbb856ec6ef76e7aec1668a9a5915e3d2558f45))
+
+
+### Bug Fixes
+
+* **deps:** Update AWS packages to v3.839.0 ([#750](https://github.com/Notifycal/backend/issues/750)) ([5c6dfaa](https://github.com/Notifycal/backend/commit/5c6dfaa386b513c005015aeb58c20db6e3e2dad4))
+
 ## [0.40.0](https://github.com/Notifycal/backend/compare/v0.39.1...v0.40.0) (2025-06-27)
 
 
