@@ -54,7 +54,8 @@ describe(CreditsService, () => {
       expect(result).toStrictEqual({
         success: true,
         operationId: 'Success',
-        subscriptionCreditBalance: 150
+        subscriptionCreditBalance: 150,
+        topupCreditBalance: 44
       });
       expect(updateStatusFn).not.toHaveBeenCalled();
     });
@@ -73,7 +74,8 @@ describe(CreditsService, () => {
       expect(result).toStrictEqual({
         success: true,
         operationId: 'Success',
-        subscriptionCreditBalance: 0
+        subscriptionCreditBalance: 0,
+        topupCreditBalance: 0
       });
     });
 
@@ -195,7 +197,8 @@ describe(CreditsService, () => {
       expect(result).toStrictEqual({
         success: true,
         operationId: 'Success',
-        subscriptionCreditBalance: 150
+        subscriptionCreditBalance: 150,
+        topupCreditBalance: 44
       });
       expect(updateStatusFn).toHaveBeenCalledWith(validUserId, 'live');
     });
@@ -214,7 +217,8 @@ describe(CreditsService, () => {
       expect(result).toStrictEqual({
         success: true,
         operationId: 'Success',
-        subscriptionCreditBalance: 0
+        subscriptionCreditBalance: 0,
+        topupCreditBalance: 0
       });
     });
 
@@ -266,7 +270,8 @@ describe(CreditsService, () => {
       expect(result).toStrictEqual({
         success: true,
         operationId: 'Success',
-        subscriptionCreditBalance: 0
+        subscriptionCreditBalance: 0,
+        topupCreditBalance: 0
       });
     });
 
@@ -310,7 +315,8 @@ describe(CreditsService, () => {
       expect(result).toStrictEqual({
         success: true,
         operationId: 'Success',
-        subscriptionCreditBalance: 150
+        subscriptionCreditBalance: 150,
+        topupCreditBalance: 44
       });
       expect(updateStatusFn).toHaveBeenCalledWith(validUserId, 'live');
     });
@@ -329,7 +335,8 @@ describe(CreditsService, () => {
       expect(result).toStrictEqual({
         success: true,
         operationId: 'Success',
-        subscriptionCreditBalance: 0
+        subscriptionCreditBalance: 0,
+        topupCreditBalance: 0
       });
     });
 
@@ -420,7 +427,8 @@ describe(CreditsService, () => {
       expect(result).toStrictEqual({
         success: true,
         operationId: 'Success',
-        subscriptionCreditBalance: 0
+        subscriptionCreditBalance: 0,
+        topupCreditBalance: 0
       });
       expect(updateStatusFn).toHaveBeenCalledWith(validUserId, validUserStatus);
     });
@@ -435,7 +443,8 @@ describe(CreditsService, () => {
       expect(result).toStrictEqual({
         success: true,
         operationId: 'Success',
-        subscriptionCreditBalance: 0
+        subscriptionCreditBalance: 0,
+        topupCreditBalance: 0
       });
     });
 

@@ -369,7 +369,7 @@ describe('POST Payment checkout session', () => {
     expect(loggerErrorFn).toHaveBeenCalledWith('Failed to create stripe checkout session', {
       userId: validUserId,
       stripeCustomerId: validStripeCustomerId,
-      tier: validRequestBody.tier,
+      product: validRequestBody.tier,
       error: stripeError
     });
     expect(addMetricFn).toHaveBeenCalledWith('PaymentSessionFailed', MetricUnit.Count, 1, {

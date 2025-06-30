@@ -325,7 +325,7 @@ describe(SubscriptionService, () => {
 describe(calculateUpgradeCredits, () => {
   const validTierToCreditsMap: Record<TierId, number> = {
     good: 100,
-    better: 500,
+    better: 350,
     best: 1000
   };
 
@@ -336,13 +336,13 @@ describe(calculateUpgradeCredits, () => {
   });
 
   it('should return correct credits for partial upgrade (rounded up)', () => {
-    expectIt('good', 'better', 50, Math.ceil((500 - 100) * 0.5));
-    expectIt('better', 'best', 25, Math.ceil((1000 - 500) * 0.25));
+    expectIt('good', 'better', 50, Math.ceil((350 - 100) * 0.5));
+    expectIt('better', 'best', 25, Math.ceil((1000 - 350) * 0.25));
   });
 
   it('should return full credit difference if 100% of the period remains', () => {
-    expectIt('good', 'better', 100, 400);
-    expectIt('better', 'best', 100, 500);
+    expectIt('good', 'better', 100, 250);
+    expectIt('better', 'best', 100, 650);
   });
 
   it('should return 0 credits if 0% of the period remains', () => {
@@ -350,10 +350,20 @@ describe(calculateUpgradeCredits, () => {
     expectIt('better', 'best', 0, 0);
   });
 
+  it('should return almost all credits if most of the period remains', () => {
+    expectIt('good', 'better', 99.99818, 250);
+    expectIt('better', 'best', 99.99818, 650);
+  });
+
+  it('should return almost no credits if most of the period has gone by', () => {
+    expectIt('good', 'better', 0.00003, 1);
+    expectIt('better', 'best', 0.00003, 1);
+  });
+
   it('should return negative value if current tier is lower than previous (inadvertent downgrade)', () => {
-    expectIt('better', 'good', 100, -400);
+    expectIt('better', 'good', 100, -250);
     expectIt('best', 'good', 50, -450);
-    expectIt('best', 'better', 25, -125);
+    expectIt('best', 'better', 25, -162);
   });
 
   function expectIt(

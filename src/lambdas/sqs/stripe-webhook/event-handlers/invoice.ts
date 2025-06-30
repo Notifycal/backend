@@ -66,7 +66,7 @@ export class InvoicePaymentSucceededHandler
       .with({ billing_reason: 'subscription_create' }, () => this.createHandler(invoice, userId))
       .with({ billing_reason: 'subscription_cycle' }, () => this.renewHandler(invoice, userId))
       .with({ billing_reason: 'subscription_update' }, (invoice) =>
-        this.handleSubscriptionUpdate(userId, invoice)
+        this.handleSubscriptionUpdate(userId, invoice, event.created as UnixTimestamp)
       )
       .with({ billing_reason: 'manual' }, (invoice) => this.topupHandler(invoice, userId))
       .otherwise((invoice) => {
@@ -79,8 +79,17 @@ export class InvoicePaymentSucceededHandler
   }
 
   private topupHandler(invoice: Stripe.Invoice, userId: UserId): Promise<void> {
-    return this.extractProduct(invoice.lines.data[0], this.topups).then(
-      (topupId) => this.topupService.do(userId, topupId).then((r) => this.creditAdditionHandler(r)),
+    const product = invoice.lines.data[0];
+    if ((product.quantity ?? 0) <= 0) {
+      return this.errorHandler('topup')(
+        new Error(`Quantity is not greater than 0. Quantity: ${product.quantity}`)
+      );
+    }
+    return this.extractProduct(product, this.topups).then(
+      (topupId) =>
+        this.topupService
+          .do(userId, topupId, product.quantity || 0)
+          .then((r) => this.creditAdditionHandler(r)),
       (error) => this.errorHandler('topup')(error)
     );
   }
@@ -101,10 +110,14 @@ export class InvoicePaymentSucceededHandler
     );
   }
 
-  private handleSubscriptionUpdate(userId: UserId, invoice: Stripe.Invoice): Promise<void> {
+  private handleSubscriptionUpdate(
+    userId: UserId,
+    invoice: Stripe.Invoice,
+    at: UnixTimestamp
+  ): Promise<void> {
     const updateType = this.determineUpdateType(invoice);
     return this.extractUpdateTiers(invoice).then(
-      (tiers) => this.executeSubscriptionUpdate(userId, invoice, tiers, updateType),
+      (tiers) => this.executeSubscriptionUpdate(userId, invoice, at, tiers, updateType),
       (error) =>
         Promise.reject(
           new Error(
@@ -137,6 +150,7 @@ export class InvoicePaymentSucceededHandler
   private executeSubscriptionUpdate(
     userId: UserId,
     invoice: Stripe.Invoice,
+    at: UnixTimestamp,
     tiers: { previousTier: TierId; currentTier: TierId },
     updateType: 'upgrade' | 'downgrade'
   ): Promise<void> {
@@ -144,13 +158,7 @@ export class InvoicePaymentSucceededHandler
       .with('upgrade', () => {
         const period = invoice.lines.data[0].period;
         return this.subscriptionService
-          .upgrade(
-            userId,
-            tiers.previousTier,
-            tiers.currentTier,
-            period,
-            invoice.created as UnixTimestamp
-          )
+          .upgrade(userId, tiers.previousTier, tiers.currentTier, period, at)
           .then(
             () => {},
             (e) => this.errorHandler('upgrade')(e)
@@ -180,10 +188,10 @@ export class InvoicePaymentSucceededHandler
     return this.handleError(operation);
   }
 
-  private extractProduct<T extends Tiers | Topups>(
+  private extractProduct<K extends TierId | TopupId>(
     invoiceItem: Stripe.InvoiceLineItem,
-    products: T
-  ): Promise<T extends Tiers ? TierId : TopupId> {
+    products: Record<string, { id: K; priceId: string }>
+  ): Promise<K> {
     const priceId = invoiceItem?.pricing?.price_details?.price;
     if (!priceId) {
       return Promise.reject(
@@ -200,7 +208,7 @@ export class InvoicePaymentSucceededHandler
         )
       );
     }
-    return Promise.resolve(product.id) as Promise<T extends Tiers ? TierId : TopupId>;
+    return Promise.resolve(product.id);
   }
 }
 export class InvoicePaymentFailedHandler

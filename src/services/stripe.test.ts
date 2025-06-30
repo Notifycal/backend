@@ -42,6 +42,7 @@ describe(StripeService, () => {
   const validCancelUrl = 'https://example.com/cancel' as Url;
   const validReturnUrl = 'https://example.com/return' as Url;
   const validTier: Tier = {
+    type: 'tier',
     id: 'good',
     priceId: 'price_123456789',
     credits: 100
@@ -70,7 +71,7 @@ describe(StripeService, () => {
     vi.mocked(HttpClient.prototype.getAxiosInstance).mockResolvedValue({} as AxiosInstance);
     vi.mocked(Stripe).mockImplementation(mockConstructor);
 
-    new StripeService(validApiKey);
+    await StripeService.withConfig(validApiKey);
 
     expect(HttpClient).toHaveBeenCalledWith(undefined, undefined, 'Stripe');
     expect(mockConstructor).toHaveBeenCalledTimes(1);
@@ -288,7 +289,7 @@ describe(StripeService, () => {
           idp: 'google.com',
           idpId: '1234567890',
           email: validEmail,
-          tier: validTier.id,
+          product: validTier.id,
           vatCountry: 'ES'
         },
         automatic_tax: { enabled: false },
@@ -340,6 +341,7 @@ describe(StripeService, () => {
 
     it('should handle different tier configurations correctly', async () => {
       const betterTier: Tier = {
+        type: 'tier',
         id: 'better',
         priceId: 'price_better_123',
         credits: 500
@@ -367,7 +369,7 @@ describe(StripeService, () => {
             }
           ],
           metadata: expect.objectContaining({
-            tier: betterTier.id
+            product: betterTier.id
           }) as Record<string, unknown>
         })
       );
@@ -417,7 +419,7 @@ describe(StripeService, () => {
             idp: 'google.com',
             idpId: '1234567890',
             email: validEmail,
-            tier: validTier.id,
+            product: validTier.id,
             vatCountry: 'ES'
           },
           automatic_tax: { enabled: false },
@@ -468,7 +470,7 @@ describe(StripeService, () => {
     });
   });
 
-  function testCreateCustomer(
+  async function testCreateCustomer(
     identity: Identity<IdpName>,
     createCustomerFn: () => Promise<{ id: string }>,
     testClockListFn: MockInstance = vi.fn().mockRejectedValue(new Error('Testing in anger')),
@@ -483,11 +485,11 @@ describe(StripeService, () => {
 
     setupMocks(mockStripeInstance);
 
-    const stripeService = new StripeService(validApiKey);
+    const stripeService = await StripeService.withConfig(validApiKey);
     return stripeService.createCustomer(identity);
   }
 
-  function testCheckoutSession(
+  async function testCheckoutSession(
     stripeCustomerId: StripeCustomerId,
     identity: Identity<'google.com'>,
     tier: Tier,
@@ -507,7 +509,7 @@ describe(StripeService, () => {
 
     setupMocks(mockStripeInstance);
 
-    const stripeService = new StripeService(validApiKey);
+    const stripeService = await StripeService.withConfig(validApiKey);
     return stripeService.createCheckoutSession(
       stripeCustomerId,
       identity,
@@ -519,7 +521,7 @@ describe(StripeService, () => {
     );
   }
 
-  function testCustomerPortalSession(
+  async function testCustomerPortalSession(
     stripeCustomerId: StripeCustomerId,
     returnUrl: Url,
     configId: string,
@@ -536,7 +538,7 @@ describe(StripeService, () => {
 
     setupMocks(mockStripeInstance);
 
-    const stripeService = new StripeService(validApiKey);
+    const stripeService = await StripeService.withConfig(validApiKey);
     return stripeService.createCustomerPortalSession(stripeCustomerId, returnUrl, configId);
   }
 

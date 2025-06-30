@@ -206,19 +206,31 @@ describe(remainingPeriodPercentage, () => {
 
     const result = testIt(periodWith3Digits, nowWith1Remaining);
 
-    expect(result).toBe(33.33);
+    expect(result).toBe(33.33333);
   });
 
   it('should handle very small remaining percentages', () => {
     const largePeriod: Period = {
-      start: 0 as UnixTimestamp,
-      end: 10000 as UnixTimestamp
+      start: 1751327815 as UnixTimestamp,
+      end: 1753919755 as UnixTimestamp
     };
-    const almostAtEnd = 9999 as UnixTimestamp;
+    const almostAtEnd = 1753919754 as UnixTimestamp;
 
     const result = testIt(largePeriod, almostAtEnd);
 
-    expect(result).toBe(0.01);
+    expect(result).toBe(0.00003);
+  });
+
+  it('should handle very large remaining percentages', () => {
+    const largePeriod: Period = {
+      start: 1751327815 as UnixTimestamp,
+      end: 1753919755 as UnixTimestamp
+    };
+    const almostAtTheBeginning = 1751327862 as UnixTimestamp;
+
+    const result = testIt(largePeriod, almostAtTheBeginning);
+
+    expect(result).toBe(99.99818);
   });
 
   it('should return 0 when period has zero duration', () => {

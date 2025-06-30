@@ -95,7 +95,7 @@ async function lambdaHandler(
     userId: userId
   };
   const userBaseStore = UserBaseStore.withConfig(userBaseStoreConfig, logger);
-  const stripeService = new StripeService(apiKey);
+  const stripeService = await StripeService.withConfig(apiKey);
 
   return createCustomerOrRetrieve(identity, userBaseStore, stripeService)
     .then((stripeCustomerId) =>

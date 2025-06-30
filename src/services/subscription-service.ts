@@ -47,22 +47,31 @@ export class SubscriptionService<TIdpName extends IdpName> {
     period: Period,
     at: UnixTimestamp
   ): Promise<CreditAdditionResult> {
-    const _remainingPeriodPercenage = remainingPeriodPercentage(period, at);
-    if (_remainingPeriodPercenage <= 0 || _remainingPeriodPercenage >= 100) {
+    const _remainingPeriodPercentage = remainingPeriodPercentage(period, at);
+    const creditsToAdd = calculateUpgradeCredits(
+      previousTier,
+      currentTier,
+      _remainingPeriodPercentage,
+      this.tierToCreditsMap
+    );
+    logger.info('Upgrade details', {
+      period,
+      at,
+      atInISO: DateTime.fromSeconds(at).toISO(),
+      previousTier,
+      currentTier,
+      _remainingPeriodPercenage: _remainingPeriodPercentage,
+      creditsToAdd
+    });
+    if (_remainingPeriodPercentage <= 0 || _remainingPeriodPercentage >= 100) {
       return Promise.resolve({
         success: false,
         operationId: 'UnknownError',
         error: new Error(
-          `There is not bylling cycle remaining. Most likely 'at' was out of boudaries of 'period'. Resulting percentage: ${_remainingPeriodPercenage}`
+          `There is not billing cycle remaining. Most likely 'at' was out of boudaries of 'period'. Resulting percentage: ${_remainingPeriodPercentage}`
         )
       });
     }
-    const creditsToAdd = calculateUpgradeCredits(
-      previousTier,
-      currentTier,
-      _remainingPeriodPercenage,
-      this.tierToCreditsMap
-    );
 
     if (creditsToAdd <= 0) {
       return Promise.resolve({
@@ -71,15 +80,6 @@ export class SubscriptionService<TIdpName extends IdpName> {
         error: new Error('Inadvertent downgrade while doing an upgrade')
       });
     }
-
-    logger.info('Upgrade details', {
-      period,
-      at: DateTime.fromSeconds(at).toISO(),
-      previousTier,
-      currentTier,
-      _remainingPeriodPercenage,
-      creditsToAdd
-    });
 
     return this.creditsService.addSubscriptionCredits(userId, creditsToAdd, currentTier);
   }

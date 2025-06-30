@@ -40,5 +40,6 @@ export function remainingPeriodPercentage(period: Period, now: UnixTimestamp): P
   }
   const remainingDuration = period.end - now;
   const percentage = (remainingDuration / totalPeriodDuration) * 100;
-  return Math.round(percentage * 100) / 100;
+  const factor = 10 ** 5;
+  return Math.trunc(percentage * factor) / factor;
 }

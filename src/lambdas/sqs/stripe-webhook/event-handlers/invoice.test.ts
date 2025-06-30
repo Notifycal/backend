@@ -386,7 +386,7 @@ describe(InvoicePaymentSucceededHandler, () => {
     );
 
     await expect(result).rejects.toThrow(
-      'Error while handling create in invoice.payment_succeeded event handler. Error: Unknown price ID: unknown_price_id. No matching tier found. Invoice item ID: il_test123'
+      'Error while handling create in invoice.payment_succeeded event handler. Error: Unknown price ID: unknown_price_id. No matching tier/topup found. Invoice item ID: il_test123'
     );
 
     expectSubscriptionServiceNotToHaveBeenCalled(createFn, renewFn, upgradeFn, downgradeFn);
