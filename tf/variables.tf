@@ -61,6 +61,18 @@ variable "api_gateway_custom_domain_enabled" {
   description = "Controls the creation of a custom domain for API Gateway and the domain it is accessible from"
 }
 
+variable "api_gateway_custom_domain_ttl" {
+  type        = number
+  default     = 300
+  description = "TTL for the custom DNS record for API Gateway."
+}
+
+variable "disable_execute_api_endpoint" {
+  type        = bool
+  default     = true
+  description = "Controls whether the API Gateway will be accessible through the AWS-generated URL when var.api_gateway_custom_domain_enabled is set to true."
+}
+
 variable "google_oauth_config" {
   type = object({
     client_id         = string

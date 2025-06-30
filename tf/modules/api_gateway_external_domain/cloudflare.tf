@@ -10,4 +10,5 @@ resource "cloudflare_record" "main" {
   content = aws_api_gateway_domain_name.custom_domain.regional_domain_name
   type    = "CNAME"
   proxied = false
+  ttl     = var.domain_ttl
 }
