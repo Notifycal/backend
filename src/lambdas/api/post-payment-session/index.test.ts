@@ -425,11 +425,10 @@ describe('POST Payment checkout session', () => {
     } as unknown as UserBaseStore<IdpName>);
 
     // eslint-disable-next-line @typescript-eslint/unbound-method
-    vi.mocked(StripeService.prototype.createCustomer).mockImplementation(createCustomerFn);
-    // eslint-disable-next-line @typescript-eslint/unbound-method
-    vi.mocked(StripeService.prototype.createCheckoutSession).mockImplementation(
-      createCheckoutSessionFn
-    );
+    vi.mocked(StripeService.withConfig).mockResolvedValue({
+      createCustomer: createCustomerFn,
+      createCheckoutSession: createCheckoutSessionFn
+    } as unknown as StripeService);
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
     return handler(event as unknown as Event, {} as Context);
