@@ -13,8 +13,8 @@ import type {
 import type { Url } from '@own-types/model';
 import { HttpClient } from '@services/common/http-client';
 import type { AxiosInstance } from 'axios';
-import { default as Stripe } from 'stripe';
-import { describe, expect, it, vi } from 'vitest';
+import { Stripe } from 'stripe';
+import { describe, expect, it, vi, type MockInstance } from 'vitest';
 import { StripeService } from './stripe';
 
 vi.mock('stripe');
@@ -51,13 +51,26 @@ describe(StripeService, () => {
   const validStripeCustomerId = 'cus_123456789' as StripeCustomerId;
   const validTaxId = 'tx_srfgwrgwrg';
 
-  it('should initialize Stripe client with correct API key and version', () => {
-    const mockConstructor = vi.fn();
+  const testClocksMockFn = (
+    listFn: MockInstance = vi.fn().mockRejectedValue(new Error('Testing in anger')),
+    createFn: MockInstance = vi.fn().mockRejectedValue(new Error('Testing in anger'))
+  ) =>
+    ({
+      testHelpers: {
+        testClocks: {
+          list: listFn,
+          create: createFn
+        }
+      }
+    }) as unknown as Stripe;
+
+  it('should initialize Stripe client with correct API key and version', async () => {
+    const mockConstructor = vi.fn(() => testClocksMockFn());
     // eslint-disable-next-line @typescript-eslint/unbound-method
     vi.mocked(HttpClient.prototype.getAxiosInstance).mockResolvedValue({} as AxiosInstance);
     vi.mocked(Stripe).mockImplementation(mockConstructor);
 
-    new StripeService(validApiKey);
+    await StripeService.withConfig(validApiKey);
 
     expect(HttpClient).toHaveBeenCalledWith(undefined, undefined, 'Stripe');
     expect(mockConstructor).toHaveBeenCalledTimes(1);
@@ -98,6 +111,98 @@ describe(StripeService, () => {
       await expect(testCreateCustomer(validIdentity, createCustomerFn)).rejects.toThrow(
         'Customer creation failed'
       );
+    });
+
+    const testClock: Stripe.TestHelpers.TestClock = {
+      id: '',
+      livemode: true,
+      object: 'test_helpers.test_clock',
+      created: 0,
+      deletes_after: 0,
+      frozen_time: 0,
+      name: null,
+      status: 'ready',
+      status_details: {}
+    };
+
+    const testCases1 = [
+      { description: 'empty array', implementation: () => Promise.resolve({ data: [] }) },
+      {
+        description: 'explicit livemode = true',
+        implementation: () => Promise.resolve({ data: [testClock] })
+      },
+      {
+        description: 'single test clock',
+        implementation: () => Promise.resolve({ data: [{ id: 'test_clock_1' }] })
+      },
+      {
+        description: 'multiple test clocks',
+        implementation: () =>
+          Promise.resolve({ data: [{ id: 'test_clock_1' }, { id: 'test_clock_2' }] })
+      },
+      { description: 'null data', implementation: () => Promise.resolve({ data: null }) },
+      { description: 'undefined data', implementation: () => Promise.resolve({ data: undefined }) },
+      {
+        description: 'rejected with error',
+        implementation: () => Promise.reject(new Error('Stripe API error'))
+      },
+      {
+        description: 'rejected with string',
+        // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
+        implementation: () => Promise.reject('Network timeout')
+      },
+      // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
+      { description: 'rejected with undefined', implementation: () => Promise.reject(undefined) }
+    ];
+
+    // eslint-disable-next-line vitest/require-hook
+    testCases1.forEach(({ description, implementation }) => {
+      it(`should not call createTestClock when listTestClock returns ${description}`, async () => {
+        const listTestClockFn = vi.fn().mockImplementation(implementation);
+        const createTestClockFn = vi.fn();
+        const createCustomerFn = vi.fn().mockResolvedValue({ id: validStripeCustomerId });
+
+        await testCreateCustomer(
+          validIdentity,
+          createCustomerFn,
+          listTestClockFn,
+          createTestClockFn
+        );
+
+        expect(createCustomerFn).toHaveBeenCalledOnce();
+        expect(listTestClockFn).toHaveBeenCalledOnce();
+        expect(createTestClockFn).not.toHaveBeenCalled();
+      });
+    });
+
+    const testClock2: Stripe.TestHelpers.TestClock = {
+      ...testClock,
+      livemode: false
+    };
+    const testCases2 = [
+      {
+        implementation: () => Promise.resolve({ data: [testClock2] })
+      }
+    ];
+
+    // eslint-disable-next-line vitest/require-hook
+    testCases2.forEach(({ implementation }) => {
+      it(`should only call createTestClock if explicitly stated`, async () => {
+        const listTestClockFn = vi.fn().mockImplementation(implementation);
+        const createTestClockFn = vi.fn().mockResolvedValue({});
+        const createCustomerFn = vi.fn().mockResolvedValue({ id: validStripeCustomerId });
+
+        await testCreateCustomer(
+          validIdentity,
+          createCustomerFn,
+          listTestClockFn,
+          createTestClockFn
+        );
+
+        expect(createCustomerFn).toHaveBeenCalledOnce();
+        expect(listTestClockFn).toHaveBeenCalledOnce();
+        expect(createTestClockFn).toHaveBeenCalledOnce();
+      });
     });
   });
 
@@ -323,11 +428,14 @@ describe(StripeService, () => {
     });
   });
 
-  function testCreateCustomer(
+  async function testCreateCustomer(
     identity: Identity<IdpName>,
-    createCustomerFn: () => Promise<{ id: string }>
+    createCustomerFn: () => Promise<{ id: string }>,
+    testClockListFn: MockInstance = vi.fn().mockRejectedValue(new Error('Testing in anger')),
+    testClockCreateFn: MockInstance = vi.fn().mockRejectedValue(new Error('Testing in anger'))
   ): Promise<StripeCustomerId> {
     const mockStripeInstance = {
+      ...testClocksMockFn(testClockListFn, testClockCreateFn),
       customers: {
         create: createCustomerFn
       }
@@ -335,11 +443,11 @@ describe(StripeService, () => {
 
     setupMocks(mockStripeInstance);
 
-    const stripeService = new StripeService(validApiKey);
+    const stripeService = await StripeService.withConfig(validApiKey);
     return stripeService.createCustomer(identity);
   }
 
-  function testCheckoutSession(
+  async function testCheckoutSession(
     stripeCustomerId: StripeCustomerId,
     identity: Identity<'google.com'>,
     tier: Tier,
@@ -349,6 +457,7 @@ describe(StripeService, () => {
     createSessionFn: () => Promise<Stripe.Response<Stripe.Checkout.Session>>
   ): Promise<Url | null> {
     const mockStripeInstance = {
+      ...testClocksMockFn(),
       checkout: {
         sessions: {
           create: createSessionFn
@@ -358,7 +467,7 @@ describe(StripeService, () => {
 
     setupMocks(mockStripeInstance);
 
-    const stripeService = new StripeService(validApiKey);
+    const stripeService = await StripeService.withConfig(validApiKey);
     return stripeService.createCheckoutSession(
       stripeCustomerId,
       identity,
@@ -370,13 +479,14 @@ describe(StripeService, () => {
     );
   }
 
-  function testCustomerPortalSession(
+  async function testCustomerPortalSession(
     stripeCustomerId: StripeCustomerId,
     returnUrl: Url,
     configId: string,
     createPortalSessionFn: () => Promise<Stripe.Response<Stripe.BillingPortal.Session>>
   ): Promise<Url> {
     const mockStripeInstance = {
+      ...testClocksMockFn(),
       billingPortal: {
         sessions: {
           create: createPortalSessionFn
@@ -386,7 +496,7 @@ describe(StripeService, () => {
 
     setupMocks(mockStripeInstance);
 
-    const stripeService = new StripeService(validApiKey);
+    const stripeService = await StripeService.withConfig(validApiKey);
     return stripeService.createCustomerPortalSession(stripeCustomerId, returnUrl, configId);
   }
 
