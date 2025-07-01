@@ -128,7 +128,7 @@ describe(StripeService, () => {
     const testCases1 = [
       { description: 'empty array', implementation: () => Promise.resolve({ data: [] }) },
       {
-        description: 'explicit livemode = true',
+        description: 'test clocks with livemode=true flag (but API call succeeds)',
         implementation: () => Promise.resolve({ data: [testClock] })
       },
       {
@@ -143,21 +143,72 @@ describe(StripeService, () => {
       { description: 'null data', implementation: () => Promise.resolve({ data: null }) },
       { description: 'undefined data', implementation: () => Promise.resolve({ data: undefined }) },
       {
-        description: 'rejected with error',
-        implementation: () => Promise.reject(new Error('Stripe API error'))
-      },
-      {
-        description: 'rejected with string',
-        // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
-        implementation: () => Promise.reject('Network timeout')
-      },
-      // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
-      { description: 'rejected with undefined', implementation: () => Promise.reject(undefined) }
+        description: 'empty object',
+        implementation: () => Promise.resolve({})
+      }
     ];
 
     // eslint-disable-next-line vitest/require-hook
     testCases1.forEach(({ description, implementation }) => {
-      it(`should not call createTestClock when listTestClock returns ${description}`, async () => {
+      it(`should call createTestClock when listTestClock API call succeeds with ${description} (indicating test mode)`, async () => {
+        const listTestClockFn = vi.fn().mockImplementation(implementation);
+        const createTestClockFn = vi.fn().mockResolvedValue({ id: 'clock_123' });
+        const createCustomerFn = vi.fn().mockResolvedValue({ id: validStripeCustomerId });
+
+        await testCreateCustomer(
+          validIdentity,
+          createCustomerFn,
+          listTestClockFn,
+          createTestClockFn
+        );
+
+        expect(listTestClockFn).toHaveBeenCalledTimes(1);
+        expect(listTestClockFn).toHaveBeenCalledWith({ limit: 1 });
+        expect(createTestClockFn).toHaveBeenCalledTimes(1);
+        expect(createTestClockFn).toHaveBeenCalledWith({
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+          frozen_time: expect.any(Number),
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+          name: expect.stringContaining(validIdentity.email)
+        });
+        expect(createCustomerFn).toHaveBeenCalledTimes(1);
+        // eslint-disable-next-line vitest/max-expects
+        expect(createCustomerFn).toHaveBeenCalledWith(
+          expect.objectContaining({
+            email: validIdentity.email,
+            metadata: {
+              userId: validIdentity.userId,
+              idp: validIdentity.idp,
+              idpId: validIdentity.idpId,
+              email: validIdentity.email
+            },
+            test_clock: 'clock_123'
+          })
+        );
+      });
+    });
+
+    const testCases2 = [
+      {
+        description: 'API error (likely production environment)',
+        implementation: () => Promise.reject(new Error('Stripe API error'))
+      },
+      {
+        description: 'network timeout',
+        // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
+        implementation: () => Promise.reject('Network timeout')
+      },
+      // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
+      { description: 'undefined error', implementation: () => Promise.reject(undefined) },
+      {
+        description: 'permission error (typical in production)',
+        implementation: () => Promise.reject(new Error('Insufficient permissions for test clocks'))
+      }
+    ];
+
+    // eslint-disable-next-line vitest/require-hook
+    testCases2.forEach(({ description, implementation }) => {
+      it(`should not call createTestClock when listTestClock API call fails with ${description} (indicating live mode)`, async () => {
         const listTestClockFn = vi.fn().mockImplementation(implementation);
         const createTestClockFn = vi.fn();
         const createCustomerFn = vi.fn().mockResolvedValue({ id: validStripeCustomerId });
@@ -169,39 +220,28 @@ describe(StripeService, () => {
           createTestClockFn
         );
 
-        expect(createCustomerFn).toHaveBeenCalledOnce();
-        expect(listTestClockFn).toHaveBeenCalledOnce();
+        expect(listTestClockFn).toHaveBeenCalledTimes(1);
+        expect(listTestClockFn).toHaveBeenCalledWith({ limit: 1 });
         expect(createTestClockFn).not.toHaveBeenCalled();
-      });
-    });
-
-    const testClock2: Stripe.TestHelpers.TestClock = {
-      ...testClock,
-      livemode: false
-    };
-    const testCases2 = [
-      {
-        implementation: () => Promise.resolve({ data: [testClock2] })
-      }
-    ];
-
-    // eslint-disable-next-line vitest/require-hook
-    testCases2.forEach(({ implementation }) => {
-      it(`should only call createTestClock if explicitly stated`, async () => {
-        const listTestClockFn = vi.fn().mockImplementation(implementation);
-        const createTestClockFn = vi.fn().mockResolvedValue({});
-        const createCustomerFn = vi.fn().mockResolvedValue({ id: validStripeCustomerId });
-
-        await testCreateCustomer(
-          validIdentity,
-          createCustomerFn,
-          listTestClockFn,
-          createTestClockFn
+        expect(createCustomerFn).toHaveBeenCalledTimes(1);
+        expect(createCustomerFn).toHaveBeenCalledWith(
+          expect.objectContaining({
+            email: validIdentity.email,
+            metadata: {
+              userId: validIdentity.userId,
+              idp: validIdentity.idp,
+              idpId: validIdentity.idpId,
+              email: validIdentity.email
+            }
+          })
         );
-
-        expect(createCustomerFn).toHaveBeenCalledOnce();
-        expect(listTestClockFn).toHaveBeenCalledOnce();
-        expect(createTestClockFn).toHaveBeenCalledOnce();
+        // eslint-disable-next-line vitest/max-expects
+        expect(createCustomerFn).toHaveBeenCalledWith(
+          expect.not.objectContaining({
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            test_clock: expect.any(String)
+          })
+        );
       });
     });
   });

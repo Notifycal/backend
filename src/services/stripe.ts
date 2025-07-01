@@ -29,16 +29,10 @@ export class StripeService {
       httpClient: new AxiosHttpClient(httpClient.getAxiosInstance())
     });
 
-    const liveMode = await stripeClient.testHelpers.testClocks
-      .list({ limit: 1 })
-      .then((response) => {
-        try {
-          return response?.data[0].livemode ?? true;
-        } catch {
-          return true;
-        }
-      })
-      .catch(() => true);
+    const liveMode = await stripeClient.testHelpers.testClocks.list({ limit: 1 }).then(
+      () => false,
+      () => true
+    );
 
     return new StripeService(stripeClient, liveMode);
   }
@@ -55,7 +49,7 @@ export class StripeService {
       });
   }
 
-  private withTestClock(
+  private withTestClockIfLiveModeOff(
     params: Stripe.CustomerCreateParams,
     userEmail: Email
   ): Promise<Stripe.CustomerCreateParams> {
@@ -72,19 +66,19 @@ export class StripeService {
     logger.info(`Creating customer in Stripe for identity`, {
       identity
     });
-    return this.withTestClock(
-      {
-        email: email,
-        metadata: {
-          userId,
-          idp,
-          idpId,
-          email
-        }
-      },
-      email
-    )
-      .then((params) => this.stripeClient.customers.create(params))
+    const params: Stripe.CustomerCreateParams = {
+      email: email,
+      metadata: {
+        userId,
+        idp,
+        idpId,
+        email
+      }
+    };
+    return this.withTestClockIfLiveModeOff(params, email)
+      .then((paramsWithTestClockIfLiveModeOff) =>
+        this.stripeClient.customers.create(paramsWithTestClockIfLiveModeOff)
+      )
       .then((customer) => customer.id as StripeCustomerId);
   }
 
