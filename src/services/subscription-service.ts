@@ -1,9 +1,6 @@
 import { logger } from '@common/powertools';
 import type { TierId } from '@model/PaymentPlans';
-import type { IdpName, Percentage, UnixTimestamp, UserId } from '@notifycal/shared/types';
-import type { Period } from '@own-types/model';
-import { remainingPeriodPercentage } from '@utils/datetime';
-import { DateTime } from 'luxon';
+import type { IdpName, Percentage, UserId } from '@notifycal/shared/types';
 import type {
   CreditAdditionResult,
   CreditDeductionResult,
@@ -44,32 +41,27 @@ export class SubscriptionService<TIdpName extends IdpName> {
     userId: UserId,
     previousTier: TierId,
     currentTier: TierId,
-    period: Period,
-    at: UnixTimestamp
+    remainingPercentage: Percentage
   ): Promise<CreditAdditionResult> {
-    const _remainingPeriodPercentage = remainingPeriodPercentage(period, at);
     const creditsToAdd = calculateUpgradeCredits(
       previousTier,
       currentTier,
-      _remainingPeriodPercentage,
+      remainingPercentage,
       this.tierToCreditsMap
     );
+
     logger.info('Upgrade details', {
-      period,
-      at,
-      atInISO: DateTime.fromSeconds(at).toISO(),
       previousTier,
       currentTier,
-      _remainingPeriodPercenage: _remainingPeriodPercentage,
+      remainingPercentage,
       creditsToAdd
     });
-    if (_remainingPeriodPercentage <= 0 || _remainingPeriodPercentage >= 100) {
+
+    if (remainingPercentage < 0 || remainingPercentage > 100) {
       return Promise.resolve({
         success: false,
         operationId: 'UnknownError',
-        error: new Error(
-          `There is not billing cycle remaining. Most likely 'at' was out of boudaries of 'period'. Resulting percentage: ${_remainingPeriodPercentage}`
-        )
+        error: new Error(`Invalid remaining percentage: ${remainingPercentage}`)
       });
     }
 

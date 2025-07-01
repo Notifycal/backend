@@ -1,7 +1,7 @@
 /* eslint-disable camelcase */
 import type { Logger } from '@aws-lambda-powertools/logger';
 import type { TierId, Tiers, TopupId, Topups } from '@model/PaymentPlans';
-import type { Identity, IdpName, UnixTimestamp, UserId } from '@notifycal/shared/types';
+import type { Identity, IdpName, UserId } from '@notifycal/shared/types';
 import type { CreditAdditionResult } from '@services/credits-service';
 import type { SubscriptionService } from '@services/subscription-service';
 import type { TopupService } from '@services/topup-service';
@@ -151,14 +151,14 @@ export class InvoicePaymentSucceededHandler
   ): Promise<void> {
     return match(updateType)
       .with('upgrade', () => {
-        const period = invoice.lines.data[0].period;
-        return this.subscriptionService
-          .upgrade(
-            userId,
-            tiers.previousTier,
-            tiers.currentTier,
-            period,
-            invoice.effective_at as UnixTimestamp
+        return this.calculateRemainingCyclePercentageFromInvoice(invoice)
+          .then((remainingPercentage) =>
+            this.subscriptionService.upgrade(
+              userId,
+              tiers.previousTier,
+              tiers.currentTier,
+              remainingPercentage
+            )
           )
           .then(
             () => {},

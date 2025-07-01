@@ -96,7 +96,8 @@ export class StripeService {
     const productConfig: Partial<Stripe.Checkout.SessionCreateParams> = match(product.type)
       .with('tier', () => ({ mode: 'subscription' as const }))
       .with('topup', () => ({
-        mode: 'payment' as const, // From Docs: Generate a post-purchase Invoice for one-time payments.
+        mode: 'payment' as const, 
+        // From Docs: Generate a post-purchase Invoice for one-time payments.
         // If you disable it is highly recommended the topups event handler, currently located
         // in 'invoice.payment_succeeded', in the webhook gets relocated to 'payment_intent.succeeded' or something
         invoice_creation: {
