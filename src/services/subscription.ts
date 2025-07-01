@@ -69,7 +69,7 @@ export class SubscriptionService<TIdpName extends IdpName> {
       return Promise.resolve({
         success: false,
         operationId: 'UnknownError',
-        error: new Error('Inadvertent downgrade while doing an upgrade')
+        error: new Error('Inadvertent credit stealing while doing an upgrade')
       });
     }
 

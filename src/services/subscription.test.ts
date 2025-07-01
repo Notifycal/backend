@@ -1,7 +1,6 @@
 /* eslint-disable vitest/expect-expect */
 import type { TierId } from '@model/PaymentPlans';
-import type { IdpName, Percentage, UnixTimestamp, UserId } from '@notifycal/shared/types';
-import type { Period } from '@own-types/model';
+import type { IdpName, Percentage, UserId } from '@notifycal/shared/types';
 import { describe, expect, it, vi } from 'vitest';
 import type {
   CreditAdditionResult,
@@ -34,13 +33,6 @@ describe(SubscriptionService, () => {
     operationId: 'UnknownError',
     error: new Error('Service unavailable')
   };
-
-  const validPeriod: Period = {
-    start: 1000,
-    end: 2000
-  };
-
-  const validTimestampHalfWayThePeriod: UnixTimestamp = 1500 as UnixTimestamp;
 
   const validSuccessDeduction: CreditDeductionResult = {
     success: true,
@@ -180,33 +172,64 @@ describe(SubscriptionService, () => {
         validUserId,
         validGoodTier,
         validBetterTier,
-        validPeriod,
-        validTimestampHalfWayThePeriod
+        50 as Percentage
       );
 
       expect(addFn).toHaveBeenCalledWith(validUserId, 200, validBetterTier);
       expect(result).toStrictEqual(validSuccessResult);
     });
 
-    it('should throw an error cause now is outside of the period', async () => {
-      const addFn = vi.fn().mockResolvedValue(validSuccessResult);
+    it('should return error for negative remaining percentage', async () => {
+      const addFn = vi.fn();
       const result = await testItUpgrade(
         addFn,
         validUserId,
         validGoodTier,
         validBetterTier,
-        validPeriod,
-        (validPeriod.start - 1) as UnixTimestamp
+        -10 as Percentage
       );
 
       expect(result).toStrictEqual({
         success: false,
         operationId: 'UnknownError',
-        error: new Error(
-          `There is not bylling cycle remaining. Most likely 'at' was out of boudaries of 'period'. Resulting percentage: 0`
-        )
+        error: new Error('Invalid remaining percentage: -10')
       });
+      expect(addFn).not.toHaveBeenCalled();
+    });
 
+    it('should return error for remaining percentage over 100', async () => {
+      const addFn = vi.fn();
+      const result = await testItUpgrade(
+        addFn,
+        validUserId,
+        validGoodTier,
+        validBetterTier,
+        150 as Percentage
+      );
+
+      expect(result).toStrictEqual({
+        success: false,
+        operationId: 'UnknownError',
+        error: new Error('Invalid remaining percentage: 150')
+      });
+      expect(addFn).not.toHaveBeenCalled();
+    });
+
+    it('should return error when credits to add is zero', async () => {
+      const addFn = vi.fn();
+      const result = await testItUpgrade(
+        addFn,
+        validUserId,
+        validGoodTier,
+        validGoodTier,
+        50 as Percentage
+      );
+
+      expect(result).toStrictEqual({
+        success: false,
+        operationId: 'UnknownError',
+        error: new Error('Inadvertent credit stealing while doing an upgrade')
+      });
       expect(addFn).not.toHaveBeenCalled();
     });
 
@@ -217,8 +240,7 @@ describe(SubscriptionService, () => {
         validUserId,
         validGoodTier,
         validBetterTier,
-        validPeriod,
-        validTimestampHalfWayThePeriod
+        50 as Percentage
       );
 
       expect(result).toStrictEqual(validErrorResult);
@@ -228,35 +250,8 @@ describe(SubscriptionService, () => {
       const addFn = vi.fn().mockRejectedValue(new Error('boom'));
 
       await expect(() =>
-        testItUpgrade(
-          addFn,
-          validUserId,
-          validGoodTier,
-          validBetterTier,
-          validPeriod,
-          validTimestampHalfWayThePeriod
-        )
+        testItUpgrade(addFn, validUserId, validGoodTier, validBetterTier, 50 as Percentage)
       ).rejects.toThrow('boom');
-    });
-
-    it('should return error result if downgrade is attempted in upgrade method', async () => {
-      const addFn = vi.fn();
-      const result = await testItUpgrade(
-        addFn,
-        validUserId,
-        validBetterTier,
-        validGoodTier,
-        validPeriod,
-        validTimestampHalfWayThePeriod
-      );
-
-      expect(result).toStrictEqual({
-        success: false,
-        operationId: 'UnknownError',
-        error: new Error('Inadvertent downgrade while doing an upgrade')
-      });
-
-      expect(addFn).not.toHaveBeenCalled();
     });
 
     function testItUpgrade(
