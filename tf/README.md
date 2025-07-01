@@ -42,7 +42,7 @@
 | <a name="module_get_user_profile_lambda"></a> [get\_user\_profile\_lambda](#module\_get\_user\_profile\_lambda) | terraform-aws-modules/lambda/aws | ~> 8.0 |
 | <a name="module_get_user_profile_lambda_alias"></a> [get\_user\_profile\_lambda\_alias](#module\_get\_user\_profile\_lambda\_alias) | terraform-aws-modules/lambda/aws//modules/alias | ~> 8.0 |
 | <a name="module_messaging_topic"></a> [messaging\_topic](#module\_messaging\_topic) | ./modules/sns | n/a |
-| <a name="module_notify_slack"></a> [notify\_slack](#module\_notify\_slack) | git@github.com:Notifycal/tofu-module-aws-slack-notify.git | v7.0.2 |
+| <a name="module_notify_slack"></a> [notify\_slack](#module\_notify\_slack) | git@github.com:Notifycal/tofu-module-aws-slack-notify.git | v7.0.3 |
 | <a name="module_patch_user_profile_lambda"></a> [patch\_user\_profile\_lambda](#module\_patch\_user\_profile\_lambda) | terraform-aws-modules/lambda/aws | ~> 8.0 |
 | <a name="module_patch_user_profile_lambda_alias"></a> [patch\_user\_profile\_lambda\_alias](#module\_patch\_user\_profile\_lambda\_alias) | terraform-aws-modules/lambda/aws//modules/alias | ~> 8.0 |
 | <a name="module_payment_webhook_topic"></a> [payment\_webhook\_topic](#module\_payment\_webhook\_topic) | ./modules/sns | n/a |
