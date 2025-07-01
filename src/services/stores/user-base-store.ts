@@ -267,39 +267,39 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
   }
 
   public resetSubscriptionCredits(
-  userId: UserId,
-  tierId: TierId,
-  amount: number,
-  logger: Logger
-): Promise<Pick<UserStoreRecord<TIdpName>, 'Credits'>> {
-  return this.updateCommandRunner({
-    Key: { UserId: userId },
-    UpdateExpression: 'SET Credits.SubscriptionCreditBalance = :amount, Credits.Tier = :tierId',
-    ConditionExpression: 'attribute_exists(Credits)',
-    ExpressionAttributeValues: {
-      ':amount': amount,
-      ':tierId': tierId
-    }
-  })
-    .then((r) => this.handleSuccessfulUpdate(r, logger))
-    .catch((error) => {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      if (error.name !== 'ConditionalCheckFailedException') {
-        throw error;
+    userId: UserId,
+    tierId: TierId,
+    amount: number,
+    logger: Logger
+  ): Promise<Pick<UserStoreRecord<TIdpName>, 'Credits'>> {
+    return this.updateCommandRunner({
+      Key: { UserId: userId },
+      UpdateExpression: 'SET Credits.SubscriptionCreditBalance = :amount, Credits.Tier = :tierId',
+      ConditionExpression: 'attribute_exists(Credits)',
+      ExpressionAttributeValues: {
+        ':amount': amount,
+        ':tierId': tierId
       }
-      return this.updateCommandRunner({
-        Key: { UserId: userId },
-        UpdateExpression: 'SET Credits = :credits',
-        ExpressionAttributeValues: {
-          ':credits': {
-            SubscriptionCreditBalance: amount,
-            Tier: tierId,
-            TopupCreditBalance: 0
-          }
+    })
+      .then((r) => this.handleSuccessfulUpdate(r, logger))
+      .catch((error) => {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        if (error.name !== 'ConditionalCheckFailedException') {
+          throw error;
         }
-      }).then((r) => this.handleSuccessfulUpdate(r, logger));
-    });
-}
+        return this.updateCommandRunner({
+          Key: { UserId: userId },
+          UpdateExpression: 'SET Credits = :credits',
+          ExpressionAttributeValues: {
+            ':credits': {
+              SubscriptionCreditBalance: amount,
+              Tier: tierId,
+              TopupCreditBalance: 0
+            }
+          }
+        }).then((r) => this.handleSuccessfulUpdate(r, logger));
+      });
+  }
 
   public clearSubscriptionCredits(
     userId: UserId,
@@ -307,8 +307,7 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
   ): Promise<Pick<UserStoreRecord<TIdpName>, 'Credits'>> {
     return this.updateCommandRunner({
       Key: { UserId: userId },
-      UpdateExpression: 'REMOVE Credits.SubscriptionCreditBalance, Credits.Tier',
-      ExpressionAttributeValues: {}
+      UpdateExpression: 'REMOVE Credits.SubscriptionCreditBalance, Credits.Tier'
     }).then((r) => this.handleSuccessfulUpdate(r, logger));
   }
 

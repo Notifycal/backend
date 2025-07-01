@@ -219,6 +219,9 @@ export class CreditsService<TIdpName extends IdpName> {
           operationId: 'UnknownError',
           error
         };
+        this.logger.warn(`There was an error while clearing subscription credits`, {
+          error
+        });
         return result;
       }
     );
