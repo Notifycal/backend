@@ -18,6 +18,7 @@ paths:
               description: Request payload containing user shopping cart
               properties:
                 tier: { $ref: './component-definitions.yaml#/components/schemas/Tier' }
+                language: { $ref: './component-definitions.yaml#/components/schemas/LanguageCode' }
               additionalProperties: false
       responses:
         '200': { $ref: './component-definitions.yaml#/components/responses/PaymentSessionResult' }
