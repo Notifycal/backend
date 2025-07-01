@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.42.0](https://github.com/Notifycal/backend/compare/v0.41.0...v0.42.0) (2025-07-01)
+
+
+### Features
+
+* test clock and test customers ([#755](https://github.com/Notifycal/backend/issues/755)) ([c1edac1](https://github.com/Notifycal/backend/commit/c1edac1ec425fc5c40667522231b1804fcfb5113))
+
+
+### Bug Fixes
+
+* allow test clock if number of clocks &lt; 1 ([e938774](https://github.com/Notifycal/backend/commit/e9387747cc4c8ba5eeaeab5f193597dfcc18e9e1))
+* **deps:** Update AWS packages to v3.840.0 ([#759](https://github.com/Notifycal/backend/issues/759)) ([a2a96d6](https://github.com/Notifycal/backend/commit/a2a96d65db4e7e38b87512448456e95d795dc2b4))
+
 ## [0.41.0](https://github.com/Notifycal/backend/compare/v0.40.0...v0.41.0) (2025-06-30)
 
 
