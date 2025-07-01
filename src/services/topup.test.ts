@@ -36,7 +36,10 @@ describe(TopupService, () => {
     await testIt(validUserId, validTopupId, 1, addTopupCreditsFn);
 
     expect(addTopupCreditsFn).toHaveBeenCalledTimes(1);
-    expect(addTopupCreditsFn).toHaveBeenCalledWith(validUserId, 90);
+    expect(addTopupCreditsFn).toHaveBeenCalledWith(validUserId, 90, {
+      type: 'topup',
+      id: 'single'
+    });
   });
 
   it('should handle zero quantity resulting in zero credits', async () => {

@@ -124,8 +124,10 @@ export class InvoicePaymentSucceededHandler
     );
   }
 
-  private determineUpdateType(invoice: Stripe.Invoice): 'upgrade' | 'downgrade' {
-    return invoice.amount_paid > 0 ? 'upgrade' : 'downgrade';
+  private determineUpdateType(
+    invoice: Stripe.Invoice
+  ): 'upgrade-subscription' | 'downgrade-subscription' {
+    return invoice.amount_paid > 0 ? 'upgrade-subscription' : 'downgrade-subscription';
   }
 
   private extractUpdateTiers(
@@ -147,10 +149,10 @@ export class InvoicePaymentSucceededHandler
     userId: UserId,
     invoice: Stripe.Invoice,
     tiers: { previousTier: TierId; currentTier: TierId },
-    updateType: 'upgrade' | 'downgrade'
+    updateType: 'upgrade-subscription' | 'downgrade-subscription'
   ): Promise<void> {
     return match(updateType)
-      .with('upgrade', () => {
+      .with('upgrade-subscription', () => {
         return this.calculateRemainingCyclePercentageFromInvoice(invoice)
           .then((remainingPercentage) =>
             this.subscriptionService.upgrade(
@@ -165,7 +167,7 @@ export class InvoicePaymentSucceededHandler
             (e) => this.errorHandler('upgrade-subscription')(e)
           );
       })
-      .with('downgrade', () =>
+      .with('downgrade-subscription', () =>
         this.subscriptionService
           .downgrade(userId)
           .catch((error) => this.errorHandler('downgrade-subscription')(error))

@@ -175,7 +175,10 @@ describe(SubscriptionService, () => {
         50 as Percentage
       );
 
-      expect(addFn).toHaveBeenCalledWith(validUserId, 200, validBetterTier);
+      expect(addFn).toHaveBeenCalledWith(validUserId, 200, {
+        type: 'subscription',
+        id: validBetterTier
+      });
       expect(result).toStrictEqual(validSuccessResult);
     });
 
