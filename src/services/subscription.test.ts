@@ -8,7 +8,7 @@ import type {
   CreditDeductionResult,
   CreditsService
 } from './credits-service';
-import { calculateUpgradeCredits, SubscriptionService } from './subscription-service';
+import { calculateUpgradeCredits, SubscriptionService } from './subscription';
 
 describe(SubscriptionService, () => {
   const validUserId = 'user-123' as UserId;
@@ -264,14 +264,13 @@ describe(SubscriptionService, () => {
       userId: UserId,
       prev: TierId,
       curr: TierId,
-      period: Period,
-      at: UnixTimestamp
+      remainingPercentage: Percentage
     ): Promise<CreditAdditionResult> {
       const service = new SubscriptionService(
         { addSubscriptionCredits: addFn } as unknown as CreditsService<IdpName>,
         validTierToCreditsMap
       );
-      return service.upgrade(userId, prev, curr, period, at);
+      return service.upgrade(userId, prev, curr, remainingPercentage);
     }
   });
 

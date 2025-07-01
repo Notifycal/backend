@@ -1,13 +1,13 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import type { Logger } from '@aws-lambda-powertools/logger';
-import type { TierId, Tiers, TopupId, Topups } from '@model/PaymentPlans';
+import type { TierId, TierMap, TopupId, TopupMap } from '@model/PaymentPlans';
 import type { IdpName } from '@notifycal/shared/types';
 import { CreditsService } from '@services/credits-service';
 import { SnsService } from '@services/sns';
 import { PaymentUserIndexStore } from '@services/stores/payment-user-index-store';
 import { UserBaseStore } from '@services/stores/user-base-store';
-import { SubscriptionService } from '@services/subscription-service';
-import { TopupService } from '@services/topup-service';
+import { SubscriptionService } from '@services/subscription';
+import { TopupService } from '@services/topup';
 import type { EventBridgeEvent } from 'aws-lambda';
 import type { Stripe } from 'stripe';
 import type { StripeWebhookConfig } from './config';
@@ -42,8 +42,8 @@ import type { StripeEventType } from './stripe-schemas';
 export function defaultEventHandlers(
   subscriptionService: SubscriptionService<IdpName>,
   topupService: TopupService<IdpName>,
-  tiers: Tiers,
-  topups: Topups,
+  tiers: TierMap,
+  topups: TopupMap,
   logger: Logger
 ): Map<StripeEventType, EventHandlerBuilder<Stripe.Event>> {
   return new Map<StripeEventType, EventHandlerBuilder<Stripe.Event>>([
@@ -86,8 +86,8 @@ export function recordProcessor(
   eventHandlerFactory: (
     subscriptionService: SubscriptionService<IdpName>,
     topupService: TopupService<IdpName>,
-    tiers: Tiers,
-    topups: Topups,
+    tiers: TierMap,
+    topups: TopupMap,
     logger: Logger
   ) => Map<StripeEventType, EventHandlerBuilder<Stripe.Event>> = defaultEventHandlers,
   config: StripeWebhookConfig,

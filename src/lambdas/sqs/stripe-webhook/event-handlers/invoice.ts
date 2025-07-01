@@ -1,10 +1,10 @@
 /* eslint-disable camelcase */
 import type { Logger } from '@aws-lambda-powertools/logger';
-import type { TierId, Tiers, TopupId, Topups } from '@model/PaymentPlans';
+import type { TierId, TierMap, TopupId, TopupMap } from '@model/PaymentPlans';
 import type { Identity, IdpName, UserId } from '@notifycal/shared/types';
 import type { CreditAdditionResult } from '@services/credits-service';
-import type { SubscriptionService } from '@services/subscription-service';
-import type { TopupService } from '@services/topup-service';
+import type { SubscriptionService } from '@services/subscription';
+import type { TopupService } from '@services/topup';
 import type Stripe from 'stripe';
 import { match } from 'ts-pattern';
 import type { StripeEventType } from '../stripe-schemas';
@@ -40,8 +40,8 @@ export class InvoicePaymentSucceededHandler
 {
   public constructor(
     stripeEventType: StripeEventType,
-    private readonly tiers: Tiers,
-    private readonly topups: Topups,
+    private readonly tiers: TierMap,
+    private readonly topups: TopupMap,
     private readonly subscriptionService: SubscriptionService<IdpName>,
     private readonly topupService: TopupService<IdpName>,
     private readonly logger: Logger
@@ -88,7 +88,7 @@ export class InvoicePaymentSucceededHandler
     return this.extractProduct(product, this.topups).then(
       (topupId) =>
         this.topupService
-          .do(userId, topupId, product.quantity || 0)
+          .add(userId, topupId, product.quantity || 0)
           .then((r) => this.creditAdditionHandler(r)),
       (error) => this.errorHandler('topup')(error)
     );
@@ -98,7 +98,7 @@ export class InvoicePaymentSucceededHandler
     return this.extractProduct(invoice.lines.data[0], this.tiers).then(
       (tierId) =>
         this.subscriptionService.create(userId, tierId).then((r) => this.creditAdditionHandler(r)),
-      (error) => this.errorHandler('create')(error)
+      (error) => this.errorHandler('create-subscription')(error)
     );
   }
 
@@ -106,7 +106,7 @@ export class InvoicePaymentSucceededHandler
     return this.extractProduct(invoice.lines.data[0], this.tiers).then(
       (tierId) =>
         this.subscriptionService.renew(userId, tierId).then((r) => this.creditAdditionHandler(r)),
-      (error) => this.errorHandler('renew')(error)
+      (error) => this.errorHandler('renew-subscription')(error)
     );
   }
 
@@ -162,13 +162,13 @@ export class InvoicePaymentSucceededHandler
           )
           .then(
             () => {},
-            (e) => this.errorHandler('upgrade')(e)
+            (e) => this.errorHandler('upgrade-subscription')(e)
           );
       })
       .with('downgrade', () =>
         this.subscriptionService
           .downgrade(userId)
-          .catch((error) => this.errorHandler('downgrade')(error))
+          .catch((error) => this.errorHandler('downgrade-subscription')(error))
       )
       .exhaustive();
   }
@@ -184,7 +184,12 @@ export class InvoicePaymentSucceededHandler
   }
 
   private errorHandler(
-    operation: 'create' | 'renew' | 'upgrade' | 'downgrade' | 'topup'
+    operation:
+      | 'create-subscription'
+      | 'renew-subscription'
+      | 'upgrade-subscription'
+      | 'downgrade-subscription'
+      | 'topup'
   ): (error: unknown) => Promise<never> {
     return this.handleError(operation);
   }

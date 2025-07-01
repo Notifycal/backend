@@ -1,6 +1,6 @@
 /* eslint-disable camelcase */
 import type { Logger } from '@aws-lambda-powertools/logger';
-import type { TierId, Tiers, Topups } from '@model/PaymentPlans';
+import type { TierId, TierMap, TopupMap } from '@model/PaymentPlans';
 import type {
   Email,
   Identity,
@@ -11,8 +11,8 @@ import type {
 } from '@notifycal/shared/types';
 import type { Period } from '@own-types/model';
 import type { CreditAdditionResult } from '@services/credits-service';
-import type { SubscriptionService } from '@services/subscription-service';
-import type { TopupService } from '@services/topup-service';
+import type { SubscriptionService } from '@services/subscription';
+import type { TopupService } from '@services/topup';
 import { validPaymentPlans } from '@testing/data/pricing';
 import type Stripe from 'stripe';
 import { describe, expect, it, vi, type Mock } from 'vitest';
@@ -26,8 +26,8 @@ describe(InvoicePaymentSucceededHandler, () => {
     idpId: '42524352354' as IdpId
   };
 
-  const validTiers: Tiers = validPaymentPlans.tiers;
-  const validTopups: Topups = validPaymentPlans.topups;
+  const validTiers: TierMap = validPaymentPlans.tiers;
+  const validTopups: TopupMap = validPaymentPlans.topups;
 
   const validInvoiceLineItem: Stripe.InvoiceLineItem = {
     id: 'il_test123',
@@ -386,7 +386,7 @@ describe(InvoicePaymentSucceededHandler, () => {
     );
 
     await expect(result).rejects.toThrow(
-      'Error while handling create in invoice.payment_succeeded event handler. Error: Unknown price ID: unknown_price_id. No matching tier/topup found. Invoice item ID: il_test123'
+      'Error while handling create-subscription in invoice.payment_succeeded event handler. Error: Unknown price ID: unknown_price_id. No matching tier/topup found. Invoice item ID: il_test123'
     );
 
     expectSubscriptionServiceNotToHaveBeenCalled(createFn, renewFn, upgradeFn, downgradeFn);
@@ -409,7 +409,7 @@ describe(InvoicePaymentSucceededHandler, () => {
     );
 
     await expect(result).rejects.toThrow(
-      'Error while handling create in invoice.payment_succeeded event handler. Error: No price ID found in invoice line item. Invoice item ID: unknown'
+      'Error while handling create-subscription in invoice.payment_succeeded event handler. Error: No price ID found in invoice line item. Invoice item ID: unknown'
     );
 
     expectSubscriptionServiceNotToHaveBeenCalled(createFn, renewFn, upgradeFn, downgradeFn);
@@ -432,7 +432,7 @@ describe(InvoicePaymentSucceededHandler, () => {
     );
 
     await expect(result).rejects.toThrow(
-      'Error while handling create in invoice.payment_succeeded event handler. Error: No price ID found in invoice line item. Invoice item ID: il_test123'
+      'Error while handling create-subscription in invoice.payment_succeeded event handler. Error: No price ID found in invoice line item. Invoice item ID: il_test123'
     );
 
     expectSubscriptionServiceNotToHaveBeenCalled(createFn, renewFn, upgradeFn, downgradeFn);
@@ -519,7 +519,7 @@ describe(InvoicePaymentSucceededHandler, () => {
     );
 
     await expect(result).rejects.toThrow(
-      'Error while doing upgrade: tiers could not be extracted out of the invoice'
+      'Error while doing upgrade-subscription: tiers could not be extracted out of the invoice'
     );
 
     expectSubscriptionServiceNotToHaveBeenCalled(createFn, renewFn, upgradeFn, downgradeFn);
@@ -559,7 +559,7 @@ describe(InvoicePaymentSucceededHandler, () => {
     );
 
     await expect(result).rejects.toThrow(
-      'Error while doing upgrade: tiers could not be extracted out of the invoice'
+      'Error while doing upgrade-subscription: tiers could not be extracted out of the invoice'
     );
 
     expectSubscriptionServiceNotToHaveBeenCalled(createFn, renewFn, upgradeFn, downgradeFn);
@@ -578,8 +578,8 @@ describe(InvoicePaymentSucceededHandler, () => {
       created: UnixTimestamp
     ) => Promise<void>,
     downgradeFn: (userId: UserId) => Promise<void>,
-    tiers: Tiers,
-    topups: Topups = validTopups
+    tiers: TierMap,
+    topups: TopupMap = validTopups
   ): Promise<void> {
     const subscriptionServiceMock = {
       create: createFn,

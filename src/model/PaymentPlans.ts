@@ -1,8 +1,4 @@
-const tierIds = ['good', 'better', 'best'] as const;
-export const tierIdMap = Object.fromEntries(tierIds.map((tier) => [tier, tier])) as Record<
-  (typeof tierIds)[number],
-  (typeof tierIds)[number]
->;
+export const tierIds = ['good', 'better', 'best'] as const;
 export type TierId = (typeof tierIds)[number];
 export interface Tier {
   type: 'tier';
@@ -10,13 +6,9 @@ export interface Tier {
   priceId: string;
   credits: number;
 }
-export type Tiers = Record<TierId, Tier>;
+export type TierMap = Record<TierId, Tier>;
 
-const topupIds = ['single'] as const;
-export const topupIdMap = Object.fromEntries(topupIds.map((topup) => [topup, topup])) as Record<
-  (typeof topupIds)[number],
-  (typeof topupIds)[number]
->;
+export const topupIds = ['single'] as const;
 export type TopupId = (typeof topupIds)[number];
 export interface Topup {
   type: 'topup';
@@ -24,4 +16,4 @@ export interface Topup {
   priceId: string;
   credits: number;
 }
-export type Topups = Record<TopupId, Topup>;
+export type TopupMap = Record<TopupId, Topup>;

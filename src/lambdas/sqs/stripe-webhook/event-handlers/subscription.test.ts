@@ -1,6 +1,6 @@
 import { logger } from '@common/powertools';
 import type { Identity, IdpName } from '@notifycal/shared/types';
-import type { SubscriptionService } from '@services/subscription-service';
+import type { SubscriptionService } from '@services/subscription';
 import type Stripe from 'stripe';
 import { describe, expect, it, vi } from 'vitest';
 import type { StripeEventType } from '../stripe-schemas';
