@@ -66,7 +66,7 @@ export class InvoicePaymentSucceededHandler
       .with({ billing_reason: 'subscription_create' }, () => this.createHandler(invoice, userId))
       .with({ billing_reason: 'subscription_cycle' }, () => this.renewHandler(invoice, userId))
       .with({ billing_reason: 'subscription_update' }, (invoice) =>
-        this.handleSubscriptionUpdate(userId, invoice, event.created as UnixTimestamp)
+        this.handleSubscriptionUpdate(userId, invoice)
       )
       .with({ billing_reason: 'manual' }, (invoice) => this.topupHandler(invoice, userId))
       .otherwise((invoice) => {
@@ -110,14 +110,10 @@ export class InvoicePaymentSucceededHandler
     );
   }
 
-  private handleSubscriptionUpdate(
-    userId: UserId,
-    invoice: Stripe.Invoice,
-    at: UnixTimestamp
-  ): Promise<void> {
+  private handleSubscriptionUpdate(userId: UserId, invoice: Stripe.Invoice): Promise<void> {
     const updateType = this.determineUpdateType(invoice);
     return this.extractUpdateTiers(invoice).then(
-      (tiers) => this.executeSubscriptionUpdate(userId, invoice, at, tiers, updateType),
+      (tiers) => this.executeSubscriptionUpdate(userId, invoice, tiers, updateType),
       (error) =>
         Promise.reject(
           new Error(
@@ -147,10 +143,9 @@ export class InvoicePaymentSucceededHandler
     }));
   }
 
-  private executeSubscriptionUpdate(
+  private async executeSubscriptionUpdate(
     userId: UserId,
     invoice: Stripe.Invoice,
-    at: UnixTimestamp,
     tiers: { previousTier: TierId; currentTier: TierId },
     updateType: 'upgrade' | 'downgrade'
   ): Promise<void> {
@@ -158,7 +153,13 @@ export class InvoicePaymentSucceededHandler
       .with('upgrade', () => {
         const period = invoice.lines.data[0].period;
         return this.subscriptionService
-          .upgrade(userId, tiers.previousTier, tiers.currentTier, period, at)
+          .upgrade(
+            userId,
+            tiers.previousTier,
+            tiers.currentTier,
+            period,
+            invoice.effective_at as UnixTimestamp
+          )
           .then(
             () => {},
             (e) => this.errorHandler('upgrade')(e)
