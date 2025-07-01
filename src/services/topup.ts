@@ -8,6 +8,13 @@ export class TopupService<TIdpName extends IdpName> {
     private readonly topupToCreditsMap: Record<TopupId, number>
   ) {}
   public add(userId: UserId, topup: TopupId, quantity: number): Promise<CreditAdditionResult> {
+    if (quantity < 1) {
+      return Promise.reject(
+        new Error(
+          `Error while adding a topup. Quantity cannot be smaller than 1. Quantity: ${quantity}`
+        )
+      );
+    }
     const credits = this.topupToCreditsMap[topup] * quantity;
     return this.creditsService.addTopupCredits(userId, credits);
   }
