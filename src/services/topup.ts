@@ -16,6 +16,9 @@ export class TopupService<TIdpName extends IdpName> {
       );
     }
     const credits = this.topupToCreditsMap[topup] * quantity;
-    return this.creditsService.addTopupCredits(userId, credits);
+    return this.creditsService.addCredits(userId, credits, {
+      type: 'topup',
+      id: 'single'
+    });
   }
 }

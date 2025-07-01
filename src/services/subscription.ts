@@ -73,7 +73,10 @@ export class SubscriptionService<TIdpName extends IdpName> {
       });
     }
 
-    return this.creditsService.addSubscriptionCredits(userId, creditsToAdd, currentTier);
+    return this.creditsService.addCredits(userId, creditsToAdd, {
+      type: 'subscription',
+      id: currentTier
+    });
   }
 
   public downgrade(userId: UserId): Promise<void> {

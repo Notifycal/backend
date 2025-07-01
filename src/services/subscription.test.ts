@@ -262,7 +262,7 @@ describe(SubscriptionService, () => {
       remainingPercentage: Percentage
     ): Promise<CreditAdditionResult> {
       const service = new SubscriptionService(
-        { addSubscriptionCredits: addFn } as unknown as CreditsService<IdpName>,
+        { addCredits: addFn } as unknown as CreditsService<IdpName>,
         validTierToCreditsMap
       );
       return service.upgrade(userId, prev, curr, remainingPercentage);

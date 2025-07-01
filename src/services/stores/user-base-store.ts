@@ -2,7 +2,7 @@ import type { Logger } from '@aws-lambda-powertools/logger';
 import type { UpdateCommandOutput } from '@aws-sdk/lib-dynamodb';
 import { InsufficientCreditsError } from '@model/Errors';
 import type { AuthorizationForIdp } from '@model/IdpAuthorization';
-import type { TierId } from '@model/PaymentPlans';
+import type { TierId, TopupId } from '@model/PaymentPlans';
 import type { ReminderConfigStoreRecord } from '@model/store/ReminderConfigStoreRecord';
 import type { UserIdpAuthorizationStoreRecord } from '@model/store/UserIdpAuthorizationStoreRecord';
 import type { CreditBalanceType, UserStoreRecord } from '@model/store/UserStoreRecord';
@@ -14,6 +14,7 @@ import type {
   UserStatus
 } from '@notifycal/shared/types';
 import { throwError } from '@services/common/error-handling';
+import { match } from 'ts-pattern';
 import { BaseStore, type BaseStoreConfig } from '../common/base-store';
 
 export type UserBaseStoreConfig = BaseStoreConfig;
@@ -179,11 +180,11 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
   }
 
   //TODO topups
-  public deductSubscriptionCredits(
+  public deductCredits(
     userId: UserId,
     amount: number,
     logger: Logger
-  ): Promise<Pick<UserStoreRecord<TIdpName>, 'Credits'>> {
+  ): Promise<Required<Pick<UserStoreRecord<TIdpName>, 'Credits'>>> {
     return this.updateCommandRunner({
       Key: { UserId: userId },
       UpdateExpression:
@@ -208,62 +209,49 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
     );
   }
 
-  private addCredits(
+  public addCredits(
     userId: UserId,
     amount: number,
-    creditType: CreditBalanceType,
-    tierId: TierId | undefined,
+    product: { type: 'subscription'; id: TierId } | { type: 'topup'; id: TopupId },
     logger: Logger
-  ): Promise<Pick<UserStoreRecord<TIdpName>, 'Credits'>> {
-    const shouldUpdateTier = tierId && creditType === 'SubscriptionCreditBalance';
+  ): Promise<Required<Pick<UserStoreRecord<TIdpName>, 'Credits'>>> {
+    const productConfig = match(product)
+      .with({ type: 'subscription' }, (p) => ({
+        creditType: 'SubscriptionCreditBalance' as CreditBalanceType,
+        shouldUpdateTier: true,
+        tierId: p.id
+      }))
+      .with({ type: 'topup' }, () => ({
+        creditType: 'TopupCreditBalance' as CreditBalanceType,
+        shouldUpdateTier: false,
+        tierId: undefined
+      }))
+      .exhaustive();
     const updateExpressionParts = [
-      `SET Credits.${creditType} = if_not_exists(Credits.${creditType}, :zero) + :amount`,
-      ...(shouldUpdateTier ? ['Credits.Tier = :tierId'] : [])
+      `SET Credits.${productConfig.creditType} = if_not_exists(Credits.${productConfig.creditType}, :zero) + :amount`,
+      ...(productConfig.shouldUpdateTier ? ['Credits.Tier = :tierId'] : [])
     ];
     const expressionAttributeValues = {
       ':amount': amount,
       ':zero': 0,
-      ...(shouldUpdateTier ? { ':tierId': tierId } : {})
+      ...(productConfig.shouldUpdateTier ? { ':tierId': productConfig.tierId } : {})
     };
     return this.updateCommandRunner({
       Key: { UserId: userId },
       UpdateExpression: updateExpressionParts.join(', '),
       ConditionExpression: 'attribute_exists(Credits)',
       ExpressionAttributeValues: expressionAttributeValues
-    }).then(
-      (r) => this.handleSuccessfulUpdate(r, logger),
-      (error) => {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        if (error.name === 'ConditionalCheckFailedException') {
-          return Promise.reject(
-            new Error(
-              `Failed to add credits for user '${userId}' - Credits field does not exist`,
-              // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-              error
-            )
+    })
+      .then((r) => this.handleSuccessfulUpdate(r, logger))
+      .catch((error: unknown) => {
+        if (error instanceof Error && error.name === 'ConditionalCheckFailedException') {
+          throw new Error(
+            `Failed to add credits for user '${userId}' - Credits field does not exist`,
+            { cause: error }
           );
         }
-        // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
-        return Promise.reject(error);
-      }
-    );
-  }
-
-  public addSubscriptionCredits(
-    userId: UserId,
-    amount: number,
-    tierId: TierId,
-    logger: Logger
-  ): Promise<Pick<UserStoreRecord<TIdpName>, 'Credits'>> {
-    return this.addCredits(userId, amount, 'SubscriptionCreditBalance', tierId, logger);
-  }
-
-  public addTopupCredits(
-    userId: UserId,
-    amount: number,
-    logger: Logger
-  ): Promise<Pick<UserStoreRecord<TIdpName>, 'Credits'>> {
-    return this.addCredits(userId, amount, 'TopupCreditBalance', undefined, logger);
+        throw error;
+      });
   }
 
   public resetSubscriptionCredits(
@@ -271,7 +259,7 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
     tierId: TierId,
     amount: number,
     logger: Logger
-  ): Promise<Pick<UserStoreRecord<TIdpName>, 'Credits'>> {
+  ): Promise<Required<Pick<UserStoreRecord<TIdpName>, 'Credits'>>> {
     return this.updateCommandRunner({
       Key: { UserId: userId },
       UpdateExpression: 'SET Credits.SubscriptionCreditBalance = :amount, Credits.Tier = :tierId',
@@ -304,7 +292,7 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
   public clearSubscriptionCredits(
     userId: UserId,
     logger: Logger
-  ): Promise<Pick<UserStoreRecord<TIdpName>, 'Credits'>> {
+  ): Promise<Required<Pick<UserStoreRecord<TIdpName>, 'Credits'>>> {
     return this.updateCommandRunner({
       Key: { UserId: userId },
       UpdateExpression: 'REMOVE Credits.SubscriptionCreditBalance, Credits.Tier'
@@ -314,9 +302,9 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
   private handleSuccessfulUpdate(
     output: UpdateCommandOutput,
     logger: Logger
-  ): Pick<UserStoreRecord<TIdpName>, 'Credits'> {
-    if (output.Attributes) {
-      const updatedUser = output.Attributes as UserStoreRecord<TIdpName>;
+  ): Required<Pick<UserStoreRecord<TIdpName>, 'Credits'>> {
+    const updatedUser = output.Attributes as UserStoreRecord<TIdpName> | undefined;
+    if (updatedUser && updatedUser.Credits) {
       return { Credits: updatedUser.Credits };
     } else {
       throwError('Unexpected error while updating credits from persistance', logger);

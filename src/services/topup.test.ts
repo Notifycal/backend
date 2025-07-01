@@ -77,7 +77,7 @@ describe(TopupService, () => {
     topupToCreditsMap: Record<TopupId, number> = validTopupToCreditsMap
   ): Promise<CreditAdditionResult> {
     const creditsServiceMock = {
-      addTopupCredits: addTopupCreditsFn
+      addCredits: addTopupCreditsFn
     } as unknown as CreditsService<'google.com'>;
 
     const topupService = new TopupService(creditsServiceMock, topupToCreditsMap);
