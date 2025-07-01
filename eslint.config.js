@@ -143,7 +143,9 @@ const vitestConfig = {
     'vitest/prefer-lowercase-title': 'off',
     'vitest/require-mock-type-parameters': 'off',
     'vitest/no-importing-vitest-globals': 'off',
-    'vitest/prefer-importing-vitest-globals': 'off'
+    'vitest/prefer-importing-vitest-globals': 'off',
+    'vitest/prefer-called-times': 'off',
+    'vitest/prefer-called-once': 'off'
   },
   settings: {
     vitest: {
