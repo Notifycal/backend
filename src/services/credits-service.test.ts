@@ -139,7 +139,7 @@ describe(CreditsService, () => {
 
       expect(result).toStrictEqual({
         success: false,
-        operationId: 'UnknownError',
+        operationId: 'BadRequestError',
         error: new Error('Credits must be greater than 0. Credits: 0')
       });
       expect(deductSubscriptionCreditsFn).not.toHaveBeenCalled();
@@ -153,7 +153,7 @@ describe(CreditsService, () => {
 
       expect(result).toStrictEqual({
         success: false,
-        operationId: 'UnknownError',
+        operationId: 'BadRequestError',
         error: new Error('Credits must be greater than 0. Credits: -5')
       });
       expect(deductSubscriptionCreditsFn).not.toHaveBeenCalled();
@@ -370,7 +370,7 @@ describe(CreditsService, () => {
 
       expect(result).toStrictEqual({
         success: false,
-        operationId: 'UnknownError',
+        operationId: 'BadRequestError',
         error: new Error('Credits must be greater than 0. Credits: 0')
       });
       expect(addCreditsFn).not.toHaveBeenCalled();
@@ -389,7 +389,7 @@ describe(CreditsService, () => {
 
       expect(result).toStrictEqual({
         success: false,
-        operationId: 'UnknownError',
+        operationId: 'BadRequestError',
         error: new Error('Credits must be greater than 0. Credits: -50')
       });
       expect(addCreditsFn).not.toHaveBeenCalled();

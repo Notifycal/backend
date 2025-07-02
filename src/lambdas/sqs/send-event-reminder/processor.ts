@@ -23,6 +23,7 @@ import type { VonageEndpointConfig } from '@model/vendor/vonage/config';
 import type { IdpName, UserId, Uuid } from '@notifycal/shared/types';
 import type { Url } from '@own-types/model';
 import type {
+  CreditDeductionBadRequestError,
   CreditDeductionInsufficientCreditsError,
   CreditDeductionResult,
   CreditDeductionUnexpectedError,
@@ -111,7 +112,10 @@ export default class Processor {
   }
 
   private async handleCreditDeductionFailure(
-    result: CreditDeductionInsufficientCreditsError | CreditDeductionUnexpectedError,
+    result:
+      | CreditDeductionInsufficientCreditsError
+      | CreditDeductionBadRequestError
+      | CreditDeductionUnexpectedError,
     event: ActionableEventFoundEvent | DemoReminderToBeSentEvent
   ): Promise<never> {
     const error = await match(result)
@@ -122,6 +126,12 @@ export default class Processor {
 
         await this.publishInsufficientCreditErrorEvent(event, result);
         return error;
+      })
+      .with({ operationId: 'BadRequestError' }, (result) => {
+        return new Error(
+          `A message could not be sent because an irregular amount of credits was trying to be deducted`,
+          { cause: result.error }
+        );
       })
       .with({ operationId: 'UnknownError' }, (result) => {
         return new Error(

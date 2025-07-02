@@ -15,6 +15,11 @@ export interface CreditDeductionInsufficientCreditsError {
   readonly operationId: 'InsufficientCredits';
   error: InsufficientCreditsError;
 }
+export interface CreditDeductionBadRequestError {
+  readonly success: false;
+  readonly operationId: 'BadRequestError';
+  error: unknown;
+}
 export interface CreditDeductionUnexpectedError {
   readonly success: false;
   readonly operationId: 'UnknownError';
@@ -23,6 +28,7 @@ export interface CreditDeductionUnexpectedError {
 export type CreditDeductionResult =
   | CreditDeductionSuccess
   | CreditDeductionInsufficientCreditsError
+  | CreditDeductionBadRequestError
   | CreditDeductionUnexpectedError;
 
 export interface CreditAdditionSuccess {
@@ -31,13 +37,21 @@ export interface CreditAdditionSuccess {
   readonly subscriptionCreditBalance: number;
   readonly topupCreditBalance: number;
 }
+export interface CreditAdditionBadRequestError {
+  readonly success: false;
+  readonly operationId: 'BadRequestError';
+  error: unknown;
+}
 export interface CreditAdditionUnexpectedError {
   readonly success: false;
   readonly operationId: 'UnknownError';
   error: unknown;
 }
 
-export type CreditAdditionResult = CreditAdditionSuccess | CreditAdditionUnexpectedError;
+export type CreditAdditionResult =
+  | CreditAdditionSuccess
+  | CreditAdditionBadRequestError
+  | CreditAdditionUnexpectedError;
 
 export class CreditsService<TIdpName extends IdpName> {
   public constructor(
@@ -234,7 +248,7 @@ export class CreditsService<TIdpName extends IdpName> {
   private badRequestCreditError(credits: number): CreditAdditionResult | CreditDeductionResult {
     return {
       success: false,
-      operationId: 'UnknownError',
+      operationId: 'BadRequestError',
       error: new Error(`Credits must be greater than 0. Credits: ${credits}`)
     };
   }

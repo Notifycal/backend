@@ -177,13 +177,13 @@ export class InvoicePaymentSucceededHandler
   }
 
   private creditAdditionHandler(result: CreditAdditionResult): Promise<void> {
-    return (
-      match(result)
-        .with({ operationId: 'Success' }, () => Promise.resolve())
+    return match(result)
+      .with({ operationId: 'Success' }, () => Promise.resolve())
+      .with({ operationId: 'UnknownError' }, { operationId: 'BadRequestError' }, (r) =>
         // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
-        .with({ operationId: 'UnknownError' }, (r) => Promise.reject(r.error))
-        .exhaustive()
-    );
+        Promise.reject(r.error)
+      )
+      .exhaustive();
   }
 
   private errorHandler(
