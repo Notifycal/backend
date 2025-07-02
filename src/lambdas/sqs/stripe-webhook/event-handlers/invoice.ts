@@ -110,8 +110,12 @@ export class InvoicePaymentSucceededHandler
 
   private determineUpdateType(
     invoice: Stripe.Invoice
-  ): 'upgrade-subscription' | 'downgrade-subscription' {
-    return invoice.amount_paid > 0 ? 'upgrade-subscription' : 'downgrade-subscription';
+  ): 'upgrade-subscription' | 'downgrade-subscription' | 'undetermined' {
+    return invoice.amount_paid > 0
+      ? 'upgrade-subscription'
+      : invoice.amount_paid === 0
+        ? 'downgrade-subscription'
+        : 'undetermined';
   }
 
   private extractUpdateTiers(
@@ -133,7 +137,7 @@ export class InvoicePaymentSucceededHandler
     userId: UserId,
     invoice: Stripe.Invoice,
     tiers: { previousTier: TierId; currentTier: TierId },
-    updateType: 'upgrade-subscription' | 'downgrade-subscription'
+    updateType: 'upgrade-subscription' | 'downgrade-subscription' | 'undetermined'
   ): Promise<void> {
     return match(updateType)
       .with('upgrade-subscription', () => {
@@ -155,6 +159,13 @@ export class InvoicePaymentSucceededHandler
         this.subscriptionService
           .downgrade(userId)
           .catch((error) => this.errorHandler('downgrade-subscription')(error))
+      )
+      .with('undetermined', () =>
+        Promise.reject(
+          new Error(
+            `Failed to infer what kind of subscription update has been performed. Most likely, the amount_paid is unexpected`
+          )
+        )
       )
       .exhaustive();
   }

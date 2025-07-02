@@ -655,6 +655,34 @@ describe(InvoicePaymentSucceededHandler, () => {
     expectNoServiceCallsMade(createFn, renewFn, upgradeFn, downgradeFn, addTopupFn);
   });
 
+  it('should throw error when it is not possible to infer the susbscription update type', async () => {
+    const createFn = vi.fn();
+    const renewFn = vi.fn();
+    const upgradeFn = vi.fn();
+    const downgradeFn = vi.fn();
+    const addTopupFn = vi.fn();
+
+    const result = testIt(
+      validEvent({
+        ...validUpgradeInvoice,
+        amount_paid: -100
+      }),
+      validIdentity,
+      createFn,
+      renewFn,
+      upgradeFn,
+      downgradeFn,
+      addTopupFn,
+      validTiers
+    );
+
+    await expect(result).rejects.toThrow(
+      'Failed to infer what kind of subscription update has been performed. Most likely, the amount_paid is unexpected'
+    );
+
+    expectNoServiceCallsMade(createFn, renewFn, upgradeFn, downgradeFn, addTopupFn);
+  });
+
   it('should reject when subscription create returns UnknownError', async () => {
     const createFn = vi.fn().mockResolvedValue(validErrorResult);
     const renewFn = vi.fn();
