@@ -81,6 +81,15 @@ export function defaultEventHandlers(
   ]);
 }
 
+function toProductToCreditsMap<T extends TierId | TopupId>(
+  items: Record<string, { id: T; credits: number }>
+): Record<T, number> {
+  return Object.fromEntries(Object.values(items).map((item) => [item.id, item.credits])) as Record<
+    T,
+    number
+  >;
+}
+
 export function recordProcessor(
   record: EventBridgeEvent<StripeEventType, Stripe.Event>,
   eventHandlerFactory: (
@@ -101,14 +110,8 @@ export function recordProcessor(
   );
   const creditsService = new CreditsService(userStore, logger);
   const { tiers, topups } = config.paymentPlans;
-  const tierToCreditsMap = Object.fromEntries(
-    Object.values(tiers).map((value) => [value.id, value.credits])
-  ) as Record<TierId, number>;
-  const topupToCreditsMap = Object.fromEntries(
-    Object.values(topups).map((value) => [value.id, value.credits])
-  ) as Record<TopupId, number>;
-  const subscriptionService = new SubscriptionService(creditsService, tierToCreditsMap);
-  const topupService = new TopupService(creditsService, topupToCreditsMap);
+  const subscriptionService = new SubscriptionService(creditsService, toProductToCreditsMap(tiers));
+  const topupService = new TopupService(creditsService, toProductToCreditsMap(topups));
   const snsService = SnsService.withConfig(config.paymentWebhookTopicConfig, logger);
   const ourHandlers = eventHandlerFactory(subscriptionService, topupService, tiers, topups, logger);
   const processor = new StripeEventProcessor(
