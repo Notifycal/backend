@@ -73,19 +73,17 @@ function checkEligibility(
     return Promise.resolve({ eligible: true, stripeCustomerId });
   }
 
-  return stripeService
-    .countActiveSubscriptions(stripeCustomerId)
-    .then((activeSubscriptionCount) => {
-      if (activeSubscriptionCount >= 1) {
-        logger.info('Customer already has an active subscription', {
-          userId: identity.userId,
-          stripeCustomerId,
-          activeSubscriptionCount
-        });
-        return { eligible: false, stripeCustomerId };
-      }
-      return { eligible: true, stripeCustomerId };
-    });
+  return stripeService.countSubscriptions(stripeCustomerId).then((activeSubscriptionCount) => {
+    if (activeSubscriptionCount >= 1) {
+      logger.info('Customer already has an active subscription', {
+        userId: identity.userId,
+        stripeCustomerId,
+        activeSubscriptionCount
+      });
+      return { eligible: false, stripeCustomerId };
+    }
+    return { eligible: true, stripeCustomerId };
+  });
 }
 
 async function lambdaHandler(

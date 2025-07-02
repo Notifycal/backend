@@ -583,17 +583,17 @@ describe(StripeService, () => {
     });
   });
 
-  describe('countActiveSubscriptions', () => {
-    it('should return 0 when customer has no active subscriptions', async () => {
+  describe('countSubscriptions', () => {
+    it('should return 0 when customer has no subscriptions', async () => {
       const listSubscriptionsFn = vi.fn().mockResolvedValue({ data: [] });
 
-      const result = await testCountActiveSubscriptions(validStripeCustomerId, listSubscriptionsFn);
+      const result = await testCountSubscriptions(validStripeCustomerId, listSubscriptionsFn);
 
       expect(result).toBe(0);
       expect(listSubscriptionsFn).toHaveBeenCalledTimes(1);
       expect(listSubscriptionsFn).toHaveBeenCalledWith({
         customer: validStripeCustomerId,
-        status: 'active',
+        status: 'all',
         limit: 100
       });
     });
@@ -605,7 +605,19 @@ describe(StripeService, () => {
       };
       const listSubscriptionsFn = vi.fn().mockResolvedValue({ data: [validActiveSubscription] });
 
-      const result = await testCountActiveSubscriptions(validStripeCustomerId, listSubscriptionsFn);
+      const result = await testCountSubscriptions(validStripeCustomerId, listSubscriptionsFn);
+
+      expect(result).toBe(1);
+    });
+
+    it('should return 1 when customer has one past_due subscription', async () => {
+      const validPastDueSubscription = {
+        id: 'sub_123',
+        status: 'past_due'
+      };
+      const listSubscriptionsFn = vi.fn().mockResolvedValue({ data: [validPastDueSubscription] });
+
+      const result = await testCountSubscriptions(validStripeCustomerId, listSubscriptionsFn);
 
       expect(result).toBe(1);
     });
@@ -618,9 +630,54 @@ describe(StripeService, () => {
       ];
       const listSubscriptionsFn = vi.fn().mockResolvedValue({ data: validActiveSubscriptions });
 
-      const result = await testCountActiveSubscriptions(validStripeCustomerId, listSubscriptionsFn);
+      const result = await testCountSubscriptions(validStripeCustomerId, listSubscriptionsFn);
 
       expect(result).toBe(3);
+    });
+
+    it('should return correct count when customer has mix of active and past_due subscriptions', async () => {
+      const validMixedSubscriptions = [
+        { id: 'sub_123', status: 'active' },
+        { id: 'sub_456', status: 'past_due' },
+        { id: 'sub_789', status: 'active' }
+      ];
+      const listSubscriptionsFn = vi.fn().mockResolvedValue({ data: validMixedSubscriptions });
+
+      const result = await testCountSubscriptions(validStripeCustomerId, listSubscriptionsFn);
+
+      expect(result).toBe(3);
+    });
+
+    it('should return 0 when customer has only canceled or unpaid subscriptions', async () => {
+      const validInactiveSubscriptions = [
+        { id: 'sub_123', status: 'canceled' },
+        { id: 'sub_456', status: 'unpaid' },
+        { id: 'sub_789', status: 'incomplete' }
+      ];
+      const listSubscriptionsFn = vi.fn().mockResolvedValue({ data: validInactiveSubscriptions });
+
+      const result = await testCountSubscriptions(validStripeCustomerId, listSubscriptionsFn);
+
+      expect(result).toBe(0);
+    });
+
+    it('should count only active and past_due from mixed statuses', async () => {
+      const validAllStatusesSubscriptions = [
+        { id: 'sub_1', status: 'active' },
+        { id: 'sub_2', status: 'past_due' },
+        { id: 'sub_3', status: 'canceled' },
+        { id: 'sub_4', status: 'unpaid' },
+        { id: 'sub_5', status: 'active' },
+        { id: 'sub_6', status: 'incomplete' },
+        { id: 'sub_7', status: 'incomplete_expired' }
+      ];
+      const listSubscriptionsFn = vi.fn().mockResolvedValue({
+        data: validAllStatusesSubscriptions
+      });
+
+      const result = await testCountSubscriptions(validStripeCustomerId, listSubscriptionsFn);
+
+      expect(result).toBe(3); // solo cuenta active y past_due
     });
 
     it('should throw error when Stripe API fails', async () => {
@@ -628,7 +685,7 @@ describe(StripeService, () => {
       const listSubscriptionsFn = vi.fn().mockRejectedValue(stripeError);
 
       await expect(
-        testCountActiveSubscriptions(validStripeCustomerId, listSubscriptionsFn)
+        testCountSubscriptions(validStripeCustomerId, listSubscriptionsFn)
       ).rejects.toThrow('Failed to list subscriptions');
     });
   });
@@ -705,7 +762,7 @@ describe(StripeService, () => {
     return stripeService.createCustomerPortalSession(stripeCustomerId, returnUrl, configId);
   }
 
-  async function testCountActiveSubscriptions(
+  async function testCountSubscriptions(
     stripeCustomerId: StripeCustomerId,
     listSubscriptionsFn: () => Promise<{ data: Array<{ id: string; status: string }> }>
   ): Promise<number> {
@@ -719,7 +776,7 @@ describe(StripeService, () => {
     setupMocks(mockStripeInstance);
 
     const stripeService = await StripeService.withConfig(validApiKey);
-    return stripeService.countActiveSubscriptions(stripeCustomerId);
+    return stripeService.countSubscriptions(stripeCustomerId);
   }
 
   function setupMocks(mockStripeInstance: Stripe): void {

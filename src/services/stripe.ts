@@ -168,13 +168,18 @@ export class StripeService {
       .then((session) => session.url as Url);
   }
 
-  public countActiveSubscriptions(stripeCustomerId: StripeCustomerId): Promise<number> {
+  public countSubscriptions(stripeCustomerId: StripeCustomerId): Promise<number> {
     return this.stripeClient.subscriptions
       .list({
         customer: stripeCustomerId,
-        status: 'active',
+        status: 'all',
         limit: 100
       })
-      .then((subscriptions) => subscriptions.data.length);
+      .then(
+        (subscriptions) =>
+          subscriptions.data.filter(
+            (subscription) => subscription.status === 'active' || subscription.status === 'past_due'
+          ).length
+      );
   }
 }
