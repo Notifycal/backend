@@ -1,9 +1,5 @@
 import { logger } from '@common/powertools';
-import type { TierId } from '@model/PaymentPlans';
-import type { IdpName, Percentage, UnixTimestamp, UserId } from '@notifycal/shared/types';
-import type { Period } from '@own-types/model';
-import { remainingPeriodPercentage } from '@utils/datetime';
-import { DateTime } from 'luxon';
+import type { IdpName, Percentage, TierId, UserId } from '@notifycal/shared/types';
 import type {
   CreditAdditionResult,
   CreditDeductionResult,
@@ -44,44 +40,42 @@ export class SubscriptionService<TIdpName extends IdpName> {
     userId: UserId,
     previousTier: TierId,
     currentTier: TierId,
-    period: Period,
-    at: UnixTimestamp
+    remainingPercentage: Percentage
   ): Promise<CreditAdditionResult> {
-    const _remainingPeriodPercenage = remainingPeriodPercentage(period, at);
-    if (_remainingPeriodPercenage <= 0 || _remainingPeriodPercenage >= 100) {
-      return Promise.resolve({
-        success: false,
-        operationId: 'UnknownError',
-        error: new Error(
-          `There is not bylling cycle remaining. Most likely 'at' was out of boudaries of 'period'. Resulting percentage: ${_remainingPeriodPercenage}`
-        )
-      });
-    }
     const creditsToAdd = calculateUpgradeCredits(
       previousTier,
       currentTier,
-      _remainingPeriodPercenage,
+      remainingPercentage,
       this.tierToCreditsMap
     );
+
+    logger.info('Upgrade details', {
+      previousTier,
+      currentTier,
+      remainingPercentage,
+      creditsToAdd
+    });
+
+    if (remainingPercentage < 0 || remainingPercentage > 100) {
+      return Promise.resolve({
+        success: false,
+        operationId: 'UnknownError',
+        error: new Error(`Invalid remaining percentage: ${remainingPercentage}`)
+      });
+    }
 
     if (creditsToAdd <= 0) {
       return Promise.resolve({
         success: false,
         operationId: 'UnknownError',
-        error: new Error('Inadvertent downgrade while doing an upgrade')
+        error: new Error('Inadvertent credit stealing while doing an upgrade')
       });
     }
 
-    logger.info('Upgrade details', {
-      period,
-      at: DateTime.fromSeconds(at).toISO(),
-      previousTier,
-      currentTier,
-      _remainingPeriodPercenage,
-      creditsToAdd
+    return this.creditsService.addCredits(userId, creditsToAdd, {
+      type: 'subscription',
+      id: currentTier
     });
-
-    return this.creditsService.addSubscriptionCredits(userId, creditsToAdd, currentTier);
   }
 
   public downgrade(userId: UserId): Promise<void> {

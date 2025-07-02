@@ -86,7 +86,7 @@ export abstract class BaseStore<TConfig extends BaseStoreConfig> {
   protected updateCommandRunner(
     cmd: Required<Pick<UpdateCommandInput, 'Key'>> &
       Required<Pick<UpdateCommandInput, 'UpdateExpression'>> &
-      Required<Pick<UpdateCommandInput, 'ExpressionAttributeValues'>> &
+      Partial<Pick<UpdateCommandInput, 'ExpressionAttributeValues'>> &
       Partial<UpdateCommandInput> &
       Omit<UpdateCommandInput, 'TableName'>
   ): Promise<UpdateCommandOutput> {

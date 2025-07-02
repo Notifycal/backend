@@ -1,7 +1,6 @@
 import type { Logger } from '@aws-lambda-powertools/logger';
 import { PublishCommand, type PublishCommandOutput, type SNSClient } from '@aws-sdk/client-sns';
 import { snsClient } from '@clients/sns';
-import { logger } from '@common/powertools';
 import type { BaseEvent, BaseSystemEvent } from '@model/app-events/BaseEvent';
 import type { SnsTopicConfig } from '@model/Config';
 import { doSafely } from '@utils/promises';
@@ -36,7 +35,12 @@ export class SnsService extends BaseAwsMessagingService {
     });
     return this._client.send(publishCommand).then(
       (result) => {
-        logger.info(`SNS publish result`, { eventId: event.eventId, result: result });
+        this.logger.info(`SNS publish result`, {
+          eventId: event.eventId,
+          result: result,
+          eventType: event.eventType,
+          userId: event.userId
+        });
         return result;
       },
       (error) => {
@@ -50,7 +54,7 @@ export class SnsService extends BaseAwsMessagingService {
     return doSafely(
       () => this.publish(event),
       () => {
-        logger.info('Moving on after the error...');
+        this.logger.info('Moving on after the error...');
       }
     );
   }

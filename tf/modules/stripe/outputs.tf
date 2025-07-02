@@ -1,5 +1,5 @@
-output "subscription_tiers" {
-  description = "Subscription tier configuration with Stripe IDs"
+output "payment_plans" {
+  description = "Subscription tier and topup configuration with Stripe IDs"
   value       = local.payment_plans
 }
 
@@ -17,5 +17,5 @@ output "customer_portal_configuration_id" {
 }
 
 output "country_to_sms_cost_map" {
-  value = local.country_to_sms_cost_map
+  value = var.country_to_sms_cost_map
 }

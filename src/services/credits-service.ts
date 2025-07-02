@@ -1,19 +1,24 @@
 import type { Logger } from '@aws-lambda-powertools/logger';
 import { InsufficientCreditsError } from '@model/Errors';
-import type { TierId } from '@model/PaymentPlans';
-import type { IdpName, UserId, UserStatus } from '@notifycal/shared/types';
+import type { IdpName, TierId, TopupId, UserId, UserStatus } from '@notifycal/shared/types';
 import type { UserBaseStore } from '@services/stores/user-base-store';
 import { P, match } from 'ts-pattern';
 
 export interface CreditDeductionSuccess {
   readonly success: true;
   readonly operationId: 'Success';
-  subscriptionCreditBalance: number;
+  readonly subscriptionCreditBalance: number;
+  readonly topupCreditBalance: number;
 }
 export interface CreditDeductionInsufficientCreditsError {
   readonly success: false;
   readonly operationId: 'InsufficientCredits';
   error: InsufficientCreditsError;
+}
+export interface CreditDeductionBadRequestError {
+  readonly success: false;
+  readonly operationId: 'BadRequestError';
+  error: unknown;
 }
 export interface CreditDeductionUnexpectedError {
   readonly success: false;
@@ -23,12 +28,19 @@ export interface CreditDeductionUnexpectedError {
 export type CreditDeductionResult =
   | CreditDeductionSuccess
   | CreditDeductionInsufficientCreditsError
+  | CreditDeductionBadRequestError
   | CreditDeductionUnexpectedError;
 
 export interface CreditAdditionSuccess {
   readonly success: true;
   readonly operationId: 'Success';
-  subscriptionCreditBalance: number;
+  readonly subscriptionCreditBalance: number;
+  readonly topupCreditBalance: number;
+}
+export interface CreditAdditionBadRequestError {
+  readonly success: false;
+  readonly operationId: 'BadRequestError';
+  error: unknown;
 }
 export interface CreditAdditionUnexpectedError {
   readonly success: false;
@@ -36,7 +48,10 @@ export interface CreditAdditionUnexpectedError {
   error: unknown;
 }
 
-export type CreditAdditionResult = CreditAdditionSuccess | CreditAdditionUnexpectedError;
+export type CreditAdditionResult =
+  | CreditAdditionSuccess
+  | CreditAdditionBadRequestError
+  | CreditAdditionUnexpectedError;
 
 export class CreditsService<TIdpName extends IdpName> {
   public constructor(
@@ -51,22 +66,17 @@ export class CreditsService<TIdpName extends IdpName> {
     countryToSMSCostCreditsMap: Record<'ES', number>
   ): Promise<CreditDeductionResult> {
     if (credits <= 0) {
-      return {
-        success: false,
-        operationId: 'UnknownError',
-        error: new Error('Credits must be greater than 0')
-      };
+      return Promise.resolve(this.badRequestCreditError(credits));
     }
-
     const creditToDeductPerUnit = countryToSMSCostCreditsMap[country];
     const totalCreditsToDeduct = creditToDeductPerUnit * credits;
-
-    return this.userStore.deductSubscriptionCredits(userId, totalCreditsToDeduct, this.logger).then(
+    return this.userStore.deductCredits(userId, totalCreditsToDeduct, this.logger).then(
       (user) => {
         const creditDeductionOperation: CreditDeductionSuccess = {
           success: true,
           operationId: 'Success',
-          subscriptionCreditBalance: user.Credits?.SubscriptionCreditBalance || 0
+          subscriptionCreditBalance: user.Credits.SubscriptionCreditBalance,
+          topupCreditBalance: user.Credits.TopupCreditBalance
         };
         return creditDeductionOperation;
       },
@@ -115,7 +125,8 @@ export class CreditsService<TIdpName extends IdpName> {
         const creditAdditionOperation: CreditAdditionSuccess = {
           success: true,
           operationId: 'Success',
-          subscriptionCreditBalance: user.Credits?.SubscriptionCreditBalance || 0
+          subscriptionCreditBalance: user.Credits.SubscriptionCreditBalance,
+          topupCreditBalance: user.Credits.TopupCreditBalance
         };
         return this.userStore
           .updateStatus(userId, 'live')
@@ -132,25 +143,30 @@ export class CreditsService<TIdpName extends IdpName> {
     );
   }
 
-  public addSubscriptionCredits(
+  public addCredits(
     userId: UserId,
     credits: number,
-    tierId: TierId
+    product:
+      | {
+          type: 'subscription';
+          id: TierId;
+        }
+      | {
+          type: 'topup';
+          id: TopupId;
+        }
   ): Promise<CreditAdditionResult> {
     if (credits <= 0) {
-      return Promise.resolve({
-        success: false,
-        operationId: 'UnknownError',
-        error: new Error('Credits to add must be greater or equal than 0')
-      });
+      return Promise.resolve(this.badRequestCreditError(credits) as CreditAdditionResult);
     }
 
-    return this.userStore.addSubscriptionCredits(userId, credits, tierId, this.logger).then(
+    return this.userStore.addCredits(userId, credits, product, this.logger).then(
       (user) => {
         const creditAdditionOperation: CreditAdditionSuccess = {
           success: true,
           operationId: 'Success',
-          subscriptionCreditBalance: user.Credits?.SubscriptionCreditBalance || 0
+          subscriptionCreditBalance: user.Credits.SubscriptionCreditBalance,
+          topupCreditBalance: user.Credits.TopupCreditBalance
         };
         return this.userStore
           .updateStatus(userId, 'live')
@@ -176,7 +192,8 @@ export class CreditsService<TIdpName extends IdpName> {
         const creditDeductionOperation: CreditDeductionSuccess = {
           success: true,
           operationId: 'Success',
-          subscriptionCreditBalance: user.Credits?.SubscriptionCreditBalance || 0
+          subscriptionCreditBalance: user.Credits.SubscriptionCreditBalance,
+          topupCreditBalance: user.Credits.TopupCreditBalance
         };
         return this.userStore
           .updateStatus(userId, status)
@@ -188,6 +205,9 @@ export class CreditsService<TIdpName extends IdpName> {
           operationId: 'UnknownError',
           error
         };
+        this.logger.warn(`There was an error while clearing subscription credits`, {
+          error
+        });
         return result;
       }
     );
@@ -222,6 +242,14 @@ export class CreditsService<TIdpName extends IdpName> {
         error
       });
       return Promise.resolve(result);
+    };
+  }
+
+  private badRequestCreditError(credits: number): CreditAdditionResult | CreditDeductionResult {
+    return {
+      success: false,
+      operationId: 'BadRequestError',
+      error: new Error(`Credits must be greater than 0. Credits: ${credits}`)
     };
   }
 }

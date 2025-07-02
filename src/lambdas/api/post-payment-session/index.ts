@@ -13,6 +13,7 @@ import type { MetricDimensions } from '@services/observability/metrics';
 import { UserBaseStore } from '@services/stores/user-base-store';
 import { StripeService } from '@services/stripe';
 import type { APIGatewayProxyResult, Context } from 'aws-lambda';
+import { P, match } from 'ts-pattern';
 import { readPostPaymentCheckoutSessionConfig } from './config';
 import { type Event, eventSchema } from './schemas';
 
@@ -72,8 +73,12 @@ async function lambdaHandler(
     event.lambdaConfig;
   const apiKey = stripeAuthConfig.apiKey;
   const { successRedirectUrlPath, cancelRedirectUrlPath, taxId } = stripeCheckoutConfig;
-  const { tier, language } = event.body;
-  const selectedTier = paymentPlans.tiers[tier];
+  const { language } = event.body;
+
+  const selectedProduct = match(event.body)
+    .with({ tier: P.string }, ({ tier }) => paymentPlans.tiers[tier])
+    .with({ topup: P.string }, ({ topup }) => paymentPlans.topups[topup])
+    .exhaustive();
 
   const frontendUrl = validateRequestHeaderOrigin({
     headers: event.headers || {},
@@ -86,7 +91,7 @@ async function lambdaHandler(
   const cancelRedirectUrl = `${frontendUrl}${cancelRedirectUrlPath}` as Url;
 
   const dimensions: MetricDimensions = {
-    tier: selectedTier.id,
+    tier: selectedProduct.id,
     userId: userId
   };
   const userBaseStore = UserBaseStore.withConfig(userBaseStoreConfig, logger);
@@ -98,7 +103,7 @@ async function lambdaHandler(
         .createCheckoutSession(
           stripeCustomerId,
           identity,
-          selectedTier,
+          selectedProduct,
           language,
           successRedirectUrl,
           cancelRedirectUrl,
@@ -108,7 +113,7 @@ async function lambdaHandler(
           logger.error('Failed to create stripe checkout session', {
             userId: identity.userId,
             stripeCustomerId,
-            tier: selectedTier.id,
+            product: selectedProduct.id,
             error
           });
           throw error;

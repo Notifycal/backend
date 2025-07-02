@@ -1,6 +1,6 @@
 /* eslint-disable camelcase */
 import { logger } from '@common/powertools';
-import type { Tier } from '@model/PaymentPlans';
+import type { Tier, Topup } from '@model/PaymentPlans';
 import type {
   Email,
   Identity,
@@ -11,6 +11,7 @@ import type {
 import type { Url } from '@own-types/model';
 import { HttpClient } from '@services/common/http-client';
 import { default as Stripe } from 'stripe';
+import { match } from 'ts-pattern';
 import { AxiosHttpClient } from './stripe-axios-client';
 
 export class StripeService {
@@ -85,16 +86,45 @@ export class StripeService {
   public createCheckoutSession(
     stripeCustomerId: StripeCustomerId,
     identity: Identity<IdpName>,
-    tier: Tier,
+    product: Tier | Topup,
     language: LanguageCode,
     successRedirectUrl: Url,
     cancelRedirectUrl: Url,
     taxId: string
   ): Promise<Url | null> {
     const { userId, idp, idpId, email } = identity;
+    const productConfig: Partial<Stripe.Checkout.SessionCreateParams> = match(product.type)
+      .with('tier', () => ({ mode: 'subscription' as const }))
+      .with('topup', () => ({
+        mode: 'payment' as const,
+        // From Docs: Generate a post-purchase Invoice for one-time payments.
+        // If you disable it is highly recommended the topups event handler, currently located
+        // in 'invoice.payment_succeeded', in the webhook gets relocated to 'payment_intent.succeeded' or something
+        invoice_creation: {
+          enabled: true
+        }
+      }))
+      .exhaustive();
+    const lineItemConfig: Stripe.Checkout.SessionCreateParams.LineItem = match(product.type)
+      .with('tier', () => ({
+        price: product.priceId,
+        quantity: 1,
+        tax_rates: [taxId]
+      }))
+      .with('topup', () => ({
+        price: product.priceId,
+        quantity: 1,
+        tax_rates: [taxId],
+        adjustable_quantity: {
+          enabled: true,
+          minimum: 1,
+          maximum: 99
+        }
+      }))
+      .exhaustive();
     return this.stripeClient.checkout.sessions
       .create({
-        mode: 'subscription',
+        ...productConfig,
         ui_mode: 'hosted',
         payment_method_types: ['card'],
         customer: stripeCustomerId,
@@ -106,19 +136,13 @@ export class StripeService {
         success_url: successRedirectUrl,
         cancel_url: cancelRedirectUrl,
         locale: language,
-        line_items: [
-          {
-            price: tier.priceId,
-            quantity: 1,
-            tax_rates: [taxId]
-          }
-        ],
+        line_items: [lineItemConfig],
         metadata: {
           userId,
           idp,
           idpId,
           email,
-          tier: tier.id,
+          product: product.id,
           vatCountry: 'ES'
         },
         automatic_tax: { enabled: false },

@@ -1,8 +1,8 @@
-import type { TierId } from '@model/PaymentPlans';
 import { type UserIdentity, extractIdentity } from '@model/UserIdentity';
 import type {
   IdpName,
   StripeCustomerId,
+  TierId,
   UnixTimestamp,
   User,
   UserStatus
@@ -12,7 +12,14 @@ import { type ReminderConfigStoreRecord, fromStoreRecord } from './ReminderConfi
 export interface UserCreditsRecordStore {
   SubscriptionCreditBalance: number;
   Tier: TierId;
+  TopupCreditBalance: number;
 }
+
+export type CreditBalanceType = keyof Pick<
+  UserCreditsRecordStore,
+  'SubscriptionCreditBalance' | 'TopupCreditBalance'
+>;
+export type UserStoreRecordCredits = Required<Pick<UserStoreRecord<unknown>, 'Credits'>>;
 
 export interface UserStoreRecord<TIdpName> extends UserIdentity<TIdpName> {
   LastSignInAt: UnixTimestamp;

@@ -1,6 +1,6 @@
 import type { Logger } from '@aws-lambda-powertools/logger';
 import type { Identity, IdpName } from '@notifycal/shared/types';
-import type { SubscriptionService } from '@services/subscription-service';
+import type { SubscriptionService } from '@services/subscription';
 import type Stripe from 'stripe';
 import type { StripeEventType } from '../stripe-schemas';
 import { BaseHandler } from './base-handler';

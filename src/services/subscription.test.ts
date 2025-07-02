@@ -1,14 +1,12 @@
 /* eslint-disable vitest/expect-expect */
-import type { TierId } from '@model/PaymentPlans';
-import type { IdpName, Percentage, UnixTimestamp, UserId } from '@notifycal/shared/types';
-import type { Period } from '@own-types/model';
+import type { IdpName, Percentage, TierId, UserId } from '@notifycal/shared/types';
 import { describe, expect, it, vi } from 'vitest';
 import type {
   CreditAdditionResult,
   CreditDeductionResult,
   CreditsService
 } from './credits-service';
-import { calculateUpgradeCredits, SubscriptionService } from './subscription-service';
+import { calculateUpgradeCredits, SubscriptionService } from './subscription';
 
 describe(SubscriptionService, () => {
   const validUserId = 'user-123' as UserId;
@@ -25,7 +23,8 @@ describe(SubscriptionService, () => {
   const validSuccessResult: CreditAdditionResult = {
     success: true,
     operationId: 'Success',
-    subscriptionCreditBalance: 150
+    subscriptionCreditBalance: 150,
+    topupCreditBalance: 44
   };
 
   const validErrorResult: CreditAdditionResult = {
@@ -34,17 +33,11 @@ describe(SubscriptionService, () => {
     error: new Error('Service unavailable')
   };
 
-  const validPeriod: Period = {
-    start: 1000,
-    end: 2000
-  };
-
-  const validTimestampHalfWayThePeriod: UnixTimestamp = 1500 as UnixTimestamp;
-
   const validSuccessDeduction: CreditDeductionResult = {
     success: true,
     operationId: 'Success',
-    subscriptionCreditBalance: 55
+    subscriptionCreditBalance: 55,
+    topupCreditBalance: 4
   };
 
   describe('createSubscription', () => {
@@ -178,33 +171,67 @@ describe(SubscriptionService, () => {
         validUserId,
         validGoodTier,
         validBetterTier,
-        validPeriod,
-        validTimestampHalfWayThePeriod
+        50 as Percentage
       );
 
-      expect(addFn).toHaveBeenCalledWith(validUserId, 200, validBetterTier);
+      expect(addFn).toHaveBeenCalledWith(validUserId, 200, {
+        type: 'subscription',
+        id: validBetterTier
+      });
       expect(result).toStrictEqual(validSuccessResult);
     });
 
-    it('should throw an error cause now is outside of the period', async () => {
-      const addFn = vi.fn().mockResolvedValue(validSuccessResult);
+    it('should return error for negative remaining percentage', async () => {
+      const addFn = vi.fn();
       const result = await testItUpgrade(
         addFn,
         validUserId,
         validGoodTier,
         validBetterTier,
-        validPeriod,
-        (validPeriod.start - 1) as UnixTimestamp
+        -10 as Percentage
       );
 
       expect(result).toStrictEqual({
         success: false,
         operationId: 'UnknownError',
-        error: new Error(
-          `There is not bylling cycle remaining. Most likely 'at' was out of boudaries of 'period'. Resulting percentage: 0`
-        )
+        error: new Error('Invalid remaining percentage: -10')
       });
+      expect(addFn).not.toHaveBeenCalled();
+    });
 
+    it('should return error for remaining percentage over 100', async () => {
+      const addFn = vi.fn();
+      const result = await testItUpgrade(
+        addFn,
+        validUserId,
+        validGoodTier,
+        validBetterTier,
+        150 as Percentage
+      );
+
+      expect(result).toStrictEqual({
+        success: false,
+        operationId: 'UnknownError',
+        error: new Error('Invalid remaining percentage: 150')
+      });
+      expect(addFn).not.toHaveBeenCalled();
+    });
+
+    it('should return error when credits to add is zero', async () => {
+      const addFn = vi.fn();
+      const result = await testItUpgrade(
+        addFn,
+        validUserId,
+        validGoodTier,
+        validGoodTier,
+        50 as Percentage
+      );
+
+      expect(result).toStrictEqual({
+        success: false,
+        operationId: 'UnknownError',
+        error: new Error('Inadvertent credit stealing while doing an upgrade')
+      });
       expect(addFn).not.toHaveBeenCalled();
     });
 
@@ -215,8 +242,7 @@ describe(SubscriptionService, () => {
         validUserId,
         validGoodTier,
         validBetterTier,
-        validPeriod,
-        validTimestampHalfWayThePeriod
+        50 as Percentage
       );
 
       expect(result).toStrictEqual(validErrorResult);
@@ -226,35 +252,8 @@ describe(SubscriptionService, () => {
       const addFn = vi.fn().mockRejectedValue(new Error('boom'));
 
       await expect(() =>
-        testItUpgrade(
-          addFn,
-          validUserId,
-          validGoodTier,
-          validBetterTier,
-          validPeriod,
-          validTimestampHalfWayThePeriod
-        )
+        testItUpgrade(addFn, validUserId, validGoodTier, validBetterTier, 50 as Percentage)
       ).rejects.toThrow('boom');
-    });
-
-    it('should return error result if downgrade is attempted in upgrade method', async () => {
-      const addFn = vi.fn();
-      const result = await testItUpgrade(
-        addFn,
-        validUserId,
-        validBetterTier,
-        validGoodTier,
-        validPeriod,
-        validTimestampHalfWayThePeriod
-      );
-
-      expect(result).toStrictEqual({
-        success: false,
-        operationId: 'UnknownError',
-        error: new Error('Inadvertent downgrade while doing an upgrade')
-      });
-
-      expect(addFn).not.toHaveBeenCalled();
     });
 
     function testItUpgrade(
@@ -262,14 +261,13 @@ describe(SubscriptionService, () => {
       userId: UserId,
       prev: TierId,
       curr: TierId,
-      period: Period,
-      at: UnixTimestamp
+      remainingPercentage: Percentage
     ): Promise<CreditAdditionResult> {
       const service = new SubscriptionService(
-        { addSubscriptionCredits: addFn } as unknown as CreditsService<IdpName>,
+        { addCredits: addFn } as unknown as CreditsService<IdpName>,
         validTierToCreditsMap
       );
-      return service.upgrade(userId, prev, curr, period, at);
+      return service.upgrade(userId, prev, curr, remainingPercentage);
     }
   });
 
@@ -323,7 +321,7 @@ describe(SubscriptionService, () => {
 describe(calculateUpgradeCredits, () => {
   const validTierToCreditsMap: Record<TierId, number> = {
     good: 100,
-    better: 500,
+    better: 350,
     best: 1000
   };
 
@@ -334,13 +332,13 @@ describe(calculateUpgradeCredits, () => {
   });
 
   it('should return correct credits for partial upgrade (rounded up)', () => {
-    expectIt('good', 'better', 50, Math.ceil((500 - 100) * 0.5));
-    expectIt('better', 'best', 25, Math.ceil((1000 - 500) * 0.25));
+    expectIt('good', 'better', 50, Math.ceil((350 - 100) * 0.5));
+    expectIt('better', 'best', 25, Math.ceil((1000 - 350) * 0.25));
   });
 
   it('should return full credit difference if 100% of the period remains', () => {
-    expectIt('good', 'better', 100, 400);
-    expectIt('better', 'best', 100, 500);
+    expectIt('good', 'better', 100, 250);
+    expectIt('better', 'best', 100, 650);
   });
 
   it('should return 0 credits if 0% of the period remains', () => {
@@ -348,10 +346,20 @@ describe(calculateUpgradeCredits, () => {
     expectIt('better', 'best', 0, 0);
   });
 
+  it('should return almost all credits if most of the period remains', () => {
+    expectIt('good', 'better', 99.99818, 250);
+    expectIt('better', 'best', 99.99818, 650);
+  });
+
+  it('should return almost no credits if most of the period has gone by', () => {
+    expectIt('good', 'better', 0.00003, 1);
+    expectIt('better', 'best', 0.00003, 1);
+  });
+
   it('should return negative value if current tier is lower than previous (inadvertent downgrade)', () => {
-    expectIt('better', 'good', 100, -400);
+    expectIt('better', 'good', 100, -250);
     expectIt('best', 'good', 50, -450);
-    expectIt('best', 'better', 25, -125);
+    expectIt('best', 'better', 25, -162);
   });
 
   function expectIt(

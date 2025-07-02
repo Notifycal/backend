@@ -105,7 +105,8 @@ const validEvent: ActionableEventFoundEvent = {
 const validCreditDeductionSuccess: CreditDeductionSuccess = {
   success: true,
   operationId: 'Success',
-  subscriptionCreditBalance: 400
+  subscriptionCreditBalance: 400,
+  topupCreditBalance: 5
 };
 
 describe('Messaging processor', () => {

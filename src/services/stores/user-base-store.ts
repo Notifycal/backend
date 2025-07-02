@@ -2,18 +2,24 @@ import type { Logger } from '@aws-lambda-powertools/logger';
 import type { UpdateCommandOutput } from '@aws-sdk/lib-dynamodb';
 import { InsufficientCreditsError } from '@model/Errors';
 import type { AuthorizationForIdp } from '@model/IdpAuthorization';
-import type { TierId } from '@model/PaymentPlans';
 import type { ReminderConfigStoreRecord } from '@model/store/ReminderConfigStoreRecord';
 import type { UserIdpAuthorizationStoreRecord } from '@model/store/UserIdpAuthorizationStoreRecord';
-import type { UserStoreRecord } from '@model/store/UserStoreRecord';
+import type {
+  CreditBalanceType,
+  UserStoreRecord,
+  UserStoreRecordCredits
+} from '@model/store/UserStoreRecord';
 import type {
   IdpName,
   LanguageCode,
   StripeCustomerId,
+  TierId,
+  TopupId,
   UserId,
   UserStatus
 } from '@notifycal/shared/types';
 import { throwError } from '@services/common/error-handling';
+import { match } from 'ts-pattern';
 import { BaseStore, type BaseStoreConfig } from '../common/base-store';
 
 export type UserBaseStoreConfig = BaseStoreConfig;
@@ -178,27 +184,47 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
     }).then(() => null);
   }
 
-  public deductSubscriptionCredits(
+  private attemptDeduction(
     userId: UserId,
     amount: number,
-    logger: Logger
-  ): Promise<Pick<UserStoreRecord<TIdpName>, 'Credits'>> {
+    creditType: 'SubscriptionCreditBalance' | 'TopupCreditBalance'
+  ): Promise<UpdateCommandOutput> {
     return this.updateCommandRunner({
       Key: { UserId: userId },
-      UpdateExpression:
-        'SET Credits.SubscriptionCreditBalance = Credits.SubscriptionCreditBalance - :amount',
-      ConditionExpression:
-        'attribute_exists(Credits.SubscriptionCreditBalance) AND Credits.SubscriptionCreditBalance >= :amount',
+      UpdateExpression: `SET Credits.${creditType} = Credits.${creditType} - :amount`,
+      ConditionExpression: `attribute_exists(Credits.${creditType}) AND Credits.${creditType} >= :amount`,
       ExpressionAttributeValues: {
         ':amount': amount
       }
-    }).then(
+    });
+  }
+
+  public deductCredits(
+    userId: UserId,
+    amount: number,
+    logger: Logger
+  ): Promise<UserStoreRecordCredits> {
+    return this.attemptDeduction(userId, amount, 'SubscriptionCreditBalance').then(
       (r) => this.handleSuccessfulUpdate(r, logger),
       (error) => {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         if (error.name === 'ConditionalCheckFailedException') {
-          return Promise.reject(
-            new InsufficientCreditsError(`Failed to deduct credits for user '${userId}'`, {}, error)
+          return this.attemptDeduction(userId, amount, 'TopupCreditBalance').then(
+            (r) => this.handleSuccessfulUpdate(r, logger),
+            (topupError) => {
+              // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+              if (topupError.name === 'ConditionalCheckFailedException') {
+                return Promise.reject(
+                  new InsufficientCreditsError(
+                    `Failed to deduct credits for user '${userId}' - insufficient balance in both subscription and topup`,
+                    {},
+                    topupError
+                  )
+                );
+              }
+              // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
+              return Promise.reject(topupError);
+            }
           );
         }
         // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
@@ -206,79 +232,106 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
       }
     );
   }
-
-  public addSubscriptionCredits(
+  public addCredits(
     userId: UserId,
     amount: number,
-    tierId: TierId,
+    product: { type: 'subscription'; id: TierId } | { type: 'topup'; id: TopupId },
     logger: Logger
-  ): Promise<Pick<UserStoreRecord<TIdpName>, 'Credits'>> {
+  ): Promise<UserStoreRecordCredits> {
+    const productConfig = match(product)
+      .with({ type: 'subscription' }, (p) => ({
+        creditType: 'SubscriptionCreditBalance' as CreditBalanceType,
+        shouldUpdateTier: true,
+        tierId: p.id
+      }))
+      .with({ type: 'topup' }, () => ({
+        creditType: 'TopupCreditBalance' as CreditBalanceType,
+        shouldUpdateTier: false,
+        tierId: undefined
+      }))
+      .exhaustive();
+    const updateExpressionParts = [
+      `SET Credits.${productConfig.creditType} = if_not_exists(Credits.${productConfig.creditType}, :zero) + :amount`,
+      ...(productConfig.shouldUpdateTier ? ['Credits.Tier = :tierId'] : [])
+    ];
+    const expressionAttributeValues = {
+      ':amount': amount,
+      ':zero': 0,
+      ...(productConfig.shouldUpdateTier ? { ':tierId': productConfig.tierId } : {})
+    };
     return this.updateCommandRunner({
       Key: { UserId: userId },
-      UpdateExpression:
-        'SET Credits.SubscriptionCreditBalance = Credits.SubscriptionCreditBalance + :amount, Credits.Tier = :tierId',
-      ConditionExpression: 'attribute_exists(Credits.SubscriptionCreditBalance)',
+      UpdateExpression: updateExpressionParts.join(', '),
+      ConditionExpression: 'attribute_exists(Credits)',
+      ExpressionAttributeValues: expressionAttributeValues
+    })
+      .then((r) => this.handleSuccessfulUpdate(r, logger))
+      .catch((error: unknown) => {
+        if (error instanceof Error && error.name === 'ConditionalCheckFailedException') {
+          throw new Error(
+            `Failed to add credits for user '${userId}' - Credits field does not exist`,
+            { cause: error }
+          );
+        }
+        throw error;
+      });
+  }
+
+  public resetSubscriptionCredits(
+    userId: UserId,
+    tierId: TierId,
+    amount: number,
+    logger: Logger
+  ): Promise<UserStoreRecordCredits> {
+    return this.updateCommandRunner({
+      Key: { UserId: userId },
+      UpdateExpression: 'SET Credits.SubscriptionCreditBalance = :amount, Credits.Tier = :tierId',
+      ConditionExpression: 'attribute_exists(Credits)',
       ExpressionAttributeValues: {
         ':amount': amount,
         ':tierId': tierId
       }
-    }).then(
-      (r) => this.handleSuccessfulUpdate(r, logger),
-      (error) => {
+    })
+      .then((r) => this.handleSuccessfulUpdate(r, logger))
+      .catch((error) => {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        if (error.name === 'ConditionalCheckFailedException') {
-          return Promise.reject(
-            new Error(
-              `Failed to add credits for user '${userId}' - Credits field does not exist`,
-              // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-              error
-            )
-          );
+        if (error.name !== 'ConditionalCheckFailedException') {
+          throw error;
         }
-        // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
-        return Promise.reject(error);
-      }
-    );
+        return this.updateCommandRunner({
+          Key: { UserId: userId },
+          UpdateExpression: 'SET Credits = :credits',
+          ExpressionAttributeValues: {
+            ':credits': {
+              SubscriptionCreditBalance: amount,
+              Tier: tierId,
+              TopupCreditBalance: 0
+            }
+          }
+        }).then((r) => this.handleSuccessfulUpdate(r, logger));
+      });
   }
 
-  public async resetSubscriptionCredits(
-    userId: UserId,
-    tierId: TierId,
-    amount: number,
-    logger: Logger
-  ): Promise<Pick<UserStoreRecord<TIdpName>, 'Credits'>> {
+  public clearSubscriptionCredits(userId: UserId, logger: Logger): Promise<UserStoreRecordCredits> {
     return this.updateCommandRunner({
       Key: { UserId: userId },
-      UpdateExpression: 'SET Credits = :creditsObj',
-      ExpressionAttributeValues: {
-        ':creditsObj': {
-          Tier: tierId,
-          SubscriptionCreditBalance: amount
-        }
-      }
-    }).then((r) => this.handleSuccessfulUpdate(r, logger));
-  }
-
-  public async clearSubscriptionCredits(
-    userId: UserId,
-    logger: Logger
-  ): Promise<Pick<UserStoreRecord<TIdpName>, 'Credits'>> {
-    return this.updateCommandRunner({
-      Key: { UserId: userId },
-      UpdateExpression: 'SET Credits = :creditsObj',
-      ExpressionAttributeValues: {
-        ':creditsObj': {}
-      }
+      UpdateExpression: 'REMOVE Credits.SubscriptionCreditBalance, Credits.Tier'
     }).then((r) => this.handleSuccessfulUpdate(r, logger));
   }
 
   private handleSuccessfulUpdate(
     output: UpdateCommandOutput,
     logger: Logger
-  ): Pick<UserStoreRecord<TIdpName>, 'Credits'> {
-    if (output.Attributes) {
-      const updatedUser = output.Attributes as UserStoreRecord<TIdpName>;
-      return { Credits: updatedUser.Credits };
+  ): UserStoreRecordCredits {
+    const updatedUser = output.Attributes as UserStoreRecord<TIdpName> | undefined;
+    if (updatedUser && updatedUser.Credits) {
+      return {
+        Credits: {
+          ...updatedUser.Credits,
+          SubscriptionCreditBalance: updatedUser.Credits.SubscriptionCreditBalance ?? 0,
+          TopupCreditBalance: updatedUser.Credits.TopupCreditBalance ?? 0
+        }
+      };
     } else {
       throwError('Unexpected error while updating credits from persistance', logger);
     }

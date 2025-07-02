@@ -1,6 +1,6 @@
 /* eslint-disable camelcase */
 import { logger } from '@common/powertools';
-import type { Tier } from '@model/PaymentPlans';
+import type { Tier, Topup } from '@model/PaymentPlans';
 import type {
   Email,
   Identity,
@@ -42,6 +42,7 @@ describe(StripeService, () => {
   const validCancelUrl = 'https://example.com/cancel' as Url;
   const validReturnUrl = 'https://example.com/return' as Url;
   const validTier: Tier = {
+    type: 'tier',
     id: 'good',
     priceId: 'price_123456789',
     credits: 100
@@ -49,7 +50,7 @@ describe(StripeService, () => {
   const validCheckoutUrl = 'https://checkout.stripe.com/pay/cs_test_123456789';
   const validPortalUrl = 'https://billing.stripe.com/session/ps_test_123456789';
   const validStripeCustomerId = 'cus_123456789' as StripeCustomerId;
-  const validTaxId = 'tx_srfgwrgwrg';
+  const validTaxId = 'tax_rate_123';
 
   const testClocksMockFn = (
     listFn: MockInstance = vi.fn().mockRejectedValue(new Error('Testing in anger')),
@@ -247,7 +248,14 @@ describe(StripeService, () => {
   });
 
   describe('createCheckoutSession', () => {
-    it('should create checkout session successfully and return session URL', async () => {
+    const validTopup: Topup = {
+      type: 'topup',
+      id: 'single',
+      priceId: 'price_topup_123',
+      credits: 100
+    };
+
+    it('should create tier checkout session successfully and return session URL', async () => {
       const mockSession = { url: validCheckoutUrl };
       const createSessionFn = vi.fn().mockResolvedValue(mockSession);
 
@@ -288,7 +296,67 @@ describe(StripeService, () => {
           idp: 'google.com',
           idpId: '1234567890',
           email: validEmail,
-          tier: validTier.id,
+          product: validTier.id,
+          vatCountry: 'ES'
+        },
+        automatic_tax: { enabled: false },
+        billing_address_collection: 'required',
+        tax_id_collection: {
+          enabled: true
+        }
+      });
+    });
+
+    it('should create topup checkout session successfully and return session URL', async () => {
+      const mockSession = { url: validCheckoutUrl };
+      const createSessionFn = vi.fn().mockResolvedValue(mockSession);
+
+      const result = await testCheckoutSession(
+        validStripeCustomerId,
+        validIdentity,
+        validTopup,
+        validLanguage,
+        validSuccessUrl,
+        validCancelUrl,
+        createSessionFn
+      );
+
+      expect(result).toBe(validCheckoutUrl);
+      expect(createSessionFn).toHaveBeenCalledTimes(1);
+      expect(createSessionFn).toHaveBeenCalledWith({
+        mode: 'payment',
+        invoice_creation: {
+          enabled: true
+        },
+        ui_mode: 'hosted',
+        payment_method_types: ['card'],
+        customer: validStripeCustomerId,
+        customer_update: {
+          name: 'auto',
+          address: 'auto'
+        },
+        client_reference_id: validUserId,
+        success_url: validSuccessUrl,
+        cancel_url: validCancelUrl,
+        locale: validLanguage,
+        line_items: [
+          {
+            price: validTopup.priceId,
+            quantity: 1,
+            tax_rates: [validTaxId],
+            adjustable_quantity: {
+              enabled: true,
+              minimum: 1,
+              maximum: 99
+            }
+          }
+        ],
+        metadata: {
+          userId: validUserId,
+          idp: 'google.com',
+          idpId: '1234567890',
+          email: validEmail,
+          product: validTopup.id,
           vatCountry: 'ES'
         },
         automatic_tax: { enabled: false },
@@ -340,6 +408,7 @@ describe(StripeService, () => {
 
     it('should handle different tier configurations correctly', async () => {
       const betterTier: Tier = {
+        type: 'tier',
         id: 'better',
         priceId: 'price_better_123',
         credits: 500
@@ -359,6 +428,7 @@ describe(StripeService, () => {
 
       expect(createSessionFn).toHaveBeenCalledWith(
         expect.objectContaining({
+          mode: 'subscription',
           line_items: [
             {
               price: betterTier.priceId,
@@ -367,8 +437,53 @@ describe(StripeService, () => {
             }
           ],
           metadata: expect.objectContaining({
-            tier: betterTier.id
-          }) as Record<string, unknown>
+            product: betterTier.id
+          }) as Record<string, string>
+        })
+      );
+    });
+
+    it('should handle different topup configurations correctly', async () => {
+      const largerTopup: Topup = {
+        type: 'topup',
+        id: 'single',
+        priceId: 'price_topup_500',
+        credits: 500
+      };
+      const mockSession = { url: validCheckoutUrl };
+      const createSessionFn = vi.fn().mockResolvedValue(mockSession);
+
+      await testCheckoutSession(
+        validStripeCustomerId,
+        validIdentity,
+        largerTopup,
+        validLanguage,
+        validSuccessUrl,
+        validCancelUrl,
+        createSessionFn
+      );
+
+      expect(createSessionFn).toHaveBeenCalledWith(
+        expect.objectContaining({
+          mode: 'payment',
+          invoice_creation: {
+            enabled: true
+          },
+          line_items: [
+            {
+              price: largerTopup.priceId,
+              quantity: 1,
+              tax_rates: [validTaxId],
+              adjustable_quantity: {
+                enabled: true,
+                minimum: 1,
+                maximum: 99
+              }
+            }
+          ],
+          metadata: expect.objectContaining({
+            product: largerTopup.id
+          }) as Record<string, string>
         })
       );
     });
@@ -417,7 +532,7 @@ describe(StripeService, () => {
             idp: 'google.com',
             idpId: '1234567890',
             email: validEmail,
-            tier: validTier.id,
+            product: validTier.id,
             vatCountry: 'ES'
           },
           automatic_tax: { enabled: false },
@@ -489,8 +604,8 @@ describe(StripeService, () => {
 
   async function testCheckoutSession(
     stripeCustomerId: StripeCustomerId,
-    identity: Identity<'google.com'>,
-    tier: Tier,
+    identity: Identity<IdpName>,
+    product: Tier | Topup,
     language: LanguageCode,
     successRedirectUrl: Url,
     cancelRedirectUrl: Url,
@@ -511,7 +626,7 @@ describe(StripeService, () => {
     return stripeService.createCheckoutSession(
       stripeCustomerId,
       identity,
-      tier,
+      product,
       language,
       successRedirectUrl,
       cancelRedirectUrl,

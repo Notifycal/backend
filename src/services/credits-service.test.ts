@@ -1,9 +1,8 @@
 import { Logger } from '@aws-lambda-powertools/logger';
 import { logger } from '@common/powertools';
 import { InsufficientCreditsError } from '@model/Errors';
-import type { TierId } from '@model/PaymentPlans';
 import type { UserStoreRecord } from '@model/store/UserStoreRecord';
-import type { IdpName, UserId, UserStatus } from '@notifycal/shared/types';
+import type { IdpName, TierId, TopupId, UserId, UserStatus } from '@notifycal/shared/types';
 import type { UserBaseStore } from '@services/stores/user-base-store';
 import { describe, expect, it, vi } from 'vitest';
 import {
@@ -20,21 +19,27 @@ describe(CreditsService, () => {
   const validCreditsToAdd = 100;
   const validCreditsToResetWith = 100;
   const validTierId = 'premium' as TierId;
+  const validTopupId = 'topup-500' as TopupId;
   const validUserStatus = 'demo' as UserStatus;
 
   const validUserWithCredits: Pick<UserStoreRecord<unknown>, 'Credits'> = {
     Credits: {
       SubscriptionCreditBalance: 150,
-      Tier: 'good'
+      Tier: 'good',
+      TopupCreditBalance: 44
     }
   };
 
   const validUserWithZeroCredits: Pick<UserStoreRecord<unknown>, 'Credits'> = {
     Credits: {
       SubscriptionCreditBalance: 0,
-      Tier: 'good'
+      Tier: 'good',
+      TopupCreditBalance: 0
     }
   };
+
+  const validSubscriptionProduct = { type: 'subscription' as const, id: validTierId };
+  const validTopupProduct = { type: 'topup' as const, id: validTopupId };
 
   describe('deductCredits', () => {
     it('should successfully deduct credits and return success result with balance', async () => {
@@ -52,27 +57,10 @@ describe(CreditsService, () => {
       expect(result).toStrictEqual({
         success: true,
         operationId: 'Success',
-        subscriptionCreditBalance: 150
+        subscriptionCreditBalance: 150,
+        topupCreditBalance: 44
       });
       expect(updateStatusFn).not.toHaveBeenCalled();
-    });
-
-    it('should handle user with no Credits object', async () => {
-      const userWithoutCredits = {};
-      const deductSubscriptionCreditsFn = vi.fn().mockResolvedValue(userWithoutCredits);
-      const updateStatusFn = vi.fn();
-
-      const result = await testDeductCredits(
-        deductSubscriptionCreditsFn,
-        updateStatusFn,
-        validCredits
-      );
-
-      expect(result).toStrictEqual({
-        success: true,
-        operationId: 'Success',
-        subscriptionCreditBalance: 0
-      });
     });
 
     it('should handle insufficient credits error and update status to out-of-credits', async () => {
@@ -151,8 +139,8 @@ describe(CreditsService, () => {
 
       expect(result).toStrictEqual({
         success: false,
-        operationId: 'UnknownError',
-        error: new Error('Credits must be greater than 0')
+        operationId: 'BadRequestError',
+        error: new Error('Credits must be greater than 0. Credits: 0')
       });
       expect(deductSubscriptionCreditsFn).not.toHaveBeenCalled();
     });
@@ -165,8 +153,8 @@ describe(CreditsService, () => {
 
       expect(result).toStrictEqual({
         success: false,
-        operationId: 'UnknownError',
-        error: new Error('Credits must be greater than 0')
+        operationId: 'BadRequestError',
+        error: new Error('Credits must be greater than 0. Credits: -5')
       });
       expect(deductSubscriptionCreditsFn).not.toHaveBeenCalled();
     });
@@ -193,27 +181,10 @@ describe(CreditsService, () => {
       expect(result).toStrictEqual({
         success: true,
         operationId: 'Success',
-        subscriptionCreditBalance: 150
+        subscriptionCreditBalance: 150,
+        topupCreditBalance: 44
       });
       expect(updateStatusFn).toHaveBeenCalledWith(validUserId, 'live');
-    });
-
-    it('should handle user with no Credits object', async () => {
-      const userWithoutCredits = {};
-      const resetSubscriptionCreditsFn = vi.fn().mockResolvedValue(userWithoutCredits);
-      const updateStatusFn = vi.fn().mockResolvedValue(undefined);
-
-      const result = await testResetSubscriptionCredits(
-        resetSubscriptionCreditsFn,
-        updateStatusFn,
-        validCreditsToResetWith
-      );
-
-      expect(result).toStrictEqual({
-        success: true,
-        operationId: 'Success',
-        subscriptionCreditBalance: 0
-      });
     });
 
     it('should handle unexpected errors during credit reset', async () => {
@@ -264,7 +235,8 @@ describe(CreditsService, () => {
       expect(result).toStrictEqual({
         success: true,
         operationId: 'Success',
-        subscriptionCreditBalance: 0
+        subscriptionCreditBalance: 0,
+        topupCreditBalance: 0
       });
     });
 
@@ -287,59 +259,70 @@ describe(CreditsService, () => {
     });
   });
 
-  describe('addSubscriptionCredits', () => {
-    it('should successfully add credits and return success result with balance', async () => {
-      const addSubscriptionCreditsFn = vi.fn().mockResolvedValue(validUserWithCredits);
+  describe('addCredits', () => {
+    it('should successfully add subscription credits and return success result with balance', async () => {
+      const addCreditsFn = vi.fn().mockResolvedValue(validUserWithCredits);
       const updateStatusFn = vi.fn().mockResolvedValue(undefined);
 
-      const result = await testAddSubscriptionCredits(
-        addSubscriptionCreditsFn,
+      const result = await testAddCredits(
+        addCreditsFn,
         updateStatusFn,
-        validCreditsToAdd
+        validCreditsToAdd,
+        validSubscriptionProduct
       );
 
-      expect(addSubscriptionCreditsFn).toHaveBeenCalledTimes(1);
-      expect(addSubscriptionCreditsFn).toHaveBeenCalledWith(
+      expect(addCreditsFn).toHaveBeenCalledTimes(1);
+      expect(addCreditsFn).toHaveBeenCalledWith(
         validUserId,
         validCreditsToAdd,
-        validTierId,
+        validSubscriptionProduct,
         expect.any(Logger)
       );
       expect(result).toStrictEqual({
         success: true,
         operationId: 'Success',
-        subscriptionCreditBalance: 150
+        subscriptionCreditBalance: 150,
+        topupCreditBalance: 44
       });
       expect(updateStatusFn).toHaveBeenCalledWith(validUserId, 'live');
     });
 
-    it('should handle user with no Credits object', async () => {
-      const userWithoutCredits = {};
-      const addSubscriptionCreditsFn = vi.fn().mockResolvedValue(userWithoutCredits);
+    it('should successfully add topup credits and return success result with balance', async () => {
+      const addCreditsFn = vi.fn().mockResolvedValue(validUserWithCredits);
       const updateStatusFn = vi.fn().mockResolvedValue(undefined);
 
-      const result = await testAddSubscriptionCredits(
-        addSubscriptionCreditsFn,
+      const result = await testAddCredits(
+        addCreditsFn,
         updateStatusFn,
-        validCreditsToAdd
+        validCreditsToAdd,
+        validTopupProduct
       );
 
+      expect(addCreditsFn).toHaveBeenCalledWith(
+        validUserId,
+        validCreditsToAdd,
+        validTopupProduct,
+        expect.any(Logger)
+      );
       expect(result).toStrictEqual({
         success: true,
         operationId: 'Success',
-        subscriptionCreditBalance: 0
+        subscriptionCreditBalance: 150,
+        topupCreditBalance: 44
       });
+      expect(updateStatusFn).toHaveBeenCalledWith(validUserId, 'live');
     });
 
     it('should handle unexpected errors during credit addition', async () => {
       const unexpectedError = new Error('Database write failed');
-      const addSubscriptionCreditsFn = vi.fn().mockRejectedValue(unexpectedError);
+      const addCreditsFn = vi.fn().mockRejectedValue(unexpectedError);
       const updateStatusFn = vi.fn();
 
-      const result = await testAddSubscriptionCredits(
-        addSubscriptionCreditsFn,
+      const result = await testAddCredits(
+        addCreditsFn,
         updateStatusFn,
-        validCreditsToAdd
+        validCreditsToAdd,
+        validSubscriptionProduct
       );
 
       expect(updateStatusFn).not.toHaveBeenCalled();
@@ -352,14 +335,15 @@ describe(CreditsService, () => {
 
     it('should return error result (not reject) when updateStatus fails for non-idempotent operation', async () => {
       const updateStatusError = new Error('Failed to update status');
-      const addSubscriptionCreditsFn = vi.fn().mockResolvedValue(validUserWithCredits);
+      const addCreditsFn = vi.fn().mockResolvedValue(validUserWithCredits);
       const updateStatusFn = vi.fn().mockRejectedValue(updateStatusError);
       const loggerErrorSpy = vi.spyOn(logger, 'error');
 
-      const result = await testAddSubscriptionCredits(
-        addSubscriptionCreditsFn,
+      const result = await testAddCredits(
+        addCreditsFn,
         updateStatusFn,
-        validCreditsToAdd
+        validCreditsToAdd,
+        validSubscriptionProduct
       );
 
       expect(result).toStrictEqual({
@@ -374,35 +358,41 @@ describe(CreditsService, () => {
     });
 
     it('should validate credits is positive', async () => {
-      const addSubscriptionCreditsFn = vi.fn();
+      const addCreditsFn = vi.fn();
       const updateStatusFn = vi.fn();
 
-      const result = await testAddSubscriptionCredits(addSubscriptionCreditsFn, updateStatusFn, 0);
-
-      expect(result).toStrictEqual({
-        success: false,
-        operationId: 'UnknownError',
-        error: new Error('Credits to add must be greater or equal than 0')
-      });
-      expect(addSubscriptionCreditsFn).not.toHaveBeenCalled();
-    });
-
-    it('should validate negative credits', async () => {
-      const addSubscriptionCreditsFn = vi.fn();
-      const updateStatusFn = vi.fn();
-
-      const result = await testAddSubscriptionCredits(
-        addSubscriptionCreditsFn,
+      const result = await testAddCredits(
+        addCreditsFn,
         updateStatusFn,
-        -50
+        0,
+        validSubscriptionProduct
       );
 
       expect(result).toStrictEqual({
         success: false,
-        operationId: 'UnknownError',
-        error: new Error('Credits to add must be greater or equal than 0')
+        operationId: 'BadRequestError',
+        error: new Error('Credits must be greater than 0. Credits: 0')
       });
-      expect(addSubscriptionCreditsFn).not.toHaveBeenCalled();
+      expect(addCreditsFn).not.toHaveBeenCalled();
+    });
+
+    it('should validate negative credits', async () => {
+      const addCreditsFn = vi.fn();
+      const updateStatusFn = vi.fn();
+
+      const result = await testAddCredits(
+        addCreditsFn,
+        updateStatusFn,
+        -50,
+        validSubscriptionProduct
+      );
+
+      expect(result).toStrictEqual({
+        success: false,
+        operationId: 'BadRequestError',
+        error: new Error('Credits must be greater than 0. Credits: -50')
+      });
+      expect(addCreditsFn).not.toHaveBeenCalled();
     });
   });
 
@@ -411,38 +401,26 @@ describe(CreditsService, () => {
       const clearSubscriptionCreditsFn = vi.fn().mockResolvedValue(validUserWithZeroCredits);
       const updateStatusFn = vi.fn().mockResolvedValue(undefined);
 
-      const result = await testclearSubscriptionCredits(clearSubscriptionCreditsFn, updateStatusFn);
+      const result = await testClearSubscriptionCredits(clearSubscriptionCreditsFn, updateStatusFn);
 
       expect(clearSubscriptionCreditsFn).toHaveBeenCalledTimes(1);
       expect(clearSubscriptionCreditsFn).toHaveBeenCalledWith(validUserId, expect.any(Logger));
       expect(result).toStrictEqual({
         success: true,
         operationId: 'Success',
-        subscriptionCreditBalance: 0
+        subscriptionCreditBalance: 0,
+        topupCreditBalance: 0
       });
       expect(updateStatusFn).toHaveBeenCalledWith(validUserId, validUserStatus);
-    });
-
-    it('should handle user with no Credits object', async () => {
-      const userWithoutCredits = {};
-      const clearSubscriptionCreditsFn = vi.fn().mockResolvedValue(userWithoutCredits);
-      const updateStatusFn = vi.fn().mockResolvedValue(undefined);
-
-      const result = await testclearSubscriptionCredits(clearSubscriptionCreditsFn, updateStatusFn);
-
-      expect(result).toStrictEqual({
-        success: true,
-        operationId: 'Success',
-        subscriptionCreditBalance: 0
-      });
     });
 
     it('should handle unexpected errors during credit deletion', async () => {
       const unexpectedError = new Error('Database write failed');
       const clearSubscriptionCreditsFn = vi.fn().mockRejectedValue(unexpectedError);
       const updateStatusFn = vi.fn();
+      const loggerWarnSpy = vi.spyOn(logger, 'warn');
 
-      const result = await testclearSubscriptionCredits(clearSubscriptionCreditsFn, updateStatusFn);
+      const result = await testClearSubscriptionCredits(clearSubscriptionCreditsFn, updateStatusFn);
 
       expect(updateStatusFn).not.toHaveBeenCalled();
       expect(result).toStrictEqual({
@@ -450,6 +428,10 @@ describe(CreditsService, () => {
         operationId: 'UnknownError',
         error: unexpectedError
       });
+      expect(loggerWarnSpy).toHaveBeenCalledWith(
+        'There was an error while clearing subscription credits',
+        { error: unexpectedError }
+      );
     });
 
     it('should reject with idempotent operation error when updateStatus fails', async () => {
@@ -458,7 +440,7 @@ describe(CreditsService, () => {
       const updateStatusFn = vi.fn().mockRejectedValue(updateStatusError);
 
       await expect(
-        testclearSubscriptionCredits(clearSubscriptionCreditsFn, updateStatusFn)
+        testClearSubscriptionCredits(clearSubscriptionCreditsFn, updateStatusFn)
       ).rejects.toThrow(
         'Error while handling deleteCredits. Throwing error so that it gets retried cause the operation is idempotent. Error: Failed to update status'
       );
@@ -469,7 +451,7 @@ describe(CreditsService, () => {
       const updateStatusFn = vi.fn().mockResolvedValue(undefined);
       const customStatus = 'suspended' as UserStatus;
 
-      await testclearSubscriptionCredits(
+      await testClearSubscriptionCredits(
         clearSubscriptionCreditsFn,
         updateStatusFn,
         validUserId,
@@ -481,7 +463,7 @@ describe(CreditsService, () => {
   });
 
   function testDeductCredits(
-    deductSubscriptionCreditsFn: () => Promise<Pick<UserStoreRecord<unknown>, 'Credits'>>,
+    deductSubscriptionCreditsFn: () => Promise<Required<Pick<UserStoreRecord<unknown>, 'Credits'>>>,
     updateStatusFn: () => Promise<void>,
     credits: number,
     userId: UserId = validUserId,
@@ -489,7 +471,7 @@ describe(CreditsService, () => {
     countryToSMSCostCreditsMap = validCountryToSMSCostCreditsMap
   ): Promise<CreditDeductionResult> {
     const userStoreMock = {
-      deductSubscriptionCredits: deductSubscriptionCreditsFn,
+      deductCredits: deductSubscriptionCreditsFn,
       updateStatus: updateStatusFn
     } as unknown as UserBaseStore<IdpName>;
 
@@ -498,7 +480,7 @@ describe(CreditsService, () => {
   }
 
   function testResetSubscriptionCredits(
-    resetSubscriptionCreditsFn: () => Promise<Pick<UserStoreRecord<unknown>, 'Credits'>>,
+    resetSubscriptionCreditsFn: () => Promise<Required<Pick<UserStoreRecord<unknown>, 'Credits'>>>,
     updateStatusFn: () => Promise<void>,
     credits: number,
     userId: UserId = validUserId,
@@ -513,24 +495,24 @@ describe(CreditsService, () => {
     return creditsService.resetSubscriptionCredits(userId, credits, tierId);
   }
 
-  function testAddSubscriptionCredits(
-    addSubscriptionCreditsFn: () => Promise<Pick<UserStoreRecord<unknown>, 'Credits'>>,
+  function testAddCredits(
+    addCreditsFn: () => Promise<Required<Pick<UserStoreRecord<unknown>, 'Credits'>>>,
     updateStatusFn: () => Promise<void>,
     credits: number,
-    userId: UserId = validUserId,
-    tierId: TierId = validTierId
+    product: { type: 'subscription'; id: TierId } | { type: 'topup'; id: TopupId },
+    userId: UserId = validUserId
   ): Promise<CreditAdditionResult> {
     const userStoreMock = {
-      addSubscriptionCredits: addSubscriptionCreditsFn,
+      addCredits: addCreditsFn,
       updateStatus: updateStatusFn
     } as unknown as UserBaseStore<IdpName>;
 
     const creditsService = new CreditsService(userStoreMock, logger);
-    return creditsService.addSubscriptionCredits(userId, credits, tierId);
+    return creditsService.addCredits(userId, credits, product);
   }
 
-  function testclearSubscriptionCredits(
-    clearSubscriptionCreditsFn: () => Promise<Pick<UserStoreRecord<unknown>, 'Credits'>>,
+  function testClearSubscriptionCredits(
+    clearSubscriptionCreditsFn: () => Promise<Required<Pick<UserStoreRecord<unknown>, 'Credits'>>>,
     updateStatusFn: () => Promise<void>,
     userId: UserId = validUserId,
     status: UserStatus = validUserStatus

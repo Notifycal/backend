@@ -1,9 +1,10 @@
 /* eslint-disable camelcase */
 import type { Logger } from '@aws-lambda-powertools/logger';
-import type { TierId, Tiers } from '@model/PaymentPlans';
-import type { Identity, IdpName, UnixTimestamp, UserId } from '@notifycal/shared/types';
+import type { TierMap, TopupMap } from '@model/PaymentPlans';
+import type { Identity, IdpName, TierId, TopupId, UserId } from '@notifycal/shared/types';
 import type { CreditAdditionResult } from '@services/credits-service';
-import type { SubscriptionService } from '@services/subscription-service';
+import type { SubscriptionService } from '@services/subscription';
+import type { TopupService } from '@services/topup';
 import type Stripe from 'stripe';
 import { match } from 'ts-pattern';
 import type { StripeEventType } from '../stripe-schemas';
@@ -39,8 +40,10 @@ export class InvoicePaymentSucceededHandler
 {
   public constructor(
     stripeEventType: StripeEventType,
-    private readonly tiers: Tiers,
+    private readonly tiers: TierMap,
+    private readonly topups: TopupMap,
     private readonly subscriptionService: SubscriptionService<IdpName>,
+    private readonly topupService: TopupService<IdpName>,
     private readonly logger: Logger
   ) {
     super(stripeEventType);
@@ -65,6 +68,7 @@ export class InvoicePaymentSucceededHandler
       .with({ billing_reason: 'subscription_update' }, (invoice) =>
         this.handleSubscriptionUpdate(userId, invoice)
       )
+      .with({ billing_reason: 'manual' }, (invoice) => this.topupHandler(invoice, userId))
       .otherwise((invoice) => {
         this.logger.warn('Unhandled billing reason', {
           invoiceId: invoice.id,
@@ -75,18 +79,18 @@ export class InvoicePaymentSucceededHandler
   }
 
   private createHandler(invoice: Stripe.Invoice, userId: UserId): Promise<void> {
-    return this.extractTier(invoice.lines.data[0], this.tiers).then(
+    return this.extractProduct(invoice.lines.data[0], this.tiers).then(
       (tierId) =>
         this.subscriptionService.create(userId, tierId).then((r) => this.creditAdditionHandler(r)),
-      (error) => this.errorHandler('create')(error)
+      (error) => this.errorHandler('create-subscription')(error)
     );
   }
 
   private renewHandler(invoice: Stripe.Invoice, userId: UserId): Promise<void> {
-    return this.extractTier(invoice.lines.data[0], this.tiers).then(
+    return this.extractProduct(invoice.lines.data[0], this.tiers).then(
       (tierId) =>
         this.subscriptionService.renew(userId, tierId).then((r) => this.creditAdditionHandler(r)),
-      (error) => this.errorHandler('renew')(error)
+      (error) => this.errorHandler('renew-subscription')(error)
     );
   }
 
@@ -104,8 +108,14 @@ export class InvoicePaymentSucceededHandler
     );
   }
 
-  private determineUpdateType(invoice: Stripe.Invoice): 'upgrade' | 'downgrade' {
-    return invoice.amount_paid > 0 ? 'upgrade' : 'downgrade';
+  private determineUpdateType(
+    invoice: Stripe.Invoice
+  ): 'upgrade-subscription' | 'downgrade-subscription' | 'undetermined' {
+    return invoice.amount_paid > 0
+      ? 'upgrade-subscription'
+      : invoice.amount_paid === 0
+        ? 'downgrade-subscription'
+        : 'undetermined';
   }
 
   private extractUpdateTiers(
@@ -115,61 +125,93 @@ export class InvoicePaymentSucceededHandler
     const currentTierInvoiceLineItem = invoice.lines.data[1];
 
     return Promise.all([
-      this.extractTier(previousTierInvoiceLineItem, this.tiers),
-      this.extractTier(currentTierInvoiceLineItem, this.tiers)
+      this.extractProduct(previousTierInvoiceLineItem, this.tiers),
+      this.extractProduct(currentTierInvoiceLineItem, this.tiers)
     ]).then(([previousTier, currentTier]) => ({
       previousTier,
       currentTier
     }));
   }
 
-  private executeSubscriptionUpdate(
+  private async executeSubscriptionUpdate(
     userId: UserId,
     invoice: Stripe.Invoice,
     tiers: { previousTier: TierId; currentTier: TierId },
-    updateType: 'upgrade' | 'downgrade'
+    updateType: 'upgrade-subscription' | 'downgrade-subscription' | 'undetermined'
   ): Promise<void> {
     return match(updateType)
-      .with('upgrade', () => {
-        const period = invoice.lines.data[0].period;
-        return this.subscriptionService
-          .upgrade(
-            userId,
-            tiers.previousTier,
-            tiers.currentTier,
-            period,
-            invoice.created as UnixTimestamp
+      .with('upgrade-subscription', () => {
+        return this.calculateRemainingCyclePercentageFromInvoice(invoice)
+          .then((remainingPercentage) =>
+            this.subscriptionService.upgrade(
+              userId,
+              tiers.previousTier,
+              tiers.currentTier,
+              remainingPercentage
+            )
           )
           .then(
             () => {},
-            (e) => this.errorHandler('upgrade')(e)
+            (e) => this.errorHandler('upgrade-subscription')(e)
           );
       })
-      .with('downgrade', () =>
+      .with('downgrade-subscription', () =>
         this.subscriptionService
           .downgrade(userId)
-          .catch((error) => this.errorHandler('downgrade')(error))
+          .catch((error) => this.errorHandler('downgrade-subscription')(error))
+      )
+      .with('undetermined', () =>
+        Promise.reject(
+          new Error(
+            `Failed to infer what kind of subscription update has been performed. Most likely, the amount_paid is unexpected`
+          )
+        )
       )
       .exhaustive();
   }
 
-  private creditAdditionHandler(result: CreditAdditionResult): Promise<void> {
-    return (
-      match(result)
-        .with({ operationId: 'Success' }, () => Promise.resolve())
-        // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
-        .with({ operationId: 'UnknownError' }, (r) => Promise.reject(r.error))
-        .exhaustive()
+  private topupHandler(invoice: Stripe.Invoice, userId: UserId): Promise<void> {
+    const product = invoice.lines.data[0];
+    if ((product.quantity ?? 0) <= 0) {
+      return this.errorHandler('topup')(
+        new Error(`Quantity is not greater than 0. Quantity: ${product.quantity}`)
+      );
+    }
+    return this.extractProduct(product, this.topups).then(
+      (topupId) =>
+        this.topupService.add(userId, topupId, product.quantity || 0).then(
+          (r) => this.creditAdditionHandler(r),
+          (error) => this.errorHandler('topup')(error)
+        ),
+      (error) => this.errorHandler('topup')(error)
     );
   }
 
+  private creditAdditionHandler(result: CreditAdditionResult): Promise<void> {
+    return match(result)
+      .with({ operationId: 'Success' }, () => Promise.resolve())
+      .with({ operationId: 'UnknownError' }, { operationId: 'BadRequestError' }, (r) =>
+        // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
+        Promise.reject(r.error)
+      )
+      .exhaustive();
+  }
+
   private errorHandler(
-    operation: 'create' | 'renew' | 'upgrade' | 'downgrade'
+    operation:
+      | 'create-subscription'
+      | 'renew-subscription'
+      | 'upgrade-subscription'
+      | 'downgrade-subscription'
+      | 'topup'
   ): (error: unknown) => Promise<never> {
     return this.handleError(operation);
   }
 
-  private extractTier(invoiceItem: Stripe.InvoiceLineItem, tiers: Tiers): Promise<TierId> {
+  private extractProduct<K extends TierId | TopupId>(
+    invoiceItem: Stripe.InvoiceLineItem,
+    products: Record<string, { id: K; priceId: string }>
+  ): Promise<K> {
     const priceId = invoiceItem?.pricing?.price_details?.price;
     if (!priceId) {
       return Promise.reject(
@@ -178,18 +220,17 @@ export class InvoicePaymentSucceededHandler
         )
       );
     }
-    const tier = Object.values(tiers).find((tier) => tier.priceId === priceId);
-    if (!tier) {
+    const product = Object.values(products).find((p) => p.priceId === priceId);
+    if (!product) {
       return Promise.reject(
         new Error(
-          `Unknown price ID: ${priceId}. No matching tier found. Invoice item ID: ${invoiceItem.id}`
+          `Unknown price ID: ${priceId}. No matching tier/topup found. Invoice item ID: ${invoiceItem.id}`
         )
       );
     }
-    return Promise.resolve(tier.id);
+    return Promise.resolve(product.id);
   }
 }
-
 export class InvoicePaymentFailedHandler
   extends BaseHandler
   implements EventHandler<Stripe.InvoicePaymentFailedEvent>
