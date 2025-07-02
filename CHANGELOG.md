@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.43.0](https://github.com/Notifycal/backend/compare/v0.42.0...v0.43.0) (2025-07-02)
+
+
+### Features
+
+* topups ([#747](https://github.com/Notifycal/backend/issues/747)) ([1ea3685](https://github.com/Notifycal/backend/commit/1ea3685e6a8be6b72dfdb39d34b0a36c4f6e718a))
+
+
+### Bug Fixes
+
+* add language to request payload of POST payment-session openapi … ([#764](https://github.com/Notifycal/backend/issues/764)) ([86239b6](https://github.com/Notifycal/backend/commit/86239b6f32f15e2126ba648d03fbfb3aaa2fa10b))
+* **deps:** Update @notifycal/shared and zod ([#772](https://github.com/Notifycal/backend/issues/772)) ([5c2a82a](https://github.com/Notifycal/backend/commit/5c2a82a9f409f03e7c7737fa5433c407b1067822))
+* **deps:** Update AWS packages to v2.23.0 ([#773](https://github.com/Notifycal/backend/issues/773)) ([e80303c](https://github.com/Notifycal/backend/commit/e80303cbb58f49753f1eccfd0f35ea9b6cc5b0a0))
+* **deps:** Update dependency @notifycal/shared to v4.6.0 ([#771](https://github.com/Notifycal/backend/issues/771)) ([49acf08](https://github.com/Notifycal/backend/commit/49acf08ad95e55576fd3442c74b23a07afd31076))
+* **deps:** Update dependency @vonage/server-sdk to v3.22.0 ([#766](https://github.com/Notifycal/backend/issues/766)) ([b74c9fd](https://github.com/Notifycal/backend/commit/b74c9fd2badd25637af8cb2c1fa3af9107baa57f))
+* **deps:** Update Terraform github.com/Notifycal/tofu-module-aws-slack-notify to v7.0.3 ([#761](https://github.com/Notifycal/backend/issues/761)) ([8b7f001](https://github.com/Notifycal/backend/commit/8b7f0017016a72fb2a287424e94abde19a38b72d))
+
 ## [0.42.0](https://github.com/Notifycal/backend/compare/v0.41.0...v0.42.0) (2025-07-01)
 
 
