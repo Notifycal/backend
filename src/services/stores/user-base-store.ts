@@ -179,28 +179,47 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
     }).then(() => null);
   }
 
-  //TODO topups
+  private attemptDeduction(
+    userId: UserId,
+    amount: number,
+    creditType: 'SubscriptionCreditBalance' | 'TopupCreditBalance'
+  ): Promise<UpdateCommandOutput> {
+    return this.updateCommandRunner({
+      Key: { UserId: userId },
+      UpdateExpression: `SET Credits.${creditType} = Credits.${creditType} - :amount`,
+      ConditionExpression: `attribute_exists(Credits.${creditType}) AND Credits.${creditType} >= :amount`,
+      ExpressionAttributeValues: {
+        ':amount': amount
+      }
+    });
+  }
+
   public deductCredits(
     userId: UserId,
     amount: number,
     logger: Logger
   ): Promise<Required<Pick<UserStoreRecord<TIdpName>, 'Credits'>>> {
-    return this.updateCommandRunner({
-      Key: { UserId: userId },
-      UpdateExpression:
-        'SET Credits.SubscriptionCreditBalance = Credits.SubscriptionCreditBalance - :amount',
-      ConditionExpression:
-        'attribute_exists(Credits.SubscriptionCreditBalance) AND Credits.SubscriptionCreditBalance >= :amount',
-      ExpressionAttributeValues: {
-        ':amount': amount
-      }
-    }).then(
+    return this.attemptDeduction(userId, amount, 'SubscriptionCreditBalance').then(
       (r) => this.handleSuccessfulUpdate(r, logger),
       (error) => {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         if (error.name === 'ConditionalCheckFailedException') {
-          return Promise.reject(
-            new InsufficientCreditsError(`Failed to deduct credits for user '${userId}'`, {}, error)
+          return this.attemptDeduction(userId, amount, 'TopupCreditBalance').then(
+            (r) => this.handleSuccessfulUpdate(r, logger),
+            (topupError) => {
+              // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+              if (topupError.name === 'ConditionalCheckFailedException') {
+                return Promise.reject(
+                  new InsufficientCreditsError(
+                    `Failed to deduct credits for user '${userId}' - insufficient balance in both subscription and topup`,
+                    {},
+                    topupError
+                  )
+                );
+              }
+              // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
+              return Promise.reject(topupError);
+            }
           );
         }
         // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
@@ -208,7 +227,6 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
       }
     );
   }
-
   public addCredits(
     userId: UserId,
     amount: number,
@@ -305,7 +323,13 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
   ): Required<Pick<UserStoreRecord<TIdpName>, 'Credits'>> {
     const updatedUser = output.Attributes as UserStoreRecord<TIdpName> | undefined;
     if (updatedUser && updatedUser.Credits) {
-      return { Credits: updatedUser.Credits };
+      return {
+        Credits: {
+          ...updatedUser.Credits,
+          SubscriptionCreditBalance: updatedUser.Credits.SubscriptionCreditBalance ?? 0,
+          TopupCreditBalance: updatedUser.Credits.TopupCreditBalance ?? 0
+        }
+      };
     } else {
       throwError('Unexpected error while updating credits from persistance', logger);
     }
