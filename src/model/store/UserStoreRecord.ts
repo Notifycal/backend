@@ -19,6 +19,7 @@ export type CreditBalanceType = keyof Pick<
   UserCreditsRecordStore,
   'SubscriptionCreditBalance' | 'TopupCreditBalance'
 >;
+export type UserStoreRecordCredits = Required<Pick<UserStoreRecord<unknown>, 'Credits'>>;
 
 export interface UserStoreRecord<TIdpName> extends UserIdentity<TIdpName> {
   LastSignInAt: UnixTimestamp;

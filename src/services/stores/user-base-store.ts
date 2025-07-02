@@ -4,7 +4,11 @@ import { InsufficientCreditsError } from '@model/Errors';
 import type { AuthorizationForIdp } from '@model/IdpAuthorization';
 import type { ReminderConfigStoreRecord } from '@model/store/ReminderConfigStoreRecord';
 import type { UserIdpAuthorizationStoreRecord } from '@model/store/UserIdpAuthorizationStoreRecord';
-import type { CreditBalanceType, UserStoreRecord } from '@model/store/UserStoreRecord';
+import type {
+  CreditBalanceType,
+  UserStoreRecord,
+  UserStoreRecordCredits
+} from '@model/store/UserStoreRecord';
 import type {
   IdpName,
   LanguageCode,
@@ -199,7 +203,7 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
     userId: UserId,
     amount: number,
     logger: Logger
-  ): Promise<Required<Pick<UserStoreRecord<TIdpName>, 'Credits'>>> {
+  ): Promise<UserStoreRecordCredits> {
     return this.attemptDeduction(userId, amount, 'SubscriptionCreditBalance').then(
       (r) => this.handleSuccessfulUpdate(r, logger),
       (error) => {
@@ -233,7 +237,7 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
     amount: number,
     product: { type: 'subscription'; id: TierId } | { type: 'topup'; id: TopupId },
     logger: Logger
-  ): Promise<Required<Pick<UserStoreRecord<TIdpName>, 'Credits'>>> {
+  ): Promise<UserStoreRecordCredits> {
     const productConfig = match(product)
       .with({ type: 'subscription' }, (p) => ({
         creditType: 'SubscriptionCreditBalance' as CreditBalanceType,
@@ -278,7 +282,7 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
     tierId: TierId,
     amount: number,
     logger: Logger
-  ): Promise<Required<Pick<UserStoreRecord<TIdpName>, 'Credits'>>> {
+  ): Promise<UserStoreRecordCredits> {
     return this.updateCommandRunner({
       Key: { UserId: userId },
       UpdateExpression: 'SET Credits.SubscriptionCreditBalance = :amount, Credits.Tier = :tierId',
@@ -308,10 +312,7 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
       });
   }
 
-  public clearSubscriptionCredits(
-    userId: UserId,
-    logger: Logger
-  ): Promise<Required<Pick<UserStoreRecord<TIdpName>, 'Credits'>>> {
+  public clearSubscriptionCredits(userId: UserId, logger: Logger): Promise<UserStoreRecordCredits> {
     return this.updateCommandRunner({
       Key: { UserId: userId },
       UpdateExpression: 'REMOVE Credits.SubscriptionCreditBalance, Credits.Tier'
@@ -321,7 +322,7 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
   private handleSuccessfulUpdate(
     output: UpdateCommandOutput,
     logger: Logger
-  ): Required<Pick<UserStoreRecord<TIdpName>, 'Credits'>> {
+  ): UserStoreRecordCredits {
     const updatedUser = output.Attributes as UserStoreRecord<TIdpName> | undefined;
     if (updatedUser && updatedUser.Credits) {
       return {
