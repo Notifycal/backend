@@ -111,40 +111,38 @@ export default class Processor {
     return messageUUID;
   }
 
-  private async handleCreditDeductionFailure(
+  private handleCreditDeductionFailure(
     result:
       | CreditDeductionInsufficientCreditsError
       | CreditDeductionBadRequestError
       | CreditDeductionUnexpectedError,
     event: ActionableEventFoundEvent | DemoReminderToBeSentEvent
-  ): Promise<never> {
-    const error = await match(result)
-      .with({ operationId: 'InsufficientCredits' }, async (result) => {
-        const error = new Error(`A message could not be sent due to insufficient credits`, {
-          cause: result.error
-        });
-
-        await this.publishInsufficientCreditErrorEvent(event, result);
-        return error;
+  ): Promise<Uuid> {
+    return match(result)
+      .with({ operationId: 'InsufficientCredits' }, (result) => {
+        logger.info('Message not sent due to insufficient credits', { result });
+        return this.publishInsufficientCreditErrorEvent(event, result).then(
+          () => 'insufficient-credits' as Uuid
+        );
       })
       .with({ operationId: 'BadRequestError' }, (result) => {
-        return new Error(
+        const error = new Error(
           `A message could not be sent because an irregular amount of credits was trying to be deducted`,
           { cause: result.error }
         );
+        logger.warn(error.message, { result });
+        return Promise.reject(error);
       })
       .with({ operationId: 'UnknownError' }, (result) => {
-        return new Error(
+        const error = new Error(
           `A message could not be sent due to an unknown issue while deducting the credits`,
           { cause: result.error }
         );
+        logger.warn(error.message, { result });
+        return Promise.reject(error);
       })
       .exhaustive();
-
-    logger.warn(error.message, { result });
-    return Promise.reject(error);
   }
-
   private deductCredits(userId: UserId, message: string): Promise<CreditDeductionResult> {
     const countResult = count(message);
     return this.creditsService

@@ -232,6 +232,7 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
       }
     );
   }
+  
   public addCredits(
     userId: UserId,
     amount: number,
