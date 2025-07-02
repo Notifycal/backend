@@ -1,7 +1,6 @@
 import type { Logger } from '@aws-lambda-powertools/logger';
 import { InsufficientCreditsError } from '@model/Errors';
-import type { TierId, TopupId } from '@model/PaymentPlans';
-import type { IdpName, UserId, UserStatus } from '@notifycal/shared/types';
+import type { IdpName, TierId, TopupId, UserId, UserStatus } from '@notifycal/shared/types';
 import type { UserBaseStore } from '@services/stores/user-base-store';
 import { P, match } from 'ts-pattern';
 

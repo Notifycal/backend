@@ -1,9 +1,8 @@
 import { Logger } from '@aws-lambda-powertools/logger';
 import { logger } from '@common/powertools';
 import { InsufficientCreditsError } from '@model/Errors';
-import type { TierId, TopupId } from '@model/PaymentPlans';
 import type { UserStoreRecord } from '@model/store/UserStoreRecord';
-import type { IdpName, UserId, UserStatus } from '@notifycal/shared/types';
+import type { IdpName, TierId, TopupId, UserId, UserStatus } from '@notifycal/shared/types';
 import type { UserBaseStore } from '@services/stores/user-base-store';
 import { describe, expect, it, vi } from 'vitest';
 import {

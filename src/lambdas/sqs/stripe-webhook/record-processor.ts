@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import type { Logger } from '@aws-lambda-powertools/logger';
-import type { TierId, TierMap, TopupId, TopupMap } from '@model/PaymentPlans';
-import type { IdpName } from '@notifycal/shared/types';
+import type { TierMap, TopupMap } from '@model/PaymentPlans';
+import type { IdpName, TierId, TopupId } from '@notifycal/shared/types';
 import { CreditsService } from '@services/credits-service';
 import { SnsService } from '@services/sns';
 import { PaymentUserIndexStore } from '@services/stores/payment-user-index-store';

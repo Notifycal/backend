@@ -1,5 +1,4 @@
-import type { TopupId } from '@model/PaymentPlans';
-import type { UserId } from '@notifycal/shared/types';
+import type { TopupId, UserId } from '@notifycal/shared/types';
 import { describe, expect, it, vi } from 'vitest';
 import type { CreditAdditionResult, CreditsService } from './credits-service';
 import { TopupService } from './topup';

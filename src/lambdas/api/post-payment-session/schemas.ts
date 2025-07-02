@@ -1,7 +1,6 @@
 import { JSONStringified } from '@aws-lambda-powertools/parser/helpers';
 import { authedEventSchema } from '@model/lambda-events/ApiGatewayEvents';
-import { tierIds, topupIds } from '@model/PaymentPlans';
-import { languageCodeSchema } from '@notifycal/shared/schemas';
+import { languageCodeSchema, tierIds, topupIds } from '@notifycal/shared/schemas';
 import { z } from 'zod';
 import type { PostPaymentCheckoutSessionConfig } from './config';
 

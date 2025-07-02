@@ -2,7 +2,6 @@ import type { Logger } from '@aws-lambda-powertools/logger';
 import type { UpdateCommandOutput } from '@aws-sdk/lib-dynamodb';
 import { InsufficientCreditsError } from '@model/Errors';
 import type { AuthorizationForIdp } from '@model/IdpAuthorization';
-import type { TierId, TopupId } from '@model/PaymentPlans';
 import type { ReminderConfigStoreRecord } from '@model/store/ReminderConfigStoreRecord';
 import type { UserIdpAuthorizationStoreRecord } from '@model/store/UserIdpAuthorizationStoreRecord';
 import type { CreditBalanceType, UserStoreRecord } from '@model/store/UserStoreRecord';
@@ -10,6 +9,8 @@ import type {
   IdpName,
   LanguageCode,
   StripeCustomerId,
+  TierId,
+  TopupId,
   UserId,
   UserStatus
 } from '@notifycal/shared/types';

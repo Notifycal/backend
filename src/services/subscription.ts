@@ -1,6 +1,5 @@
 import { logger } from '@common/powertools';
-import type { TierId } from '@model/PaymentPlans';
-import type { IdpName, Percentage, UserId } from '@notifycal/shared/types';
+import type { IdpName, Percentage, TierId, UserId } from '@notifycal/shared/types';
 import type {
   CreditAdditionResult,
   CreditDeductionResult,

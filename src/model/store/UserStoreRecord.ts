@@ -1,8 +1,8 @@
-import type { TierId } from '@model/PaymentPlans';
 import { type UserIdentity, extractIdentity } from '@model/UserIdentity';
 import type {
   IdpName,
   StripeCustomerId,
+  TierId,
   UnixTimestamp,
   User,
   UserStatus

@@ -1,7 +1,15 @@
 /* eslint-disable camelcase */
 import type { Logger } from '@aws-lambda-powertools/logger';
-import type { TierId, TierMap, TopupId, TopupMap } from '@model/PaymentPlans';
-import type { Email, Identity, IdpId, IdpName, UserId } from '@notifycal/shared/types';
+import type { TierMap, TopupMap } from '@model/PaymentPlans';
+import type {
+  Email,
+  Identity,
+  IdpId,
+  IdpName,
+  TierId,
+  TopupId,
+  UserId
+} from '@notifycal/shared/types';
 import type { CreditAdditionResult } from '@services/credits-service';
 import type { SubscriptionService } from '@services/subscription';
 import type { TopupService } from '@services/topup';
