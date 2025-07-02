@@ -78,22 +78,6 @@ export class InvoicePaymentSucceededHandler
       });
   }
 
-  private topupHandler(invoice: Stripe.Invoice, userId: UserId): Promise<void> {
-    const product = invoice.lines.data[0];
-    if ((product.quantity ?? 0) <= 0) {
-      return this.errorHandler('topup')(
-        new Error(`Quantity is not greater than 0. Quantity: ${product.quantity}`)
-      );
-    }
-    return this.extractProduct(product, this.topups).then(
-      (topupId) =>
-        this.topupService
-          .add(userId, topupId, product.quantity || 0)
-          .then((r) => this.creditAdditionHandler(r)),
-      (error) => this.errorHandler('topup')(error)
-    );
-  }
-
   private createHandler(invoice: Stripe.Invoice, userId: UserId): Promise<void> {
     return this.extractProduct(invoice.lines.data[0], this.tiers).then(
       (tierId) =>
@@ -173,6 +157,23 @@ export class InvoicePaymentSucceededHandler
           .catch((error) => this.errorHandler('downgrade-subscription')(error))
       )
       .exhaustive();
+  }
+
+  private topupHandler(invoice: Stripe.Invoice, userId: UserId): Promise<void> {
+    const product = invoice.lines.data[0];
+    if ((product.quantity ?? 0) <= 0) {
+      return this.errorHandler('topup')(
+        new Error(`Quantity is not greater than 0. Quantity: ${product.quantity}`)
+      );
+    }
+    return this.extractProduct(product, this.topups).then(
+      (topupId) =>
+        this.topupService.add(userId, topupId, product.quantity || 0).then(
+          (r) => this.creditAdditionHandler(r),
+          (error) => this.errorHandler('topup')(error)
+        ),
+      (error) => this.errorHandler('topup')(error)
+    );
   }
 
   private creditAdditionHandler(result: CreditAdditionResult): Promise<void> {
