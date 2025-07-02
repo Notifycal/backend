@@ -167,4 +167,14 @@ export class StripeService {
       })
       .then((session) => session.url as Url);
   }
+
+  public countActiveSubscriptions(stripeCustomerId: StripeCustomerId): Promise<number> {
+    return this.stripeClient.subscriptions
+      .list({
+        customer: stripeCustomerId,
+        status: 'active',
+        limit: 100
+      })
+      .then((subscriptions) => subscriptions.data.length);
+  }
 }

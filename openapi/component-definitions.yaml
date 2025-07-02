@@ -220,6 +220,7 @@ components:
             - Bad Request
             - Unauthorised
             - Not Found
+            - Conflict
             - Forbidden
             - KO
       required:
@@ -343,6 +344,12 @@ components:
 
     NotFound:
       description: NotFound response payload
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+
+    Conflict:
+      description: Conflict response payload
       content:
         application/json:
           schema: { $ref: '#/components/schemas/ErrorResponse' }

@@ -68,7 +68,7 @@ describe('POST Payment checkout session', () => {
   const validCheckoutUrl = 'https://checkout.stripe.com/pay/cs_test_123456789';
 
   describe('Tier products', () => {
-    it('should create checkout session successfully with existing stripe customer for tier', async () => {
+    it('should create checkout session successfully with existing stripe customer for tier when no active subscriptions', async () => {
       const event = (await testAuthedEvent(
         validTierRequestBody,
         {},
@@ -80,6 +80,7 @@ describe('POST Payment checkout session', () => {
       const setStripeCustomerIdFn = vi.fn().mockResolvedValue(undefined);
       const createCustomerFn = vi.fn().mockResolvedValue(validStripeCustomerId);
       const createCheckoutSessionFn = vi.fn().mockResolvedValue(validCheckoutUrl);
+      const countActiveSubscriptionsFn = vi.fn().mockResolvedValue(0);
       const addMetricFn = vi.spyOn(metrics, 'addMetric');
 
       const resp = await testIt(
@@ -87,7 +88,8 @@ describe('POST Payment checkout session', () => {
         getStripeCustomerIdFn,
         setStripeCustomerIdFn,
         createCustomerFn,
-        createCheckoutSessionFn
+        createCheckoutSessionFn,
+        countActiveSubscriptionsFn
       );
 
       assert(resp, responseSuccess({ result: { url: validCheckoutUrl } }));
@@ -96,6 +98,8 @@ describe('POST Payment checkout session', () => {
       expect(getStripeCustomerIdFn).toHaveBeenCalledWith(validUserId);
       expect(createCustomerFn).not.toHaveBeenCalled();
       expect(setStripeCustomerIdFn).not.toHaveBeenCalled();
+      expect(countActiveSubscriptionsFn).toHaveBeenCalledTimes(1);
+      expect(countActiveSubscriptionsFn).toHaveBeenCalledWith(validStripeCustomerId);
       expect(createCheckoutSessionFn).toHaveBeenCalledTimes(1);
       expect(createCheckoutSessionFn).toHaveBeenCalledWith(
         validStripeCustomerId,
@@ -112,6 +116,96 @@ describe('POST Payment checkout session', () => {
       });
     });
 
+    it('should return 409 when customer already has an active subscription for tier', async () => {
+      const event = (await testAuthedEvent(
+        validTierRequestBody,
+        {},
+        accessTokenSchema,
+        validAccessToken
+      )) as unknown as APIGatewayProxyEvent;
+
+      const getStripeCustomerIdFn = vi.fn().mockResolvedValue(validStripeCustomerId);
+      const setStripeCustomerIdFn = vi.fn().mockResolvedValue(undefined);
+      const createCustomerFn = vi.fn().mockResolvedValue(validStripeCustomerId);
+      const createCheckoutSessionFn = vi.fn().mockResolvedValue(validCheckoutUrl);
+      const countActiveSubscriptionsFn = vi.fn().mockResolvedValue(1);
+      const loggerInfoFn = vi.spyOn(logger, 'info');
+      const addMetricFn = vi.spyOn(metrics, 'addMetric');
+
+      const resp = await testIt(
+        event,
+        getStripeCustomerIdFn,
+        setStripeCustomerIdFn,
+        createCustomerFn,
+        createCheckoutSessionFn,
+        countActiveSubscriptionsFn
+      );
+
+      assert(resp, responseError(409, 'Customer already has an active subscription'));
+
+      expect(getStripeCustomerIdFn).toHaveBeenCalledTimes(1);
+      expect(countActiveSubscriptionsFn).toHaveBeenCalledTimes(1);
+      expect(countActiveSubscriptionsFn).toHaveBeenCalledWith(validStripeCustomerId);
+      expect(createCheckoutSessionFn).not.toHaveBeenCalled();
+      expect(loggerInfoFn).toHaveBeenCalledWith('Customer already has an active subscription', {
+        userId: validUserId,
+        stripeCustomerId: validStripeCustomerId,
+        activeSubscriptionCount: 1
+      });
+      expect(addMetricFn).toHaveBeenCalledWith(
+        'PaymentSessionBlockedDueToActiveSubscription',
+        MetricUnit.Count,
+        1,
+        {
+          tier: validTierRequestBody.tier,
+          userId: validUserId
+        }
+      );
+    });
+
+    it('should return 409 when customer has multiple active subscriptions for tier', async () => {
+      const event = (await testAuthedEvent(
+        validTierRequestBody,
+        {},
+        accessTokenSchema,
+        validAccessToken
+      )) as unknown as APIGatewayProxyEvent;
+
+      const getStripeCustomerIdFn = vi.fn().mockResolvedValue(validStripeCustomerId);
+      const setStripeCustomerIdFn = vi.fn().mockResolvedValue(undefined);
+      const createCustomerFn = vi.fn().mockResolvedValue(validStripeCustomerId);
+      const createCheckoutSessionFn = vi.fn().mockResolvedValue(validCheckoutUrl);
+      const countActiveSubscriptionsFn = vi.fn().mockResolvedValue(3);
+      const loggerInfoFn = vi.spyOn(logger, 'info');
+      const addMetricFn = vi.spyOn(metrics, 'addMetric');
+
+      const resp = await testIt(
+        event,
+        getStripeCustomerIdFn,
+        setStripeCustomerIdFn,
+        createCustomerFn,
+        createCheckoutSessionFn,
+        countActiveSubscriptionsFn
+      );
+
+      assert(resp, responseError(409, 'Customer already has an active subscription'));
+
+      expect(loggerInfoFn).toHaveBeenCalledWith('Customer already has an active subscription', {
+        userId: validUserId,
+        stripeCustomerId: validStripeCustomerId,
+        activeSubscriptionCount: 3
+      });
+      expect(addMetricFn).toHaveBeenCalledWith(
+        'PaymentSessionBlockedDueToActiveSubscription',
+        MetricUnit.Count,
+        1,
+        {
+          tier: validTierRequestBody.tier,
+          userId: validUserId
+        }
+      );
+    });
+
     it('should create checkout session successfully with new stripe customer for tier', async () => {
       const event = (await testAuthedEvent(
         validTierRequestBody,
@@ -124,6 +218,7 @@ describe('POST Payment checkout session', () => {
       const setStripeCustomerIdFn = vi.fn().mockResolvedValue(undefined);
       const createCustomerFn = vi.fn().mockResolvedValue(validStripeCustomerId);
       const createCheckoutSessionFn = vi.fn().mockResolvedValue(validCheckoutUrl);
+      const countActiveSubscriptionsFn = vi.fn().mockResolvedValue(0);
       const addMetricFn = vi.spyOn(metrics, 'addMetric');
 
       const resp = await testIt(
@@ -131,7 +226,8 @@ describe('POST Payment checkout session', () => {
         getStripeCustomerIdFn,
         setStripeCustomerIdFn,
         createCustomerFn,
-        createCheckoutSessionFn
+        createCheckoutSessionFn,
+        countActiveSubscriptionsFn
       );
 
       assert(resp, responseSuccess({ result: { url: validCheckoutUrl } }));
@@ -142,6 +238,7 @@ describe('POST Payment checkout session', () => {
       expect(createCustomerFn).toHaveBeenCalledWith(validIdentity);
       expect(setStripeCustomerIdFn).toHaveBeenCalledTimes(1);
       expect(setStripeCustomerIdFn).toHaveBeenCalledWith(validUserId, validStripeCustomerId);
+      expect(countActiveSubscriptionsFn).toHaveBeenCalledTimes(1);
       expect(createCheckoutSessionFn).toHaveBeenCalledTimes(1);
       expect(createCheckoutSessionFn).toHaveBeenCalledWith(
         validStripeCustomerId,
@@ -160,7 +257,7 @@ describe('POST Payment checkout session', () => {
   });
 
   describe('Topup products', () => {
-    it('should create checkout session successfully with existing stripe customer for topup', async () => {
+    it('should create checkout session successfully for topup even with active subscriptions', async () => {
       const event = (await testAuthedEvent(
         validTopupRequestBody,
         {},
@@ -172,6 +269,7 @@ describe('POST Payment checkout session', () => {
       const setStripeCustomerIdFn = vi.fn().mockResolvedValue(undefined);
       const createCustomerFn = vi.fn().mockResolvedValue(validStripeCustomerId);
       const createCheckoutSessionFn = vi.fn().mockResolvedValue(validCheckoutUrl);
+      const countActiveSubscriptionsFn = vi.fn().mockResolvedValue(1);
       const addMetricFn = vi.spyOn(metrics, 'addMetric');
 
       const resp = await testIt(
@@ -179,7 +277,8 @@ describe('POST Payment checkout session', () => {
         getStripeCustomerIdFn,
         setStripeCustomerIdFn,
         createCustomerFn,
-        createCheckoutSessionFn
+        createCheckoutSessionFn,
+        countActiveSubscriptionsFn
       );
 
       assert(resp, responseSuccess({ result: { url: validCheckoutUrl } }));
@@ -188,6 +287,7 @@ describe('POST Payment checkout session', () => {
       expect(getStripeCustomerIdFn).toHaveBeenCalledWith(validUserId);
       expect(createCustomerFn).not.toHaveBeenCalled();
       expect(setStripeCustomerIdFn).not.toHaveBeenCalled();
+      expect(countActiveSubscriptionsFn).not.toHaveBeenCalled();
       expect(createCheckoutSessionFn).toHaveBeenCalledTimes(1);
       expect(createCheckoutSessionFn).toHaveBeenCalledWith(
         validStripeCustomerId,
@@ -216,6 +316,7 @@ describe('POST Payment checkout session', () => {
       const setStripeCustomerIdFn = vi.fn().mockResolvedValue(undefined);
       const createCustomerFn = vi.fn().mockResolvedValue(validStripeCustomerId);
       const createCheckoutSessionFn = vi.fn().mockResolvedValue(validCheckoutUrl);
+      const countActiveSubscriptionsFn = vi.fn().mockResolvedValue(0);
       const addMetricFn = vi.spyOn(metrics, 'addMetric');
 
       const resp = await testIt(
@@ -223,7 +324,8 @@ describe('POST Payment checkout session', () => {
         getStripeCustomerIdFn,
         setStripeCustomerIdFn,
         createCustomerFn,
-        createCheckoutSessionFn
+        createCheckoutSessionFn,
+        countActiveSubscriptionsFn
       );
 
       assert(resp, responseSuccess({ result: { url: validCheckoutUrl } }));
@@ -234,6 +336,7 @@ describe('POST Payment checkout session', () => {
       expect(createCustomerFn).toHaveBeenCalledWith(validIdentity);
       expect(setStripeCustomerIdFn).toHaveBeenCalledTimes(1);
       expect(setStripeCustomerIdFn).toHaveBeenCalledWith(validUserId, validStripeCustomerId);
+      expect(countActiveSubscriptionsFn).not.toHaveBeenCalled();
       expect(createCheckoutSessionFn).toHaveBeenCalledTimes(1);
       expect(createCheckoutSessionFn).toHaveBeenCalledWith(
         validStripeCustomerId,
@@ -264,6 +367,7 @@ describe('POST Payment checkout session', () => {
       const setStripeCustomerIdFn = vi.fn().mockResolvedValue(undefined);
       const createCustomerFn = vi.fn().mockResolvedValue(validStripeCustomerId);
       const createCheckoutSessionFn = vi.fn().mockResolvedValue(null);
+      const countActiveSubscriptionsFn = vi.fn().mockResolvedValue(0);
       const loggerErrorFn = vi.spyOn(logger, 'error');
       const addMetricFn = vi.spyOn(metrics, 'addMetric');
 
@@ -272,7 +376,8 @@ describe('POST Payment checkout session', () => {
         getStripeCustomerIdFn,
         setStripeCustomerIdFn,
         createCustomerFn,
-        createCheckoutSessionFn
+        createCheckoutSessionFn,
+        countActiveSubscriptionsFn
       );
 
       assert(resp, responseError(500));
@@ -298,6 +403,7 @@ describe('POST Payment checkout session', () => {
       const setStripeCustomerIdFn = vi.fn().mockResolvedValue(undefined);
       const createCustomerFn = vi.fn().mockResolvedValue(validStripeCustomerId);
       const createCheckoutSessionFn = vi.fn().mockResolvedValue(undefined);
+      const countActiveSubscriptionsFn = vi.fn().mockResolvedValue(0);
       const loggerErrorFn = vi.spyOn(logger, 'error');
       const addMetricFn = vi.spyOn(metrics, 'addMetric');
 
@@ -306,7 +412,8 @@ describe('POST Payment checkout session', () => {
         getStripeCustomerIdFn,
         setStripeCustomerIdFn,
         createCustomerFn,
-        createCheckoutSessionFn
+        createCheckoutSessionFn,
+        countActiveSubscriptionsFn
       );
 
       assert(resp, responseError(500));
@@ -315,6 +422,41 @@ describe('POST Payment checkout session', () => {
         userId: validUserId
       });
       expect(addMetricFn).toHaveBeenCalledWith('PaymentSessionCancelled', MetricUnit.Count, 1, {
+        tier: validTierRequestBody.tier,
+        userId: validUserId
+      });
+    });
+
+    it('should handle count active subscriptions error and return failure response', async () => {
+      const event = (await testAuthedEvent(
+        validTierRequestBody,
+        {},
+        accessTokenSchema,
+        validAccessToken
+      )) as unknown as APIGatewayProxyEvent;
+
+      const invalidStripeError = new Error('Failed to count subscriptions');
+      const getStripeCustomerIdFn = vi.fn().mockResolvedValue(validStripeCustomerId);
+      const setStripeCustomerIdFn = vi.fn().mockResolvedValue(undefined);
+      const createCustomerFn = vi.fn().mockResolvedValue(validStripeCustomerId);
+      const createCheckoutSessionFn = vi.fn().mockResolvedValue(validCheckoutUrl);
+      const countActiveSubscriptionsFn = vi.fn().mockRejectedValue(invalidStripeError);
+      const addMetricFn = vi.spyOn(metrics, 'addMetric');
+
+      const resp = await testIt(
+        event,
+        getStripeCustomerIdFn,
+        setStripeCustomerIdFn,
+        createCustomerFn,
+        createCheckoutSessionFn,
+        countActiveSubscriptionsFn
+      );
+
+      assert(resp, responseError(500));
+
+      expect(countActiveSubscriptionsFn).toHaveBeenCalledTimes(1);
+      expect(createCheckoutSessionFn).not.toHaveBeenCalled();
+      expect(addMetricFn).toHaveBeenCalledWith('PaymentSessionFailed', MetricUnit.Count, 1, {
         tier: validTierRequestBody.tier,
         userId: validUserId
       });
@@ -333,6 +475,7 @@ describe('POST Payment checkout session', () => {
       const setStripeCustomerIdFn = vi.fn().mockResolvedValue(undefined);
       const createCustomerFn = vi.fn().mockResolvedValue(validStripeCustomerId);
       const createCheckoutSessionFn = vi.fn().mockResolvedValue(validCheckoutUrl);
+      const countActiveSubscriptionsFn = vi.fn().mockResolvedValue(0);
       const loggerErrorFn = vi.spyOn(logger, 'error');
       const addMetricFn = vi.spyOn(metrics, 'addMetric');
 
@@ -341,7 +484,8 @@ describe('POST Payment checkout session', () => {
         getStripeCustomerIdFn,
         setStripeCustomerIdFn,
         createCustomerFn,
-        createCheckoutSessionFn
+        createCheckoutSessionFn,
+        countActiveSubscriptionsFn
       );
 
       assert(resp, responseError(500));
@@ -371,6 +515,7 @@ describe('POST Payment checkout session', () => {
       const setStripeCustomerIdFn = vi.fn().mockResolvedValue(undefined);
       const createCustomerFn = vi.fn().mockRejectedValue(invalidStripeError);
       const createCheckoutSessionFn = vi.fn().mockResolvedValue(validCheckoutUrl);
+      const countActiveSubscriptionsFn = vi.fn().mockResolvedValue(0);
       const loggerErrorFn = vi.spyOn(logger, 'error');
       const addMetricFn = vi.spyOn(metrics, 'addMetric');
 
@@ -379,7 +524,8 @@ describe('POST Payment checkout session', () => {
         getStripeCustomerIdFn,
         setStripeCustomerIdFn,
         createCustomerFn,
-        createCheckoutSessionFn
+        createCheckoutSessionFn,
+        countActiveSubscriptionsFn
       );
 
       assert(resp, responseError(500));
@@ -412,6 +558,7 @@ describe('POST Payment checkout session', () => {
       const setStripeCustomerIdFn = vi.fn().mockRejectedValue(invalidDbError);
       const createCustomerFn = vi.fn().mockResolvedValue(validStripeCustomerId);
       const createCheckoutSessionFn = vi.fn().mockResolvedValue(validCheckoutUrl);
+      const countActiveSubscriptionsFn = vi.fn().mockResolvedValue(0);
       const loggerErrorFn = vi.spyOn(logger, 'error');
       const addMetricFn = vi.spyOn(metrics, 'addMetric');
 
@@ -420,7 +567,8 @@ describe('POST Payment checkout session', () => {
         getStripeCustomerIdFn,
         setStripeCustomerIdFn,
         createCustomerFn,
-        createCheckoutSessionFn
+        createCheckoutSessionFn,
+        countActiveSubscriptionsFn
       );
 
       assert(resp, responseError(500));
@@ -453,6 +601,7 @@ describe('POST Payment checkout session', () => {
       const setStripeCustomerIdFn = vi.fn().mockResolvedValue(undefined);
       const createCustomerFn = vi.fn().mockResolvedValue(validStripeCustomerId);
       const createCheckoutSessionFn = vi.fn().mockRejectedValue(invalidStripeError);
+      const countActiveSubscriptionsFn = vi.fn().mockResolvedValue(0);
       const loggerErrorFn = vi.spyOn(logger, 'error');
       const addMetricFn = vi.spyOn(metrics, 'addMetric');
 
@@ -461,7 +610,8 @@ describe('POST Payment checkout session', () => {
         getStripeCustomerIdFn,
         setStripeCustomerIdFn,
         createCustomerFn,
-        createCheckoutSessionFn
+        createCheckoutSessionFn,
+        countActiveSubscriptionsFn
       );
 
       assert(resp, responseError(500));
@@ -492,13 +642,15 @@ describe('POST Payment checkout session', () => {
       const setStripeCustomerIdFn = vi.fn().mockResolvedValue(undefined);
       const createCustomerFn = vi.fn().mockResolvedValue(validStripeCustomerId);
       const createCheckoutSessionFn = vi.fn().mockResolvedValue(validCheckoutUrl);
+      const countActiveSubscriptionsFn = vi.fn().mockResolvedValue(0);
 
       const resp = await testIt(
         event,
         getStripeCustomerIdFn,
         setStripeCustomerIdFn,
         createCustomerFn,
-        createCheckoutSessionFn
+        createCheckoutSessionFn,
+        countActiveSubscriptionsFn
       );
 
       assert(resp, corsErrorResponse);
@@ -515,6 +667,7 @@ describe('POST Payment checkout session', () => {
     setStripeCustomerIdFn: () => Promise<void>,
     createCustomerFn: () => Promise<StripeCustomerId>,
     createCheckoutSessionFn: () => Promise<Url | null>,
+    countActiveSubscriptionsFn: () => Promise<number>,
     config: PostPaymentCheckoutSessionConfig = defaultConfig
   ): Promise<APIGatewayProxyResult> {
     setEnv(config);
@@ -528,7 +681,8 @@ describe('POST Payment checkout session', () => {
     // eslint-disable-next-line @typescript-eslint/unbound-method
     vi.mocked(StripeService.withConfig).mockResolvedValue({
       createCustomer: createCustomerFn,
-      createCheckoutSession: createCheckoutSessionFn
+      createCheckoutSession: createCheckoutSessionFn,
+      countActiveSubscriptions: countActiveSubscriptionsFn
     } as unknown as StripeService);
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call

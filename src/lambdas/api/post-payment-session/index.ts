@@ -2,6 +2,7 @@ import { MetricUnit } from '@aws-lambda-powertools/metrics';
 import { corsErrorResponse } from '@common/cors-middleware';
 import { protectedEndpointMiddleware } from '@common/lambda-middleware';
 import { logger, metrics } from '@common/powertools';
+import type { Tier, Topup } from '@model/PaymentPlans';
 import type { Identity, IdpName, StripeCustomerId } from '@notifycal/shared/types';
 import type { Url } from '@own-types/model';
 import {
@@ -62,6 +63,31 @@ function createCustomerOrRetrieve(
     });
 }
 
+function checkEligibility(
+  stripeCustomerId: StripeCustomerId,
+  selectedProduct: Tier | Topup,
+  stripeService: StripeService,
+  identity: Identity<IdpName>
+): Promise<{ eligible: boolean; stripeCustomerId: StripeCustomerId }> {
+  if (selectedProduct.type === 'topup') {
+    return Promise.resolve({ eligible: true, stripeCustomerId });
+  }
+
+  return stripeService
+    .countActiveSubscriptions(stripeCustomerId)
+    .then((activeSubscriptionCount) => {
+      if (activeSubscriptionCount >= 1) {
+        logger.info('Customer already has an active subscription', {
+          userId: identity.userId,
+          stripeCustomerId,
+          activeSubscriptionCount
+        });
+        return { eligible: false, stripeCustomerId };
+      }
+      return { eligible: true, stripeCustomerId };
+    });
+}
+
 async function lambdaHandler(
   event: Event,
   /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
@@ -99,9 +125,22 @@ async function lambdaHandler(
 
   return createCustomerOrRetrieve(identity, userBaseStore, stripeService)
     .then((stripeCustomerId) =>
-      stripeService
+      checkEligibility(stripeCustomerId, selectedProduct, stripeService, identity)
+    )
+    .then((eligibilityResult) => {
+      if (!eligibilityResult.eligible) {
+        metrics.addMetric(
+          'PaymentSessionBlockedDueToActiveSubscription',
+          MetricUnit.Count,
+          1,
+          dimensions
+        );
+        return Promise.resolve(errorHandler(409)('Customer already has an active subscription'));
+      }
+
+      return stripeService
         .createCheckoutSession(
-          stripeCustomerId,
+          eligibilityResult.stripeCustomerId,
           identity,
           selectedProduct,
           language,
@@ -109,34 +148,37 @@ async function lambdaHandler(
           cancelRedirectUrl,
           taxId
         )
-        .catch((error) => {
-          logger.error('Failed to create stripe checkout session', {
-            userId: identity.userId,
-            stripeCustomerId,
-            product: selectedProduct.id,
-            error
-          });
-          throw error;
-        })
-    )
-    .then(
-      (sessionUrl) => {
-        if (sessionUrl) {
-          metrics.addMetric('PaymentSessionCreated', MetricUnit.Count, 1, dimensions);
-          return successHandler()({ result: { url: sessionUrl } });
-        } else {
-          logger.error('No payment session was created for the user', { userId });
-          metrics.addMetric('PaymentSessionCancelled', MetricUnit.Count, 1, dimensions);
-          return errorHandler(500)(`No payment session was created for the user`);
-        }
-      },
-      (error) => {
-        metrics.addMetric('PaymentSessionFailed', MetricUnit.Count, 1, dimensions);
-        return errorHandler(500)(`There was an error creating a payment session for the user`, {
-          error
-        });
-      }
-    );
+        .then(
+          (sessionUrl) => {
+            if (sessionUrl) {
+              metrics.addMetric('PaymentSessionCreated', MetricUnit.Count, 1, dimensions);
+              return successHandler()({ result: { url: sessionUrl } });
+            } else {
+              logger.error('No payment session was created for the user', { userId });
+              metrics.addMetric('PaymentSessionCancelled', MetricUnit.Count, 1, dimensions);
+              return errorHandler(500)(`No payment session was created for the user`);
+            }
+          },
+          (error) => {
+            logger.error('Failed to create stripe checkout session', {
+              userId: identity.userId,
+              stripeCustomerId: eligibilityResult.stripeCustomerId,
+              product: selectedProduct.id,
+              error
+            });
+            metrics.addMetric('PaymentSessionFailed', MetricUnit.Count, 1, dimensions);
+            return errorHandler(500)(`There was an error creating a payment session for the user`, {
+              error
+            });
+          }
+        );
+    })
+    .catch((error) => {
+      metrics.addMetric('PaymentSessionFailed', MetricUnit.Count, 1, dimensions);
+      return errorHandler(500)(`There was an error creating a payment session for the user`, {
+        error
+      });
+    });
 }
 
 const handler = protectedEndpointMiddleware(

@@ -583,6 +583,56 @@ describe(StripeService, () => {
     });
   });
 
+  describe('countActiveSubscriptions', () => {
+    it('should return 0 when customer has no active subscriptions', async () => {
+      const listSubscriptionsFn = vi.fn().mockResolvedValue({ data: [] });
+
+      const result = await testCountActiveSubscriptions(validStripeCustomerId, listSubscriptionsFn);
+
+      expect(result).toBe(0);
+      expect(listSubscriptionsFn).toHaveBeenCalledTimes(1);
+      expect(listSubscriptionsFn).toHaveBeenCalledWith({
+        customer: validStripeCustomerId,
+        status: 'active',
+        limit: 100
+      });
+    });
+
+    it('should return 1 when customer has one active subscription', async () => {
+      const validActiveSubscription = {
+        id: 'sub_123',
+        status: 'active'
+      };
+      const listSubscriptionsFn = vi.fn().mockResolvedValue({ data: [validActiveSubscription] });
+
+      const result = await testCountActiveSubscriptions(validStripeCustomerId, listSubscriptionsFn);
+
+      expect(result).toBe(1);
+    });
+
+    it('should return correct count when customer has multiple active subscriptions', async () => {
+      const validActiveSubscriptions = [
+        { id: 'sub_123', status: 'active' },
+        { id: 'sub_456', status: 'active' },
+        { id: 'sub_789', status: 'active' }
+      ];
+      const listSubscriptionsFn = vi.fn().mockResolvedValue({ data: validActiveSubscriptions });
+
+      const result = await testCountActiveSubscriptions(validStripeCustomerId, listSubscriptionsFn);
+
+      expect(result).toBe(3);
+    });
+
+    it('should throw error when Stripe API fails', async () => {
+      const stripeError = new Error('Failed to list subscriptions');
+      const listSubscriptionsFn = vi.fn().mockRejectedValue(stripeError);
+
+      await expect(
+        testCountActiveSubscriptions(validStripeCustomerId, listSubscriptionsFn)
+      ).rejects.toThrow('Failed to list subscriptions');
+    });
+  });
+
   async function testCreateCustomer(
     identity: Identity<IdpName>,
     createCustomerFn: () => Promise<{ id: string }>,
@@ -653,6 +703,23 @@ describe(StripeService, () => {
 
     const stripeService = await StripeService.withConfig(validApiKey);
     return stripeService.createCustomerPortalSession(stripeCustomerId, returnUrl, configId);
+  }
+
+  async function testCountActiveSubscriptions(
+    stripeCustomerId: StripeCustomerId,
+    listSubscriptionsFn: () => Promise<{ data: Array<{ id: string; status: string }> }>
+  ): Promise<number> {
+    const mockStripeInstance = {
+      ...testClocksMockFn(),
+      subscriptions: {
+        list: listSubscriptionsFn
+      }
+    } as unknown as Stripe;
+
+    setupMocks(mockStripeInstance);
+
+    const stripeService = await StripeService.withConfig(validApiKey);
+    return stripeService.countActiveSubscriptions(stripeCustomerId);
   }
 
   function setupMocks(mockStripeInstance: Stripe): void {
