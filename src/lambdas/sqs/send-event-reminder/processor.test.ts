@@ -23,7 +23,9 @@ import {
   type CreditDeductionInsufficientCreditsError,
   type CreditDeductionResult,
   type CreditDeductionSuccess,
-  type CreditDeductionUnexpectedError
+  type CreditDeductionUnexpectedError,
+  type DemoCounterIncrementResult,
+  type DemoCounterLimitReachedError
 } from '@services/credits-service';
 import {
   MessagingService,
@@ -60,10 +62,11 @@ const defaultConfig: VonageEndpointConfig & CreditServiceEndpointConfig = {
   },
   countryToSMSCostCreditsMap: {
     ES: 7
-  }
+  },
+  demoReminderLimit: 1
 };
 
-const validEvent: ActionableEventFoundEvent = {
+const validActionableEvent: ActionableEventFoundEvent = {
   data: {
     receiverDetails: {
       type: 'phone',
@@ -109,6 +112,35 @@ const validCreditDeductionSuccess: CreditDeductionSuccess = {
   topupCreditBalance: 5
 };
 
+const validDemoEvent: DemoReminderToBeSentEvent = {
+  data: {
+    receiverDetails: {
+      type: 'phone',
+      phoneNumber: '+34123456789' as PhoneNumberE164,
+      countryCode: 'ES'
+    },
+    senderDetails: {
+      type: 'phone',
+      phoneNumber: '+34666999888' as PhoneNumberE164,
+      countryCode: 'ES'
+    },
+    message: `This is a demo message`
+  },
+  correlationId: '0de651ef-535e-4d2e-b9ff-7bf43f5aaaaa' as CorrelationId,
+  eventId: '0de651ef-535e-4d2e-b9ff-7bf43f5a01ac' as EventId,
+  userId: '0de651ef-535e-4d2e-b9ff-7bf43f5a0000' as UserId,
+  idp: 'google.com',
+  idpId: '45346356356' as IdpId,
+  eventType: 'DemoReminderToBeSent',
+  happenedAt: '2024-01-02T15:04:50Z' as DateTime
+};
+
+const validDemoCounterSuccess: DemoCounterIncrementResult = {
+  success: true,
+  operationId: 'Success',
+  demoRemindersCount: 2
+};
+
 describe('Messaging processor', () => {
   const validReturnedUuid = 'test-uuid-123' as Uuid;
 
@@ -122,8 +154,8 @@ describe('Messaging processor', () => {
       const loggerAppendKeysSpy = vi.spyOn(logger, 'appendKeys');
       const loggerInfoSpy = vi.spyOn(logger, 'info');
 
-      const result = await testIt(
-        validEvent,
+      const result = await testWithActionableEvent(
+        validActionableEvent,
         sendMessageSpy,
         safePublishSpy,
         deductCreditsFn,
@@ -132,27 +164,27 @@ describe('Messaging processor', () => {
 
       expect(result).toStrictEqual(validReturnedUuid);
       expect(sendMessageSpy).toHaveBeenCalledWith(
-        validEvent.data.message,
-        validEvent.data.senderDetails,
-        validEvent.data.receiverDetails,
-        validEvent.correlationId,
+        validActionableEvent.data.message,
+        validActionableEvent.data.senderDetails,
+        validActionableEvent.data.receiverDetails,
+        validActionableEvent.correlationId,
         // eslint-disable-next-line vitest/no-conditional-expect
         expect.stringContaining(defaultConfig.vonageConfig.webhookBaseURL) &&
           // eslint-disable-next-line vitest/no-conditional-expect
           expect.stringContaining('data%5Bmessage%5D=This%20is%20some%20message')
       );
       expect(safePublishSpy).toHaveBeenCalledWith({
-        ...validEvent,
+        ...validActionableEvent,
         eventType: 'ActionableEventReminderAttemptSent',
         data: {
-          ...validEvent.data,
+          ...validActionableEvent.data,
           messageUUID: validReturnedUuid
         }
       });
       expect(loggerAppendKeysSpy).toHaveBeenCalledWith({
-        reminderMessage: validEvent.data.message,
-        senderDetails: validEvent.data.senderDetails,
-        receiverDetails: validEvent.data.receiverDetails
+        reminderMessage: validActionableEvent.data.message,
+        senderDetails: validActionableEvent.data.senderDetails,
+        receiverDetails: validActionableEvent.data.receiverDetails
       });
       expect(loggerInfoSpy).toHaveBeenCalledWith('Sending a message through Vonage');
       // eslint-disable-next-line vitest/max-expects
@@ -167,8 +199,8 @@ describe('Messaging processor', () => {
       const messagingEnabled = true;
       const deductCreditsFn = vi.fn().mockResolvedValue(validCreditDeductionSuccess);
 
-      const result = await testIt(
-        validEvent,
+      const result = await testWithActionableEvent(
+        validActionableEvent,
         sendMessageSpy,
         safePublishSpy,
         deductCreditsFn,
@@ -177,10 +209,8 @@ describe('Messaging processor', () => {
 
       expect(result).toStrictEqual(validReturnedUuid);
       expect(deductCreditsFn).toHaveBeenCalledWith(
-        validEvent.userId,
-        1,
-        'ES',
-        defaultConfig.countryToSMSCostCreditsMap
+        validActionableEvent.userId,
+        1 * defaultConfig.countryToSMSCostCreditsMap.ES // 1 SMS * 7 credits per SMS in ES
       );
     });
 
@@ -190,8 +220,8 @@ describe('Messaging processor', () => {
       const safePublishSpy = vi.fn().mockResolvedValue({});
       const deductCreditsFn = vi.fn().mockResolvedValue(validCreditDeductionSuccess);
 
-      const result = await testIt(
-        validEvent,
+      const result = await testWithActionableEvent(
+        validActionableEvent,
         sendMessageSpy,
         safePublishSpy,
         deductCreditsFn,
@@ -201,10 +231,10 @@ describe('Messaging processor', () => {
       expect(result).toBe('fake-uuid');
       expect(sendMessageSpy).not.toHaveBeenCalled();
       expect(safePublishSpy).toHaveBeenCalledWith({
-        ...validEvent,
+        ...validActionableEvent,
         eventType: 'ActionableEventReminderAttemptSent',
         data: {
-          ...validEvent.data,
+          ...validActionableEvent.data,
           messageUUID: 'fake-uuid'
         }
       });
@@ -216,14 +246,20 @@ describe('Messaging processor', () => {
       const safePublishSpy = vi.fn();
       const deductCreditsFn = vi.fn().mockResolvedValue(validCreditDeductionSuccess);
 
-      const result = testIt(validEvent, sendMessageSpy, safePublishSpy, deductCreditsFn, true);
+      const result = testWithActionableEvent(
+        validActionableEvent,
+        sendMessageSpy,
+        safePublishSpy,
+        deductCreditsFn,
+        true
+      );
 
       await expect(result).rejects.toThrow(error);
       expect(sendMessageSpy).toHaveBeenCalledOnce();
       expect(safePublishSpy).not.toHaveBeenCalled();
     });
 
-    it('should return an error if user has insufficient credits - let caller deal with it', async () => {
+    it('should return specific UUID if user has insufficient credits and publish error event', async () => {
       const creditOperationResult: CreditDeductionInsufficientCreditsError = {
         operationId: 'InsufficientCredits',
         success: false,
@@ -234,21 +270,25 @@ describe('Messaging processor', () => {
         )
       };
       const sendMessageSpy = vi.fn();
-      const safePublishSpy = vi.fn();
+      const safePublishSpy = vi.fn().mockResolvedValue({});
       const deductCreditsFn = vi.fn().mockResolvedValue(creditOperationResult);
 
-      const result = testIt(validEvent, sendMessageSpy, safePublishSpy, deductCreditsFn, true);
-
-      await expect(result).rejects.toThrow(
-        'A message could not be sent due to insufficient credits'
+      const result = await testWithActionableEvent(
+        validActionableEvent,
+        sendMessageSpy,
+        safePublishSpy,
+        deductCreditsFn,
+        true
       );
+
+      expect(result).toBe('insufficient-credits');
       expect(sendMessageSpy).not.toHaveBeenCalled();
       expect(safePublishSpy).toHaveBeenCalledWith({
-        ...validEvent,
+        ...validActionableEvent,
         eventType: 'ActionableEventReminderInsufficientCreditNotSent',
         data: {
           originalEvent: {
-            ...validEvent.data
+            ...validActionableEvent.data
           },
           error: creditOperationResult
         }
@@ -265,22 +305,130 @@ describe('Messaging processor', () => {
       const safePublishSpy = vi.fn();
       const deductCreditsFn = vi.fn().mockResolvedValue(creditOperationResult);
 
-      const result = testIt(validEvent, sendMessageSpy, safePublishSpy, deductCreditsFn, true);
+      const result = testWithActionableEvent(
+        validActionableEvent,
+        sendMessageSpy,
+        safePublishSpy,
+        deductCreditsFn,
+        true
+      );
 
       await expect(result).rejects.toThrow(
-        'A message could not be sent due to an unknown issue while deducting the credits'
+        'A message could not be sent due to an unknown issue during credit deduction'
       );
       expect(sendMessageSpy).not.toHaveBeenCalled();
       expect(safePublishSpy).not.toHaveBeenCalled();
     });
 
-    function testIt(
-      event: ActionableEventFoundEvent | DemoReminderToBeSentEvent,
+    it('should send demo reminder message when messaging is enabled', async () => {
+      const safePublishSpy = vi.fn().mockResolvedValue({ $metadata: {} });
+      const sendMessageSpy = vi.fn().mockResolvedValue(validReturnedUuid);
+      const messagingEnabled = true;
+      const incrementDemoCounterFn = vi.fn().mockResolvedValue(validDemoCounterSuccess);
+      const demoReminderlimit = 1;
+
+      const result = await testWithDemoReminderEvent(
+        validDemoEvent,
+        sendMessageSpy,
+        safePublishSpy,
+        incrementDemoCounterFn,
+        messagingEnabled
+      );
+
+      expect(result).toStrictEqual(validReturnedUuid);
+      expect(incrementDemoCounterFn).toHaveBeenCalledWith(validDemoEvent.userId, demoReminderlimit);
+      expect(sendMessageSpy).toHaveBeenCalledWith(
+        validDemoEvent.data.message,
+        validDemoEvent.data.senderDetails,
+        validDemoEvent.data.receiverDetails,
+        validDemoEvent.correlationId,
+        expect.any(String)
+      );
+    });
+
+    it('should return specific UUID when demo limit is reached', async () => {
+      const demoLimitError: DemoCounterLimitReachedError = {
+        operationId: 'DemoCounterLimitReachedError',
+        success: false,
+        error: new Error('Demo limit reached')
+      };
+      const sendMessageSpy = vi.fn();
+      const safePublishSpy = vi.fn().mockResolvedValue({});
+      const incrementDemoCounterFn = vi.fn().mockResolvedValue(demoLimitError);
+
+      const result = await testWithDemoReminderEvent(
+        validDemoEvent,
+        sendMessageSpy,
+        safePublishSpy,
+        incrementDemoCounterFn,
+        true
+      );
+
+      expect(result).toBe('demo-limit-reached');
+      expect(sendMessageSpy).not.toHaveBeenCalled();
+      expect(safePublishSpy).toHaveBeenCalledWith({
+        ...validDemoEvent,
+        eventType: 'DemoReminderLimitReachedNotSent',
+        data: {
+          originalEvent: {
+            ...validDemoEvent.data
+          },
+          error: demoLimitError
+        }
+      });
+    });
+
+    function testWithActionableEvent(
+      event: ActionableEventFoundEvent,
       sendMessageFn: () => Promise<Uuid>,
       safePublishFn: () => Promise<void>,
       deductCreditsFn: () => Promise<CreditDeductionResult>,
       messagingEnabled: boolean,
       config: VonageEndpointConfig & CreditServiceEndpointConfig = defaultConfig
+    ): Promise<Uuid> {
+      return createProcessorAndTest(
+        event,
+        sendMessageFn,
+        safePublishFn,
+        messagingEnabled,
+        config,
+        () => {
+          // eslint-disable-next-line @typescript-eslint/unbound-method
+          vi.mocked(CreditsService.prototype.deductCredits).mockImplementation(deductCreditsFn);
+        }
+      );
+    }
+
+    function testWithDemoReminderEvent(
+      event: DemoReminderToBeSentEvent,
+      sendMessageFn: () => Promise<Uuid>,
+      safePublishFn: () => Promise<void>,
+      incrementDemoCounterFn: () => Promise<DemoCounterIncrementResult>,
+      messagingEnabled: boolean,
+      config: VonageEndpointConfig & CreditServiceEndpointConfig = defaultConfig
+    ): Promise<Uuid> {
+      return createProcessorAndTest(
+        event,
+        sendMessageFn,
+        safePublishFn,
+        messagingEnabled,
+        config,
+        () => {
+          // eslint-disable-next-line @typescript-eslint/unbound-method
+          vi.mocked(CreditsService.prototype.incrementDemoReminderCount).mockImplementation(
+            incrementDemoCounterFn
+          );
+        }
+      );
+    }
+
+    function createProcessorAndTest(
+      event: ActionableEventFoundEvent | DemoReminderToBeSentEvent,
+      sendMessageFn: () => Promise<Uuid>,
+      safePublishFn: () => Promise<void>,
+      messagingEnabled: boolean,
+      config: VonageEndpointConfig & CreditServiceEndpointConfig,
+      setupCreditService: (creditService: CreditsService<'google.com'>) => void
     ): Promise<Uuid> {
       vi.mocked(MessagingService).mockReturnValue({
         sendMessage: sendMessageFn
@@ -292,12 +440,13 @@ describe('Messaging processor', () => {
       // eslint-disable-next-line @typescript-eslint/unbound-method
       vi.mocked(SnsService.withConfig).mockReturnValue(snsServiceMock as unknown as SnsService);
       const snsService = SnsService.withConfig({} as SnsTopicConfig, logger);
-      // eslint-disable-next-line @typescript-eslint/unbound-method
-      vi.mocked(CreditsService.prototype.deductCredits).mockImplementation(deductCreditsFn);
+
       const creditService = new CreditsService(
         {} as unknown as UserBaseStore<'google.com'>,
         logger
       );
+      setupCreditService(creditService);
+
       const messageProcessor = new Processor(
         config,
         messagingEnabled,

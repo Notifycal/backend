@@ -1,9 +1,11 @@
 import type {
   AuthedEndpointConfig,
+  DemoReminderEndpointConfig,
   DemoReminderToBeSentTopicConfig as DemoReminderTopicConfig
 } from '@model/Config';
 import {
   readAuthedEndpointConfig,
+  readDemoReminderLimitConfig,
   readDemoReminderToBeSentTopicConfig,
   readEnv,
   readUserBaseStoreConfig
@@ -13,13 +15,15 @@ import { promiseTry } from '@utils/promises';
 
 export type PostDemoReminderConfig = AuthedEndpointConfig &
   DemoReminderTopicConfig &
-  UserBaseStoreEndpointConfig;
+  UserBaseStoreEndpointConfig &
+  DemoReminderEndpointConfig;
 
 export function readPostDemoReminderConfig(): Promise<PostDemoReminderConfig> {
   const env = readEnv();
   return promiseTry(() => ({
     ...readAuthedEndpointConfig(env),
     ...readDemoReminderToBeSentTopicConfig(env),
-    ...readUserBaseStoreConfig(env)
+    ...readUserBaseStoreConfig(env),
+    ...readDemoReminderLimitConfig(env)
   }));
 }

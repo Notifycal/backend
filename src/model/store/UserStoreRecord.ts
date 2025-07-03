@@ -28,6 +28,7 @@ export interface UserStoreRecord<TIdpName> extends UserIdentity<TIdpName> {
   Config?: ReminderConfigStoreRecord;
   Credits?: UserCreditsRecordStore;
   StripeCustomerId?: StripeCustomerId;
+  DemoReminderCount?: number;
 }
 
 export function extractUser<TIdpName extends IdpName>(

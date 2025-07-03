@@ -77,9 +77,7 @@ export default class Processor {
   public async process(
     event: ActionableEventFoundEvent | DemoReminderToBeSentEvent
   ): Promise<Uuid> {
-    const { correlationId } = event;
     const { message, senderDetails, receiverDetails } = event.data;
-
     logger.appendKeys({
       reminderMessage: message,
       senderDetails,
@@ -102,25 +100,30 @@ export default class Processor {
         this.deductCredits(e.userId, e.data.message)
       )
       .with({ eventType: 'DemoReminderToBeSent' }, (e) =>
-        this.creditsService.incrementDemoReminderCount(e.userId)
+        this.creditsService.incrementDemoReminderCount(e.userId, this.config.demoReminderLimit)
       )
       .exhaustive();
   }
 
   private sendMessage(event: ActionableEventFoundEvent | DemoReminderToBeSentEvent): Promise<Uuid> {
-    const { correlationId, data: { message, senderDetails, receiverDetails } } = event;
-    
+    const {
+      correlationId,
+      data: { message, senderDetails, receiverDetails }
+    } = event;
+
     if (this.isEnabled) {
       logger.info('Sending a message through Vonage');
-      return this._messagingService.sendMessage(
-        message,
-        senderDetails,
-        receiverDetails,
-        correlationId,
-        this.buildWebhookUrl(event, this.config.vonageConfig.webhookBaseURL)
-      ).then((messageUUID) => {
-        return this.publishAttemptSentEvent(event, messageUUID).then(() => messageUUID);
-      });
+      return this._messagingService
+        .sendMessage(
+          message,
+          senderDetails,
+          receiverDetails,
+          correlationId,
+          this.buildWebhookUrl(event, this.config.vonageConfig.webhookBaseURL)
+        )
+        .then((messageUUID) => {
+          return this.publishAttemptSentEvent(event, messageUUID).then(() => messageUUID);
+        });
     } else {
       logger.info('Simulating a message is being sent');
       const fakeUUID = 'fake-uuid' as Uuid;
@@ -143,27 +146,31 @@ export default class Processor {
       .with({ operationId: 'DemoCounterLimitReachedError' }, (demoLimitResult) => {
         logger.info('Demo reminder not sent due to demo limit reached', { result });
         return this.publishDemoLimitReachedErrorEvent(
-          event as DemoReminderToBeSentEvent, 
+          event as DemoReminderToBeSentEvent,
           demoLimitResult as DemoCounterLimitReachedError
         ).then(() => 'demo-limit-reached' as Uuid);
       })
       .with({ operationId: 'BadRequestError' }, () => {
-        const operationType = event.eventType === 'ActionableEventFound' 
-          ? 'credit deduction' 
-          : 'demo counter increment';
-        return Promise.reject(new Error(
-          `A message could not be sent due to a bad request during ${operationType}`,
-          { cause: result.error }
-        ));
+        const operationType =
+          event.eventType === 'ActionableEventFound'
+            ? 'credit deduction'
+            : 'demo counter increment';
+        return Promise.reject(
+          new Error(`A message could not be sent due to a bad request during ${operationType}`, {
+            cause: result.error
+          })
+        );
       })
       .with({ operationId: 'UnknownError' }, () => {
-        const operationType = event.eventType === 'ActionableEventFound' 
-          ? 'credit deduction' 
-          : 'demo counter increment';
-        return Promise.reject(new Error(
-          `A message could not be sent due to an unknown issue during ${operationType}`,
-          { cause: result.error }
-        ));
+        const operationType =
+          event.eventType === 'ActionableEventFound'
+            ? 'credit deduction'
+            : 'demo counter increment';
+        return Promise.reject(
+          new Error(`A message could not be sent due to an unknown issue during ${operationType}`, {
+            cause: result.error
+          })
+        );
       })
       .exhaustive();
   }

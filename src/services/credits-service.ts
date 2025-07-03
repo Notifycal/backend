@@ -2,7 +2,6 @@ import type { Logger } from '@aws-lambda-powertools/logger';
 import { InsufficientCreditsError } from '@model/Errors';
 import type { IdpName, TierId, TopupId, UserId, UserStatus } from '@notifycal/shared/types';
 import type { UserBaseStore } from '@services/stores/user-base-store';
-import { tap } from '@utils/promises';
 import { P, match } from 'ts-pattern';
 
 export type CreditOperationResult = CreditDeductionResult | DemoCounterIncrementResult;
@@ -125,18 +124,36 @@ export class CreditsService<TIdpName extends IdpName> {
     );
   }
 
-  public incrementDemoReminderCount(userId: UserId): Promise<DemoCounterIncrementResult> {
-    console.log(userId);
-    return Promise.resolve()
-      .then(
-        tap((result) => {
-          this.logger.info('Demo reminder counter incremented', {
-            userId,
-            updatedDemoCount: result
-          });
-        })
-      )
-      .then(() => Promise.reject(new Error()));
+  public incrementDemoReminderCount(
+    userId: UserId,
+    demoReminderLimit: number
+  ): Promise<DemoCounterIncrementResult> {
+    return this.userStore.incrementDemoReminderCount(userId, demoReminderLimit, this.logger).then(
+      (result) => {
+        const successResult: DemoCounterIncrementSuccess = {
+          success: true,
+          operationId: 'Success',
+          demoRemindersCount: result.DemoReminderCount
+        };
+        return successResult;
+      },
+      (error) => {
+        if (error instanceof Error && error.message === 'Demo reminder limit reached') {
+          const demoLimitError: DemoCounterLimitReachedError = {
+            success: false,
+            operationId: 'DemoCounterLimitReachedError',
+            error
+          };
+          return demoLimitError;
+        }
+        const unexpectedError: DemoCounterIncrementUnexpectedError = {
+          success: false,
+          operationId: 'UnknownError',
+          error
+        };
+        return unexpectedError;
+      }
+    );
   }
 
   public resetSubscriptionCredits(

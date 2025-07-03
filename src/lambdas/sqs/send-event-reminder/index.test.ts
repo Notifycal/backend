@@ -196,7 +196,8 @@ const defaultConfig: EndpointConfig = {
   },
   countryToSMSCostCreditsMap: {
     ES: 7
-  }
+  },
+  demoReminderLimit: 1
 };
 
 function setEnv(config: EndpointConfig): void {
