@@ -111,7 +111,7 @@ async function lambdaHandler(
   if (!frontendUrl) {
     return corsErrorResponse;
   }
-  const successRedirectUrl = `${frontendUrl}${successRedirectUrlPath}` as Url;
+  const successRedirectUrl = `${frontendUrl}${successRedirectUrlPath}?type=${selectedProduct.type}&product=${selectedProduct.id}` as Url;
   const cancelRedirectUrl = `${frontendUrl}${cancelRedirectUrlPath}` as Url;
 
   const dimensions: MetricDimensions = {

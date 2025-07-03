@@ -106,7 +106,7 @@ describe('POST Payment checkout session', () => {
         validIdentity,
         defaultConfig.paymentPlans.tiers.good,
         'es',
-        `${defaultConfig.corsConfig.allowedOrigins[0]}/success`,
+        `${defaultConfig.corsConfig.allowedOrigins[0]}/success?type=tier&product=good`,
         `${defaultConfig.corsConfig.allowedOrigins[0]}/cancel`,
         defaultConfig.stripeCheckoutConfig.taxId
       );
@@ -245,7 +245,7 @@ describe('POST Payment checkout session', () => {
         validIdentity,
         defaultConfig.paymentPlans.tiers.good,
         'es',
-        `${defaultConfig.corsConfig.allowedOrigins[0]}/success`,
+        `${defaultConfig.corsConfig.allowedOrigins[0]}/success?type=tier&product=good`,
         `${defaultConfig.corsConfig.allowedOrigins[0]}/cancel`,
         defaultConfig.stripeCheckoutConfig.taxId
       );
@@ -294,7 +294,7 @@ describe('POST Payment checkout session', () => {
         validIdentity,
         defaultConfig.paymentPlans.topups.single,
         'en',
-        `${defaultConfig.corsConfig.allowedOrigins[0]}/success`,
+        `${defaultConfig.corsConfig.allowedOrigins[0]}/success?type=topup&product=single`,
         `${defaultConfig.corsConfig.allowedOrigins[0]}/cancel`,
         defaultConfig.stripeCheckoutConfig.taxId
       );
@@ -343,7 +343,7 @@ describe('POST Payment checkout session', () => {
         validIdentity,
         defaultConfig.paymentPlans.topups.single,
         'en',
-        `${defaultConfig.corsConfig.allowedOrigins[0]}/success`,
+        `${defaultConfig.corsConfig.allowedOrigins[0]}/success?type=topup&product=single`,
         `${defaultConfig.corsConfig.allowedOrigins[0]}/cancel`,
         defaultConfig.stripeCheckoutConfig.taxId
       );
