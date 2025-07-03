@@ -23,7 +23,7 @@ export class StripeEventProcessor {
     this.logger.appendKeys({
       eventType: event.type
     });
-    const handlerFn = this.eventHandlers.get(event.type);
+    const handlerFn = this.eventHandlers.get(event.type as StripeEventType);
     if (!handlerFn) {
       this.logger.error(
         'Unhandled event type. This means the integration on Stripe side is configured to send event types for which there is no event handlers in code'
@@ -41,7 +41,7 @@ export class StripeEventProcessor {
         })
       )
       .then((identity) =>
-        handlerFn(event.type)
+        handlerFn(event.type as StripeEventType)
           .handle(event, identity)
           .then(
             tap(() => {
