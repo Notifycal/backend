@@ -78,7 +78,7 @@ async function lambdaHandler(
         return errorHandler(404)('User config not found');
       }
       if (userConfigData.DemoReminderCount >= demoReminderLimit) {
-        return errorHandler(400)('Demo reminder limit reached');
+        return errorHandler(429)('Demo reminder limit reached');
       }
       const demoReminderToBeSent = buildEvent(requestBody, userConfigData.Config, callerIdentity);
       return snsService.publish(demoReminderToBeSent).then(() => successHandler(202)());

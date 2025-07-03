@@ -342,6 +342,12 @@ components:
         application/json:
           schema: { $ref: '#/components/schemas/ErrorResponse' }
 
+    TooManyRequests:
+      description: Too Many Requests response payload
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+
     NotFound:
       description: NotFound response payload
       content:

@@ -3,7 +3,11 @@ import type { LoggerInterface } from '@aws-lambda-powertools/logger/types';
 import { logger } from '@common/powertools';
 import type { ActionableEventFoundEvent } from '@model/app-events/ActionableEventFoundEvent';
 import type { DemoReminderToBeSentEvent } from '@model/app-events/DemoReminderToBeSentEvent';
-import type { CreditServiceEndpointConfig, SnsTopicConfig } from '@model/Config';
+import type {
+  CreditServiceEndpointConfig,
+  DemoReminderEndpointConfig,
+  SnsTopicConfig
+} from '@model/Config';
 import { InsufficientCreditsError } from '@model/Errors';
 import type { VonageEndpointConfig } from '@model/vendor/vonage/config';
 import type {
@@ -53,7 +57,9 @@ vi.mock('@common/powertools', () => {
 vi.mock('@services/messaging');
 vi.mock('@services/credits-service');
 
-const defaultConfig: VonageEndpointConfig & CreditServiceEndpointConfig = {
+const defaultConfig: VonageEndpointConfig &
+  CreditServiceEndpointConfig &
+  DemoReminderEndpointConfig = {
   vonageConfig: {
     applicationId: 'some app id' as VonageApplicationId,
     webhookBaseURL: 'https://test.com' as Url,
@@ -63,7 +69,9 @@ const defaultConfig: VonageEndpointConfig & CreditServiceEndpointConfig = {
   countryToSMSCostCreditsMap: {
     ES: 7
   },
-  demoReminderLimit: 1
+  demoReminderConfig: {
+    demoReminderLimit: 1
+  }
 };
 
 const validActionableEvent: ActionableEventFoundEvent = {
@@ -384,7 +392,9 @@ describe('Messaging processor', () => {
       safePublishFn: () => Promise<void>,
       deductCreditsFn: () => Promise<CreditDeductionResult>,
       messagingEnabled: boolean,
-      config: VonageEndpointConfig & CreditServiceEndpointConfig = defaultConfig
+      config: VonageEndpointConfig &
+        CreditServiceEndpointConfig &
+        DemoReminderEndpointConfig = defaultConfig
     ): Promise<Uuid> {
       return createProcessorAndTest(
         event,
@@ -405,7 +415,9 @@ describe('Messaging processor', () => {
       safePublishFn: () => Promise<void>,
       incrementDemoCounterFn: () => Promise<DemoCounterIncrementResult>,
       messagingEnabled: boolean,
-      config: VonageEndpointConfig & CreditServiceEndpointConfig = defaultConfig
+      config: VonageEndpointConfig &
+        CreditServiceEndpointConfig &
+        DemoReminderEndpointConfig = defaultConfig
     ): Promise<Uuid> {
       return createProcessorAndTest(
         event,
@@ -427,7 +439,7 @@ describe('Messaging processor', () => {
       sendMessageFn: () => Promise<Uuid>,
       safePublishFn: () => Promise<void>,
       messagingEnabled: boolean,
-      config: VonageEndpointConfig & CreditServiceEndpointConfig,
+      config: VonageEndpointConfig & CreditServiceEndpointConfig & DemoReminderEndpointConfig,
       setupCreditService: (creditService: CreditsService<'google.com'>) => void
     ): Promise<Uuid> {
       vi.mocked(MessagingService).mockReturnValue({

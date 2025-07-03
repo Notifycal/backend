@@ -221,7 +221,7 @@ describe('Post Demo Reminder', () => {
     expect(publishFn).toHaveBeenCalledOnce();
   });
 
-  it('should return 400 when demo reminder limit is reached', async () => {
+  it('should return 429 when demo reminder limit is reached', async () => {
     const validEvent = (await testAuthedEvent(
       validRequestBody,
       {},
@@ -236,12 +236,12 @@ describe('Post Demo Reminder', () => {
 
     const result = await testit(validEvent, getUserConfigAndDemoReminderCountFn, publishFn);
 
-    expect(result.statusCode).toBe(400);
+    expect(result.statusCode).toBe(429);
     expect(getUserConfigAndDemoReminderCountFn).toHaveBeenCalledWith(validAccessToken.userId);
     expect(publishFn).not.toHaveBeenCalled();
   });
 
-  it('should return 400 when demo reminder count exceeds limit', async () => {
+  it('should return 429 when demo reminder count exceeds limit', async () => {
     const validEvent = (await testAuthedEvent(
       validRequestBody,
       {},
@@ -256,7 +256,7 @@ describe('Post Demo Reminder', () => {
 
     const result = await testit(validEvent, getUserConfigAndDemoReminderCountFn, publishFn);
 
-    expect(result.statusCode).toBe(400);
+    expect(result.statusCode).toBe(429);
     expect(getUserConfigAndDemoReminderCountFn).toHaveBeenCalledWith(validAccessToken.userId);
     expect(publishFn).not.toHaveBeenCalled();
   });
@@ -264,7 +264,7 @@ describe('Post Demo Reminder', () => {
   it('should work with higher demo reminder limit', async () => {
     const configWithHigherLimit = {
       ...defaultEnv,
-      demoReminderLimitConfig: { demoReminderLimit: 3 }
+      demoReminderConfig: { demoReminderLimit: 3 }
     };
     const validEvent = (await testAuthedEvent(
       validRequestBody,
@@ -302,7 +302,7 @@ const defaultEnv = {
   corsConfig: {
     allowedOrigins: ['http://localhost:5173']
   },
-  demoReminderLimitConfig: {
+  demoReminderConfig: {
     demoReminderLimit: 1
   }
 };

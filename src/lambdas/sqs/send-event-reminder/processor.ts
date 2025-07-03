@@ -18,7 +18,7 @@ import {
   type DemoReminderToBeSentAttemptSentEvent
 } from '@model/app-events/DemoReminderToBeSentAttemptSentEvent';
 import type { DemoReminderToBeSentEvent } from '@model/app-events/DemoReminderToBeSentEvent';
-import type { CreditServiceEndpointConfig } from '@model/Config';
+import type { CreditServiceEndpointConfig, DemoReminderEndpointConfig } from '@model/Config';
 import type { VonageEndpointConfig } from '@model/vendor/vonage/config';
 import type { IdpName, UserId, Uuid } from '@notifycal/shared/types';
 import type { Url } from '@own-types/model';
@@ -40,7 +40,9 @@ export default class Processor {
   private readonly _messagingService: MessagingService;
 
   public constructor(
-    private readonly config: VonageEndpointConfig & CreditServiceEndpointConfig,
+    private readonly config: VonageEndpointConfig &
+      CreditServiceEndpointConfig &
+      DemoReminderEndpointConfig,
     private readonly isEnabled: boolean,
     private readonly snsService: SnsService,
     private readonly creditsService: CreditsService<IdpName>,
@@ -100,7 +102,10 @@ export default class Processor {
         this.deductCredits(e.userId, e.data.message)
       )
       .with({ eventType: 'DemoReminderToBeSent' }, (e) =>
-        this.creditsService.incrementDemoReminderCount(e.userId, this.config.demoReminderLimit)
+        this.creditsService.incrementDemoReminderCount(
+          e.userId,
+          this.config.demoReminderConfig.demoReminderLimit
+        )
       )
       .exhaustive();
   }
