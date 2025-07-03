@@ -48,7 +48,8 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
       'UserStatus',
       'Config',
       'StripeCustomerId',
-      'Credits'
+      'Credits',
+      'DemoReminderCount'
     ];
     const queryCmdInput = {
       KeyConditionExpression: 'UserId = :id',
@@ -323,7 +324,7 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
       Key: { UserId: userId },
       UpdateExpression:
         'SET DemoReminderCount = if_not_exists(DemoReminderCount, :zero) + :increment',
-      ConditionExpression: 'DemoReminderCount < :limit',
+      ConditionExpression: 'attribute_not_exists(DemoReminderCount) OR DemoReminderCount < :limit',
       ExpressionAttributeValues: {
         ':increment': 1,
         ':limit': demoReminderLimit,

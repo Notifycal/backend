@@ -23,6 +23,18 @@ components:
             - live
             - onboarding
             - banned
+        credits:
+          type: object
+          properties:
+            subscriptionCreditBalance:
+              type: integer
+            tier:
+              type: string
+            topupCreditBalance:
+              type: integer
+          additionalProperties: false
+        demoReminderCount:
+          type: integer
         config:
           $ref: '#/components/schemas/ReminderConfig'
       required:

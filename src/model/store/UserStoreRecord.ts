@@ -5,14 +5,26 @@ import type {
   TierId,
   UnixTimestamp,
   User,
+  UserCredits,
   UserStatus
 } from '@notifycal/shared/types';
-import { type ReminderConfigStoreRecord, fromStoreRecord } from './ReminderConfigStoreRecord';
+import {
+  type ReminderConfigStoreRecord,
+  fromStoreRecord as reminderFromStoreRecord
+} from './ReminderConfigStoreRecord';
 
 export interface UserCreditsRecordStore {
   SubscriptionCreditBalance: number;
   Tier: TierId;
   TopupCreditBalance: number;
+}
+
+function fromStoreRecord(credits: UserCreditsRecordStore): UserCredits {
+  return {
+    subscriptionCreditBalance: credits.SubscriptionCreditBalance,
+    tier: credits.Tier,
+    topupCreditBalance: credits.TopupCreditBalance
+  };
 }
 
 export type CreditBalanceType = keyof Pick<
@@ -39,6 +51,8 @@ export function extractUser<TIdpName extends IdpName>(
     lastSignInAt: userRecord.LastSignInAt,
     signedUpAt: userRecord.SignedUpAt,
     userStatus: userRecord.UserStatus,
-    config: userRecord.Config ? fromStoreRecord(userRecord.Config) : undefined
+    config: userRecord.Config ? reminderFromStoreRecord(userRecord.Config) : undefined,
+    credits: userRecord.Credits ? fromStoreRecord(userRecord.Credits) : undefined,
+    demoReminderCount: userRecord.DemoReminderCount || undefined
   };
 }

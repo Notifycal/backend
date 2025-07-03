@@ -3,7 +3,7 @@ data "aws_iam_policy_document" "demo_reminder_to_be_sent_iam_policydoc" {
     effect = "Allow"
 
     actions = [
-      "dynamodb:GetItem",
+      "dynamodb:Query",
     ]
 
     resources = [
