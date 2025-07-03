@@ -14,8 +14,6 @@ import {
 describe(CreditsService, () => {
   const validUserId = 'user-123' as UserId;
   const validCredits = 5;
-  const validCountry = 'ES' as const;
-  const validCountryToSMSCostCreditsMap = { ES: 2 };
   const validCreditsToAdd = 100;
   const validCreditsToResetWith = 100;
   const validTierId = 'premium' as TierId;
@@ -466,9 +464,7 @@ describe(CreditsService, () => {
     deductSubscriptionCreditsFn: () => Promise<Required<Pick<UserStoreRecord<unknown>, 'Credits'>>>,
     updateStatusFn: () => Promise<void>,
     credits: number,
-    userId: UserId = validUserId,
-    country: 'ES' = validCountry,
-    countryToSMSCostCreditsMap = validCountryToSMSCostCreditsMap
+    userId: UserId = validUserId
   ): Promise<CreditDeductionResult> {
     const userStoreMock = {
       deductCredits: deductSubscriptionCreditsFn,
@@ -476,7 +472,7 @@ describe(CreditsService, () => {
     } as unknown as UserBaseStore<IdpName>;
 
     const creditsService = new CreditsService(userStoreMock, logger);
-    return creditsService.deductCredits(userId, credits, country, countryToSMSCostCreditsMap);
+    return creditsService.deductCredits(userId, credits);
   }
 
   function testResetSubscriptionCredits(

@@ -2,8 +2,10 @@ import type { Logger } from '@aws-lambda-powertools/logger';
 import { InsufficientCreditsError } from '@model/Errors';
 import type { IdpName, TierId, TopupId, UserId, UserStatus } from '@notifycal/shared/types';
 import type { UserBaseStore } from '@services/stores/user-base-store';
+import { tap } from '@utils/promises';
 import { P, match } from 'ts-pattern';
 
+export type CreditOperationResult = CreditDeductionResult | DemoCounterIncrementResult;
 export interface CreditDeductionSuccess {
   readonly success: true;
   readonly operationId: 'Success';
@@ -53,24 +55,40 @@ export type CreditAdditionResult =
   | CreditAdditionBadRequestError
   | CreditAdditionUnexpectedError;
 
+export interface DemoCounterIncrementSuccess {
+  readonly success: true;
+  readonly operationId: 'Success';
+  readonly demoRemindersCount: number;
+}
+
+export interface DemoCounterLimitReachedError {
+  readonly success: false;
+  readonly operationId: 'DemoCounterLimitReachedError';
+  error: unknown;
+}
+
+export interface DemoCounterIncrementUnexpectedError {
+  readonly success: false;
+  readonly operationId: 'UnknownError';
+  error: unknown;
+}
+
+export type DemoCounterIncrementResult =
+  | DemoCounterIncrementSuccess
+  | DemoCounterLimitReachedError
+  | DemoCounterIncrementUnexpectedError;
+
 export class CreditsService<TIdpName extends IdpName> {
   public constructor(
     private readonly userStore: UserBaseStore<TIdpName>,
     private readonly logger: Logger
   ) {}
 
-  public async deductCredits(
-    userId: UserId,
-    credits: number,
-    country: 'ES',
-    countryToSMSCostCreditsMap: Record<'ES', number>
-  ): Promise<CreditDeductionResult> {
+  public async deductCredits(userId: UserId, credits: number): Promise<CreditDeductionResult> {
     if (credits <= 0) {
       return Promise.resolve(this.badRequestCreditError(credits));
     }
-    const creditToDeductPerUnit = countryToSMSCostCreditsMap[country];
-    const totalCreditsToDeduct = creditToDeductPerUnit * credits;
-    return this.userStore.deductCredits(userId, totalCreditsToDeduct, this.logger).then(
+    return this.userStore.deductCredits(userId, credits, this.logger).then(
       (user) => {
         const creditDeductionOperation: CreditDeductionSuccess = {
           success: true,
@@ -105,6 +123,20 @@ export class CreditsService<TIdpName extends IdpName> {
           });
       }
     );
+  }
+
+  public incrementDemoReminderCount(userId: UserId): Promise<DemoCounterIncrementResult> {
+    console.log(userId);
+    return Promise.resolve()
+      .then(
+        tap((result) => {
+          this.logger.info('Demo reminder counter incremented', {
+            userId,
+            updatedDemoCount: result
+          });
+        })
+      )
+      .then(() => Promise.reject(new Error()));
   }
 
   public resetSubscriptionCredits(
