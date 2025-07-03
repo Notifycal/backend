@@ -23,6 +23,7 @@ paths:
       responses:
         '200': { $ref: './component-definitions.yaml#/components/responses/PaymentSessionResult' }
         '401': { $ref: './component-definitions.yaml#/components/responses/Unauthorised' }
+        '409': { $ref: './component-definitions.yaml#/components/responses/Conflict' }
         '500': { $ref: './component-definitions.yaml#/components/responses/InternalServerError' }
       x-amazon-apigateway-integration:
         $ref: './aws-stuff.yaml#/components/x-notifycal/AWS_LAMBDA_PROXY'
