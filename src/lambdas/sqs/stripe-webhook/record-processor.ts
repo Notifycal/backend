@@ -116,7 +116,7 @@ export function recordProcessor(
     toProductToCreditsMap(tiers),
     snsService
   );
-  const topupService = new TopupService(creditsService, toProductToCreditsMap(topups));
+  const topupService = new TopupService(creditsService, toProductToCreditsMap(topups), snsService);
   const ourHandlers = eventHandlerFactory(subscriptionService, topupService, tiers, topups, logger);
   const processor = new StripeEventProcessor(
     new StripeIdentityExtractor(userPaymentIndexStore, logger),

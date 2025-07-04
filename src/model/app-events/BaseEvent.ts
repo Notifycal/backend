@@ -46,6 +46,7 @@ export const successEventTypeSchema = z.union([
   z.literal('SubscriptionUpgraded'),
   z.literal('SubscriptionDowngradeScheduled'),
   z.literal('SubscriptionCancelled'),
+  z.literal('TopupSucceeded'),
   ...ourStripeEventTypeZodLiteralArray
 ]);
 export const errorEventTypeSchema = z.union([
@@ -55,7 +56,8 @@ export const errorEventTypeSchema = z.union([
   z.literal('SubscriptionCreationFailed'),
   z.literal('SubscriptionRenewalFailed'),
   z.literal('SubscriptionUpgradeFailed'),
-  z.literal('SubscriptionCancellationFailed')
+  z.literal('SubscriptionCancellationFailed'),
+  z.literal('TopupFailed')
 ]);
 export const systemEventTypeSchema = z.literal('ScheduledFetchUserCalendarEventFired');
 export type SuccessEventType = z.infer<typeof successEventTypeSchema>;

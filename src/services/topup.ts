@@ -1,23 +1,40 @@
-import type { IdpName, TopupId, UserId } from '@notifycal/shared/types';
+import type { Identity, IdpName, TopupId } from '@notifycal/shared/types';
+import { topupFailedEvent } from '@model/app-events/TopupFailedEvent';
+import { topupSucceededEvent } from '@model/app-events/TopupSucceededEvent';
 import type { CreditAdditionResult, CreditsService } from './credits-service';
+import { handleServiceOperation } from './common/error-handling';
+import type { SnsService } from './sns';
 
 export class TopupService<TIdpName extends IdpName> {
   public constructor(
     private readonly creditsService: CreditsService<TIdpName>,
-    private readonly topupToCreditsMap: Record<TopupId, number>
+    private readonly topupToCreditsMap: Record<TopupId, number>,
+    private readonly snsService: SnsService
   ) {}
-  public add(userId: UserId, topup: TopupId, quantity: number): Promise<CreditAdditionResult> {
+  public add(
+    identity: Identity<TIdpName>,
+    topup: TopupId,
+    quantity: number
+  ): Promise<CreditAdditionResult> {
     if (quantity < 1) {
-      return Promise.reject(
-        new Error(
-          `Error while adding a topup. Quantity cannot be smaller than 1. Quantity: ${quantity}`
-        )
+      const error = new Error(
+        `Error while adding a topup. Quantity cannot be smaller than 1. Quantity: ${quantity}`
       );
+      return this.snsService
+        .safePublish(topupFailedEvent(identity, topup, quantity, 0, undefined, error))
+        .then(() => Promise.reject(error));
     }
     const credits = this.topupToCreditsMap[topup] * quantity;
-    return this.creditsService.addCredits(userId, credits, {
+    const operation = this.creditsService.addCredits(identity.userId, credits, {
       type: 'topup',
       id: 'single'
     });
+
+    return handleServiceOperation(
+      operation,
+      (result) => topupSucceededEvent(identity, topup, quantity, credits, result),
+      (result, error) => topupFailedEvent(identity, topup, quantity, credits, result, error),
+      this.snsService
+    );
   }
 }
