@@ -69,7 +69,7 @@ export class SubscriptionUpdatedHandler
     ];
     if (subscriptionStatuses.includes(subscription.status)) {
       return this.subscriptionService
-        .cancel(identity.userId, 'unpaid')
+        .cancel(identity, 'unpaid')
         .then(() => {}, this.handleError('subscription-unpaid'));
     }
     return Promise.resolve();
@@ -99,7 +99,7 @@ export class SubscriptionDeletedHandler
       userId: identity.userId
     });
     return this.subscriptionService
-      .cancel(identity.userId, 'cancelled')
+      .cancel(identity, 'cancelled')
       .then(() => {}, this.handleError('subscription-cancelled'));
   }
 }

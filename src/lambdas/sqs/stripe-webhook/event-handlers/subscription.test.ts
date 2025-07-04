@@ -37,7 +37,7 @@ describe(SubscriptionUpdatedHandler, () => {
 
     await testIt(event, cancelFn);
 
-    expect(cancelFn).toHaveBeenCalledWith('user-123', 'unpaid');
+    expect(cancelFn).toHaveBeenCalledWith(validIdentity, 'unpaid');
   });
 
   it('should not cancel subscription when status from event is active', async () => {
@@ -93,7 +93,7 @@ describe(SubscriptionDeletedHandler, () => {
 
     await testIt(event, cancelFn);
 
-    expect(cancelFn).toHaveBeenCalledWith('user-123', 'cancelled');
+    expect(cancelFn).toHaveBeenCalledWith(validIdentity, 'cancelled');
   });
 
   it('should propagate errors from cancel()', async () => {
