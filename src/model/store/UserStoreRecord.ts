@@ -5,6 +5,7 @@ import type {
   TierId,
   UnixTimestamp,
   User,
+  UserCredits,
   UserStatus
 } from '@notifycal/shared/types';
 import { type ReminderConfigStoreRecord, fromStoreRecord } from './ReminderConfigStoreRecord';
@@ -30,6 +31,14 @@ export interface UserStoreRecord<TIdpName> extends UserIdentity<TIdpName> {
   StripeCustomerId?: StripeCustomerId;
 }
 
+function extractCredits(creditsRecord: UserCreditsRecordStore): UserCredits {
+  return {
+    subscriptionCreditBalance: creditsRecord.SubscriptionCreditBalance,
+    tier: creditsRecord.Tier,
+    topupCreditBalance: creditsRecord.TopupCreditBalance
+  };
+}
+
 export function extractUser<TIdpName extends IdpName>(
   userRecord: UserStoreRecord<TIdpName>
 ): User<TIdpName> {
@@ -38,6 +47,7 @@ export function extractUser<TIdpName extends IdpName>(
     lastSignInAt: userRecord.LastSignInAt,
     signedUpAt: userRecord.SignedUpAt,
     userStatus: userRecord.UserStatus,
-    config: userRecord.Config ? fromStoreRecord(userRecord.Config) : undefined
+    config: userRecord.Config ? fromStoreRecord(userRecord.Config) : undefined,
+    credits: userRecord.Credits ? extractCredits(userRecord.Credits) : undefined
   };
 }
