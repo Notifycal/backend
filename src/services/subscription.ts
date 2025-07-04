@@ -1,5 +1,4 @@
 import { logger } from '@common/powertools';
-import type { BaseErrorEvent, BaseEvent } from '@model/app-events/BaseEvent';
 import { subscriptionCancellationFailedEvent } from '@model/app-events/SubscriptionCancellationFailedEvent';
 import { subscriptionCancelledEvent } from '@model/app-events/SubscriptionCancelledEvent';
 import { subscriptionCreatedEvent } from '@model/app-events/SubscriptionCreatedEvent';
@@ -17,34 +16,7 @@ import type {
 } from './credits-service';
 import type { SnsService } from './sns';
 
-function handleServiceOperation<
-  TResult extends CreditAdditionResult | CreditDeductionResult,
-  TEvent extends BaseEvent,
-  TErrorEvent extends BaseErrorEvent
->(
-  operation: Promise<TResult>,
-  successEventFactory: (data: TResult) => TEvent,
-  failureEventFactory: (result: TResult | undefined, error: unknown) => TErrorEvent,
-  snsService: SnsService
-): Promise<TResult> {
-  return operation
-    .then((result) => {
-      const isSuccess = result.success;
-      return snsService
-        .safePublish(
-          isSuccess ? successEventFactory(result) : failureEventFactory(result, undefined)
-        )
-        .then(() => result);
-    })
-    .catch((error) => {
-      return (
-        snsService
-          .safePublish(failureEventFactory(undefined, error))
-          // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
-          .then(() => Promise.reject(error))
-      );
-    });
-}
+import { handleServiceOperation } from './common/error-handling';
 
 export function calculateUpgradeCredits(
   previousTier: TierId,

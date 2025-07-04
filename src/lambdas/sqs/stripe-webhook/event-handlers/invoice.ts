@@ -1,7 +1,7 @@
 /* eslint-disable camelcase */
 import type { Logger } from '@aws-lambda-powertools/logger';
 import type { TierMap, TopupMap } from '@model/PaymentPlans';
-import type { Identity, IdpName, TierId, TopupId, UserId } from '@notifycal/shared/types';
+import type { Identity, IdpName, TierId, TopupId } from '@notifycal/shared/types';
 import type { CreditAdditionResult } from '@services/credits-service';
 import type { SubscriptionService } from '@services/subscription';
 import type { TopupService } from '@services/topup';
@@ -67,7 +67,7 @@ export class InvoicePaymentSucceededHandler
       .with({ billing_reason: 'subscription_update' }, (invoice) =>
         this.handleSubscriptionUpdate(identity, invoice)
       )
-      .with({ billing_reason: 'manual' }, (invoice) => this.topupHandler(invoice, identity.userId))
+      .with({ billing_reason: 'manual' }, (invoice) => this.topupHandler(invoice, identity))
       .otherwise((invoice) => {
         this.logger.warn('Unhandled billing reason', {
           invoiceId: invoice.id,
@@ -174,16 +174,17 @@ export class InvoicePaymentSucceededHandler
       .exhaustive();
   }
 
-  private topupHandler(invoice: Stripe.Invoice, userId: UserId): Promise<void> {
+  private topupHandler(invoice: Stripe.Invoice, identity: Identity<IdpName>): Promise<void> {
     const product = invoice.lines.data[0];
-    if ((product.quantity ?? 0) <= 0) {
+    const quantity = product.quantity || 0;
+    if (quantity <= 0) {
       return this.errorHandler('topup')(
         new Error(`Quantity is not greater than 0. Quantity: ${product.quantity}`)
       );
     }
     return this.extractProduct(product, this.topups).then(
       (topupId) =>
-        this.topupService.add(userId, topupId, product.quantity || 0).then(
+        this.topupService.add(identity, topupId, quantity).then(
           (r) => this.creditAdditionHandler(r),
           (error) => this.errorHandler('topup')(error)
         ),

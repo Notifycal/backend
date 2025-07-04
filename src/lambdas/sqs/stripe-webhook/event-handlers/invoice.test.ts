@@ -246,7 +246,7 @@ describe(InvoicePaymentSucceededHandler, () => {
     );
 
     expect(addTopupFn).toHaveBeenCalledTimes(1);
-    expect(addTopupFn).toHaveBeenCalledWith(validIdentity.userId, validTopups.single.id, 100);
+    expect(addTopupFn).toHaveBeenCalledWith(validIdentity, validTopups.single.id, 100);
     expect(createFn).not.toHaveBeenCalled();
     expect(renewFn).not.toHaveBeenCalled();
     expect(upgradeFn).not.toHaveBeenCalled();
@@ -858,7 +858,7 @@ describe(InvoicePaymentSucceededHandler, () => {
     ) => Promise<CreditAdditionResult>,
     downgradeFn: (identity: Identity<IdpName>) => Promise<void>,
     addTopupFn: (
-      userId: UserId,
+      identity: Identity<IdpName>,
       topupId: TopupId,
       quantity: number
     ) => Promise<CreditAdditionResult>,
