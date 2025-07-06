@@ -87,7 +87,7 @@ export function createEventBase<TEventType extends EventType>(
   };
 }
 
-export function toEventSourceIdentity<T extends { userId: UserId; idp: IdpName; idpId: IdpId }>(
+export function toEventSourceIdentity<T extends EventSourceIdentity>(
   source: T
 ): EventSourceIdentity {
   return {
