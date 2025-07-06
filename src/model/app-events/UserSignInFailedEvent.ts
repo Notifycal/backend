@@ -3,7 +3,7 @@ import { unixTimestampSchema } from '@notifycal/shared/schemas';
 import type { Identity, IdpName } from '@notifycal/shared/types';
 import { z } from 'zod';
 import { errorEventSchemaGenerator } from './BaseEvent';
-import { createEventBase, toEventSourceIdentity } from './common';
+import { createEventBase } from './common';
 
 const data = z.object({
   lastSignInAt: unixTimestampSchema
@@ -17,7 +17,7 @@ export function userSignInFailed<TIdpName extends IdpName>(
   userBeforeLogin: UserStoreRecord<TIdpName>
 ): UserSignInFailedEvent {
   return {
-    ...createEventBase('UserSignInFailed', toEventSourceIdentity(identity)),
+    ...createEventBase('UserSignInFailed', identity),
     data: {
       lastSignInAt: userBeforeLogin.LastSignInAt
     }

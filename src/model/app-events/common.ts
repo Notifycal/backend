@@ -81,18 +81,6 @@ export function createEventBase<TEventType extends EventType>(
     correlationId: options.correlationId ?? (eventId as CorrelationId),
     eventType,
     happenedAt: options.happenedAt ?? (new Date().toISOString() as DateTime),
-    userId: source.userId,
-    idp: source.idp,
-    idpId: source.idpId
-  };
-}
-
-export function toEventSourceIdentity<T extends EventSourceIdentity>(
-  source: T
-): EventSourceIdentity {
-  return {
-    userId: source.userId,
-    idp: source.idp,
-    idpId: source.idpId
+    ...source
   };
 }

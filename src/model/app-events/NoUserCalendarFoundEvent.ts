@@ -3,7 +3,7 @@ import type { LiveUserStoreRecord } from '@model/store/LiveUserStoreRecord';
 import type { CorrelationId, EventId, IdpName } from '@notifycal/shared/types';
 import { z } from 'zod';
 import { eventSchemaGenerator } from './BaseEvent';
-import { createEventBase, eventIdSchema, runSchema, toEventSourceIdentity } from './common';
+import { createEventBase, eventIdSchema, runSchema } from './common';
 
 const data = z.object({
   awsEventIdCause: eventIdSchema,
@@ -21,11 +21,11 @@ export function noUserCalendarFound(
   return {
     ...createEventBase(
       'NoUserCalendarFound',
-      toEventSourceIdentity({
+      {
         userId: liveUser.UserId,
         idp: liveUser.Idp,
         idpId: liveUser.IdpId
-      }),
+      },
       {
         correlationId: origin.id as CorrelationId
       }
