@@ -1,16 +1,8 @@
-import type {
-  CorrelationId,
-  DateTime,
-  EventId,
-  Identity,
-  IdpName,
-  TierId,
-  Percentage
-} from '@notifycal/shared/types';
+import type { Identity, IdpName, Percentage, TierId } from '@notifycal/shared/types';
 import type { CreditAdditionResult } from '@services/credits-service';
-import { v4 } from 'uuid';
 import { z } from 'zod';
 import { eventSchemaGenerator } from './BaseEvent';
+import { createEventBase } from './common';
 
 const subscriptionUpgradedEventDataSchema = z.object({}).passthrough();
 
@@ -30,15 +22,8 @@ export function subscriptionUpgradedEvent<TIdpName extends IdpName>(
   creditsAdded: number,
   result: CreditAdditionResult
 ): SubscriptionUpgradedEvent {
-  const eventId = v4();
   return {
-    eventId: eventId as EventId,
-    correlationId: eventId as CorrelationId,
-    eventType: 'SubscriptionUpgraded',
-    happenedAt: new Date().toISOString() as DateTime,
-    userId: identity.userId,
-    idp: identity.idp,
-    idpId: identity.idpId,
+    ...createEventBase('SubscriptionUpgraded', identity),
     data: {
       previousTier,
       currentTier,

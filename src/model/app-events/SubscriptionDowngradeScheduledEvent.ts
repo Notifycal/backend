@@ -1,7 +1,7 @@
+import type { Identity, IdpName } from '@notifycal/shared/types';
 import { z } from 'zod';
-import type { CorrelationId, DateTime, EventId, Identity, IdpName } from '@notifycal/shared/types';
-import { v4 } from 'uuid';
 import { eventSchemaGenerator } from './BaseEvent';
+import { createEventBase } from './common';
 
 const subscriptionDowngradeScheduledEventDataSchema = z.object({});
 
@@ -20,15 +20,8 @@ export type SubscriptionDowngradeScheduledEvent = z.infer<
 export function subscriptionDowngradeScheduledEvent<TIdpName extends IdpName>(
   identity: Identity<TIdpName>
 ): SubscriptionDowngradeScheduledEvent {
-  const eventId = v4();
   return {
-    eventId: eventId as EventId,
-    correlationId: eventId as CorrelationId,
-    eventType: 'SubscriptionDowngradeScheduled',
-    happenedAt: new Date().toISOString() as DateTime,
-    userId: identity.userId,
-    idp: identity.idp,
-    idpId: identity.idpId,
+    ...createEventBase('SubscriptionDowngradeScheduled', identity),
     data: {}
   };
 }

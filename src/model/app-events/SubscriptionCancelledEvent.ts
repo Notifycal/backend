@@ -1,8 +1,8 @@
-import type { CorrelationId, DateTime, EventId, Identity, IdpName } from '@notifycal/shared/types';
+import type { Identity, IdpName } from '@notifycal/shared/types';
 import type { CreditDeductionResult } from '@services/credits-service';
-import { v4 } from 'uuid';
 import { z } from 'zod';
 import { eventSchemaGenerator } from './BaseEvent';
+import { createEventBase } from './common';
 
 const subscriptionCancelledEventDataSchema = z.object({}).passthrough();
 
@@ -19,15 +19,8 @@ export function subscriptionCancelledEvent<TIdpName extends IdpName>(
   reason: 'unpaid' | 'cancelled',
   result: CreditDeductionResult
 ): SubscriptionCancelledEvent {
-  const eventId = v4();
   return {
-    eventId: eventId as EventId,
-    correlationId: eventId as CorrelationId,
-    eventType: 'SubscriptionCancelled',
-    happenedAt: new Date().toISOString() as DateTime,
-    userId: identity.userId,
-    idp: identity.idp,
-    idpId: identity.idpId,
+    ...createEventBase('SubscriptionCancelled', identity),
     data: {
       reason,
       result
