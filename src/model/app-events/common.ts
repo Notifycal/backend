@@ -3,7 +3,6 @@ import type {
   CorrelationId,
   DateTime,
   EventId,
-  Identity,
   IdpId,
   IdpName,
   RCSSenderContact,
@@ -88,36 +87,12 @@ export function createEventBase<TEventType extends EventType>(
   };
 }
 
-export function fromIdentity<TIdpName extends IdpName>(
-  identity: Identity<TIdpName>
+export function toEventSourceIdentity<T extends { userId: UserId; idp: IdpName; idpId: IdpId }>(
+  source: T
 ): EventSourceIdentity {
   return {
-    userId: identity.userId,
-    idp: identity.idp,
-    idpId: identity.idpId
-  };
-}
-
-export function fromEvent(event: {
-  userId: UserId;
-  idp: IdpName;
-  idpId: IdpId;
-}): EventSourceIdentity {
-  return {
-    userId: event.userId,
-    idp: event.idp,
-    idpId: event.idpId
-  };
-}
-
-export function fromUserIdentity(user: {
-  UserId: UserId;
-  Idp: IdpName;
-  IdpId: IdpId;
-}): EventSourceIdentity {
-  return {
-    userId: user.UserId,
-    idp: user.Idp,
-    idpId: user.IdpId
+    userId: source.userId,
+    idp: source.idp,
+    idpId: source.idpId
   };
 }

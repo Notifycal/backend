@@ -3,7 +3,7 @@ import type { CalendarEvent } from '@notifycal/shared/types';
 import { z } from 'zod';
 import { eventSchemaGenerator } from './BaseEvent';
 import type { UserCalendarFetchedEvent } from './UserCalendarFetchedEvent';
-import { eventIdSchema, runSchema, createEventBase, fromEvent } from './common';
+import { eventIdSchema, runSchema, createEventBase, toEventSourceIdentity } from './common';
 
 const data = z.object({
   eventIdCause: eventIdSchema,
@@ -25,7 +25,7 @@ export function noPhoneNumberForCalendarEventFound(
   calendarEvent: CalendarEvent
 ): NoPhoneNumberForCalendarEventFoundEvent {
   return {
-    ...createEventBase('NoPhoneNumberForCalendarEventFound', fromEvent(origin), {
+    ...createEventBase('NoPhoneNumberForCalendarEventFound', toEventSourceIdentity(origin), {
       correlationId: origin.correlationId
     }),
     data: {

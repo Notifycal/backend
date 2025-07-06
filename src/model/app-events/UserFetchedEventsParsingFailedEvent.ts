@@ -3,7 +3,13 @@ import { calendarSchema } from '@notifycal/shared/schemas';
 import { z } from 'zod';
 import { errorEventSchemaGenerator } from './BaseEvent';
 import type { UserCalendarFetchedEvent } from './UserCalendarFetchedEvent';
-import { errorSchema, eventIdSchema, runSchema, createEventBase, fromEvent } from './common';
+import {
+  createEventBase,
+  errorSchema,
+  eventIdSchema,
+  runSchema,
+  toEventSourceIdentity
+} from './common';
 
 const data = z.object({
   eventIdCause: eventIdSchema,
@@ -25,7 +31,7 @@ export function userFetchedEventsParsingFailed(
   error: ParsingError
 ): UserFetchedEventsParsingFailedEvent {
   return {
-    ...createEventBase('UserFetchedEventsParsingFailed', fromEvent(origin), {
+    ...createEventBase('UserFetchedEventsParsingFailed', toEventSourceIdentity(origin), {
       correlationId: origin.correlationId
     }),
     data: {

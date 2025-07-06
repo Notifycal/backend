@@ -1,7 +1,7 @@
 import type { Identity, IdpName } from '@notifycal/shared/types';
 import { z } from 'zod';
 import { errorEventSchemaGenerator } from './BaseEvent';
-import { createEventBase, fromIdentity } from './common';
+import { createEventBase, toEventSourceIdentity } from './common';
 
 const data = z.object({});
 export const userSignUpFailedEventSchema = errorEventSchemaGenerator('UserSignUpFailed', data);
@@ -12,7 +12,7 @@ export function userSignUpFailed<TIdpName extends IdpName>(
   identity: Identity<TIdpName>
 ): UserSignUpFailedEvent {
   return {
-    ...createEventBase('UserSignUpFailed', fromIdentity(identity)),
+    ...createEventBase('UserSignUpFailed', toEventSourceIdentity(identity)),
     data: {}
   };
 }
