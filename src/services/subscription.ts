@@ -1,13 +1,5 @@
 import { logger } from '@common/powertools';
-import { subscriptionCancellationFailedEvent } from '@model/app-events/SubscriptionCancellationFailedEvent';
-import { subscriptionCancelledEvent } from '@model/app-events/SubscriptionCancelledEvent';
-import { subscriptionCreatedEvent } from '@model/app-events/SubscriptionCreatedEvent';
-import { subscriptionCreationFailedEvent } from '@model/app-events/SubscriptionCreationFailedEvent';
-import { subscriptionDowngradeScheduledEvent } from '@model/app-events/SubscriptionDowngradeScheduledEvent';
-import { subscriptionRenewalFailedEvent } from '@model/app-events/SubscriptionRenewalFailedEvent';
-import { subscriptionRenewedEvent } from '@model/app-events/SubscriptionRenewedEvent';
-import { subscriptionUpgradedEvent } from '@model/app-events/SubscriptionUpgradedEvent';
-import { subscriptionUpgradeFailedEvent } from '@model/app-events/SubscriptionUpgradeFailedEvent';
+import * as SubscriptionEvents from '@model/app-events/subscription-events';
 import type { Identity, IdpName, Percentage, TierId } from '@notifycal/shared/types';
 import type {
   CreditAdditionResult,
@@ -45,8 +37,9 @@ export class SubscriptionService<TIdpName extends IdpName> {
 
     return handleServiceOperation(
       operation,
-      (result) => subscriptionCreatedEvent(identity, tier, result),
-      (result, error) => subscriptionCreationFailedEvent(identity, tier, result, error),
+      (result) => SubscriptionEvents.subscriptionCreatedEvent(identity, tier, result),
+      (result, error) =>
+        SubscriptionEvents.subscriptionCreationFailedEvent(identity, tier, result, error),
       this.snsService
     );
   }
@@ -57,8 +50,9 @@ export class SubscriptionService<TIdpName extends IdpName> {
 
     return handleServiceOperation(
       operation,
-      (result) => subscriptionRenewedEvent(identity, tier, result),
-      (result, error) => subscriptionRenewalFailedEvent(identity, tier, result, error),
+      (result) => SubscriptionEvents.subscriptionRenewedEvent(identity, tier, result),
+      (result, error) =>
+        SubscriptionEvents.subscriptionRenewalFailedEvent(identity, tier, result, error),
       this.snsService
     );
   }
@@ -89,7 +83,7 @@ export class SubscriptionService<TIdpName extends IdpName> {
       };
       return this.snsService
         .safePublish(
-          subscriptionUpgradeFailedEvent(
+          SubscriptionEvents.subscriptionUpgradeFailedEvent(
             identity,
             previousTier,
             currentTier,
@@ -110,7 +104,7 @@ export class SubscriptionService<TIdpName extends IdpName> {
       };
       return this.snsService
         .safePublish(
-          subscriptionUpgradeFailedEvent(
+          SubscriptionEvents.subscriptionUpgradeFailedEvent(
             identity,
             previousTier,
             currentTier,
@@ -131,7 +125,7 @@ export class SubscriptionService<TIdpName extends IdpName> {
     return handleServiceOperation(
       operation,
       (result) =>
-        subscriptionUpgradedEvent(
+        SubscriptionEvents.subscriptionUpgradedEvent(
           identity,
           previousTier,
           currentTier,
@@ -140,7 +134,7 @@ export class SubscriptionService<TIdpName extends IdpName> {
           result
         ),
       (result, error) =>
-        subscriptionUpgradeFailedEvent(
+        SubscriptionEvents.subscriptionUpgradeFailedEvent(
           identity,
           previousTier,
           currentTier,
@@ -158,7 +152,9 @@ export class SubscriptionService<TIdpName extends IdpName> {
       userId: identity.userId
     });
 
-    return this.snsService.safePublish(subscriptionDowngradeScheduledEvent(identity));
+    return this.snsService.safePublish(
+      SubscriptionEvents.subscriptionDowngradeScheduledEvent(identity)
+    );
   }
 
   public cancel(
@@ -169,8 +165,9 @@ export class SubscriptionService<TIdpName extends IdpName> {
 
     return handleServiceOperation(
       operation,
-      (result) => subscriptionCancelledEvent(identity, reason, result),
-      (result, error) => subscriptionCancellationFailedEvent(identity, reason, result, error),
+      (result) => SubscriptionEvents.subscriptionCancelledEvent(identity, reason, result),
+      (result, error) =>
+        SubscriptionEvents.subscriptionCancellationFailedEvent(identity, reason, result, error),
       this.snsService
     );
   }
