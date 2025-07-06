@@ -1,18 +1,11 @@
 import { stripeEventTypes } from '@lambdas/sqs/stripe-webhook/stripe-schemas';
-import type {
-  CorrelationId,
-  DateTime,
-  EventId,
-  IdpId,
-  IdpName,
-  UserId
-} from '@notifycal/shared/types';
+import type { IdpId, IdpName, UserId } from '@notifycal/shared/types';
 import { toPascalCase } from '@utils/case';
 import type { CapitalizeFirst, ReplaceUnderscoreWithDot, SplitByDot } from '@utils/types';
 import type Stripe from 'stripe';
-import { v4 } from 'uuid';
 import { z } from 'zod';
 import type { baseEventSchema } from './BaseEvent';
+import { createEventBase } from './common';
 
 type JoinWithPaymentPrefix<T extends ReadonlyArray<string>> = T extends readonly [
   infer First,
@@ -64,16 +57,9 @@ export function fromStripeEvent(
   idp: IdpName,
   idpId: IdpId
 ): PaymentWebhookFiredEvent {
-  const eventId = v4();
   const stripeEventType = origin.type;
   return {
-    eventId: eventId as EventId,
-    correlationId: eventId as CorrelationId,
-    eventType: toOurEventType(stripeEventType),
-    happenedAt: new Date().toISOString() as DateTime,
-    userId: userId,
-    idp: idp,
-    idpId: idpId,
+    ...createEventBase(toOurEventType(stripeEventType), { userId, idp, idpId }),
     data: {
       ...origin
     }

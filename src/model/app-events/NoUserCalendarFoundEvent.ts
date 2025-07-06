@@ -1,10 +1,9 @@
 import type { Record } from '@lambdas/sqs/fetch-user-calendars/index';
 import type { LiveUserStoreRecord } from '@model/store/LiveUserStoreRecord';
-import type { CorrelationId, DateTime, EventId, IdpName } from '@notifycal/shared/types';
-import { v4 } from 'uuid';
+import type { CorrelationId, EventId, IdpName } from '@notifycal/shared/types';
 import { z } from 'zod';
 import { eventSchemaGenerator } from './BaseEvent';
-import { eventIdSchema, runSchema } from './common';
+import { eventIdSchema, runSchema, createEventBase, fromUserIdentity } from './common';
 
 const data = z.object({
   awsEventIdCause: eventIdSchema,
@@ -20,13 +19,9 @@ export function noUserCalendarFound(
   liveUser: LiveUserStoreRecord<IdpName>
 ): NoUserCalendarFoundEvent {
   return {
-    eventId: v4() as EventId,
-    correlationId: origin.id as CorrelationId,
-    eventType: 'NoUserCalendarFound',
-    happenedAt: new Date().toISOString() as DateTime,
-    userId: liveUser.UserId,
-    idp: liveUser.Idp,
-    idpId: liveUser.IdpId,
+    ...createEventBase('NoUserCalendarFound', fromUserIdentity(liveUser), {
+      correlationId: origin.id as CorrelationId
+    }),
     data: {
       awsEventIdCause: origin.id as EventId,
       run: run

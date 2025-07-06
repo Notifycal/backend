@@ -26,11 +26,9 @@ export function actionableEventReminderInsufficientCreditNotSent(
 ): ActionableEventReminderInsufficientCreditNotSentEvent {
   return {
     ...originalEvent,
-    eventType: 'ActionableEventReminderInsufficientCreditNotSent' as const,
+    eventType: 'ActionableEventReminderInsufficientCreditNotSent',
     data: {
-      originalEvent: {
-        ...originalEvent.data
-      },
+      originalEvent: originalEvent.data,
       error: creditReductionResult
     }
   };
