@@ -1,16 +1,8 @@
-import type {
-  CorrelationId,
-  DateTime,
-  EventId,
-  Identity,
-  IdpName,
-  TierId,
-  Percentage
-} from '@notifycal/shared/types';
+import type { Identity, IdpName, Percentage, TierId } from '@notifycal/shared/types';
 import type { CreditAdditionResult } from '@services/credits-service';
-import { v4 } from 'uuid';
 import { z } from 'zod';
 import { errorEventSchemaGenerator } from './BaseEvent';
+import { createEventBase } from './common';
 
 const subscriptionUpgradeFailedEventDataSchema = z.object({}).passthrough();
 
@@ -33,15 +25,8 @@ export function subscriptionUpgradeFailedEvent<TIdpName extends IdpName>(
   result?: CreditAdditionResult,
   error?: unknown
 ): SubscriptionUpgradeFailedEvent {
-  const eventId = v4();
   return {
-    eventId: eventId as EventId,
-    correlationId: eventId as CorrelationId,
-    eventType: 'SubscriptionUpgradeFailed',
-    happenedAt: new Date().toISOString() as DateTime,
-    userId: identity.userId,
-    idp: identity.idp,
-    idpId: identity.idpId,
+    ...createEventBase('SubscriptionUpgradeFailed', identity),
     data: {
       previousTier,
       currentTier,
