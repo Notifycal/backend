@@ -22,7 +22,7 @@ export function actionableEventReminderAttemptSent(
 ): ActionableEventReminderAttemptSentEvent {
   return {
     ...originalEvent,
-    eventType: 'ActionableEventReminderAttemptSent' as const,
+    eventType: 'ActionableEventReminderAttemptSent',
     data: {
       ...originalEvent.data,
       messageUUID: messageSentUUID

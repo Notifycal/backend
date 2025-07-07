@@ -26,11 +26,9 @@ export function demoReminderInsufficientCreditNotSent(
 ): DemoReminderInsufficientCreditNotSentEvent {
   return {
     ...originalEvent,
-    eventType: 'DemoReminderInsufficientCreditNotSent' as const,
+    eventType: 'DemoReminderInsufficientCreditNotSent',
     data: {
-      originalEvent: {
-        ...originalEvent.data
-      },
+      originalEvent: originalEvent.data,
       error: creditReductionResult
     }
   };

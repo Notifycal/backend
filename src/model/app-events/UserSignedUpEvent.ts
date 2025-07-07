@@ -1,7 +1,7 @@
-import type { CorrelationId, DateTime, EventId, Identity, IdpName } from '@notifycal/shared/types';
-import { v4 } from 'uuid';
+import type { Identity, IdpName } from '@notifycal/shared/types';
 import { z } from 'zod';
 import { eventSchemaGenerator } from './BaseEvent';
+import { createEventBase } from './common';
 
 const data = z.object({});
 export const userSignedUpEventSchema = eventSchemaGenerator('UserSignUpSucceeded', data);
@@ -11,15 +11,8 @@ export type UserSignedUpEvent = z.infer<typeof userSignedUpEventSchema>;
 export function userSignedUp<TIdpName extends IdpName>(
   identity: Identity<TIdpName>
 ): UserSignedUpEvent {
-  const eventId = v4();
   return {
-    eventId: eventId as EventId,
-    correlationId: eventId as CorrelationId,
-    eventType: 'UserSignUpSucceeded',
-    happenedAt: new Date().toISOString() as DateTime,
-    userId: identity.userId,
-    idp: identity.idp,
-    idpId: identity.idpId,
+    ...createEventBase('UserSignUpSucceeded', identity),
     data: {}
   };
 }

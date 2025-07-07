@@ -1,9 +1,9 @@
 import type { UserStoreRecord } from '@model/store/UserStoreRecord';
 import { unixTimestampSchema } from '@notifycal/shared/schemas';
-import type { CorrelationId, DateTime, EventId, Identity, IdpName } from '@notifycal/shared/types';
-import { v4 } from 'uuid';
+import type { Identity, IdpName } from '@notifycal/shared/types';
 import { z } from 'zod';
 import { eventSchemaGenerator } from './BaseEvent';
+import { createEventBase } from './common';
 
 const data = z.object({
   lastSignInAt: unixTimestampSchema
@@ -16,15 +16,8 @@ export function userSignedIn<TIdpName extends IdpName>(
   identity: Identity<TIdpName>,
   userBeforeLogin: UserStoreRecord<TIdpName>
 ): UserSignedInEvent {
-  const eventId = v4();
   return {
-    eventId: eventId as EventId,
-    correlationId: eventId as CorrelationId,
-    eventType: 'UserSignInSucceeded',
-    happenedAt: new Date().toISOString() as DateTime,
-    userId: identity.userId,
-    idp: identity.idp,
-    idpId: identity.idpId,
+    ...createEventBase('UserSignInSucceeded', identity),
     data: {
       lastSignInAt: userBeforeLogin.LastSignInAt
     }
