@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.43.1](https://github.com/Notifycal/backend/compare/v0.43.0...v0.43.1) (2025-07-07)
+
+
+### Bug Fixes
+
+* deduct credits ([#775](https://github.com/Notifycal/backend/issues/775)) ([5c8d6c1](https://github.com/Notifycal/backend/commit/5c8d6c11f3779481846c559990318976e1e40797))
+* **deps:** Update @notifycal/shared and zod ([#778](https://github.com/Notifycal/backend/issues/778)) ([46f34d4](https://github.com/Notifycal/backend/commit/46f34d4aa1630393ae8551c5caa29f19335ba124))
+* **deps:** Update dependency stripe to v18.3.0 ([#770](https://github.com/Notifycal/backend/issues/770)) ([1b038e0](https://github.com/Notifycal/backend/commit/1b038e037f85cb67d62c127b6d2cfe28fbb82897))
+* limit subscriptions to 1 ([#774](https://github.com/Notifycal/backend/issues/774)) ([9a5d474](https://github.com/Notifycal/backend/commit/9a5d4747aef72718978cf3fe7926a86ea387ba0d))
+
 ## [0.43.0](https://github.com/Notifycal/backend/compare/v0.42.0...v0.43.0) (2025-07-02)
 
 
