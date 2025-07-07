@@ -48,7 +48,8 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
       'UserStatus',
       'Config',
       'StripeCustomerId',
-      'Credits'
+      'Credits',
+      'DemoReminderCount'
     ];
     const queryCmdInput = {
       KeyConditionExpression: 'UserId = :id',
@@ -94,24 +95,18 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
       );
   }
 
-  public getUserConfigById(
+  public getUserConfigAndDemoReminderCount(
     userId: UserId
-  ): Promise<UserStoreRecord<IdpName>['Config'] | undefined> {
-    const projections: Array<keyof UserStoreRecord<IdpName>> = ['Config'];
-    const getCommand = {
-      Key: {
-        UserId: userId
-      },
-      FilterExpression: 'attribute_exists(Config) AND size(Config) > :configMinSize',
-      ExpressionAttributeValues: {
-        ':configMinSize': 0
-      },
-      ProjectionExpression: projections.join(', ')
-    };
-
-    return super
-      .getCommandRunner<UserStoreRecord<IdpName>>(getCommand)
-      .then((result) => result?.Config);
+  ): Promise<Required<Pick<UserStoreRecord<IdpName>, 'Config' | 'DemoReminderCount'>> | undefined> {
+    return this.getUserById(userId).then((user) => {
+      if (user?.Config) {
+        return {
+          Config: user.Config,
+          DemoReminderCount: user.DemoReminderCount ?? 0
+        };
+      }
+      return undefined;
+    });
   }
 
   public getStripeCustomerId(userId: UserId): Promise<StripeCustomerId | undefined> {
@@ -232,6 +227,7 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
       }
     );
   }
+
   public addCredits(
     userId: UserId,
     amount: number,
@@ -317,6 +313,41 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
       Key: { UserId: userId },
       UpdateExpression: 'REMOVE Credits.SubscriptionCreditBalance, Credits.Tier'
     }).then((r) => this.handleSuccessfulUpdate(r, logger));
+  }
+
+  public incrementDemoReminderCount(
+    userId: UserId,
+    demoReminderLimit: number,
+    logger: Logger
+  ): Promise<{ DemoReminderCount: number }> {
+    return this.updateCommandRunner({
+      Key: { UserId: userId },
+      UpdateExpression:
+        'SET DemoReminderCount = if_not_exists(DemoReminderCount, :zero) + :increment',
+      ConditionExpression: 'attribute_not_exists(DemoReminderCount) OR DemoReminderCount < :limit',
+      ExpressionAttributeValues: {
+        ':increment': 1,
+        ':limit': demoReminderLimit,
+        ':zero': 0
+      }
+    })
+      .then((output) => {
+        const updatedUser = output.Attributes as UserStoreRecord<TIdpName> | undefined;
+        if (updatedUser && updatedUser.DemoReminderCount !== undefined) {
+          return { DemoReminderCount: updatedUser.DemoReminderCount };
+        } else {
+          throwError('Unexpected error while incrementing demo reminder count', logger);
+        }
+      })
+      .catch((error) => {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        if (error.name === 'ConditionalCheckFailedException') {
+          throw new Error('Demo reminder limit reached');
+        }
+        throw new Error(`Failed to increment demo reminder count for user '${userId}'`, {
+          cause: error
+        });
+      });
   }
 
   private handleSuccessfulUpdate(

@@ -8,19 +8,19 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   CreditsService,
   type CreditAdditionResult,
-  type CreditDeductionResult
+  type CreditDeductionResult,
+  type DemoCounterIncrementResult
 } from './credits-service';
 
 describe(CreditsService, () => {
   const validUserId = 'user-123' as UserId;
   const validCredits = 5;
-  const validCountry = 'ES' as const;
-  const validCountryToSMSCostCreditsMap = { ES: 2 };
   const validCreditsToAdd = 100;
   const validCreditsToResetWith = 100;
   const validTierId = 'premium' as TierId;
   const validTopupId = 'topup-500' as TopupId;
   const validUserStatus = 'demo' as UserStatus;
+  const validDemoReminderLimit = 3;
 
   const validUserWithCredits: Pick<UserStoreRecord<unknown>, 'Credits'> = {
     Credits: {
@@ -43,22 +43,18 @@ describe(CreditsService, () => {
 
   describe('deductCredits', () => {
     it('should successfully deduct credits and return success result with balance', async () => {
-      const deductSubscriptionCreditsFn = vi.fn().mockResolvedValue(validUserWithCredits);
+      const deductCreditsFn = vi.fn().mockResolvedValue(validUserWithCredits);
       const updateStatusFn = vi.fn();
 
-      const result = await testDeductCredits(
-        deductSubscriptionCreditsFn,
-        updateStatusFn,
-        validCredits
-      );
+      const result = await testDeductCredits(deductCreditsFn, updateStatusFn, validCredits);
 
-      expect(deductSubscriptionCreditsFn).toHaveBeenCalledTimes(1);
-      expect(deductSubscriptionCreditsFn).toHaveBeenCalledWith(validUserId, 10, expect.any(Logger));
+      expect(deductCreditsFn).toHaveBeenCalledTimes(1);
+      expect(deductCreditsFn).toHaveBeenCalledWith(validUserId, validCredits, expect.any(Logger));
       expect(result).toStrictEqual({
         success: true,
         operationId: 'Success',
-        subscriptionCreditBalance: 150,
-        topupCreditBalance: 44
+        subscriptionCreditBalance: validUserWithCredits.Credits?.SubscriptionCreditBalance,
+        topupCreditBalance: validUserWithCredits.Credits?.TopupCreditBalance
       });
       expect(updateStatusFn).not.toHaveBeenCalled();
     });
@@ -69,14 +65,10 @@ describe(CreditsService, () => {
         {},
         'Not enough credits'
       );
-      const deductSubscriptionCreditsFn = vi.fn().mockRejectedValue(insufficientCreditsError);
+      const deductCreditsFn = vi.fn().mockRejectedValue(insufficientCreditsError);
       const updateStatusFn = vi.fn().mockResolvedValue(undefined);
 
-      const result = await testDeductCredits(
-        deductSubscriptionCreditsFn,
-        updateStatusFn,
-        validCredits
-      );
+      const result = await testDeductCredits(deductCreditsFn, updateStatusFn, validCredits);
 
       expect(updateStatusFn).toHaveBeenCalledWith(validUserId, 'out-of-credits');
       expect(result).toStrictEqual({
@@ -93,11 +85,11 @@ describe(CreditsService, () => {
         'Not enough credits'
       );
       const updateStatusError = new Error('Failed to update status');
-      const deductSubscriptionCreditsFn = vi.fn().mockRejectedValue(insufficientCreditsError);
+      const deductCreditsFn = vi.fn().mockRejectedValue(insufficientCreditsError);
       const updateStatusFn = vi.fn().mockRejectedValue(updateStatusError);
 
       await expect(
-        testDeductCredits(deductSubscriptionCreditsFn, updateStatusFn, validCredits)
+        testDeductCredits(deductCreditsFn, updateStatusFn, validCredits)
       ).rejects.toThrow(
         'Error while handling deductCredits-while-out-of-credits. Throwing error so that it gets retried cause the operation is idempotent. Error: Failed to update status'
       );
@@ -105,14 +97,10 @@ describe(CreditsService, () => {
 
     it('should handle unexpected errors', async () => {
       const unexpectedError = new Error('Database connection failed');
-      const deductSubscriptionCreditsFn = vi.fn().mockRejectedValue(unexpectedError);
+      const deductCreditsFn = vi.fn().mockRejectedValue(unexpectedError);
       const updateStatusFn = vi.fn();
 
-      const result = await testDeductCredits(
-        deductSubscriptionCreditsFn,
-        updateStatusFn,
-        validCredits
-      );
+      const result = await testDeductCredits(deductCreditsFn, updateStatusFn, validCredits);
 
       expect(updateStatusFn).not.toHaveBeenCalled();
       expect(result).toStrictEqual({
@@ -122,41 +110,32 @@ describe(CreditsService, () => {
       });
     });
 
-    it('should calculate correct total credits for multiple credits', async () => {
-      const deductSubscriptionCreditsFn = vi.fn().mockResolvedValue(validUserWithCredits);
-      const updateStatusFn = vi.fn();
-
-      await testDeductCredits(deductSubscriptionCreditsFn, updateStatusFn, 10);
-
-      expect(deductSubscriptionCreditsFn).toHaveBeenCalledWith(validUserId, 20, expect.any(Logger));
-    });
-
     it('should validate credits is positive', async () => {
-      const deductSubscriptionCreditsFn = vi.fn();
+      const deductCreditsFn = vi.fn();
       const updateStatusFn = vi.fn();
 
-      const result = await testDeductCredits(deductSubscriptionCreditsFn, updateStatusFn, 0);
+      const result = await testDeductCredits(deductCreditsFn, updateStatusFn, 0);
 
       expect(result).toStrictEqual({
         success: false,
         operationId: 'BadRequestError',
         error: new Error('Credits must be greater than 0. Credits: 0')
       });
-      expect(deductSubscriptionCreditsFn).not.toHaveBeenCalled();
+      expect(deductCreditsFn).not.toHaveBeenCalled();
     });
 
     it('should validate negative credits', async () => {
-      const deductSubscriptionCreditsFn = vi.fn();
+      const deductCreditsFn = vi.fn();
       const updateStatusFn = vi.fn();
 
-      const result = await testDeductCredits(deductSubscriptionCreditsFn, updateStatusFn, -5);
+      const result = await testDeductCredits(deductCreditsFn, updateStatusFn, -5);
 
       expect(result).toStrictEqual({
         success: false,
         operationId: 'BadRequestError',
         error: new Error('Credits must be greater than 0. Credits: -5')
       });
-      expect(deductSubscriptionCreditsFn).not.toHaveBeenCalled();
+      expect(deductCreditsFn).not.toHaveBeenCalled();
     });
   });
 
@@ -462,21 +441,97 @@ describe(CreditsService, () => {
     });
   });
 
+  describe('incrementDemoReminderCount', () => {
+    it('should successfully increment demo reminder count and return success result', async () => {
+      const validDemoCountResult = { DemoReminderCount: 1 };
+      const incrementDemoReminderCountFn = vi.fn().mockResolvedValue(validDemoCountResult);
+
+      const result = await testIncrementDemoReminderCount(
+        incrementDemoReminderCountFn,
+        validDemoReminderLimit
+      );
+
+      expect(incrementDemoReminderCountFn).toHaveBeenCalledTimes(1);
+      expect(incrementDemoReminderCountFn).toHaveBeenCalledWith(
+        validUserId,
+        validDemoReminderLimit,
+        expect.any(Logger)
+      );
+      expect(result).toStrictEqual({
+        success: true,
+        operationId: 'Success',
+        demoRemindersCount: 1
+      });
+    });
+
+    it('should handle demo reminder limit reached error', async () => {
+      const limitError = new Error('Demo reminder limit reached');
+      const incrementDemoReminderCountFn = vi.fn().mockRejectedValue(limitError);
+
+      const result = await testIncrementDemoReminderCount(
+        incrementDemoReminderCountFn,
+        validDemoReminderLimit
+      );
+
+      expect(result).toStrictEqual({
+        success: false,
+        operationId: 'DemoCounterLimitReachedError',
+        error: limitError
+      });
+    });
+
+    it('should handle unexpected errors during demo reminder count increment', async () => {
+      const unexpectedError = new Error('Database write failed');
+      const incrementDemoReminderCountFn = vi.fn().mockRejectedValue(unexpectedError);
+
+      const result = await testIncrementDemoReminderCount(
+        incrementDemoReminderCountFn,
+        validDemoReminderLimit
+      );
+
+      expect(result).toStrictEqual({
+        success: false,
+        operationId: 'UnknownError',
+        error: unexpectedError
+      });
+    });
+
+    it('should work with different demo reminder limits', async () => {
+      const validDemoCountResult = { DemoReminderCount: 2 };
+      const incrementDemoReminderCountFn = vi.fn().mockResolvedValue(validDemoCountResult);
+      const customLimit = 5;
+
+      const result = await testIncrementDemoReminderCount(
+        incrementDemoReminderCountFn,
+        customLimit
+      );
+
+      expect(incrementDemoReminderCountFn).toHaveBeenCalledWith(
+        validUserId,
+        customLimit,
+        expect.any(Logger)
+      );
+      expect(result).toStrictEqual({
+        success: true,
+        operationId: 'Success',
+        demoRemindersCount: 2
+      });
+    });
+  });
+
   function testDeductCredits(
-    deductSubscriptionCreditsFn: () => Promise<Required<Pick<UserStoreRecord<unknown>, 'Credits'>>>,
+    deductCreditsFn: () => Promise<Required<Pick<UserStoreRecord<unknown>, 'Credits'>>>,
     updateStatusFn: () => Promise<void>,
     credits: number,
-    userId: UserId = validUserId,
-    country: 'ES' = validCountry,
-    countryToSMSCostCreditsMap = validCountryToSMSCostCreditsMap
+    userId: UserId = validUserId
   ): Promise<CreditDeductionResult> {
     const userStoreMock = {
-      deductCredits: deductSubscriptionCreditsFn,
+      deductCredits: deductCreditsFn,
       updateStatus: updateStatusFn
     } as unknown as UserBaseStore<IdpName>;
 
     const creditsService = new CreditsService(userStoreMock, logger);
-    return creditsService.deductCredits(userId, credits, country, countryToSMSCostCreditsMap);
+    return creditsService.deductCredits(userId, credits);
   }
 
   function testResetSubscriptionCredits(
@@ -524,5 +579,18 @@ describe(CreditsService, () => {
 
     const creditsService = new CreditsService(userStoreMock, logger);
     return creditsService.clearSubscriptionCredits(userId, status);
+  }
+
+  function testIncrementDemoReminderCount(
+    incrementDemoReminderCountFn: () => Promise<{ DemoReminderCount: number }>,
+    demoReminderLimit: number,
+    userId: UserId = validUserId
+  ): Promise<DemoCounterIncrementResult> {
+    const userStoreMock = {
+      incrementDemoReminderCount: incrementDemoReminderCountFn
+    } as unknown as UserBaseStore<IdpName>;
+
+    const creditsService = new CreditsService(userStoreMock, logger);
+    return creditsService.incrementDemoReminderCount(userId, demoReminderLimit);
   }
 });

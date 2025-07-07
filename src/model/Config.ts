@@ -154,3 +154,10 @@ export type CountryToSMSCostCreditsMap = Record<'ES', number>;
 export interface CreditServiceEndpointConfig {
   countryToSMSCostCreditsMap: CountryToSMSCostCreditsMap;
 }
+
+export interface DemoReminderLimitConfig {
+  demoReminderLimit: number;
+}
+export interface DemoReminderEndpointConfig {
+  demoReminderConfig: DemoReminderLimitConfig;
+}

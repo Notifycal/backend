@@ -11,6 +11,7 @@ import type {
   DecodeAccessJwtConfig,
   DecodeAccessJwtEndpointConfig,
   DecodeRefreshJwtConfig,
+  DemoReminderEndpointConfig,
   DemoReminderToBeSentTopicConfig,
   EmailingEndpointConfig,
   EmailingSenderEndpointConfig,
@@ -382,5 +383,13 @@ export function readCreditServiceConfig(env: Environment): CreditServiceEndpoint
       'ES',
       number
     >
+  };
+}
+
+export function readDemoReminderLimitConfig(env: Environment): DemoReminderEndpointConfig {
+  return {
+    demoReminderConfig: {
+      demoReminderLimit: env.get('DEMO_REMINDER_LIMIT').default(1).asIntPositive()
+    }
   };
 }

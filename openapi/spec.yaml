@@ -164,6 +164,7 @@ paths:
         '202': { $ref: './component-definitions.yaml#/components/responses/Response202' }
         '400': { $ref: './component-definitions.yaml#/components/responses/BadRequest' }
         '401': { $ref: './component-definitions.yaml#/components/responses/Unauthorised' }
+        '429': { $ref: './component-definitions.yaml#/components/responses/TooManyRequests' }
         '500': { $ref: './component-definitions.yaml#/components/responses/InternalServerError' }
       x-amazon-apigateway-integration:
         $ref: './aws-stuff.yaml#/components/x-notifycal/AWS_LAMBDA_PROXY'

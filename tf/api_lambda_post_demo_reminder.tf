@@ -3,7 +3,7 @@ data "aws_iam_policy_document" "demo_reminder_to_be_sent_iam_policydoc" {
     effect = "Allow"
 
     actions = [
-      "dynamodb:GetItem",
+      "dynamodb:Query",
     ]
 
     resources = [
@@ -58,7 +58,7 @@ module "post_demo_reminder_lambda" {
 
   environment_variables = merge({
     DEMO_REMINDER_TO_BE_SENT_TOPIC_ARN = module.demo_reminder_to_be_sent_topic.sns_topic_arn
-  }, local.protected_endpoint_env_vars, local.users_persistance_env_vars, local.common_lambda_env_vars, local.common_api_lambda_env_vars)
+  }, local.protected_endpoint_env_vars, local.users_persistance_env_vars, local.demo_reminder_limit_env_vars, local.common_lambda_env_vars, local.common_api_lambda_env_vars)
 }
 
 module "post_demo_reminder_lambda_alias" {

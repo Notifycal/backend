@@ -2,6 +2,7 @@ import { getParameter } from '@aws-lambda-powertools/parameters/ssm';
 import { logger } from '@common/powertools';
 import type {
   CreditServiceEndpointConfig,
+  DemoReminderEndpointConfig,
   IdempotencyPersistenceConfig,
   MessagingEndpointConfig,
   MessagingTopicConfig
@@ -9,6 +10,7 @@ import type {
 import type { VonageEndpointConfig } from '@model/vendor/vonage/config';
 import {
   readCreditServiceConfig,
+  readDemoReminderLimitConfig,
   readEnv,
   readIdempotencyPersistenceConfig,
   readMessagingConfig,
@@ -25,7 +27,8 @@ export type SendEventReminderConfig = VonageEndpointConfig &
   MessagingTopicConfig &
   MessagingEndpointConfig &
   UserBaseStoreEndpointConfig &
-  CreditServiceEndpointConfig;
+  CreditServiceEndpointConfig &
+  DemoReminderEndpointConfig;
 
 export async function readSendEventReminderConfig(vonagePrivateKeyCache: {
   vonagePrivateKey?: string;
@@ -61,7 +64,8 @@ export async function readSendEventReminderConfig(vonagePrivateKeyCache: {
       ...readMessagingTopicConfig(env),
       ...readMessagingConfig(env),
       ...readUserBaseStoreConfig(env),
-      ...readCreditServiceConfig(env)
+      ...readCreditServiceConfig(env),
+      ...readDemoReminderLimitConfig(env)
     };
   } catch (err) {
     rethrowError(`Couldn't access SSM parameter`, err, logger);

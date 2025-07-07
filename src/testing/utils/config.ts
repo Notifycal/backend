@@ -13,6 +13,7 @@ import type {
   CronRunConfig,
   DecodeAccessJwtConfig,
   DecodeRefreshJwtConfig,
+  DemoReminderLimitConfig,
   EmailingConfig,
   EmailingSenderConfig,
   EncodeAccessJwtConfig,
@@ -119,6 +120,10 @@ export function setEnvApiRestTopicConfig(config: SnsTopicConfig): void {
 
 export function setEnvDemoReminderToBeSentTopicConfig(config: SnsTopicConfig): void {
   process.env.DEMO_REMINDER_TO_BE_SENT_TOPIC_ARN = config.topicArn;
+}
+
+export function setEnvDemoReminderConfig(config: DemoReminderLimitConfig): void {
+  process.env.DEMO_REMINDER_LIMIT = config.demoReminderLimit.toString();
 }
 
 export function setEnvPaymentWebhookTopicConfig(config: SnsTopicConfig): void {

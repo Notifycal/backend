@@ -31,7 +31,7 @@ export const successEventTypeSchema = z.union([
   z.literal('DemoReminderToBeSentAttemptSent'),
   z.literal('DemoReminderToBeSentAttemptSkipped'),
   z.literal('DemoReminderToBeSentStatusUpdated'),
-  z.literal('DemoReminderInsufficientCreditNotSent'),
+  z.literal('DemoReminderLimitReachedNotSent'),
   z.literal('UserSignInSucceeded'),
   z.literal('UserSignUpSucceeded'),
   noPhoneNumberForCalendarEventFoundEventType,

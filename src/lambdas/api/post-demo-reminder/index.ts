@@ -61,7 +61,7 @@ function buildEvent(
 async function lambdaHandler(
   event: Event,
   /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
-  ctx: Context
+  _ctx: Context
 ): Promise<APIGatewayProxyResult> {
   const config = event.lambdaConfig;
   const snsService = SnsService.withConfig(config.demoReminderToBeSentTopicConfig, logger);
@@ -69,17 +69,21 @@ async function lambdaHandler(
   const requestBody = event.body;
   const callerIdentity = event.requestContext.authorizer.payload;
   const userId = callerIdentity.userId;
+  const demoReminderLimit = config.demoReminderConfig.demoReminderLimit;
 
   return userBaseStore
-    .getUserConfigById(userId)
-    .then((configOrNot) =>
-      configOrNot
-        ? Promise.resolve(buildEvent(requestBody, configOrNot, callerIdentity))
-        : Promise.reject(new Error('User config not found'))
-    )
-    .then((demoReminderToBeSent) => snsService.publish(demoReminderToBeSent))
-    .then(() => successHandler(202)())
-    .catch(errorHandler(500));
+    .getUserConfigAndDemoReminderCount(userId)
+    .then((userConfigData) => {
+      if (!userConfigData?.Config) {
+        return errorHandler(404)('User config not found');
+      }
+      if (userConfigData.DemoReminderCount >= demoReminderLimit) {
+        return errorHandler(429)('Demo reminder limit reached');
+      }
+      const demoReminderToBeSent = buildEvent(requestBody, userConfigData.Config, callerIdentity);
+      return snsService.publish(demoReminderToBeSent).then(() => successHandler(202)());
+    })
+    .catch((error) => errorHandler(500)('Unexpected error', { error }));
 }
 
 const handler = protectedEndpointMiddleware(readPostDemoReminderConfig, eventSchema).handler<Event>(

@@ -4,6 +4,7 @@ import type { IdpName, TierId, TopupId, UserId, UserStatus } from '@notifycal/sh
 import type { UserBaseStore } from '@services/stores/user-base-store';
 import { P, match } from 'ts-pattern';
 
+export type CreditOperationResult = CreditDeductionResult | DemoCounterIncrementResult;
 export interface CreditDeductionSuccess {
   readonly success: true;
   readonly operationId: 'Success';
@@ -53,24 +54,40 @@ export type CreditAdditionResult =
   | CreditAdditionBadRequestError
   | CreditAdditionUnexpectedError;
 
+export interface DemoCounterIncrementSuccess {
+  readonly success: true;
+  readonly operationId: 'Success';
+  readonly demoRemindersCount: number;
+}
+
+export interface DemoCounterLimitReachedError {
+  readonly success: false;
+  readonly operationId: 'DemoCounterLimitReachedError';
+  error: unknown;
+}
+
+export interface DemoCounterIncrementUnexpectedError {
+  readonly success: false;
+  readonly operationId: 'UnknownError';
+  error: unknown;
+}
+
+export type DemoCounterIncrementResult =
+  | DemoCounterIncrementSuccess
+  | DemoCounterLimitReachedError
+  | DemoCounterIncrementUnexpectedError;
+
 export class CreditsService<TIdpName extends IdpName> {
   public constructor(
     private readonly userStore: UserBaseStore<TIdpName>,
     private readonly logger: Logger
   ) {}
 
-  public async deductCredits(
-    userId: UserId,
-    credits: number,
-    country: 'ES',
-    countryToSMSCostCreditsMap: Record<'ES', number>
-  ): Promise<CreditDeductionResult> {
+  public async deductCredits(userId: UserId, credits: number): Promise<CreditDeductionResult> {
     if (credits <= 0) {
       return Promise.resolve(this.badRequestCreditError(credits));
     }
-    const creditToDeductPerUnit = countryToSMSCostCreditsMap[country];
-    const totalCreditsToDeduct = creditToDeductPerUnit * credits;
-    return this.userStore.deductCredits(userId, totalCreditsToDeduct, this.logger).then(
+    return this.userStore.deductCredits(userId, credits, this.logger).then(
       (user) => {
         const creditDeductionOperation: CreditDeductionSuccess = {
           success: true,
@@ -103,6 +120,38 @@ export class CreditsService<TIdpName extends IdpName> {
             };
             return result;
           });
+      }
+    );
+  }
+
+  public incrementDemoReminderCount(
+    userId: UserId,
+    demoReminderLimit: number
+  ): Promise<DemoCounterIncrementResult> {
+    return this.userStore.incrementDemoReminderCount(userId, demoReminderLimit, this.logger).then(
+      (result) => {
+        const successResult: DemoCounterIncrementSuccess = {
+          success: true,
+          operationId: 'Success',
+          demoRemindersCount: result.DemoReminderCount
+        };
+        return successResult;
+      },
+      (error) => {
+        if (error instanceof Error && error.message === 'Demo reminder limit reached') {
+          const demoLimitError: DemoCounterLimitReachedError = {
+            success: false,
+            operationId: 'DemoCounterLimitReachedError',
+            error
+          };
+          return demoLimitError;
+        }
+        const unexpectedError: DemoCounterIncrementUnexpectedError = {
+          success: false,
+          operationId: 'UnknownError',
+          error
+        };
+        return unexpectedError;
       }
     );
   }
