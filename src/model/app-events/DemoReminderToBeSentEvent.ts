@@ -1,12 +1,8 @@
-import { z } from 'zod';
+import type { z } from 'zod';
 import { eventSchemaGenerator } from './BaseEvent';
-import { phoneE164Schema, senderStandardSchema } from './common';
+import { baseMessagingEventDataSchema } from './messaging-common';
 
-const dataSchema = z.object({
-  receiverDetails: phoneE164Schema,
-  senderDetails: senderStandardSchema,
-  message: z.string()
-});
+const dataSchema = baseMessagingEventDataSchema;
 export const demoReminderToBeSentEventSchema = eventSchemaGenerator(
   'DemoReminderToBeSent',
   dataSchema
