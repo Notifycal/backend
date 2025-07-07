@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.44.0](https://github.com/Notifycal/backend/compare/v0.43.1...v0.44.0) (2025-07-07)
+
+
+### Features
+
+* fire subscription/topups events ([#779](https://github.com/Notifycal/backend/issues/779)) ([683280c](https://github.com/Notifycal/backend/commit/683280cc8abe2003fab4d06b0c319dde2177a259))
+
 ## [0.43.1](https://github.com/Notifycal/backend/compare/v0.43.0...v0.43.1) (2025-07-07)
 
 
