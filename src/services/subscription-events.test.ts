@@ -76,6 +76,7 @@ describe('SubscriptionService Event Publishing', () => {
           idp: 'google.com',
           idpId: 'google-user-123',
           data: {
+            tier: validGoodTier,
             result: validSuccessResult
           }
         })
