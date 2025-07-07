@@ -10,7 +10,7 @@ import type { TierMap, TopupMap } from './PaymentPlans';
 
 export type SignOptions = jsonwebtokenSignOptions;
 export type Algorithm = jsonwebtokenAlgorithm;
-export type Duration = SignOptions['expiresIn'];
+export type Duration = NonNullable<SignOptions['expiresIn']>;
 
 export interface CommonJwtConfig {
   issuer: string;

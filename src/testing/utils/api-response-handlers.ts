@@ -22,7 +22,7 @@ export function responseError(
   statusCode: keyof typeof errorMessages,
   allowedOrigin: string = 'http://localhost:5173'
 ): APIGatewayProxyResult {
-  const payload: ErrorResponseBody = { message: errorMessages[statusCode] };
+  const payload: ErrorResponseBody = { message: errorMessages[statusCode] ?? 'some error' };
   return {
     statusCode,
     body: JSON.stringify(payload),
@@ -46,7 +46,7 @@ export function responseSuccessNoCorsHeaders(
 export function responseErrorNoCorsHeaders(
   statusCode: keyof typeof errorMessages
 ): APIGatewayProxyResult {
-  const payload: ErrorResponseBody = { message: errorMessages[statusCode] };
+  const payload: ErrorResponseBody = { message: errorMessages[statusCode] ?? 'some error' };
   return {
     statusCode,
     body: JSON.stringify(payload),

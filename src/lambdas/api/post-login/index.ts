@@ -45,7 +45,7 @@ function verifyIdentity(
 function lambdaHandler(
   event: Event,
   /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
-  ctx: Context
+  _ctx: Context
 ): Promise<APIGatewayProxyResult> {
   const config = event.lambdaConfig;
   const idpQueryPath = event.queryStringParameters?.['idp'];

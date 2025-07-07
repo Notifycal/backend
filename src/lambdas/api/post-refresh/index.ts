@@ -26,7 +26,7 @@ export type Event = z.infer<typeof schema>;
 function lambdaHandler(
   event: Event,
   /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
-  ctx: Context
+  _ctx: Context
 ): Promise<APIGatewayProxyResult> {
   const config = event.lambdaConfig;
   const refreshTokenStore = new RefreshTokenBaseStore(config.refreshTokenBaseStoreConfig, logger);

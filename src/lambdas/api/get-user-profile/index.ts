@@ -14,7 +14,7 @@ export type Event = z.infer<typeof eventSchema>;
 function lambdaHandler(
   event: Event,
   /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
-  ctx: Context
+  _ctx: Context
 ): Promise<APIGatewayProxyResult> {
   const config = event.lambdaConfig;
   const userProvider = UserBaseStore.withConfig(config.userBaseStoreConfig, logger);
