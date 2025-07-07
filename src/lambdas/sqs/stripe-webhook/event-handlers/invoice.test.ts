@@ -192,7 +192,7 @@ describe(InvoicePaymentSucceededHandler, () => {
     );
 
     expect(createFn).toHaveBeenCalledTimes(1);
-    expect(createFn).toHaveBeenCalledWith(validIdentity.userId, validTiers.good.id);
+    expect(createFn).toHaveBeenCalledWith(validIdentity, validTiers.good.id);
     expect(renewFn).not.toHaveBeenCalled();
     expect(upgradeFn).not.toHaveBeenCalled();
     expect(downgradeFn).not.toHaveBeenCalled();
@@ -219,7 +219,7 @@ describe(InvoicePaymentSucceededHandler, () => {
     );
 
     expect(renewFn).toHaveBeenCalledTimes(1);
-    expect(renewFn).toHaveBeenCalledWith(validIdentity.userId, validTiers.good.id);
+    expect(renewFn).toHaveBeenCalledWith(validIdentity, validTiers.good.id);
     expect(createFn).not.toHaveBeenCalled();
     expect(upgradeFn).not.toHaveBeenCalled();
     expect(downgradeFn).not.toHaveBeenCalled();
@@ -246,7 +246,7 @@ describe(InvoicePaymentSucceededHandler, () => {
     );
 
     expect(addTopupFn).toHaveBeenCalledTimes(1);
-    expect(addTopupFn).toHaveBeenCalledWith(validIdentity.userId, validTopups.single.id, 100);
+    expect(addTopupFn).toHaveBeenCalledWith(validIdentity, validTopups.single.id, 100);
     expect(createFn).not.toHaveBeenCalled();
     expect(renewFn).not.toHaveBeenCalled();
     expect(upgradeFn).not.toHaveBeenCalled();
@@ -424,7 +424,7 @@ describe(InvoicePaymentSucceededHandler, () => {
       validTiers
     );
 
-    expect(createFn).toHaveBeenCalledWith(validIdentity.userId, validTiers.better.id);
+    expect(createFn).toHaveBeenCalledWith(validIdentity, validTiers.better.id);
   });
 
   it('should extract correct tier from best tier price', async () => {
@@ -455,7 +455,7 @@ describe(InvoicePaymentSucceededHandler, () => {
       validTiers
     );
 
-    expect(createFn).toHaveBeenCalledWith(validIdentity.userId, validTiers.best.id);
+    expect(createFn).toHaveBeenCalledWith(validIdentity, validTiers.best.id);
   });
 
   it('should upgrade a subscription when billing reason is subscription_update and amount_paid is greater than 0', async () => {
@@ -478,7 +478,7 @@ describe(InvoicePaymentSucceededHandler, () => {
 
     expect(upgradeFn).toHaveBeenCalledTimes(1);
     expect(upgradeFn).toHaveBeenCalledWith(
-      validIdentity.userId,
+      validIdentity,
       validTiers.better.id,
       validTiers.good.id,
       expect.any(Number)
@@ -509,7 +509,7 @@ describe(InvoicePaymentSucceededHandler, () => {
     );
 
     expect(downgradeFn).toHaveBeenCalledTimes(1);
-    expect(downgradeFn).toHaveBeenCalledWith(validIdentity.userId);
+    expect(downgradeFn).toHaveBeenCalledWith(validIdentity);
     expect(upgradeFn).not.toHaveBeenCalled();
     expect(createFn).not.toHaveBeenCalled();
     expect(renewFn).not.toHaveBeenCalled();
@@ -546,7 +546,7 @@ describe(InvoicePaymentSucceededHandler, () => {
     );
 
     expect(upgradeFn).toHaveBeenCalledWith(
-      validIdentity.userId,
+      validIdentity,
       validTiers.best.id,
       validTiers.good.id,
       expect.any(Number)
@@ -848,17 +848,17 @@ describe(InvoicePaymentSucceededHandler, () => {
   function testIt(
     event: Stripe.InvoicePaymentSucceededEvent,
     identity: Identity<IdpName>,
-    createFn: (userId: UserId, tierId: TierId) => Promise<CreditAdditionResult>,
-    renewFn: (userId: UserId, tierId: TierId) => Promise<CreditAdditionResult>,
+    createFn: (identity: Identity<IdpName>, tierId: TierId) => Promise<CreditAdditionResult>,
+    renewFn: (identity: Identity<IdpName>, tierId: TierId) => Promise<CreditAdditionResult>,
     upgradeFn: (
-      userId: UserId,
+      identity: Identity<IdpName>,
       previousTier: TierId,
       currentTier: TierId,
       remainingPercentage: number
-    ) => Promise<void>,
-    downgradeFn: (userId: UserId) => Promise<void>,
+    ) => Promise<CreditAdditionResult>,
+    downgradeFn: (identity: Identity<IdpName>) => Promise<void>,
     addTopupFn: (
-      userId: UserId,
+      identity: Identity<IdpName>,
       topupId: TopupId,
       quantity: number
     ) => Promise<CreditAdditionResult>,
@@ -869,7 +869,7 @@ describe(InvoicePaymentSucceededHandler, () => {
       create: createFn,
       renew: renewFn,
       upgrade: upgradeFn,
-      downgrade: downgradeFn
+      scheduleDowngrade: downgradeFn
     } as unknown as SubscriptionService<IdpName>;
 
     const topupServiceMock = {

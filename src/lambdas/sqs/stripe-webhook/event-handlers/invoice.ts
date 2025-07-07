@@ -1,7 +1,7 @@
 /* eslint-disable camelcase */
 import type { Logger } from '@aws-lambda-powertools/logger';
 import type { TierMap, TopupMap } from '@model/PaymentPlans';
-import type { Identity, IdpName, TierId, TopupId, UserId } from '@notifycal/shared/types';
+import type { Identity, IdpName, TierId, TopupId } from '@notifycal/shared/types';
 import type { CreditAdditionResult } from '@services/credits-service';
 import type { SubscriptionService } from '@services/subscription';
 import type { TopupService } from '@services/topup';
@@ -61,14 +61,13 @@ export class InvoicePaymentSucceededHandler
       billingReason: invoice.billing_reason,
       userId: identity.userId
     });
-    const userId = identity.userId;
     return match(invoice)
-      .with({ billing_reason: 'subscription_create' }, () => this.createHandler(invoice, userId))
-      .with({ billing_reason: 'subscription_cycle' }, () => this.renewHandler(invoice, userId))
+      .with({ billing_reason: 'subscription_create' }, () => this.createHandler(invoice, identity))
+      .with({ billing_reason: 'subscription_cycle' }, () => this.renewHandler(invoice, identity))
       .with({ billing_reason: 'subscription_update' }, (invoice) =>
-        this.handleSubscriptionUpdate(userId, invoice)
+        this.handleSubscriptionUpdate(identity, invoice)
       )
-      .with({ billing_reason: 'manual' }, (invoice) => this.topupHandler(invoice, userId))
+      .with({ billing_reason: 'manual' }, (invoice) => this.topupHandler(invoice, identity))
       .otherwise((invoice) => {
         this.logger.warn('Unhandled billing reason', {
           invoiceId: invoice.id,
@@ -78,26 +77,31 @@ export class InvoicePaymentSucceededHandler
       });
   }
 
-  private createHandler(invoice: Stripe.Invoice, userId: UserId): Promise<void> {
+  private createHandler(invoice: Stripe.Invoice, identity: Identity<IdpName>): Promise<void> {
     return this.extractProduct(invoice.lines.data[0], this.tiers).then(
       (tierId) =>
-        this.subscriptionService.create(userId, tierId).then((r) => this.creditAdditionHandler(r)),
+        this.subscriptionService
+          .create(identity, tierId)
+          .then((r) => this.creditAdditionHandler(r)),
       (error) => this.errorHandler('create-subscription')(error)
     );
   }
 
-  private renewHandler(invoice: Stripe.Invoice, userId: UserId): Promise<void> {
+  private renewHandler(invoice: Stripe.Invoice, identity: Identity<IdpName>): Promise<void> {
     return this.extractProduct(invoice.lines.data[0], this.tiers).then(
       (tierId) =>
-        this.subscriptionService.renew(userId, tierId).then((r) => this.creditAdditionHandler(r)),
+        this.subscriptionService.renew(identity, tierId).then((r) => this.creditAdditionHandler(r)),
       (error) => this.errorHandler('renew-subscription')(error)
     );
   }
 
-  private handleSubscriptionUpdate(userId: UserId, invoice: Stripe.Invoice): Promise<void> {
+  private handleSubscriptionUpdate(
+    identity: Identity<IdpName>,
+    invoice: Stripe.Invoice
+  ): Promise<void> {
     const updateType = this.determineUpdateType(invoice);
     return this.extractUpdateTiers(invoice).then(
-      (tiers) => this.executeSubscriptionUpdate(userId, invoice, tiers, updateType),
+      (tiers) => this.executeSubscriptionUpdate(identity, invoice, tiers, updateType),
       (error) =>
         Promise.reject(
           new Error(
@@ -134,7 +138,7 @@ export class InvoicePaymentSucceededHandler
   }
 
   private async executeSubscriptionUpdate(
-    userId: UserId,
+    identity: Identity<IdpName>,
     invoice: Stripe.Invoice,
     tiers: { previousTier: TierId; currentTier: TierId },
     updateType: 'upgrade-subscription' | 'downgrade-subscription' | 'undetermined'
@@ -144,7 +148,7 @@ export class InvoicePaymentSucceededHandler
         return this.calculateRemainingCyclePercentageFromInvoice(invoice)
           .then((remainingPercentage) =>
             this.subscriptionService.upgrade(
-              userId,
+              identity,
               tiers.previousTier,
               tiers.currentTier,
               remainingPercentage
@@ -157,7 +161,7 @@ export class InvoicePaymentSucceededHandler
       })
       .with('downgrade-subscription', () =>
         this.subscriptionService
-          .downgrade(userId)
+          .scheduleDowngrade(identity)
           .catch((error) => this.errorHandler('downgrade-subscription')(error))
       )
       .with('undetermined', () =>
@@ -170,16 +174,17 @@ export class InvoicePaymentSucceededHandler
       .exhaustive();
   }
 
-  private topupHandler(invoice: Stripe.Invoice, userId: UserId): Promise<void> {
+  private topupHandler(invoice: Stripe.Invoice, identity: Identity<IdpName>): Promise<void> {
     const product = invoice.lines.data[0];
-    if ((product.quantity ?? 0) <= 0) {
+    const quantity = product.quantity || 0;
+    if (quantity <= 0) {
       return this.errorHandler('topup')(
         new Error(`Quantity is not greater than 0. Quantity: ${product.quantity}`)
       );
     }
     return this.extractProduct(product, this.topups).then(
       (topupId) =>
-        this.topupService.add(userId, topupId, product.quantity || 0).then(
+        this.topupService.add(identity, topupId, quantity).then(
           (r) => this.creditAdditionHandler(r),
           (error) => this.errorHandler('topup')(error)
         ),

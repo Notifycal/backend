@@ -1,11 +1,20 @@
 /* eslint-disable vitest/expect-expect */
-import type { IdpName, Percentage, TierId, UserId } from '@notifycal/shared/types';
+import type {
+  Email,
+  Identity,
+  IdpId,
+  IdpName,
+  Percentage,
+  TierId,
+  UserId
+} from '@notifycal/shared/types';
 import { describe, expect, it, vi } from 'vitest';
 import type {
   CreditAdditionResult,
   CreditDeductionResult,
   CreditsService
 } from './credits-service';
+import type { SnsService } from './sns';
 import { calculateUpgradeCredits, SubscriptionService } from './subscription';
 
 describe(SubscriptionService, () => {
@@ -13,6 +22,13 @@ describe(SubscriptionService, () => {
   const validGoodTier = 'good' as TierId;
   const validBetterTier = 'better' as TierId;
   const validBestTier = 'best' as TierId;
+  const validIdentity: Identity<IdpName> = {
+    userId: validUserId,
+    idp: 'google.com',
+    idpId: 'google-user-123' as IdpId,
+    email: 'test@gmail.com' as Email
+  };
+  const mockSnsService = { safePublish: vi.fn(() => Promise.resolve()) } as unknown as SnsService;
 
   const validTierToCreditsMap: Record<TierId, number> = {
     good: 100,
@@ -43,21 +59,21 @@ describe(SubscriptionService, () => {
   describe('createSubscription', () => {
     it('should create subscription for good tier and add correct credits', async () => {
       const resetFn = vi.fn().mockResolvedValue(validSuccessResult);
-      await testItCreate(resetFn, validUserId, validGoodTier);
+      await testItCreate(resetFn, validIdentity, validGoodTier);
 
       expect(resetFn).toHaveBeenCalledWith(validUserId, 100, validGoodTier);
     });
 
     it('should create subscription for better tier and add correct credits', async () => {
       const resetFn = vi.fn().mockResolvedValue(validSuccessResult);
-      await testItCreate(resetFn, validUserId, validBetterTier);
+      await testItCreate(resetFn, validIdentity, validBetterTier);
 
       expect(resetFn).toHaveBeenCalledWith(validUserId, 500, validBetterTier);
     });
 
     it('should create subscription for best tier and add correct credits', async () => {
       const resetFn = vi.fn().mockResolvedValue(validSuccessResult);
-      const result = testItCreate(resetFn, validUserId, validBestTier);
+      const result = testItCreate(resetFn, validIdentity, validBestTier);
 
       await expect(result).resolves.toStrictEqual(validSuccessResult);
       expect(resetFn).toHaveBeenCalledWith(validUserId, 1000, validBestTier);
@@ -65,7 +81,7 @@ describe(SubscriptionService, () => {
 
     it('should passthrough credits service error result as a success', async () => {
       const resetFn = vi.fn().mockResolvedValue(validErrorResult);
-      const result = testItCreate(resetFn, validUserId, validBestTier);
+      const result = testItCreate(resetFn, validIdentity, validBestTier);
 
       await expect(result).resolves.toStrictEqual(validErrorResult);
     });
@@ -83,50 +99,51 @@ describe(SubscriptionService, () => {
         best: 1500
       };
       const resetFn = vi.fn().mockResolvedValue(validSuccessResult);
-      await testItCreate(resetFn, validUserId, validGoodTier, customMap);
+      await testItCreate(resetFn, validIdentity, validGoodTier, customMap);
 
       expect(resetFn).toHaveBeenCalledWith(validUserId, 200, validGoodTier);
     });
 
     function testItCreate(
       resetFn: () => Promise<CreditAdditionResult>,
-      userId: UserId = validUserId,
+      identity: Identity<IdpName> = validIdentity,
       tier: TierId = validGoodTier,
       map = validTierToCreditsMap
     ): Promise<CreditAdditionResult> {
       const service = new SubscriptionService(
         { resetSubscriptionCredits: resetFn } as unknown as CreditsService<IdpName>,
-        map
+        map,
+        mockSnsService
       );
-      return service.create(userId, tier);
+      return service.create(identity, tier);
     }
   });
 
   describe('renewSubscription', () => {
     it('should renew subscription for good tier and add correct credits', async () => {
       const resetFn = vi.fn().mockResolvedValue(validSuccessResult);
-      await testItRenew(resetFn, validUserId, validGoodTier);
+      await testItRenew(resetFn, validIdentity, validGoodTier);
 
       expect(resetFn).toHaveBeenCalledWith(validUserId, 100, validGoodTier);
     });
 
     it('should renew subscription for better tier and add correct credits', async () => {
       const resetFn = vi.fn().mockResolvedValue(validSuccessResult);
-      await testItRenew(resetFn, validUserId, validBetterTier);
+      await testItRenew(resetFn, validIdentity, validBetterTier);
 
       expect(resetFn).toHaveBeenCalledWith(validUserId, 500, validBetterTier);
     });
 
     it('should renew subscription for best tier and add correct credits', async () => {
       const resetFn = vi.fn().mockResolvedValue(validSuccessResult);
-      await testItRenew(resetFn, validUserId, validBestTier);
+      await testItRenew(resetFn, validIdentity, validBestTier);
 
       expect(resetFn).toHaveBeenCalledWith(validUserId, 1000, validBestTier);
     });
 
     it('should passthough credits service error result as a success', async () => {
       const resetFn = vi.fn().mockResolvedValue(validErrorResult);
-      const result = testItRenew(resetFn, validUserId, validBestTier);
+      const result = testItRenew(resetFn, validIdentity, validBestTier);
 
       await expect(result).resolves.toStrictEqual(validErrorResult);
     });
@@ -144,22 +161,23 @@ describe(SubscriptionService, () => {
         best: 1200
       };
       const resetFn = vi.fn().mockResolvedValue(validSuccessResult);
-      await testItRenew(resetFn, validUserId, validBetterTier, customMap);
+      await testItRenew(resetFn, validIdentity, validBetterTier, customMap);
 
       expect(resetFn).toHaveBeenCalledWith(validUserId, 600, validBetterTier);
     });
 
     function testItRenew(
       resetFn: () => Promise<CreditAdditionResult>,
-      userId: UserId = validUserId,
+      identity: Identity<IdpName> = validIdentity,
       tier: TierId = validGoodTier,
       map = validTierToCreditsMap
     ): Promise<CreditAdditionResult> {
       const service = new SubscriptionService(
         { resetSubscriptionCredits: resetFn } as unknown as CreditsService<IdpName>,
-        map
+        map,
+        mockSnsService
       );
-      return service.renew(userId, tier);
+      return service.renew(identity, tier);
     }
   });
 
@@ -168,7 +186,7 @@ describe(SubscriptionService, () => {
       const addFn = vi.fn().mockResolvedValue(validSuccessResult);
       const result = await testItUpgrade(
         addFn,
-        validUserId,
+        validIdentity,
         validGoodTier,
         validBetterTier,
         50 as Percentage
@@ -185,7 +203,7 @@ describe(SubscriptionService, () => {
       const addFn = vi.fn();
       const result = await testItUpgrade(
         addFn,
-        validUserId,
+        validIdentity,
         validGoodTier,
         validBetterTier,
         -10 as Percentage
@@ -203,7 +221,7 @@ describe(SubscriptionService, () => {
       const addFn = vi.fn();
       const result = await testItUpgrade(
         addFn,
-        validUserId,
+        validIdentity,
         validGoodTier,
         validBetterTier,
         150 as Percentage
@@ -221,7 +239,7 @@ describe(SubscriptionService, () => {
       const addFn = vi.fn();
       const result = await testItUpgrade(
         addFn,
-        validUserId,
+        validIdentity,
         validGoodTier,
         validGoodTier,
         50 as Percentage
@@ -239,7 +257,7 @@ describe(SubscriptionService, () => {
       const addFn = vi.fn().mockResolvedValue(validErrorResult);
       const result = await testItUpgrade(
         addFn,
-        validUserId,
+        validIdentity,
         validGoodTier,
         validBetterTier,
         50 as Percentage
@@ -252,22 +270,23 @@ describe(SubscriptionService, () => {
       const addFn = vi.fn().mockRejectedValue(new Error('boom'));
 
       await expect(() =>
-        testItUpgrade(addFn, validUserId, validGoodTier, validBetterTier, 50 as Percentage)
+        testItUpgrade(addFn, validIdentity, validGoodTier, validBetterTier, 50 as Percentage)
       ).rejects.toThrow('boom');
     });
 
     function testItUpgrade(
       addFn: () => Promise<CreditAdditionResult>,
-      userId: UserId,
+      identity: Identity<IdpName>,
       prev: TierId,
       curr: TierId,
       remainingPercentage: Percentage
     ): Promise<CreditAdditionResult> {
       const service = new SubscriptionService(
         { addCredits: addFn } as unknown as CreditsService<IdpName>,
-        validTierToCreditsMap
+        validTierToCreditsMap,
+        mockSnsService
       );
-      return service.upgrade(userId, prev, curr, remainingPercentage);
+      return service.upgrade(identity, prev, curr, remainingPercentage);
     }
   });
 
@@ -300,20 +319,25 @@ describe(SubscriptionService, () => {
     ): Promise<CreditDeductionResult> {
       const service = new SubscriptionService(
         { clearSubscriptionCredits: deleteFn } as unknown as CreditsService<IdpName>,
-        validTierToCreditsMap
+        validTierToCreditsMap,
+        mockSnsService
       );
-      return service.cancel(validUserId, reason);
+      return service.cancel(validIdentity, reason);
     }
   });
 
-  describe('downgrade', () => {
+  describe('scheduleDowngrade', () => {
     it('should resolve immediately without side effects', async () => {
-      await expect(testItDowngrade()).resolves.toBeUndefined();
+      await expect(testItScheduleDowngrade()).resolves.toBeUndefined();
     });
 
-    function testItDowngrade(): Promise<void> {
-      const service = new SubscriptionService({} as CreditsService<IdpName>, validTierToCreditsMap);
-      return service.downgrade(validUserId);
+    function testItScheduleDowngrade(): Promise<void> {
+      const service = new SubscriptionService(
+        {} as CreditsService<IdpName>,
+        validTierToCreditsMap,
+        mockSnsService
+      );
+      return service.scheduleDowngrade(validIdentity);
     }
   });
 });

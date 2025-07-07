@@ -1,10 +1,14 @@
 import { logger } from '@common/powertools';
-import type { IdpName, Percentage, TierId, UserId } from '@notifycal/shared/types';
+import * as SubscriptionEvents from '@model/app-events/subscription-events';
+import type { Identity, IdpName, Percentage, TierId } from '@notifycal/shared/types';
 import type {
   CreditAdditionResult,
   CreditDeductionResult,
   CreditsService
 } from './credits-service';
+import type { SnsService } from './sns';
+
+import { handleServiceOperation } from './common/error-handling';
 
 export function calculateUpgradeCredits(
   previousTier: TierId,
@@ -23,21 +27,38 @@ export function calculateUpgradeCredits(
 export class SubscriptionService<TIdpName extends IdpName> {
   public constructor(
     private readonly creditsService: CreditsService<TIdpName>,
-    private readonly tierToCreditsMap: Record<TierId, number>
+    private readonly tierToCreditsMap: Record<TierId, number>,
+    private readonly snsService: SnsService
   ) {}
 
-  public create(userId: UserId, tier: TierId): Promise<CreditAdditionResult> {
+  public create(identity: Identity<TIdpName>, tier: TierId): Promise<CreditAdditionResult> {
     const credits = this.tierToCreditsMap[tier];
-    return this.creditsService.resetSubscriptionCredits(userId, credits, tier);
+    const operation = this.creditsService.resetSubscriptionCredits(identity.userId, credits, tier);
+
+    return handleServiceOperation(
+      operation,
+      (result) => SubscriptionEvents.subscriptionCreatedEvent(identity, tier, result),
+      (result, error) =>
+        SubscriptionEvents.subscriptionCreationFailedEvent(identity, tier, result, error),
+      this.snsService
+    );
   }
 
-  public renew(userId: UserId, tier: TierId): Promise<CreditAdditionResult> {
+  public renew(identity: Identity<TIdpName>, tier: TierId): Promise<CreditAdditionResult> {
     const credits = this.tierToCreditsMap[tier];
-    return this.creditsService.resetSubscriptionCredits(userId, credits, tier);
+    const operation = this.creditsService.resetSubscriptionCredits(identity.userId, credits, tier);
+
+    return handleServiceOperation(
+      operation,
+      (result) => SubscriptionEvents.subscriptionRenewedEvent(identity, tier, result),
+      (result, error) =>
+        SubscriptionEvents.subscriptionRenewalFailedEvent(identity, tier, result, error),
+      this.snsService
+    );
   }
 
   public upgrade(
-    userId: UserId,
+    identity: Identity<TIdpName>,
     previousTier: TierId,
     currentTier: TierId,
     remainingPercentage: Percentage
@@ -48,42 +69,106 @@ export class SubscriptionService<TIdpName extends IdpName> {
       remainingPercentage,
       this.tierToCreditsMap
     );
-
     logger.info('Upgrade details', {
       previousTier,
       currentTier,
       remainingPercentage,
       creditsToAdd
     });
-
     if (remainingPercentage < 0 || remainingPercentage > 100) {
-      return Promise.resolve({
-        success: false,
-        operationId: 'UnknownError',
+      const result = {
+        success: false as const,
+        operationId: 'UnknownError' as const,
         error: new Error(`Invalid remaining percentage: ${remainingPercentage}`)
-      });
+      };
+      return this.snsService
+        .safePublish(
+          SubscriptionEvents.subscriptionUpgradeFailedEvent(
+            identity,
+            previousTier,
+            currentTier,
+            remainingPercentage,
+            0,
+            result,
+            result.error
+          )
+        )
+        .then(() => result);
     }
 
     if (creditsToAdd <= 0) {
-      return Promise.resolve({
-        success: false,
-        operationId: 'UnknownError',
+      const result = {
+        success: false as const,
+        operationId: 'UnknownError' as const,
         error: new Error('Inadvertent credit stealing while doing an upgrade')
-      });
+      };
+      return this.snsService
+        .safePublish(
+          SubscriptionEvents.subscriptionUpgradeFailedEvent(
+            identity,
+            previousTier,
+            currentTier,
+            remainingPercentage,
+            0,
+            result,
+            result.error
+          )
+        )
+        .then(() => result);
     }
 
-    return this.creditsService.addCredits(userId, creditsToAdd, {
+    const operation = this.creditsService.addCredits(identity.userId, creditsToAdd, {
       type: 'subscription',
       id: currentTier
     });
+
+    return handleServiceOperation(
+      operation,
+      (result) =>
+        SubscriptionEvents.subscriptionUpgradedEvent(
+          identity,
+          previousTier,
+          currentTier,
+          remainingPercentage,
+          creditsToAdd,
+          result
+        ),
+      (result, error) =>
+        SubscriptionEvents.subscriptionUpgradeFailedEvent(
+          identity,
+          previousTier,
+          currentTier,
+          remainingPercentage,
+          creditsToAdd,
+          result,
+          error
+        ),
+      this.snsService
+    );
   }
 
-  public downgrade(userId: UserId): Promise<void> {
-    logger.info('Downgrade scheduled. Nothing to do', { userId });
-    return Promise.resolve();
+  public scheduleDowngrade(identity: Identity<TIdpName>): Promise<void> {
+    logger.info('Downgrade scheduled. Nothing to do. Credits will be reset on next cycle', {
+      userId: identity.userId
+    });
+
+    return this.snsService.safePublish(
+      SubscriptionEvents.subscriptionDowngradeScheduledEvent(identity)
+    );
   }
 
-  public cancel(userId: UserId, reason: 'unpaid' | 'cancelled'): Promise<CreditDeductionResult> {
-    return this.creditsService.clearSubscriptionCredits(userId, reason);
+  public cancel(
+    identity: Identity<TIdpName>,
+    reason: 'unpaid' | 'cancelled'
+  ): Promise<CreditDeductionResult> {
+    const operation = this.creditsService.clearSubscriptionCredits(identity.userId, reason);
+
+    return handleServiceOperation(
+      operation,
+      (result) => SubscriptionEvents.subscriptionCancelledEvent(identity, reason, result),
+      (result, error) =>
+        SubscriptionEvents.subscriptionCancellationFailedEvent(identity, reason, result, error),
+      this.snsService
+    );
   }
 }

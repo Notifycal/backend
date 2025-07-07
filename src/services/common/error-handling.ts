@@ -1,5 +1,37 @@
 import type { Logger } from '@aws-lambda-powertools/logger';
 import type { LogItemExtraInput } from '@aws-lambda-powertools/logger/types';
+import type { BaseErrorEvent, BaseEvent } from '@model/app-events/BaseEvent';
+import type { CreditAdditionResult, CreditDeductionResult } from '@services/credits-service';
+import type { SnsService } from '@services/sns';
+
+export function handleServiceOperation<
+  TResult extends CreditAdditionResult | CreditDeductionResult,
+  TEvent extends BaseEvent,
+  TErrorEvent extends BaseErrorEvent
+>(
+  operation: Promise<TResult>,
+  successEventFactory: (data: TResult) => TEvent,
+  failureEventFactory: (result: TResult | undefined, error: unknown) => TErrorEvent,
+  snsService: SnsService
+): Promise<TResult> {
+  return operation
+    .then((result) => {
+      const isSuccess = result.success;
+      return snsService
+        .safePublish(
+          isSuccess ? successEventFactory(result) : failureEventFactory(result, undefined)
+        )
+        .then(() => result);
+    })
+    .catch((error) => {
+      return (
+        snsService
+          .safePublish(failureEventFactory(undefined, error))
+          // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
+          .then(() => Promise.reject(error))
+      );
+    });
+}
 
 export function extractErrorMessage(error: unknown): string {
   if (error instanceof Error) {

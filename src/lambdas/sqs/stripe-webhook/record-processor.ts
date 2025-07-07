@@ -110,9 +110,13 @@ export function recordProcessor(
   );
   const creditsService = new CreditsService(userStore, logger);
   const { tiers, topups } = config.paymentPlans;
-  const subscriptionService = new SubscriptionService(creditsService, toProductToCreditsMap(tiers));
-  const topupService = new TopupService(creditsService, toProductToCreditsMap(topups));
   const snsService = SnsService.withConfig(config.paymentWebhookTopicConfig, logger);
+  const subscriptionService = new SubscriptionService(
+    creditsService,
+    toProductToCreditsMap(tiers),
+    snsService
+  );
+  const topupService = new TopupService(creditsService, toProductToCreditsMap(topups), snsService);
   const ourHandlers = eventHandlerFactory(subscriptionService, topupService, tiers, topups, logger);
   const processor = new StripeEventProcessor(
     new StripeIdentityExtractor(userPaymentIndexStore, logger),

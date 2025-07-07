@@ -1,0 +1,29 @@
+import type { Identity, IdpName, TierId } from '@notifycal/shared/types';
+import type { CreditAdditionResult } from '@services/credits-service';
+import { z } from 'zod';
+import { eventSchemaGenerator } from './BaseEvent';
+import { createEventBase } from './common';
+
+const subscriptionRenewedEventDataSchema = z.object({}).passthrough();
+
+export const subscriptionRenewedEventSchema = eventSchemaGenerator(
+  'SubscriptionRenewed',
+  subscriptionRenewedEventDataSchema
+);
+
+export type SubscriptionRenewedEventData = z.infer<typeof subscriptionRenewedEventDataSchema>;
+export type SubscriptionRenewedEvent = z.infer<typeof subscriptionRenewedEventSchema>;
+
+export function subscriptionRenewedEvent<TIdpName extends IdpName>(
+  identity: Identity<TIdpName>,
+  tier: TierId,
+  result: CreditAdditionResult
+): SubscriptionRenewedEvent {
+  return {
+    ...createEventBase('SubscriptionRenewed', identity),
+    data: {
+      tier,
+      result
+    }
+  };
+}
