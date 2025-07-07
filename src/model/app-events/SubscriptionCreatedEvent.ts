@@ -36,7 +36,8 @@ export function subscriptionCreatedEvent<TIdpName extends IdpName>(
     idp: identity.idp,
     idpId: identity.idpId,
     data: {
-      result
+      result,
+      tier
     }
   };
 }
