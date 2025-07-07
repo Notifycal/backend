@@ -1,5 +1,5 @@
 import { stripeEventTypes } from '@lambdas/sqs/stripe-webhook/stripe-schemas';
-import type { IdpId, IdpName, UserId } from '@notifycal/shared/types';
+import type { Identity, IdpName } from '@notifycal/shared/types';
 import { toPascalCase } from '@utils/case';
 import type { CapitalizeFirst, ReplaceUnderscoreWithDot, SplitByDot } from '@utils/types';
 import type Stripe from 'stripe';
@@ -53,13 +53,11 @@ export const ourStripeEventTypeZodLiteralArray = stripeEventTypes.map((type) => 
 
 export function fromStripeEvent(
   origin: Stripe.Event,
-  userId: UserId,
-  idp: IdpName,
-  idpId: IdpId
+  identity: Identity<IdpName>
 ): PaymentWebhookFiredEvent {
   const stripeEventType = origin.type;
   return {
-    ...createEventBase(toOurEventType(stripeEventType), { userId, idp, idpId }),
+    ...createEventBase(toOurEventType(stripeEventType), identity),
     data: {
       ...origin
     }
