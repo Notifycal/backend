@@ -13,6 +13,7 @@ import { fromStoreRecord as fromContactStoreRecord } from '@model/store/ContactD
 import type { LiveUserStoreRecord } from '@model/store/LiveUserStoreRecord';
 import { fromStoreRecord } from '@model/store/ReminderConfigStoreRecord';
 import type { UserIdpAuthorizationStoreRecord } from '@model/store/UserIdpAuthorizationStoreRecord';
+import { extractIdentity } from '@model/UserIdentity';
 import type { CorrelationId, DateTime, EventId } from '@notifycal/shared/types';
 import { setupLoggerCorrelationIdEventBridge } from '@services/common/logger';
 import { SnsService } from '@services/sns';
@@ -127,7 +128,7 @@ async function lambdaHandler(event: Event, context: Context): Promise<void> {
           if (user.Config.Calendars && user.Config.Calendars.length > 0) {
             return Promise.resolve(toEvents(user, run));
           } else {
-            const errorEvent = noUserCalendarFound(record, run, user);
+            const errorEvent = noUserCalendarFound(record, run, extractIdentity(user));
             return snsService.safePublish(errorEvent).then(() => []);
           }
         })
