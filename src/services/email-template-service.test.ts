@@ -40,25 +40,25 @@ describe(EmailTemplateService, () => {
   it('should compile template and return function', () => {
     const service = new EmailTemplateService(logger);
 
-    const templateGenerator = service.compileTemplate(
+    const compiledTemplateFn = service.compileTemplate(
       validPartialTemplate,
       validSpecificTranslations,
       validDynamicVariables
     );
 
-    expect(templateGenerator).toBeInstanceOf(Function);
+    expect(compiledTemplateFn).toBeInstanceOf(Function);
   });
 
   it('should generate email template with correct structure', () => {
     const service = new EmailTemplateService(logger);
 
-    const templateGenerator = service.compileTemplate(
+    const compiledTemplateFn = service.compileTemplate(
       validPartialTemplate,
       validSpecificTranslations,
       validDynamicVariables
     );
 
-    const result = templateGenerator('en');
+    const result = compiledTemplateFn('en');
 
     expect(result).toStrictEqual({
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -77,13 +77,13 @@ describe(EmailTemplateService, () => {
   it('should use baseTemplate HTML structure', () => {
     const service = new EmailTemplateService(logger);
 
-    const templateGenerator = service.compileTemplate(
+    const compiledTemplateFn = service.compileTemplate(
       validPartialTemplate,
       validSpecificTranslations,
       validDynamicVariables
     );
 
-    const result = templateGenerator('en');
+    const result = compiledTemplateFn('en');
 
     expect(result.htmlBody).toContain('<!DOCTYPE html>');
     expect(result.htmlBody).toContain('<html>');
@@ -95,13 +95,13 @@ describe(EmailTemplateService, () => {
   it('should use baseTemplate layout components', () => {
     const service = new EmailTemplateService(logger);
 
-    const templateGenerator = service.compileTemplate(
+    const compiledTemplateFn = service.compileTemplate(
       validPartialTemplate,
       validSpecificTranslations,
       validDynamicVariables
     );
 
-    const result = templateGenerator('en');
+    const result = compiledTemplateFn('en');
 
     expect(result.htmlBody).toContain('<div class="pattern-bg">');
     expect(result.htmlBody).toContain('<div class="email-container">');
@@ -113,13 +113,13 @@ describe(EmailTemplateService, () => {
   it('should use specific partial template content', () => {
     const service = new EmailTemplateService(logger);
 
-    const templateGenerator = service.compileTemplate(
+    const compiledTemplateFn = service.compileTemplate(
       validPartialTemplate,
       validSpecificTranslations,
       validDynamicVariables
     );
 
-    const result = templateGenerator('en');
+    const result = compiledTemplateFn('en');
 
     expect(result.htmlBody).toContain('<div class="content">');
     expect(result.htmlBody).toContain('<h1>Test Header</h1>');
@@ -130,13 +130,13 @@ describe(EmailTemplateService, () => {
   it('should include common translations in template data', () => {
     const service = new EmailTemplateService(logger);
 
-    const templateGenerator = service.compileTemplate(
+    const compiledTemplateFn = service.compileTemplate(
       '{{appName}} - {{rightsReserved}}',
       validSpecificTranslations,
       {}
     );
 
-    const result = templateGenerator('en');
+    const result = compiledTemplateFn('en');
 
     expect(result.htmlBody).toContain(commonTranslations.en.appName);
     expect(result.htmlBody).toContain(commonTranslations.en.rightsReserved);
@@ -145,13 +145,13 @@ describe(EmailTemplateService, () => {
   it('should merge specific translations with common translations', () => {
     const service = new EmailTemplateService(logger);
 
-    const templateGenerator = service.compileTemplate(
+    const compiledTemplateFn = service.compileTemplate(
       '{{appName}} - {{header}}',
       validSpecificTranslations,
       {}
     );
 
-    const result = templateGenerator('en');
+    const result = compiledTemplateFn('en');
 
     expect(result.htmlBody).toContain('Notifycal');
     expect(result.htmlBody).toContain('Test Header');
@@ -160,13 +160,13 @@ describe(EmailTemplateService, () => {
   it('should apply dynamic variables to template', () => {
     const service = new EmailTemplateService(logger);
 
-    const templateGenerator = service.compileTemplate(
+    const compiledTemplateFn = service.compileTemplate(
       '{{dynamicVar}}',
       validSpecificTranslations,
       validDynamicVariables
     );
 
-    const result = templateGenerator('en');
+    const result = compiledTemplateFn('en');
 
     expect(result.htmlBody).toContain('Dynamic Value');
   });
@@ -174,10 +174,10 @@ describe(EmailTemplateService, () => {
   it('should handle different languages correctly', () => {
     const service = new EmailTemplateService(logger);
 
-    const templateGenerator = service.compileTemplate('{{header}}', validSpecificTranslations, {});
+    const compiledTemplateFn = service.compileTemplate('{{header}}', validSpecificTranslations, {});
 
-    const englishResult = templateGenerator('en');
-    const spanishResult = templateGenerator('es');
+    const englishResult = compiledTemplateFn('en');
+    const spanishResult = compiledTemplateFn('es');
 
     expect(englishResult.subject).toBe('Test Subject');
     expect(spanishResult.subject).toBe('Asunto de Prueba');
@@ -188,9 +188,13 @@ describe(EmailTemplateService, () => {
   it('should set correct logoSrc for inline attachments', () => {
     const service = new EmailTemplateService(logger);
 
-    const templateGenerator = service.compileTemplate('{{logoSrc}}', validSpecificTranslations, {});
+    const compiledTemplateFn = service.compileTemplate(
+      '{{logoSrc}}',
+      validSpecificTranslations,
+      {}
+    );
 
-    const result = templateGenerator('en');
+    const result = compiledTemplateFn('en');
 
     expect(result.htmlBody).toContain('cid:logo.png');
   });
@@ -198,11 +202,11 @@ describe(EmailTemplateService, () => {
   it('should override logoSrc when provided in dynamic variables', () => {
     const service = new EmailTemplateService(logger);
 
-    const templateGenerator = service.compileTemplate('{{logoSrc}}', validSpecificTranslations, {
+    const compiledTemplateFn = service.compileTemplate('{{logoSrc}}', validSpecificTranslations, {
       logoSrc: 'custom-logo-src'
     });
 
-    const result = templateGenerator('en');
+    const result = compiledTemplateFn('en');
 
     expect(result.htmlBody).toContain('custom-logo-src');
   });
@@ -210,9 +214,9 @@ describe(EmailTemplateService, () => {
   it('should work with empty dynamic variables', () => {
     const service = new EmailTemplateService(logger);
 
-    const templateGenerator = service.compileTemplate('{{header}}', validSpecificTranslations);
+    const compiledTemplateFn = service.compileTemplate('{{header}}', validSpecificTranslations);
 
-    const result = templateGenerator('en');
+    const result = compiledTemplateFn('en');
 
     expect(result.subject).toBe('Test Subject');
     expect(result.htmlBody).toContain('Test Header');
