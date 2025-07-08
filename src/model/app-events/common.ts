@@ -1,7 +1,17 @@
 import { countryCodeSchema, emailSchema, rcsSenderSchema } from '@notifycal/shared/schemas';
-import type { DateTime, EventId, RCSSenderContact } from '@notifycal/shared/types';
+import type {
+  CorrelationId,
+  DateTime,
+  EventId,
+  IdpId,
+  IdpName,
+  RCSSenderContact,
+  UserId
+} from '@notifycal/shared/types';
 import type { PhoneNumberE164 } from '@own-types/model';
+import { v4 } from 'uuid';
 import { z } from 'zod';
+import type { EventType } from './BaseEvent';
 
 export const errorSchema = z.object({
   message: z.string(),
@@ -40,3 +50,37 @@ export const emailWithNameSchema = z.object({
   email: emailSchema
 });
 export type EmailWithName = z.infer<typeof emailWithNameSchema>;
+
+export interface EventSourceIdentity {
+  userId: UserId;
+  idp: IdpName;
+  idpId: IdpId;
+}
+
+export interface EventCreationOptions {
+  correlationId?: CorrelationId;
+  happenedAt?: DateTime;
+}
+
+export function createEventBase<TEventType extends EventType>(
+  eventType: TEventType,
+  source: EventSourceIdentity,
+  options: EventCreationOptions = {}
+): {
+  eventId: EventId;
+  correlationId: CorrelationId;
+  eventType: TEventType;
+  happenedAt: DateTime;
+  userId: UserId;
+  idp: 'google.com';
+  idpId: IdpId;
+} {
+  const eventId = v4();
+  return {
+    eventId: eventId as EventId,
+    correlationId: options.correlationId ?? (eventId as CorrelationId),
+    eventType,
+    happenedAt: options.happenedAt ?? (new Date().toISOString() as DateTime),
+    ...source
+  };
+}

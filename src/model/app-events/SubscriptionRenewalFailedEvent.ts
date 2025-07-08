@@ -1,0 +1,33 @@
+import type { Identity, IdpName, TierId } from '@notifycal/shared/types';
+import type { CreditAdditionResult } from '@services/credits-service';
+import { z } from 'zod';
+import { errorEventSchemaGenerator } from './BaseEvent';
+import { createEventBase } from './common';
+
+const subscriptionRenewalFailedEventDataSchema = z.object({}).passthrough();
+
+export const subscriptionRenewalFailedEventSchema = errorEventSchemaGenerator(
+  'SubscriptionRenewalFailed',
+  subscriptionRenewalFailedEventDataSchema
+);
+
+export type SubscriptionRenewalFailedEventData = z.infer<
+  typeof subscriptionRenewalFailedEventDataSchema
+>;
+export type SubscriptionRenewalFailedEvent = z.infer<typeof subscriptionRenewalFailedEventSchema>;
+
+export function subscriptionRenewalFailedEvent<TIdpName extends IdpName>(
+  identity: Identity<TIdpName>,
+  tier: TierId,
+  result?: CreditAdditionResult,
+  error?: unknown
+): SubscriptionRenewalFailedEvent {
+  return {
+    ...createEventBase('SubscriptionRenewalFailed', identity),
+    data: {
+      tier,
+      result,
+      error
+    }
+  };
+}

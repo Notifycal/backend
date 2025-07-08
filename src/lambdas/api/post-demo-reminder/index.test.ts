@@ -22,6 +22,7 @@ import { testAuthedEvent, testEvent } from '@testing/data/apigateway';
 import {
   setEnvBaseConfig,
   setEnvDecodeAccessJwtConfig,
+  setEnvDemoReminderConfig,
   setEnvDemoReminderToBeSentTopicConfig,
   setEnvUserBaseStoreConfig
 } from '@testing/utils/config';
@@ -98,10 +99,13 @@ describe('Post Demo Reminder', () => {
       accessTokenSchema,
       validAccessToken
     )) as unknown as APIGatewayProxyEvent;
-    const getUserConfigByIdFn = vi.fn().mockResolvedValue(validUserConfig);
+    const getUserConfigAndDemoReminderCountFn = vi.fn().mockResolvedValue({
+      Config: validUserConfig,
+      DemoReminderCount: 0
+    });
     const publishFn = vi.fn().mockResolvedValue({});
 
-    const result = await testit(validEvent, getUserConfigByIdFn, publishFn);
+    const result = await testit(validEvent, getUserConfigAndDemoReminderCountFn, publishFn);
 
     const senderAndReceiver = {
       type: 'phone' as const,
@@ -110,7 +114,7 @@ describe('Post Demo Reminder', () => {
     };
 
     expect(result.statusCode).toBe(202);
-    expect(getUserConfigByIdFn).toHaveBeenCalledWith(validAccessToken.userId);
+    expect(getUserConfigAndDemoReminderCountFn).toHaveBeenCalledWith(validAccessToken.userId);
     expect(publishFn).toHaveBeenCalledWith(
       expect.objectContaining({
         eventType: 'DemoReminderToBeSent',
@@ -138,42 +142,42 @@ describe('Post Demo Reminder', () => {
       accessTokenSchema,
       validAccessToken
     )) as unknown as APIGatewayProxyEvent;
-    const getUserConfigByIdFn = vi.fn();
+    const getUserConfigAndDemoReminderCountFn = vi.fn();
     const publishFn = vi.fn();
 
-    const result = await testit(validEvent, getUserConfigByIdFn, publishFn);
+    const result = await testit(validEvent, getUserConfigAndDemoReminderCountFn, publishFn);
 
     expect(result.statusCode).toBe(400);
-    expect(getUserConfigByIdFn).not.toHaveBeenCalled();
+    expect(getUserConfigAndDemoReminderCountFn).not.toHaveBeenCalled();
     expect(publishFn).not.toHaveBeenCalled();
   });
 
   it('should return 401 if missing authorization', async () => {
     const validEvent = testEvent(validRequestBody) as APIGatewayProxyEvent;
-    const getUserConfigByIdFn = vi.fn();
+    const getUserConfigAndDemoReminderCountFn = vi.fn();
     const publishFn = vi.fn();
 
-    const result = await testit(validEvent, getUserConfigByIdFn, publishFn);
+    const result = await testit(validEvent, getUserConfigAndDemoReminderCountFn, publishFn);
 
     expect(result.statusCode).toBe(401);
-    expect(getUserConfigByIdFn).not.toHaveBeenCalled();
+    expect(getUserConfigAndDemoReminderCountFn).not.toHaveBeenCalled();
     expect(publishFn).not.toHaveBeenCalled();
   });
 
-  it('should return 500 when user config is not found', async () => {
+  it('should return 404 when user config is not found', async () => {
     const validEvent = (await testAuthedEvent(
       validRequestBody,
       {},
       accessTokenSchema,
       validAccessToken
     )) as unknown as APIGatewayProxyEvent;
-    const getUserConfigByIdFn = vi.fn(() => Promise.resolve(undefined));
+    const getUserConfigAndDemoReminderCountFn = vi.fn(() => Promise.resolve(undefined));
     const publishFn = vi.fn();
 
-    const result = await testit(validEvent, getUserConfigByIdFn, publishFn);
+    const result = await testit(validEvent, getUserConfigAndDemoReminderCountFn, publishFn);
 
-    expect(result.statusCode).toBe(500);
-    expect(getUserConfigByIdFn).toHaveBeenCalledWith(validAccessToken.userId);
+    expect(result.statusCode).toBe(404);
+    expect(getUserConfigAndDemoReminderCountFn).toHaveBeenCalledWith(validAccessToken.userId);
     expect(publishFn).not.toHaveBeenCalled();
   });
 
@@ -184,13 +188,15 @@ describe('Post Demo Reminder', () => {
       accessTokenSchema,
       validAccessToken
     )) as unknown as APIGatewayProxyEvent;
-    const getUserConfigByIdFn = vi.fn().mockRejectedValue(new Error('Database error'));
+    const getUserConfigAndDemoReminderCountFn = vi
+      .fn()
+      .mockRejectedValue(new Error('Database error'));
     const publishFn = vi.fn().mockResolvedValue({});
 
-    const result = await testit(validEvent, getUserConfigByIdFn, publishFn);
+    const result = await testit(validEvent, getUserConfigAndDemoReminderCountFn, publishFn);
 
     expect(result.statusCode).toBe(500);
-    expect(getUserConfigByIdFn).toHaveBeenCalledWith(validAccessToken.userId);
+    expect(getUserConfigAndDemoReminderCountFn).toHaveBeenCalledWith(validAccessToken.userId);
     expect(publishFn).not.toHaveBeenCalled();
   });
 
@@ -203,12 +209,84 @@ describe('Post Demo Reminder', () => {
     )) as unknown as APIGatewayProxyEvent;
     const error = new Error('Failed to publish message');
     const publishFn = vi.fn().mockRejectedValue(error);
-    const getUserConfigByIdFn = vi.fn().mockResolvedValue(validUserConfig);
+    const getUserConfigAndDemoReminderCountFn = vi.fn().mockResolvedValue({
+      Config: validUserConfig,
+      DemoReminderCount: 0
+    });
 
-    const result = await testit(validEvent, getUserConfigByIdFn, publishFn);
+    const result = await testit(validEvent, getUserConfigAndDemoReminderCountFn, publishFn);
 
     expect(result.statusCode).toBe(500);
-    expect(getUserConfigByIdFn).toHaveBeenCalledWith(validAccessToken.userId);
+    expect(getUserConfigAndDemoReminderCountFn).toHaveBeenCalledWith(validAccessToken.userId);
+    expect(publishFn).toHaveBeenCalledOnce();
+  });
+
+  it('should return 429 when demo reminder limit is reached', async () => {
+    const validEvent = (await testAuthedEvent(
+      validRequestBody,
+      {},
+      accessTokenSchema,
+      validAccessToken
+    )) as unknown as APIGatewayProxyEvent;
+    const getUserConfigAndDemoReminderCountFn = vi.fn().mockResolvedValue({
+      Config: validUserConfig,
+      DemoReminderCount: 1 // At the limit
+    });
+    const publishFn = vi.fn();
+
+    const result = await testit(validEvent, getUserConfigAndDemoReminderCountFn, publishFn);
+
+    expect(result.statusCode).toBe(429);
+    expect(getUserConfigAndDemoReminderCountFn).toHaveBeenCalledWith(validAccessToken.userId);
+    expect(publishFn).not.toHaveBeenCalled();
+  });
+
+  it('should return 429 when demo reminder count exceeds limit', async () => {
+    const validEvent = (await testAuthedEvent(
+      validRequestBody,
+      {},
+      accessTokenSchema,
+      validAccessToken
+    )) as unknown as APIGatewayProxyEvent;
+    const getUserConfigAndDemoReminderCountFn = vi.fn().mockResolvedValue({
+      Config: validUserConfig,
+      DemoReminderCount: 2 // Above the limit
+    });
+    const publishFn = vi.fn();
+
+    const result = await testit(validEvent, getUserConfigAndDemoReminderCountFn, publishFn);
+
+    expect(result.statusCode).toBe(429);
+    expect(getUserConfigAndDemoReminderCountFn).toHaveBeenCalledWith(validAccessToken.userId);
+    expect(publishFn).not.toHaveBeenCalled();
+  });
+
+  it('should work with higher demo reminder limit', async () => {
+    const configWithHigherLimit = {
+      ...defaultEnv,
+      demoReminderConfig: { demoReminderLimit: 3 }
+    };
+    const validEvent = (await testAuthedEvent(
+      validRequestBody,
+      {},
+      accessTokenSchema,
+      validAccessToken
+    )) as unknown as APIGatewayProxyEvent;
+    const getUserConfigAndDemoReminderCountFn = vi.fn().mockResolvedValue({
+      Config: validUserConfig,
+      DemoReminderCount: 2 // Below the higher limit
+    });
+    const publishFn = vi.fn().mockResolvedValue({});
+
+    const result = await testit(
+      validEvent,
+      getUserConfigAndDemoReminderCountFn,
+      publishFn,
+      configWithHigherLimit
+    );
+
+    expect(result.statusCode).toBe(202);
+    expect(getUserConfigAndDemoReminderCountFn).toHaveBeenCalledWith(validAccessToken.userId);
     expect(publishFn).toHaveBeenCalledOnce();
   });
 });
@@ -223,17 +301,24 @@ const defaultEnv = {
   },
   corsConfig: {
     allowedOrigins: ['http://localhost:5173']
+  },
+  demoReminderConfig: {
+    demoReminderLimit: 1
   }
 };
 
 function testit(
   event: APIGatewayProxyEvent,
-  getUserConfigByIdFn: () => Promise<UserStoreRecord<unknown>['Config'] | undefined>,
+  getUserConfigAndDemoReminderCountFn: () => Promise<
+    { Config: UserStoreRecord<unknown>['Config']; DemoReminderCount: number } | undefined
+  >,
   publishFn: () => Promise<void>,
   config: PostDemoReminderConfig = defaultEnv
 ): Promise<APIGatewayProxyResult> {
   const userBaseStoreMock = {
-    getUserConfigById: vi.fn().mockImplementation(getUserConfigByIdFn)
+    getUserConfigAndDemoReminderCount: vi
+      .fn()
+      .mockImplementation(getUserConfigAndDemoReminderCountFn)
   };
   // eslint-disable-next-line @typescript-eslint/unbound-method
   vi.mocked(UserBaseStore.withConfig).mockReturnValue(
@@ -253,5 +338,6 @@ function setEnv(config: PostDemoReminderConfig): void {
   setEnvDecodeAccessJwtConfig(config.decodeAccessJwtConfig);
   setEnvUserBaseStoreConfig(config.userBaseStoreConfig);
   setEnvDemoReminderToBeSentTopicConfig(config.demoReminderToBeSentTopicConfig);
+  setEnvDemoReminderConfig(config.demoReminderConfig);
   setEnvBaseConfig(config.corsConfig);
 }

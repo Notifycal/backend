@@ -1,0 +1,35 @@
+import type { Identity, IdpName, Percentage, TierId } from '@notifycal/shared/types';
+import type { CreditAdditionResult } from '@services/credits-service';
+import { z } from 'zod';
+import { eventSchemaGenerator } from './BaseEvent';
+import { createEventBase } from './common';
+
+const subscriptionUpgradedEventDataSchema = z.object({}).passthrough();
+
+export const subscriptionUpgradedEventSchema = eventSchemaGenerator(
+  'SubscriptionUpgraded',
+  subscriptionUpgradedEventDataSchema
+);
+
+export type SubscriptionUpgradedEventData = z.infer<typeof subscriptionUpgradedEventDataSchema>;
+export type SubscriptionUpgradedEvent = z.infer<typeof subscriptionUpgradedEventSchema>;
+
+export function subscriptionUpgradedEvent<TIdpName extends IdpName>(
+  identity: Identity<TIdpName>,
+  previousTier: TierId,
+  currentTier: TierId,
+  remainingPercentage: Percentage,
+  creditsAdded: number,
+  result: CreditAdditionResult
+): SubscriptionUpgradedEvent {
+  return {
+    ...createEventBase('SubscriptionUpgraded', identity),
+    data: {
+      previousTier,
+      currentTier,
+      remainingPercentage,
+      creditsAdded,
+      result
+    }
+  };
+}

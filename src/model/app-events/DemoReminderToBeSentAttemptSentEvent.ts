@@ -22,7 +22,7 @@ export function demoReminderToBeSentAttemptSent(
 ): DemoReminderToBeSentAttemptSentEvent {
   return {
     ...originalEvent,
-    eventType: 'DemoReminderToBeSentAttemptSent' as const,
+    eventType: 'DemoReminderToBeSentAttemptSent',
     data: {
       ...originalEvent.data,
       messageUUID: messageSentUUID

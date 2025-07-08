@@ -71,6 +71,10 @@ locals {
   }
   idps_configs_env_vars = local.google_idp_config_env_vars
 
+  demo_reminder_limit_env_vars = {
+    DEMO_REMINDER_LIMIT = 1
+  }
+
   type_mapping = {
     tiers  = "tier"
     topups = "topup"

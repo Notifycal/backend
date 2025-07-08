@@ -196,6 +196,9 @@ const defaultConfig: EndpointConfig = {
   },
   countryToSMSCostCreditsMap: {
     ES: 7
+  },
+  demoReminderConfig: {
+    demoReminderLimit: 1
   }
 };
 

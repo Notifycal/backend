@@ -50,7 +50,7 @@ describe(StripeEventPublisher, () => {
     await new StripeEventPublisher(snsServiceMock).publish(validEvent, validIdentity);
 
     expect(fromStripeEvent).toHaveBeenCalledTimes(1);
-    expect(fromStripeEvent).toHaveBeenCalledWith(validEvent, 'user-123', 'google', 'google-id-123');
+    expect(fromStripeEvent).toHaveBeenCalledWith(validEvent, validIdentity);
 
     expect(safePublishFn).toHaveBeenCalledTimes(1);
     expect(safePublishFn).toHaveBeenCalledWith(mockNotifycalEvent);
