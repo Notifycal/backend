@@ -162,14 +162,20 @@ describe(InvoicePaymentSucceededHandler, () => {
 
   const validSuccessResult: CreditAdditionResult = {
     success: true,
-    operationId: 'Success',
-    subscriptionCreditBalance: 40,
-    topupCreditBalance: 10
+    result: 'Success',
+    operationDetails: {
+      fromBalance: 'subscription',
+      quantity: 100
+    },
+    balances: {
+      subscription: 40,
+      topup: 10
+    }
   };
 
   const validErrorResult: CreditAdditionResult = {
     success: false,
-    operationId: 'UnknownError',
+    result: 'UnknownError',
     error: new Error('Subscription service failed unexpectedly')
   };
 
@@ -377,7 +383,7 @@ describe(InvoicePaymentSucceededHandler, () => {
     const error = new Error('Topup service failed unexpectedly');
     const validAdditionErrorResult: CreditAdditionResult = {
       success: false,
-      operationId: 'UnknownError',
+      result: 'UnknownError',
       error: error
     };
     const addTopupFn = vi.fn().mockResolvedValue(validAdditionErrorResult);
