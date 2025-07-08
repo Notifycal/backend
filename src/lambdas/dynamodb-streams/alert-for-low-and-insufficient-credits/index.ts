@@ -1,0 +1,47 @@
+import { BatchProcessor, EventType, processPartialResponse } from '@aws-lambda-powertools/batch';
+import type { PartialItemFailureResponse } from '@aws-lambda-powertools/batch/types';
+import { backgroundProcessingMiddleware } from '@common/lambda-middleware';
+import { logger } from '@common/powertools';
+import { setupLoggerForAuditStoreRecordProcessing } from '@services/common/logger';
+import { SnsService } from '@services/sns';
+import type { Context } from 'aws-lambda';
+import {
+  readAlertForLowAndInsufficientCreditConfig,
+  type AlertForLowAndInsufficientCreditConfig
+} from './config';
+import { recordProcessor } from './record-processor';
+import { eventSchema, type Event, type Record } from './schema';
+
+export function recordProcessorCurried(
+  config: AlertForLowAndInsufficientCreditConfig
+): (record: Record) => Promise<void> {
+  return (record: Record) => {
+    const _logger = logger.createChild();
+    setupLoggerForAuditStoreRecordProcessing(record.dynamodb.NewImage);
+    const snsService = SnsService.withConfig(config.emailToBeSentTopicConfig, _logger);
+    return recordProcessor(
+      record.dynamodb.NewImage,
+      config.emailingSenderConfig,
+      snsService,
+      _logger
+    );
+  };
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function lambdaHandler(event: Event, _context: Context): Promise<PartialItemFailureResponse> {
+  return processPartialResponse(
+    event,
+    recordProcessorCurried(event.lambdaConfig),
+    new BatchProcessor(EventType.DynamoDBStreams)
+  ).catch((error) => {
+    logger.error(`Failed to process event`, { error });
+    throw error;
+  });
+}
+const handler = backgroundProcessingMiddleware(
+  () => readAlertForLowAndInsufficientCreditConfig(),
+  eventSchema
+).handler<Event>(lambdaHandler);
+
+module.exports = { handler };

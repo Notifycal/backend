@@ -11,22 +11,22 @@ const dataSchema = z.object({
   error: z.unknown()
 });
 
-export const actionableEventReminderInsufficientCreditNotSentEventSchema = eventSchemaGenerator(
-  'ActionableEventReminderInsufficientCreditNotSent',
+export const insufficientCreditReminderNotSentEventSchema = eventSchemaGenerator(
+  'InsufficientCreditReminderNotSent',
   dataSchema
 );
 
-export type ActionableEventReminderInsufficientCreditNotSentEvent = z.infer<
-  typeof actionableEventReminderInsufficientCreditNotSentEventSchema
+export type InsufficientCreditReminderNotSentEvent = z.infer<
+  typeof insufficientCreditReminderNotSentEventSchema
 >;
 
-export function actionableEventReminderInsufficientCreditNotSent(
+export function insufficientCreditReminderNotSent(
   originalEvent: ActionableEventFoundEvent,
   creditReductionResult: CreditDeductionInsufficientCreditsError
-): ActionableEventReminderInsufficientCreditNotSentEvent {
+): InsufficientCreditReminderNotSentEvent {
   return {
     ...originalEvent,
-    eventType: 'ActionableEventReminderInsufficientCreditNotSent',
+    eventType: 'InsufficientCreditReminderNotSent',
     data: {
       originalEvent: originalEvent.data,
       error: creditReductionResult

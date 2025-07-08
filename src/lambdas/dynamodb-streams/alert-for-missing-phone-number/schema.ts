@@ -1,10 +1,8 @@
-import { DynamoDBMarshalled } from '@aws-lambda-powertools/parser/helpers/dynamodb';
-import { DynamoDBStreamSchema } from '@aws-lambda-powertools/parser/schemas';
 import { actionableEventFoundEventSchema } from '@model/app-events/ActionableEventFoundEvent';
 import { noPhoneNumberForCalendarEventFoundEventSchema } from '@model/app-events/NoPhoneNumberForCalendarEventFoundEvent';
+import { createDynamoDBStreamEventSchema } from '@model/lambda-events/DynamoDBStreamEvents';
 import { auditTrailStoreRecordSchema } from '@model/store/AuditTrailStoreRecord';
 import { z } from 'zod';
-import type { AlertForMissingPhoneNumberConfig } from './config';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const aefShape = actionableEventFoundEventSchema.shape;
@@ -39,19 +37,7 @@ export const payloadSchemas = z.union([
   auditTrailNoPhoneNumberForCalendarEventFoundEventSchema
 ]);
 
-const dynamodbSchema = DynamoDBStreamSchema.shape.Records.element.shape.dynamodb
-  .innerType()
-  .extend({
-    NewImage: DynamoDBMarshalled(payloadSchemas)
-  });
+export const eventSchema = createDynamoDBStreamEventSchema(payloadSchemas);
 
-const extendedRecordSchema = DynamoDBStreamSchema.shape.Records.element.extend({
-  dynamodb: dynamodbSchema
-});
-
-export const eventSchema = z.object({
-  lambdaConfig: z.custom<AlertForMissingPhoneNumberConfig>(),
-  Records: extendedRecordSchema.array()
-});
 export type Event = z.infer<typeof eventSchema>;
 export type Record = Event['Records'][number];
