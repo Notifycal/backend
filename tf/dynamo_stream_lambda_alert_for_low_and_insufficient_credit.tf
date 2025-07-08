@@ -1,8 +1,8 @@
 locals {
-  alert_for_missing_phone_number_event_source_mappings = {
+  alert_for_low_and_insufficient_credits_event_source_mappings = {
     dynamodb = {
       event_source_arn                   = aws_dynamodb_table.audit_trail_events.stream_arn
-      function_name                      = module.alert_for_missing_phone_number_lambda.lambda_function_name
+      function_name                      = module.alert_for_low_and_insufficient_credits_lambda.lambda_function_name
       starting_position                  = "LATEST"
       function_response_types            = ["ReportBatchItemFailures"]
       maximum_retry_attempts             = 3
@@ -19,7 +19,7 @@ locals {
             dynamodb : {
               NewImage : {
                 EventType : {
-                  S : ["NoPhoneNumberForCalendarEventFound", "ActionableEventFound"]
+                  S : ["LowCreditsDetected", "InsufficientCreditReminderNotSent"]
                 }
               }
             }
@@ -29,7 +29,7 @@ locals {
     }
   }
 
-  alert_for_missing_phone_number_allowed_triggers = {
+  alert_for_low_and_insufficient_credits_allowed_triggers = {
     dynamodb = {
       principal  = "dynamodb.amazonaws.com"
       source_arn = aws_dynamodb_table.audit_trail_events.stream_arn
@@ -37,7 +37,7 @@ locals {
   }
 }
 
-data "aws_iam_policy_document" "alert_for_missing_phone_number_iam_policydoc" {
+data "aws_iam_policy_document" "alert_for_low_and_insufficient_credits_iam_policydoc" {
   statement {
     effect = "Allow"
 
@@ -50,29 +50,6 @@ data "aws_iam_policy_document" "alert_for_missing_phone_number_iam_policydoc" {
 
     resources = [
       aws_dynamodb_table.audit_trail_events.stream_arn
-    ]
-  }
-  statement {
-    effect = "Allow"
-
-    actions = [
-      "dynamodb:UpdateItem",
-      "dynamodb:Query"
-    ]
-
-    resources = [
-      aws_dynamodb_table.business_alerts.arn
-    ]
-  }
-  statement {
-    effect = "Allow"
-
-    actions = [
-      "dynamodb:Query"
-    ]
-
-    resources = [
-      aws_dynamodb_table.users.arn
     ]
   }
   statement {
@@ -100,14 +77,14 @@ data "aws_iam_policy_document" "alert_for_missing_phone_number_iam_policydoc" {
 
 }
 
-module "alert_for_missing_phone_number_lambda" {
+module "alert_for_low_and_insufficient_credits_lambda" {
   source  = "terraform-aws-modules/lambda/aws"
   version = "~> 8.0"
 
-  function_name          = "alert-for-missing-phone-number-${var.environment}"
+  function_name          = "alert-for-low-and-insufficient-credits-${var.environment}"
   publish                = local.lambdas_publish
   create_package         = local.lambdas_create_package
-  local_existing_package = "${path.root}/../dist/lambdas/dynamodb-streams/alert-for-missing-phone-number.zip"
+  local_existing_package = "${path.root}/../dist/lambdas/dynamodb-streams/alert-for-low-and-insufficient-credits.zip"
 
   runtime     = var.lambdas_runtime
   timeout     = local.api_lambdas_timeout
@@ -130,19 +107,15 @@ module "alert_for_missing_phone_number_lambda" {
   tags = local.common_tags
 
   attach_policy_json = true
-  policy_json        = data.aws_iam_policy_document.alert_for_missing_phone_number_iam_policydoc.json
+  policy_json        = data.aws_iam_policy_document.alert_for_low_and_insufficient_credits_iam_policydoc.json
 
   attach_policies    = true
   policies           = local.lambdas_shared_iam_policies
   number_of_policies = length(local.lambdas_shared_iam_policies)
 
-  event_source_mapping = local.alert_for_missing_phone_number_event_source_mappings
-  allowed_triggers     = local.alert_for_missing_phone_number_allowed_triggers
+  event_source_mapping = local.alert_for_low_and_insufficient_credits_event_source_mappings
+  allowed_triggers     = local.alert_for_low_and_insufficient_credits_allowed_triggers
 
   environment_variables = merge({
-    ERROR_RATE_THRESHOLD              = var.alert_for_missing_phone_number.error_rate_threshold
-    MAX_NOTIFICATIONS_PER_DAY         = var.alert_for_missing_phone_number.max_notifications_per_day
-    COUNT_THRESHOLD_TO_ENABLE_TRIGGER = var.alert_for_missing_phone_number.count_threshold_to_enable_trigger
-    FAQ_URL                           = "https://${var.base_domain}/faq"
-  }, local.email_to_be_sent_topic_env_vars, local.users_persistance_env_vars, local.business_alerts_persistance_env_vars, local.emailing_sender_env_vars, local.common_lambda_env_vars)
+  }, local.email_to_be_sent_topic_env_vars, local.emailing_sender_env_vars, local.common_lambda_env_vars)
 }
