@@ -1,6 +1,6 @@
 import type { LanguageCode } from '@notifycal/shared/types';
 
-export interface EmailTextVariables {
+export interface EmailTextVariables extends Record<string, string> {
   subject: string;
   header: string;
   greeting: string;

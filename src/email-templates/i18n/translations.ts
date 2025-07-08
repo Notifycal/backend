@@ -1,6 +1,6 @@
 import type { LanguageCode } from '@notifycal/shared/types';
 
-export interface NotifycalTranslations {
+export interface NotifycalTranslations extends Record<string, string> {
   appName: string;
   rightsReserved: string;
 }

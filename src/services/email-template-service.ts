@@ -37,7 +37,7 @@ export class EmailTemplateService {
   public compileTemplate<TEmailTemplateData extends Record<string, string>>(
     partialTemplate: string,
     specificTranslations: Record<LanguageCode, TEmailTemplateData>,
-    dynamicVariables: TEmailTemplateData = {}
+    dynamicVariables: Record<string, string> = {}
   ): (language: LanguageCode) => EmailTemplateResult {
     this.templateCompiler.registerPartial('content', partialTemplate);
     const compiledTemplate = this.templateCompiler.compile(baseTemplate);
@@ -65,24 +65,4 @@ export class EmailTemplateService {
     };
   }
 
-  public generateTemplateForLanguages(
-    partialTemplate: string,
-    specificTranslations: Record<LanguageCode, EmailTemplateData>,
-    dynamicVariables: EmailTemplateData,
-    languages: Array<LanguageCode>
-  ): Record<LanguageCode, EmailTemplateResult> {
-    const templateGenerator = this.compileTemplate(
-      partialTemplate,
-      specificTranslations,
-      dynamicVariables
-    );
-
-    return languages.reduce(
-      (acc, language) => {
-        acc[language] = templateGenerator(language);
-        return acc;
-      },
-      {} as Record<LanguageCode, EmailTemplateResult>
-    );
-  }
 }

@@ -92,14 +92,14 @@ function interpolateEmail(
     'NoPhoneNumberForCalendarEventFound';
 
   const emailTemplateService = new EmailTemplateService(logger);
-  const templateGenerator = emailTemplateService.compileTemplate(
+  const compiledTemplateFn = emailTemplateService.compileTemplate(
     alertMissingPhoneNumberPartialTemplate,
     specificTranslations,
     {
       notifycalFaqUrl: alertEmailConfig.faqUrl.toString()
     }
   );
-  const emailTemplate = templateGenerator(language);
+  const emailTemplate = compiledTemplateFn(language);
 
   return {
     from: sender,
