@@ -47,4 +47,3 @@ export const specificTranslations: Record<LanguageCode, EmailTextVariables> = {
     thankYou: 'Thank you for choosing Notifycal!'
   }
 };
-

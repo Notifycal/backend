@@ -55,7 +55,7 @@ export class EmailTemplateService {
         htmlBody: compiledTemplate(templateData) as EmailHtmlBody,
         subject: specificTranslations[language].subject as EmailSubject,
         inlineAttachments: {
-          logoFilename: {
+          [logoFilename]: {
             type: 'inline',
             base64Content: logo as EmailInlineAttachementBase64,
             contentType: 'image/png' as ContentType
@@ -64,5 +64,4 @@ export class EmailTemplateService {
       };
     };
   }
-
 }
