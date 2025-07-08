@@ -78,8 +78,8 @@ export class InvoicePaymentSucceededHandler
   }
 
   private createHandler(invoice: Stripe.Invoice, identity: Identity<IdpName>): Promise<void> {
-    const firstLine = invoice.lines.data[0];
-    return this.extractProduct(firstLine, this.tiers).then(
+    const firstConceptInInvoice = invoice.lines.data[0];
+    return this.extractProduct(firstConceptInInvoice, this.tiers).then(
       (tierId) =>
         this.subscriptionService
           .create(identity, tierId)
@@ -89,8 +89,8 @@ export class InvoicePaymentSucceededHandler
   }
 
   private renewHandler(invoice: Stripe.Invoice, identity: Identity<IdpName>): Promise<void> {
-    const firstLine = invoice.lines.data[0];
-    return this.extractProduct(firstLine, this.tiers).then(
+    const firstConceptInInvoice = invoice.lines.data[0];
+    return this.extractProduct(firstConceptInInvoice, this.tiers).then(
       (tierId) =>
         this.subscriptionService.renew(identity, tierId).then((r) => this.creditAdditionHandler(r)),
       (error) => this.errorHandler('renew-subscription')(error)
