@@ -19,6 +19,7 @@ import { SnsService } from '@services/sns';
 import { UserBaseStore } from '@services/stores/user-base-store';
 import { interpolate } from '@services/template';
 import { senderToCanonicalForm } from '@utils/phone';
+import { normalizeToGSM7Bit } from '@utils/sms';
 import type { APIGatewayProxyResult, Context } from 'aws-lambda';
 import { demoReminderPayloadSchema } from 'node_modules/@notifycal/shared/dist/schemas/reminder';
 import { v4 } from 'uuid';
@@ -32,6 +33,18 @@ const eventSchema = authedEventSchema<PostDemoReminderConfig>().extend({
 });
 export type Event = z.infer<typeof eventSchema>;
 
+function ensureMessageIsCheap(msg: string): string {
+  const gsm7bitMsg = normalizeToGSM7Bit(msg);
+  const gsm7bitMessageLength = 160;
+  const lengthHardLimit = 3 * gsm7bitMessageLength;
+  const threeMessageLimitMessage = gsm7bitMsg.substring(0, lengthHardLimit);
+  console.error(threeMessageLimitMessage);
+  if (gsm7bitMsg !== threeMessageLimitMessage) {
+    logger.warn(`Demo reminder has been truncated to ${lengthHardLimit} characters`);
+  }
+  return threeMessageLimitMessage;
+}
+
 function buildEvent(
   requestBody: Event['body'],
   userReminderConfig: LiveUserStoreRecord<unknown>['Config'],
@@ -39,6 +52,13 @@ function buildEvent(
   identity: Identity<IdpName>
 ): DemoReminderToBeSentEvent {
   const eventId = v4();
+  const message = interpolate(
+    templateId,
+    userReminderConfig.Business.Name,
+    userReminderConfig.Business.Address,
+    requestBody.startTime.dateTime,
+    requestBody.startTime.timeZone
+  );
   return {
     eventId: eventId as EventId,
     correlationId: eventId as CorrelationId,
@@ -54,13 +74,7 @@ function buildEvent(
       receiverDetails: senderToCanonicalForm(
         fromStoreRecord(userReminderConfig.Business.SenderContact)
       ) as PhoneStandardContact, // TODO: when RCS is fully implemented this casting needs to disappear
-      message: interpolate(
-        templateId,
-        userReminderConfig.Business.Name,
-        userReminderConfig.Business.Address,
-        requestBody.startTime.dateTime,
-        requestBody.startTime.timeZone
-      )
+      message: ensureMessageIsCheap(message)
     }
   };
 }
