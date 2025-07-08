@@ -1,11 +1,12 @@
 import type { Logger } from '@aws-lambda-powertools/logger';
-import { template } from '@email-templates/alert-missing-phone-number/alert-missing-phone-number.html.hbs';
+import { alertMissingPhoneNumberPartialTemplate } from '@email-templates/alert-missing-phone-number/alert-missing-phone-number.html.hbs';
 import {
   translations,
   type EmailDynamicVariables,
   type EmailTextVariables
 } from '@email-templates/alert-missing-phone-number/translations';
 import { logo } from '@email-templates/assets/logo.png.base64';
+import { baseTemplate } from '@email-templates/base-template.html.hbs';
 import type { EmailWithName } from '@model/app-events/common';
 import type { EmailToBeSentEvent } from '@model/app-events/EmailToBeSentEvent';
 import type { EmailingSenderEndpointConfig } from '@model/Config';
@@ -102,7 +103,9 @@ function interpolateEmail(
   const subEventType: EmailToBeSentEvent['data']['subEventType'] =
     'NoPhoneNumberForCalendarEventFound';
 
-  const compiledTemplate = new TemplateCompiler(logger).compile(template);
+  const templateCompiler = new TemplateCompiler(logger);
+  templateCompiler.registerPartial('content', baseTemplate);
+  const compiledTemplate = templateCompiler.compile(alertMissingPhoneNumberPartialTemplate);
   const _translations = translations(language);
   const logoFilename = 'logo.png';
   const templateData: EmailTextVariables & EmailDynamicVariables = {
