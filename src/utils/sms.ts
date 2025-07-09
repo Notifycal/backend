@@ -1,18 +1,7 @@
+import { GSM_7BIT_REGEXP } from 'sms-length';
 export interface CharacterMapping {
   [inputChar: string]: string | null;
 }
-
-export const GSM_7BIT_VALID_CHARACTERS =
-  '@£$¥èéùìòÇ\nØø\rÅå' +
-  'Δ_ΦΓΛΩΠΨΣΘΞÆæßÉ' +
-  ' !"#¤%&\'()*+,-./' +
-  '0123456789:;<=>?' +
-  '¡ABCDEFGHIJKLMNO' +
-  'PQRSTUVWXYZÄÖÑÜ§' +
-  '¿abcdefghijklmno' +
-  'pqrstuvwxyzäöñüà';
-
-export const GSM_7BIT_EXTENDED_CHARACTERS = '\f^{}\\[~]|€';
 
 export const DEFAULT_CHARACTER_MAPPING: CharacterMapping = {
   á: 'a',
@@ -63,7 +52,7 @@ export const DEFAULT_CHARACTER_MAPPING: CharacterMapping = {
   '©': '(c)',
   '®': '(R)',
   '™': '(TM)',
-  '°': 'deg',
+  '°': 'o',
 
   '–': '-',
   '—': '-',
@@ -83,12 +72,20 @@ export const DEFAULT_CHARACTER_MAPPING: CharacterMapping = {
   '²': '2',
   '³': '3',
 
-  '¿': '?',
-  '¡': '!'
+  // GSM 7-bit EXT
+  '\f': '',
+  '^': '',
+  '{': '(',
+  '}': ')',
+  '\\': '',
+  '[': '(',
+  '~': '-',
+  ']': ')',
+  '|': ' ',
+  '€': 'e'
 };
 
-const isValidGSM7BitCharacter = (char: string): boolean =>
-  GSM_7BIT_VALID_CHARACTERS.includes(char) || GSM_7BIT_EXTENDED_CHARACTERS.includes(char);
+const isValidGSM7BitCharacter = (char: string): boolean => GSM_7BIT_REGEXP.test(char);
 
 const processCharacter = (
   char: string,

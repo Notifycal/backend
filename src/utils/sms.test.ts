@@ -15,10 +15,10 @@ describe('GSM 7-bit text normalization', () => {
       expect(result).toBe('@£$¥èeùì');
     });
 
-    it('should keep extended GSM characters unchanged', () => {
+    it('should transform extended GSM characters according to mapping', () => {
       const result = normalizeToGSM7Bit('{}[]\\^~|€');
 
-      expect(result).toBe('{}[]\\^~|€');
+      expect(result).toBe('()()- e');
     });
 
     it('should replace invalid characters with default replacement', () => {
@@ -110,7 +110,7 @@ describe('GSM 7-bit text normalization', () => {
     it('should use default mapping for accented characters', () => {
       const result = normalizeToGSM7Bit('Hola José, ¿cómo estás?');
 
-      expect(result).toBe('Hola Jose, ?como estas?');
+      expect(result).toBe('Hola Jose, ¿como estas?');
     });
 
     it('should transform Spanish accented text by default', () => {
@@ -128,13 +128,13 @@ describe('GSM 7-bit text normalization', () => {
     it('should handle symbols and currency with default mapping', () => {
       const result = normalizeToGSM7Bit('Price: 100€ or £50 (50% discount)');
 
-      expect(result).toBe('Price: 100€ or £50 (50% discount)');
+      expect(result).toBe('Price: 100e or £50 (50% discount)');
     });
 
     it('should handle fractions and special characters', () => {
       const result = normalizeToGSM7Bit('Recipe: 1½ cups, temperature 350°F');
 
-      expect(result).toBe('Recipe: 11/2 cups, temperature 350degF');
+      expect(result).toBe('Recipe: 11/2 cups, temperature 350oF');
     });
 
     it('should allow custom mapping to override default', () => {
@@ -148,7 +148,7 @@ describe('GSM 7-bit text normalization', () => {
         '!Bienvenidos al café "La Señorita"! Menú: crêpes €15, café ½ precio'
       );
 
-      expect(result).toBe('!Bienvenidos al cafe "La Señorita"! Menu: crepes €15, cafe 1/2 precio');
+      expect(result).toBe('!Bienvenidos al cafe "La Señorita"! Menu: crepes e15, cafe 1/2 precio');
     });
   });
 
@@ -167,16 +167,16 @@ describe('GSM 7-bit text normalization', () => {
     });
 
     it('should contain currency and symbol mappings', () => {
-      expect(DEFAULT_CHARACTER_MAPPING['€']).toBeUndefined(); // € is valid GSM character
+      expect(DEFAULT_CHARACTER_MAPPING['€']).toBe('e');
       expect(DEFAULT_CHARACTER_MAPPING['£']).toBeUndefined(); // £ is valid GSM character
-      expect(DEFAULT_CHARACTER_MAPPING['°']).toBe('deg');
+      expect(DEFAULT_CHARACTER_MAPPING['°']).toBe('o');
     });
 
     it('should work seamlessly with normalizeToGSM7Bit', () => {
       const text = 'Testing áéíóú and ñ with €';
       const result = normalizeToGSM7Bit(text);
 
-      expect(result).toBe('Testing aeiou and ñ with €');
+      expect(result).toBe('Testing aeiou and ñ with e');
     });
   });
 });
