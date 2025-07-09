@@ -6,10 +6,9 @@ import {
 } from '@services/common/config';
 import { promiseTry } from '@utils/promises';
 
-export type AlertForLowAndInsufficientCreditConfig = EmailToBeSentTopicConfig &
-  EmailingSenderEndpointConfig;
+export type AlertForEventsConfig = EmailToBeSentTopicConfig & EmailingSenderEndpointConfig;
 
-export function readAlertForLowAndInsufficientCreditConfig(): Promise<AlertForLowAndInsufficientCreditConfig> {
+export function readAlertForEventsConfig(): Promise<AlertForEventsConfig> {
   const env = readEnv();
   return promiseTry(() => ({
     ...readEmailToBeSentTopicConfig(env),

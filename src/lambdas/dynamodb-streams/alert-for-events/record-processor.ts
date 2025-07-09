@@ -7,9 +7,9 @@ import type {
 } from './schema';
 
 export function recordProcessor(
-  event: AuditTrailLowCreditDetectedEvent | AuditTrailInsufficientCreditReminderNotSentEvent,
-  config: EmailingSenderConfig,
-  snsService: SnsService,
+  _event: AuditTrailLowCreditDetectedEvent | AuditTrailInsufficientCreditReminderNotSentEvent,
+  _config: EmailingSenderConfig,
+  _snsService: SnsService,
   logger: Logger
 ): Promise<void> {
   logger.info(`Processing events`);

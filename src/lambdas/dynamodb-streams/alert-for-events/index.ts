@@ -5,15 +5,12 @@ import { logger } from '@common/powertools';
 import { setupLoggerForAuditStoreRecordProcessing } from '@services/common/logger';
 import { SnsService } from '@services/sns';
 import type { Context } from 'aws-lambda';
-import {
-  readAlertForLowAndInsufficientCreditConfig,
-  type AlertForLowAndInsufficientCreditConfig
-} from './config';
+import { readAlertForEventsConfig, type AlertForEventsConfig } from './config';
 import { recordProcessor } from './record-processor';
 import { eventSchema, type Event, type Record } from './schema';
 
 export function recordProcessorCurried(
-  config: AlertForLowAndInsufficientCreditConfig
+  config: AlertForEventsConfig
 ): (record: Record) => Promise<void> {
   return (record: Record) => {
     const _logger = logger.createChild();
@@ -40,7 +37,7 @@ function lambdaHandler(event: Event, _context: Context): Promise<PartialItemFail
   });
 }
 const handler = backgroundProcessingMiddleware(
-  () => readAlertForLowAndInsufficientCreditConfig(),
+  () => readAlertForEventsConfig(),
   eventSchema
 ).handler<Event>(lambdaHandler);
 

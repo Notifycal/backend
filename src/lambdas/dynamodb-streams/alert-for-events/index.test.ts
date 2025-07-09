@@ -9,7 +9,7 @@ import { validRawRecord } from '@testing/data/dynamodb-stream-events';
 import { setEnvEmailingSenderConfig, setEnvEmailToBeSentTopicConfig } from '@testing/utils/config';
 import type { DynamoDBRecord, DynamoDBStreamEvent } from 'aws-lambda';
 import { describe, vi } from 'vitest';
-import type { AlertForLowAndInsufficientCreditConfig } from './config';
+import type { AlertForEventsConfig } from './config';
 // @ts-expect-error cjs handler export
 import { handler } from './index';
 import { recordProcessor } from './record-processor';
@@ -26,7 +26,7 @@ const validDynamoDbStreamEvent: DynamoDBStreamEvent = {
 };
 
 function setEnv() {
-  const config: AlertForLowAndInsufficientCreditConfig = {
+  const config: AlertForEventsConfig = {
     emailToBeSentTopicConfig: {
       topicArn: 'some-arn' as AwsArn
     },
@@ -45,7 +45,7 @@ vi.mock('./record-processor');
 
 describe(
   // eslint-disable-next-line vitest/valid-describe-callback
-  'Alert For Low And Insufficient Credits',
+  'Alert For Events',
   createBatchProcessingHandlerTestSuite({
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     handler,

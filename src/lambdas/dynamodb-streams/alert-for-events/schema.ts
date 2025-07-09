@@ -4,7 +4,7 @@ import { insufficientCreditReminderNotSentEventSchema } from '@model/app-events/
 import { lowCreditsDetectedEventSchema } from '@model/app-events/LowCreditsDetectedEvent';
 import { auditTrailStoreRecordSchema } from '@model/store/AuditTrailStoreRecord';
 import { z } from 'zod';
-import type { AlertForLowAndInsufficientCreditConfig } from './config';
+import type { AlertForEventsConfig } from './config';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const lcdShape = lowCreditsDetectedEventSchema.shape;
@@ -48,7 +48,7 @@ const extendedRecordSchema = DynamoDBStreamSchema.shape.Records.element.extend({
 });
 
 export const eventSchema = z.object({
-  lambdaConfig: z.custom<AlertForLowAndInsufficientCreditConfig>(),
+  lambdaConfig: z.custom<AlertForEventsConfig>(),
   Records: extendedRecordSchema.array()
 });
 

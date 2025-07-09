@@ -299,7 +299,7 @@ describe('Messaging processor', () => {
       expect(sendMessageSpy).not.toHaveBeenCalled();
       expect(safePublishSpy).toHaveBeenCalledWith({
         ...validActionableEvent,
-        eventType: 'ActionableEventReminderInsufficientCreditNotSent',
+        eventType: 'InsufficientCreditReminderNotSent',
         data: {
           originalEvent: {
             ...validActionableEvent.data
