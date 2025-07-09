@@ -93,7 +93,7 @@ const processCharacter = (
   replaceUnknownWith: string | null
 ): string => {
   if (char in characterMapping) {
-    const mappedValue = characterMapping[char];
+    const mappedValue = characterMapping[char] ?? null;
     return mappedValue === null ? '' : mappedValue;
   }
 
