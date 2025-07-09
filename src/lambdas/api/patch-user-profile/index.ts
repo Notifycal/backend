@@ -27,7 +27,7 @@ export type OutputEvent = z.output<typeof eventSchema>;
 function lambdaHandler(
   event: OutputEvent,
   /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
-  ctx: Context
+  _ctx: Context
 ): Promise<APIGatewayProxyResult> {
   const config = event.lambdaConfig;
   const body = event.body;
@@ -38,7 +38,7 @@ function lambdaHandler(
     .then(() => successHandler(204)(), errorHandler(500));
 }
 
-const handler = protectedEndpointMiddleware(readPatchUserConfig, eventSchema).handler<Event>(
+const handler = protectedEndpointMiddleware(readPatchUserConfig, eventSchema).handler<OutputEvent>(
   lambdaHandler
 );
 

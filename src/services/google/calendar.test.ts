@@ -148,13 +148,13 @@ describe('GoogleCalendar Service eventsWithinPeriod', () => {
 
     expect(eventsListFn).toHaveBeenCalledTimes(2);
     expect(result.successList).toHaveLength(2);
-    expect(result.successList[0].id).toBe('event1');
-    expect(result.successList[1].id).toBe('event2');
-    expect(result.successList[0].attendees).toStrictEqual([
+    expect(result.successList[0]!.id).toBe('event1');
+    expect(result.successList[1]!.id).toBe('event2');
+    expect(result.successList[0]!.attendees).toStrictEqual([
       { id: (validEvent.attendees || [])[1]?.email }
     ]);
     // eslint-disable-next-line vitest/max-expects
-    expect(result.successList[1].attendees).toStrictEqual([
+    expect(result.successList[1]!.attendees).toStrictEqual([
       { id: (validEvent2.attendees || [])[0]?.email }
     ]);
   });
@@ -187,7 +187,7 @@ describe('GoogleCalendar Service eventsWithinPeriod', () => {
     const result = await testit(eventsListFn, true);
 
     expect(result.successList).toHaveLength(1);
-    expect(result.successList[0].id).toBe('event2');
+    expect(result.successList[0]!.id).toBe('event2');
   });
 
   it('should exclude all-day events if the flag is false', async () => {
@@ -214,7 +214,7 @@ describe('GoogleCalendar Service eventsWithinPeriod', () => {
     const result = await testit(eventsListFn);
 
     expect(result.failureList).toHaveLength(1);
-    expect(result.failureList[0].message).includes(
+    expect(result.failureList[0]!.message).includes(
       `Parsing error when extracting information out of a Google Calendar Events list. Google calendar id: ${calendarId}. Google event id: ${invalidEvent.id}. Error: Neither .date not dateTime could be read on event.`
     );
   });

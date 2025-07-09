@@ -9,8 +9,8 @@ export function hashString(id: string): Uuid {
     uuidBytes[index] = byte;
   });
 
-  uuidBytes[6] = (uuidBytes[6] & 0x0f) | 0x40;
-  uuidBytes[8] = (uuidBytes[8] & 0x3f) | 0x80;
+  uuidBytes[6] = (uuidBytes[6]! & 0x0f) | 0x40;
+  uuidBytes[8] = (uuidBytes[8]! & 0x3f) | 0x80;
 
   return stringify(uuidBytes) as Uuid;
 }

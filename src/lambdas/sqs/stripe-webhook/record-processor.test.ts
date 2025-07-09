@@ -4,13 +4,14 @@ import type { Email, IdpId, UserId } from '@notifycal/shared/types';
 import type { AwsArn } from '@own-types/model';
 import { validPaymentPlans } from '@testing/data/pricing';
 import { validStripeEventBridgeEvent as _validStripeEventBridgeEvent } from '@testing/data/stripe-event-bridge-event';
+import type { EventBridgeEvent } from 'aws-lambda';
 import type { Stripe } from 'stripe';
 import { v4 } from 'uuid';
 import { describe, expect, it, vi } from 'vitest';
 import type { StripeWebhookConfig } from './config';
 import { defaultEventHandlers, recordProcessor } from './record-processor';
-import type { Record } from './schema';
 import { StripeEventProcessor } from './stripe-event-processor';
+import type { StripeEventType } from './stripe-schemas';
 
 vi.mock('./stripe-event-processor');
 
@@ -91,7 +92,7 @@ describe(recordProcessor, () => {
   });
 
   function testIt(
-    record: Record['body'],
+    record: EventBridgeEvent<StripeEventType, Stripe.Event>,
     eventHandlersFn: typeof defaultEventHandlers = defaultEventHandlers,
     processFn: () => Promise<void> = vi.fn().mockResolvedValue(undefined),
     config: StripeWebhookConfig = validConfig

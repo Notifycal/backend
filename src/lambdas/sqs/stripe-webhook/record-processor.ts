@@ -8,7 +8,6 @@ import { PaymentUserIndexStore } from '@services/stores/payment-user-index-store
 import { UserBaseStore } from '@services/stores/user-base-store';
 import { SubscriptionService } from '@services/subscription';
 import { TopupService } from '@services/topup';
-import type { EventBridgeEvent } from 'aws-lambda';
 import type { Stripe } from 'stripe';
 import type { StripeWebhookConfig } from './config';
 import { CheckoutSessionCompletedHandler } from './event-handlers/checkout';
@@ -36,6 +35,7 @@ import {
 } from './event-handlers/subscription';
 import { StripeEventPublisher } from './event-publisher';
 import { StripeIdentityExtractor } from './identity-extractor';
+import type { Record as SqsRecord } from './schema';
 import { StripeEventProcessor } from './stripe-event-processor';
 import type { StripeEventType } from './stripe-schemas';
 
@@ -91,7 +91,7 @@ function toProductToCreditsMap<T extends TierId | TopupId>(
 }
 
 export function recordProcessor(
-  record: EventBridgeEvent<StripeEventType, Stripe.Event>,
+  record: SqsRecord['body'],
   eventHandlerFactory: (
     subscriptionService: SubscriptionService<IdpName>,
     topupService: TopupService<IdpName>,

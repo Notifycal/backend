@@ -177,7 +177,7 @@ describe('Jwt decoder/verifier with signature', () => {
     it(`should fail to verify a jwt when ${jwtClaimKeyUnderTest} does not match`, () => {
       const encodeConfig = {
         ...validEncodeConfig,
-        [jwtClaimKeyUnderTest]: 'rubbish'
+        [jwtClaimKeyUnderTest!]: 'rubbish'
       };
 
       const result = buildJwt(

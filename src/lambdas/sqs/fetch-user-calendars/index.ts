@@ -95,10 +95,13 @@ function runDataFromConfig(config: CronRunConfig, event: Record['body']): CronRu
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-async function lambdaHandler(event: Event, context: Context): Promise<void> {
+async function lambdaHandler(event: Event, _context: Context): Promise<void> {
   const { userLiveIndexStoreConfig, userCalendarFetchedTopicConfig, cronRunConfig } =
     event.lambdaConfig;
-  const record = event.Records[0].body;
+  const record = event.Records[0]?.body;
+  if (!record) {
+    throw new Error('No record found in event');
+  }
   const userLiveProvider = UserLiveIndexStore.withConfig(userLiveIndexStoreConfig);
   const snsService = SnsService.withConfig(userCalendarFetchedTopicConfig, logger);
 

@@ -50,6 +50,9 @@ function lambdaHandler(
 ): Promise<Uuid | 'MessageNotSentOutsideOfSpain'> {
   const config = event.lambdaConfig;
   const record = event.Records[0];
+  if (!record?.body) {
+    return Promise.reject(new Error('No record body found in event'));
+  }
   setupLoggerForEventProcessing(record.body);
   logger.appendKeys({
     ...('run' in record.body.data ? { run: record.body.data.run } : {}),
