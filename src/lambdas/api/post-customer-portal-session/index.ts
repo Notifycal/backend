@@ -18,7 +18,7 @@ import { type Event, eventSchema } from './schemas';
 async function lambdaHandler(
   event: Event,
   /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
-  ctx: Context
+  _ctx: Context
 ): Promise<APIGatewayProxyResult> {
   const { userId } = event.requestContext.authorizer.payload;
   const { userBaseStoreConfig, stripeAuthConfig, stripeCustomerPortalConfig } = event.lambdaConfig;

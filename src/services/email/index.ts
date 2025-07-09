@@ -1,5 +1,5 @@
 import type { Logger } from '@aws-lambda-powertools/logger';
-import { environment, logger } from '@common/powertools';
+import { environment } from '@common/powertools';
 import type { EmailWithName } from '@model/app-events/common';
 import type { EmailInlineAttachment } from '@model/app-events/EmailToBeSentEvent';
 import type { EmailSendSuccessResponse } from '@model/vendor/mailgun/schemas';
@@ -62,7 +62,7 @@ export class EmailService {
     // Docs: https://documentation.mailgun.com/docs/mailgun/user-manual/tracking-messages/#tags
     const { items: sanitizedTags, dropped: droppedTags } = capArray([environment, ...tags], 10);
     if (droppedTags.length > 0) {
-      logger.warn(`Tags list has been capped as it exceeds vendor 10 limit.`, {
+      this.logger.warn(`Tags list has been capped as it exceeds vendor 10 limit.`, {
         droppedTags
       });
     }
@@ -70,18 +70,20 @@ export class EmailService {
       if (tag.length <= 128) {
         form.append(`o:tag`, tag);
       } else {
-        logger.warn(`Tag ${tag} has not been included in vendor call has it exceeds vendor limits`);
+        this.logger.warn(
+          `Tag ${tag} has not been included in vendor call has it exceeds vendor limits`
+        );
       }
     });
 
     return this.httpClient
       .post(`/v3/${this.domainName}/messages`, `${this.domainName} messages`, form)
       .then((response) => {
-        logger.info('Email response:', { response });
+        this.logger.info('Email response:', { response });
         return response.data as EmailSendSuccessResponse;
       })
       .catch((error) => {
-        rethrowError('Email error', error, logger);
+        rethrowError('Email error', error, this.logger);
       });
   }
 }

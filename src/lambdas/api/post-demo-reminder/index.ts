@@ -6,7 +6,14 @@ import type { DemoReminderToBeSentEvent } from '@model/app-events/DemoReminderTo
 import { authedEventSchema } from '@model/lambda-events/ApiGatewayEvents';
 import { fromStoreRecord } from '@model/store/ContactDetailsRecordStore';
 import type { LiveUserStoreRecord } from '@model/store/LiveUserStoreRecord';
-import type { CorrelationId, DateTime, EventId, Identity, IdpName } from '@notifycal/shared/types';
+import type {
+  CorrelationId,
+  DateTime,
+  EventId,
+  Identity,
+  IdpName,
+  TemplateId
+} from '@notifycal/shared/types';
 import { errorHandler, successHandler } from '@services/common/api-response-handlers';
 import { SnsService } from '@services/sns';
 import { UserBaseStore } from '@services/stores/user-base-store';
@@ -28,10 +35,10 @@ export type Event = z.infer<typeof eventSchema>;
 function buildEvent(
   requestBody: Event['body'],
   userReminderConfig: LiveUserStoreRecord<unknown>['Config'],
+  templateId: TemplateId,
   identity: Identity<IdpName>
 ): DemoReminderToBeSentEvent {
   const eventId = v4();
-  const templateId = userReminderConfig.Calendars[0].Template.Id;
   return {
     eventId: eventId as EventId,
     correlationId: eventId as CorrelationId,
@@ -74,13 +81,19 @@ async function lambdaHandler(
   return userBaseStore
     .getUserConfigAndDemoReminderCount(userId)
     .then((userConfigData) => {
-      if (!userConfigData?.Config) {
+      const templateId = userConfigData?.Config.Calendars[0]?.Template.Id;
+      if (!userConfigData?.Config || !templateId) {
         return errorHandler(404)('User config not found');
       }
       if (userConfigData.DemoReminderCount >= demoReminderLimit) {
         return errorHandler(429)('Demo reminder limit reached');
       }
-      const demoReminderToBeSent = buildEvent(requestBody, userConfigData.Config, callerIdentity);
+      const demoReminderToBeSent = buildEvent(
+        requestBody,
+        userConfigData.Config,
+        templateId,
+        callerIdentity
+      );
       return snsService.publish(demoReminderToBeSent).then(() => successHandler(202)());
     })
     .catch((error) => errorHandler(500)('Unexpected error', { error }));

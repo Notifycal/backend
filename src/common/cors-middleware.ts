@@ -46,8 +46,8 @@ export function corsMiddleware<TConfig extends CorsEndpointConfig>(): Middleware
   AuthedAPIEventWithConfig<TConfig>,
   APIGatewayProxyResult
 > {
-  return {
-    before: corsCheck<TConfig>().before,
+  const corsCheckBefore = corsCheck<TConfig>().before;
+  const middleware: MiddlewareObj<AuthedAPIEventWithConfig<TConfig>, APIGatewayProxyResult> = {
     after: (
       req: Request<AuthedAPIEventWithConfig<TConfig>, APIGatewayProxyResult, Error, Context>
     ) =>
@@ -58,4 +58,10 @@ export function corsMiddleware<TConfig extends CorsEndpointConfig>(): Middleware
       // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     ) => configureMiddleware(req).onError?.(req)
   };
+
+  if (corsCheckBefore) {
+    middleware.before = corsCheckBefore;
+  }
+
+  return middleware;
 }

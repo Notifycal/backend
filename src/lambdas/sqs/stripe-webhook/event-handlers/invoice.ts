@@ -78,7 +78,8 @@ export class InvoicePaymentSucceededHandler
   }
 
   private createHandler(invoice: Stripe.Invoice, identity: Identity<IdpName>): Promise<void> {
-    return this.extractProduct(invoice.lines.data[0], this.tiers).then(
+    const firstConceptInInvoice = invoice.lines.data[0];
+    return this.extractProduct(firstConceptInInvoice, this.tiers).then(
       (tierId) =>
         this.subscriptionService
           .create(identity, tierId)
@@ -88,7 +89,8 @@ export class InvoicePaymentSucceededHandler
   }
 
   private renewHandler(invoice: Stripe.Invoice, identity: Identity<IdpName>): Promise<void> {
-    return this.extractProduct(invoice.lines.data[0], this.tiers).then(
+    const firstConceptInInvoice = invoice.lines.data[0];
+    return this.extractProduct(firstConceptInInvoice, this.tiers).then(
       (tierId) =>
         this.subscriptionService.renew(identity, tierId).then((r) => this.creditAdditionHandler(r)),
       (error) => this.errorHandler('renew-subscription')(error)
@@ -127,14 +129,21 @@ export class InvoicePaymentSucceededHandler
   ): Promise<{ previousTier: TierId; currentTier: TierId }> {
     const previousTierInvoiceLineItem = invoice.lines.data[0];
     const currentTierInvoiceLineItem = invoice.lines.data[1];
-
     return Promise.all([
       this.extractProduct(previousTierInvoiceLineItem, this.tiers),
       this.extractProduct(currentTierInvoiceLineItem, this.tiers)
-    ]).then(([previousTier, currentTier]) => ({
-      previousTier,
-      currentTier
-    }));
+    ]).then(
+      ([previousTier, currentTier]) => ({
+        previousTier,
+        currentTier
+      }),
+      (error) =>
+        Promise.reject(
+          new Error(`Missing invoice line items for subscription update. Invoice: ${invoice.id}`, {
+            cause: error
+          })
+        )
+    );
   }
 
   private async executeSubscriptionUpdate(
@@ -176,10 +185,10 @@ export class InvoicePaymentSucceededHandler
 
   private topupHandler(invoice: Stripe.Invoice, identity: Identity<IdpName>): Promise<void> {
     const product = invoice.lines.data[0];
-    const quantity = product.quantity || 0;
+    const quantity = product?.quantity || 0;
     if (quantity <= 0) {
       return this.errorHandler('topup')(
-        new Error(`Quantity is not greater than 0. Quantity: ${product.quantity}`)
+        new Error(`Quantity is not greater than 0. Quantity: ${product?.quantity}`)
       );
     }
     return this.extractProduct(product, this.topups).then(
@@ -214,7 +223,7 @@ export class InvoicePaymentSucceededHandler
   }
 
   private extractProduct<K extends TierId | TopupId>(
-    invoiceItem: Stripe.InvoiceLineItem,
+    invoiceItem: Stripe.InvoiceLineItem | undefined,
     products: Record<string, { id: K; priceId: string }>
   ): Promise<K> {
     const priceId = invoiceItem?.pricing?.price_details?.price;
