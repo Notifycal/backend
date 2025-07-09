@@ -15,9 +15,15 @@ describe(TopupService, () => {
   const validQuantity = 3;
   const validCreditAdditionResult: CreditAdditionResult = {
     success: true,
-    operationId: 'Success',
-    subscriptionCreditBalance: 50,
-    topupCreditBalance: 30
+    result: 'Success',
+    operationDetails: {
+      fromBalance: 'topup',
+      quantity: 270
+    },
+    balances: {
+      subscription: 50,
+      topup: 30
+    }
   };
 
   const validTopupToCreditsMap: Record<TopupId, number> = {

@@ -38,22 +38,34 @@ describe(SubscriptionService, () => {
 
   const validSuccessResult: CreditAdditionResult = {
     success: true,
-    operationId: 'Success',
-    subscriptionCreditBalance: 150,
-    topupCreditBalance: 44
+    result: 'Success',
+    operationDetails: {
+      fromBalance: 'subscription',
+      quantity: 100
+    },
+    balances: {
+      subscription: 150,
+      topup: 44
+    }
   };
 
   const validErrorResult: CreditAdditionResult = {
     success: false,
-    operationId: 'UnknownError',
+    result: 'UnknownError',
     error: new Error('Service unavailable')
   };
 
   const validSuccessDeduction: CreditDeductionResult = {
     success: true,
-    operationId: 'Success',
-    subscriptionCreditBalance: 55,
-    topupCreditBalance: 4
+    result: 'Success',
+    operationDetails: {
+      fromBalance: 'subscription',
+      quantity: 50
+    },
+    balances: {
+      subscription: 55,
+      topup: 4
+    }
   };
 
   describe('createSubscription', () => {
@@ -211,7 +223,7 @@ describe(SubscriptionService, () => {
 
       expect(result).toStrictEqual({
         success: false,
-        operationId: 'UnknownError',
+        result: 'UnknownError',
         error: new Error('Invalid remaining percentage: -10')
       });
       expect(addFn).not.toHaveBeenCalled();
@@ -229,7 +241,7 @@ describe(SubscriptionService, () => {
 
       expect(result).toStrictEqual({
         success: false,
-        operationId: 'UnknownError',
+        result: 'UnknownError',
         error: new Error('Invalid remaining percentage: 150')
       });
       expect(addFn).not.toHaveBeenCalled();
@@ -247,7 +259,7 @@ describe(SubscriptionService, () => {
 
       expect(result).toStrictEqual({
         success: false,
-        operationId: 'UnknownError',
+        result: 'UnknownError',
         error: new Error('Inadvertent credit stealing while doing an upgrade')
       });
       expect(addFn).not.toHaveBeenCalled();

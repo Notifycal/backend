@@ -1,30 +1,34 @@
 import { logger } from '@common/powertools';
 import { logo } from '@email-templates/assets/logo.png.base64';
 import type { LanguageCode } from '@notifycal/shared/types';
-import { TemplateCompiler } from '@services/template-compiler';
+import { EmailTemplateService } from '@services/email-template-service';
 import { writeFileSync } from 'fs';
 import path from 'path';
 import { describe, expect, it } from 'vitest';
-import { template } from './alert-missing-phone-number.html.hbs';
-import { type EmailDynamicVariables, type EmailTextVariables, translations } from './translations';
+import { alertMissingPhoneNumberPartialTemplate } from './alert-missing-phone-number.html.hbs';
+import { specificTranslations } from './translations';
 
 describe('alert-missing-phone-number template', () => {
   it('should compile the template', () => {
-    const templateCompiler = new TemplateCompiler(logger);
-    const compiledTemplate = templateCompiler.compile(template);
+    const emailTemplateService = new EmailTemplateService(logger);
 
-    expect(compiledTemplate).toBeInstanceOf(Function);
+    const compiledTemplateFn = emailTemplateService.compileTemplate(
+      alertMissingPhoneNumberPartialTemplate,
+      specificTranslations,
+      {
+        notifycalFaqUrl: 'https://notifycal.com/faq',
+        logoSrc: `data:image/png;base64,${logo}` //Override logoSrc template variable slightly differenty to be able to render it.
+      }
+    );
+
+    expect(compiledTemplateFn).toBeInstanceOf(Function);
 
     const supportedLanguages: Array<LanguageCode> = ['en', 'es'];
     supportedLanguages.forEach((lang) => {
-      const templateData: EmailTextVariables & EmailDynamicVariables = {
-        ...translations(lang),
-        logoSrc: `data:image/png;base64,${logo}`,
-        notifycalFaqUrl: 'https://notifycal.com/faq'
-      };
+      const emailTemplate = compiledTemplateFn(lang);
       writeFileSync(
         path.resolve(__dirname, `alert-missing-phone-number.${lang}.html`),
-        compiledTemplate(templateData)
+        emailTemplate.htmlBody
       );
     });
   });

@@ -1,11 +1,6 @@
 import type { Logger } from '@aws-lambda-powertools/logger';
-import { template } from '@email-templates/alert-missing-phone-number/alert-missing-phone-number.html.hbs';
-import {
-  translations,
-  type EmailDynamicVariables,
-  type EmailTextVariables
-} from '@email-templates/alert-missing-phone-number/translations';
-import { logo } from '@email-templates/assets/logo.png.base64';
+import { alertMissingPhoneNumberPartialTemplate } from '@email-templates/alert-missing-phone-number/alert-missing-phone-number.html.hbs';
+import { specificTranslations } from '@email-templates/alert-missing-phone-number/translations';
 import type { EmailWithName } from '@model/app-events/common';
 import type { EmailToBeSentEvent } from '@model/app-events/EmailToBeSentEvent';
 import type { EmailingSenderEndpointConfig } from '@model/Config';
@@ -22,17 +17,11 @@ import type {
   LanguageCode,
   UserId
 } from '@notifycal/shared/types';
-import type {
-  ContentType,
-  EmailHtmlBody,
-  EmailInlineAttachementBase64,
-  EmailSubject
-} from '@own-types/model';
 import { rethrowError } from '@services/common/error-handling';
+import { EmailTemplateService } from '@services/email-template-service';
 import type { SnsService } from '@services/sns';
 import type { AlertsBaseStore } from '@services/stores/alerts-base-store';
 import type { UserBaseStore } from '@services/stores/user-base-store';
-import { TemplateCompiler } from '@services/template-compiler';
 import { tap } from '@utils/promises';
 import { DateTime as DT } from 'luxon';
 import { match } from 'ts-pattern';
@@ -102,30 +91,24 @@ function interpolateEmail(
   const subEventType: EmailToBeSentEvent['data']['subEventType'] =
     'NoPhoneNumberForCalendarEventFound';
 
-  const compiledTemplate = new TemplateCompiler(logger).compile(template);
-  const _translations = translations(language);
-  const logoFilename = 'logo.png';
-  const templateData: EmailTextVariables & EmailDynamicVariables = {
-    ..._translations,
-    logoSrc: `cid:${logoFilename}`,
-    notifycalFaqUrl: alertEmailConfig.faqUrl.toString()
-  };
-  const htmlBody = compiledTemplate(templateData);
+  const emailTemplateService = new EmailTemplateService(logger);
+  const compiledTemplateFn = emailTemplateService.compileTemplate(
+    alertMissingPhoneNumberPartialTemplate,
+    specificTranslations,
+    {
+      notifycalFaqUrl: alertEmailConfig.faqUrl.toString()
+    }
+  );
+  const emailTemplate = compiledTemplateFn(language);
 
   return {
     from: sender,
     to: email,
-    subject: _translations.subject as EmailSubject,
-    htmlBody: compiledTemplate(htmlBody) as EmailHtmlBody,
+    subject: emailTemplate.subject,
+    htmlBody: emailTemplate.htmlBody,
     tags: [],
     subEventType,
-    inlineAttachments: {
-      [logoFilename]: {
-        type: 'inline',
-        base64Content: logo as EmailInlineAttachementBase64,
-        contentType: 'image/png' as ContentType
-      }
-    },
+    inlineAttachments: emailTemplate.inlineAttachments,
     metadata: {
       actionableEventFoundCount: updateCounterResult.SuccessCount,
       noPhoneNumberForCalendarEventFoundCount: updateCounterResult.FailureCount,
