@@ -201,7 +201,8 @@ export const auditTrailNoPhoneNumberForCalendarEventFoundEvent: AuditTrailStoreR
 
 export const lowCreditsDetectedEvent: AuditTrailStoreRecord = {
   Data: {
-    ...validActionableEventEvent.data
+    originalEvent: validActionableEventEvent.data,
+    error: { message: 'Low credits detected' }
   },
   CorrelationId: '0de651ef-535e-4d2e-b9ff-7bf43f5aaaaa' as CorrelationId,
   EventId: '0de651ef-535e-4d2e-b9ff-7bf43f5a01ac' as EventId,
@@ -215,7 +216,8 @@ export const lowCreditsDetectedEvent: AuditTrailStoreRecord = {
 
 export const insufficientCreditsReminderNotSentEvent: AuditTrailStoreRecord = {
   Data: {
-    ...validActionableEventEvent.data
+    originalEvent: validActionableEventEvent.data,
+    error: { message: 'Insufficient credit reminder not sent' }
   },
   CorrelationId: '0de651ef-535e-4d2e-b9ff-7bf43f5aaaab' as CorrelationId,
   EventId: '0de651ef-535e-4d2e-b9ff-7bf43f5a01ab' as EventId,
