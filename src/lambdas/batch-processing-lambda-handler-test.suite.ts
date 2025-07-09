@@ -42,7 +42,7 @@ export const createSqsHandlerTestSuite =
         .mockResolvedValueOnce(undefined)
         .mockRejectedValue(new Error('Boom!'));
 
-      const eventError: SQSRecord | DynamoDBRecord = match(validBatchEvent.Records[0])
+      const eventError: SQSRecord | DynamoDBRecord = match(validBatchEvent.Records[0]!)
         .with({ messageId: P.string }, (validSqsRecord) => ({
           ...validSqsRecord,
           messageId: 'messageWithErrorId'
@@ -53,7 +53,7 @@ export const createSqsHandlerTestSuite =
         })
         .exhaustive();
       const input: SQSEvent | DynamoDBStreamEvent = {
-        Records: [validBatchEvent.Records[0], eventError]
+        Records: [validBatchEvent.Records[0]!, eventError]
       };
 
       return testit(input).then((r) => {

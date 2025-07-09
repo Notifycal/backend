@@ -45,21 +45,21 @@ export const getDefaultAccessTokenPayload: () => OurAccessTokenClaims = () => ({
 export const getDefaultEncodeAccessJwtConfig: () => EncodeAccessJwtConfig = () => {
   const devConfig = loadDevConfig();
   return {
-    secretOrPrivateKey: devConfig.ACCESS_JWT_PRIVATE_KEY as PrivateKey,
-    algorithm: devConfig.ACCESS_JWT_ALGORITHM as unknown as Algorithm,
-    issuer: devConfig.ACCESS_JWT_ISSUER,
-    audience: devConfig.ACCESS_JWT_AUDIENCE,
-    expiresIn: devConfig.ACCESS_JWT_EXPIRATION as Duration
+    secretOrPrivateKey: (devConfig.ACCESS_JWT_PRIVATE_KEY as PrivateKey) ?? '',
+    algorithm: (devConfig.ACCESS_JWT_ALGORITHM as unknown as Algorithm) ?? '',
+    issuer: devConfig.ACCESS_JWT_ISSUER ?? '',
+    audience: devConfig.ACCESS_JWT_AUDIENCE ?? '',
+    expiresIn: (devConfig.ACCESS_JWT_EXPIRATION as Duration) ?? '24h'
   };
 };
 
 export const getDefaultDecodeAccessJwtConfig: () => DecodeAccessJwtConfig = () => {
   const devConfig = loadDevConfig();
   return {
-    secretOrPublicKey: devConfig.ACCESS_JWT_PUBLIC_KEY as PublicKey,
-    issuer: devConfig.ACCESS_JWT_ISSUER,
-    audience: devConfig.ACCESS_JWT_AUDIENCE,
-    expiresIn: devConfig.ACCESS_JWT_EXPIRATION as Duration
+    secretOrPublicKey: (devConfig.ACCESS_JWT_PUBLIC_KEY as PublicKey) ?? '',
+    issuer: devConfig.ACCESS_JWT_ISSUER ?? 'notifycal.com',
+    audience: devConfig.ACCESS_JWT_AUDIENCE ?? '',
+    expiresIn: (devConfig.ACCESS_JWT_EXPIRATION as Duration) ?? '24h'
   };
 };
 

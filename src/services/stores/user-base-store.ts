@@ -24,6 +24,11 @@ import { BaseStore, type BaseStoreConfig } from '../common/base-store';
 
 export type UserBaseStoreConfig = BaseStoreConfig;
 export type UserBaseStoreEndpointConfig = { userBaseStoreConfig: UserBaseStoreConfig };
+export interface CreditOperationPersistenceResult {
+  user: UserStoreRecordCredits;
+  balance: 'subscription' | 'topup';
+  quantity: number;
+}
 
 export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseStoreConfig> {
   public static withConfig<TIdpName extends IdpName>(
@@ -198,14 +203,22 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
     userId: UserId,
     amount: number,
     logger: Logger
-  ): Promise<UserStoreRecordCredits> {
+  ): Promise<CreditOperationPersistenceResult> {
     return this.attemptDeduction(userId, amount, 'SubscriptionCreditBalance').then(
-      (r) => this.handleSuccessfulUpdate(r, logger),
+      (r) => ({
+        user: this.handleSuccessfulUpdate(r, logger),
+        balance: 'subscription',
+        quantity: amount
+      }),
       (error) => {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         if (error.name === 'ConditionalCheckFailedException') {
           return this.attemptDeduction(userId, amount, 'TopupCreditBalance').then(
-            (r) => this.handleSuccessfulUpdate(r, logger),
+            (r) => ({
+              user: this.handleSuccessfulUpdate(r, logger),
+              balance: 'topup',
+              quantity: amount
+            }),
             (topupError) => {
               // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
               if (topupError.name === 'ConditionalCheckFailedException') {

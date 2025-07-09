@@ -86,8 +86,8 @@ describe(mergeTypedErrors, () => {
     expect(result.message).toBe('Everything went wrong');
     expect(result.cause).toHaveProperty('error0');
     expect(result.cause).toHaveProperty('error1');
-    expect(result.cause.error0.message).toBe('Error 1');
-    expect(result.cause.error1.message).toBe('Error 2');
+    expect(result.cause.error0?.message).toBe('Error 1');
+    expect(result.cause.error1?.message).toBe('Error 2');
   });
 
   it('should merge errors with custom message', () => {
@@ -108,8 +108,8 @@ describe(mergeTypedErrors, () => {
 
     const result = mergeTypedErrors([error1, error2]);
 
-    expect(result.cause.error0.name).toBe('SpecialError');
-    expect(result.cause.error1.name).toBe('AnotherError');
+    expect(result.cause.error0?.name).toBe('SpecialError');
+    expect(result.cause.error1?.name).toBe('AnotherError');
   });
 
   it('should handle empty array', () => {
@@ -141,11 +141,11 @@ describe(mergeErrors, () => {
     expect(result.cause).toHaveProperty('error3');
     expect(result.cause).toHaveProperty('error4');
 
-    expect(result.cause.error0.message).toBe('Standard error');
-    expect(result.cause.error1.message).toBe('Custom error object');
-    expect(result.cause.error2.message).toBe('string: Just a string');
-    expect(result.cause.error3.message).toBe('Error: {"prop":"value"}');
-    expect(result.cause.error4.message).toBe('number: 42');
+    expect(result.cause.error0?.message).toBe('Standard error');
+    expect(result.cause.error1?.message).toBe('Custom error object');
+    expect(result.cause.error2?.message).toBe('string: Just a string');
+    expect(result.cause.error3?.message).toBe('Error: {"prop":"value"}');
+    expect(result.cause.error4?.message).toBe('number: 42');
   });
 
   it('should handle empty array', () => {

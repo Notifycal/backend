@@ -75,7 +75,7 @@ describe('GoogleOAuth Service verifyIdentity', () => {
         tokens: {
           id_token: undefined
         }
-      });
+      } as unknown as GetTokenResponse);
     const verifyIdTokenFn = () => Promise.resolve(validVerifyIdTokenResponse);
 
     await expect(testIt(getTokenFn, verifyIdTokenFn)).rejects.toThrow(
@@ -91,7 +91,7 @@ describe('GoogleOAuth Service verifyIdentity', () => {
           id_token: 'valid id token',
           refresh_token: undefined
         }
-      });
+      } as unknown as GetTokenResponse);
     const verifyIdTokenFn = () => Promise.resolve(validVerifyIdTokenResponse);
 
     await expect(testIt(getTokenFn, verifyIdTokenFn)).rejects.toThrow(
@@ -133,10 +133,11 @@ describe('GoogleOAuth Service verifyIdentity', () => {
     const verifyIdTokenFn = () =>
       Promise.resolve({
         getUserId: () => validUserId,
-        getPayload: () => ({
-          ...validLoginTokenPayload,
-          email: undefined
-        })
+        getPayload: () =>
+          ({
+            ...validLoginTokenPayload,
+            email: undefined
+          }) as unknown as TokenPayload
       });
 
     await expect(testIt(getTokenFn, verifyIdTokenFn)).rejects.toThrow(

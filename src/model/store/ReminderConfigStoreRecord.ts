@@ -91,7 +91,9 @@ export function toStoreRecord(config: OutputEvent['body']): ReminderConfigStoreR
       CompanyIndustry: {
         Category: config.business.companyIndustry.category,
         Subcategory: config.business.companyIndustry.subcategory,
-        CustomIndustry: config.business.companyIndustry.customIndustry
+        ...(config.business.companyIndustry.customIndustry && {
+          CustomIndustry: config.business.companyIndustry.customIndustry
+        })
       },
       CompanySize: config.business.companySize
     },
@@ -106,7 +108,9 @@ export function toStoreRecord(config: OutputEvent['body']): ReminderConfigStoreR
     Confirmation: {
       TermsAccepted: config.confirmation.termsAccepted,
       PrivacyAccepted: config.confirmation.privacyAccepted,
-      MarketingOptInAccepted: config.confirmation.marketingOptInAccepted
+      ...(config.confirmation.marketingOptInAccepted && {
+        MarketingOptInAccepted: config.confirmation.marketingOptInAccepted
+      })
     }
   };
 }
