@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.45.1](https://github.com/Notifycal/backend/compare/v0.45.0...v0.45.1) (2025-07-09)
+
+
+### Bug Fixes
+
+* demo reminder to 7 bit function  ([#793](https://github.com/Notifycal/backend/issues/793)) ([99b2e0b](https://github.com/Notifycal/backend/commit/99b2e0bdf6fd5c175720b30c26c35905a99dfd52))
+* **deps:** Update AWS packages to v3.844.0 ([#805](https://github.com/Notifycal/backend/issues/805)) ([69e8e59](https://github.com/Notifycal/backend/commit/69e8e59f80e8fe6d1b69e17ab271fba9375ea0e5))
+* **deps:** Update dependency @aws-sdk/client-dynamodb to v3.844.0 ([#804](https://github.com/Notifycal/backend/issues/804)) ([ba60130](https://github.com/Notifycal/backend/commit/ba60130707a7d40db459d73edc842534a6ed221a))
+* **deps:** Update dependency luxon to v3.7.0 ([#802](https://github.com/Notifycal/backend/issues/802)) ([461d992](https://github.com/Notifycal/backend/commit/461d9929c3d43e2cd89cde096e47fe2f1d597177))
+
 ## [0.45.0](https://github.com/Notifycal/backend/compare/v0.44.0...v0.45.0) (2025-07-09)
 
 
