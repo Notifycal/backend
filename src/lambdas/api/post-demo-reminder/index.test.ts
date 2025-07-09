@@ -50,39 +50,43 @@ const validAccessToken: OurAccessTokenClaims = {
   permissions: {}
 };
 
-const validUserConfig: LiveUserStoreRecord<unknown>['Config'] = {
-  Calendars: [
-    {
-      Id: 'calendar-id-1' as CalendarId,
-      Name: 'Test Calendar' as CalendarName,
-      Template: {
-        Id: 'informal-en-01' as TemplateId,
-        Language: 'en'
+function validUserConfig(
+  address: BusinessAddress = 'Test Address' as BusinessAddress
+): LiveUserStoreRecord<unknown>['Config'] {
+  return {
+    Calendars: [
+      {
+        Id: 'calendar-id-1' as CalendarId,
+        Name: 'Test Calendar' as CalendarName,
+        Template: {
+          Id: 'informal-en-01' as TemplateId,
+          Language: 'en'
+        }
       }
+    ],
+    Business: {
+      SenderContact: {
+        Type: 'phone',
+        PhoneNumber: '666999888' as PhoneNumber,
+        CountryCode: 'ES'
+      },
+      Name: 'Test Business' as BusinessName,
+      Address: address,
+      Language: 'en',
+      CompanyIndustry: {
+        Category: 'category',
+        Subcategory: 'subcategory',
+        CustomIndustry: 'custom'
+      },
+      CompanySize: 'freelancer'
+    },
+    Confirmation: {
+      TermsAccepted: '2023-01-01T00:00:00Z' as DateTime,
+      PrivacyAccepted: '2023-01-01T00:00:00Z' as DateTime,
+      MarketingOptInAccepted: '2023-01-01T00:00:00Z' as DateTime
     }
-  ],
-  Business: {
-    SenderContact: {
-      Type: 'phone',
-      PhoneNumber: '666999888' as PhoneNumber,
-      CountryCode: 'ES'
-    },
-    Name: 'Test Business' as BusinessName,
-    Address: 'Test Address' as BusinessAddress,
-    Language: 'en',
-    CompanyIndustry: {
-      Category: 'category',
-      Subcategory: 'subcategory',
-      CustomIndustry: 'custom'
-    },
-    CompanySize: 'freelancer'
-  },
-  Confirmation: {
-    TermsAccepted: '2023-01-01T00:00:00Z' as DateTime,
-    PrivacyAccepted: '2023-01-01T00:00:00Z' as DateTime,
-    MarketingOptInAccepted: '2023-01-01T00:00:00Z' as DateTime
-  }
-};
+  };
+}
 
 const validRequestBody: Event['body'] = {
   startTime: {
@@ -100,7 +104,7 @@ describe('Post Demo Reminder', () => {
       validAccessToken
     )) as unknown as APIGatewayProxyEvent;
     const getUserConfigAndDemoReminderCountFn = vi.fn().mockResolvedValue({
-      Config: validUserConfig,
+      Config: validUserConfig(),
       DemoReminderCount: 0
     });
     const publishFn = vi.fn().mockResolvedValue({});
@@ -129,9 +133,64 @@ describe('Post Demo Reminder', () => {
     );
   });
 
+  // eslint-disable-next-line vitest/require-hook
+  [
+    {
+      description: 'truncate demo reminder if it exceeds length limit',
+      expectedMessage:
+        "Don't forget your appointment at Test Business! On 01/10/2023 at 14:00 at aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa. If y",
+      expectedMessageLength: 3 * 160,
+      businessAddress: 'a'.repeat(400) as BusinessAddress
+    },
+    {
+      description: 'replace non GSM-7bit chracters to make message cheap',
+      expectedMessage:
+        "Don't forget your appointment at Test Business! On 01/10/2023 at 14:00 at Ave  Happiness, 99. If you can't make it, let us know.",
+      expectedMessageLength: 128,
+      businessAddress: 'Ave 😀 Happiness, 99' as BusinessAddress
+    }
+  ].forEach((test) => {
+    it(`should ${test.description}`, async () => {
+      const validEvent = (await testAuthedEvent(
+        validRequestBody,
+        {},
+        accessTokenSchema,
+        validAccessToken
+      )) as unknown as APIGatewayProxyEvent;
+      const getUserConfigAndDemoReminderCountFn = vi.fn().mockResolvedValue({
+        Config: validUserConfig(test.businessAddress),
+        DemoReminderCount: 0
+      });
+      const publishFn = vi.fn().mockResolvedValue({});
+
+      const result = await testit(validEvent, getUserConfigAndDemoReminderCountFn, publishFn);
+
+      const senderAndReceiver = {
+        type: 'phone' as const,
+        countryCode: 'ES',
+        phoneNumber: `+34666999888` as PhoneNumberE164
+      };
+
+      expect(result.statusCode).toBe(202);
+
+      expect(test.expectedMessage).toHaveLength(test.expectedMessageLength);
+      expect(publishFn).toHaveBeenCalledWith(
+        expect.objectContaining({
+          eventType: 'DemoReminderToBeSent',
+          userId: validIdentity.userId,
+          data: {
+            receiverDetails: senderAndReceiver,
+            senderDetails: senderAndReceiver,
+            message: test.expectedMessage
+          }
+        })
+      );
+    });
+  });
+
   it('should return 400 if payload is invalid', async () => {
     const invalidBody = {
-      receiverContact: 4567457634624,
+      receiverContact: 456745 * 7634624,
       startTime: {
         dateTime: validDateTime
       }
@@ -210,7 +269,7 @@ describe('Post Demo Reminder', () => {
     const error = new Error('Failed to publish message');
     const publishFn = vi.fn().mockRejectedValue(error);
     const getUserConfigAndDemoReminderCountFn = vi.fn().mockResolvedValue({
-      Config: validUserConfig,
+      Config: validUserConfig(),
       DemoReminderCount: 0
     });
 
@@ -229,7 +288,7 @@ describe('Post Demo Reminder', () => {
       validAccessToken
     )) as unknown as APIGatewayProxyEvent;
     const getUserConfigAndDemoReminderCountFn = vi.fn().mockResolvedValue({
-      Config: validUserConfig,
+      Config: validUserConfig(),
       DemoReminderCount: 1 // At the limit
     });
     const publishFn = vi.fn();
@@ -249,7 +308,7 @@ describe('Post Demo Reminder', () => {
       validAccessToken
     )) as unknown as APIGatewayProxyEvent;
     const getUserConfigAndDemoReminderCountFn = vi.fn().mockResolvedValue({
-      Config: validUserConfig,
+      Config: validUserConfig(),
       DemoReminderCount: 2 // Above the limit
     });
     const publishFn = vi.fn();
@@ -273,7 +332,7 @@ describe('Post Demo Reminder', () => {
       validAccessToken
     )) as unknown as APIGatewayProxyEvent;
     const getUserConfigAndDemoReminderCountFn = vi.fn().mockResolvedValue({
-      Config: validUserConfig,
+      Config: validUserConfig(),
       DemoReminderCount: 2 // Below the higher limit
     });
     const publishFn = vi.fn().mockResolvedValue({});
