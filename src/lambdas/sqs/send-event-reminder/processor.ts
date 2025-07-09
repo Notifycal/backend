@@ -6,10 +6,6 @@ import {
   type ActionableEventReminderAttemptSentEvent
 } from '@model/app-events/ActionableEventReminderAttemptSentEvent';
 import {
-  actionableEventReminderInsufficientCreditNotSent,
-  type ActionableEventReminderInsufficientCreditNotSentEvent
-} from '@model/app-events/ActionableEventReminderInsufficientCreditNotSentEvent';
-import {
   demoReminderLimitReachedNotSent,
   type DemoReminderLimitReachedNotSentEvent
 } from '@model/app-events/DemoReminderLimitReachedNotSentEvent';
@@ -18,6 +14,10 @@ import {
   type DemoReminderToBeSentAttemptSentEvent
 } from '@model/app-events/DemoReminderToBeSentAttemptSentEvent';
 import type { DemoReminderToBeSentEvent } from '@model/app-events/DemoReminderToBeSentEvent';
+import {
+  insufficientCreditReminderNotSent,
+  type InsufficientCreditReminderNotSentEvent
+} from '@model/app-events/InsufficientCreditReminderNotSentEvent';
 import type { CreditServiceEndpointConfig, DemoReminderEndpointConfig } from '@model/Config';
 import type { VonageEndpointConfig } from '@model/vendor/vonage/config';
 import type { IdpName, UserId, Uuid } from '@notifycal/shared/types';
@@ -219,12 +219,9 @@ export default class Processor {
     logger.info(
       'Publishing an event indicating a message could not be sent due to user having insufficient credits'
     );
-    const insufficientCreditEvent = actionableEventReminderInsufficientCreditNotSent(
-      event,
-      creditError
-    );
+    const insufficientCreditEvent = insufficientCreditReminderNotSent(event, creditError);
     return this.snsService.safePublish<
-      ActionableEventReminderInsufficientCreditNotSentEvent | DemoReminderLimitReachedNotSentEvent
+      InsufficientCreditReminderNotSentEvent | DemoReminderLimitReachedNotSentEvent
     >(insufficientCreditEvent);
   }
 
@@ -237,7 +234,7 @@ export default class Processor {
     );
     const demoLimitEvent = demoReminderLimitReachedNotSent(event, demoLimitError);
     return this.snsService.safePublish<
-      ActionableEventReminderInsufficientCreditNotSentEvent | DemoReminderLimitReachedNotSentEvent
+      InsufficientCreditReminderNotSentEvent | DemoReminderLimitReachedNotSentEvent
     >(demoLimitEvent);
   }
 }
