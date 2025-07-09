@@ -191,7 +191,7 @@ describe(phoneExtractor, () => {
       'There were 1 failures to obtaining phone numbers from contact integration, calendar event description and summary. Successes: 2. Total: 3. All results:'
     );
     expect(phoneNumberByEmail).toHaveBeenCalledWith(
-      validCalendarEvent.attendees[0].id,
+      validCalendarEvent.attendees[0]!.id,
       validIdpAuthorization,
       validIdp,
       validIdpConfigs,

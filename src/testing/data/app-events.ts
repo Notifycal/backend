@@ -16,6 +16,7 @@ import {
   type EventId,
   type IdpId,
   type RCSSenderId,
+  type TemplateId,
   type TimeZone,
   type UserId
 } from '@notifycal/shared/types';
@@ -44,7 +45,7 @@ export const userCalendarFetchedEvent: UserCalendarFetchedEvent = {
       name: 'Some Calendar Name' as CalendarName
     },
     template: {
-      id: templateMap['formal-en-01'].id,
+      id: templateMap['formal-en-01']?.id ?? ('formal-en-01' as TemplateId),
       fields: {
         business: {
           name: 'SomeBusinessName' as BusinessName,

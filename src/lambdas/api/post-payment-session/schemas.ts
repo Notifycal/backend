@@ -10,11 +10,11 @@ const languagePartialSchema = {
 
 const tierIdSchemas = tierIds.map((tier) => z.literal(tier));
 const tierCheckoutSessionSchema = z.object({
-  tier: z.union([tierIdSchemas[0], tierIdSchemas[1], ...tierIdSchemas.slice(2)]),
+  tier: z.union([tierIdSchemas[0]!, tierIdSchemas[1]!, ...tierIdSchemas.slice(2)]),
   ...languagePartialSchema
 });
 const topupCheckoutSessionSchema = z.object({
-  topup: z.literal(topupIds[0]),
+  topup: z.literal(topupIds[0]!),
   ...languagePartialSchema
 });
 export const createCheckoutSessionSchema = z.union([

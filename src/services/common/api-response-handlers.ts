@@ -73,7 +73,7 @@ export function responseError(
   statusCode: keyof typeof errorMessages,
   headers: ResponseHeaders = baseHeaders()
 ): APIGatewayProxyResult {
-  const payload: ErrorResponseBody = { message: errorMessages[statusCode] };
+  const payload: ErrorResponseBody = { message: errorMessages[statusCode] ?? 'some error' };
   return {
     statusCode,
     body: JSON.stringify(payload),

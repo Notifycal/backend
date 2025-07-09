@@ -236,7 +236,7 @@ export function recordProcessor(
           }
         });
       }
+      return Promise.resolve();
     })
-    .catch(errorHandler(event.EventId, logger))
-    .then();
+    .catch(errorHandler(event.EventId, logger));
 }
