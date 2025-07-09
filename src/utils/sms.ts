@@ -3,6 +3,7 @@ export interface CharacterMapping {
   [inputChar: string]: string | null;
 }
 
+export const GSM_7_BIT_MESSAGE_LENGTH = 160;
 export const DEFAULT_CHARACTER_MAPPING: CharacterMapping = {
   á: 'a',
   Á: 'A',

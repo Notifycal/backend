@@ -19,7 +19,7 @@ import { SnsService } from '@services/sns';
 import { UserBaseStore } from '@services/stores/user-base-store';
 import { interpolate } from '@services/template';
 import { senderToCanonicalForm } from '@utils/phone';
-import { normalizeToGSM7Bit } from '@utils/sms';
+import { GSM_7_BIT_MESSAGE_LENGTH, normalizeToGSM7Bit } from '@utils/sms';
 import type { APIGatewayProxyResult, Context } from 'aws-lambda';
 import { demoReminderPayloadSchema } from 'node_modules/@notifycal/shared/dist/schemas/reminder';
 import { v4 } from 'uuid';
@@ -35,8 +35,7 @@ export type Event = z.infer<typeof eventSchema>;
 
 function ensureMessageIsCheap(msg: string): string {
   const gsm7bitMsg = normalizeToGSM7Bit(msg);
-  const gsm7bitMessageLength = 160;
-  const lengthHardLimit = 3 * gsm7bitMessageLength;
+  const lengthHardLimit = 3 * GSM_7_BIT_MESSAGE_LENGTH;
   const threeMessageLimitMessage = gsm7bitMsg.substring(0, lengthHardLimit);
   console.error(threeMessageLimitMessage);
   if (gsm7bitMsg !== threeMessageLimitMessage) {
