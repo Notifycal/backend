@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.45.0](https://github.com/Notifycal/backend/compare/v0.44.0...v0.45.0) (2025-07-09)
+
+
+### Features
+
+* enrich credit result model ([#792](https://github.com/Notifycal/backend/issues/792)) ([da1aa81](https://github.com/Notifycal/backend/commit/da1aa815ea6c41e0a0a685a4bf310e4e04b3c3d6))
+
+
+### Bug Fixes
+
+* **deps:** Update @notifycal/shared and zod ([#794](https://github.com/Notifycal/backend/issues/794)) ([7bf5202](https://github.com/Notifycal/backend/commit/7bf5202a593644c7c7fdeb623b0855b599c1a4fa))
+* ts errors ([#788](https://github.com/Notifycal/backend/issues/788)) ([b27c555](https://github.com/Notifycal/backend/commit/b27c5552db175841a13a8b2fea30aeaa4f24db9a))
+
 ## [0.44.0](https://github.com/Notifycal/backend/compare/v0.43.1...v0.44.0) (2025-07-07)
 
 
