@@ -141,21 +141,21 @@ export default class Processor {
     event: ActionableEventFoundEvent | DemoReminderToBeSentEvent
   ): Promise<Uuid> {
     return match(result)
-      .with({ operationId: 'InsufficientCredits' }, (insufficientResult) => {
+      .with({ result: 'InsufficientCredits' }, (insufficientResult) => {
         logger.info('Message not sent due to insufficient credits', { result });
         return this.publishInsufficientCreditErrorEvent(
           event as ActionableEventFoundEvent,
           insufficientResult as CreditDeductionInsufficientCreditsError
         ).then(() => 'insufficient-credits' as Uuid);
       })
-      .with({ operationId: 'DemoCounterLimitReachedError' }, (demoLimitResult) => {
+      .with({ result: 'DemoCounterLimitReachedError' }, (demoLimitResult) => {
         logger.info('Demo reminder not sent due to demo limit reached', { result });
         return this.publishDemoLimitReachedErrorEvent(
           event as DemoReminderToBeSentEvent,
           demoLimitResult as DemoCounterLimitReachedError
         ).then(() => 'demo-limit-reached' as Uuid);
       })
-      .with({ operationId: 'BadRequestError' }, () => {
+      .with({ result: 'BadRequestError' }, () => {
         const operationType =
           event.eventType === 'ActionableEventFound'
             ? 'credit deduction'
@@ -166,7 +166,7 @@ export default class Processor {
           })
         );
       })
-      .with({ operationId: 'UnknownError' }, () => {
+      .with({ result: 'UnknownError' }, () => {
         const operationType =
           event.eventType === 'ActionableEventFound'
             ? 'credit deduction'
