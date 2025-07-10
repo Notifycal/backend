@@ -13,9 +13,9 @@ import type {
 import { fakeIdpConfigs } from '@testing/utils/config';
 import type { MinimalGaxiosResponse } from '@testing/utils/gaxios';
 import { google, type calendar_v3 } from 'googleapis';
-import type { GaxiosResponse } from 'googleapis-common';
 import { describe, expect, it, vi, type Mock } from 'vitest';
 import { GoogleCalendar } from './calendar';
+import type { GaxiosResponse } from './gaxios';
 
 describe('GoogleCalendar Service calendarList', () => {
   const validGoogleCalendarListEntry = {
