@@ -3,9 +3,9 @@ import { logger } from '@common/powertools';
 import type { Email, PhoneNumber } from '@notifycal/shared/types';
 import type { PhoneNumberE164 } from '@own-types/model';
 import { fakeIdpConfigs } from '@testing/utils/config';
-import type { MinimalGaxiosResponse } from '@testing/utils/gaxios';
 import { google, type people_v1 } from 'googleapis';
 import { describe, expect, it, vi } from 'vitest';
+import type { MinimalGaxiosResponse } from './gaxios';
 import { GooglePeople } from './people';
 
 describe('GooglePeople Service', () => {

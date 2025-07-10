@@ -15,12 +15,12 @@ import type {
 import type { JsonObject } from '@own-types/model';
 import { extractErrorMessage, rethrowError, throwError } from '@services/common/error-handling';
 import { withIntegrationMetrics } from '@services/observability/metrics';
-import type { MinimalGaxiosResponse } from '@testing/utils/gaxios';
 import { partitionByError } from '@utils/array';
 import { isWithinBoundaries } from '@utils/datetime';
 import { google, type calendar_v3 } from 'googleapis';
 import { z } from 'zod';
 import { BaseGoogle } from './base-service';
+import type { MinimalGaxiosResponse } from './gaxios';
 
 export class GoogleCalendar extends BaseGoogle {
   public static withRefreshToken(

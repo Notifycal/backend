@@ -11,11 +11,10 @@ import type {
   TimeZone
 } from '@notifycal/shared/types';
 import { fakeIdpConfigs } from '@testing/utils/config';
-import type { MinimalGaxiosResponse } from '@testing/utils/gaxios';
 import { google, type calendar_v3 } from 'googleapis';
 import { describe, expect, it, vi, type Mock } from 'vitest';
 import { GoogleCalendar } from './calendar';
-import type { GaxiosResponse } from './gaxios';
+import type { GaxiosResponse, MinimalGaxiosResponse } from './gaxios';
 
 describe('GoogleCalendar Service calendarList', () => {
   const validGoogleCalendarListEntry = {

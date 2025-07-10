@@ -7,3 +7,5 @@ export type GaxiosOptionsPrepared = gaxios.GaxiosOptionsPrepared;
 export type GaxiosResponse<T> = gaxios.GaxiosResponse<T>;
 export type GaxiosInterceptor<T extends GaxiosOptionsPrepared | GaxiosResponse<unknown>> =
   gaxios.GaxiosInterceptor<T>;
+
+export type MinimalGaxiosResponse<T> = Pick<GaxiosResponse<T>, 'status' | 'data'>;

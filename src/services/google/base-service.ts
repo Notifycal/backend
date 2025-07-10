@@ -28,7 +28,7 @@ export abstract class BaseGoogle {
       // eslint-disable-next-line camelcase
       this._client.setCredentials({ refresh_token: refreshToken });
     }
-    const axios = this._client.gaxios;
+    const axios = this._client.transporter;
     if (axios) {
       this.setInterceptors(axios);
     }
