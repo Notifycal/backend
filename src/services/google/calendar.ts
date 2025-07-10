@@ -1,4 +1,3 @@
-import type { GaxiosResponse } from 'gaxios';
 /* eslint-disable camelcase */
 import type { Logger } from '@aws-lambda-powertools/logger';
 import type { GoogleOAuthConfig } from '@model/Config';
@@ -16,6 +15,7 @@ import type {
 import type { JsonObject } from '@own-types/model';
 import { extractErrorMessage, rethrowError, throwError } from '@services/common/error-handling';
 import { withIntegrationMetrics } from '@services/observability/metrics';
+import type { MinimalGaxiosResponse } from '@testing/utils/gaxios';
 import { partitionByError } from '@utils/array';
 import { isWithinBoundaries } from '@utils/datetime';
 import { google, type calendar_v3 } from 'googleapis';
@@ -167,7 +167,7 @@ export class GoogleCalendar extends BaseGoogle {
     const _logger = this.logger;
 
     function handleResponse(
-      response: GaxiosResponse<calendar_v3.Schema$Events>
+      response: MinimalGaxiosResponse<calendar_v3.Schema$Events>
     ): calendar_v3.Schema$Events {
       if (response.status >= 200 && response.status <= 299) {
         return response.data;
