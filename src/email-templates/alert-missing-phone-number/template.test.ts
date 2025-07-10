@@ -6,14 +6,16 @@ import { specificTranslations } from './translations';
 describe('alert-missing-phone-number template', () => {
   // eslint-disable-next-line vitest/expect-expect
   it('should compile the template', () => {
-    testEmailTemplate({
-      templateName: 'alert-missing-phone-number',
-      partialTemplate: alertMissingPhoneNumberPartialTemplate,
-      specificTranslations,
-      dynamicVariables: {
-        notifycalFaqUrl: 'https://notifycal.com/faq'
+    testEmailTemplate(
+      'alert-missing-phone-number',
+      {
+        partialTemplate: alertMissingPhoneNumberPartialTemplate,
+        specificTranslations,
+        templateVariables: {
+          notifycalFaqUrl: 'https://notifycal.com/faq'
+        }
       },
-      outputDirectory: __dirname
-    });
+      __dirname
+    );
   });
 });

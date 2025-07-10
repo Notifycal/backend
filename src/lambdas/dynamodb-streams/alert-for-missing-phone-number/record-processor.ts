@@ -8,6 +8,7 @@ import type {
 } from '@model/app-events/common';
 import type { EmailToBeSentEvent } from '@model/app-events/EmailToBeSentEvent';
 import type { EmailingSenderEndpointConfig } from '@model/Config';
+import type { EmailTemplateConfig } from '@model/Email';
 import {
   EventTypeDate,
   type AlertCounterKeyNames,
@@ -15,18 +16,14 @@ import {
 } from '@model/store/AlertStoreRecord';
 import { extractIdentity } from '@model/store/AuditTrailStoreRecord';
 import type { Email, IdpName, LanguageCode, UserId } from '@notifycal/shared/types';
+import { rethrowErrorHandler } from '@services/common/error-handling';
+import { EmailTemplateService } from '@services/email-template-service';
 import type { SnsService } from '@services/sns';
 import type { AlertsBaseStore } from '@services/stores/alerts-base-store';
 import type { UserBaseStore } from '@services/stores/user-base-store';
 import { tap } from '@utils/promises';
 import { DateTime as DT } from 'luxon';
 import { match } from 'ts-pattern';
-import {
-  errorHandler,
-  interpolateEmailBase,
-  sendAlert,
-  type EmailTemplateConfig
-} from '../shared/alert-processing';
 import type {
   AlertEmailConfig,
   AlertEmailEndpointConfig,
@@ -69,7 +66,8 @@ function updateCounterOnAlertSent(
   );
 }
 
-function interpolateEmail(
+function createEmailEvent(
+  event: AuditTrailActionableEventFoundEvent | AuditTrailNoPhoneNumberForCalendarEventFoundEvent,
   email: Email,
   sender: EmailWithName,
   language: LanguageCode,
@@ -77,7 +75,7 @@ function interpolateEmail(
   errorRate: number,
   alertEmailConfig: AlertEmailConfig,
   logger: Logger
-): EmailToBeSentEvent['data'] {
+): EmailToBeSentEvent {
   const subEventType: EmailToBeSentEvent['data']['subEventType'] =
     'NoPhoneNumberForCalendarEventFound';
   const templateConfig: EmailTemplateConfig = {
@@ -93,15 +91,20 @@ function interpolateEmail(
     errorRate,
     notificationsSentCountBeforeUpdate: updateCounterResult.NotificationSentCount
   };
+  const identity: EventSourceIdentity = extractIdentity(event);
+  const options: EventCreationOptions = {
+    correlationId: event.CorrelationId
+  };
 
-  return interpolateEmailBase(
+  return new EmailTemplateService(logger).createEmailEvent(
     email,
     sender,
     language,
     templateConfig,
     subEventType,
     metadata,
-    logger
+    identity,
+    options
   );
 }
 
@@ -119,7 +122,8 @@ function sendPhoneNumberAlert(
   snsService: SnsService,
   logger: Logger
 ): Promise<void> {
-  const alertData = interpolateEmail(
+  const alertEvent = createEmailEvent(
+    event,
     email,
     sender,
     language,
@@ -128,13 +132,11 @@ function sendPhoneNumberAlert(
     alertEmailConfig,
     logger
   );
-  const identity: EventSourceIdentity = extractIdentity(event);
-  const options: EventCreationOptions = {
-    correlationId: event.CorrelationId
-  };
-  return sendAlert(identity, options, alertData, snsService).then(
-    tap(() => updateCounterOnAlertSent(alertName, alertDiscriminator, alertsBaseStore))
-  );
+
+  return snsService
+    .publish(alertEvent)
+    .then(tap(() => updateCounterOnAlertSent(alertName, alertDiscriminator, alertsBaseStore)))
+    .then();
 }
 
 function buildPersistanceKeys(
@@ -215,5 +217,13 @@ export function recordProcessor(
       }
       return Promise.resolve();
     })
-    .catch(errorHandler(event.EventId, logger));
+    .catch(
+      rethrowErrorHandler(
+        `(Re)-Throwing error on purpose to notify of batch item failure`,
+        logger,
+        {
+          eventId: event.EventId
+        }
+      )
+    );
 }

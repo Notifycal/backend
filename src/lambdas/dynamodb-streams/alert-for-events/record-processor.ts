@@ -8,17 +8,14 @@ import type {
   EventCreationOptions,
   EventSourceIdentity
 } from '@model/app-events/common';
+import type { EmailTemplateConfig } from '@model/Email';
 import { extractIdentity } from '@model/store/AuditTrailStoreRecord';
 import type { Email, IdpName, LanguageCode } from '@notifycal/shared/types';
+import { rethrowErrorHandler } from '@services/common/error-handling';
+import { EmailTemplateService } from '@services/email-template-service';
 import type { SnsService } from '@services/sns';
 import type { UserBaseStore } from '@services/stores/user-base-store';
 import { match } from 'ts-pattern';
-import {
-  errorHandler,
-  interpolateEmailBase,
-  sendAlert,
-  type EmailTemplateConfig
-} from '../shared/alert-processing';
 import type { AlertForEventsConfig } from './config';
 import type {
   AuditTrailInsufficientCreditReminderNotSentEvent,
@@ -56,23 +53,21 @@ function processAlertEvent(
   logger: Logger
 ): Promise<void> {
   logger.info(`Processing alert event`, { eventType: event.EventType });
-
   const identity: EventSourceIdentity = extractIdentity(event);
   const options: EventCreationOptions = {
     correlationId: event.CorrelationId
   };
-
-  const alertData = interpolateEmailBase(
+  const alertEvent = new EmailTemplateService(logger).createEmailEvent(
     receiver,
     sender,
     language,
     templateConfig,
     event.EventType,
     { eventType: event.EventType },
-    logger
+    identity,
+    options
   );
-
-  return sendAlert(identity, options, alertData, snsService);
+  return snsService.publish(alertEvent).then();
 }
 
 function processEventWithEmailTemplate(
@@ -104,7 +99,15 @@ function processEventWithEmailTemplate(
         return Promise.resolve();
       }
     })
-    .catch(errorHandler(event.EventId, logger));
+    .catch(
+      rethrowErrorHandler(
+        `(Re)-Throwing error on purpose to notify of batch item failure`,
+        logger,
+        {
+          eventId: event.EventId
+        }
+      )
+    );
 }
 
 export function recordProcessor(

@@ -3,9 +3,17 @@ import { insufficientCreditsPartialTemplate } from '@email-templates/insufficien
 import { specificTranslations as insufficientCreditsTranslations } from '@email-templates/insufficient-credits/translations';
 import { lowCreditsDetectedPartialTemplate } from '@email-templates/low-credits-detected/low-credits-detected.html.hbs';
 import { specificTranslations as lowCreditsTranslations } from '@email-templates/low-credits-detected/translations';
-import type { Email, IdpName, LanguageCode } from '@notifycal/shared/types';
+import { emailToBeSent, type EmailToBeSentEvent } from '@model/app-events/EmailToBeSentEvent';
+import type {
+  CorrelationId,
+  Email,
+  IdpId,
+  IdpName,
+  LanguageCode,
+  UserId
+} from '@notifycal/shared/types';
 import type { AwsArn, EmailHtmlBody, EmailSubject } from '@own-types/model';
-import { type EmailTemplateResult, EmailTemplateService } from '@services/email-template-service';
+import { EmailTemplateService } from '@services/email-template-service';
 import type { SnsService } from '@services/sns';
 import type { UserBaseStore } from '@services/stores/user-base-store';
 import {
@@ -51,18 +59,27 @@ describe(recordProcessor, () => {
     }
   };
 
-  const validCompiledTemplate: EmailTemplateResult = {
-    subject: 'Test Subject' as EmailSubject,
-    htmlBody: '<p>Test Body</p>' as EmailHtmlBody,
-    inlineAttachments: {}
-  };
+  const validEmailEvent: EmailToBeSentEvent = emailToBeSent(
+    { userId: 'test-user' as UserId, idp: 'google.com', idpId: 'test-idp-id' as IdpId },
+    {
+      from: { email: 'sender@example.com' as Email, name: 'Sender Name' },
+      to: validEmail,
+      subject: 'Test Subject' as EmailSubject,
+      htmlBody: '<p>Test Body</p>' as EmailHtmlBody,
+      tags: [],
+      subEventType: 'LowCreditsDetected',
+      inlineAttachments: {},
+      metadata: { eventType: 'LowCreditsDetected' }
+    },
+    { correlationId: 'test-correlation' as CorrelationId }
+  );
 
   it('processes LowCreditsDetected event successfully', async () => {
     const result = testIt(
       validLowCreditsEvent,
       () => Promise.resolve({ Email: validEmail, Language: validLanguage }),
       vi.fn().mockResolvedValue(undefined),
-      () => () => validCompiledTemplate
+      () => validEmailEvent
     );
 
     await expect(result).resolves.toBeUndefined();
@@ -73,7 +90,7 @@ describe(recordProcessor, () => {
       validInsufficientCreditsEvent,
       () => Promise.resolve({ Email: validEmail, Language: validLanguage }),
       vi.fn().mockResolvedValue(undefined),
-      () => () => validCompiledTemplate
+      () => validEmailEvent
     );
 
     await expect(result).resolves.toBeUndefined();
@@ -85,7 +102,7 @@ describe(recordProcessor, () => {
       validLowCreditsEvent,
       () => Promise.resolve(undefined),
       publishFn,
-      () => () => validCompiledTemplate
+      () => validEmailEvent
     );
 
     expect(publishFn).not.toHaveBeenCalled();
@@ -96,49 +113,62 @@ describe(recordProcessor, () => {
     const getEmailAndLanguageFn = () => Promise.reject(error);
 
     await expect(
-      testIt(
-        validLowCreditsEvent,
-        getEmailAndLanguageFn,
-        vi.fn(),
-        () => () => validCompiledTemplate
-      )
+      testIt(validLowCreditsEvent, getEmailAndLanguageFn, vi.fn(), () => validEmailEvent)
     ).rejects.toThrow(`(Re)-Throwing error on purpose to notify of batch item failure`);
   });
 
   it('uses correct template configuration for LowCreditsDetected', async () => {
-    const mockCompileTemplate = vi.fn().mockReturnValue(() => validCompiledTemplate);
+    const createEmailEventFn = vi.fn().mockReturnValue(validEmailEvent);
     await testIt(
       validLowCreditsEvent,
       () => Promise.resolve({ Email: validEmail, Language: validLanguage }),
       vi.fn().mockResolvedValue(undefined),
-      mockCompileTemplate
+      createEmailEventFn
     );
 
-    expect(mockCompileTemplate).toHaveBeenCalledWith(
-      lowCreditsDetectedPartialTemplate,
-      lowCreditsTranslations,
+    expect(createEmailEventFn).toHaveBeenCalledWith(
+      validEmail,
+      validConfig.emailingSenderConfig.sender,
+      validLanguage,
       {
-        faqUrl: validConfig.alertEmailConfig.faqUrl.toString(),
-        topupUrl: validConfig.alertEmailConfig.topupUrl.toString()
-      }
+        partialTemplate: lowCreditsDetectedPartialTemplate,
+        specificTranslations: lowCreditsTranslations,
+        templateVariables: {
+          faqUrl: validConfig.alertEmailConfig.faqUrl.toString(),
+          topupUrl: validConfig.alertEmailConfig.topupUrl.toString()
+        }
+      },
+      'LowCreditsDetected',
+      { eventType: 'LowCreditsDetected' },
+      expect.any(Object),
+      expect.any(Object)
     );
   });
 
   it('uses correct template configuration for InsufficientCreditsReminderNotSent', async () => {
-    const mockCompileTemplate = vi.fn().mockReturnValue(() => validCompiledTemplate);
+    const createEmailEventFn = vi.fn().mockReturnValue(validEmailEvent);
     await testIt(
       validInsufficientCreditsEvent,
       () => Promise.resolve({ Email: validEmail, Language: validLanguage }),
       vi.fn().mockResolvedValue(undefined),
-      mockCompileTemplate
+      createEmailEventFn
     );
 
-    expect(mockCompileTemplate).toHaveBeenCalledWith(
-      insufficientCreditsPartialTemplate,
-      insufficientCreditsTranslations,
+    expect(createEmailEventFn).toHaveBeenCalledWith(
+      validEmail,
+      validConfig.emailingSenderConfig.sender,
+      validLanguage,
       {
-        topupUrl: validConfig.alertEmailConfig.topupUrl.toString()
-      }
+        partialTemplate: insufficientCreditsPartialTemplate,
+        specificTranslations: insufficientCreditsTranslations,
+        templateVariables: {
+          topupUrl: validConfig.alertEmailConfig.topupUrl.toString()
+        }
+      },
+      'InsufficientCreditsReminderNotSent',
+      { eventType: 'InsufficientCreditsReminderNotSent' },
+      expect.any(Object),
+      expect.any(Object)
     );
   });
 
@@ -148,41 +178,17 @@ describe(recordProcessor, () => {
       validLowCreditsEvent,
       () => Promise.resolve({ Email: validEmail, Language: validLanguage }),
       publishFn,
-      () => () => validCompiledTemplate
+      () => validEmailEvent
     );
 
-    expect(publishFn).toHaveBeenCalledWith(
-      expect.objectContaining({
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        eventId: expect.any(String),
-        correlationId: validLowCreditsEvent.CorrelationId,
-        eventType: 'EmailToBeSent',
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        happenedAt: expect.any(String),
-        userId: validLowCreditsEvent.UserId,
-        idp: validLowCreditsEvent.Idp,
-        idpId: validLowCreditsEvent.IdpId,
-        data: {
-          from: validConfig.emailingSenderConfig.sender,
-          to: validEmail,
-          subject: validCompiledTemplate.subject,
-          htmlBody: validCompiledTemplate.htmlBody,
-          tags: [],
-          subEventType: 'LowCreditsDetected',
-          inlineAttachments: validCompiledTemplate.inlineAttachments,
-          metadata: {
-            eventType: 'LowCreditsDetected'
-          }
-        }
-      })
-    );
+    expect(publishFn).toHaveBeenCalledWith(validEmailEvent);
   });
 
   async function testIt(
     event: AuditTrailLowCreditDetectedEvent | AuditTrailInsufficientCreditReminderNotSentEvent,
     getEmailAndLanguageByIdFn: () => Promise<{ Email: Email; Language: LanguageCode } | undefined>,
     snsPublishFn: () => Promise<void>,
-    compileTemplateFn: () => (language: LanguageCode) => EmailTemplateResult
+    createEmailEventFn: () => EmailToBeSentEvent
   ): Promise<void> {
     const mockUserBaseStore = {
       getEmailAndLanguageById: vi.fn().mockImplementation(getEmailAndLanguageByIdFn)
@@ -191,7 +197,9 @@ describe(recordProcessor, () => {
       publish: snsPublishFn
     } as unknown as SnsService;
     // eslint-disable-next-line @typescript-eslint/unbound-method
-    vi.mocked(EmailTemplateService.prototype.compileTemplate).mockImplementation(compileTemplateFn);
+    vi.mocked(EmailTemplateService.prototype.createEmailEvent).mockImplementation(
+      createEmailEventFn
+    );
 
     return recordProcessor(event, validConfig, mockUserBaseStore, mockSnsService, logger);
   }

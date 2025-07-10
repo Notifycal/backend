@@ -6,14 +6,16 @@ import { specificTranslations } from './translations';
 describe('insufficient-credits template', () => {
   // eslint-disable-next-line vitest/expect-expect
   it('should compile the template', () => {
-    testEmailTemplate({
-      templateName: 'insufficient-credits',
-      partialTemplate: insufficientCreditsPartialTemplate,
-      specificTranslations,
-      dynamicVariables: {
-        topupUrl: 'https://app.notifycal.com/billing'
+    testEmailTemplate(
+      'insufficient-credits',
+      {
+        partialTemplate: insufficientCreditsPartialTemplate,
+        specificTranslations,
+        templateVariables: {
+          topupUrl: 'https://app.notifycal.com/billing'
+        }
       },
-      outputDirectory: __dirname
-    });
+      __dirname
+    );
   });
 });

@@ -1,8 +1,18 @@
 import { logger } from '@common/powertools';
+import { emailToBeSent, type EmailToBeSentEvent } from '@model/app-events/EmailToBeSentEvent';
 import type { EmailingSenderEndpointConfig } from '@model/Config';
 import type { AlertStoreRecord } from '@model/store/AlertStoreRecord';
 import type { UserStoreRecord } from '@model/store/UserStoreRecord';
-import type { Email, IdpName, LanguageCode, UserId } from '@notifycal/shared/types';
+import type {
+  CorrelationId,
+  Email,
+  IdpId,
+  IdpName,
+  LanguageCode,
+  UserId
+} from '@notifycal/shared/types';
+import type { EmailHtmlBody, EmailSubject } from '@own-types/model';
+import { EmailTemplateService } from '@services/email-template-service';
 import type { SnsService } from '@services/sns';
 import type { AlertsBaseStore } from '@services/stores/alerts-base-store';
 import type { UserBaseStore } from '@services/stores/user-base-store';
@@ -17,6 +27,8 @@ import type {
   AuditTrailActionableEventFoundEvent,
   AuditTrailNoPhoneNumberForCalendarEventFoundEvent
 } from './schema';
+
+vi.mock('@services/email-template-service');
 
 describe('Alert for missing phone number record processor', () => {
   const validActionableEventRecord: AuditTrailActionableEventFoundEvent =
@@ -49,6 +61,30 @@ describe('Alert for missing phone number record processor', () => {
     Language: 'es'
   } as Pick<UserStoreRecord<unknown>, 'Email'> & { Language: LanguageCode };
 
+  const validEmailEvent: EmailToBeSentEvent = emailToBeSent(
+    {
+      userId: 'test-user' as UserId,
+      idp: 'google.com',
+      idpId: 'test-idp-id' as IdpId
+    },
+    {
+      from: validConfig.emailingSenderConfig.sender,
+      to: validEmail,
+      subject: 'Alerta: Recordatorio no enviado' as EmailSubject,
+      htmlBody: '<p>Test email body</p>' as EmailHtmlBody,
+      tags: [],
+      subEventType: 'NoPhoneNumberForCalendarEventFound',
+      inlineAttachments: {},
+      metadata: {
+        actionableEventFoundCount: 90,
+        noPhoneNumberForCalendarEventFoundCount: 10,
+        errorRate: 10,
+        notificationsSentCountBeforeUpdate: 0
+      }
+    },
+    { correlationId: 'test-correlation' as CorrelationId }
+  );
+
   it('should process an ActionableEventFound event and increment SuccessCount', async () => {
     const incrementCounterFn = vi.fn().mockResolvedValue({
       HashKey: 'NoPhoneNumberForCalendarEventFound#2024-01-02',
@@ -59,12 +95,14 @@ describe('Alert for missing phone number record processor', () => {
     });
     const getEmailAndLanguageByIdFn = vi.fn().mockResolvedValue(validEmailAndLanguage);
     const publishFn = vi.fn().mockResolvedValue({});
+    const createEmailEventFn = vi.fn();
 
     await testIt(
       validActionableEventRecord,
       incrementCounterFn,
       getEmailAndLanguageByIdFn,
-      publishFn
+      publishFn,
+      createEmailEventFn
     );
 
     expect(incrementCounterFn).toHaveBeenCalledTimes(1);
@@ -86,12 +124,14 @@ describe('Alert for missing phone number record processor', () => {
     });
     const getEmailAndLanguageByIdFn = vi.fn().mockResolvedValue(validEmailAndLanguage);
     const publishFn = vi.fn().mockResolvedValue({});
+    const createEmailEventFn = vi.fn();
 
     await testIt(
       validNoPhoneNumberRecord,
       incrementCounterFn,
       getEmailAndLanguageByIdFn,
-      publishFn
+      publishFn,
+      createEmailEventFn
     );
 
     expect(incrementCounterFn).toHaveBeenCalledTimes(2);
@@ -118,12 +158,14 @@ describe('Alert for missing phone number record processor', () => {
     });
     const getEmailAndLanguageByIdFn = vi.fn().mockResolvedValue(validEmailAndLanguage);
     const publishFn = vi.fn().mockResolvedValue({});
+    const createEmailEventFn = vi.fn();
 
     await testIt(
       validActionableEventRecord,
       incrementCounterFn,
       getEmailAndLanguageByIdFn,
-      publishFn
+      publishFn,
+      createEmailEventFn
     );
 
     expect(incrementCounterFn).toHaveBeenCalledTimes(1);
@@ -149,12 +191,14 @@ describe('Alert for missing phone number record processor', () => {
       });
     const getEmailAndLanguageByIdFn = vi.fn().mockResolvedValue(validEmailAndLanguage);
     const publishFn = vi.fn().mockResolvedValue({});
+    const createEmailEventFn = vi.fn().mockReturnValue(validEmailEvent);
 
     await testIt(
       validActionableEventRecord,
       incrementCounterFn,
       getEmailAndLanguageByIdFn,
-      publishFn
+      publishFn,
+      createEmailEventFn
     );
 
     expect(incrementCounterFn).toHaveBeenCalledTimes(2);
@@ -172,22 +216,7 @@ describe('Alert for missing phone number record processor', () => {
     );
     expect(publishFn).toHaveBeenCalledTimes(1);
 
-    expect(publishFn).toHaveBeenCalledWith(
-      expect.objectContaining({
-        eventType: 'EmailToBeSent',
-        correlationId: validActionableEventRecord.CorrelationId,
-        idp: 'google.com',
-        idpId: '45346356356',
-        userId: validActionableEventRecord.UserId,
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        data: expect.objectContaining({
-          from: validConfig.emailingSenderConfig.sender,
-          to: validEmail,
-          subject: 'Alerta: Recordatorio no enviado',
-          tags: []
-        })
-      })
-    );
+    expect(publishFn).toHaveBeenCalledWith(validEmailEvent);
   });
 
   it('should not send an alert when notification already sent', async () => {
@@ -200,12 +229,14 @@ describe('Alert for missing phone number record processor', () => {
     });
     const getEmailAndLanguageByIdFn = vi.fn().mockResolvedValue(validEmailAndLanguage);
     const publishFn = vi.fn().mockResolvedValue({});
+    const createEmailEventFn = vi.fn();
 
     await testIt(
       validActionableEventRecord,
       incrementCounterFn,
       getEmailAndLanguageByIdFn,
-      publishFn
+      publishFn,
+      createEmailEventFn
     );
 
     expect(incrementCounterFn).toHaveBeenCalledTimes(1);
@@ -222,12 +253,14 @@ describe('Alert for missing phone number record processor', () => {
     });
     const getEmailAndLanguageByIdFn = vi.fn().mockResolvedValue(undefined);
     const publishFn = vi.fn().mockResolvedValue({});
+    const createEmailEventFn = vi.fn();
 
     await testIt(
       validActionableEventRecord,
       incrementCounterFn,
       getEmailAndLanguageByIdFn,
-      publishFn
+      publishFn,
+      createEmailEventFn
     );
 
     expect(incrementCounterFn).toHaveBeenCalledTimes(1);
@@ -239,12 +272,14 @@ describe('Alert for missing phone number record processor', () => {
     const incrementCounterFn = vi.fn().mockRejectedValue(error);
     const getEmailAndLanguageByIdFn = vi.fn().mockResolvedValue(validEmailAndLanguage);
     const publishFn = vi.fn().mockResolvedValue({});
+    const createEmailEventFn = vi.fn();
 
     const result = testIt(
       validActionableEventRecord,
       incrementCounterFn,
       getEmailAndLanguageByIdFn,
-      publishFn
+      publishFn,
+      createEmailEventFn
     );
 
     await expect(result).rejects.toThrow(
@@ -263,12 +298,14 @@ describe('Alert for missing phone number record processor', () => {
     });
     const getEmailAndLanguageByIdFn = vi.fn().mockRejectedValue(error);
     const publishFn = vi.fn().mockResolvedValue({});
+    const createEmailEventFn = vi.fn();
 
     const result = testIt(
       validActionableEventRecord,
       incrementCounterFn,
       getEmailAndLanguageByIdFn,
-      publishFn
+      publishFn,
+      createEmailEventFn
     );
 
     await expect(result).rejects.toThrow(
@@ -283,6 +320,7 @@ describe('Alert for missing phone number record processor', () => {
       (Pick<UserStoreRecord<unknown>, 'Email'> & { Language: LanguageCode }) | undefined
     >,
     publishFn: () => Promise<void>,
+    createEmailEventFn: () => EmailToBeSentEvent,
     config: AlertEndpointConfig &
       EmailingSenderEndpointConfig &
       AlertEmailEndpointConfig = validConfig
@@ -296,6 +334,11 @@ describe('Alert for missing phone number record processor', () => {
     const snsServiceMock = {
       publish: publishFn
     } as unknown as SnsService;
+
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    vi.mocked(EmailTemplateService.prototype.createEmailEvent).mockImplementation(
+      createEmailEventFn
+    );
 
     return recordProcessor(
       event,

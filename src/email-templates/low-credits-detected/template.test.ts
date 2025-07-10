@@ -6,14 +6,16 @@ import { specificTranslations } from './translations';
 describe('low-credits-detected template', () => {
   // eslint-disable-next-line vitest/expect-expect
   it('should compile the template', () => {
-    testEmailTemplate({
-      templateName: 'low-credits-detected',
-      partialTemplate: lowCreditsDetectedPartialTemplate,
-      specificTranslations,
-      dynamicVariables: {
-        topupUrl: 'https://app.notifycal.com/billing'
+    testEmailTemplate(
+      'low-credits-detected',
+      {
+        partialTemplate: lowCreditsDetectedPartialTemplate,
+        specificTranslations,
+        templateVariables: {
+          topupUrl: 'https://app.notifycal.com/billing'
+        }
       },
-      outputDirectory: __dirname
-    });
+      __dirname
+    );
   });
 });
