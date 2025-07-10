@@ -4,6 +4,7 @@ import { backgroundProcessingMiddleware } from '@common/lambda-middleware';
 import { logger } from '@common/powertools';
 import { setupLoggerForAuditStoreRecordProcessing } from '@services/common/logger';
 import { SnsService } from '@services/sns';
+import { UserBaseStore } from '@services/stores/user-base-store';
 import type { Context } from 'aws-lambda';
 import { readAlertForEventsConfig, type AlertForEventsConfig } from './config';
 import { recordProcessor } from './record-processor';
@@ -16,9 +17,11 @@ export function recordProcessorCurried(
     const _logger = logger.createChild();
     setupLoggerForAuditStoreRecordProcessing(record.dynamodb.NewImage);
     const snsService = SnsService.withConfig(config.emailToBeSentTopicConfig, _logger);
+    const userBaseStore = UserBaseStore.withConfig(config.userBaseStoreConfig, _logger);
     return recordProcessor(
       record.dynamodb.NewImage,
-      config.emailingSenderConfig,
+      config,
+      userBaseStore,
       snsService,
       _logger
     );

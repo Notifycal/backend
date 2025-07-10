@@ -6,7 +6,12 @@ import {
   lowCreditsDetectedEvent
 } from '@testing/data/app-events';
 import { validRawRecord } from '@testing/data/dynamodb-stream-events';
-import { setEnvEmailingSenderConfig, setEnvEmailToBeSentTopicConfig } from '@testing/utils/config';
+import {
+  setEnvAlertEmailConfig,
+  setEnvEmailingSenderConfig,
+  setEnvEmailToBeSentTopicConfig,
+  setEnvUserBaseStoreConfig
+} from '@testing/utils/config';
 import type { DynamoDBRecord, DynamoDBStreamEvent } from 'aws-lambda';
 import { describe, vi } from 'vitest';
 import type { AlertForEventsConfig } from './config';
@@ -35,10 +40,19 @@ function setEnv() {
         name: 'Notifycal',
         email: 'some@email.com' as Email
       }
+    },
+    userBaseStoreConfig: {
+      tableName: 'test-table'
+    },
+    alertEmailConfig: {
+      faqUrl: new URL('https://some.faq.url'),
+      topupUrl: new URL('https://some.faq.pricing')
     }
   };
   setEnvEmailToBeSentTopicConfig(config.emailToBeSentTopicConfig);
   setEnvEmailingSenderConfig(config.emailingSenderConfig);
+  setEnvUserBaseStoreConfig(config.userBaseStoreConfig);
+  setEnvAlertEmailConfig(config.alertEmailConfig);
 }
 
 vi.mock('./record-processor');

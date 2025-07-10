@@ -1,17 +1,17 @@
 import { testEmailTemplate } from '@email-templates/template-test-helper';
 import { describe, it } from 'vitest';
-import { alertMissingPhoneNumberPartialTemplate } from './alert-missing-phone-number.html.hbs';
+import { insufficientCreditsPartialTemplate } from './insufficient-credits.html.hbs';
 import { specificTranslations } from './translations';
 
-describe('alert-missing-phone-number template', () => {
+describe('insufficient-credits template', () => {
   // eslint-disable-next-line vitest/expect-expect
   it('should compile the template', () => {
     testEmailTemplate({
-      templateName: 'alert-missing-phone-number',
-      partialTemplate: alertMissingPhoneNumberPartialTemplate,
+      templateName: 'insufficient-credits',
+      partialTemplate: insufficientCreditsPartialTemplate,
       specificTranslations,
       dynamicVariables: {
-        notifycalFaqUrl: 'https://notifycal.com/faq'
+        topupUrl: 'https://app.notifycal.com/billing'
       },
       outputDirectory: __dirname
     });

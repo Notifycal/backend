@@ -26,7 +26,7 @@ import { tap } from '@utils/promises';
 import { DateTime as DT } from 'luxon';
 import { match } from 'ts-pattern';
 import { v4 } from 'uuid';
-import type { AlertEmailConfig, AlertEndpointConfig, AlertThresholdConfig } from './config';
+import type { AlertEmailConfig, AlertEmailEndpointConfig, AlertEndpointConfig, AlertThresholdConfig } from './config';
 import type {
   AuditTrailActionableEventFoundEvent,
   AuditTrailNoPhoneNumberForCalendarEventFoundEvent
@@ -192,7 +192,7 @@ function errorHandler(
 
 export function recordProcessor(
   event: AuditTrailActionableEventFoundEvent | AuditTrailNoPhoneNumberForCalendarEventFoundEvent,
-  config: AlertEndpointConfig & EmailingSenderEndpointConfig,
+  config: AlertEndpointConfig & EmailingSenderEndpointConfig & AlertEmailEndpointConfig,
   alertsBaseStore: AlertsBaseStore,
   userBaseStore: UserBaseStore<IdpName>,
   snsService: SnsService,
