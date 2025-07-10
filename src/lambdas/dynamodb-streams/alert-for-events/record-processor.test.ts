@@ -1,8 +1,8 @@
 import { logger } from '@common/powertools';
-import { insufficientCreditsPartialTemplate } from '@email-templates/insufficient-credits/insufficient-credits.html.hbs';
-import { specificTranslations as insufficientCreditsTranslations } from '@email-templates/insufficient-credits/translations';
-import { lowCreditsDetectedPartialTemplate } from '@email-templates/low-credits-detected/low-credits-detected.html.hbs';
-import { specificTranslations as lowCreditsTranslations } from '@email-templates/low-credits-detected/translations';
+import { insufficientCreditsPartialTemplate } from '@email/templates/insufficient-credits/insufficient-credits.html.hbs';
+import { specificTranslations as insufficientCreditsTranslations } from '@email/templates/insufficient-credits/translations';
+import { lowCreditsDetectedPartialTemplate } from '@email/templates/low-credits-detected/low-credits-detected.html.hbs';
+import { specificTranslations as lowCreditsTranslations } from '@email/templates/low-credits-detected/translations';
 import { emailToBeSent, type EmailToBeSentEvent } from '@model/app-events/EmailToBeSentEvent';
 import type {
   CorrelationId,

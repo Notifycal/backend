@@ -1,6 +1,6 @@
 import type { Logger } from '@aws-lambda-powertools/logger';
-import { alertMissingPhoneNumberPartialTemplate } from '@email-templates/alert-missing-phone-number/alert-missing-phone-number.html.hbs';
-import { specificTranslations } from '@email-templates/alert-missing-phone-number/translations';
+import { alertMissingPhoneNumberPartialTemplate } from '@email/templates/alert-missing-phone-number/alert-missing-phone-number.html.hbs';
+import { specificTranslations } from '@email/templates/alert-missing-phone-number/translations';
 import type {
   EmailWithName,
   EventCreationOptions,

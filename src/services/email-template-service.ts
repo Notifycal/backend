@@ -1,7 +1,7 @@
 import type { Logger } from '@aws-lambda-powertools/logger';
-import { logo } from '@email-templates/assets/logo.png.base64';
-import { baseTemplate } from '@email-templates/base-template.html.hbs';
-import { commonTranslations } from '@email-templates/i18n/translations';
+import { logo } from '@email/assets/logo.png.base64';
+import { baseTemplate } from '@email/base-template.html.hbs';
+import { commonTranslations } from '@email/i18n/translations';
 import type {
   EmailWithName,
   EventCreationOptions,
