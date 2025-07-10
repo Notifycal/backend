@@ -63,7 +63,10 @@ locals {
   business_alerts_persistance_env_vars = {
     BUSINESS_ALERTS_TABLE_NAME = aws_dynamodb_table.business_alerts.name
   }
-
+  emailing_sender_env_vars = {
+    EMAILING_SENDER_DISPLAY_NAME = var.emailing_config.sender.displayName
+    EMAILING_SENDER_EMAIL        = var.emailing_config.sender.email
+  }
   google_idp_config_env_vars = {
     GOOGLE_OAUTH_CLIENT_ID                = var.google_oauth_config.client_id
     GOOGLE_OAUTH_CLIENT_SECRET            = var.google_oauth_config.client_secret

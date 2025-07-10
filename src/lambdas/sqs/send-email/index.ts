@@ -32,6 +32,9 @@ function setupLogger(record: Record): void {
 function lambdaHandler(event: Event, context: Context): Promise<EmailSendSuccessResponse> {
   const config = event.lambdaConfig;
   const record = event.Records[0];
+  if (!record) {
+    return Promise.reject(new Error('No record found in event'));
+  }
   setupLogger(record);
   const snsService = SnsService.withConfig(config.emailingTopicConfig, logger);
   const messageProcessor = new IdempotentProcessor(

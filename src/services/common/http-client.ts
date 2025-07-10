@@ -30,8 +30,8 @@ export class HttpClient {
     targetName: IntegrationVendorName
   ) {
     this.axiosInstance = axios.create({
-      baseURL: baseUrl,
-      auth: auth,
+      ...(baseUrl && { baseUrl: baseUrl }),
+      ...(auth && { auth: auth }),
       restResourceName: 'notused'
     });
     this.withInterceptors(this.axiosInstance, targetName);

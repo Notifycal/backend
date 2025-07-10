@@ -5,7 +5,7 @@ export class LambdaUtility extends Utility {
     super();
   }
 
-  public getColdStart(): boolean {
+  public override getColdStart(): boolean {
     return super.getColdStart();
   }
 }

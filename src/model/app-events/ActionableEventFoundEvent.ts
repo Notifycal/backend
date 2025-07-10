@@ -1,15 +1,13 @@
 import { calendarEventSchema, calendarSchema } from '@notifycal/shared/schemas';
-import { z } from 'zod';
+import type { z } from 'zod';
 import { eventSchemaGenerator } from './BaseEvent';
-import { phoneE164Schema, runSchema, senderStandardSchema } from './common';
+import { runSchema } from './common';
+import { baseMessagingEventDataSchema } from './messaging-common';
 
-const dataSchema = z.object({
+const dataSchema = baseMessagingEventDataSchema.extend({
   run: runSchema,
   calendar: calendarSchema,
-  calendarEvent: calendarEventSchema,
-  receiverDetails: phoneE164Schema,
-  senderDetails: senderStandardSchema,
-  message: z.string()
+  calendarEvent: calendarEventSchema
 });
 export const actionableEventFoundEventSchema = eventSchemaGenerator(
   'ActionableEventFound',

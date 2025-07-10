@@ -25,7 +25,7 @@ export const successEventTypeSchema = z.union([
   z.literal('ActionableEventReminderAttemptSent'),
   z.literal('ActionableEventReminderAttemptSkipped'),
   z.literal('ActionableEventReminderStatusUpdated'),
-  z.literal('ActionableEventReminderInsufficientCreditNotSent'),
+  z.literal('InsufficientCreditReminderNotSent'),
   z.literal('DemoReminderToBeSent'),
   z.literal('DemoReminderToBeSentAttemptFailed'),
   z.literal('DemoReminderToBeSentAttemptSent'),
@@ -47,6 +47,7 @@ export const successEventTypeSchema = z.union([
   z.literal('SubscriptionDowngradeScheduled'),
   z.literal('SubscriptionCancelled'),
   z.literal('TopupSucceeded'),
+  z.literal('LowCreditsDetected'),
   ...ourStripeEventTypeZodLiteralArray
 ]);
 export const errorEventTypeSchema = z.union([

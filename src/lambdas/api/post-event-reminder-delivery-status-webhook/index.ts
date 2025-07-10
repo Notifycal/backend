@@ -127,7 +127,7 @@ function rebuildEvent(
 async function lambdaHandler(
   event: Event,
   /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
-  ctx: Context
+  _ctx: Context
 ): Promise<APIGatewayProxyResult> {
   const config = event.lambdaConfig;
   const snsService = SnsService.withConfig(config.messagingTopicConfig, logger);

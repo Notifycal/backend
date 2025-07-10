@@ -1,7 +1,6 @@
-import { commonTranslations, type NotifycalTranslations } from '@email-templates/i18n/translations';
 import type { LanguageCode } from '@notifycal/shared/types';
 
-export interface EmailTextVariables {
+export interface EmailTextVariables extends Record<string, string> {
   subject: string;
   header: string;
   greeting: string;
@@ -18,7 +17,7 @@ export interface EmailDynamicVariables {
   notifycalFaqUrl: string;
 }
 
-const specificTranslations: Record<LanguageCode, EmailTextVariables> = {
+export const specificTranslations: Record<LanguageCode, EmailTextVariables> = {
   es: {
     subject: 'Alerta: Recordatorio no enviado',
     header: 'Importante: No pudimos enviar su recordatorio',
@@ -48,7 +47,3 @@ const specificTranslations: Record<LanguageCode, EmailTextVariables> = {
     thankYou: 'Thank you for choosing Notifycal!'
   }
 };
-
-export function translations(code: LanguageCode): NotifycalTranslations & EmailTextVariables {
-  return { ...commonTranslations[code], ...specificTranslations[code] };
-}

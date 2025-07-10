@@ -40,7 +40,7 @@ export function phoneExtractor(
         logger
       )
     )
-    .then((results) => results.flat());
+    .then((results) => results.flat().filter((item) => item !== undefined));
   const fromCalendarEventSummaryPromise = _findPhoneNumbersInText(
     calendarEvent.summary || '',
     senderCountryCode || 'ES'

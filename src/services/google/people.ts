@@ -44,8 +44,8 @@ export class GooglePeople extends BaseGoogle {
         ];
         const orderMap = new Map(order.map((type, index) => [type, index]));
         return r.person.phoneNumbers.sort((a, b) => {
-          const indexA = orderMap.get(a.type || order[order.length - 1]) ?? order.length;
-          const indexB = orderMap.get(b.type || order[order.length - 1]) ?? order.length;
+          const indexA = orderMap.get(a.type || order[order.length - 1]!) ?? order.length;
+          const indexB = orderMap.get(b.type || order[order.length - 1]!) ?? order.length;
           return indexA - indexB;
         });
       } else {
