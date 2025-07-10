@@ -4,12 +4,12 @@ import type { Email, PhoneNumber } from '@notifycal/shared/types';
 import type { PhoneNumberE164 } from '@own-types/model';
 import { fakeIdpConfigs } from '@testing/utils/config';
 import { google, type people_v1 } from 'googleapis';
-import type { GaxiosResponse } from 'googleapis-common';
 import { describe, expect, it, vi } from 'vitest';
+import type { MinimalGaxiosResponse } from './gaxios';
 import { GooglePeople } from './people';
 
 describe('GooglePeople Service', () => {
-  const validGooglePeopleResponse: GaxiosResponse<people_v1.Schema$SearchResponse> = {
+  const validGooglePeopleResponse = {
     data: {
       results: [
         {
@@ -19,14 +19,8 @@ describe('GooglePeople Service', () => {
         }
       ]
     },
-    config: {},
-    status: 200,
-    statusText: 'OK',
-    headers: {},
-    request: {
-      responseURL: ''
-    }
-  };
+    status: 200
+  } satisfies MinimalGaxiosResponse<people_v1.Schema$SearchResponse>;
 
   it('should fetch contact by email and return phone numbers', () => {
     const searchContactsFn = () => Promise.resolve(validGooglePeopleResponse);
@@ -61,13 +55,9 @@ describe('GooglePeople Service', () => {
   });
 
   it('should return undefined if no phone numbers are found', () => {
-    const emptyResponse: GaxiosResponse<people_v1.Schema$SearchResponse> = {
+    const emptyResponse: MinimalGaxiosResponse<people_v1.Schema$SearchResponse> = {
       data: { results: [] },
-      config: {},
-      status: 200,
-      statusText: 'OK',
-      headers: {},
-      request: { responseURL: '' }
+      status: 200
     };
     const searchContactsFn = () => Promise.resolve(emptyResponse);
 
@@ -86,7 +76,7 @@ describe('GooglePeople Service', () => {
   });
 
   function testit(
-    searchContactsFn: () => Promise<GaxiosResponse<people_v1.Schema$SearchResponse>>,
+    searchContactsFn: () => Promise<MinimalGaxiosResponse<people_v1.Schema$SearchResponse>>,
     config = fakeIdpConfigs['google.com']
   ): Promise<Array<PhoneNumberE164>> {
     vi.mock('googleapis');

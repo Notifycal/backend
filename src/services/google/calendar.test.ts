@@ -12,26 +12,20 @@ import type {
 } from '@notifycal/shared/types';
 import { fakeIdpConfigs } from '@testing/utils/config';
 import { google, type calendar_v3 } from 'googleapis';
-import type { GaxiosResponse } from 'googleapis-common';
 import { describe, expect, it, vi, type Mock } from 'vitest';
 import { GoogleCalendar } from './calendar';
+import type { GaxiosResponse, MinimalGaxiosResponse } from './gaxios';
 
 describe('GoogleCalendar Service calendarList', () => {
-  const validGoogleCalendarListEntry: GaxiosResponse<calendar_v3.Schema$CalendarList> = {
+  const validGoogleCalendarListEntry = {
     data: {
       items: [
         { id: '1', summary: 'Calendar 1' },
         { id: '2', summary: 'Calendar 2' }
       ]
     },
-    config: {},
-    status: 200,
-    statusText: '200OK',
-    headers: {},
-    request: {
-      responseURL: ''
-    }
-  };
+    status: 200
+  } satisfies MinimalGaxiosResponse<calendar_v3.Schema$CalendarList>;
 
   it('should fetch the calendar list and return parsed data', () => {
     const calendarListFn = () => Promise.resolve(validGoogleCalendarListEntry);
@@ -54,18 +48,12 @@ describe('GoogleCalendar Service calendarList', () => {
   });
 
   it('should throw a custom error if parsing fails', () => {
-    const invalidGoogleCalendarListEntry: GaxiosResponse<calendar_v3.Schema$CalendarList> = {
+    const invalidGoogleCalendarListEntry = {
       data: {
         items: [{ summary: 'Calendar 1' }, { id: '2' }]
       },
-      config: {},
-      status: 200,
-      statusText: '200OK',
-      headers: {},
-      request: {
-        responseURL: ''
-      }
-    };
+      status: 200
+    } satisfies MinimalGaxiosResponse<calendar_v3.Schema$CalendarList>;
     const calendarListFn = () => Promise.resolve(invalidGoogleCalendarListEntry);
 
     const result = testit(calendarListFn);
@@ -74,7 +62,7 @@ describe('GoogleCalendar Service calendarList', () => {
   });
 
   function testit(
-    calendarListFn: () => Promise<GaxiosResponse<calendar_v3.Schema$CalendarList>>,
+    calendarListFn: () => Promise<MinimalGaxiosResponse<calendar_v3.Schema$CalendarList>>,
     config = fakeIdpConfigs['google.com']
   ): Promise<Array<Calendar>> {
     vi.mock('googleapis');
@@ -252,7 +240,7 @@ describe('GoogleCalendar Service eventsWithinPeriod', () => {
   });
 
   function testit(
-    eventsListMock: Mock<() => Promise<GaxiosResponse<calendar_v3.Schema$Events>>>,
+    eventsListMock: Mock<() => Promise<MinimalGaxiosResponse<calendar_v3.Schema$Events>>>,
     includeAllDayEvents: boolean = false,
     config = fakeIdpConfigs['google.com']
   ): Promise<ServiceResponse<CalendarEvent, ParsingError>> {
