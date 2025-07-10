@@ -26,23 +26,24 @@ describe('Alert for missing phone number record processor', () => {
     auditTrailNoPhoneNumberForCalendarEventFoundEvent as AuditTrailNoPhoneNumberForCalendarEventFoundEvent;
 
   const validEmail = 'test@notifycal.com' as Email;
-  const validConfig: AlertEndpointConfig & EmailingSenderEndpointConfig & AlertEmailEndpointConfig = {
-    alertThresholdConfig: {
-      errorRateThreshold: 5,
-      maxNotificationsPerDay: 1,
-      countThresholdToEnableTrigger: 0
-    },
-    emailingSenderConfig: {
-      sender: {
-        name: 'Notifycal',
-        email: 'some@email.com' as Email
+  const validConfig: AlertEndpointConfig & EmailingSenderEndpointConfig & AlertEmailEndpointConfig =
+    {
+      alertThresholdConfig: {
+        errorRateThreshold: 5,
+        maxNotificationsPerDay: 1,
+        countThresholdToEnableTrigger: 0
+      },
+      emailingSenderConfig: {
+        sender: {
+          name: 'Notifycal',
+          email: 'some@email.com' as Email
+        }
+      },
+      alertEmailConfig: {
+        faqUrl: new URL('https://test.notifycal.com/faq'),
+        topupUrl: new URL('https://test.notifycal.com/pricing')
       }
-    },
-    alertEmailConfig: {
-      faqUrl: new URL('https://test.notifycal.com/faq'),
-      topupUrl: new URL('https://test.notifycal.com/pricing')
-    }
-  };
+    };
   const validEmailAndLanguage = {
     Email: 'test@notifycal.com' as Email,
     Language: 'es'
@@ -282,7 +283,9 @@ describe('Alert for missing phone number record processor', () => {
       (Pick<UserStoreRecord<unknown>, 'Email'> & { Language: LanguageCode }) | undefined
     >,
     publishFn: () => Promise<void>,
-    config: AlertEndpointConfig & EmailingSenderEndpointConfig & AlertEmailEndpointConfig = validConfig
+    config: AlertEndpointConfig &
+      EmailingSenderEndpointConfig &
+      AlertEmailEndpointConfig = validConfig
   ): Promise<void> {
     const alertsBaseStoreMock = {
       incrementCounter: incrementCounterFn

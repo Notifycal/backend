@@ -118,6 +118,7 @@ describe(recordProcessor, () => {
       lowCreditsDetectedPartialTemplate,
       lowCreditsTranslations,
       {
+        faqUrl: validConfig.alertEmailConfig.faqUrl.toString(),
         topupUrl: validConfig.alertEmailConfig.topupUrl.toString()
       }
     );

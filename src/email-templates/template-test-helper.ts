@@ -39,14 +39,14 @@ export function testEmailTemplate(config: TestTemplateConfig): void {
   const supportedLanguages: Array<LanguageCode> = ['en', 'es'];
   supportedLanguages.forEach((lang) => {
     const emailTemplate = compiledTemplateFn(lang);
-    
+
     expect(emailTemplate).toHaveProperty('htmlBody');
     expect(emailTemplate).toHaveProperty('subject');
     expect(emailTemplate).toHaveProperty('inlineAttachments');
-    
+
     expect(emailTemplate.htmlBody).toContain('<!DOCTYPE html');
     expect(emailTemplate.subject).toBeTruthy();
-    
+
     writeFileSync(
       path.resolve(outputDirectory, `${templateName}.${lang}.html`),
       emailTemplate.htmlBody

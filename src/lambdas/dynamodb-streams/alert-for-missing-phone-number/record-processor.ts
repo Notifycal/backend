@@ -1,7 +1,11 @@
 import type { Logger } from '@aws-lambda-powertools/logger';
 import { alertMissingPhoneNumberPartialTemplate } from '@email-templates/alert-missing-phone-number/alert-missing-phone-number.html.hbs';
 import { specificTranslations } from '@email-templates/alert-missing-phone-number/translations';
-import type { EmailWithName } from '@model/app-events/common';
+import type {
+  EmailWithName,
+  EventCreationOptions,
+  EventSourceIdentity
+} from '@model/app-events/common';
 import type { EmailToBeSentEvent } from '@model/app-events/EmailToBeSentEvent';
 import type { EmailingSenderEndpointConfig } from '@model/Config';
 import {
@@ -9,44 +13,30 @@ import {
   type AlertCounterKeyNames,
   type AlertStoreRecord
 } from '@model/store/AlertStoreRecord';
-import type {
-  DateTime,
-  Email,
-  EventId,
-  IdpName,
-  LanguageCode,
-  UserId
-} from '@notifycal/shared/types';
-import { rethrowError } from '@services/common/error-handling';
-import { EmailTemplateService } from '@services/email-template-service';
+import { extractIdentity } from '@model/store/AuditTrailStoreRecord';
+import type { Email, IdpName, LanguageCode, UserId } from '@notifycal/shared/types';
 import type { SnsService } from '@services/sns';
 import type { AlertsBaseStore } from '@services/stores/alerts-base-store';
 import type { UserBaseStore } from '@services/stores/user-base-store';
 import { tap } from '@utils/promises';
 import { DateTime as DT } from 'luxon';
 import { match } from 'ts-pattern';
-import { v4 } from 'uuid';
-import type { AlertEmailConfig, AlertEmailEndpointConfig, AlertEndpointConfig, AlertThresholdConfig } from './config';
+import {
+  errorHandler,
+  interpolateEmailBase,
+  sendAlert,
+  type EmailTemplateConfig
+} from '../shared/alert-processing';
+import type {
+  AlertEmailConfig,
+  AlertEmailEndpointConfig,
+  AlertEndpointConfig,
+  AlertThresholdConfig
+} from './config';
 import type {
   AuditTrailActionableEventFoundEvent,
   AuditTrailNoPhoneNumberForCalendarEventFoundEvent
 } from './schema';
-
-function emailToBeSent(
-  origin: AuditTrailActionableEventFoundEvent | AuditTrailNoPhoneNumberForCalendarEventFoundEvent,
-  data: EmailToBeSentEvent['data']
-): EmailToBeSentEvent {
-  return {
-    eventId: v4() as EventId,
-    correlationId: origin.CorrelationId,
-    eventType: 'EmailToBeSent',
-    happenedAt: new Date().toISOString() as DateTime,
-    userId: origin.UserId,
-    idp: origin.Idp,
-    idpId: origin.IdpId,
-    data: data
-  };
-}
 
 function updateCounterOnEventReceived(
   alertName: EventTypeDate,
@@ -90,35 +80,32 @@ function interpolateEmail(
 ): EmailToBeSentEvent['data'] {
   const subEventType: EmailToBeSentEvent['data']['subEventType'] =
     'NoPhoneNumberForCalendarEventFound';
-
-  const emailTemplateService = new EmailTemplateService(logger);
-  const compiledTemplateFn = emailTemplateService.compileTemplate(
-    alertMissingPhoneNumberPartialTemplate,
-    specificTranslations,
-    {
+  const templateConfig: EmailTemplateConfig = {
+    partialTemplate: alertMissingPhoneNumberPartialTemplate,
+    specificTranslations: specificTranslations,
+    templateVariables: {
       notifycalFaqUrl: alertEmailConfig.faqUrl.toString()
     }
-  );
-  const emailTemplate = compiledTemplateFn(language);
-
-  return {
-    from: sender,
-    to: email,
-    subject: emailTemplate.subject,
-    htmlBody: emailTemplate.htmlBody,
-    tags: [],
-    subEventType,
-    inlineAttachments: emailTemplate.inlineAttachments,
-    metadata: {
-      actionableEventFoundCount: updateCounterResult.SuccessCount,
-      noPhoneNumberForCalendarEventFoundCount: updateCounterResult.FailureCount,
-      errorRate,
-      notificationsSentCountBeforeUpdate: updateCounterResult.NotificationSentCount
-    }
   };
+  const metadata = {
+    actionableEventFoundCount: updateCounterResult.SuccessCount,
+    noPhoneNumberForCalendarEventFoundCount: updateCounterResult.FailureCount,
+    errorRate,
+    notificationsSentCountBeforeUpdate: updateCounterResult.NotificationSentCount
+  };
+
+  return interpolateEmailBase(
+    email,
+    sender,
+    language,
+    templateConfig,
+    subEventType,
+    metadata,
+    logger
+  );
 }
 
-function sendAlert(
+function sendPhoneNumberAlert(
   event: AuditTrailActionableEventFoundEvent | AuditTrailNoPhoneNumberForCalendarEventFoundEvent,
   alertName: EventTypeDate,
   alertDiscriminator: UserId,
@@ -132,7 +119,6 @@ function sendAlert(
   snsService: SnsService,
   logger: Logger
 ): Promise<void> {
-  logger.info(`Sending alert to user`);
   const alertData = interpolateEmail(
     email,
     sender,
@@ -142,11 +128,13 @@ function sendAlert(
     alertEmailConfig,
     logger
   );
-  const alertEvent: EmailToBeSentEvent = emailToBeSent(event, alertData);
-  return snsService
-    .publish(alertEvent)
-    .then(tap(() => updateCounterOnAlertSent(alertName, alertDiscriminator, alertsBaseStore)))
-    .then();
+  const identity: EventSourceIdentity = extractIdentity(event);
+  const options: EventCreationOptions = {
+    correlationId: event.CorrelationId
+  };
+  return sendAlert(identity, options, alertData, snsService).then(
+    tap(() => updateCounterOnAlertSent(alertName, alertDiscriminator, alertsBaseStore))
+  );
 }
 
 function buildPersistanceKeys(
@@ -179,17 +167,6 @@ function shouldAlert(
   );
 }
 
-function errorHandler(
-  eventId: EventId,
-  logger: Logger
-): (error: unknown) => Promise<void | undefined> {
-  return (error: unknown) => {
-    rethrowError(`(Re)-Throwing error on purpose to notify of batch item failure`, error, logger, {
-      eventId: eventId
-    });
-  };
-}
-
 export function recordProcessor(
   event: AuditTrailActionableEventFoundEvent | AuditTrailNoPhoneNumberForCalendarEventFoundEvent,
   config: AlertEndpointConfig & EmailingSenderEndpointConfig & AlertEmailEndpointConfig,
@@ -214,7 +191,7 @@ export function recordProcessor(
         return userBaseStore.getEmailAndLanguageById(event.UserId).then((emailAndLanguage) => {
           if (emailAndLanguage) {
             const { Email, Language } = emailAndLanguage;
-            return sendAlert(
+            return sendPhoneNumberAlert(
               event,
               alertName,
               alertDiscriminator,

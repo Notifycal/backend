@@ -12,7 +12,12 @@ import {
   lowCreditsDetectedEventType,
   noPhoneNumberForCalendarEventFoundEventType
 } from './BaseEvent';
-import { emailWithNameSchema } from './common';
+import {
+  createEventBase,
+  emailWithNameSchema,
+  type EventCreationOptions,
+  type EventSourceIdentity
+} from './common';
 
 const inlineAttachmentSchema = z.object({
   type: z.literal('inline'),
@@ -42,3 +47,14 @@ const dataSchema = z.object({
 export const emailToBeSentEventSchema = eventSchemaGenerator('EmailToBeSent', dataSchema);
 
 export type EmailToBeSentEvent = z.infer<typeof emailToBeSentEventSchema>;
+
+export function emailToBeSent(
+  identity: EventSourceIdentity,
+  data: EmailToBeSentEvent['data'],
+  options: EventCreationOptions
+): EmailToBeSentEvent {
+  return {
+    ...createEventBase('EmailToBeSent', identity, options),
+    data
+  };
+}

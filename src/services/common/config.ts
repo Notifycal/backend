@@ -372,7 +372,6 @@ export function readAlertEmailConfig(env: Environment): AlertEmailEndpointConfig
   };
 }
 
-
 export function readStripeAuthConfig(env: Environment): StripeAuthEndpointConfig {
   return {
     stripeAuthConfig: {

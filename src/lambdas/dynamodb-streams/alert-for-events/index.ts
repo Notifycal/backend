@@ -18,13 +18,7 @@ export function recordProcessorCurried(
     setupLoggerForAuditStoreRecordProcessing(record.dynamodb.NewImage);
     const snsService = SnsService.withConfig(config.emailToBeSentTopicConfig, _logger);
     const userBaseStore = UserBaseStore.withConfig(config.userBaseStoreConfig, _logger);
-    return recordProcessor(
-      record.dynamodb.NewImage,
-      config,
-      userBaseStore,
-      snsService,
-      _logger
-    );
+    return recordProcessor(record.dynamodb.NewImage, config, userBaseStore, snsService, _logger);
   };
 }
 
