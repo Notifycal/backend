@@ -239,7 +239,7 @@ describe('POST Event reminder delivery status webhook', () => {
       uuidv4
     ).mockReturnValue(fixedUUID);
 
-    const chosenBody = validBodies[0];
+    const chosenBody = validBodies[0]!;
 
     const event = testVonageAuthedEvent(
       chosenBody,
@@ -277,7 +277,7 @@ describe('POST Event reminder delivery status webhook', () => {
         run: {
           lowerBoundStartTime: eventQSP['data[run][lowerBoundStartTime]'],
           upperBoundStartTime: eventQSP['data[run][upperBoundStartTime]'],
-          slidingWindowInMinutes: parseInt(eventQSP['data[run][slidingWindowInMinutes]'])
+          slidingWindowInMinutes: parseInt(eventQSP['data[run][slidingWindowInMinutes]']!)
         },
         senderDetails: {
           phoneNumber: eventQSP['data[senderDetails][phoneNumber]'],
@@ -319,7 +319,7 @@ describe('POST Event reminder delivery status webhook', () => {
       uuidv4
     ).mockReturnValue(fixedUUID);
 
-    const chosenBody = validBodies[0];
+    const chosenBody = validBodies[0]!;
 
     const event = testVonageAuthedEvent(
       chosenBody,

@@ -86,7 +86,7 @@ export class GoogleCalendar extends BaseGoogle {
         (item.start?.timeZone as TimeZone) ??
         (typeof calendarTimezone === 'string' ? (calendarTimezone as TimeZone) : undefined);
       const calendarEvent: Partial<CalendarEvent> = {
-        id: item.id ?? undefined,
+        ...(item.id && { id: item.id }),
         summary: item.summary ?? undefined,
         description: item.description ?? undefined,
         attendees: (item.attendees || [])
@@ -186,7 +186,7 @@ export class GoogleCalendar extends BaseGoogle {
           timeMax: lowerBoundEndTime,
           timeMin: upperBoundStartTime,
           timeZone: 'UTC',
-          pageToken: currentPageToken
+          ...(currentPageToken && { pageToken: currentPageToken })
         })
       )
         .then(handleResponse)

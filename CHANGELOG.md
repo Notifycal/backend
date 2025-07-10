@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.45.1](https://github.com/Notifycal/backend/compare/v0.45.0...v0.45.1) (2025-07-09)
+
+
+### Bug Fixes
+
+* demo reminder to 7 bit function  ([#793](https://github.com/Notifycal/backend/issues/793)) ([99b2e0b](https://github.com/Notifycal/backend/commit/99b2e0bdf6fd5c175720b30c26c35905a99dfd52))
+* **deps:** Update AWS packages to v3.844.0 ([#805](https://github.com/Notifycal/backend/issues/805)) ([69e8e59](https://github.com/Notifycal/backend/commit/69e8e59f80e8fe6d1b69e17ab271fba9375ea0e5))
+* **deps:** Update dependency @aws-sdk/client-dynamodb to v3.844.0 ([#804](https://github.com/Notifycal/backend/issues/804)) ([ba60130](https://github.com/Notifycal/backend/commit/ba60130707a7d40db459d73edc842534a6ed221a))
+* **deps:** Update dependency luxon to v3.7.0 ([#802](https://github.com/Notifycal/backend/issues/802)) ([461d992](https://github.com/Notifycal/backend/commit/461d9929c3d43e2cd89cde096e47fe2f1d597177))
+
+## [0.45.0](https://github.com/Notifycal/backend/compare/v0.44.0...v0.45.0) (2025-07-09)
+
+
+### Features
+
+* enrich credit result model ([#792](https://github.com/Notifycal/backend/issues/792)) ([da1aa81](https://github.com/Notifycal/backend/commit/da1aa815ea6c41e0a0a685a4bf310e4e04b3c3d6))
+
+
+### Bug Fixes
+
+* **deps:** Update @notifycal/shared and zod ([#794](https://github.com/Notifycal/backend/issues/794)) ([7bf5202](https://github.com/Notifycal/backend/commit/7bf5202a593644c7c7fdeb623b0855b599c1a4fa))
+* ts errors ([#788](https://github.com/Notifycal/backend/issues/788)) ([b27c555](https://github.com/Notifycal/backend/commit/b27c5552db175841a13a8b2fea30aeaa4f24db9a))
+
 ## [0.44.0](https://github.com/Notifycal/backend/compare/v0.43.1...v0.44.0) (2025-07-07)
 
 

@@ -143,8 +143,6 @@ module "alert_for_missing_phone_number_lambda" {
     ERROR_RATE_THRESHOLD              = var.alert_for_missing_phone_number.error_rate_threshold
     MAX_NOTIFICATIONS_PER_DAY         = var.alert_for_missing_phone_number.max_notifications_per_day
     COUNT_THRESHOLD_TO_ENABLE_TRIGGER = var.alert_for_missing_phone_number.count_threshold_to_enable_trigger
-    EMAILING_SENDER_DISPLAY_NAME      = var.emailing_config.sender.displayName
-    EMAILING_SENDER_EMAIL             = var.emailing_config.sender.email
     FAQ_URL                           = "https://${var.base_domain}/faq"
-  }, local.email_to_be_sent_topic_env_vars, local.users_persistance_env_vars, local.business_alerts_persistance_env_vars, local.common_lambda_env_vars)
+  }, local.email_to_be_sent_topic_env_vars, local.users_persistance_env_vars, local.business_alerts_persistance_env_vars, local.emailing_sender_env_vars, local.common_lambda_env_vars)
 }

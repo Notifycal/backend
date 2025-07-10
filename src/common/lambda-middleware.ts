@@ -59,7 +59,7 @@ export function backgroundProcessingMiddleware<
 ): middy.MiddyfiedHandler {
   const apiRequest = false;
   return baseConfigMiddleware(configReaderFn, false)
-    .use(setupMiddleware({ setupFn: loggerSetup }))
+    .use(setupMiddleware(loggerSetup ? { setupFn: loggerSetup } : {}))
     .use(eventParserMiddleware(eventSchema, apiRequest))
     .use(setupMiddleware({ setupFn: logEvent }));
 }

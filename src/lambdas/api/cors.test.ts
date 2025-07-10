@@ -34,7 +34,7 @@ describe('CORS', () => {
     const event = (await testAuthedEvent(
       {},
       {
-        Origin: allowedOrigins[0]
+        Origin: allowedOrigins[0]!
       },
       accessTokenSchema,
       validAccessToken
@@ -59,7 +59,7 @@ describe('CORS', () => {
     const event = (await testAuthedEvent(
       {},
       {
-        Origin: allowedOrigins[1]
+        Origin: allowedOrigins[1]!
       },
       accessTokenSchema,
       validAccessToken

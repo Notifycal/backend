@@ -1,9 +1,12 @@
 import { Logger } from '@aws-lambda-powertools/logger';
 import { logger } from '@common/powertools';
 import { InsufficientCreditsError } from '@model/Errors';
-import type { UserStoreRecord } from '@model/store/UserStoreRecord';
+import type { UserStoreRecord, UserStoreRecordCredits } from '@model/store/UserStoreRecord';
 import type { IdpName, TierId, TopupId, UserId, UserStatus } from '@notifycal/shared/types';
-import type { UserBaseStore } from '@services/stores/user-base-store';
+import type {
+  CreditOperationPersistenceResult,
+  UserBaseStore
+} from '@services/stores/user-base-store';
 import { describe, expect, it, vi } from 'vitest';
 import {
   CreditsService,
@@ -22,7 +25,7 @@ describe(CreditsService, () => {
   const validUserStatus = 'demo' as UserStatus;
   const validDemoReminderLimit = 3;
 
-  const validUserWithCredits: Pick<UserStoreRecord<unknown>, 'Credits'> = {
+  const validUserWithCredits: UserStoreRecordCredits = {
     Credits: {
       SubscriptionCreditBalance: 150,
       Tier: 'good',
@@ -30,7 +33,7 @@ describe(CreditsService, () => {
     }
   };
 
-  const validUserWithZeroCredits: Pick<UserStoreRecord<unknown>, 'Credits'> = {
+  const validUserWithZeroCredits: UserStoreRecordCredits = {
     Credits: {
       SubscriptionCreditBalance: 0,
       Tier: 'good',
@@ -43,7 +46,12 @@ describe(CreditsService, () => {
 
   describe('deductCredits', () => {
     it('should successfully deduct credits and return success result with balance', async () => {
-      const deductCreditsFn = vi.fn().mockResolvedValue(validUserWithCredits);
+      const creditOperationPersistenceResult: CreditOperationPersistenceResult = {
+        user: validUserWithCredits,
+        balance: 'subscription',
+        quantity: validCredits
+      };
+      const deductCreditsFn = vi.fn().mockResolvedValue(creditOperationPersistenceResult);
       const updateStatusFn = vi.fn();
 
       const result = await testDeductCredits(deductCreditsFn, updateStatusFn, validCredits);
@@ -52,9 +60,15 @@ describe(CreditsService, () => {
       expect(deductCreditsFn).toHaveBeenCalledWith(validUserId, validCredits, expect.any(Logger));
       expect(result).toStrictEqual({
         success: true,
-        operationId: 'Success',
-        subscriptionCreditBalance: validUserWithCredits.Credits?.SubscriptionCreditBalance,
-        topupCreditBalance: validUserWithCredits.Credits?.TopupCreditBalance
+        result: 'Success',
+        operationDetails: {
+          fromBalance: 'subscription',
+          quantity: validCredits
+        },
+        balances: {
+          subscription: validUserWithCredits.Credits?.SubscriptionCreditBalance,
+          topup: validUserWithCredits.Credits?.TopupCreditBalance
+        }
       });
       expect(updateStatusFn).not.toHaveBeenCalled();
     });
@@ -73,7 +87,7 @@ describe(CreditsService, () => {
       expect(updateStatusFn).toHaveBeenCalledWith(validUserId, 'out-of-credits');
       expect(result).toStrictEqual({
         success: false,
-        operationId: 'InsufficientCredits',
+        result: 'InsufficientCredits',
         error: insufficientCreditsError
       });
     });
@@ -105,7 +119,7 @@ describe(CreditsService, () => {
       expect(updateStatusFn).not.toHaveBeenCalled();
       expect(result).toStrictEqual({
         success: false,
-        operationId: 'UnknownError',
+        result: 'UnknownError',
         error: unexpectedError
       });
     });
@@ -118,7 +132,7 @@ describe(CreditsService, () => {
 
       expect(result).toStrictEqual({
         success: false,
-        operationId: 'BadRequestError',
+        result: 'BadRequestError',
         error: new Error('Credits must be greater than 0. Credits: 0')
       });
       expect(deductCreditsFn).not.toHaveBeenCalled();
@@ -132,7 +146,7 @@ describe(CreditsService, () => {
 
       expect(result).toStrictEqual({
         success: false,
-        operationId: 'BadRequestError',
+        result: 'BadRequestError',
         error: new Error('Credits must be greater than 0. Credits: -5')
       });
       expect(deductCreditsFn).not.toHaveBeenCalled();
@@ -159,9 +173,15 @@ describe(CreditsService, () => {
       );
       expect(result).toStrictEqual({
         success: true,
-        operationId: 'Success',
-        subscriptionCreditBalance: 150,
-        topupCreditBalance: 44
+        result: 'Success',
+        operationDetails: {
+          fromBalance: 'subscription',
+          quantity: 'reset'
+        },
+        balances: {
+          subscription: 150,
+          topup: 44
+        }
       });
       expect(updateStatusFn).toHaveBeenCalledWith(validUserId, 'live');
     });
@@ -180,7 +200,7 @@ describe(CreditsService, () => {
       expect(updateStatusFn).not.toHaveBeenCalled();
       expect(result).toStrictEqual({
         success: false,
-        operationId: 'UnknownError',
+        result: 'UnknownError',
         error: unexpectedError
       });
     });
@@ -213,9 +233,15 @@ describe(CreditsService, () => {
 
       expect(result).toStrictEqual({
         success: true,
-        operationId: 'Success',
-        subscriptionCreditBalance: 0,
-        topupCreditBalance: 0
+        result: 'Success',
+        operationDetails: {
+          fromBalance: 'subscription',
+          quantity: 'reset'
+        },
+        balances: {
+          subscription: 0,
+          topup: 0
+        }
       });
     });
 
@@ -231,7 +257,7 @@ describe(CreditsService, () => {
 
       expect(result).toStrictEqual({
         success: false,
-        operationId: 'UnknownError',
+        result: 'UnknownError',
         error: new Error('Credits must be non-negative')
       });
       expect(resetSubscriptionCreditsFn).not.toHaveBeenCalled();
@@ -259,9 +285,15 @@ describe(CreditsService, () => {
       );
       expect(result).toStrictEqual({
         success: true,
-        operationId: 'Success',
-        subscriptionCreditBalance: 150,
-        topupCreditBalance: 44
+        result: 'Success',
+        operationDetails: {
+          fromBalance: 'subscription',
+          quantity: validCreditsToAdd
+        },
+        balances: {
+          subscription: 150,
+          topup: 44
+        }
       });
       expect(updateStatusFn).toHaveBeenCalledWith(validUserId, 'live');
     });
@@ -285,9 +317,15 @@ describe(CreditsService, () => {
       );
       expect(result).toStrictEqual({
         success: true,
-        operationId: 'Success',
-        subscriptionCreditBalance: 150,
-        topupCreditBalance: 44
+        result: 'Success',
+        operationDetails: {
+          fromBalance: 'topup',
+          quantity: validCreditsToAdd
+        },
+        balances: {
+          subscription: 150,
+          topup: 44
+        }
       });
       expect(updateStatusFn).toHaveBeenCalledWith(validUserId, 'live');
     });
@@ -307,7 +345,7 @@ describe(CreditsService, () => {
       expect(updateStatusFn).not.toHaveBeenCalled();
       expect(result).toStrictEqual({
         success: false,
-        operationId: 'UnknownError',
+        result: 'UnknownError',
         error: unexpectedError
       });
     });
@@ -327,7 +365,7 @@ describe(CreditsService, () => {
 
       expect(result).toStrictEqual({
         success: false,
-        operationId: 'UnknownError',
+        result: 'UnknownError',
         error: updateStatusError
       });
       expect(loggerErrorSpy).toHaveBeenCalledWith(
@@ -349,7 +387,7 @@ describe(CreditsService, () => {
 
       expect(result).toStrictEqual({
         success: false,
-        operationId: 'BadRequestError',
+        result: 'BadRequestError',
         error: new Error('Credits must be greater than 0. Credits: 0')
       });
       expect(addCreditsFn).not.toHaveBeenCalled();
@@ -368,7 +406,7 @@ describe(CreditsService, () => {
 
       expect(result).toStrictEqual({
         success: false,
-        operationId: 'BadRequestError',
+        result: 'BadRequestError',
         error: new Error('Credits must be greater than 0. Credits: -50')
       });
       expect(addCreditsFn).not.toHaveBeenCalled();
@@ -386,9 +424,15 @@ describe(CreditsService, () => {
       expect(clearSubscriptionCreditsFn).toHaveBeenCalledWith(validUserId, expect.any(Logger));
       expect(result).toStrictEqual({
         success: true,
-        operationId: 'Success',
-        subscriptionCreditBalance: 0,
-        topupCreditBalance: 0
+        result: 'Success',
+        operationDetails: {
+          fromBalance: 'subscription',
+          quantity: 'clear'
+        },
+        balances: {
+          subscription: 0,
+          topup: 0
+        }
       });
       expect(updateStatusFn).toHaveBeenCalledWith(validUserId, validUserStatus);
     });
@@ -404,7 +448,7 @@ describe(CreditsService, () => {
       expect(updateStatusFn).not.toHaveBeenCalled();
       expect(result).toStrictEqual({
         success: false,
-        operationId: 'UnknownError',
+        result: 'UnknownError',
         error: unexpectedError
       });
       expect(loggerWarnSpy).toHaveBeenCalledWith(
@@ -459,7 +503,7 @@ describe(CreditsService, () => {
       );
       expect(result).toStrictEqual({
         success: true,
-        operationId: 'Success',
+        result: 'Success',
         demoRemindersCount: 1
       });
     });
@@ -475,7 +519,7 @@ describe(CreditsService, () => {
 
       expect(result).toStrictEqual({
         success: false,
-        operationId: 'DemoCounterLimitReachedError',
+        result: 'DemoCounterLimitReachedError',
         error: limitError
       });
     });
@@ -491,7 +535,7 @@ describe(CreditsService, () => {
 
       expect(result).toStrictEqual({
         success: false,
-        operationId: 'UnknownError',
+        result: 'UnknownError',
         error: unexpectedError
       });
     });
@@ -513,7 +557,7 @@ describe(CreditsService, () => {
       );
       expect(result).toStrictEqual({
         success: true,
-        operationId: 'Success',
+        result: 'Success',
         demoRemindersCount: 2
       });
     });

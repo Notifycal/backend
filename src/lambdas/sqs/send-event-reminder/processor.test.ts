@@ -115,9 +115,15 @@ const validActionableEvent: ActionableEventFoundEvent = {
 
 const validCreditDeductionSuccess: CreditDeductionSuccess = {
   success: true,
-  operationId: 'Success',
-  subscriptionCreditBalance: 400,
-  topupCreditBalance: 5
+  result: 'Success',
+  operationDetails: {
+    fromBalance: 'subscription',
+    quantity: 7
+  },
+  balances: {
+    subscription: 400,
+    topup: 5
+  }
 };
 
 const validDemoEvent: DemoReminderToBeSentEvent = {
@@ -145,7 +151,7 @@ const validDemoEvent: DemoReminderToBeSentEvent = {
 
 const validDemoCounterSuccess: DemoCounterIncrementResult = {
   success: true,
-  operationId: 'Success',
+  result: 'Success',
   demoRemindersCount: 2
 };
 
@@ -269,7 +275,7 @@ describe('Messaging processor', () => {
 
     it('should return specific UUID if user has insufficient credits and publish error event', async () => {
       const creditOperationResult: CreditDeductionInsufficientCreditsError = {
-        operationId: 'InsufficientCredits',
+        result: 'InsufficientCredits',
         success: false,
         error: new InsufficientCreditsError(
           'some message that coulnot be sent',
@@ -293,7 +299,7 @@ describe('Messaging processor', () => {
       expect(sendMessageSpy).not.toHaveBeenCalled();
       expect(safePublishSpy).toHaveBeenCalledWith({
         ...validActionableEvent,
-        eventType: 'ActionableEventReminderInsufficientCreditNotSent',
+        eventType: 'InsufficientCreditReminderNotSent',
         data: {
           originalEvent: {
             ...validActionableEvent.data
@@ -305,7 +311,7 @@ describe('Messaging processor', () => {
 
     it('should return an error if unknown error when deducting credits - let caller deal with it', async () => {
       const creditOperationResult: CreditDeductionUnexpectedError = {
-        operationId: 'UnknownError',
+        result: 'UnknownError',
         success: false,
         error: new Error('No money mate')
       };
@@ -356,7 +362,7 @@ describe('Messaging processor', () => {
 
     it('should return specific UUID when demo limit is reached', async () => {
       const demoLimitError: DemoCounterLimitReachedError = {
-        operationId: 'DemoCounterLimitReachedError',
+        result: 'DemoCounterLimitReachedError',
         success: false,
         error: new Error('Demo limit reached')
       };

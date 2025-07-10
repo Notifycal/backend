@@ -14,7 +14,7 @@ import type { MetricDimensions } from '@services/observability/metrics';
 import { UserBaseStore } from '@services/stores/user-base-store';
 import { StripeService } from '@services/stripe';
 import type { APIGatewayProxyResult, Context } from 'aws-lambda';
-import { P, match } from 'ts-pattern';
+import { match, P } from 'ts-pattern';
 import { readPostPaymentCheckoutSessionConfig } from './config';
 import { type Event, eventSchema } from './schemas';
 
@@ -89,7 +89,7 @@ function checkEligibility(
 async function lambdaHandler(
   event: Event,
   /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
-  ctx: Context
+  _ctx: Context
 ): Promise<APIGatewayProxyResult> {
   const { userId, idp, idpId, email } = event.requestContext.authorizer.payload;
   const identity = { userId, idp, idpId, email };

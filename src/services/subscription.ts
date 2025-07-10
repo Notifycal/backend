@@ -78,7 +78,7 @@ export class SubscriptionService<TIdpName extends IdpName> {
     if (remainingPercentage < 0 || remainingPercentage > 100) {
       const result = {
         success: false as const,
-        operationId: 'UnknownError' as const,
+        result: 'UnknownError' as const,
         error: new Error(`Invalid remaining percentage: ${remainingPercentage}`)
       };
       return this.snsService
@@ -99,7 +99,7 @@ export class SubscriptionService<TIdpName extends IdpName> {
     if (creditsToAdd <= 0) {
       const result = {
         success: false as const,
-        operationId: 'UnknownError' as const,
+        result: 'UnknownError' as const,
         error: new Error('Inadvertent credit stealing while doing an upgrade')
       };
       return this.snsService

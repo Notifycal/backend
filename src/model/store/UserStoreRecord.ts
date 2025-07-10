@@ -51,8 +51,8 @@ export function extractUser<TIdpName extends IdpName>(
     lastSignInAt: userRecord.LastSignInAt,
     signedUpAt: userRecord.SignedUpAt,
     userStatus: userRecord.UserStatus,
-    config: userRecord.Config ? reminderFromStoreRecord(userRecord.Config) : undefined,
-    credits: userRecord.Credits ? fromStoreRecord(userRecord.Credits) : undefined,
-    demoReminderCount: userRecord.DemoReminderCount || undefined
+    ...(userRecord.Config && { config: reminderFromStoreRecord(userRecord.Config) }),
+    ...(userRecord.Credits && { credits: fromStoreRecord(userRecord.Credits) }),
+    ...(userRecord.DemoReminderCount && { demoReminderCount: userRecord.DemoReminderCount })
   };
 }

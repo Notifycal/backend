@@ -56,6 +56,7 @@ function jwtVerification<
           ...requestContext,
           authorizer: jwt
         };
+        return;
       } else {
         return errorHandler(401, earlyResponseHeaders)(`Missing permissions to hit the API`, {
           header: jwt.header,

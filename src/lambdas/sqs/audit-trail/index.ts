@@ -22,7 +22,7 @@ export function recordProcessorCurried(
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-function lambdaHandler(event: Event, context: Context): Promise<PartialItemFailureResponse> {
+function lambdaHandler(event: Event, _context: Context): Promise<PartialItemFailureResponse> {
   return processPartialResponse(
     event,
     recordProcessorCurried(event.lambdaConfig),

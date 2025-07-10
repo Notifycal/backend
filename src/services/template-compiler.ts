@@ -28,4 +28,8 @@ export class TemplateCompiler {
       }).format(value / 100);
     });
   }
+
+  public registerPartial(name: string, template: string): void {
+    Handlebars.registerPartial(name, template);
+  }
 }
