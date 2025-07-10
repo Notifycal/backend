@@ -56,6 +56,17 @@ data "aws_iam_policy_document" "alert_for_events_iam_policydoc" {
     effect = "Allow"
 
     actions = [
+      "dynamodb:Query"
+    ]
+
+    resources = [
+      aws_dynamodb_table.users.arn
+    ]
+  }
+  statement {
+    effect = "Allow"
+
+    actions = [
       "sns:Publish",
     ]
 
