@@ -1,4 +1,3 @@
-import type { GaxiosResponse } from 'gaxios';
 /* eslint-disable camelcase */
 import type { Logger } from '@aws-lambda-powertools/logger';
 import type { GoogleOAuthConfig } from '@model/Config';
@@ -21,6 +20,7 @@ import { isWithinBoundaries } from '@utils/datetime';
 import { google, type calendar_v3 } from 'googleapis';
 import { z } from 'zod';
 import { BaseGoogle } from './base-service';
+import type { MinimalGaxiosResponse } from './gaxios';
 
 export class GoogleCalendar extends BaseGoogle {
   public static withRefreshToken(
@@ -167,7 +167,7 @@ export class GoogleCalendar extends BaseGoogle {
     const _logger = this.logger;
 
     function handleResponse(
-      response: GaxiosResponse<calendar_v3.Schema$Events>
+      response: MinimalGaxiosResponse<calendar_v3.Schema$Events>
     ): calendar_v3.Schema$Events {
       if (response.status >= 200 && response.status <= 299) {
         return response.data;

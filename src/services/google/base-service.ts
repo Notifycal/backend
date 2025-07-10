@@ -1,7 +1,7 @@
 import type { Logger } from '@aws-lambda-powertools/logger';
 import type { GoogleOAuthConfig } from '@model/Config';
-import type { Gaxios, GaxiosInterceptor, GaxiosOptions, GaxiosResponse } from 'gaxios';
 import { OAuth2Client } from 'google-auth-library';
+import type { Gaxios, GaxiosInterceptor, GaxiosOptionsPrepared, GaxiosResponse } from './gaxios';
 
 type BaseGoogleOptions = {
   refreshToken?: string;
@@ -28,14 +28,14 @@ export abstract class BaseGoogle {
       // eslint-disable-next-line camelcase
       this._client.setCredentials({ refresh_token: refreshToken });
     }
-    const axios = this._client.gaxios;
+    const axios = this._client.transporter;
     if (axios) {
       this.setInterceptors(axios);
     }
   }
 
   protected setInterceptors(gaxios: Gaxios): void {
-    const requestInterceptor: GaxiosInterceptor<GaxiosOptions> = {
+    const requestInterceptor: GaxiosInterceptor<GaxiosOptionsPrepared> = {
       resolved: (config) => {
         this.logger.info('Google request', { requestConfig: config });
         return Promise.resolve(config);
@@ -46,7 +46,7 @@ export abstract class BaseGoogle {
         });
       }
     };
-    const responseInterceptor: GaxiosInterceptor<GaxiosResponse> = {
+    const responseInterceptor: GaxiosInterceptor<GaxiosResponse<unknown>> = {
       resolved: (config) => {
         this.logger.info('Google successful response', { responseConfig: config });
         return Promise.resolve(config);
