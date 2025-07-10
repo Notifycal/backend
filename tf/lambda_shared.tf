@@ -78,6 +78,11 @@ locals {
     DEMO_REMINDER_LIMIT = 1
   }
 
+  alert_email_config_env_vars = {
+    TOPUP_URL = "https://${var.base_domain}/billing"
+    FAQ_URL   = "https://${var.base_domain}/faq"
+  }
+
   type_mapping = {
     tiers  = "tier"
     topups = "topup"
