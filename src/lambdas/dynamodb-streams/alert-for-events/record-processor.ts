@@ -8,7 +8,6 @@ import type {
   EventCreationOptions,
   EventSourceIdentity
 } from '@model/app-events/common';
-import type { EmailToBeSentEvent } from '@model/app-events/EmailToBeSentEvent';
 import { extractIdentity } from '@model/store/AuditTrailStoreRecord';
 import type { Email, IdpName, LanguageCode } from '@notifycal/shared/types';
 import type { SnsService } from '@services/sns';
@@ -26,68 +25,86 @@ import type {
   AuditTrailLowCreditDetectedEvent
 } from './schema';
 
-type AlertEventType = 'LowCreditsDetected' | 'InsufficientCreditsReminderNotSent';
-
-function getEmailTemplateConfig(
-  eventType: AlertEventType,
-  config: AlertForEventsConfig
-): EmailTemplateConfig {
-  return match(eventType)
-    .with('LowCreditsDetected', () => ({
-      partialTemplate: lowCreditsDetectedPartialTemplate,
-      specificTranslations: lowCreditsTranslations,
-      templateVariables: {
-        faqUrl: config.alertEmailConfig.faqUrl.toString(),
-        topupUrl: config.alertEmailConfig.topupUrl.toString()
-      }
-    }))
-    .with('InsufficientCreditsReminderNotSent', () => ({
-      partialTemplate: insufficientCreditsPartialTemplate,
-      specificTranslations: insufficientCreditsTranslations,
-      templateVariables: {
-        topupUrl: config.alertEmailConfig.topupUrl.toString()
-      }
-    }))
-    .exhaustive();
+function getLowCreditsTemplateConfig(config: AlertForEventsConfig): EmailTemplateConfig {
+  return {
+    partialTemplate: lowCreditsDetectedPartialTemplate,
+    specificTranslations: lowCreditsTranslations,
+    templateVariables: {
+      faqUrl: config.alertEmailConfig.faqUrl.toString(),
+      topupUrl: config.alertEmailConfig.topupUrl.toString()
+    }
+  };
 }
 
-function interpolateEmail(
-  receiver: Email,
-  sender: EmailWithName,
-  language: LanguageCode,
-  eventType: AlertEventType,
-  config: AlertForEventsConfig,
-  logger: Logger
-): EmailToBeSentEvent['data'] {
-  const templateConfig = getEmailTemplateConfig(eventType, config);
-
-  return interpolateEmailBase(
-    receiver,
-    sender,
-    language,
-    templateConfig,
-    eventType,
-    { eventType },
-    logger
-  );
+function getInsufficientCreditsTemplateConfig(config: AlertForEventsConfig): EmailTemplateConfig {
+  return {
+    partialTemplate: insufficientCreditsPartialTemplate,
+    specificTranslations: insufficientCreditsTranslations,
+    templateVariables: {
+      topupUrl: config.alertEmailConfig.topupUrl.toString()
+    }
+  };
 }
 
-function sendCreditAlert(
+function processAlertEvent(
   event: AuditTrailLowCreditDetectedEvent | AuditTrailInsufficientCreditReminderNotSentEvent,
   receiver: Email,
   sender: EmailWithName,
   language: LanguageCode,
-  config: AlertForEventsConfig,
+  templateConfig: EmailTemplateConfig,
   snsService: SnsService,
   logger: Logger
 ): Promise<void> {
-  logger.info(`Sending alert to user`, { eventType: event.EventType });
+  logger.info(`Processing alert event`, { eventType: event.EventType });
+
   const identity: EventSourceIdentity = extractIdentity(event);
   const options: EventCreationOptions = {
     correlationId: event.CorrelationId
   };
-  const alertData = interpolateEmail(receiver, sender, language, event.EventType, config, logger);
+
+  const alertData = interpolateEmailBase(
+    receiver,
+    sender,
+    language,
+    templateConfig,
+    event.EventType,
+    { eventType: event.EventType },
+    logger
+  );
+
   return sendAlert(identity, options, alertData, snsService);
+}
+
+function processEventWithEmailTemplate(
+  event: AuditTrailLowCreditDetectedEvent | AuditTrailInsufficientCreditReminderNotSentEvent,
+  templateConfig: EmailTemplateConfig,
+  config: AlertForEventsConfig,
+  userBaseStore: UserBaseStore<IdpName>,
+  snsService: SnsService,
+  logger: Logger
+): Promise<void> {
+  return userBaseStore
+    .getEmailAndLanguageById(event.UserId)
+    .then((emailAndLanguage) => {
+      if (emailAndLanguage) {
+        const { Email, Language } = emailAndLanguage;
+        return processAlertEvent(
+          event,
+          Email,
+          config.emailingSenderConfig.sender,
+          Language,
+          templateConfig,
+          snsService,
+          logger
+        );
+      } else {
+        logger.error(
+          `Alert email could not be sent to user with id ${event.UserId} cause email was not found in persistance. Not retrying...`
+        );
+        return Promise.resolve();
+      }
+    })
+    .catch(errorHandler(event.EventId, logger));
 }
 
 export function recordProcessor(
@@ -102,26 +119,17 @@ export function recordProcessor(
     userId: event.UserId
   });
 
-  return userBaseStore
-    .getEmailAndLanguageById(event.UserId)
-    .then((emailAndLanguage) => {
-      if (emailAndLanguage) {
-        const { Email, Language } = emailAndLanguage;
-        return sendCreditAlert(
-          event,
-          Email,
-          config.emailingSenderConfig.sender,
-          Language,
-          config,
-          snsService,
-          logger
-        );
-      } else {
-        logger.error(
-          `Alert email could not be sent to user with id ${event.UserId} cause email was not found in persistance. Not retrying...`
-        );
-        return Promise.resolve();
-      }
-    })
-    .catch(errorHandler(event.EventId, logger));
+  const templateConfig = match(event.EventType)
+    .with('LowCreditsDetected', () => getLowCreditsTemplateConfig(config))
+    .with('InsufficientCreditsReminderNotSent', () => getInsufficientCreditsTemplateConfig(config))
+    .exhaustive();
+
+  return processEventWithEmailTemplate(
+    event,
+    templateConfig,
+    config,
+    userBaseStore,
+    snsService,
+    logger
+  );
 }
