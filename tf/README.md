@@ -143,6 +143,7 @@
 | <a name="input_enable_data_protection"></a> [enable\_data\_protection](#input\_enable\_data\_protection) | n/a | `bool` | `true` | no |
 | <a name="input_enable_xray_active_tracing"></a> [enable\_xray\_active\_tracing](#input\_enable\_xray\_active\_tracing) | n/a | `bool` | `true` | no |
 | <a name="input_environment"></a> [environment](#input\_environment) | n/a | `string` | n/a | yes |
+| <a name="input_frontend_domain"></a> [frontend\_domain](#input\_frontend\_domain) | n/a | `string` | `"private.notifycal.com"` | no |
 | <a name="input_google_oauth_config"></a> [google\_oauth\_config](#input\_google\_oauth\_config) | n/a | <pre>object({<br/>    client_id         = string<br/>    client_secret     = string<br/>    redirect_url_list = list(string)<br/>  })</pre> | n/a | yes |
 | <a name="input_jwt_config"></a> [jwt\_config](#input\_jwt\_config) | n/a | <pre>object({<br/>    access = object({<br/>      algorithm  = string<br/>      audience   = string<br/>      expiration = string<br/>      issuer     = string<br/>    })<br/>    refresh = object({<br/>      algorithm  = string<br/>      audience   = string<br/>      expiration = string<br/>      issuer     = string<br/>    })<br/>  })</pre> | n/a | yes |
 | <a name="input_jwt_keys"></a> [jwt\_keys](#input\_jwt\_keys) | n/a | <pre>object({<br/>    access = object({<br/>      public_key  = string<br/>      private_key = string<br/>    })<br/>    refresh = object({<br/>      public_key  = string<br/>      private_key = string<br/>    })<br/>  })</pre> | n/a | yes |
