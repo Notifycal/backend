@@ -19,16 +19,16 @@ import {
   type InsufficientCreditReminderNotSentEvent
 } from '@model/app-events/InsufficientCreditsReminderNotSentEvent';
 import type { CreditServiceEndpointConfig, DemoReminderEndpointConfig } from '@model/Config';
-import type { VonageEndpointConfig } from '@model/vendor/vonage/config';
-import type { IdpName, UserId, Uuid } from '@notifycal/shared/types';
-import type { Url } from '@own-types/model';
 import type {
   CreditDeductionInsufficientCreditsError,
   CreditDeductionResult,
   CreditOperationResult,
-  CreditsService,
   DemoCounterLimitReachedError
-} from '@services/credits-service';
+} from '@model/Credits';
+import type { VonageEndpointConfig } from '@model/vendor/vonage/config';
+import type { IdpName, UserId, Uuid } from '@notifycal/shared/types';
+import type { Url } from '@own-types/model';
+import type { CreditsService } from '@services/credits-service';
 import { MessagingService } from '@services/messaging';
 import type { SnsService } from '@services/sns';
 import { tap } from '@utils/promises';

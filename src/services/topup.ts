@@ -1,8 +1,9 @@
-import type { Identity, IdpName, TopupId } from '@notifycal/shared/types';
 import { topupFailedEvent } from '@model/app-events/TopupFailedEvent';
 import { topupSucceededEvent } from '@model/app-events/TopupSucceededEvent';
-import type { CreditAdditionResult, CreditsService } from './credits-service';
+import type { CreditAdditionResult } from '@model/Credits';
+import type { Identity, IdpName, TopupId } from '@notifycal/shared/types';
 import { handleServiceOperation } from './common/error-handling';
+import type { CreditsService } from './credits-service';
 import type { SnsService } from './sns';
 
 export class TopupService<TIdpName extends IdpName> {

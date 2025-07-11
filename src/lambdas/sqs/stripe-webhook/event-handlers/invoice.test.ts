@@ -1,5 +1,6 @@
 /* eslint-disable camelcase */
 import type { Logger } from '@aws-lambda-powertools/logger';
+import type { CreditAdditionResult } from '@model/Credits';
 import type { TierMap, TopupMap } from '@model/PaymentPlans';
 import type {
   Email,
@@ -10,7 +11,6 @@ import type {
   TopupId,
   UserId
 } from '@notifycal/shared/types';
-import type { CreditAdditionResult } from '@services/credits-service';
 import type { SubscriptionService } from '@services/subscription';
 import type { TopupService } from '@services/topup';
 import { validPaymentPlans } from '@testing/data/pricing';

@@ -1,13 +1,10 @@
 import { logger } from '@common/powertools';
 import * as SubscriptionEvents from '@model/app-events/subscription-events';
 import type { Identity, IdpName, Percentage, TierId } from '@notifycal/shared/types';
-import type {
-  CreditAdditionResult,
-  CreditDeductionResult,
-  CreditsService
-} from './credits-service';
+import type { CreditsService } from './credits-service';
 import type { SnsService } from './sns';
 
+import type { CreditAdditionResult, CreditDeductionResult } from '@model/Credits';
 import { handleServiceOperation } from './common/error-handling';
 
 export function calculateUpgradeCredits(

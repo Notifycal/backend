@@ -1,4 +1,4 @@
-import type { CreditDeductionResult } from '@services/credits-service';
+import type { CreditDeductionResult } from '@model/Credits';
 import { z } from 'zod';
 import {
   actionableEventFoundEventSchema,

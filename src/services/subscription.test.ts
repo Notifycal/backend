@@ -1,4 +1,5 @@
 /* eslint-disable vitest/expect-expect */
+import type { CreditAdditionResult, CreditDeductionResult } from '@model/Credits';
 import type {
   Email,
   Identity,
@@ -9,11 +10,7 @@ import type {
   UserId
 } from '@notifycal/shared/types';
 import { describe, expect, it, vi } from 'vitest';
-import type {
-  CreditAdditionResult,
-  CreditDeductionResult,
-  CreditsService
-} from './credits-service';
+import type { CreditsService } from './credits-service';
 import type { SnsService } from './sns';
 import { calculateUpgradeCredits, SubscriptionService } from './subscription';
 

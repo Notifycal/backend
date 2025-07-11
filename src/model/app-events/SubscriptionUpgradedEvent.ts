@@ -1,5 +1,5 @@
+import type { CreditAdditionResult } from '@model/Credits';
 import type { Identity, IdpName, Percentage, TierId } from '@notifycal/shared/types';
-import type { CreditAdditionResult } from '@services/credits-service';
 import { z } from 'zod';
 import { eventSchemaGenerator } from './BaseEvent';
 import { createEventBase } from './common';

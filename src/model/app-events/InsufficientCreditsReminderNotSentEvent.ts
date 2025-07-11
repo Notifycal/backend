@@ -1,4 +1,4 @@
-import type { CreditDeductionInsufficientCreditsError } from '@services/credits-service';
+import type { CreditDeductionInsufficientCreditsError } from '@model/Credits';
 import { z } from 'zod';
 import {
   actionableEventFoundEventSchema,
