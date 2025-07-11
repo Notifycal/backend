@@ -1,5 +1,10 @@
 import { Logger } from '@aws-lambda-powertools/logger';
 import { logger } from '@common/powertools';
+import type {
+  CreditAdditionResult,
+  CreditDeductionResult,
+  DemoCounterIncrementResult
+} from '@model/Credits';
 import { InsufficientCreditsError } from '@model/Errors';
 import type { UserStoreRecord, UserStoreRecordCredits } from '@model/store/UserStoreRecord';
 import type { IdpName, TierId, TopupId, UserId, UserStatus } from '@notifycal/shared/types';
@@ -8,12 +13,7 @@ import type {
   UserBaseStore
 } from '@services/stores/user-base-store';
 import { describe, expect, it, vi } from 'vitest';
-import {
-  CreditsService,
-  type CreditAdditionResult,
-  type CreditDeductionResult,
-  type DemoCounterIncrementResult
-} from './credits-service';
+import { CreditsService } from './credits-service';
 
 describe(CreditsService, () => {
   const validUserId = 'user-123' as UserId;

@@ -8,6 +8,14 @@ import type {
   DemoReminderEndpointConfig,
   SnsTopicConfig
 } from '@model/Config';
+import type {
+  CreditDeductionInsufficientCreditsError,
+  CreditDeductionResult,
+  CreditDeductionSuccess,
+  CreditDeductionUnexpectedError,
+  DemoCounterIncrementResult,
+  DemoCounterLimitReachedError
+} from '@model/Credits';
 import { InsufficientCreditsError } from '@model/Errors';
 import type { VonageEndpointConfig } from '@model/vendor/vonage/config';
 import type {
@@ -22,15 +30,7 @@ import type {
   Uuid
 } from '@notifycal/shared/types';
 import type { PhoneNumberE164, Url } from '@own-types/model';
-import {
-  CreditsService,
-  type CreditDeductionInsufficientCreditsError,
-  type CreditDeductionResult,
-  type CreditDeductionSuccess,
-  type CreditDeductionUnexpectedError,
-  type DemoCounterIncrementResult,
-  type DemoCounterLimitReachedError
-} from '@services/credits-service';
+import { CreditsService } from '@services/credits-service';
 import {
   MessagingService,
   type VonageApplicationId,

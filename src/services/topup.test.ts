@@ -1,6 +1,7 @@
+import type { CreditAdditionResult } from '@model/Credits';
 import type { Email, Identity, IdpId, TierId, TopupId, UserId } from '@notifycal/shared/types';
 import { describe, expect, it, vi } from 'vitest';
-import type { CreditAdditionResult, CreditsService } from './credits-service';
+import type { CreditsService } from './credits-service';
 import type { SnsService } from './sns';
 import { TopupService } from './topup';
 

@@ -1,9 +1,9 @@
-import type { DemoCounterLimitReachedError } from '@services/credits-service';
+import type { DemoCounterLimitReachedError } from '@model/Credits';
 import { z } from 'zod';
 import { eventSchemaGenerator } from './BaseEvent';
 import {
-  demoReminderToBeSentEventSchema,
-  type DemoReminderToBeSentEvent
+  type DemoReminderToBeSentEvent,
+  demoReminderToBeSentEventSchema
 } from './DemoReminderToBeSentEvent';
 
 const dataSchema = z.object({
