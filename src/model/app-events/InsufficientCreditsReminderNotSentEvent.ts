@@ -12,7 +12,7 @@ const dataSchema = z.object({
 });
 
 export const insufficientCreditReminderNotSentEventSchema = eventSchemaGenerator(
-  'InsufficientCreditReminderNotSent',
+  'InsufficientCreditsReminderNotSent',
   dataSchema
 );
 
@@ -26,7 +26,7 @@ export function insufficientCreditReminderNotSent(
 ): InsufficientCreditReminderNotSentEvent {
   return {
     ...originalEvent,
-    eventType: 'InsufficientCreditReminderNotSent',
+    eventType: 'InsufficientCreditsReminderNotSent',
     data: {
       originalEvent: originalEvent.data,
       error: creditReductionResult

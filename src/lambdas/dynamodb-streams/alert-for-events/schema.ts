@@ -1,6 +1,6 @@
 import { DynamoDBMarshalled } from '@aws-lambda-powertools/parser/helpers/dynamodb';
 import { DynamoDBStreamSchema } from '@aws-lambda-powertools/parser/schemas';
-import { insufficientCreditReminderNotSentEventSchema } from '@model/app-events/InsufficientCreditReminderNotSentEvent';
+import { insufficientCreditReminderNotSentEventSchema } from '@model/app-events/InsufficientCreditsReminderNotSentEvent';
 import { lowCreditsDetectedEventSchema } from '@model/app-events/LowCreditsDetectedEvent';
 import { auditTrailStoreRecordSchema } from '@model/store/AuditTrailStoreRecord';
 import { z } from 'zod';

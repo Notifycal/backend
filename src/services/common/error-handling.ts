@@ -75,3 +75,13 @@ export function rethrowError(
 export function throwError(msg: string, logger: Logger, ...extraInput: LogItemExtraInput): never {
   _throwError(msg, logger, undefined, 'error', ...[...extraInput]);
 }
+
+export function rethrowErrorHandler(
+  message: string,
+  logger: Logger,
+  ...extraInput: LogItemExtraInput
+): (error: unknown) => Promise<void | undefined> {
+  return (error: unknown) => {
+    rethrowError(message, error, logger, ...[...extraInput]);
+  };
+}

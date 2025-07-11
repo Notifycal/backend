@@ -224,7 +224,7 @@ export const insufficientCreditsReminderNotSentEvent: AuditTrailStoreRecord = {
   UserId: '0de651ef-535e-4d2e-b9ff-7bf43f5a0001' as UserId,
   Idp: 'google.com',
   IdpId: '45346356357' as IdpId,
-  EventType: 'InsufficientCreditReminderNotSent',
+  EventType: 'InsufficientCreditsReminderNotSent',
   HappenedAt: '2024-01-02T15:04:51Z' as DateTime,
   Origin: 'somewhere' as AuditTrailStoreRecordOrigin
 };

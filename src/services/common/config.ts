@@ -1,5 +1,8 @@
 import type { StripeAuthEndpointConfig } from '@lambdas/api/post-payment-session/config';
-import type { AlertEndpointConfig } from '@lambdas/dynamodb-streams/alert-for-missing-phone-number/config';
+import type {
+  AlertEmailEndpointConfig,
+  AlertEndpointConfig
+} from '@lambdas/dynamodb-streams/alert-for-missing-phone-number/config';
 import type {
   ActionableEventFoundTopicConfig,
   Algorithm,
@@ -356,9 +359,15 @@ export function readAlertThresholdConfig(env: Environment): AlertEndpointConfig 
         .get('COUNT_THRESHOLD_TO_ENABLE_TRIGGER')
         .default(0)
         .asIntPositive()
-    },
+    }
+  };
+}
+
+export function readAlertEmailConfig(env: Environment): AlertEmailEndpointConfig {
+  return {
     alertEmailConfig: {
-      faqUrl: env.get('FAQ_URL').default('https://notifycal.com/faq').asUrlObject()
+      faqUrl: env.get('FAQ_URL').default('https://notifycal.com/faq').asUrlObject(),
+      billingUrl: env.get('BILLING_URL').default('https://notifycal.com/pricing').asUrlObject()
     }
   };
 }

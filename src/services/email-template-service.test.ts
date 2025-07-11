@@ -1,7 +1,10 @@
 import { logger } from '@common/powertools';
-import { logo } from '@email-templates/assets/logo.png.base64';
-import { commonTranslations } from '@email-templates/i18n/translations';
-import type { LanguageCode } from '@notifycal/shared/types';
+import { logo } from '@email/assets/logo.png.base64';
+import { commonTranslations } from '@email/i18n/translations';
+import type { EventCreationOptions, EventSourceIdentity } from '@model/app-events/common';
+import type { EmailToBeSentEvent } from '@model/app-events/EmailToBeSentEvent';
+import type { EmailTemplateConfig } from '@model/Email';
+import type { CorrelationId, Email, IdpId, LanguageCode, UserId } from '@notifycal/shared/types';
 import { describe, expect, it } from 'vitest';
 import { EmailTemplateService } from './email-template-service';
 
@@ -36,189 +39,309 @@ const validDynamicVariables = {
   dynamicVar: 'Dynamic Value'
 };
 
+const validTemplateConfig: EmailTemplateConfig = {
+  partialTemplate: validPartialTemplate,
+  specificTranslations: validSpecificTranslations,
+  templateVariables: validDynamicVariables
+};
+
+const validEmail = 'test@example.com' as Email;
+const validSender = { email: 'sender@example.com' as Email, name: 'Test Sender' };
+const validIdentity: EventSourceIdentity = {
+  userId: 'test-user' as UserId,
+  idp: 'google.com',
+  idpId: 'test-id' as IdpId
+};
+const validOptions: EventCreationOptions = {
+  correlationId: 'test-correlation' as CorrelationId
+};
+const validSubEventType: EmailToBeSentEvent['data']['subEventType'] = 'LowCreditsDetected';
+
 describe(EmailTemplateService, () => {
-  it('should compile template and return function', () => {
+  it('should create email event with correct structure', () => {
     const service = new EmailTemplateService(logger);
 
-    const compiledTemplateFn = service.compileTemplate(
-      validPartialTemplate,
-      validSpecificTranslations,
-      validDynamicVariables
+    const emailEvent = service.createEmailEvent(
+      validEmail,
+      validSender,
+      'en',
+      validTemplateConfig,
+      validSubEventType,
+      {},
+      validIdentity,
+      validOptions
     );
 
-    expect(compiledTemplateFn).toBeInstanceOf(Function);
+    expect(emailEvent).toHaveProperty('eventType', 'EmailToBeSent');
+    expect(emailEvent).toHaveProperty('data');
+    expect(emailEvent.data).toHaveProperty('htmlBody');
+    expect(emailEvent.data).toHaveProperty('subject');
+    expect(emailEvent.data).toHaveProperty('inlineAttachments');
   });
 
   it('should generate email template with correct structure', () => {
     const service = new EmailTemplateService(logger);
 
-    const compiledTemplateFn = service.compileTemplate(
-      validPartialTemplate,
-      validSpecificTranslations,
-      validDynamicVariables
+    const emailEvent = service.createEmailEvent(
+      validEmail,
+      validSender,
+      'en',
+      validTemplateConfig,
+      validSubEventType,
+      {},
+      validIdentity,
+      validOptions
     );
 
-    const result = compiledTemplateFn('en');
-
-    expect(result).toStrictEqual({
+    expect(emailEvent.data).toStrictEqual({
+      from: validSender,
+      to: validEmail,
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       htmlBody: expect.any(String),
       subject: 'Test Subject',
+      tags: [],
+      subEventType: validSubEventType,
       inlineAttachments: {
         'logo.png': {
           type: 'inline',
           base64Content: logo,
           contentType: 'image/png'
         }
-      }
+      },
+      metadata: {}
     });
   });
 
   it('should use baseTemplate HTML structure', () => {
     const service = new EmailTemplateService(logger);
 
-    const compiledTemplateFn = service.compileTemplate(
-      validPartialTemplate,
-      validSpecificTranslations,
-      validDynamicVariables
+    const emailEvent = service.createEmailEvent(
+      validEmail,
+      validSender,
+      'en',
+      validTemplateConfig,
+      validSubEventType,
+      {},
+      validIdentity,
+      validOptions
     );
 
-    const result = compiledTemplateFn('en');
-
-    expect(result.htmlBody).toContain('<!DOCTYPE html>');
-    expect(result.htmlBody).toContain('<html>');
-    expect(result.htmlBody).toContain('<head>');
-    expect(result.htmlBody).toContain('<meta charset="UTF-8">');
-    expect(result.htmlBody).toContain('<body>');
+    expect(emailEvent.data.htmlBody).toContain('<!DOCTYPE html>');
+    expect(emailEvent.data.htmlBody).toContain('<html>');
+    expect(emailEvent.data.htmlBody).toContain('<head>');
+    expect(emailEvent.data.htmlBody).toContain('<meta charset="UTF-8">');
+    expect(emailEvent.data.htmlBody).toContain('<body>');
   });
 
   it('should use baseTemplate layout components', () => {
     const service = new EmailTemplateService(logger);
 
-    const compiledTemplateFn = service.compileTemplate(
-      validPartialTemplate,
-      validSpecificTranslations,
-      validDynamicVariables
+    const emailEvent = service.createEmailEvent(
+      validEmail,
+      validSender,
+      'en',
+      validTemplateConfig,
+      validSubEventType,
+      {},
+      validIdentity,
+      validOptions
     );
 
-    const result = compiledTemplateFn('en');
-
-    expect(result.htmlBody).toContain('<div class="pattern-bg">');
-    expect(result.htmlBody).toContain('<div class="email-container">');
-    expect(result.htmlBody).toContain('<div class="email-header">');
-    expect(result.htmlBody).toContain('<div class="footer">');
-    expect(result.htmlBody).toContain('&copy; 2025 Notifycal');
+    expect(emailEvent.data.htmlBody).toContain('<div class="pattern-bg">');
+    expect(emailEvent.data.htmlBody).toContain('<div class="email-container">');
+    expect(emailEvent.data.htmlBody).toContain('<div class="email-header">');
+    expect(emailEvent.data.htmlBody).toContain('<div class="footer">');
+    expect(emailEvent.data.htmlBody).toContain('&copy; 2025 Notifycal');
   });
 
   it('should use specific partial template content', () => {
     const service = new EmailTemplateService(logger);
 
-    const compiledTemplateFn = service.compileTemplate(
-      validPartialTemplate,
-      validSpecificTranslations,
-      validDynamicVariables
+    const emailEvent = service.createEmailEvent(
+      validEmail,
+      validSender,
+      'en',
+      validTemplateConfig,
+      validSubEventType,
+      {},
+      validIdentity,
+      validOptions
     );
 
-    const result = compiledTemplateFn('en');
-
-    expect(result.htmlBody).toContain('<div class="content">');
-    expect(result.htmlBody).toContain('<h1>Test Header</h1>');
-    expect(result.htmlBody).toContain('<p>Test Message</p>');
-    expect(result.htmlBody).toContain('<p>Dynamic Value</p>');
+    expect(emailEvent.data.htmlBody).toContain('<div class="content">');
+    expect(emailEvent.data.htmlBody).toContain('<h1>Test Header</h1>');
+    expect(emailEvent.data.htmlBody).toContain('<p>Test Message</p>');
+    expect(emailEvent.data.htmlBody).toContain('<p>Dynamic Value</p>');
   });
 
   it('should include common translations in template data', () => {
     const service = new EmailTemplateService(logger);
+    const templateConfig: EmailTemplateConfig = {
+      partialTemplate: '{{appName}} - {{rightsReserved}}',
+      specificTranslations: validSpecificTranslations,
+      templateVariables: {}
+    };
 
-    const compiledTemplateFn = service.compileTemplate(
-      '{{appName}} - {{rightsReserved}}',
-      validSpecificTranslations,
-      {}
+    const emailEvent = service.createEmailEvent(
+      validEmail,
+      validSender,
+      'en',
+      templateConfig,
+      validSubEventType,
+      {},
+      validIdentity,
+      validOptions
     );
 
-    const result = compiledTemplateFn('en');
-
-    expect(result.htmlBody).toContain(commonTranslations.en.appName);
-    expect(result.htmlBody).toContain(commonTranslations.en.rightsReserved);
+    expect(emailEvent.data.htmlBody).toContain(commonTranslations.en.appName);
+    expect(emailEvent.data.htmlBody).toContain(commonTranslations.en.rightsReserved);
   });
 
   it('should merge specific translations with common translations', () => {
     const service = new EmailTemplateService(logger);
+    const templateConfig: EmailTemplateConfig = {
+      partialTemplate: '{{appName}} - {{header}}',
+      specificTranslations: validSpecificTranslations,
+      templateVariables: {}
+    };
 
-    const compiledTemplateFn = service.compileTemplate(
-      '{{appName}} - {{header}}',
-      validSpecificTranslations,
-      {}
+    const emailEvent = service.createEmailEvent(
+      validEmail,
+      validSender,
+      'en',
+      templateConfig,
+      validSubEventType,
+      {},
+      validIdentity,
+      validOptions
     );
 
-    const result = compiledTemplateFn('en');
-
-    expect(result.htmlBody).toContain('Notifycal');
-    expect(result.htmlBody).toContain('Test Header');
+    expect(emailEvent.data.htmlBody).toContain('Notifycal');
+    expect(emailEvent.data.htmlBody).toContain('Test Header');
   });
 
   it('should apply dynamic variables to template', () => {
     const service = new EmailTemplateService(logger);
+    const templateConfig: EmailTemplateConfig = {
+      partialTemplate: '{{dynamicVar}}',
+      specificTranslations: validSpecificTranslations,
+      templateVariables: validDynamicVariables
+    };
 
-    const compiledTemplateFn = service.compileTemplate(
-      '{{dynamicVar}}',
-      validSpecificTranslations,
-      validDynamicVariables
+    const emailEvent = service.createEmailEvent(
+      validEmail,
+      validSender,
+      'en',
+      templateConfig,
+      validSubEventType,
+      {},
+      validIdentity,
+      validOptions
     );
 
-    const result = compiledTemplateFn('en');
-
-    expect(result.htmlBody).toContain('Dynamic Value');
+    expect(emailEvent.data.htmlBody).toContain('Dynamic Value');
   });
 
   it('should handle different languages correctly', () => {
     const service = new EmailTemplateService(logger);
+    const templateConfig: EmailTemplateConfig = {
+      partialTemplate: '{{header}}',
+      specificTranslations: validSpecificTranslations,
+      templateVariables: {}
+    };
 
-    const compiledTemplateFn = service.compileTemplate('{{header}}', validSpecificTranslations, {});
+    const englishEvent = service.createEmailEvent(
+      validEmail,
+      validSender,
+      'en',
+      templateConfig,
+      validSubEventType,
+      {},
+      validIdentity,
+      validOptions
+    );
 
-    const englishResult = compiledTemplateFn('en');
-    const spanishResult = compiledTemplateFn('es');
+    const spanishEvent = service.createEmailEvent(
+      validEmail,
+      validSender,
+      'es',
+      templateConfig,
+      validSubEventType,
+      {},
+      validIdentity,
+      validOptions
+    );
 
-    expect(englishResult.subject).toBe('Test Subject');
-    expect(spanishResult.subject).toBe('Asunto de Prueba');
-    expect(englishResult.htmlBody).toContain('Test Header');
-    expect(spanishResult.htmlBody).toContain('Encabezado de Prueba');
+    expect(englishEvent.data.subject).toBe('Test Subject');
+    expect(spanishEvent.data.subject).toBe('Asunto de Prueba');
+    expect(englishEvent.data.htmlBody).toContain('Test Header');
+    expect(spanishEvent.data.htmlBody).toContain('Encabezado de Prueba');
   });
 
   it('should set correct logoSrc for inline attachments', () => {
     const service = new EmailTemplateService(logger);
+    const templateConfig: EmailTemplateConfig = {
+      partialTemplate: '{{logoSrc}}',
+      specificTranslations: validSpecificTranslations,
+      templateVariables: {}
+    };
 
-    const compiledTemplateFn = service.compileTemplate(
-      '{{logoSrc}}',
-      validSpecificTranslations,
-      {}
+    const emailEvent = service.createEmailEvent(
+      validEmail,
+      validSender,
+      'en',
+      templateConfig,
+      validSubEventType,
+      {},
+      validIdentity,
+      validOptions
     );
 
-    const result = compiledTemplateFn('en');
-
-    expect(result.htmlBody).toContain('cid:logo.png');
+    expect(emailEvent.data.htmlBody).toContain('cid:logo.png');
   });
 
   it('should override logoSrc when provided in dynamic variables', () => {
     const service = new EmailTemplateService(logger);
+    const templateConfig: EmailTemplateConfig = {
+      partialTemplate: '{{logoSrc}}',
+      specificTranslations: validSpecificTranslations,
+      templateVariables: { logoSrc: 'custom-logo-src' }
+    };
 
-    const compiledTemplateFn = service.compileTemplate('{{logoSrc}}', validSpecificTranslations, {
-      logoSrc: 'custom-logo-src'
-    });
+    const emailEvent = service.createEmailEvent(
+      validEmail,
+      validSender,
+      'en',
+      templateConfig,
+      validSubEventType,
+      {},
+      validIdentity,
+      validOptions
+    );
 
-    const result = compiledTemplateFn('en');
-
-    expect(result.htmlBody).toContain('custom-logo-src');
+    expect(emailEvent.data.htmlBody).toContain('custom-logo-src');
   });
 
   it('should work with empty dynamic variables', () => {
     const service = new EmailTemplateService(logger);
+    const templateConfig: EmailTemplateConfig = {
+      partialTemplate: '{{header}}',
+      specificTranslations: validSpecificTranslations,
+      templateVariables: {}
+    };
 
-    const compiledTemplateFn = service.compileTemplate('{{header}}', validSpecificTranslations);
+    const emailEvent = service.createEmailEvent(
+      validEmail,
+      validSender,
+      'en',
+      templateConfig,
+      validSubEventType,
+      {},
+      validIdentity,
+      validOptions
+    );
 
-    const result = compiledTemplateFn('en');
-
-    expect(result.subject).toBe('Test Subject');
-    expect(result.htmlBody).toContain('Test Header');
+    expect(emailEvent.data.subject).toBe('Test Subject');
+    expect(emailEvent.data.htmlBody).toContain('Test Header');
   });
 });

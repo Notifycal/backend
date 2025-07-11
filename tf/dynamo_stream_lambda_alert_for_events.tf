@@ -56,6 +56,17 @@ data "aws_iam_policy_document" "alert_for_events_iam_policydoc" {
     effect = "Allow"
 
     actions = [
+      "dynamodb:Query"
+    ]
+
+    resources = [
+      aws_dynamodb_table.users.arn
+    ]
+  }
+  statement {
+    effect = "Allow"
+
+    actions = [
       "sns:Publish",
     ]
 
@@ -117,5 +128,5 @@ module "alert_for_events_lambda" {
   allowed_triggers     = local.alert_for_events_allowed_triggers
 
   environment_variables = merge({
-  }, local.email_to_be_sent_topic_env_vars, local.emailing_sender_env_vars, local.common_lambda_env_vars)
+  }, local.email_to_be_sent_topic_env_vars, local.emailing_sender_env_vars, local.users_persistance_env_vars, local.alert_email_config_env_vars, local.common_lambda_env_vars)
 }
