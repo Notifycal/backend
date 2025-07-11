@@ -853,18 +853,21 @@ describe(InvoicePaymentSucceededHandler, () => {
 
   function testIt(
     event: Stripe.InvoicePaymentSucceededEvent,
-    identity: UserIdentity<IdpName>,
-    createFn: (identity: UserIdentity<IdpName>, tierId: TierId) => Promise<CreditAdditionResult>,
-    renewFn: (identity: UserIdentity<IdpName>, tierId: TierId) => Promise<CreditAdditionResult>,
+    userIdentity: UserIdentity<IdpName>,
+    createFn: (
+      userIdentity: UserIdentity<IdpName>,
+      tierId: TierId
+    ) => Promise<CreditAdditionResult>,
+    renewFn: (userIdentity: UserIdentity<IdpName>, tierId: TierId) => Promise<CreditAdditionResult>,
     upgradeFn: (
-      identity: UserIdentity<IdpName>,
+      userIdentity: UserIdentity<IdpName>,
       previousTier: TierId,
       currentTier: TierId,
       remainingPercentage: number
     ) => Promise<CreditAdditionResult>,
-    downgradeFn: (identity: UserIdentity<IdpName>) => Promise<void>,
+    downgradeFn: (userIdentity: UserIdentity<IdpName>) => Promise<void>,
     addTopupFn: (
-      identity: UserIdentity<IdpName>,
+      userIdentity: UserIdentity<IdpName>,
       topupId: TopupId,
       quantity: number
     ) => Promise<CreditAdditionResult>,
@@ -897,6 +900,6 @@ describe(InvoicePaymentSucceededHandler, () => {
       loggerMock
     );
 
-    return handler.handle(event, identity);
+    return handler.handle(event, userIdentity);
   }
 });

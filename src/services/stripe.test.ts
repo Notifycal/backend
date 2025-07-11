@@ -89,8 +89,8 @@ describe(StripeService, () => {
       const result = await testCreateCustomer(validIdentity, createCustomerFn);
 
       // eslint-disable-next-line @typescript-eslint/unbound-method
-      expect(logger.info).toHaveBeenCalledWith('Creating customer in Stripe for identity', {
-        identity: validIdentity
+      expect(logger.info).toHaveBeenCalledWith('Creating customer in Stripe for user identity', {
+        userIdentity: validIdentity
       });
       expect(result).toBe(validStripeCustomerId);
       expect(createCustomerFn).toHaveBeenCalledTimes(1);
@@ -691,7 +691,7 @@ describe(StripeService, () => {
   });
 
   async function testCreateCustomer(
-    identity: UserIdentity<IdpName>,
+    userIdentity: UserIdentity<IdpName>,
     createCustomerFn: () => Promise<{ id: string }>,
     testClockListFn: MockInstance = vi.fn().mockRejectedValue(new Error('Testing in anger')),
     testClockCreateFn: MockInstance = vi.fn().mockRejectedValue(new Error('Testing in anger'))
@@ -706,12 +706,12 @@ describe(StripeService, () => {
     setupMocks(mockStripeInstance);
 
     const stripeService = await StripeService.withConfig(validApiKey);
-    return stripeService.createCustomer(identity);
+    return stripeService.createCustomer(userIdentity);
   }
 
   async function testCheckoutSession(
     stripeCustomerId: StripeCustomerId,
-    identity: UserIdentity<IdpName>,
+    userIdentity: UserIdentity<IdpName>,
     product: Tier | Topup,
     language: LanguageCode,
     successRedirectUrl: Url,
@@ -732,7 +732,7 @@ describe(StripeService, () => {
     const stripeService = await StripeService.withConfig(validApiKey);
     return stripeService.createCheckoutSession(
       stripeCustomerId,
-      identity,
+      userIdentity,
       product,
       language,
       successRedirectUrl,

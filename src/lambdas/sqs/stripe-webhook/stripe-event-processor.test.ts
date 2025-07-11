@@ -91,8 +91,8 @@ describe(StripeEventProcessor, () => {
       expect(publishFn).not.toHaveBeenCalled();
     });
 
-    it('should throw error when identity extraction fails', async () => {
-      const extractionError = new Error('Failed to extract identity');
+    it('should throw error when user identity extraction fails', async () => {
+      const extractionError = new Error('Failed to extract user identity');
 
       const result = testIt(validEvent, () => Promise.reject(extractionError));
 

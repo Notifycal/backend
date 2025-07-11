@@ -15,10 +15,10 @@ export type NoUserCalendarFoundEvent = z.infer<typeof noUserCalendarFoundEventSc
 export function noUserCalendarFound(
   origin: Record['body'],
   run: z.infer<typeof runSchema>,
-  identity: UserIdentity<IdpName>
+  userIdentity: UserIdentity<IdpName>
 ): NoUserCalendarFoundEvent {
   return {
-    ...createEventBase('NoUserCalendarFound', identity, {
+    ...createEventBase('NoUserCalendarFound', userIdentity, {
       correlationId: origin.id as CorrelationId
     }),
     data: {

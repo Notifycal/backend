@@ -15,7 +15,7 @@ export type SubscriptionUpgradedEventData = z.infer<typeof subscriptionUpgradedE
 export type SubscriptionUpgradedEvent = z.infer<typeof subscriptionUpgradedEventSchema>;
 
 export function subscriptionUpgradedEvent<TIdpName extends IdpName>(
-  identity: UserIdentity<TIdpName>,
+  userIdentity: UserIdentity<TIdpName>,
   previousTier: TierId,
   currentTier: TierId,
   remainingPercentage: Percentage,
@@ -23,7 +23,7 @@ export function subscriptionUpgradedEvent<TIdpName extends IdpName>(
   result: CreditAdditionResult
 ): SubscriptionUpgradedEvent {
   return {
-    ...createEventBase('SubscriptionUpgraded', identity),
+    ...createEventBase('SubscriptionUpgraded', userIdentity),
     data: {
       previousTier,
       currentTier,

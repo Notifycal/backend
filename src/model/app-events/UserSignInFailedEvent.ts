@@ -13,11 +13,11 @@ export const userSignInFailedEventSchema = errorEventSchemaGenerator('UserSignIn
 export type UserSignInFailedEvent = z.infer<typeof userSignInFailedEventSchema>;
 
 export function userSignInFailed<TIdpName extends IdpName>(
-  identity: UserIdentity<TIdpName>,
+  userIdentity: UserIdentity<TIdpName>,
   userBeforeLogin: UserStoreRecord<TIdpName>
 ): UserSignInFailedEvent {
   return {
-    ...createEventBase('UserSignInFailed', identity),
+    ...createEventBase('UserSignInFailed', userIdentity),
     data: {
       lastSignInAt: userBeforeLogin.LastSignInAt
     }

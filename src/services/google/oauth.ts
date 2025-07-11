@@ -69,7 +69,7 @@ export class GoogleOAuth extends BaseGoogle {
             { ticket }
           );
         }
-        const identity: UserIdentity<'google.com'> = {
+        const userIdentity: UserIdentity<'google.com'> = {
           userId: idGenerator(id, 'google.com'),
           email: email as Email,
           idp: 'google.com' as TIdpName,
@@ -78,7 +78,7 @@ export class GoogleOAuth extends BaseGoogle {
         const authorization: AuthorizationForIdp<'google.com'> = {
           refreshToken: tokenResponse.tokens.refresh_token as string
         };
-        return [identity, authorization];
+        return [userIdentity, authorization];
       });
     });
   }

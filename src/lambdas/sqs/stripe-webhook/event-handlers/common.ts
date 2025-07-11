@@ -6,5 +6,5 @@ export type EventHandlerBuilder<T extends Stripe.Event = Stripe.Event> = (
   type: StripeEventType
 ) => EventHandler<T>;
 export interface EventHandler<T extends Stripe.Event = Stripe.Event> {
-  handle(event: T, identity: UserIdentity<IdpName>): Promise<void>;
+  handle(event: T, userIdentity: UserIdentity<IdpName>): Promise<void>;
 }

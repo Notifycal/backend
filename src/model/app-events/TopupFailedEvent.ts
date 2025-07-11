@@ -15,7 +15,7 @@ export type TopupFailedEventData = z.infer<typeof topupFailedEventDataSchema>;
 export type TopupFailedEvent = z.infer<typeof topupFailedEventSchema>;
 
 export function topupFailedEvent<TIdpName extends IdpName>(
-  identity: UserIdentity<TIdpName>,
+  userIdentity: UserIdentity<TIdpName>,
   topupId: TopupId,
   quantity: number,
   credits: number,
@@ -23,7 +23,7 @@ export function topupFailedEvent<TIdpName extends IdpName>(
   error: unknown
 ): TopupFailedEvent {
   return {
-    ...createEventBase('TopupFailed', identity),
+    ...createEventBase('TopupFailed', userIdentity),
     data: {
       topupId,
       quantity,

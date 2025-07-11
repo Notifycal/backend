@@ -17,7 +17,7 @@ export type SubscriptionUpgradeFailedEventData = z.infer<
 export type SubscriptionUpgradeFailedEvent = z.infer<typeof subscriptionUpgradeFailedEventSchema>;
 
 export function subscriptionUpgradeFailedEvent<TIdpName extends IdpName>(
-  identity: UserIdentity<TIdpName>,
+  userIdentity: UserIdentity<TIdpName>,
   previousTier: TierId,
   currentTier: TierId,
   remainingPercentage?: Percentage,
@@ -26,7 +26,7 @@ export function subscriptionUpgradeFailedEvent<TIdpName extends IdpName>(
   error?: unknown
 ): SubscriptionUpgradeFailedEvent {
   return {
-    ...createEventBase('SubscriptionUpgradeFailed', identity),
+    ...createEventBase('SubscriptionUpgradeFailed', userIdentity),
     data: {
       previousTier,
       currentTier,

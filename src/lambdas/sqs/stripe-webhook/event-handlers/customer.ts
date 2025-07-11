@@ -18,13 +18,13 @@ export class CustomerCreatedHandler
 
   public handle(
     event: Stripe.CustomerCreatedEvent,
-    identity: UserIdentity<IdpName>
+    userIdentity: UserIdentity<IdpName>
   ): Promise<void> {
     const customer = event.data.object;
     this.logger.info('Handling customer created', {
       customerId: customer.id,
       email: customer.email,
-      userId: identity.userId
+      userId: userIdentity.userId
     });
     return Promise.resolve();
   }
@@ -43,14 +43,14 @@ export class CustomerUpdatedHandler
 
   public handle(
     event: Stripe.CustomerUpdatedEvent,
-    identity: UserIdentity<IdpName>
+    userIdentity: UserIdentity<IdpName>
   ): Promise<void> {
     const customer = event.data.object;
     const previousAttributes = event.data.previous_attributes;
     this.logger.info('Handling customer updated', {
       customerId: customer.id,
       updatedFields: Object.keys(previousAttributes || {}),
-      userId: identity.userId
+      userId: userIdentity.userId
     });
     return Promise.resolve();
   }
@@ -69,12 +69,12 @@ export class CustomerDeletedHandler
 
   public handle(
     event: Stripe.CustomerDeletedEvent,
-    identity: UserIdentity<IdpName>
+    userIdentity: UserIdentity<IdpName>
   ): Promise<void> {
     const customer = event.data.object;
     this.logger.info('Handling customer deleted', {
       customerId: customer.id,
-      userId: identity.userId
+      userId: userIdentity.userId
     });
     return Promise.resolve();
   }

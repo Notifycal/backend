@@ -30,14 +30,14 @@ const loadDevConfig: () => Record<string, string> = (() => {
 
 const userId = '09b6b481-3fa1-4ed4-b3c1-5a9467acc7ef' as Uuid;
 const email = 'test@notifycal.com' as Email;
-const identity: UserIdentity<'google.com'> = {
+const userIdentity: UserIdentity<'google.com'> = {
   userId: userId,
   email: email,
   idp: 'google.com',
   idpId: '46345747457457' as IdpId
 };
 export const getDefaultAccessTokenPayload: () => OurAccessTokenClaims = () => ({
-  ...identity,
+  ...userIdentity,
   role: 'user',
   permissions: {}
 });
@@ -90,14 +90,14 @@ export const validJwts: EncodedAndDecodedJwts = {
         typ: 'JWT'
       },
       payload: {
-        ...identity,
+        ...userIdentity,
         role: 'user',
         permissions: {},
         iat: 1735311407 as UnixTimestamp,
         exp: 1735512345 as UnixTimestamp,
         aud: 'local.notifycal.com',
         iss: 'local.notifycal.com',
-        sub: identity.userId,
+        sub: userIdentity.userId,
         jti: '9999999-d54b-4f70-90e1-59c02d0e7a02' as Uuid
       },
       signature: 'some_signature'
@@ -115,7 +115,7 @@ export const validJwts: EncodedAndDecodedJwts = {
         exp: 1735599999 as UnixTimestamp,
         aud: 'local.notifycal.com',
         iss: 'local.notifycal.com',
-        sub: identity.userId,
+        sub: userIdentity.userId,
         jti: '8888888-d54b-4f70-90e1-59c02d0e7a02' as Uuid
       },
       signature: 'some_signature'

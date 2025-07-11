@@ -15,14 +15,14 @@ export type TopupSucceededEventData = z.infer<typeof topupSucceededEventDataSche
 export type TopupSucceededEvent = z.infer<typeof topupSucceededEventSchema>;
 
 export function topupSucceededEvent<TIdpName extends IdpName>(
-  identity: UserIdentity<TIdpName>,
+  userIdentity: UserIdentity<TIdpName>,
   topupId: TopupId,
   quantity: number,
   credits: number,
   result: CreditAdditionResult
 ): TopupSucceededEvent {
   return {
-    ...createEventBase('TopupSucceeded', identity),
+    ...createEventBase('TopupSucceeded', userIdentity),
     data: {
       topupId,
       quantity,

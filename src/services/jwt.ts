@@ -15,10 +15,10 @@ import type { z } from 'zod';
 import { rejectWithErrorMessage } from './common/error-handling';
 
 export function accessJwtPayload<TIdpName extends IdpName>(
-  identity: UserIdentity<TIdpName>
+  userIdentity: UserIdentity<TIdpName>
 ): OurAccessTokenClaims {
   return {
-    ...identity,
+    ...userIdentity,
     role: 'user',
     permissions: {}
   };
@@ -82,7 +82,7 @@ export function buildJwts<
   TIdpName extends IdpName,
   TConfig extends SignOptions & { secretOrPrivateKey: string }
 >(
-  identity: UserIdentity<TIdpName>,
+  userIdentity: UserIdentity<TIdpName>,
   encodeJwtConfig: TConfig,
   encodeRefreshJwtConfig: TConfig
 ): Promise<EncodedAndDecodedJwts> {
@@ -92,10 +92,13 @@ export function buildJwts<
   }
 
   return Promise.all([
-    buildJwt(accessJwtPayload(identity), accessTokenSchema, identity.userId, encodeJwtConfig).catch(
-      prependJwtType('Access')
-    ),
-    buildJwt({}, refreshTokenSchema, identity.userId, encodeRefreshJwtConfig).catch(
+    buildJwt(
+      accessJwtPayload(userIdentity),
+      accessTokenSchema,
+      userIdentity.userId,
+      encodeJwtConfig
+    ).catch(prependJwtType('Access')),
+    buildJwt({}, refreshTokenSchema, userIdentity.userId, encodeRefreshJwtConfig).catch(
       prependJwtType('Refresh')
     )
   ]).then((jwts) => ({

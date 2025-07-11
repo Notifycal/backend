@@ -271,7 +271,7 @@ describe('Auth Service', () => {
   });
 
   function testSignInOrUp<TIdpName extends IdpName>(
-    identity: UserIdentity<TIdpName>,
+    userIdentity: UserIdentity<TIdpName>,
     authorization: AuthorizationForIdp<TIdpName>,
     getUserByIdFn: () => Promise<UserStoreRecord<TIdpName> | null>,
     putUserFn: () => Promise<void>,
@@ -305,11 +305,11 @@ describe('Auth Service', () => {
     }));
     vi.mocked(buildJwts).mockImplementation(buildJwtsFn);
 
-    return signInOrUp(identity, authorization, validConfig, logger);
+    return signInOrUp(userIdentity, authorization, validConfig, logger);
   }
 
   function testBuildJwtsAndStoreRefreshJwt<TIdpName extends IdpName>(
-    identity: UserIdentity<TIdpName>,
+    userIdentity: UserIdentity<TIdpName>,
     encodeAccessJwtConfig: EncodeAccessJwtConfig,
     encodeRefreshJwtConfig: EncodeRefreshJwtConfig,
     buildJwtsFn: () => Promise<EncodedAndDecodedJwts>,
@@ -328,7 +328,7 @@ describe('Auth Service', () => {
     vi.spyOn(store, 'putToken').mockImplementation(refreshTokenStoreMock.putToken);
 
     return buildJwtsAndStoreRefreshJwt(
-      identity,
+      userIdentity,
       encodeAccessJwtConfig,
       encodeRefreshJwtConfig,
       store

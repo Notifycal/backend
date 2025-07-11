@@ -85,7 +85,7 @@ describe('Jwt builder', () => {
 describe('Jwts builder', () => {
   const userId = '09b6b481-3fa1-4ed4-b3c1-5a9467acc7ef' as Uuid;
   const email = 'test@notifycal.com' as Email;
-  const identity = {
+  const userIdentity = {
     userId: userId,
     email: email,
     idp: 'google.com' as IdpName,
@@ -93,9 +93,9 @@ describe('Jwts builder', () => {
   };
 
   it('should build a jwts', () => {
-    return expect(testit(identity, validEncodeConfig, validEncodeConfig)).resolves.toStrictEqual(
-      expect.any(Object)
-    );
+    return expect(
+      testit(userIdentity, validEncodeConfig, validEncodeConfig)
+    ).resolves.toStrictEqual(expect.any(Object));
   });
 
   it('should fail to build access jwt', () => {
@@ -104,7 +104,7 @@ describe('Jwts builder', () => {
       secretOrPrivateKey: `invalid_es256_private_key` as PrivateKey
     };
     return expect(
-      testit(identity, invalidEncodeJwtConfig, validEncodeConfig)
+      testit(userIdentity, invalidEncodeJwtConfig, validEncodeConfig)
     ).rejects.toStrictEqual(new Error('Access JWT could not be generated'));
   });
 
@@ -114,16 +114,16 @@ describe('Jwts builder', () => {
       secretOrPrivateKey: `invalid_es256_private_key` as PrivateKey
     };
     return expect(
-      testit(identity, validEncodeConfig, invalidEncodeRefreshJwtConfig)
+      testit(userIdentity, validEncodeConfig, invalidEncodeRefreshJwtConfig)
     ).rejects.toStrictEqual(new Error('Refresh JWT could not be generated'));
   });
 
   function testit(
-    identity: UserIdentity<IdpName>,
+    userIdentity: UserIdentity<IdpName>,
     encodeJwtConfig: EncodeAccessJwtConfig,
     encodeRefreshJwtConfig: EncodeRefreshJwtConfig
   ): Promise<EncodedAndDecodedJwts> {
-    return buildJwts(identity, encodeJwtConfig, encodeRefreshJwtConfig);
+    return buildJwts(userIdentity, encodeJwtConfig, encodeRefreshJwtConfig);
   }
 });
 

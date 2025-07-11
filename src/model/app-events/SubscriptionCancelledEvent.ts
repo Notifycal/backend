@@ -15,12 +15,12 @@ export type SubscriptionCancelledEventData = z.infer<typeof subscriptionCancelle
 export type SubscriptionCancelledEvent = z.infer<typeof subscriptionCancelledEventSchema>;
 
 export function subscriptionCancelledEvent<TIdpName extends IdpName>(
-  identity: UserIdentity<TIdpName>,
+  userIdentity: UserIdentity<TIdpName>,
   reason: 'unpaid' | 'cancelled',
   result: CreditDeductionResult
 ): SubscriptionCancelledEvent {
   return {
-    ...createEventBase('SubscriptionCancelled', identity),
+    ...createEventBase('SubscriptionCancelled', userIdentity),
     data: {
       reason,
       result

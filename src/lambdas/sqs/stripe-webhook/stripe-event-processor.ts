@@ -34,22 +34,22 @@ export class StripeEventProcessor {
     return this.identityExtractor
       .extract(event)
       .then(
-        tap((identity) => {
+        tap((userIdentity) => {
           this.logger.appendKeys({
-            ...identity
+            ...userIdentity
           });
         })
       )
-      .then((identity) =>
+      .then((userIdentity) =>
         handlerFn(event.type as StripeEventType)
-          .handle(event, identity)
+          .handle(event, userIdentity)
           .then(
             tap(() => {
               this.logger.info('Successfully processed event');
             })
           )
           .then(() =>
-            this.eventPublisher.publish(event, identity).catch((error) => {
+            this.eventPublisher.publish(event, userIdentity).catch((error) => {
               this.logger.error(
                 `There was an error publishing an Stripe event after having processed it`,
                 { cause: error, event }

@@ -187,7 +187,7 @@ describe(TopupService, () => {
   });
 
   function testIt(
-    identity: UserIdentity<'google.com'>,
+    userIdentity: UserIdentity<'google.com'>,
     topup: TopupId,
     quantity: number,
     addCreditsFn: (
@@ -206,6 +206,6 @@ describe(TopupService, () => {
     } as unknown as SnsService;
 
     const topupService = new TopupService(creditsServiceMock, topupToCreditsMap, snsServiceMock);
-    return topupService.add(identity, topup, quantity);
+    return topupService.add(userIdentity, topup, quantity);
   }
 });

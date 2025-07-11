@@ -53,11 +53,11 @@ export const ourStripeEventTypeZodLiteralArray = stripeEventTypes.map((type) => 
 
 export function fromStripeEvent(
   origin: Stripe.Event,
-  identity: UserIdentity<IdpName>
+  userIdentity: UserIdentity<IdpName>
 ): PaymentWebhookFiredEvent {
   const stripeEventType = origin.type;
   return {
-    ...createEventBase(toOurEventType(stripeEventType), identity),
+    ...createEventBase(toOurEventType(stripeEventType), userIdentity),
     data: {
       ...origin
     }

@@ -17,13 +17,13 @@ export type SubscriptionCreationFailedEventData = z.infer<
 export type SubscriptionCreationFailedEvent = z.infer<typeof subscriptionCreationFailedEventSchema>;
 
 export function subscriptionCreationFailedEvent<TIdpName extends IdpName>(
-  identity: UserIdentity<TIdpName>,
+  userIdentity: UserIdentity<TIdpName>,
   tier: TierId,
   result?: CreditAdditionResult,
   error?: unknown
 ): SubscriptionCreationFailedEvent {
   return {
-    ...createEventBase('SubscriptionCreationFailed', identity),
+    ...createEventBase('SubscriptionCreationFailed', userIdentity),
     data: {
       tier,
       result,

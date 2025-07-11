@@ -18,14 +18,14 @@ export class PaymentIntentSucceededHandler
 
   public handle(
     event: Stripe.PaymentIntentSucceededEvent,
-    identity: UserIdentity<IdpName>
+    userIdentity: UserIdentity<IdpName>
   ): Promise<void> {
     const paymentIntent = event.data.object;
     this.logger.info('Handling payment intent succeeded', {
       paymentIntentId: paymentIntent.id,
       customerId: paymentIntent.customer,
       amount: paymentIntent.amount,
-      userId: identity.userId
+      userId: userIdentity.userId
     });
     return Promise.resolve();
   }
@@ -44,14 +44,14 @@ export class PaymentIntentFailedHandler
 
   public handle(
     event: Stripe.PaymentIntentPaymentFailedEvent,
-    identity: UserIdentity<IdpName>
+    userIdentity: UserIdentity<IdpName>
   ): Promise<void> {
     const paymentIntent = event.data.object;
     this.logger.info('Handling payment intent failed', {
       paymentIntentId: paymentIntent.id,
       customerId: paymentIntent.customer,
       amount: paymentIntent.amount,
-      userId: identity.userId
+      userId: userIdentity.userId
     });
     return Promise.resolve();
   }

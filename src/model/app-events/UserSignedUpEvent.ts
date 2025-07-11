@@ -9,10 +9,10 @@ export const userSignedUpEventSchema = eventSchemaGenerator('UserSignUpSucceeded
 export type UserSignedUpEvent = z.infer<typeof userSignedUpEventSchema>;
 
 export function userSignedUp<TIdpName extends IdpName>(
-  identity: UserIdentity<TIdpName>
+  userIdentity: UserIdentity<TIdpName>
 ): UserSignedUpEvent {
   return {
-    ...createEventBase('UserSignUpSucceeded', identity),
+    ...createEventBase('UserSignUpSucceeded', userIdentity),
     data: {}
   };
 }

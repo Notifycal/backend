@@ -19,14 +19,14 @@ export class SubscriptionCreatedHandler
 
   public handle(
     event: Stripe.CustomerSubscriptionCreatedEvent,
-    identity: UserIdentity<IdpName>
+    userIdentity: UserIdentity<IdpName>
   ): Promise<void> {
     const subscription = event.data.object;
     this.logger.info('Handling subscription created', {
       subscriptionId: subscription.id,
       customerId: subscription.customer,
       status: subscription.status,
-      userId: identity.userId
+      userId: userIdentity.userId
     });
     return Promise.resolve();
   }
@@ -46,7 +46,7 @@ export class SubscriptionUpdatedHandler
 
   public handle(
     event: Stripe.CustomerSubscriptionUpdatedEvent,
-    identity: UserIdentity<IdpName>
+    userIdentity: UserIdentity<IdpName>
   ): Promise<void> {
     const subscription = event.data.object;
     const previousAttributes = event.data.previous_attributes;
@@ -55,7 +55,7 @@ export class SubscriptionUpdatedHandler
       customerId: subscription.customer,
       status: subscription.status,
       updatedFields: Object.keys(previousAttributes || {}),
-      userId: identity.userId
+      userId: userIdentity.userId
     });
     // Docs: https://docs.stripe.com/billing/subscriptions/overview#handle-recurring-charge-failures
     // Docs2: https://docs.stripe.com/billing/collection-method?locale=en-GB#failed-incomplete-subscriptions
@@ -69,7 +69,7 @@ export class SubscriptionUpdatedHandler
     ];
     if (subscriptionStatuses.includes(subscription.status)) {
       return this.subscriptionService
-        .cancel(identity, 'unpaid')
+        .cancel(userIdentity, 'unpaid')
         .then(() => {}, this.handleError('subscription-unpaid'));
     }
     return Promise.resolve();
@@ -90,16 +90,16 @@ export class SubscriptionDeletedHandler
 
   public handle(
     event: Stripe.CustomerSubscriptionDeletedEvent,
-    identity: UserIdentity<IdpName>
+    userIdentity: UserIdentity<IdpName>
   ): Promise<void> {
     const subscription = event.data.object;
     this.logger.info('Handling subscription deleted', {
       subscriptionId: subscription.id,
       customerId: subscription.customer,
-      userId: identity.userId
+      userId: userIdentity.userId
     });
     return this.subscriptionService
-      .cancel(identity, 'cancelled')
+      .cancel(userIdentity, 'cancelled')
       .then(() => {}, this.handleError('subscription-cancelled'));
   }
 }
@@ -117,13 +117,13 @@ export class SubscriptionPausedHandler
 
   public handle(
     event: Stripe.CustomerSubscriptionPausedEvent,
-    identity: UserIdentity<IdpName>
+    userIdentity: UserIdentity<IdpName>
   ): Promise<void> {
     const subscription = event.data.object;
     this.logger.info('Handling subscription paused', {
       subscriptionId: subscription.id,
       customerId: subscription.customer,
-      userId: identity.userId
+      userId: userIdentity.userId
     });
     return Promise.resolve();
   }
@@ -142,13 +142,13 @@ export class SubscriptionResumedHandler
 
   public handle(
     event: Stripe.CustomerSubscriptionResumedEvent,
-    identity: UserIdentity<IdpName>
+    userIdentity: UserIdentity<IdpName>
   ): Promise<void> {
     const subscription = event.data.object;
     this.logger.info('Handling subscription resumed', {
       subscriptionId: subscription.id,
       customerId: subscription.customer,
-      userId: identity.userId
+      userId: userIdentity.userId
     });
     return Promise.resolve();
   }

@@ -13,11 +13,11 @@ export const userSignedInEventSchema = eventSchemaGenerator('UserSignInSucceeded
 export type UserSignedInEvent = z.infer<typeof userSignedInEventSchema>;
 
 export function userSignedIn<TIdpName extends IdpName>(
-  identity: UserIdentity<TIdpName>,
+  userIdentity: UserIdentity<TIdpName>,
   userBeforeLogin: UserStoreRecord<TIdpName>
 ): UserSignedInEvent {
   return {
-    ...createEventBase('UserSignInSucceeded', identity),
+    ...createEventBase('UserSignInSucceeded', userIdentity),
     data: {
       lastSignInAt: userBeforeLogin.LastSignInAt
     }

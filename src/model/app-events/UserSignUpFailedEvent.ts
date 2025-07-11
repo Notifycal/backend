@@ -9,10 +9,10 @@ export const userSignUpFailedEventSchema = errorEventSchemaGenerator('UserSignUp
 export type UserSignUpFailedEvent = z.infer<typeof userSignUpFailedEventSchema>;
 
 export function userSignUpFailed<TIdpName extends IdpName>(
-  identity: UserIdentity<TIdpName>
+  userIdentity: UserIdentity<TIdpName>
 ): UserSignUpFailedEvent {
   return {
-    ...createEventBase('UserSignUpFailed', identity),
+    ...createEventBase('UserSignUpFailed', userIdentity),
     data: {}
   };
 }

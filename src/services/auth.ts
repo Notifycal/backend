@@ -23,7 +23,7 @@ import { UserBaseStore } from './stores/user-base-store';
 
 function signIn<TIdpName extends IdpName>(
   user: UserStoreRecord<TIdpName>,
-  identity: UserIdentity<TIdpName>,
+  userIdentity: UserIdentity<TIdpName>,
   authorization: AuthorizationForIdp<TIdpName>,
   userProvider: UserBaseStore<TIdpName>
 ): Promise<UserStoreRecord<TIdpName>> {
@@ -35,22 +35,22 @@ function signIn<TIdpName extends IdpName>(
     return userProvider.putUser(updatedUser, authorization).then(() => updatedUser);
   } else {
     return Promise.reject(
-      new Error(`User with id '${identity.userId}' is banned and login is prohibited`)
+      new Error(`User with id '${userIdentity.userId}' is banned and login is prohibited`)
     );
   }
 }
 
 function signUp<TIdpName extends IdpName>(
-  identity: UserIdentity<TIdpName>,
+  userIdentity: UserIdentity<TIdpName>,
   authorization: AuthorizationForIdp<TIdpName>,
   userProvider: UserBaseStore<TIdpName>
 ): Promise<UserStoreRecord<TIdpName>> {
   const now = Date.now() as UnixTimestamp;
   const newUser: UserStoreRecord<TIdpName> = {
-    UserId: identity.userId,
-    Email: identity.email,
-    Idp: identity.idp,
-    IdpId: identity.idpId,
+    UserId: userIdentity.userId,
+    Email: userIdentity.email,
+    Idp: userIdentity.idp,
+    IdpId: userIdentity.idpId,
     LastSignInAt: now,
     SignedUpAt: now,
     UserStatus: 'onboarding'
@@ -59,12 +59,12 @@ function signUp<TIdpName extends IdpName>(
 }
 
 export function buildJwtsAndStoreRefreshJwt<TIdpName extends IdpName>(
-  identity: UserIdentity<TIdpName>,
+  userIdentity: UserIdentity<TIdpName>,
   encodeAccessJwtConfig: EncodeAccessJwtConfig,
   encodeRefreshJwtConfig: EncodeRefreshJwtConfig,
   store: RefreshTokenBaseStore
 ): Promise<EncodedAndDecodedJwts> {
-  return buildJwts(identity, encodeAccessJwtConfig, encodeRefreshJwtConfig).then((jwts) => {
+  return buildJwts(userIdentity, encodeAccessJwtConfig, encodeRefreshJwtConfig).then((jwts) => {
     return store
       .putToken({
         UserId: jwts.refreshToken.decoded.payload.sub,
@@ -77,12 +77,12 @@ export function buildJwtsAndStoreRefreshJwt<TIdpName extends IdpName>(
 }
 
 function handleFailureToGetUserById<TIdpName extends IdpName>(
-  identity: UserIdentity<TIdpName>
+  userIdentity: UserIdentity<TIdpName>
 ): (reason: unknown) => PromiseLike<never> {
   return (error) =>
     Promise.reject(
       new Error(
-        `Failed to fetch '${identity.userId}' out of persistance. Unable to say if the user was signing in or up as the call to persistance failed`,
+        `Failed to fetch '${userIdentity.userId}' out of persistance. Unable to say if the user was signing in or up as the call to persistance failed`,
         { cause: error }
       )
     );
@@ -103,7 +103,7 @@ function generateAuthentication<TIdpName extends IdpName>(
 }
 
 export function signInOrUp<TIdpName extends IdpName>(
-  identity: UserIdentity<TIdpName>,
+  userIdentity: UserIdentity<TIdpName>,
   authorization: AuthorizationForIdp<TIdpName>,
   config: BaseLoginConfig & ApiRestTopicConfig,
   logger: Logger
@@ -111,23 +111,23 @@ export function signInOrUp<TIdpName extends IdpName>(
   const userProvider = UserBaseStore.withConfig<TIdpName>(config.userBaseStoreConfig, logger);
   const snsService = SnsService.withConfig(config.apiRestTopicConfig, logger);
 
-  return userProvider.getUserById(identity.userId).then((userOrNot) => {
+  return userProvider.getUserById(userIdentity.userId).then((userOrNot) => {
     if (userOrNot) {
-      return signIn(userOrNot, identity, authorization, userProvider)
+      return signIn(userOrNot, userIdentity, authorization, userProvider)
         .then((user) => generateAuthentication(user, config, logger))
         .then(
-          tap(() => snsService.safePublish(userSignedIn(identity, userOrNot))),
-          doAndRethrow(() => snsService.safePublish(userSignInFailed(identity, userOrNot)))
+          tap(() => snsService.safePublish(userSignedIn(userIdentity, userOrNot))),
+          doAndRethrow(() => snsService.safePublish(userSignInFailed(userIdentity, userOrNot)))
         );
     } else {
-      return signUp(identity, authorization, userProvider)
+      return signUp(userIdentity, authorization, userProvider)
         .then((user) => generateAuthentication(user, config, logger))
         .then(
-          tap(() => snsService.safePublish(userSignedUp(identity))),
-          doAndRethrow(() => snsService.safePublish(userSignUpFailed(identity)))
+          tap(() => snsService.safePublish(userSignedUp(userIdentity))),
+          doAndRethrow(() => snsService.safePublish(userSignUpFailed(userIdentity)))
         );
     }
-  }, handleFailureToGetUserById<TIdpName>(identity));
+  }, handleFailureToGetUserById<TIdpName>(userIdentity));
 }
 
 export function _successHandler(jwts: EncodedAndDecodedJwts): APIGatewayProxyResult {

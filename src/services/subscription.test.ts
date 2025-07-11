@@ -115,7 +115,7 @@ describe(SubscriptionService, () => {
 
     function testItCreate(
       resetFn: () => Promise<CreditAdditionResult>,
-      identity: UserIdentity<IdpName> = validIdentity,
+      userIdentity: UserIdentity<IdpName> = validIdentity,
       tier: TierId = validGoodTier,
       map = validTierToCreditsMap
     ): Promise<CreditAdditionResult> {
@@ -124,7 +124,7 @@ describe(SubscriptionService, () => {
         map,
         mockSnsService
       );
-      return service.create(identity, tier);
+      return service.create(userIdentity, tier);
     }
   });
 
@@ -177,7 +177,7 @@ describe(SubscriptionService, () => {
 
     function testItRenew(
       resetFn: () => Promise<CreditAdditionResult>,
-      identity: UserIdentity<IdpName> = validIdentity,
+      userIdentity: UserIdentity<IdpName> = validIdentity,
       tier: TierId = validGoodTier,
       map = validTierToCreditsMap
     ): Promise<CreditAdditionResult> {
@@ -186,7 +186,7 @@ describe(SubscriptionService, () => {
         map,
         mockSnsService
       );
-      return service.renew(identity, tier);
+      return service.renew(userIdentity, tier);
     }
   });
 
@@ -285,7 +285,7 @@ describe(SubscriptionService, () => {
 
     function testItUpgrade(
       addFn: () => Promise<CreditAdditionResult>,
-      identity: UserIdentity<IdpName>,
+      userIdentity: UserIdentity<IdpName>,
       prev: TierId,
       curr: TierId,
       remainingPercentage: Percentage
@@ -295,7 +295,7 @@ describe(SubscriptionService, () => {
         validTierToCreditsMap,
         mockSnsService
       );
-      return service.upgrade(identity, prev, curr, remainingPercentage);
+      return service.upgrade(userIdentity, prev, curr, remainingPercentage);
     }
   });
 

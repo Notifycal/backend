@@ -51,13 +51,13 @@ function lambdaHandler(
   const idpQueryPath = event.queryStringParameters?.['idp'];
 
   return verifyIdentity(event, idpQueryPath, config.idpConfigs)
-    .then(([identity, idpAuthorization]) => {
+    .then(([userIdentity, idpAuthorization]) => {
       logger.appendKeys({
-        userId: identity.userId,
-        idp: identity.idp,
-        idpId: identity.idpId
+        userId: userIdentity.userId,
+        idp: userIdentity.idp,
+        idpId: userIdentity.idpId
       });
-      return signInOrUp(identity, idpAuthorization, config, logger)
+      return signInOrUp(userIdentity, idpAuthorization, config, logger)
         .then(_successHandler)
         .catch(errorHandler(500));
     })

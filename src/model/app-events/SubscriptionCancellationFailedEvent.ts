@@ -19,13 +19,13 @@ export type SubscriptionCancellationFailedEvent = z.infer<
 >;
 
 export function subscriptionCancellationFailedEvent<TIdpName extends IdpName>(
-  identity: UserIdentity<TIdpName>,
+  userIdentity: UserIdentity<TIdpName>,
   reason: 'unpaid' | 'cancelled',
   result?: CreditDeductionResult,
   error?: unknown
 ): SubscriptionCancellationFailedEvent {
   return {
-    ...createEventBase('SubscriptionCancellationFailed', identity),
+    ...createEventBase('SubscriptionCancellationFailed', userIdentity),
     data: {
       reason,
       result,

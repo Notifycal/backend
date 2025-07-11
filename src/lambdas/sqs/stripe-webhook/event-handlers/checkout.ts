@@ -18,13 +18,13 @@ export class CheckoutSessionCompletedHandler
 
   public handle(
     event: Stripe.CheckoutSessionCompletedEvent,
-    identity: UserIdentity<IdpName>
+    userIdentity: UserIdentity<IdpName>
   ): Promise<void> {
     const session = event.data.object;
     this.logger.info('Handling checkout session completed', {
       checkoutSessionId: session.id,
       customerId: session.customer,
-      userId: identity.userId
+      userId: userIdentity.userId
     });
     return Promise.resolve();
   }

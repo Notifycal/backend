@@ -49,12 +49,12 @@ export const emailToBeSentEventSchema = eventSchemaGenerator('EmailToBeSent', da
 export type EmailToBeSentEvent = z.infer<typeof emailToBeSentEventSchema>;
 
 export function emailToBeSent(
-  identity: EventSourceIdentity,
+  userIdentity: EventSourceIdentity,
   data: EmailToBeSentEvent['data'],
   options: EventCreationOptions
 ): EmailToBeSentEvent {
   return {
-    ...createEventBase('EmailToBeSent', identity, options),
+    ...createEventBase('EmailToBeSent', userIdentity, options),
     data
   };
 }

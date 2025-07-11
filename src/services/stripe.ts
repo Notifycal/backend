@@ -62,10 +62,10 @@ export class StripeService {
         }));
   }
 
-  public createCustomer(identity: UserIdentity<IdpName>): Promise<StripeCustomerId> {
-    const { userId, idp, idpId, email } = identity;
-    logger.info(`Creating customer in Stripe for identity`, {
-      identity
+  public createCustomer(userIdentity: UserIdentity<IdpName>): Promise<StripeCustomerId> {
+    const { userId, idp, idpId, email } = userIdentity;
+    logger.info(`Creating customer in Stripe for user identity`, {
+      userIdentity
     });
     const params: Stripe.CustomerCreateParams = {
       email: email,
@@ -85,14 +85,14 @@ export class StripeService {
 
   public createCheckoutSession(
     stripeCustomerId: StripeCustomerId,
-    identity: UserIdentity<IdpName>,
+    userIdentity: UserIdentity<IdpName>,
     product: Tier | Topup,
     language: LanguageCode,
     successRedirectUrl: Url,
     cancelRedirectUrl: Url,
     taxId: string
   ): Promise<Url | null> {
-    const { userId, idp, idpId, email } = identity;
+    const { userId, idp, idpId, email } = userIdentity;
     const productConfig: Partial<Stripe.Checkout.SessionCreateParams> = match(product.type)
       .with('tier', () => ({ mode: 'subscription' as const }))
       .with('topup', () => ({

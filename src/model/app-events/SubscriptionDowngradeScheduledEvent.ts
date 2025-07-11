@@ -18,10 +18,10 @@ export type SubscriptionDowngradeScheduledEvent = z.infer<
 >;
 
 export function subscriptionDowngradeScheduledEvent<TIdpName extends IdpName>(
-  identity: UserIdentity<TIdpName>
+  userIdentity: UserIdentity<TIdpName>
 ): SubscriptionDowngradeScheduledEvent {
   return {
-    ...createEventBase('SubscriptionDowngradeScheduled', identity),
+    ...createEventBase('SubscriptionDowngradeScheduled', userIdentity),
     data: {}
   };
 }
