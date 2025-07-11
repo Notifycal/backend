@@ -2,7 +2,7 @@ import { logger } from '@common/powertools';
 import type { EmailTemplateConfig } from '@model/Email';
 import type { CorrelationId, Email, IdpId, LanguageCode, UserId } from '@notifycal/shared/types';
 import { EmailTemplateService } from '@services/email-template-service';
-import { writeFileSync } from 'fs';
+import { mkdirSync, writeFileSync } from 'fs';
 import path from 'path';
 import { expect } from 'vitest';
 
@@ -35,6 +35,7 @@ export function testEmailTemplate(
     expect(emailData.htmlBody).toContain('<!DOCTYPE html');
     expect(emailData.subject).toBeTruthy();
 
+    mkdirSync(outputDirectory, { recursive: true });
     writeFileSync(
       path.resolve(outputDirectory, `${templateName}.${lang}.html`),
       emailData.htmlBody

@@ -38,7 +38,7 @@ describe('all email templates', () => {
       testEmailTemplate(
         name,
         { partialTemplate, specificTranslations, templateVariables },
-        __dirname + '/.dist'
+        __dirname + '/dist'
       );
     });
   });
