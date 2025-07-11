@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.46.1](https://github.com/Notifycal/backend/compare/v0.46.0...v0.46.1) (2025-07-11)
+
+
+### Bug Fixes
+
+* **ci:** use `latest` instead of `main` ([#812](https://github.com/Notifycal/backend/issues/812)) ([e63e5ec](https://github.com/Notifycal/backend/commit/e63e5ec70f7a9e1c97ad757622f99eb926874e12))
+
 ## [0.46.0](https://github.com/Notifycal/backend/compare/v0.45.1...v0.46.0) (2025-07-11)
 
 
