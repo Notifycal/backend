@@ -101,7 +101,7 @@ export type BaseSystemEvent = z.infer<typeof baseSystemEventSchema>;
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, @typescript-eslint/explicit-module-boundary-types
 export function eventSchemaGenerator<
-  TData extends z.AnyZodObject,
+  TData extends z.ZodObject,
   TEventType extends SuccessEventType
 >(eventType: TEventType, dataSchema: TData) {
   return baseEventSchema.extend({
@@ -112,7 +112,7 @@ export function eventSchemaGenerator<
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, @typescript-eslint/explicit-module-boundary-types
 export function systemEventSchemaGenerator<
-  TData extends z.AnyZodObject,
+  TData extends z.ZodObject,
   TEventType extends SystemEventType
 >(eventType: TEventType, dataSchema: TData) {
   return baseSystemEventSchema.extend({
@@ -123,7 +123,7 @@ export function systemEventSchemaGenerator<
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, @typescript-eslint/explicit-module-boundary-types
 export function errorEventSchemaGenerator<
-  TData extends z.AnyZodObject,
+  TData extends z.ZodObject,
   TEventType extends ErrorEventType
 >(eventType: TEventType, dataSchema: TData) {
   return baseEventSchema.extend({

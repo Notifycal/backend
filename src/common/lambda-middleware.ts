@@ -50,7 +50,7 @@ function baseConfigMiddleware<TEvent extends SupportedEvents, TConfig>(
 
 export function backgroundProcessingMiddleware<
   TConfig,
-  TEventSchema extends z.AnyZodObject,
+  TEventSchema extends z.ZodObject,
   TEvent extends SupportedEvents
 >(
   configReaderFn: ConfigReaderFn<TEvent, Promise<TConfig>>,
@@ -71,7 +71,7 @@ const noOpMiddleware: MiddlewareObj = {
 export function unprotectedEndpointMiddleware<
   TEvent extends SupportedEvents,
   TConfig,
-  TEventSchema extends z.AnyZodObject
+  TEventSchema extends z.ZodObject
 >(
   configReaderFn: ConfigReaderFn<TEvent, Promise<TConfig>>,
   eventSchema: TEventSchema,
@@ -87,7 +87,7 @@ export function unprotectedEndpointMiddleware<
 export function unprotectedCrossDomainEndpointMiddleware<
   TEvent extends SupportedEvents,
   TConfig,
-  TEventSchema extends z.AnyZodObject
+  TEventSchema extends z.ZodObject
 >(
   configReaderFn: ConfigReaderFn<TEvent, Promise<TConfig>>,
   eventSchema: TEventSchema
@@ -99,8 +99,8 @@ export function unprotectedCrossDomainEndpointMiddleware<
 export function protectedEndpointMiddlewareCustom<
   TDecodeAccessJwtConfig,
   TConfig extends AuthedEndpointConfig<OptionalCorsEndpointConfig, TDecodeAccessJwtConfig>,
-  TEventSchema extends z.AnyZodObject,
-  TAccessTokenSchema extends z.AnyZodObject,
+  TEventSchema extends z.ZodObject,
+  TAccessTokenSchema extends z.ZodObject,
   TEvent extends SupportedEvents
 >(
   configReaderFn: ConfigReaderFn<TEvent, Promise<TConfig>>,
@@ -134,7 +134,7 @@ export function protectedEndpointMiddlewareCustom<
 export function protectedEndpointMiddleware<
   TDecodeAccessJwtConfig extends DecodeAccessJwtConfig,
   TConfig extends AuthedEndpointConfig<CorsEndpointConfig, TDecodeAccessJwtConfig>,
-  TEventSchema extends z.AnyZodObject,
+  TEventSchema extends z.ZodObject,
   TEvent extends SupportedEvents
 >(
   configReaderFn: ConfigReaderFn<TEvent, Promise<TConfig>>,

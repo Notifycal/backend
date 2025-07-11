@@ -34,7 +34,7 @@ export const idp: Record<IdpName, IdpName> = {
 export const identitySchema = z.object({
   userId: userIdSchema,
   email: emailSchema,
-  idp: z.nativeEnum(idp),
+  idp: z.enum(idp),
   idpId: idpIdSchema
 });
 export const ourAccessTokenClaimsSchema = z

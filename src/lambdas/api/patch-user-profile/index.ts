@@ -1,5 +1,6 @@
 import { JSONStringified } from '@aws-lambda-powertools/parser/helpers';
 import { protectedEndpointMiddleware } from '@common/lambda-middleware';
+import { logger } from '@common/powertools';
 import { authedEventSchema } from '@model/lambda-events/ApiGatewayEvents';
 import { toStoreRecord } from '@model/store/ReminderConfigStoreRecord';
 import { reminderConfigSchema } from '@notifycal/shared/types';
@@ -9,13 +10,11 @@ import { senderValidator } from '@utils/phone';
 import type { APIGatewayProxyResult, Context } from 'aws-lambda';
 import type { z } from 'zod';
 import { type PatchUserProfileConfig, readPatchUserConfig } from './config';
-import { logger } from '@common/powertools';
 
 export const bodySchema = reminderConfigSchema.extend({
   business: reminderConfigSchema.shape.business.extend({
     ...reminderConfigSchema.shape.business.shape,
-    senderContact:
-      reminderConfigSchema.shape.business.shape.senderContact.superRefine(senderValidator)
+    senderContact: reminderConfigSchema.shape.business.shape.senderContact.refine(senderValidator)
   })
 });
 

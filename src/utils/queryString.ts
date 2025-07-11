@@ -10,7 +10,7 @@ export function queryStringToObject(queryString: string): Record<string, unknown
   return parse(queryString);
 }
 
-export function queryStringObjectToTypedObject<TSchema extends z.AnyZodObject>(
+export function queryStringObjectToTypedObject<TSchema extends z.ZodObject>(
   queryStringFlatObject: Record<string, string>,
   schema: TSchema
 ): Promise<z.infer<typeof schema>> {
