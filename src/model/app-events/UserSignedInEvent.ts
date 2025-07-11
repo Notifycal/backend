@@ -1,6 +1,6 @@
 import type { UserStoreRecord } from '@model/store/UserStoreRecord';
 import { unixTimestampSchema } from '@notifycal/shared/schemas';
-import type { Identity, IdpName } from '@notifycal/shared/types';
+import type { IdpName, UserIdentity } from '@notifycal/shared/types';
 import { z } from 'zod';
 import { eventSchemaGenerator } from './BaseEvent';
 import { createEventBase } from './common';
@@ -13,7 +13,7 @@ export const userSignedInEventSchema = eventSchemaGenerator('UserSignInSucceeded
 export type UserSignedInEvent = z.infer<typeof userSignedInEventSchema>;
 
 export function userSignedIn<TIdpName extends IdpName>(
-  identity: Identity<TIdpName>,
+  identity: UserIdentity<TIdpName>,
   userBeforeLogin: UserStoreRecord<TIdpName>
 ): UserSignedInEvent {
   return {

@@ -1,7 +1,7 @@
 import type { Logger } from '@aws-lambda-powertools/logger';
 import type { GoogleOAuthConfig } from '@model/Config';
 import type { AuthorizationForIdp } from '@model/IdpAuthorization';
-import type { Email, Identity, IdpId } from '@notifycal/shared/types';
+import type { Email, IdpId, UserIdentity } from '@notifycal/shared/types';
 import type { Url } from '@own-types/model';
 import { throwError } from '@services/common/error-handling';
 import { idGenerator } from '@services/id-generator';
@@ -19,7 +19,7 @@ export class GoogleOAuth extends BaseGoogle {
 
   public verifyIdentity<TIdpName extends 'google.com'>(
     userGoogleCode: string
-  ): Promise<[Identity<'google.com'>, AuthorizationForIdp<'google.com'>]> {
+  ): Promise<[UserIdentity<'google.com'>, AuthorizationForIdp<'google.com'>]> {
     const getTokenrestResourceName = 'GET Token response';
     return withIntegrationMetrics('google.com', getTokenrestResourceName, () =>
       this._client.getToken(userGoogleCode)
@@ -69,7 +69,7 @@ export class GoogleOAuth extends BaseGoogle {
             { ticket }
           );
         }
-        const identity: Identity<'google.com'> = {
+        const identity: UserIdentity<'google.com'> = {
           userId: idGenerator(id, 'google.com'),
           email: email as Email,
           idp: 'google.com' as TIdpName,

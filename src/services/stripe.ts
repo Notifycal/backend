@@ -3,10 +3,10 @@ import { logger } from '@common/powertools';
 import type { Tier, Topup } from '@model/PaymentPlans';
 import type {
   Email,
-  Identity,
   IdpName,
   LanguageCode,
-  StripeCustomerId
+  StripeCustomerId,
+  UserIdentity
 } from '@notifycal/shared/types';
 import type { Url } from '@own-types/model';
 import { HttpClient } from '@services/common/http-client';
@@ -62,7 +62,7 @@ export class StripeService {
         }));
   }
 
-  public createCustomer(identity: Identity<IdpName>): Promise<StripeCustomerId> {
+  public createCustomer(identity: UserIdentity<IdpName>): Promise<StripeCustomerId> {
     const { userId, idp, idpId, email } = identity;
     logger.info(`Creating customer in Stripe for identity`, {
       identity
@@ -85,7 +85,7 @@ export class StripeService {
 
   public createCheckoutSession(
     stripeCustomerId: StripeCustomerId,
-    identity: Identity<IdpName>,
+    identity: UserIdentity<IdpName>,
     product: Tier | Topup,
     language: LanguageCode,
     successRedirectUrl: Url,

@@ -6,7 +6,7 @@ import type {
   EncodeRefreshJwtConfig
 } from '@model/Config';
 import { type AccessToken, accessTokenSchema } from '@model/Jwt';
-import type { Email, Identity, IdpId, IdpName, Jwt, Uuid } from '@notifycal/shared/types';
+import type { Email, IdpId, IdpName, Jwt, UserIdentity, Uuid } from '@notifycal/shared/types';
 import type { PrivateKey, PublicKey } from '@own-types/model';
 import { sleep } from '@testing/utils/utils';
 import { describe, expect, it } from 'vitest';
@@ -119,7 +119,7 @@ describe('Jwts builder', () => {
   });
 
   function testit(
-    identity: Identity<IdpName>,
+    identity: UserIdentity<IdpName>,
     encodeJwtConfig: EncodeAccessJwtConfig,
     encodeRefreshJwtConfig: EncodeRefreshJwtConfig
   ): Promise<EncodedAndDecodedJwts> {

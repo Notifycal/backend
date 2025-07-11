@@ -11,8 +11,8 @@ import type {
 } from '@model/Config';
 import type { AuthorizationForIdp } from '@model/IdpAuthorization';
 import type { UserStoreRecord } from '@model/store/UserStoreRecord';
-import { type UserIdentity, extractIdentity } from '@model/UserIdentity';
-import type { Identity, IdpName, UnixTimestamp } from '@notifycal/shared/types';
+import { type UserIdentityStoreRecord, extractUserIdentity } from '@model/UserIdentity';
+import type { IdpName, UnixTimestamp, UserIdentity } from '@notifycal/shared/types';
 import { doAndRethrow, tap } from '@utils/promises';
 import type { APIGatewayProxyResult } from 'aws-lambda';
 import { successHandler } from './common/api-response-handlers';
@@ -23,7 +23,7 @@ import { UserBaseStore } from './stores/user-base-store';
 
 function signIn<TIdpName extends IdpName>(
   user: UserStoreRecord<TIdpName>,
-  identity: Identity<TIdpName>,
+  identity: UserIdentity<TIdpName>,
   authorization: AuthorizationForIdp<TIdpName>,
   userProvider: UserBaseStore<TIdpName>
 ): Promise<UserStoreRecord<TIdpName>> {
@@ -41,7 +41,7 @@ function signIn<TIdpName extends IdpName>(
 }
 
 function signUp<TIdpName extends IdpName>(
-  identity: Identity<TIdpName>,
+  identity: UserIdentity<TIdpName>,
   authorization: AuthorizationForIdp<TIdpName>,
   userProvider: UserBaseStore<TIdpName>
 ): Promise<UserStoreRecord<TIdpName>> {
@@ -59,7 +59,7 @@ function signUp<TIdpName extends IdpName>(
 }
 
 export function buildJwtsAndStoreRefreshJwt<TIdpName extends IdpName>(
-  identity: Identity<TIdpName>,
+  identity: UserIdentity<TIdpName>,
   encodeAccessJwtConfig: EncodeAccessJwtConfig,
   encodeRefreshJwtConfig: EncodeRefreshJwtConfig,
   store: RefreshTokenBaseStore
@@ -77,7 +77,7 @@ export function buildJwtsAndStoreRefreshJwt<TIdpName extends IdpName>(
 }
 
 function handleFailureToGetUserById<TIdpName extends IdpName>(
-  identity: Identity<TIdpName>
+  identity: UserIdentity<TIdpName>
 ): (reason: unknown) => PromiseLike<never> {
   return (error) =>
     Promise.reject(
@@ -89,13 +89,13 @@ function handleFailureToGetUserById<TIdpName extends IdpName>(
 }
 
 function generateAuthentication<TIdpName extends IdpName>(
-  user: UserIdentity<TIdpName>,
+  user: UserIdentityStoreRecord<TIdpName>,
   config: BaseLoginConfig,
   logger: Logger
 ): Promise<EncodedAndDecodedJwts> {
   const store = new RefreshTokenBaseStore(config.refreshTokenBaseStoreConfig, logger);
   return buildJwtsAndStoreRefreshJwt(
-    extractIdentity(user),
+    extractUserIdentity(user),
     config.encodeAccessJwtConfig,
     config.encodeRefreshJwtConfig,
     store
@@ -103,7 +103,7 @@ function generateAuthentication<TIdpName extends IdpName>(
 }
 
 export function signInOrUp<TIdpName extends IdpName>(
-  identity: Identity<TIdpName>,
+  identity: UserIdentity<TIdpName>,
   authorization: AuthorizationForIdp<TIdpName>,
   config: BaseLoginConfig & ApiRestTopicConfig,
   logger: Logger

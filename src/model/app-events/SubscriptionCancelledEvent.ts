@@ -1,5 +1,5 @@
 import type { CreditDeductionResult } from '@model/Credits';
-import type { Identity, IdpName } from '@notifycal/shared/types';
+import type { IdpName, UserIdentity } from '@notifycal/shared/types';
 import { z } from 'zod';
 import { eventSchemaGenerator } from './BaseEvent';
 import { createEventBase } from './common';
@@ -15,7 +15,7 @@ export type SubscriptionCancelledEventData = z.infer<typeof subscriptionCancelle
 export type SubscriptionCancelledEvent = z.infer<typeof subscriptionCancelledEventSchema>;
 
 export function subscriptionCancelledEvent<TIdpName extends IdpName>(
-  identity: Identity<TIdpName>,
+  identity: UserIdentity<TIdpName>,
   reason: 'unpaid' | 'cancelled',
   result: CreditDeductionResult
 ): SubscriptionCancelledEvent {

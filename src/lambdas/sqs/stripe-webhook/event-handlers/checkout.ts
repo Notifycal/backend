@@ -1,5 +1,5 @@
 import type { Logger } from '@aws-lambda-powertools/logger';
-import type { Identity, IdpName } from '@notifycal/shared/types';
+import type { IdpName, UserIdentity } from '@notifycal/shared/types';
 import type { Stripe } from 'stripe';
 import type { StripeEventType } from '../stripe-schemas';
 import { BaseHandler } from './base-handler';
@@ -18,7 +18,7 @@ export class CheckoutSessionCompletedHandler
 
   public handle(
     event: Stripe.CheckoutSessionCompletedEvent,
-    identity: Identity<IdpName>
+    identity: UserIdentity<IdpName>
   ): Promise<void> {
     const session = event.data.object;
     this.logger.info('Handling checkout session completed', {

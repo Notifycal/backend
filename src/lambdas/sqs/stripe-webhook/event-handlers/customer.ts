@@ -1,5 +1,5 @@
 import type { Logger } from '@aws-lambda-powertools/logger';
-import type { Identity, IdpName } from '@notifycal/shared/types';
+import type { IdpName, UserIdentity } from '@notifycal/shared/types';
 import type Stripe from 'stripe';
 import type { StripeEventType } from '../stripe-schemas';
 import { BaseHandler } from './base-handler';
@@ -16,7 +16,10 @@ export class CustomerCreatedHandler
     super(stripeEventType);
   }
 
-  public handle(event: Stripe.CustomerCreatedEvent, identity: Identity<IdpName>): Promise<void> {
+  public handle(
+    event: Stripe.CustomerCreatedEvent,
+    identity: UserIdentity<IdpName>
+  ): Promise<void> {
     const customer = event.data.object;
     this.logger.info('Handling customer created', {
       customerId: customer.id,
@@ -38,7 +41,10 @@ export class CustomerUpdatedHandler
     super(stripeEventType);
   }
 
-  public handle(event: Stripe.CustomerUpdatedEvent, identity: Identity<IdpName>): Promise<void> {
+  public handle(
+    event: Stripe.CustomerUpdatedEvent,
+    identity: UserIdentity<IdpName>
+  ): Promise<void> {
     const customer = event.data.object;
     const previousAttributes = event.data.previous_attributes;
     this.logger.info('Handling customer updated', {
@@ -61,7 +67,10 @@ export class CustomerDeletedHandler
     super(stripeEventType);
   }
 
-  public handle(event: Stripe.CustomerDeletedEvent, identity: Identity<IdpName>): Promise<void> {
+  public handle(
+    event: Stripe.CustomerDeletedEvent,
+    identity: UserIdentity<IdpName>
+  ): Promise<void> {
     const customer = event.data.object;
     this.logger.info('Handling customer deleted', {
       customerId: customer.id,

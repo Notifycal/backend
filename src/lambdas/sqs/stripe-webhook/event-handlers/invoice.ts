@@ -2,7 +2,7 @@
 import type { Logger } from '@aws-lambda-powertools/logger';
 import type { CreditAdditionResult } from '@model/Credits';
 import type { TierMap, TopupMap } from '@model/PaymentPlans';
-import type { Identity, IdpName, TierId, TopupId } from '@notifycal/shared/types';
+import type { IdpName, TierId, TopupId, UserIdentity } from '@notifycal/shared/types';
 import type { SubscriptionService } from '@services/subscription';
 import type { TopupService } from '@services/topup';
 import type Stripe from 'stripe';
@@ -22,7 +22,7 @@ export class InvoiceCreatedHandler
     super(stripeEventType);
   }
 
-  public handle(event: Stripe.InvoiceCreatedEvent, identity: Identity<IdpName>): Promise<void> {
+  public handle(event: Stripe.InvoiceCreatedEvent, identity: UserIdentity<IdpName>): Promise<void> {
     const invoice = event.data.object;
     this.logger.info('Handling invoice created', {
       invoiceId: invoice.id,
@@ -51,7 +51,7 @@ export class InvoicePaymentSucceededHandler
 
   public handle(
     event: Stripe.InvoicePaymentSucceededEvent,
-    identity: Identity<IdpName>
+    identity: UserIdentity<IdpName>
   ): Promise<void> {
     const invoice = event.data.object;
     this.logger.info('Handling invoice payment succeeded', {
@@ -77,7 +77,7 @@ export class InvoicePaymentSucceededHandler
       });
   }
 
-  private createHandler(invoice: Stripe.Invoice, identity: Identity<IdpName>): Promise<void> {
+  private createHandler(invoice: Stripe.Invoice, identity: UserIdentity<IdpName>): Promise<void> {
     const firstConceptInInvoice = invoice.lines.data[0];
     return this.extractProduct(firstConceptInInvoice, this.tiers).then(
       (tierId) =>
@@ -88,7 +88,7 @@ export class InvoicePaymentSucceededHandler
     );
   }
 
-  private renewHandler(invoice: Stripe.Invoice, identity: Identity<IdpName>): Promise<void> {
+  private renewHandler(invoice: Stripe.Invoice, identity: UserIdentity<IdpName>): Promise<void> {
     const firstConceptInInvoice = invoice.lines.data[0];
     return this.extractProduct(firstConceptInInvoice, this.tiers).then(
       (tierId) =>
@@ -98,7 +98,7 @@ export class InvoicePaymentSucceededHandler
   }
 
   private handleSubscriptionUpdate(
-    identity: Identity<IdpName>,
+    identity: UserIdentity<IdpName>,
     invoice: Stripe.Invoice
   ): Promise<void> {
     const updateType = this.determineUpdateType(invoice);
@@ -147,7 +147,7 @@ export class InvoicePaymentSucceededHandler
   }
 
   private async executeSubscriptionUpdate(
-    identity: Identity<IdpName>,
+    identity: UserIdentity<IdpName>,
     invoice: Stripe.Invoice,
     tiers: { previousTier: TierId; currentTier: TierId },
     updateType: 'upgrade-subscription' | 'downgrade-subscription' | 'undetermined'
@@ -183,7 +183,7 @@ export class InvoicePaymentSucceededHandler
       .exhaustive();
   }
 
-  private topupHandler(invoice: Stripe.Invoice, identity: Identity<IdpName>): Promise<void> {
+  private topupHandler(invoice: Stripe.Invoice, identity: UserIdentity<IdpName>): Promise<void> {
     const product = invoice.lines.data[0];
     const quantity = product?.quantity || 0;
     if (quantity <= 0) {
@@ -258,7 +258,7 @@ export class InvoicePaymentFailedHandler
 
   public handle(
     event: Stripe.InvoicePaymentFailedEvent,
-    identity: Identity<IdpName>
+    identity: UserIdentity<IdpName>
   ): Promise<void> {
     const invoice = event.data.object;
     this.logger.info('Handling invoice payment failed', {

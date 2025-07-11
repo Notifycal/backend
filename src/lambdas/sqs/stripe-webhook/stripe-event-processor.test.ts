@@ -1,7 +1,7 @@
 /* eslint-disable vitest/max-expects */
 /* eslint-disable camelcase */
 import type { Logger } from '@aws-lambda-powertools/logger';
-import type { Email, Identity, IdpId, IdpName, UserId } from '@notifycal/shared/types';
+import type { Email, IdpId, IdpName, UserId, UserIdentity } from '@notifycal/shared/types';
 import type { Stripe } from 'stripe';
 import { v4 } from 'uuid';
 import { describe, expect, it, vi } from 'vitest';
@@ -12,7 +12,7 @@ import { StripeEventProcessor } from './stripe-event-processor';
 import type { StripeEventType } from './stripe-schemas';
 
 describe(StripeEventProcessor, () => {
-  const validIdentity: Identity<IdpName> = {
+  const validIdentity: UserIdentity<IdpName> = {
     userId: v4() as UserId,
     idp: 'google.com',
     idpId: 'google-id-123' as IdpId,

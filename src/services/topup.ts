@@ -1,7 +1,7 @@
 import { topupFailedEvent } from '@model/app-events/TopupFailedEvent';
 import { topupSucceededEvent } from '@model/app-events/TopupSucceededEvent';
 import type { CreditAdditionResult } from '@model/Credits';
-import type { Identity, IdpName, TopupId } from '@notifycal/shared/types';
+import type { IdpName, TopupId, UserIdentity } from '@notifycal/shared/types';
 import { handleServiceOperation } from './common/error-handling';
 import type { CreditsService } from './credits-service';
 import type { SnsService } from './sns';
@@ -13,7 +13,7 @@ export class TopupService<TIdpName extends IdpName> {
     private readonly snsService: SnsService
   ) {}
   public add(
-    identity: Identity<TIdpName>,
+    identity: UserIdentity<TIdpName>,
     topup: TopupId,
     quantity: number
   ): Promise<CreditAdditionResult> {

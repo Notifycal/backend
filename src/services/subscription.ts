@@ -1,6 +1,6 @@
 import { logger } from '@common/powertools';
 import * as SubscriptionEvents from '@model/app-events/subscription-events';
-import type { Identity, IdpName, Percentage, TierId } from '@notifycal/shared/types';
+import type { IdpName, Percentage, TierId, UserIdentity } from '@notifycal/shared/types';
 import type { CreditsService } from './credits-service';
 import type { SnsService } from './sns';
 
@@ -28,7 +28,7 @@ export class SubscriptionService<TIdpName extends IdpName> {
     private readonly snsService: SnsService
   ) {}
 
-  public create(identity: Identity<TIdpName>, tier: TierId): Promise<CreditAdditionResult> {
+  public create(identity: UserIdentity<TIdpName>, tier: TierId): Promise<CreditAdditionResult> {
     const credits = this.tierToCreditsMap[tier];
     const operation = this.creditsService.resetSubscriptionCredits(identity.userId, credits, tier);
 
@@ -41,7 +41,7 @@ export class SubscriptionService<TIdpName extends IdpName> {
     );
   }
 
-  public renew(identity: Identity<TIdpName>, tier: TierId): Promise<CreditAdditionResult> {
+  public renew(identity: UserIdentity<TIdpName>, tier: TierId): Promise<CreditAdditionResult> {
     const credits = this.tierToCreditsMap[tier];
     const operation = this.creditsService.resetSubscriptionCredits(identity.userId, credits, tier);
 
@@ -55,7 +55,7 @@ export class SubscriptionService<TIdpName extends IdpName> {
   }
 
   public upgrade(
-    identity: Identity<TIdpName>,
+    identity: UserIdentity<TIdpName>,
     previousTier: TierId,
     currentTier: TierId,
     remainingPercentage: Percentage
@@ -144,7 +144,7 @@ export class SubscriptionService<TIdpName extends IdpName> {
     );
   }
 
-  public scheduleDowngrade(identity: Identity<TIdpName>): Promise<void> {
+  public scheduleDowngrade(identity: UserIdentity<TIdpName>): Promise<void> {
     logger.info('Downgrade scheduled. Nothing to do. Credits will be reset on next cycle', {
       userId: identity.userId
     });
@@ -155,7 +155,7 @@ export class SubscriptionService<TIdpName extends IdpName> {
   }
 
   public cancel(
-    identity: Identity<TIdpName>,
+    identity: UserIdentity<TIdpName>,
     reason: 'unpaid' | 'cancelled'
   ): Promise<CreditDeductionResult> {
     const operation = this.creditsService.clearSubscriptionCredits(identity.userId, reason);

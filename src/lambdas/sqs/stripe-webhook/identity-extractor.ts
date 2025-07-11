@@ -1,12 +1,12 @@
 import type { Logger } from '@aws-lambda-powertools/logger';
-import { extractIdentity } from '@model/UserIdentity';
-import type { Identity, IdpName, StripeCustomerId } from '@notifycal/shared/types';
+import { extractUserIdentity } from '@model/UserIdentity';
+import type { IdpName, StripeCustomerId, UserIdentity } from '@notifycal/shared/types';
 import type { PaymentUserIndexStore } from '@services/stores/payment-user-index-store';
 import type { Stripe } from 'stripe';
 import { match, P } from 'ts-pattern';
 
 export interface IdentityExtractor<T extends Stripe.Event = Stripe.Event> {
-  extract(event: T): Promise<Identity<IdpName>>;
+  extract(event: T): Promise<UserIdentity<IdpName>>;
 }
 
 export class StripeIdentityExtractor implements IdentityExtractor<Stripe.Event> {
@@ -14,7 +14,7 @@ export class StripeIdentityExtractor implements IdentityExtractor<Stripe.Event> 
     private readonly userPaymentIndexStore: PaymentUserIndexStore<IdpName>,
     private readonly logger: Logger
   ) {}
-  public extract(event: Stripe.Event): Promise<Identity<IdpName>> {
+  public extract(event: Stripe.Event): Promise<UserIdentity<IdpName>> {
     const stripeCustomerId = this.getStripeCustomerId(event);
 
     if (!stripeCustomerId) {
@@ -26,7 +26,7 @@ export class StripeIdentityExtractor implements IdentityExtractor<Stripe.Event> 
     return this.userPaymentIndexStore.getPaymentUserByStripeCustomerId(stripeCustomerId).then(
       (paymentUser) => {
         if (paymentUser) {
-          return extractIdentity(paymentUser);
+          return extractUserIdentity(paymentUser);
         } else {
           return Promise.reject(
             new Error(

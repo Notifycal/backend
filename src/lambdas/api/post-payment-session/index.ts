@@ -3,7 +3,7 @@ import { corsErrorResponse } from '@common/cors-middleware';
 import { protectedEndpointMiddleware } from '@common/lambda-middleware';
 import { logger, metrics } from '@common/powertools';
 import type { Tier, Topup } from '@model/PaymentPlans';
-import type { Identity, IdpName, StripeCustomerId } from '@notifycal/shared/types';
+import type { IdpName, StripeCustomerId, UserIdentity } from '@notifycal/shared/types';
 import type { Url } from '@own-types/model';
 import {
   errorHandler,
@@ -19,7 +19,7 @@ import { readPostPaymentCheckoutSessionConfig } from './config';
 import { type Event, eventSchema } from './schemas';
 
 function createCustomerOrRetrieve(
-  identity: Identity<IdpName>,
+  identity: UserIdentity<IdpName>,
   userBaseStore: UserBaseStore<IdpName>,
   stripeService: StripeService
 ): Promise<StripeCustomerId> {
@@ -67,7 +67,7 @@ function checkEligibility(
   stripeCustomerId: StripeCustomerId,
   selectedProduct: Tier | Topup,
   stripeService: StripeService,
-  identity: Identity<IdpName>
+  identity: UserIdentity<IdpName>
 ): Promise<{ eligible: boolean; stripeCustomerId: StripeCustomerId }> {
   if (selectedProduct.type === 'topup') {
     return Promise.resolve({ eligible: true, stripeCustomerId });

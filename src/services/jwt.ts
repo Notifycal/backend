@@ -8,14 +8,14 @@ import {
   type RefreshToken
 } from '@model/Jwt';
 import type { DecodeVonageAccessJwtConfig } from '@model/vendor/vonage/config';
-import type { Identity, IdpName, Jwt, UserId } from '@notifycal/shared/types';
+import type { IdpName, Jwt, UserId, UserIdentity } from '@notifycal/shared/types';
 import jwtBuilder from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
 import type { z } from 'zod';
 import { rejectWithErrorMessage } from './common/error-handling';
 
 export function accessJwtPayload<TIdpName extends IdpName>(
-  identity: Identity<TIdpName>
+  identity: UserIdentity<TIdpName>
 ): OurAccessTokenClaims {
   return {
     ...identity,
@@ -82,7 +82,7 @@ export function buildJwts<
   TIdpName extends IdpName,
   TConfig extends SignOptions & { secretOrPrivateKey: string }
 >(
-  identity: Identity<TIdpName>,
+  identity: UserIdentity<TIdpName>,
   encodeJwtConfig: TConfig,
   encodeRefreshJwtConfig: TConfig
 ): Promise<EncodedAndDecodedJwts> {

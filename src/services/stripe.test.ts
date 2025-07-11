@@ -3,12 +3,12 @@ import { logger } from '@common/powertools';
 import type { Tier, Topup } from '@model/PaymentPlans';
 import type {
   Email,
-  Identity,
   IdpId,
   IdpName,
   LanguageCode,
   StripeCustomerId,
-  UserId
+  UserId,
+  UserIdentity
 } from '@notifycal/shared/types';
 import type { Url } from '@own-types/model';
 import { HttpClient } from '@services/common/http-client';
@@ -31,7 +31,7 @@ const validApiKey = 'sk_test_123456789';
 describe(StripeService, () => {
   const validUserId = 'cfaa8471-f4cc-44da-bc22-ddc4b735a847' as UserId;
   const validEmail = 'test@notifycal.com' as Email;
-  const validIdentity: Identity<'google.com'> = {
+  const validIdentity: UserIdentity<'google.com'> = {
     userId: validUserId,
     idp: 'google.com',
     idpId: '1234567890' as IdpId,
@@ -691,7 +691,7 @@ describe(StripeService, () => {
   });
 
   async function testCreateCustomer(
-    identity: Identity<IdpName>,
+    identity: UserIdentity<IdpName>,
     createCustomerFn: () => Promise<{ id: string }>,
     testClockListFn: MockInstance = vi.fn().mockRejectedValue(new Error('Testing in anger')),
     testClockCreateFn: MockInstance = vi.fn().mockRejectedValue(new Error('Testing in anger'))
@@ -711,7 +711,7 @@ describe(StripeService, () => {
 
   async function testCheckoutSession(
     stripeCustomerId: StripeCustomerId,
-    identity: Identity<IdpName>,
+    identity: UserIdentity<IdpName>,
     product: Tier | Topup,
     language: LanguageCode,
     successRedirectUrl: Url,

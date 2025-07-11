@@ -1,12 +1,12 @@
 import type { CreditAdditionResult } from '@model/Credits';
-import type { Email, Identity, IdpId, TierId, TopupId, UserId } from '@notifycal/shared/types';
+import type { Email, IdpId, TierId, TopupId, UserId, UserIdentity } from '@notifycal/shared/types';
 import { describe, expect, it, vi } from 'vitest';
 import type { CreditsService } from './credits-service';
 import type { SnsService } from './sns';
 import { TopupService } from './topup';
 
 describe(TopupService, () => {
-  const validIdentity: Identity<'google.com'> = {
+  const validIdentity: UserIdentity<'google.com'> = {
     idp: 'google.com',
     idpId: 'idp-123' as IdpId,
     userId: 'user-123' as UserId,
@@ -187,7 +187,7 @@ describe(TopupService, () => {
   });
 
   function testIt(
-    identity: Identity<'google.com'>,
+    identity: UserIdentity<'google.com'>,
     topup: TopupId,
     quantity: number,
     addCreditsFn: (

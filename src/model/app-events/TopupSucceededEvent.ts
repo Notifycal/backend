@@ -1,5 +1,5 @@
 import type { CreditAdditionResult } from '@model/Credits';
-import type { Identity, IdpName, TopupId } from '@notifycal/shared/types';
+import type { IdpName, TopupId, UserIdentity } from '@notifycal/shared/types';
 import { z } from 'zod';
 import { eventSchemaGenerator } from './BaseEvent';
 import { createEventBase } from './common';
@@ -15,7 +15,7 @@ export type TopupSucceededEventData = z.infer<typeof topupSucceededEventDataSche
 export type TopupSucceededEvent = z.infer<typeof topupSucceededEventSchema>;
 
 export function topupSucceededEvent<TIdpName extends IdpName>(
-  identity: Identity<TIdpName>,
+  identity: UserIdentity<TIdpName>,
   topupId: TopupId,
   quantity: number,
   credits: number,

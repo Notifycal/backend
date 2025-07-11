@@ -1,5 +1,5 @@
 import type { CreditAdditionResult } from '@model/Credits';
-import type { Identity, IdpName, TopupId } from '@notifycal/shared/types';
+import type { IdpName, TopupId, UserIdentity } from '@notifycal/shared/types';
 import { z } from 'zod';
 import { errorEventSchemaGenerator } from './BaseEvent';
 import { createEventBase } from './common';
@@ -15,7 +15,7 @@ export type TopupFailedEventData = z.infer<typeof topupFailedEventDataSchema>;
 export type TopupFailedEvent = z.infer<typeof topupFailedEventSchema>;
 
 export function topupFailedEvent<TIdpName extends IdpName>(
-  identity: Identity<TIdpName>,
+  identity: UserIdentity<TIdpName>,
   topupId: TopupId,
   quantity: number,
   credits: number,

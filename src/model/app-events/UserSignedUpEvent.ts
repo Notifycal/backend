@@ -1,4 +1,4 @@
-import type { Identity, IdpName } from '@notifycal/shared/types';
+import type { IdpName, UserIdentity } from '@notifycal/shared/types';
 import { z } from 'zod';
 import { eventSchemaGenerator } from './BaseEvent';
 import { createEventBase } from './common';
@@ -9,7 +9,7 @@ export const userSignedUpEventSchema = eventSchemaGenerator('UserSignUpSucceeded
 export type UserSignedUpEvent = z.infer<typeof userSignedUpEventSchema>;
 
 export function userSignedUp<TIdpName extends IdpName>(
-  identity: Identity<TIdpName>
+  identity: UserIdentity<TIdpName>
 ): UserSignedUpEvent {
   return {
     ...createEventBase('UserSignUpSucceeded', identity),

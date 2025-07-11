@@ -1,12 +1,12 @@
 import type { CreditAdditionResult, CreditDeductionResult } from '@model/Credits';
 import type {
   Email,
-  Identity,
   IdpId,
   IdpName,
   Percentage,
   TierId,
-  UserId
+  UserId,
+  UserIdentity
 } from '@notifycal/shared/types';
 import { describe, expect, it, vi } from 'vitest';
 import type { CreditsService } from './credits-service';
@@ -17,7 +17,7 @@ describe('SubscriptionService Event Publishing', () => {
   const validUserId = 'user-123' as UserId;
   const validGoodTier = 'good' as TierId;
   const validBetterTier = 'better' as TierId;
-  const validIdentity: Identity<IdpName> = {
+  const validIdentity: UserIdentity<IdpName> = {
     userId: validUserId,
     idp: 'google.com',
     idpId: 'google-user-123' as IdpId,

@@ -1,4 +1,4 @@
-import type { Identity, IdpName } from '@notifycal/shared/types';
+import type { IdpName, UserIdentity } from '@notifycal/shared/types';
 import { z } from 'zod';
 import { eventSchemaGenerator } from './BaseEvent';
 import { createEventBase } from './common';
@@ -18,7 +18,7 @@ export type SubscriptionDowngradeScheduledEvent = z.infer<
 >;
 
 export function subscriptionDowngradeScheduledEvent<TIdpName extends IdpName>(
-  identity: Identity<TIdpName>
+  identity: UserIdentity<TIdpName>
 ): SubscriptionDowngradeScheduledEvent {
   return {
     ...createEventBase('SubscriptionDowngradeScheduled', identity),

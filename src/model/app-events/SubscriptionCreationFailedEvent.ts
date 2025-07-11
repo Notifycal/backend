@@ -1,5 +1,5 @@
 import type { CreditAdditionResult } from '@model/Credits';
-import type { Identity, IdpName, TierId } from '@notifycal/shared/types';
+import type { IdpName, TierId, UserIdentity } from '@notifycal/shared/types';
 import { z } from 'zod';
 import { errorEventSchemaGenerator } from './BaseEvent';
 import { createEventBase } from './common';
@@ -17,7 +17,7 @@ export type SubscriptionCreationFailedEventData = z.infer<
 export type SubscriptionCreationFailedEvent = z.infer<typeof subscriptionCreationFailedEventSchema>;
 
 export function subscriptionCreationFailedEvent<TIdpName extends IdpName>(
-  identity: Identity<TIdpName>,
+  identity: UserIdentity<TIdpName>,
   tier: TierId,
   result?: CreditAdditionResult,
   error?: unknown

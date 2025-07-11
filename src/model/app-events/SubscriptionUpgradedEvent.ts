@@ -1,5 +1,5 @@
 import type { CreditAdditionResult } from '@model/Credits';
-import type { Identity, IdpName, Percentage, TierId } from '@notifycal/shared/types';
+import type { IdpName, Percentage, TierId, UserIdentity } from '@notifycal/shared/types';
 import { z } from 'zod';
 import { eventSchemaGenerator } from './BaseEvent';
 import { createEventBase } from './common';
@@ -15,7 +15,7 @@ export type SubscriptionUpgradedEventData = z.infer<typeof subscriptionUpgradedE
 export type SubscriptionUpgradedEvent = z.infer<typeof subscriptionUpgradedEventSchema>;
 
 export function subscriptionUpgradedEvent<TIdpName extends IdpName>(
-  identity: Identity<TIdpName>,
+  identity: UserIdentity<TIdpName>,
   previousTier: TierId,
   currentTier: TierId,
   remainingPercentage: Percentage,

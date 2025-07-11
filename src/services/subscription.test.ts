@@ -2,12 +2,12 @@
 import type { CreditAdditionResult, CreditDeductionResult } from '@model/Credits';
 import type {
   Email,
-  Identity,
   IdpId,
   IdpName,
   Percentage,
   TierId,
-  UserId
+  UserId,
+  UserIdentity
 } from '@notifycal/shared/types';
 import { describe, expect, it, vi } from 'vitest';
 import type { CreditsService } from './credits-service';
@@ -19,7 +19,7 @@ describe(SubscriptionService, () => {
   const validGoodTier = 'good' as TierId;
   const validBetterTier = 'better' as TierId;
   const validBestTier = 'best' as TierId;
-  const validIdentity: Identity<IdpName> = {
+  const validIdentity: UserIdentity<IdpName> = {
     userId: validUserId,
     idp: 'google.com',
     idpId: 'google-user-123' as IdpId,
@@ -115,7 +115,7 @@ describe(SubscriptionService, () => {
 
     function testItCreate(
       resetFn: () => Promise<CreditAdditionResult>,
-      identity: Identity<IdpName> = validIdentity,
+      identity: UserIdentity<IdpName> = validIdentity,
       tier: TierId = validGoodTier,
       map = validTierToCreditsMap
     ): Promise<CreditAdditionResult> {
@@ -177,7 +177,7 @@ describe(SubscriptionService, () => {
 
     function testItRenew(
       resetFn: () => Promise<CreditAdditionResult>,
-      identity: Identity<IdpName> = validIdentity,
+      identity: UserIdentity<IdpName> = validIdentity,
       tier: TierId = validGoodTier,
       map = validTierToCreditsMap
     ): Promise<CreditAdditionResult> {
@@ -285,7 +285,7 @@ describe(SubscriptionService, () => {
 
     function testItUpgrade(
       addFn: () => Promise<CreditAdditionResult>,
-      identity: Identity<IdpName>,
+      identity: UserIdentity<IdpName>,
       prev: TierId,
       curr: TierId,
       remainingPercentage: Percentage

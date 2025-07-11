@@ -3,11 +3,11 @@ import type { Logger } from '@aws-lambda-powertools/logger';
 import type { PaymentUserStoreRecord } from '@model/store/UserPaymentStoreRecord';
 import type {
   Email,
-  Identity,
   IdpId,
   IdpName,
   StripeCustomerId,
-  UserId
+  UserId,
+  UserIdentity
 } from '@notifycal/shared/types';
 import type { PaymentUserIndexStore } from '@services/stores/payment-user-index-store';
 import type { Stripe } from 'stripe';
@@ -30,7 +30,7 @@ describe(StripeIdentityExtractor, () => {
     Email: validEmail
   };
 
-  const validIdentity: Identity<IdpName> = {
+  const validIdentity: UserIdentity<IdpName> = {
     userId: validUserId,
     idp: validIdp,
     idpId: validIdpId,
@@ -568,9 +568,9 @@ describe(StripeIdentityExtractor, () => {
 
   function testIt(
     event: Stripe.Event,
-    getPaymentUserByStripeCustomerIdFn: () => Promise<Identity<IdpName> | null | undefined>,
+    getPaymentUserByStripeCustomerIdFn: () => Promise<UserIdentity<IdpName> | null | undefined>,
     errorLoggerFn: () => void
-  ): Promise<Identity<IdpName>> {
+  ): Promise<UserIdentity<IdpName>> {
     const userPaymentIndexStoreMock = {
       getPaymentUserByStripeCustomerId: getPaymentUserByStripeCustomerIdFn
     } as unknown as PaymentUserIndexStore<IdpName>;

@@ -5,7 +5,7 @@ import type {
   EncodeAccessJwtConfig
 } from '@model/Config';
 import { accessTokenSchema, type OurAccessTokenClaims } from '@model/Jwt';
-import type { Email, Identity, IdpId, Jwt, UnixTimestamp, Uuid } from '@notifycal/shared/types';
+import type { Email, IdpId, Jwt, UnixTimestamp, UserIdentity, Uuid } from '@notifycal/shared/types';
 import type { PrivateKey, PublicKey } from '@own-types/model';
 import { buildJwt, type EncodedAndDecodedJwts } from '@services/jwt';
 import dotenv from 'dotenv';
@@ -30,7 +30,7 @@ const loadDevConfig: () => Record<string, string> = (() => {
 
 const userId = '09b6b481-3fa1-4ed4-b3c1-5a9467acc7ef' as Uuid;
 const email = 'test@notifycal.com' as Email;
-const identity: Identity<'google.com'> = {
+const identity: UserIdentity<'google.com'> = {
   userId: userId,
   email: email,
   idp: 'google.com',
