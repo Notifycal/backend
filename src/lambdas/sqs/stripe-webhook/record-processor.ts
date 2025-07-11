@@ -34,10 +34,10 @@ import {
   SubscriptionUpdatedHandler
 } from './event-handlers/subscription';
 import { StripeEventPublisher } from './event-publisher';
-import { StripeIdentityExtractor } from './identity-extractor';
 import type { Record as SqsRecord } from './schema';
 import { StripeEventProcessor } from './stripe-event-processor';
 import type { StripeEventType } from './stripe-schemas';
+import { StripeUserIdentityExtractor } from './user-identity-extractor';
 
 export function defaultEventHandlers(
   subscriptionService: SubscriptionService<IdpName>,
@@ -119,7 +119,7 @@ export function recordProcessor(
   const topupService = new TopupService(creditsService, toProductToCreditsMap(topups), snsService);
   const ourHandlers = eventHandlerFactory(subscriptionService, topupService, tiers, topups, logger);
   const processor = new StripeEventProcessor(
-    new StripeIdentityExtractor(userPaymentIndexStore, logger),
+    new StripeUserIdentityExtractor(userPaymentIndexStore, logger),
     ourHandlers,
     new StripeEventPublisher(snsService),
     logger,

@@ -1,5 +1,5 @@
 import type { Record } from '@lambdas/sqs/fetch-user-calendars/index';
-import type { CorrelationId, EventId, Identity, IdpName } from '@notifycal/shared/types';
+import type { CorrelationId, EventId, IdpName, UserIdentity } from '@notifycal/shared/types';
 import { z } from 'zod';
 import { eventSchemaGenerator } from './BaseEvent';
 import { createEventBase, eventIdSchema, runSchema } from './common';
@@ -15,10 +15,10 @@ export type NoUserCalendarFoundEvent = z.infer<typeof noUserCalendarFoundEventSc
 export function noUserCalendarFound(
   origin: Record['body'],
   run: z.infer<typeof runSchema>,
-  identity: Identity<IdpName>
+  userIdentity: UserIdentity<IdpName>
 ): NoUserCalendarFoundEvent {
   return {
-    ...createEventBase('NoUserCalendarFound', identity, {
+    ...createEventBase('NoUserCalendarFound', userIdentity, {
       correlationId: origin.id as CorrelationId
     }),
     data: {

@@ -4,12 +4,12 @@ import type { CreditAdditionResult } from '@model/Credits';
 import type { TierMap, TopupMap } from '@model/PaymentPlans';
 import type {
   Email,
-  Identity,
   IdpId,
   IdpName,
   TierId,
   TopupId,
-  UserId
+  UserId,
+  UserIdentity
 } from '@notifycal/shared/types';
 import type { SubscriptionService } from '@services/subscription';
 import type { TopupService } from '@services/topup';
@@ -19,7 +19,7 @@ import { describe, expect, it, vi, type Mock } from 'vitest';
 import { InvoicePaymentSucceededHandler } from './invoice';
 
 describe(InvoicePaymentSucceededHandler, () => {
-  const validIdentity: Identity<IdpName> = {
+  const validIdentity: UserIdentity<IdpName> = {
     userId: 'user-123' as UserId,
     email: 'user@example.com' as Email,
     idp: 'google.com',
@@ -853,18 +853,21 @@ describe(InvoicePaymentSucceededHandler, () => {
 
   function testIt(
     event: Stripe.InvoicePaymentSucceededEvent,
-    identity: Identity<IdpName>,
-    createFn: (identity: Identity<IdpName>, tierId: TierId) => Promise<CreditAdditionResult>,
-    renewFn: (identity: Identity<IdpName>, tierId: TierId) => Promise<CreditAdditionResult>,
+    userIdentity: UserIdentity<IdpName>,
+    createFn: (
+      userIdentity: UserIdentity<IdpName>,
+      tierId: TierId
+    ) => Promise<CreditAdditionResult>,
+    renewFn: (userIdentity: UserIdentity<IdpName>, tierId: TierId) => Promise<CreditAdditionResult>,
     upgradeFn: (
-      identity: Identity<IdpName>,
+      userIdentity: UserIdentity<IdpName>,
       previousTier: TierId,
       currentTier: TierId,
       remainingPercentage: number
     ) => Promise<CreditAdditionResult>,
-    downgradeFn: (identity: Identity<IdpName>) => Promise<void>,
+    downgradeFn: (userIdentity: UserIdentity<IdpName>) => Promise<void>,
     addTopupFn: (
-      identity: Identity<IdpName>,
+      userIdentity: UserIdentity<IdpName>,
       topupId: TopupId,
       quantity: number
     ) => Promise<CreditAdditionResult>,
@@ -897,6 +900,6 @@ describe(InvoicePaymentSucceededHandler, () => {
       loggerMock
     );
 
-    return handler.handle(event, identity);
+    return handler.handle(event, userIdentity);
   }
 });

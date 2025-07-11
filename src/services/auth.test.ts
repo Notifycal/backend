@@ -12,11 +12,11 @@ import type { AuthorizationForIdp } from '@model/IdpAuthorization';
 import type { UserStoreRecord } from '@model/store/UserStoreRecord';
 import type {
   Email,
-  Identity,
   IdpId,
   IdpName,
   UnixTimestamp,
-  UserId
+  UserId,
+  UserIdentity
 } from '@notifycal/shared/types';
 import type { AwsArn, PrivateKey } from '@own-types/model';
 import { validJwts } from '@testing/utils/jwt';
@@ -37,7 +37,7 @@ const validUserId: UserId = uuid() as UserId;
 const validIdpName: IdpName = 'google.com';
 const validEmail = 'test@example.com' as Email;
 
-const validIdentity: Identity<'google.com'> = {
+const validIdentity: UserIdentity<'google.com'> = {
   userId: validUserId,
   email: validEmail,
   idp: validIdpName,
@@ -271,7 +271,7 @@ describe('Auth Service', () => {
   });
 
   function testSignInOrUp<TIdpName extends IdpName>(
-    identity: Identity<TIdpName>,
+    userIdentity: UserIdentity<TIdpName>,
     authorization: AuthorizationForIdp<TIdpName>,
     getUserByIdFn: () => Promise<UserStoreRecord<TIdpName> | null>,
     putUserFn: () => Promise<void>,
@@ -305,11 +305,11 @@ describe('Auth Service', () => {
     }));
     vi.mocked(buildJwts).mockImplementation(buildJwtsFn);
 
-    return signInOrUp(identity, authorization, validConfig, logger);
+    return signInOrUp(userIdentity, authorization, validConfig, logger);
   }
 
   function testBuildJwtsAndStoreRefreshJwt<TIdpName extends IdpName>(
-    identity: Identity<TIdpName>,
+    userIdentity: UserIdentity<TIdpName>,
     encodeAccessJwtConfig: EncodeAccessJwtConfig,
     encodeRefreshJwtConfig: EncodeRefreshJwtConfig,
     buildJwtsFn: () => Promise<EncodedAndDecodedJwts>,
@@ -328,7 +328,7 @@ describe('Auth Service', () => {
     vi.spyOn(store, 'putToken').mockImplementation(refreshTokenStoreMock.putToken);
 
     return buildJwtsAndStoreRefreshJwt(
-      identity,
+      userIdentity,
       encodeAccessJwtConfig,
       encodeRefreshJwtConfig,
       store

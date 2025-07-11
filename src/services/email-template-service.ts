@@ -90,7 +90,7 @@ export class EmailTemplateService {
     templateConfig: EmailTemplateConfig,
     subEventType: EmailToBeSentEvent['data']['subEventType'],
     metadata: Record<string, string | number | undefined>,
-    identity: EventSourceIdentity,
+    userIdentity: EventSourceIdentity,
     options: EventCreationOptions
   ): EmailToBeSentEvent {
     const eventData = this.interpolateEmail(
@@ -101,6 +101,6 @@ export class EmailTemplateService {
       subEventType,
       metadata
     );
-    return emailToBeSent(identity, eventData, options);
+    return emailToBeSent(userIdentity, eventData, options);
   }
 }
