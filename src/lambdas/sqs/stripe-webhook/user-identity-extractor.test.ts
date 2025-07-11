@@ -13,9 +13,9 @@ import type { PaymentUserIndexStore } from '@services/stores/payment-user-index-
 import type { Stripe } from 'stripe';
 import { v4 } from 'uuid';
 import { describe, expect, it, vi } from 'vitest';
-import { StripeIdentityExtractor } from './identity-extractor';
+import { StripeUserIdentityExtractor } from './user-identity-extractor';
 
-describe(StripeIdentityExtractor, () => {
+describe(StripeUserIdentityExtractor, () => {
   const validStripeCustomerId = 'cus_123' as StripeCustomerId;
   const validUserId = v4() as UserId;
   const validIdp = 'google.com';
@@ -579,7 +579,7 @@ describe(StripeIdentityExtractor, () => {
       error: errorLoggerFn
     } as unknown as Logger;
 
-    const extractor = new StripeIdentityExtractor(userPaymentIndexStoreMock, loggerMock);
+    const extractor = new StripeUserIdentityExtractor(userPaymentIndexStoreMock, loggerMock);
     return extractor.extract(event);
   }
 });

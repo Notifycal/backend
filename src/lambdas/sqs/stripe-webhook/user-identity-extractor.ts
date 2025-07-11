@@ -5,11 +5,11 @@ import type { PaymentUserIndexStore } from '@services/stores/payment-user-index-
 import type { Stripe } from 'stripe';
 import { match, P } from 'ts-pattern';
 
-export interface IdentityExtractor<T extends Stripe.Event = Stripe.Event> {
+export interface UserIdentityExtractor<T extends Stripe.Event = Stripe.Event> {
   extract(event: T): Promise<UserIdentity<IdpName>>;
 }
 
-export class StripeIdentityExtractor implements IdentityExtractor<Stripe.Event> {
+export class StripeUserIdentityExtractor implements UserIdentityExtractor<Stripe.Event> {
   public constructor(
     private readonly userPaymentIndexStore: PaymentUserIndexStore<IdpName>,
     private readonly logger: Logger

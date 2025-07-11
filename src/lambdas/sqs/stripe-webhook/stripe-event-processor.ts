@@ -4,12 +4,12 @@ import { tap } from '@utils/promises';
 import type { Stripe } from 'stripe';
 import type { EventHandler } from './event-handlers/common';
 import type { EventPublisher } from './event-publisher';
-import type { IdentityExtractor } from './identity-extractor';
 import type { StripeEventType } from './stripe-schemas';
+import type { UserIdentityExtractor } from './user-identity-extractor';
 
 export class StripeEventProcessor {
   public constructor(
-    private readonly identityExtractor: IdentityExtractor<Stripe.Event>,
+    private readonly identityExtractor: UserIdentityExtractor<Stripe.Event>,
     private readonly eventHandlers: Map<
       StripeEventType,
       (type: StripeEventType) => EventHandler<Stripe.Event>

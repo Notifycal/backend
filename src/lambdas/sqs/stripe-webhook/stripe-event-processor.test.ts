@@ -7,9 +7,9 @@ import { v4 } from 'uuid';
 import { describe, expect, it, vi } from 'vitest';
 import type { EventHandler, EventHandlerBuilder } from './event-handlers/common';
 import type { EventPublisher } from './event-publisher';
-import type { IdentityExtractor } from './identity-extractor';
 import { StripeEventProcessor } from './stripe-event-processor';
 import type { StripeEventType } from './stripe-schemas';
+import type { UserIdentityExtractor } from './user-identity-extractor';
 
 describe(StripeEventProcessor, () => {
   const validIdentity: UserIdentity<IdpName> = {
@@ -150,7 +150,7 @@ describe(StripeEventProcessor, () => {
 
       const identityExtractorMock = {
         extract: extractFn
-      } as unknown as IdentityExtractor<Stripe.Event>;
+      } as unknown as UserIdentityExtractor<Stripe.Event>;
 
       const eventHandlerMock = {
         handle: handleFn
