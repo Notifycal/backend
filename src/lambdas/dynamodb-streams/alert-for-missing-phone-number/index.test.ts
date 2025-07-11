@@ -55,7 +55,8 @@ function setEnv() {
       }
     },
     alertEmailConfig: {
-      faqUrl: new URL('https://some.faq.url')
+      faqUrl: new URL('https://some.faq.url'),
+      billingUrl: new URL('https://some.faq.pricing')
     }
   };
   setEnvAlertsBaseStoreConfig(config.alertsBaseStoreConfig);

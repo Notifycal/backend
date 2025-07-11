@@ -17,7 +17,7 @@ import type { DemoReminderToBeSentEvent } from '@model/app-events/DemoReminderTo
 import {
   insufficientCreditReminderNotSent,
   type InsufficientCreditReminderNotSentEvent
-} from '@model/app-events/InsufficientCreditReminderNotSentEvent';
+} from '@model/app-events/InsufficientCreditsReminderNotSentEvent';
 import type { CreditServiceEndpointConfig, DemoReminderEndpointConfig } from '@model/Config';
 import type { VonageEndpointConfig } from '@model/vendor/vonage/config';
 import type { IdpName, UserId, Uuid } from '@notifycal/shared/types';

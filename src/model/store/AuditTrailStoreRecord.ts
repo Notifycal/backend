@@ -8,7 +8,7 @@ import {
 } from '@model/app-events/BaseEvent';
 import { eventIdSchema } from '@model/app-events/common';
 import { dateTimeSchema, idpIdSchema, userIdSchema } from '@notifycal/shared/schemas';
-import type { Brand } from '@notifycal/shared/types';
+import type { Brand, CapitalizeKeys, Identity, IdpName } from '@notifycal/shared/types';
 import { z } from 'zod';
 
 export const dataSchema = z.object({}).passthrough();
@@ -54,3 +54,14 @@ export function auditTrailStoreRecordSchema<
 }
 
 export type AuditTrailStoreRecord = z.infer<typeof genericAuditTrailStoreRecordSchema>;
+
+type IdentityNoEmail<TIdpName extends IdpName> = Omit<Identity<TIdpName>, 'email'>;
+export function extractIdentity<TIdpName extends IdpName>(
+  event: CapitalizeKeys<IdentityNoEmail<TIdpName>>
+): IdentityNoEmail<TIdpName> {
+  return {
+    userId: event.UserId,
+    idp: event.Idp,
+    idpId: event.IdpId
+  };
+}
