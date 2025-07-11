@@ -1,4 +1,5 @@
 import { logger } from '@common/powertools';
+import { logo } from '@email/assets/logo.png.base64';
 import type { EmailTemplateConfig } from '@model/Email';
 import type { CorrelationId, Email, IdpId, LanguageCode, UserId } from '@notifycal/shared/types';
 import { EmailTemplateService } from '@services/email-template-service';
@@ -42,7 +43,11 @@ describe('all email templates', () => {
     it(`should compile the ${name} template`, () => {
       testEmailTemplate(
         name,
-        { partialTemplate, specificTranslations, templateVariables },
+        {
+          partialTemplate,
+          specificTranslations,
+          templateVariables: { ...templateVariables, logoSrc: `data:image/png;base64,${logo}` } //Override logoSrc template variable slightly differenty to be able to render it.
+        },
         __dirname + '/dist'
       );
     });

@@ -7,30 +7,25 @@ export interface EmailTextVariables extends Record<string, string> {
   mainMessage: string;
   tipTitle: string;
   tipContent: string;
-  topupAction: string;
-  helpOffer: string;
-  thankYou: string;
+  billingAction: string;
 }
 
 export interface EmailDynamicVariables {
   logoSrc: string;
-  topupUrl: string;
+  billingUrl: string;
 }
 
 export const specificTranslations: Record<LanguageCode, EmailTextVariables> = {
   es: {
     subject: 'Alerta: Créditos bajos detectados',
-    header: 'Importante: Sus créditos están disminuyendo',
+    header: 'Importante: Sus créditos cerca de acabarse',
     greeting: 'Estimado/a usuario/a,',
     mainMessage:
-      'Hemos detectado que sus créditos están disminuyendo. Para evitar interrupciones en el servicio de recordatorios, le recomendamos que recargue su cuenta pronto.',
+      'Hemos detectado que sus créditos cerca de acabarse. Para evitar interrupciones en el servicio de recordatorios, le recomendamos que recargue su cuenta pronto.',
     tipTitle: 'Acción Recomendada',
     tipContent:
       'Recargue su cuenta ahora para asegurar que todos sus recordatorios programados se envíen sin interrupciones.',
-    topupAction: 'Recargar Cuenta',
-    helpOffer:
-      '¿Necesita ayuda? Nuestro equipo está disponible para asistirle con cualquier pregunta sobre créditos o facturación. Contáctenos en cualquier momento.',
-    thankYou: '¡Gracias por confiar en Notifycal!'
+    billingAction: 'Recargar Cuenta'
   },
   en: {
     subject: 'Alert: Low Credits Detected',
@@ -41,9 +36,6 @@ export const specificTranslations: Record<LanguageCode, EmailTextVariables> = {
     tipTitle: 'Recommended Action',
     tipContent:
       'Top up your account now to ensure all your scheduled reminders are sent without interruption.',
-    topupAction: 'Top Up Account',
-    helpOffer:
-      'Need assistance? Our team is ready to help you with any questions about credits or billing. Feel free to contact us anytime.',
-    thankYou: 'Thank you for choosing Notifycal!'
+    billingAction: 'Top Up Account'
   }
 };

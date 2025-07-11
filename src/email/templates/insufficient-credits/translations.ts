@@ -8,8 +8,6 @@ export interface EmailTextVariables extends Record<string, string> {
   tipTitle: string;
   tipContent: string;
   topupAction: string;
-  helpOffer: string;
-  thankYou: string;
 }
 
 export interface EmailDynamicVariables {
@@ -27,10 +25,7 @@ export const specificTranslations: Record<LanguageCode, EmailTextVariables> = {
     tipTitle: 'Acción Requerida',
     tipContent:
       'Recargue su cuenta inmediatamente para reanudar el envío de recordatorios y asegurar que sus citas no se pierdan.',
-    topupAction: 'Recargar Cuenta Ahora',
-    helpOffer:
-      '¿Necesita ayuda urgente? Nuestro equipo está disponible para asistirle con la recarga de su cuenta. Contáctenos inmediatamente.',
-    thankYou: '¡Gracias por su comprensión y confianza en Notifycal!'
+    topupAction: 'Recargar Cuenta Ahora'
   },
   en: {
     subject: 'Urgent: Insufficient Credits - Reminder Not Sent',
@@ -41,9 +36,6 @@ export const specificTranslations: Record<LanguageCode, EmailTextVariables> = {
     tipTitle: 'Action Required',
     tipContent:
       'Top up your account immediately to resume sending reminders and ensure your appointments are not missed.',
-    topupAction: 'Top Up Account Now',
-    helpOffer:
-      'Need urgent assistance? Our team is ready to help you with your account top-up. Contact us immediately.',
-    thankYou: 'Thank you for your understanding and for choosing Notifycal!'
+    topupAction: 'Top Up Account Now'
   }
 };

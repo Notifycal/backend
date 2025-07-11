@@ -189,7 +189,16 @@ export const baseTemplate = /*html*/ `<!DOCTYPE html>
                 <img src="{{logoSrc}}" alt="{{appName}}" class="logo">
             </div>
             
-            {{>content}}
+            <div class="content">
+            
+                {{>content}}
+                
+                <p class="thanks">{{thankYou}}</p>
+
+                <div class="help-box">
+                    <p>{{helpOffer}}</p>
+                </div>
+            </div>
             
             <div class="footer">
                 &copy; 2025 {{appName}}. {{rightsReserved}}

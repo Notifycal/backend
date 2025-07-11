@@ -1,6 +1,6 @@
 import { logger } from '@common/powertools';
 import { logo } from '@email/assets/logo.png.base64';
-import { commonTranslations } from '@email/i18n/translations';
+import { commonTranslations } from '@email/templates/base/translations';
 import type { EventCreationOptions, EventSourceIdentity } from '@model/app-events/common';
 import type { EmailToBeSentEvent } from '@model/app-events/EmailToBeSentEvent';
 import type { EmailTemplateConfig } from '@model/Email';
