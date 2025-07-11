@@ -13,20 +13,22 @@ export interface EmailCommonDynamicVariables extends Record<string, string> {
 }
 
 export const commonTranslations: Record<LanguageCode, EmailCommonTranslations> = {
-  en: {
-    appName: 'Notifycal',
-    helpOfferText:
-      'Need assistance or found an issue? Visit our feedback form to get help or report any problems you encounter.',
-    helpOfferLinkText: 'Click here.',
-    thankYou: 'Thank you for choosing Notifycal!',
-    rightsReserved: 'All rights reserved'
-  },
   es: {
     appName: 'Notifycal',
+    greeting: 'Estimado/a usuario/a,',
     helpOfferText:
       '¿Necesita ayuda o encontró algún problema? Visite nuestro formulario de feedback para obtener asistencia o reportar cualquier inconveniente.',
     helpOfferLinkText: 'Haz click aquí.',
     thankYou: '¡Gracias por confiar en Notifycal!',
     rightsReserved: 'Todos los derechos reservados'
+  },
+  en: {
+    appName: 'Notifycal',
+    greeting: 'Dear user,',
+    helpOfferText:
+      'Need assistance or found an issue? Visit our feedback form to get help or report any problems you encounter.',
+    helpOfferLinkText: 'Click here.',
+    thankYou: 'Thank you for choosing Notifycal!',
+    rightsReserved: 'All rights reserved'
   }
 };

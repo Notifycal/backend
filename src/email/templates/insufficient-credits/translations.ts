@@ -4,8 +4,6 @@ import { insufficientCreditsPartialTemplate } from './insufficient-credits.html.
 
 interface EmailTextVariables extends Record<string, string> {
   subject: string;
-  header: string;
-  greeting: string;
   mainMessage: string;
   tipTitle: string;
   tipContent: string;
@@ -19,8 +17,6 @@ interface EmailDynamicVariables extends Record<string, string> {
 const specificTranslations: Record<LanguageCode, EmailTextVariables> = {
   es: {
     subject: 'Urgente: Créditos insuficientes - Recordatorio no enviado',
-    header: 'Créditos insuficientes: Recordatorio no enviado',
-    greeting: 'Estimado/a usuario/a,',
     mainMessage:
       'Lamentablemente, no pudimos enviar uno o más recordatorios programados debido a créditos insuficientes en su cuenta. Para reanudar el servicio de recordatorios, es necesario recargar su cuenta.',
     tipTitle: 'Acción Requerida',
@@ -30,8 +26,6 @@ const specificTranslations: Record<LanguageCode, EmailTextVariables> = {
   },
   en: {
     subject: 'Urgent: Insufficient Credits - Reminder Not Sent',
-    header: 'Insufficient Credits: Reminder Not Sent',
-    greeting: 'Dear user,',
     mainMessage:
       "Unfortunately, we couldn't send one or more scheduled reminders due to insufficient credits in your account. To resume reminder service, please top up your account.",
     tipTitle: 'Action Required',

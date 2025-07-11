@@ -1,7 +1,4 @@
 export const alertMissingPhoneNumberPartialTemplate = /*html*/ `
-<h1 class="title">{{header}}</h1>
-<p>{{greeting}}</p>
-
 <p>{{mainMessage}}</p>
 
 <div class="tip-box">

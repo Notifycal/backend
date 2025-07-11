@@ -190,7 +190,8 @@ export const baseTemplate = /*html*/ `<!DOCTYPE html>
             </div>
             
             <div class="content">
-            
+                <p>{{greeting}}</p>
+                
                 {{>content}}
                 
                 <p class="thanks">{{thankYou}}</p>

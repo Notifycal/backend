@@ -4,8 +4,6 @@ import { alertMissingPhoneNumberPartialTemplate } from './alert-missing-phone-nu
 
 interface EmailTextVariables extends Record<string, string> {
   subject: string;
-  header: string;
-  greeting: string;
   mainMessage: string;
   tipTitle: string;
   tipContent: string;
@@ -19,8 +17,6 @@ interface EmailDynamicVariables extends Record<string, string> {
 const specificTranslations: Record<LanguageCode, EmailTextVariables> = {
   es: {
     subject: 'Alerta: Recordatorio no enviado',
-    header: 'Importante: No pudimos enviar su recordatorio',
-    greeting: 'Estimado/a usuario/a,',
     mainMessage:
       'Hemos detectado que uno o más recordatorios programados no pudieron ser enviados porque faltaba la información de contacto en los eventos de calendario correspondientes.',
     tipTitle: 'Solución',
@@ -33,8 +29,6 @@ const specificTranslations: Record<LanguageCode, EmailTextVariables> = {
   },
   en: {
     subject: 'Alert: Reminder Not Delivered',
-    header: "Important: We couldn't send your reminder",
-    greeting: 'Dear user,',
     mainMessage:
       "We've detected that one or more scheduled reminders could not be delivered because contact information was missing from the corresponding calendar events.",
     tipTitle: 'Solution',
