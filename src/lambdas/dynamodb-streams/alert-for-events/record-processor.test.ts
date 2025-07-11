@@ -43,7 +43,7 @@ describe(recordProcessor, () => {
   const validConfig: AlertForEventsConfig = {
     alertEmailConfig: {
       faqUrl: new URL('https://example.com/faq'),
-      topupUrl: new URL('https://example.com/topup')
+      billingUrl: new URL('https://example.com/topup')
     },
     emailingSenderConfig: {
       sender: {
@@ -135,7 +135,7 @@ describe(recordProcessor, () => {
         specificTranslations: lowCreditsTranslations,
         templateVariables: {
           faqUrl: validConfig.alertEmailConfig.faqUrl.toString(),
-          topupUrl: validConfig.alertEmailConfig.topupUrl.toString()
+          topupUrl: validConfig.alertEmailConfig.billingUrl.toString()
         }
       },
       'LowCreditsDetected',
@@ -162,7 +162,7 @@ describe(recordProcessor, () => {
         partialTemplate: insufficientCreditsPartialTemplate,
         specificTranslations: insufficientCreditsTranslations,
         templateVariables: {
-          topupUrl: validConfig.alertEmailConfig.topupUrl.toString()
+          topupUrl: validConfig.alertEmailConfig.billingUrl.toString()
         }
       },
       'InsufficientCreditsReminderNotSent',

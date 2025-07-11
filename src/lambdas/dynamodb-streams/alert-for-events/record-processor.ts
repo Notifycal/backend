@@ -28,7 +28,7 @@ function getLowCreditsTemplateConfig(config: AlertForEventsConfig): EmailTemplat
     specificTranslations: lowCreditsTranslations,
     templateVariables: {
       faqUrl: config.alertEmailConfig.faqUrl.toString(),
-      topupUrl: config.alertEmailConfig.topupUrl.toString()
+      topupUrl: config.alertEmailConfig.billingUrl.toString()
     }
   };
 }
@@ -38,7 +38,7 @@ function getInsufficientCreditsTemplateConfig(config: AlertForEventsConfig): Ema
     partialTemplate: insufficientCreditsPartialTemplate,
     specificTranslations: insufficientCreditsTranslations,
     templateVariables: {
-      topupUrl: config.alertEmailConfig.topupUrl.toString()
+      topupUrl: config.alertEmailConfig.billingUrl.toString()
     }
   };
 }

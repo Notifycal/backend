@@ -56,7 +56,7 @@ function setEnv() {
     },
     alertEmailConfig: {
       faqUrl: new URL('https://some.faq.url'),
-      topupUrl: new URL('https://some.faq.pricing')
+      billingUrl: new URL('https://some.faq.pricing')
     }
   };
   setEnvAlertsBaseStoreConfig(config.alertsBaseStoreConfig);

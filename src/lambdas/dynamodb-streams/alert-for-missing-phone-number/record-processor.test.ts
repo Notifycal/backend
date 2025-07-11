@@ -53,7 +53,7 @@ describe('Alert for missing phone number record processor', () => {
       },
       alertEmailConfig: {
         faqUrl: new URL('https://test.notifycal.com/faq'),
-        topupUrl: new URL('https://test.notifycal.com/pricing')
+        billingUrl: new URL('https://test.notifycal.com/pricing')
       }
     };
   const validEmailAndLanguage = {
