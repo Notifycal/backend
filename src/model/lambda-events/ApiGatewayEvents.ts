@@ -14,7 +14,7 @@ export function apiEventSchema<TEndpointConfig>() {
   });
 }
 
-export function authedEventSchema<TEndpointConfig, TAccessToken = AccessToken>(): any {
+export function authedEventSchema<TEndpointConfig, TAccessToken = AccessToken>() {
   const schema = apiEventSchema<TEndpointConfig>();
   return schema.extend({
     requestContext: z.object({

@@ -120,7 +120,7 @@ export function protectedEndpointMiddlewareCustom<
       jwtVerificationMiddleware(accessTokenSchema, jwtDecoderAndSignatureVerifierFn, claimCheckerFn)
     )
     .use(
-      setupMiddleware<AuthedAPIEventWithConfig<unknown, TAccessTokenSchema>>({
+      setupMiddleware<AuthedAPIEventWithConfig<unknown, z.output<TAccessTokenSchema>>>({
         setupFn: (req) => {
           loggerSetup(req.requestContext.authorizer);
         }

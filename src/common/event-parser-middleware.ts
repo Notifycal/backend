@@ -26,7 +26,7 @@ function eventParser<
   const parserFn = parser({ schema }).before;
   if (parserFn) {
     try {
-      parserFn(request);
+      parserFn(request as Request<z.output<TSchema>, TResult, Error, Context>);
     } catch (error: unknown) {
       const baseMsg = `payload does not satisfy the schema`;
       const errorMsg = `Lambda ${baseMsg}`;

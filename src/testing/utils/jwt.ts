@@ -73,9 +73,19 @@ export function testJwt<
   TSchema extends typeof tokenSchemaSkeleton,
   TConfig extends SignOptions & { secretOrPrivateKey: string }
 >(
-  jwtSchema: TSchema = accessTokenSchema as unknown as TSchema,
-  payload: z.infer<typeof jwtSchema.shape.payload> = getDefaultAccessTokenPayload(),
-  config: TConfig = getDefaultEncodeAccessJwtConfig() as unknown as TConfig
+  jwtSchema: TSchema,
+  payload: z.infer<TSchema['shape']['payload']>,
+  config: TConfig
+): Promise<string>;
+export function testJwt(
+  jwtSchema?: typeof accessTokenSchema,
+  payload?: OurAccessTokenClaims,
+  config?: EncodeAccessJwtConfig
+): Promise<string>;
+export function testJwt(
+  jwtSchema = accessTokenSchema,
+  payload = getDefaultAccessTokenPayload(),
+  config = getDefaultEncodeAccessJwtConfig()
 ): Promise<string> {
   return buildJwt(payload, jwtSchema, userId, config).then((jwts) => jwts.encoded);
 }

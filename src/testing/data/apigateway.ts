@@ -1,6 +1,6 @@
 import type { APIGatewayProxyEvent } from '@aws-lambda-powertools/parser/types';
-import type { SignOptions } from '@model/Config';
-import { accessTokenSchema } from '@model/Jwt';
+import type { EncodeAccessJwtConfig, SignOptions } from '@model/Config';
+import { accessTokenSchema, type OurAccessTokenClaims } from '@model/Jwt';
 import type { Jwt } from '@notifycal/shared/types';
 import {
   getDefaultAccessTokenPayload,
@@ -131,14 +131,28 @@ export function testAuthedEvent<
   TConfig extends SignOptions & { secretOrPrivateKey: string }
 >(
   body: TEventBody,
+  headers: Record<string, string>,
+  jwtSchema: TSchema,
+  jwtPayload: z.infer<TSchema['shape']['payload']>,
+  encodeJwtConfig: TConfig
+): Promise<APIGatewayProxyEvent>;
+export function testAuthedEvent<TEventBody>(
+  body: TEventBody,
+  headers?: Record<string, string>,
+  jwtSchema?: typeof accessTokenSchema,
+  jwtPayload?: OurAccessTokenClaims,
+  encodeJwtConfig?: EncodeAccessJwtConfig
+): Promise<APIGatewayProxyEvent>;
+export function testAuthedEvent<TEventBody>(
+  body: TEventBody,
   headers: Record<string, string> = {},
-  jwtSchema: TSchema = accessTokenSchema as unknown as TSchema,
-  jwtPayload: z.infer<typeof jwtSchema.shape.payload> = getDefaultAccessTokenPayload(),
-  encodeJwtConfig: TConfig = getDefaultEncodeAccessJwtConfig() as unknown as TConfig
+  jwtSchema = accessTokenSchema,
+  jwtPayload = getDefaultAccessTokenPayload(),
+  encodeJwtConfig = getDefaultEncodeAccessJwtConfig()
 ): Promise<APIGatewayProxyEvent> {
-  return testJwt(jwtSchema, jwtPayload, encodeJwtConfig).then((jwt) =>
-    ttestEvent(JSON.stringify(body), { ...headers, Authorization: `Bearer ${jwt}` })
-  );
+  return testJwt(jwtSchema, jwtPayload, encodeJwtConfig).then((jwt: string) => {
+    return ttestEvent(JSON.stringify(body), { ...headers, Authorization: `Bearer ${jwt}` });
+  });
 }
 
 export function testVonageAuthedEvent<TEventBody>(

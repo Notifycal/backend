@@ -5,12 +5,12 @@ import type {
   EncodeAccessJwtConfig,
   EncodeRefreshJwtConfig
 } from '@model/Config';
-import { type AccessToken, accessTokenSchema } from '@model/Jwt';
-import type { Email, Identity, IdpId, IdpName, Jwt, Uuid } from '@notifycal/shared/types';
+import { type AccessToken, type OurAccessTokenClaims, accessTokenSchema } from '@model/Jwt';
+import type { Email, Identity, IdpId, IdpName, Jwt, UserId, Uuid } from '@notifycal/shared/types';
 import type { PrivateKey, PublicKey } from '@own-types/model';
 import { sleep } from '@testing/utils/utils';
 import { describe, expect, it } from 'vitest';
-import type { ZodSchema } from 'zod';
+import type z from 'zod';
 import {
   type EncodedAndDecodedJwt,
   type EncodedAndDecodedJwts,
@@ -51,11 +51,11 @@ const validEmail = 'test@notifycal.com' as Email;
 const validAccessTokenPayload = {
   userId: validSubject,
   email: validEmail,
-  idp: 'google.com',
+  idp: 'google.com' as const,
   idpId: '3625462456246' as IdpId,
-  role: 'user',
+  role: 'user' as const,
   permissions: {}
-};
+} as const;
 
 describe('Jwt builder', () => {
   it('should build a jwt', () => {
@@ -75,7 +75,7 @@ describe('Jwt builder', () => {
   });
 
   function testit(
-    payload: object,
+    payload: OurAccessTokenClaims,
     config: EncodeAccessJwtConfig
   ): Promise<EncodedAndDecodedJwt<AccessToken>> {
     return buildJwt(payload, accessTokenSchema, validSubject, config);
@@ -161,9 +161,13 @@ describe('Jwt decoder/verifier with signature', () => {
   });
 
   it('should fail to decode a jwt if payload does not satisfy the schema', () => {
-    const invalidPayload = { ...validAccessTokenPayload, userId: 'not an uuid', role: 'admin' };
+    const invalidPayload = {
+      ...validAccessTokenPayload,
+      userId: 'not an uuid' as UserId,
+      role: 'admin' as const
+    };
     const result = buildJwt(
-      invalidPayload,
+      invalidPayload as unknown as OurAccessTokenClaims,
       accessTokenSchema,
       validSubject,
       validEncodeConfig
@@ -237,9 +241,9 @@ describe('Jwt decoder without signature check', () => {
   });
 
   it('should fail to decode a jwt if payload does not satisfy the schema', () => {
-    const invalidPayload = { ...validAccessTokenPayload, email: 123456, role: 'admin' };
+    const invalidPayload = { ...validAccessTokenPayload, email: 123456, role: 'admin' as const };
     const result = buildJwt(
-      invalidPayload,
+      invalidPayload as unknown as OurAccessTokenClaims,
       accessTokenSchema,
       validSubject,
       validEncodeConfig
@@ -248,7 +252,7 @@ describe('Jwt decoder without signature check', () => {
     return expect(result).rejects.toThrow('JWT decoding failed');
   });
 
-  function testit(jwt: Jwt, schema: ZodSchema): Promise<AccessToken> {
+  function testit<TSchema extends z.ZodObject>(jwt: Jwt, schema: TSchema): Promise<z.output<TSchema>> {
     return decodeJwt(jwt, schema);
   }
 });

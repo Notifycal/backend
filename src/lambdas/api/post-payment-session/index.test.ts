@@ -24,6 +24,7 @@ import type { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from 'aws-l
 import { describe, expect, it, vi } from 'vitest';
 import type { PostPaymentCheckoutSessionConfig } from './config';
 import type { Event } from './schemas';
+import { validAccessTokenPayload, validIdentity } from '@testing/data/jwt';
 // @ts-expect-error cjs handler export
 import { handler } from './index';
 
@@ -43,17 +44,7 @@ describe('POST Payment checkout session', () => {
   const validUserId = 'cfaa8471-f4cc-44da-bc22-ddc4b735a847' as UserId;
   const validEmail = 'test@notifycal.com' as Email;
   const validStripeCustomerId = 'cus_test_123456789' as StripeCustomerId;
-  const validIdentity = {
-    userId: validUserId,
-    email: validEmail,
-    idp: 'google.com',
-    idpId: '246534735745767767'
-  };
-  const validAccessToken = {
-    ...validIdentity,
-    role: 'user',
-    permissions: {}
-  };
+  const validAccessToken = validAccessTokenPayload;
 
   const validTierRequestBody = {
     tier: 'good',

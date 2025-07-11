@@ -59,8 +59,7 @@ function jwtVerification<
         return;
       } else {
         return errorHandler(401, earlyResponseHeaders)(`Missing permissions to hit the API`, {
-          header: jwt.header,
-          payload: jwt.payload
+          jwt
         });
       }
     },
