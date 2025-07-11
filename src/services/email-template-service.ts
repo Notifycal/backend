@@ -62,7 +62,7 @@ export class EmailTemplateService {
     language: LanguageCode,
     templateConfig: EmailTemplateConfig,
     subEventType: EmailToBeSentEvent['data']['subEventType'],
-    metadata: Record<string, unknown>
+    metadata: Record<string, string | number | undefined>
   ): EmailToBeSentEvent['data'] {
     const compiledTemplateFn = this.compileTemplate(
       templateConfig.partialTemplate,
@@ -89,7 +89,7 @@ export class EmailTemplateService {
     language: LanguageCode,
     templateConfig: EmailTemplateConfig,
     subEventType: EmailToBeSentEvent['data']['subEventType'],
-    metadata: Record<string, unknown>,
+    metadata: Record<string, string | number | undefined>,
     identity: EventSourceIdentity,
     options: EventCreationOptions
   ): EmailToBeSentEvent {
