@@ -196,7 +196,7 @@ export const baseTemplate = /*html*/ `<!DOCTYPE html>
                 <p class="thanks">{{thankYou}}</p>
 
                 <div class="help-box">
-                    <p>{{helpOffer}}</p>
+                    <p>{{helpOfferText}} <a href="{{feedbackUrl}}" target="_blank" style="color: #666; text-decoration: underline;">{{helpOfferLinkText}}</a></p>
                 </div>
             </div>
             

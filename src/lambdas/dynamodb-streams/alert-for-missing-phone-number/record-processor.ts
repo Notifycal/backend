@@ -78,6 +78,7 @@ function createEmailEvent(
   const subEventType: EmailToBeSentEvent['data']['subEventType'] =
     'NoPhoneNumberForCalendarEventFound';
   const templateConfig: EmailTemplateConfig = alertMissingPhoneNumberTemplate.withDynamicVariables({
+    feedbackUrl: alertEmailConfig.feedbackUrl.toString(),
     notifycalFaqUrl: alertEmailConfig.faqUrl.toString()
   });
   const metadata = {

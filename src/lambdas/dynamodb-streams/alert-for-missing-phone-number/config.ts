@@ -20,6 +20,7 @@ export interface AlertThresholdConfig {
 export interface AlertEmailConfig {
   faqUrl: URL;
   billingUrl: URL;
+  feedbackUrl: URL;
 }
 
 export interface AlertEndpointConfig {

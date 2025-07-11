@@ -22,12 +22,14 @@ import type {
 
 function getLowCreditsTemplateConfig(config: AlertForEventsConfig): EmailTemplateConfig {
   return lowCreditsDetectedTemplate.withDynamicVariables({
+    feedbackUrl: config.alertEmailConfig.feedbackUrl.toString(),
     billingUrl: config.alertEmailConfig.billingUrl.toString()
   });
 }
 
 function getInsufficientCreditsTemplateConfig(config: AlertForEventsConfig): EmailTemplateConfig {
   return insufficientCreditsTemplate.withDynamicVariables({
+    feedbackUrl: config.alertEmailConfig.feedbackUrl.toString(),
     billingUrl: config.alertEmailConfig.billingUrl.toString()
   });
 }

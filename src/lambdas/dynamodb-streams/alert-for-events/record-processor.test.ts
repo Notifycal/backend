@@ -41,7 +41,8 @@ describe(recordProcessor, () => {
   const validConfig: AlertForEventsConfig = {
     alertEmailConfig: {
       faqUrl: new URL('https://example.com/faq'),
-      billingUrl: new URL('https://example.com/topup')
+      billingUrl: new URL('https://example.com/topup'),
+      feedbackUrl: new URL('https://example.com/feedback')
     },
     emailingSenderConfig: {
       sender: {
@@ -129,7 +130,8 @@ describe(recordProcessor, () => {
       validConfig.emailingSenderConfig.sender,
       validLanguage,
       lowCreditsDetectedTemplate.withDynamicVariables({
-        billingUrl: validConfig.alertEmailConfig.billingUrl.toString()
+        billingUrl: validConfig.alertEmailConfig.billingUrl.toString(),
+        feedbackUrl: validConfig.alertEmailConfig.feedbackUrl.toString()
       }),
       'LowCreditsDetected',
       { eventType: 'LowCreditsDetected' },
@@ -152,7 +154,8 @@ describe(recordProcessor, () => {
       validConfig.emailingSenderConfig.sender,
       validLanguage,
       insufficientCreditsTemplate.withDynamicVariables({
-        billingUrl: validConfig.alertEmailConfig.billingUrl.toString()
+        billingUrl: validConfig.alertEmailConfig.billingUrl.toString(),
+        feedbackUrl: validConfig.alertEmailConfig.feedbackUrl.toString()
       }),
       'InsufficientCreditsReminderNotSent',
       { eventType: 'InsufficientCreditsReminderNotSent' },

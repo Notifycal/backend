@@ -1,3 +1,4 @@
+import type { EmailCommonDynamicVariables } from '@email/templates/base/translations';
 import type { LanguageCode } from '@notifycal/shared/types';
 import type {
   ContentType,
@@ -37,7 +38,7 @@ export class EmailTemplate<
   ) {}
 
   public withDynamicVariables(
-    dynamicVariables: TEmailDynamicVariables
+    dynamicVariables: TEmailDynamicVariables & EmailCommonDynamicVariables
   ): EmailTemplateConfig<TEmailTextVariables, TEmailDynamicVariables> {
     return {
       partialTemplate: this.partialTemplate,

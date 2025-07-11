@@ -30,6 +30,11 @@ variable "base_domain" {
   default = "notifycal.com"
 }
 
+variable "frontend_domain" {
+  type    = string
+  default = "private.notifycal.com"
+}
+
 variable "domain_prefix" {
   type    = string
   default = "api"

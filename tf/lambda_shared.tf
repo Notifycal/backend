@@ -79,8 +79,9 @@ locals {
   }
 
   alert_email_config_env_vars = {
-    BILLING_URL = "https://${var.base_domain}/billing"
-    FAQ_URL     = "https://${var.base_domain}/faq"
+    BILLING_URL  = "https://${var.base_domain}/billing"
+    FAQ_URL      = "https://${var.base_domain}/faq"
+    FEEDBACK_URL = "${var.frontend_domain}/#/feedback"
   }
 
   type_mapping = {

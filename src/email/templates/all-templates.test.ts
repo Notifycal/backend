@@ -11,43 +11,44 @@ import { insufficientCreditsTemplate } from './insufficient-credits/translations
 import { lowCreditsDetectedTemplate } from './low-credits-detected/translations';
 
 const billingUrl = 'https://app.notifycal.com/billing';
+const feedbackUrl = 'https://app.notifycal.com/feedback';
+const logoOverride = {
+  logoSrc: `data:image/png;base64,${logo}` //Override logoSrc template variable slightly differenty to be able to render it.
+};
 
 const templates = [
   {
     name: 'low-credits-detected',
-    template: lowCreditsDetectedTemplate,
-    dynamicVariables: { billingUrl, logoSrc: `data:image/png;base64,${logo}` }
+    template: lowCreditsDetectedTemplate.withDynamicVariables({
+      billingUrl,
+      feedbackUrl,
+      ...logoOverride
+    })
   },
   {
     name: 'insufficient-credits',
-    template: insufficientCreditsTemplate,
-    dynamicVariables: { billingUrl, logoSrc: `data:image/png;base64,${logo}` }
+    template: insufficientCreditsTemplate.withDynamicVariables({
+      billingUrl,
+      feedbackUrl,
+      ...logoOverride
+    })
   },
   {
     name: 'alert-missing-phone-number',
-    template: alertMissingPhoneNumberTemplate,
-    dynamicVariables: {
+    template: alertMissingPhoneNumberTemplate.withDynamicVariables({
       notifycalFaqUrl: 'https://notifycal.com/faq',
-      logoSrc: `data:image/png;base64,${logo}`
-    }
+      feedbackUrl,
+      ...logoOverride
+    })
   }
 ];
 
 describe('all email templates', () => {
   // eslint-disable-next-line vitest/require-hook
-  templates.forEach(({ name, template, dynamicVariables }) => {
+  templates.forEach(({ name, template }) => {
     // eslint-disable-next-line vitest/expect-expect
     it(`should compile the ${name} template`, () => {
-      testEmailTemplate(
-        name,
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-        template.withDynamicVariables({
-          ...dynamicVariables,
-          logoSrc: `data:image/png;base64,${logo}`
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } as any), //Override logoSrc template variable slightly differenty to be able to render it.
-        __dirname + '/dist'
-      );
+      testEmailTemplate(name, template, __dirname + '/dist');
     });
   });
 });
