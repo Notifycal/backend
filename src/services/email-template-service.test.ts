@@ -42,7 +42,7 @@ const validDynamicVariables = {
 const validTemplateConfig: EmailTemplateConfig = {
   partialTemplate: validPartialTemplate,
   specificTranslations: validSpecificTranslations,
-  templateVariables: validDynamicVariables
+  dynamicVariables: validDynamicVariables
 };
 
 const validEmail = 'test@example.com' as Email;
@@ -179,7 +179,7 @@ describe(EmailTemplateService, () => {
     const templateConfig: EmailTemplateConfig = {
       partialTemplate: '{{appName}} - {{rightsReserved}}',
       specificTranslations: validSpecificTranslations,
-      templateVariables: {}
+      dynamicVariables: {}
     };
 
     const emailEvent = service.createEmailEvent(
@@ -202,7 +202,7 @@ describe(EmailTemplateService, () => {
     const templateConfig: EmailTemplateConfig = {
       partialTemplate: '{{appName}} - {{header}}',
       specificTranslations: validSpecificTranslations,
-      templateVariables: {}
+      dynamicVariables: {}
     };
 
     const emailEvent = service.createEmailEvent(
@@ -225,7 +225,7 @@ describe(EmailTemplateService, () => {
     const templateConfig: EmailTemplateConfig = {
       partialTemplate: '{{dynamicVar}}',
       specificTranslations: validSpecificTranslations,
-      templateVariables: validDynamicVariables
+      dynamicVariables: validDynamicVariables
     };
 
     const emailEvent = service.createEmailEvent(
@@ -247,7 +247,7 @@ describe(EmailTemplateService, () => {
     const templateConfig: EmailTemplateConfig = {
       partialTemplate: '{{header}}',
       specificTranslations: validSpecificTranslations,
-      templateVariables: {}
+      dynamicVariables: {}
     };
 
     const englishEvent = service.createEmailEvent(
@@ -283,7 +283,7 @@ describe(EmailTemplateService, () => {
     const templateConfig: EmailTemplateConfig = {
       partialTemplate: '{{logoSrc}}',
       specificTranslations: validSpecificTranslations,
-      templateVariables: {}
+      dynamicVariables: {}
     };
 
     const emailEvent = service.createEmailEvent(
@@ -305,7 +305,7 @@ describe(EmailTemplateService, () => {
     const templateConfig: EmailTemplateConfig = {
       partialTemplate: '{{logoSrc}}',
       specificTranslations: validSpecificTranslations,
-      templateVariables: { logoSrc: 'custom-logo-src' }
+      dynamicVariables: { logoSrc: 'custom-logo-src' }
     };
 
     const emailEvent = service.createEmailEvent(
@@ -327,7 +327,7 @@ describe(EmailTemplateService, () => {
     const templateConfig: EmailTemplateConfig = {
       partialTemplate: '{{header}}',
       specificTranslations: validSpecificTranslations,
-      templateVariables: {}
+      dynamicVariables: {}
     };
 
     const emailEvent = service.createEmailEvent(

@@ -67,7 +67,7 @@ export class EmailTemplateService {
     const compiledTemplateFn = this.compileTemplate(
       templateConfig.partialTemplate,
       templateConfig.specificTranslations,
-      templateConfig.templateVariables
+      templateConfig.dynamicVariables
     );
     const emailTemplate = compiledTemplateFn(language);
 

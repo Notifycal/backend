@@ -6,48 +6,46 @@ import { EmailTemplateService } from '@services/email-template-service';
 import { mkdirSync, writeFileSync } from 'fs';
 import path from 'path';
 import { describe, expect, it } from 'vitest';
-import { alertMissingPhoneNumberPartialTemplate } from './alert-missing-phone-number/alert-missing-phone-number.html.hbs';
-import { specificTranslations as alertMissingPhoneNumberTranslations } from './alert-missing-phone-number/translations';
-import { insufficientCreditsPartialTemplate } from './insufficient-credits/insufficient-credits.html.hbs';
-import { specificTranslations as insufficientCreditsTranslations } from './insufficient-credits/translations';
-import { lowCreditsDetectedPartialTemplate } from './low-credits-detected/low-credits-detected.html.hbs';
-import { specificTranslations as lowCreditsDetectedTranslations } from './low-credits-detected/translations';
+import { alertMissingPhoneNumberTemplate } from './alert-missing-phone-number/translations';
+import { insufficientCreditsTemplate } from './insufficient-credits/translations';
+import { lowCreditsDetectedTemplate } from './low-credits-detected/translations';
 
-const topupUrl = 'https://app.notifycal.com/billing';
+const billingUrl = 'https://app.notifycal.com/billing';
 
 const templates = [
   {
     name: 'low-credits-detected',
-    partialTemplate: lowCreditsDetectedPartialTemplate,
-    specificTranslations: lowCreditsDetectedTranslations,
-    templateVariables: { topupUrl }
+    template: lowCreditsDetectedTemplate,
+    dynamicVariables: { billingUrl, logoSrc: `data:image/png;base64,${logo}` }
   },
   {
     name: 'insufficient-credits',
-    partialTemplate: insufficientCreditsPartialTemplate,
-    specificTranslations: insufficientCreditsTranslations,
-    templateVariables: { topupUrl }
+    template: insufficientCreditsTemplate,
+    dynamicVariables: { billingUrl, logoSrc: `data:image/png;base64,${logo}` }
   },
   {
     name: 'alert-missing-phone-number',
-    partialTemplate: alertMissingPhoneNumberPartialTemplate,
-    specificTranslations: alertMissingPhoneNumberTranslations,
-    templateVariables: { notifycalFaqUrl: 'https://notifycal.com/faq' }
+    template: alertMissingPhoneNumberTemplate,
+    dynamicVariables: {
+      notifycalFaqUrl: 'https://notifycal.com/faq',
+      logoSrc: `data:image/png;base64,${logo}`
+    }
   }
 ];
 
 describe('all email templates', () => {
   // eslint-disable-next-line vitest/require-hook
-  templates.forEach(({ name, partialTemplate, specificTranslations, templateVariables }) => {
+  templates.forEach(({ name, template, dynamicVariables }) => {
     // eslint-disable-next-line vitest/expect-expect
     it(`should compile the ${name} template`, () => {
       testEmailTemplate(
         name,
-        {
-          partialTemplate,
-          specificTranslations,
-          templateVariables: { ...templateVariables, logoSrc: `data:image/png;base64,${logo}` } //Override logoSrc template variable slightly differenty to be able to render it.
-        },
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+        template.withDynamicVariables({
+          ...dynamicVariables,
+          logoSrc: `data:image/png;base64,${logo}`
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any), //Override logoSrc template variable slightly differenty to be able to render it.
         __dirname + '/dist'
       );
     });

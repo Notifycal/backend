@@ -1,6 +1,8 @@
+import { EmailTemplate } from '@model/Email';
 import type { LanguageCode } from '@notifycal/shared/types';
+import { lowCreditsDetectedPartialTemplate } from './low-credits-detected.html.hbs';
 
-export interface EmailTextVariables extends Record<string, string> {
+interface EmailTextVariables extends Record<string, string> {
   subject: string;
   header: string;
   greeting: string;
@@ -10,12 +12,11 @@ export interface EmailTextVariables extends Record<string, string> {
   billingAction: string;
 }
 
-export interface EmailDynamicVariables {
-  logoSrc: string;
+interface EmailDynamicVariables extends Record<string, string> {
   billingUrl: string;
 }
 
-export const specificTranslations: Record<LanguageCode, EmailTextVariables> = {
+const specificTranslations: Record<LanguageCode, EmailTextVariables> = {
   es: {
     subject: 'Alerta: Créditos bajos detectados',
     header: 'Importante: Sus créditos cerca de acabarse',
@@ -39,3 +40,8 @@ export const specificTranslations: Record<LanguageCode, EmailTextVariables> = {
     billingAction: 'Top Up Account'
   }
 };
+
+export const lowCreditsDetectedTemplate = new EmailTemplate<
+  EmailTextVariables,
+  EmailDynamicVariables
+>(lowCreditsDetectedPartialTemplate, specificTranslations);

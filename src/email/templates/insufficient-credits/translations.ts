@@ -1,6 +1,8 @@
+import { EmailTemplate } from '@model/Email';
 import type { LanguageCode } from '@notifycal/shared/types';
+import { insufficientCreditsPartialTemplate } from './insufficient-credits.html.hbs';
 
-export interface EmailTextVariables extends Record<string, string> {
+interface EmailTextVariables extends Record<string, string> {
   subject: string;
   header: string;
   greeting: string;
@@ -10,12 +12,11 @@ export interface EmailTextVariables extends Record<string, string> {
   topupAction: string;
 }
 
-export interface EmailDynamicVariables {
-  logoSrc: string;
-  topupUrl: string;
+interface EmailDynamicVariables extends Record<string, string> {
+  billingUrl: string;
 }
 
-export const specificTranslations: Record<LanguageCode, EmailTextVariables> = {
+const specificTranslations: Record<LanguageCode, EmailTextVariables> = {
   es: {
     subject: 'Urgente: Créditos insuficientes - Recordatorio no enviado',
     header: 'Créditos insuficientes: Recordatorio no enviado',
@@ -39,3 +40,8 @@ export const specificTranslations: Record<LanguageCode, EmailTextVariables> = {
     topupAction: 'Top Up Account Now'
   }
 };
+
+export const insufficientCreditsTemplate = new EmailTemplate<
+  EmailTextVariables,
+  EmailDynamicVariables
+>(insufficientCreditsPartialTemplate, specificTranslations);

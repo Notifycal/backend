@@ -1,18 +1,22 @@
+import { EmailTemplate } from '@model/Email';
 import type { LanguageCode } from '@notifycal/shared/types';
+import { alertMissingPhoneNumberPartialTemplate } from './alert-missing-phone-number.html.hbs';
 
-export interface EmailTextVariables extends Record<string, string> {
+interface EmailTextVariables extends Record<string, string> {
   subject: string;
   header: string;
   greeting: string;
+  mainMessage: string;
+  tipTitle: string;
+  tipContent: string;
   visitNotifycalFaq: string;
 }
 
-export interface EmailDynamicVariables {
-  logoSrc: string;
+interface EmailDynamicVariables extends Record<string, string> {
   notifycalFaqUrl: string;
 }
 
-export const specificTranslations: Record<LanguageCode, EmailTextVariables> = {
+const specificTranslations: Record<LanguageCode, EmailTextVariables> = {
   es: {
     subject: 'Alerta: Recordatorio no enviado',
     header: 'Importante: No pudimos enviar su recordatorio',
@@ -42,3 +46,8 @@ export const specificTranslations: Record<LanguageCode, EmailTextVariables> = {
     thankYou: 'Thank you for choosing Notifycal!'
   }
 };
+
+export const alertMissingPhoneNumberTemplate = new EmailTemplate<
+  EmailTextVariables,
+  EmailDynamicVariables
+>(alertMissingPhoneNumberPartialTemplate, specificTranslations);

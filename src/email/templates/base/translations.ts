@@ -1,13 +1,13 @@
 import type { LanguageCode } from '@notifycal/shared/types';
 
-export interface NotifycalTranslations extends Record<string, string> {
+export interface EmailCommonTranslations extends Record<string, string> {
   appName: string;
   helpOffer: string;
   thankYou: string;
   rightsReserved: string;
 }
 
-export const commonTranslations: Record<LanguageCode, NotifycalTranslations> = {
+export const commonTranslations: Record<LanguageCode, EmailCommonTranslations> = {
   en: {
     appName: 'Notifycal',
     helpOffer:
