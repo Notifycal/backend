@@ -1,12 +1,12 @@
 import { logger } from '@common/powertools';
-import type { Identity, IdpName } from '@notifycal/shared/types';
+import type { IdpName, UserIdentity } from '@notifycal/shared/types';
 import type { SubscriptionService } from '@services/subscription';
 import type Stripe from 'stripe';
 import { describe, expect, it, vi } from 'vitest';
 import type { StripeEventType } from '../stripe-schemas';
 import { SubscriptionDeletedHandler, SubscriptionUpdatedHandler } from './subscription';
 
-const validIdentity = { userId: 'user-123' } as Identity<IdpName>;
+const validIdentity = { userId: 'user-123' } as UserIdentity<IdpName>;
 const baseSubscription = {
   id: 'sub_123',
   customer: 'cus_456',

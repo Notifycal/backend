@@ -1,6 +1,6 @@
 import { logger } from '@common/powertools';
 import * as SubscriptionEvents from '@model/app-events/subscription-events';
-import type { Identity, IdpName, Percentage, TierId } from '@notifycal/shared/types';
+import type { IdpName, Percentage, TierId, UserIdentity } from '@notifycal/shared/types';
 import type { CreditsService } from './credits-service';
 import type { SnsService } from './sns';
 
@@ -28,34 +28,42 @@ export class SubscriptionService<TIdpName extends IdpName> {
     private readonly snsService: SnsService
   ) {}
 
-  public create(identity: Identity<TIdpName>, tier: TierId): Promise<CreditAdditionResult> {
+  public create(userIdentity: UserIdentity<TIdpName>, tier: TierId): Promise<CreditAdditionResult> {
     const credits = this.tierToCreditsMap[tier];
-    const operation = this.creditsService.resetSubscriptionCredits(identity.userId, credits, tier);
+    const operation = this.creditsService.resetSubscriptionCredits(
+      userIdentity.userId,
+      credits,
+      tier
+    );
 
     return handleServiceOperation(
       operation,
-      (result) => SubscriptionEvents.subscriptionCreatedEvent(identity, tier, result),
+      (result) => SubscriptionEvents.subscriptionCreatedEvent(userIdentity, tier, result),
       (result, error) =>
-        SubscriptionEvents.subscriptionCreationFailedEvent(identity, tier, result, error),
+        SubscriptionEvents.subscriptionCreationFailedEvent(userIdentity, tier, result, error),
       this.snsService
     );
   }
 
-  public renew(identity: Identity<TIdpName>, tier: TierId): Promise<CreditAdditionResult> {
+  public renew(userIdentity: UserIdentity<TIdpName>, tier: TierId): Promise<CreditAdditionResult> {
     const credits = this.tierToCreditsMap[tier];
-    const operation = this.creditsService.resetSubscriptionCredits(identity.userId, credits, tier);
+    const operation = this.creditsService.resetSubscriptionCredits(
+      userIdentity.userId,
+      credits,
+      tier
+    );
 
     return handleServiceOperation(
       operation,
-      (result) => SubscriptionEvents.subscriptionRenewedEvent(identity, tier, result),
+      (result) => SubscriptionEvents.subscriptionRenewedEvent(userIdentity, tier, result),
       (result, error) =>
-        SubscriptionEvents.subscriptionRenewalFailedEvent(identity, tier, result, error),
+        SubscriptionEvents.subscriptionRenewalFailedEvent(userIdentity, tier, result, error),
       this.snsService
     );
   }
 
   public upgrade(
-    identity: Identity<TIdpName>,
+    userIdentity: UserIdentity<TIdpName>,
     previousTier: TierId,
     currentTier: TierId,
     remainingPercentage: Percentage
@@ -81,7 +89,7 @@ export class SubscriptionService<TIdpName extends IdpName> {
       return this.snsService
         .safePublish(
           SubscriptionEvents.subscriptionUpgradeFailedEvent(
-            identity,
+            userIdentity,
             previousTier,
             currentTier,
             remainingPercentage,
@@ -102,7 +110,7 @@ export class SubscriptionService<TIdpName extends IdpName> {
       return this.snsService
         .safePublish(
           SubscriptionEvents.subscriptionUpgradeFailedEvent(
-            identity,
+            userIdentity,
             previousTier,
             currentTier,
             remainingPercentage,
@@ -114,7 +122,7 @@ export class SubscriptionService<TIdpName extends IdpName> {
         .then(() => result);
     }
 
-    const operation = this.creditsService.addCredits(identity.userId, creditsToAdd, {
+    const operation = this.creditsService.addCredits(userIdentity.userId, creditsToAdd, {
       type: 'subscription',
       id: currentTier
     });
@@ -123,7 +131,7 @@ export class SubscriptionService<TIdpName extends IdpName> {
       operation,
       (result) =>
         SubscriptionEvents.subscriptionUpgradedEvent(
-          identity,
+          userIdentity,
           previousTier,
           currentTier,
           remainingPercentage,
@@ -132,7 +140,7 @@ export class SubscriptionService<TIdpName extends IdpName> {
         ),
       (result, error) =>
         SubscriptionEvents.subscriptionUpgradeFailedEvent(
-          identity,
+          userIdentity,
           previousTier,
           currentTier,
           remainingPercentage,
@@ -144,27 +152,27 @@ export class SubscriptionService<TIdpName extends IdpName> {
     );
   }
 
-  public scheduleDowngrade(identity: Identity<TIdpName>): Promise<void> {
+  public scheduleDowngrade(userIdentity: UserIdentity<TIdpName>): Promise<void> {
     logger.info('Downgrade scheduled. Nothing to do. Credits will be reset on next cycle', {
-      userId: identity.userId
+      userId: userIdentity.userId
     });
 
     return this.snsService.safePublish(
-      SubscriptionEvents.subscriptionDowngradeScheduledEvent(identity)
+      SubscriptionEvents.subscriptionDowngradeScheduledEvent(userIdentity)
     );
   }
 
   public cancel(
-    identity: Identity<TIdpName>,
+    userIdentity: UserIdentity<TIdpName>,
     reason: 'unpaid' | 'cancelled'
   ): Promise<CreditDeductionResult> {
-    const operation = this.creditsService.clearSubscriptionCredits(identity.userId, reason);
+    const operation = this.creditsService.clearSubscriptionCredits(userIdentity.userId, reason);
 
     return handleServiceOperation(
       operation,
-      (result) => SubscriptionEvents.subscriptionCancelledEvent(identity, reason, result),
+      (result) => SubscriptionEvents.subscriptionCancelledEvent(userIdentity, reason, result),
       (result, error) =>
-        SubscriptionEvents.subscriptionCancellationFailedEvent(identity, reason, result, error),
+        SubscriptionEvents.subscriptionCancellationFailedEvent(userIdentity, reason, result, error),
       this.snsService
     );
   }

@@ -4,7 +4,7 @@ import { logger } from '@common/powertools';
 import type { IdpConfigs } from '@model/Config';
 import type { AuthorizationForIdp } from '@model/IdpAuthorization';
 import { apiEventSchema } from '@model/lambda-events/ApiGatewayEvents';
-import type { Identity, IdpName } from '@notifycal/shared/types';
+import type { IdpName, UserIdentity } from '@notifycal/shared/types';
 import type { Url } from '@own-types/model';
 import { _successHandler, signInOrUp } from '@services/auth';
 import { errorHandler } from '@services/common/api-response-handlers';
@@ -30,7 +30,7 @@ function verifyIdentity(
   event: Event,
   idpQueryParameter: string | undefined,
   config: IdpConfigs
-): Promise<[Identity<IdpName>, AuthorizationForIdp<IdpName>]> {
+): Promise<[UserIdentity<IdpName>, AuthorizationForIdp<IdpName>]> {
   const origin = event.headers?.origin || event.headers?.Origin || event.headers?.ORIGIN;
   if (isValidIdpName(idpQueryParameter) && idpQueryParameter === 'google.com' && origin) {
     return GoogleOAuth.withConfig(config['google.com'], origin as Url, logger).verifyIdentity(
@@ -51,13 +51,13 @@ function lambdaHandler(
   const idpQueryPath = event.queryStringParameters?.['idp'];
 
   return verifyIdentity(event, idpQueryPath, config.idpConfigs)
-    .then(([identity, idpAuthorization]) => {
+    .then(([userIdentity, idpAuthorization]) => {
       logger.appendKeys({
-        userId: identity.userId,
-        idp: identity.idp,
-        idpId: identity.idpId
+        userId: userIdentity.userId,
+        idp: userIdentity.idp,
+        idpId: userIdentity.idpId
       });
-      return signInOrUp(identity, idpAuthorization, config, logger)
+      return signInOrUp(userIdentity, idpAuthorization, config, logger)
         .then(_successHandler)
         .catch(errorHandler(500));
     })

@@ -1,5 +1,5 @@
 import type { Logger } from '@aws-lambda-powertools/logger';
-import type { Identity, IdpName } from '@notifycal/shared/types';
+import type { IdpName, UserIdentity } from '@notifycal/shared/types';
 import type Stripe from 'stripe';
 import type { StripeEventType } from '../stripe-schemas';
 import { BaseHandler } from './base-handler';
@@ -16,12 +16,15 @@ export class CustomerCreatedHandler
     super(stripeEventType);
   }
 
-  public handle(event: Stripe.CustomerCreatedEvent, identity: Identity<IdpName>): Promise<void> {
+  public handle(
+    event: Stripe.CustomerCreatedEvent,
+    userIdentity: UserIdentity<IdpName>
+  ): Promise<void> {
     const customer = event.data.object;
     this.logger.info('Handling customer created', {
       customerId: customer.id,
       email: customer.email,
-      userId: identity.userId
+      userId: userIdentity.userId
     });
     return Promise.resolve();
   }
@@ -38,13 +41,16 @@ export class CustomerUpdatedHandler
     super(stripeEventType);
   }
 
-  public handle(event: Stripe.CustomerUpdatedEvent, identity: Identity<IdpName>): Promise<void> {
+  public handle(
+    event: Stripe.CustomerUpdatedEvent,
+    userIdentity: UserIdentity<IdpName>
+  ): Promise<void> {
     const customer = event.data.object;
     const previousAttributes = event.data.previous_attributes;
     this.logger.info('Handling customer updated', {
       customerId: customer.id,
       updatedFields: Object.keys(previousAttributes || {}),
-      userId: identity.userId
+      userId: userIdentity.userId
     });
     return Promise.resolve();
   }
@@ -61,11 +67,14 @@ export class CustomerDeletedHandler
     super(stripeEventType);
   }
 
-  public handle(event: Stripe.CustomerDeletedEvent, identity: Identity<IdpName>): Promise<void> {
+  public handle(
+    event: Stripe.CustomerDeletedEvent,
+    userIdentity: UserIdentity<IdpName>
+  ): Promise<void> {
     const customer = event.data.object;
     this.logger.info('Handling customer deleted', {
       customerId: customer.id,
-      userId: identity.userId
+      userId: userIdentity.userId
     });
     return Promise.resolve();
   }

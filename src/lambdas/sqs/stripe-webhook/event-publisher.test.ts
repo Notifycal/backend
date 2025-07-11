@@ -3,7 +3,7 @@ import {
   fromStripeEvent,
   type PaymentWebhookFiredEvent
 } from '@model/app-events/StripeWebhookEventFiredEvent';
-import type { Email, Identity, IdpId, IdpName, UserId } from '@notifycal/shared/types';
+import type { Email, IdpId, IdpName, UserId, UserIdentity } from '@notifycal/shared/types';
 import type { SnsService } from '@services/sns';
 import type Stripe from 'stripe';
 import { describe, expect, it, vi } from 'vitest';
@@ -12,7 +12,7 @@ import { StripeEventPublisher } from './event-publisher';
 vi.mock('@model/app-events/StripeWebhookEventFiredEvent');
 
 describe(StripeEventPublisher, () => {
-  const validIdentity: Identity<IdpName> = {
+  const validIdentity: UserIdentity<IdpName> = {
     userId: 'user-123' as UserId,
     idp: 'google' as IdpName,
     idpId: 'google-id-123' as IdpId,

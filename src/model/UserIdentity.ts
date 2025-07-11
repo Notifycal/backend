@@ -1,10 +1,10 @@
-import type { CapitalizeKeys, Identity, IdpName } from '@notifycal/shared/types';
+import type { CapitalizeKeys, IdpName, UserIdentity } from '@notifycal/shared/types';
 
-export type UserIdentity<TIdpName> = CapitalizeKeys<Identity<TIdpName>>;
+export type UserIdentityStoreRecord<TIdpName> = CapitalizeKeys<UserIdentity<TIdpName>>;
 
-export function extractIdentity<TIdpName extends IdpName>(
-  user: UserIdentity<TIdpName>
-): Identity<TIdpName> {
+export function extractUserIdentity<TIdpName extends IdpName>(
+  user: UserIdentityStoreRecord<TIdpName>
+): UserIdentity<TIdpName> {
   return {
     userId: user.UserId,
     email: user.Email,

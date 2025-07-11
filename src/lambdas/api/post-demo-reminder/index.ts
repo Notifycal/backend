@@ -10,9 +10,9 @@ import type {
   CorrelationId,
   DateTime,
   EventId,
-  Identity,
   IdpName,
-  TemplateId
+  TemplateId,
+  UserIdentity
 } from '@notifycal/shared/types';
 import { errorHandler, successHandler } from '@services/common/api-response-handlers';
 import { SnsService } from '@services/sns';
@@ -48,7 +48,7 @@ function buildEvent(
   requestBody: Event['body'],
   userReminderConfig: LiveUserStoreRecord<unknown>['Config'],
   templateId: TemplateId,
-  identity: Identity<IdpName>
+  userIdentity: UserIdentity<IdpName>
 ): DemoReminderToBeSentEvent {
   const eventId = v4();
   const message = interpolate(
@@ -63,9 +63,9 @@ function buildEvent(
     correlationId: eventId as CorrelationId,
     eventType: 'DemoReminderToBeSent',
     happenedAt: new Date().toISOString() as DateTime,
-    userId: identity.userId,
-    idp: identity.idp,
-    idpId: identity.idpId,
+    userId: userIdentity.userId,
+    idp: userIdentity.idp,
+    idpId: userIdentity.idpId,
     data: {
       senderDetails: senderToCanonicalForm(
         fromStoreRecord(userReminderConfig.Business.SenderContact)

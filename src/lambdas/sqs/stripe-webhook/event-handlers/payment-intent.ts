@@ -1,5 +1,5 @@
 import type { Logger } from '@aws-lambda-powertools/logger';
-import type { Identity, IdpName } from '@notifycal/shared/types';
+import type { IdpName, UserIdentity } from '@notifycal/shared/types';
 import type { Stripe } from 'stripe';
 import type { StripeEventType } from '../stripe-schemas';
 import { BaseHandler } from './base-handler';
@@ -18,14 +18,14 @@ export class PaymentIntentSucceededHandler
 
   public handle(
     event: Stripe.PaymentIntentSucceededEvent,
-    identity: Identity<IdpName>
+    userIdentity: UserIdentity<IdpName>
   ): Promise<void> {
     const paymentIntent = event.data.object;
     this.logger.info('Handling payment intent succeeded', {
       paymentIntentId: paymentIntent.id,
       customerId: paymentIntent.customer,
       amount: paymentIntent.amount,
-      userId: identity.userId
+      userId: userIdentity.userId
     });
     return Promise.resolve();
   }
@@ -44,14 +44,14 @@ export class PaymentIntentFailedHandler
 
   public handle(
     event: Stripe.PaymentIntentPaymentFailedEvent,
-    identity: Identity<IdpName>
+    userIdentity: UserIdentity<IdpName>
   ): Promise<void> {
     const paymentIntent = event.data.object;
     this.logger.info('Handling payment intent failed', {
       paymentIntentId: paymentIntent.id,
       customerId: paymentIntent.customer,
       amount: paymentIntent.amount,
-      userId: identity.userId
+      userId: userIdentity.userId
     });
     return Promise.resolve();
   }

@@ -1,7 +1,7 @@
 /* eslint-disable camelcase */
 import { logger } from '@common/powertools';
 import type { AuthorizationForIdp } from '@model/IdpAuthorization';
-import type { Identity, Uuid } from '@notifycal/shared/types';
+import type { UserIdentity, Uuid } from '@notifycal/shared/types';
 import type { Url } from '@own-types/model';
 import {
   type Credentials,
@@ -49,7 +49,7 @@ const validVerifyIdTokenResponse: LoginTicketWithoutUnusedValues = {
 };
 
 describe('GoogleOAuth Service verifyIdentity', () => {
-  it('should return a valid Identity when Google credentials are valid', async () => {
+  it('should return a valid UserIdentity when Google credentials are valid', async () => {
     const getTokenFn = () => Promise.resolve(validGetTokenResponse);
     const verifyIdTokenFn = () => Promise.resolve(validVerifyIdTokenResponse);
 
@@ -174,7 +174,7 @@ function testIt(
   verifyIdTokenFn: () => Promise<Omit<LoginTicket, 'getEnvelope' | 'getAttributes'>>,
   mockIdGenerated: Uuid = validUserId,
   originHeaderValue: Url = 'http://localhost/callback' as Url
-): Promise<[Identity<'google.com'>, AuthorizationForIdp<'google.com'>]> {
+): Promise<[UserIdentity<'google.com'>, AuthorizationForIdp<'google.com'>]> {
   vi.mock('google-auth-library');
   vi.mocked(OAuth2Client).mockReturnValue({
     verifyIdToken: vi.fn().mockImplementation(verifyIdTokenFn),

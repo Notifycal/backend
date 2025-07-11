@@ -4,12 +4,12 @@ import { tap } from '@utils/promises';
 import type { Stripe } from 'stripe';
 import type { EventHandler } from './event-handlers/common';
 import type { EventPublisher } from './event-publisher';
-import type { IdentityExtractor } from './identity-extractor';
 import type { StripeEventType } from './stripe-schemas';
+import type { UserIdentityExtractor } from './user-identity-extractor';
 
 export class StripeEventProcessor {
   public constructor(
-    private readonly identityExtractor: IdentityExtractor<Stripe.Event>,
+    private readonly identityExtractor: UserIdentityExtractor<Stripe.Event>,
     private readonly eventHandlers: Map<
       StripeEventType,
       (type: StripeEventType) => EventHandler<Stripe.Event>
@@ -34,22 +34,22 @@ export class StripeEventProcessor {
     return this.identityExtractor
       .extract(event)
       .then(
-        tap((identity) => {
+        tap((userIdentity) => {
           this.logger.appendKeys({
-            ...identity
+            ...userIdentity
           });
         })
       )
-      .then((identity) =>
+      .then((userIdentity) =>
         handlerFn(event.type as StripeEventType)
-          .handle(event, identity)
+          .handle(event, userIdentity)
           .then(
             tap(() => {
               this.logger.info('Successfully processed event');
             })
           )
           .then(() =>
-            this.eventPublisher.publish(event, identity).catch((error) => {
+            this.eventPublisher.publish(event, userIdentity).catch((error) => {
               this.logger.error(
                 `There was an error publishing an Stripe event after having processed it`,
                 { cause: error, event }

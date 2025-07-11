@@ -87,7 +87,7 @@ function createEmailEvent(
     errorRate,
     notificationsSentCountBeforeUpdate: updateCounterResult.NotificationSentCount
   };
-  const identity: EventSourceIdentity = extractIdentity(event);
+  const userIdentity: EventSourceIdentity = extractIdentity(event);
   const options: EventCreationOptions = {
     correlationId: event.CorrelationId
   };
@@ -99,7 +99,7 @@ function createEmailEvent(
     templateConfig,
     subEventType,
     metadata,
-    identity,
+    userIdentity,
     options
   );
 }

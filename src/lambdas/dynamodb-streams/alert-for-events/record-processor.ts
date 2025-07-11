@@ -44,7 +44,7 @@ function processAlertEvent(
   logger: Logger
 ): Promise<void> {
   logger.info(`Processing alert event`, { eventType: event.EventType });
-  const identity: EventSourceIdentity = extractIdentity(event);
+  const userIdentity: EventSourceIdentity = extractIdentity(event);
   const options: EventCreationOptions = {
     correlationId: event.CorrelationId
   };
@@ -55,7 +55,7 @@ function processAlertEvent(
     templateConfig,
     event.EventType,
     { eventType: event.EventType },
-    identity,
+    userIdentity,
     options
   );
   return snsService.publish(alertEvent).then();

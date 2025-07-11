@@ -1,4 +1,4 @@
-import { type UserIdentity, extractIdentity } from '@model/UserIdentity';
+import { type UserIdentityStoreRecord, extractUserIdentity } from '@model/UserIdentity';
 import type {
   IdpName,
   StripeCustomerId,
@@ -33,7 +33,7 @@ export type CreditBalanceType = keyof Pick<
 >;
 export type UserStoreRecordCredits = Required<Pick<UserStoreRecord<unknown>, 'Credits'>>;
 
-export interface UserStoreRecord<TIdpName> extends UserIdentity<TIdpName> {
+export interface UserStoreRecord<TIdpName> extends UserIdentityStoreRecord<TIdpName> {
   LastSignInAt: UnixTimestamp;
   SignedUpAt: UnixTimestamp;
   UserStatus: UserStatus;
@@ -47,7 +47,7 @@ export function extractUser<TIdpName extends IdpName>(
   userRecord: UserStoreRecord<TIdpName>
 ): User<TIdpName> {
   return {
-    ...extractIdentity(userRecord),
+    ...extractUserIdentity(userRecord),
     lastSignInAt: userRecord.LastSignInAt,
     signedUpAt: userRecord.SignedUpAt,
     userStatus: userRecord.UserStatus,

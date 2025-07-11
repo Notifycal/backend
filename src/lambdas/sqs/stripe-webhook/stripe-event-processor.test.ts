@@ -1,18 +1,18 @@
 /* eslint-disable vitest/max-expects */
 /* eslint-disable camelcase */
 import type { Logger } from '@aws-lambda-powertools/logger';
-import type { Email, Identity, IdpId, IdpName, UserId } from '@notifycal/shared/types';
+import type { Email, IdpId, IdpName, UserId, UserIdentity } from '@notifycal/shared/types';
 import type { Stripe } from 'stripe';
 import { v4 } from 'uuid';
 import { describe, expect, it, vi } from 'vitest';
 import type { EventHandler, EventHandlerBuilder } from './event-handlers/common';
 import type { EventPublisher } from './event-publisher';
-import type { IdentityExtractor } from './identity-extractor';
 import { StripeEventProcessor } from './stripe-event-processor';
 import type { StripeEventType } from './stripe-schemas';
+import type { UserIdentityExtractor } from './user-identity-extractor';
 
 describe(StripeEventProcessor, () => {
-  const validIdentity: Identity<IdpName> = {
+  const validIdentity: UserIdentity<IdpName> = {
     userId: v4() as UserId,
     idp: 'google.com',
     idpId: 'google-id-123' as IdpId,
@@ -91,8 +91,8 @@ describe(StripeEventProcessor, () => {
       expect(publishFn).not.toHaveBeenCalled();
     });
 
-    it('should throw error when identity extraction fails', async () => {
-      const extractionError = new Error('Failed to extract identity');
+    it('should throw error when user identity extraction fails', async () => {
+      const extractionError = new Error('Failed to extract user identity');
 
       const result = testIt(validEvent, () => Promise.reject(extractionError));
 
@@ -150,7 +150,7 @@ describe(StripeEventProcessor, () => {
 
       const identityExtractorMock = {
         extract: extractFn
-      } as unknown as IdentityExtractor<Stripe.Event>;
+      } as unknown as UserIdentityExtractor<Stripe.Event>;
 
       const eventHandlerMock = {
         handle: handleFn
