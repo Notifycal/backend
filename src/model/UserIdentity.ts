@@ -1,8 +1,4 @@
-import type { Identity, IdpName } from '@notifycal/shared/types';
-
-export type CapitalizeKeys<T> = {
-  [K in keyof T as Capitalize<K & string>]: T[K];
-};
+import type { CapitalizeKeys, Identity, IdpName } from '@notifycal/shared/types';
 
 export type UserIdentity<TIdpName> = CapitalizeKeys<Identity<TIdpName>>;
 
