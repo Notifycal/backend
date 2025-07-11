@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.46.0](https://github.com/Notifycal/backend/compare/v0.45.1...v0.46.0) (2025-07-11)
+
+
+### Features
+
+* alert for events ([#797](https://github.com/Notifycal/backend/issues/797)) ([1651320](https://github.com/Notifycal/backend/commit/16513205f611ac314630a9ef96b95e6a4e1a1a39))
+* implementation for alert for events. Low credits detected and i… ([#811](https://github.com/Notifycal/backend/issues/811)) ([8a0f867](https://github.com/Notifycal/backend/commit/8a0f867a8a530838ee7def049eb7c0cd06e94fd3))
+
+
+### Bug Fixes
+
+* **deps:** Update dependency @notifycal/shared to v4.9.0 ([#814](https://github.com/Notifycal/backend/issues/814)) ([c1091f8](https://github.com/Notifycal/backend/commit/c1091f89b77873993ea07d15cc257f824c6efd64))
+* **deps:** Update dependency googleapis to v152 ([#800](https://github.com/Notifycal/backend/issues/800)) ([e7ed2ec](https://github.com/Notifycal/backend/commit/e7ed2ec5ca22a542631911711eba652b9125a0a9))
+* **deps:** Update dependency luxon to v3.7.1 ([#807](https://github.com/Notifycal/backend/issues/807)) ([2276097](https://github.com/Notifycal/backend/commit/22760979b8312a464a5ee6ffd577e22b7d6b02c4))
+
 ## [0.45.1](https://github.com/Notifycal/backend/compare/v0.45.0...v0.45.1) (2025-07-09)
 
 
