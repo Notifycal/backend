@@ -12,6 +12,7 @@ import {
   type ReminderConfigStoreRecord,
   fromStoreRecord as reminderFromStoreRecord
 } from './ReminderConfigStoreRecord';
+import type { StripeSubscriptionId } from './UserPaymentStoreRecord';
 
 export interface UserCreditsRecordStore {
   SubscriptionCreditBalance: number;
@@ -40,6 +41,7 @@ export interface UserStoreRecord<TIdpName> extends UserIdentityStoreRecord<TIdpN
   Config?: ReminderConfigStoreRecord;
   Credits?: UserCreditsRecordStore;
   StripeCustomerId?: StripeCustomerId;
+  StripeSubscriptionId?: StripeSubscriptionId;
   DemoReminderCount?: number;
 }
 
@@ -53,6 +55,9 @@ export function extractUser<TIdpName extends IdpName>(
     userStatus: userRecord.UserStatus,
     ...(userRecord.Config && { config: reminderFromStoreRecord(userRecord.Config) }),
     ...(userRecord.Credits && { credits: fromStoreRecord(userRecord.Credits) }),
-    ...(userRecord.DemoReminderCount && { demoReminderCount: userRecord.DemoReminderCount })
+    ...(userRecord.DemoReminderCount && { demoReminderCount: userRecord.DemoReminderCount }),
+    ...(userRecord.StripeSubscriptionId && {
+      stripeSubscriptionId: userRecord.StripeSubscriptionId
+    })
   };
 }

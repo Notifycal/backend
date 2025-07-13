@@ -53,6 +53,7 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
       'UserStatus',
       'Config',
       'StripeCustomerId',
+      'StripeSubscriptionId',
       'Credits',
       'DemoReminderCount'
     ];

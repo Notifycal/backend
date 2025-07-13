@@ -1,6 +1,6 @@
 /* eslint-disable camelcase */
 import type { Logger } from '@aws-lambda-powertools/logger';
-import type { PaymentUserStoreRecord } from '@model/store/UserPaymentStoreRecord';
+import type { PaymentUserStoreRecord, StripeSubscriptionId } from '@model/store/UserPaymentStoreRecord';
 import type {
   Email,
   IdpId,
@@ -21,9 +21,11 @@ describe(StripeUserIdentityExtractor, () => {
   const validIdp = 'google.com';
   const validIdpId = 'google_456' as IdpId;
   const validEmail = 'test@notifycal.com' as Email;
+  const validSubscriptionId = 'sub_fakeid' as StripeSubscriptionId
 
   const validPaymentUser: PaymentUserStoreRecord<IdpName> = {
     StripeCustomerId: validStripeCustomerId,
+    StripeSubscriptionId: validSubscriptionId,
     UserId: validUserId,
     Idp: validIdp,
     IdpId: validIdpId,
