@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.47.1](https://github.com/Notifycal/backend/compare/v0.47.0...v0.47.1) (2025-07-14)
+
+
+### Features
+
+* feedback url in email footers. A bit of refactoring around email templating. ([#818](https://github.com/Notifycal/backend/issues/818)) ([65b4b34](https://github.com/Notifycal/backend/commit/65b4b34025633792ab1408a43fb2ecc52033e399))
+
+
+### Bug Fixes
+
+* api gateway openapi shit support. oneOf cannot contain . What a … ([#830](https://github.com/Notifycal/backend/issues/830)) ([cf37d21](https://github.com/Notifycal/backend/commit/cf37d2172bfcf6a62907aea16deed75a13bb7965))
+
+
+### Miscellaneous Chores
+
+* release 0.47.1 ([782f4b8](https://github.com/Notifycal/backend/commit/782f4b8543247dc5140995849a5b2daf41e83f72))
+
 ## [0.47.0](https://github.com/Notifycal/backend/compare/v0.46.2...v0.47.0) (2025-07-14)
 
 
