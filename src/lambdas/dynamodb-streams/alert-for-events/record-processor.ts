@@ -1,8 +1,6 @@
 import type { Logger } from '@aws-lambda-powertools/logger';
-import { insufficientCreditsPartialTemplate } from '@email/templates/insufficient-credits/insufficient-credits.html.hbs';
-import { specificTranslations as insufficientCreditsTranslations } from '@email/templates/insufficient-credits/translations';
-import { lowCreditsDetectedPartialTemplate } from '@email/templates/low-credits-detected/low-credits-detected.html.hbs';
-import { specificTranslations as lowCreditsTranslations } from '@email/templates/low-credits-detected/translations';
+import { insufficientCreditsTemplate } from '@email/templates/insufficient-credits/translations';
+import { lowCreditsDetectedTemplate } from '@email/templates/low-credits-detected/translations';
 import type {
   EmailWithName,
   EventCreationOptions,
@@ -23,24 +21,17 @@ import type {
 } from './schema';
 
 function getLowCreditsTemplateConfig(config: AlertForEventsConfig): EmailTemplateConfig {
-  return {
-    partialTemplate: lowCreditsDetectedPartialTemplate,
-    specificTranslations: lowCreditsTranslations,
-    templateVariables: {
-      faqUrl: config.alertEmailConfig.faqUrl.toString(),
-      topupUrl: config.alertEmailConfig.billingUrl.toString()
-    }
-  };
+  return lowCreditsDetectedTemplate.withDynamicVariables({
+    feedbackUrl: config.alertEmailConfig.feedbackUrl.toString(),
+    billingUrl: config.alertEmailConfig.billingUrl.toString()
+  });
 }
 
 function getInsufficientCreditsTemplateConfig(config: AlertForEventsConfig): EmailTemplateConfig {
-  return {
-    partialTemplate: insufficientCreditsPartialTemplate,
-    specificTranslations: insufficientCreditsTranslations,
-    templateVariables: {
-      topupUrl: config.alertEmailConfig.billingUrl.toString()
-    }
-  };
+  return insufficientCreditsTemplate.withDynamicVariables({
+    feedbackUrl: config.alertEmailConfig.feedbackUrl.toString(),
+    billingUrl: config.alertEmailConfig.billingUrl.toString()
+  });
 }
 
 function processAlertEvent(
