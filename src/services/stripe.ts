@@ -158,29 +158,35 @@ export class StripeService {
     stripeCustomerId: StripeCustomerId,
     returnUrl: Url,
     configId: string,
-    flowType: Extract<
-      Stripe.BillingPortal.SessionCreateParams.FlowData.Type,
-      'subscription_cancel' | 'subscription_update'
-    >
+    flowType:
+      | Extract<
+          Stripe.BillingPortal.SessionCreateParams.FlowData.Type,
+          'subscription_cancel' | 'subscription_update'
+        >
+      | undefined
   ): Promise<Url> {
     return match(flowType)
-      .with(P.union('subscription_cancel', 'subscription_update'), () => {
-        return this.getSubscriptions(stripeCustomerId).then(
-          (subscriptions) => subscriptions[0]?.id
-        );
-
-        // return Promise.resolve('sub_fakeId');
+      .with(P.union('subscription_cancel', 'subscription_update'), (flowType) => {
+        return this.getSubscriptions(stripeCustomerId).then((subscriptions) => {
+          const subscriptionId = subscriptions[0]?.id;
+          return subscriptions[0]?.id
+            ? {
+                flow_data: {
+                  type: flowType,
+                  ...(subscriptionId && { subscription: subscriptionId })
+                }
+              }
+            : {};
+        });
       })
+      .with(undefined, () => Promise.resolve({}))
       .exhaustive()
-      .then((subscriptionId) => {
+      .then((flowDataConfig) => {
         return this.stripeClient.billingPortal.sessions.create({
           customer: stripeCustomerId,
           return_url: returnUrl,
           configuration: configId,
-          flow_data: {
-            type: flowType,
-            ...(subscriptionId && { subscription: subscriptionId })
-          }
+          ...flowDataConfig
         });
       })
       .then((session) => session.url as Url);

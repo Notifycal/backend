@@ -548,18 +548,142 @@ describe(StripeService, () => {
   describe('createCustomerPortalSession', () => {
     const validStripeCustomerPortalConfigId = 'cng_rdtsghethergwrg';
 
-    it('should create customer portal session successfully and return session URL', async () => {
+    it('should create customer portal session successfully without flow_data when flowType is undefined', async () => {
       const mockSession = { url: validPortalUrl };
       const createPortalSessionFn = vi.fn().mockResolvedValue(mockSession);
+      const listSubscriptionsFn = vi.fn().mockResolvedValue({ data: [] });
 
       const result = await testCustomerPortalSession(
         validStripeCustomerId,
         validReturnUrl,
         validStripeCustomerPortalConfigId,
-        createPortalSessionFn
+        undefined,
+        createPortalSessionFn,
+        listSubscriptionsFn
       );
 
       expect(result).toBe(validPortalUrl);
+      expect(createPortalSessionFn).toHaveBeenCalledTimes(1);
+      expect(createPortalSessionFn).toHaveBeenCalledWith({
+        customer: validStripeCustomerId,
+        return_url: validReturnUrl,
+        configuration: validStripeCustomerPortalConfigId
+      });
+      expect(listSubscriptionsFn).not.toHaveBeenCalled();
+    });
+
+    it('should create portal session with flow_data when flowType is subscription_update and subscriptions exist', async () => {
+      const mockSession = { url: validPortalUrl };
+      const createPortalSessionFn = vi.fn().mockResolvedValue(mockSession);
+      const validSubscriptions = [
+        { id: 'sub_123', status: 'active' },
+        { id: 'sub_456', status: 'past_due' }
+      ];
+      const listSubscriptionsFn = vi.fn().mockResolvedValue({ data: validSubscriptions });
+
+      const result = await testCustomerPortalSession(
+        validStripeCustomerId,
+        validReturnUrl,
+        validStripeCustomerPortalConfigId,
+        'subscription_update',
+        createPortalSessionFn,
+        listSubscriptionsFn
+      );
+
+      expect(result).toBe(validPortalUrl);
+      expect(listSubscriptionsFn).toHaveBeenCalledTimes(1);
+      expect(listSubscriptionsFn).toHaveBeenCalledWith({
+        customer: validStripeCustomerId,
+        status: 'all',
+        limit: 100
+      });
+      expect(createPortalSessionFn).toHaveBeenCalledTimes(1);
+      expect(createPortalSessionFn).toHaveBeenCalledWith({
+        customer: validStripeCustomerId,
+        return_url: validReturnUrl,
+        configuration: validStripeCustomerPortalConfigId,
+        flow_data: {
+          type: 'subscription_update',
+          subscription: 'sub_123'
+        }
+      });
+    });
+
+    it('should create portal session with flow_data when flowType is subscription_cancel and subscriptions exist', async () => {
+      const mockSession = { url: validPortalUrl };
+      const createPortalSessionFn = vi.fn().mockResolvedValue(mockSession);
+      const validSubscriptions = [
+        { id: 'sub_789', status: 'active' }
+      ];
+      const listSubscriptionsFn = vi.fn().mockResolvedValue({ data: validSubscriptions });
+
+      const result = await testCustomerPortalSession(
+        validStripeCustomerId,
+        validReturnUrl,
+        validStripeCustomerPortalConfigId,
+        'subscription_cancel',
+        createPortalSessionFn,
+        listSubscriptionsFn
+      );
+
+      expect(result).toBe(validPortalUrl);
+      expect(listSubscriptionsFn).toHaveBeenCalledTimes(1);
+      expect(createPortalSessionFn).toHaveBeenCalledTimes(1);
+      expect(createPortalSessionFn).toHaveBeenCalledWith({
+        customer: validStripeCustomerId,
+        return_url: validReturnUrl,
+        configuration: validStripeCustomerPortalConfigId,
+        flow_data: {
+          type: 'subscription_cancel',
+          subscription: 'sub_789'
+        }
+      });
+    });
+
+    it('should create portal session without flow_data when flowType is provided but no subscriptions exist', async () => {
+      const mockSession = { url: validPortalUrl };
+      const createPortalSessionFn = vi.fn().mockResolvedValue(mockSession);
+      const listSubscriptionsFn = vi.fn().mockResolvedValue({ data: [] });
+
+      const result = await testCustomerPortalSession(
+        validStripeCustomerId,
+        validReturnUrl,
+        validStripeCustomerPortalConfigId,
+        'subscription_update',
+        createPortalSessionFn,
+        listSubscriptionsFn
+      );
+
+      expect(result).toBe(validPortalUrl);
+      expect(listSubscriptionsFn).toHaveBeenCalledTimes(1);
+      expect(createPortalSessionFn).toHaveBeenCalledTimes(1);
+      expect(createPortalSessionFn).toHaveBeenCalledWith({
+        customer: validStripeCustomerId,
+        return_url: validReturnUrl,
+        configuration: validStripeCustomerPortalConfigId
+      });
+    });
+
+    it('should create portal session without flow_data when flowType is provided but only inactive subscriptions exist', async () => {
+      const mockSession = { url: validPortalUrl };
+      const createPortalSessionFn = vi.fn().mockResolvedValue(mockSession);
+      const inactiveSubscriptions = [
+        { id: 'sub_canceled', status: 'canceled' },
+        { id: 'sub_incomplete', status: 'incomplete' }
+      ];
+      const listSubscriptionsFn = vi.fn().mockResolvedValue({ data: inactiveSubscriptions });
+
+      const result = await testCustomerPortalSession(
+        validStripeCustomerId,
+        validReturnUrl,
+        validStripeCustomerPortalConfigId,
+        'subscription_cancel',
+        createPortalSessionFn,
+        listSubscriptionsFn
+      );
+
+      expect(result).toBe(validPortalUrl);
+      expect(listSubscriptionsFn).toHaveBeenCalledTimes(1);
       expect(createPortalSessionFn).toHaveBeenCalledTimes(1);
       expect(createPortalSessionFn).toHaveBeenCalledWith({
         customer: validStripeCustomerId,
@@ -571,15 +695,35 @@ describe(StripeService, () => {
     it('should throw error when customer portal session creation fails', async () => {
       const stripeError = new Error('Portal session creation failed');
       const createPortalSessionFn = vi.fn().mockRejectedValue(stripeError);
+      const listSubscriptionsFn = vi.fn().mockResolvedValue({ data: [] });
 
       await expect(
         testCustomerPortalSession(
           validStripeCustomerId,
           validReturnUrl,
           validStripeCustomerPortalConfigId,
-          createPortalSessionFn
+          undefined,
+          createPortalSessionFn,
+          listSubscriptionsFn
         )
       ).rejects.toThrow('Portal session creation failed');
+    });
+
+    it('should throw error when subscription listing fails', async () => {
+      const stripeError = new Error('Failed to list subscriptions');
+      const createPortalSessionFn = vi.fn().mockResolvedValue({ url: validPortalUrl });
+      const listSubscriptionsFn = vi.fn().mockRejectedValue(stripeError);
+
+      await expect(
+        testCustomerPortalSession(
+          validStripeCustomerId,
+          validReturnUrl,
+          validStripeCustomerPortalConfigId,
+          'subscription_update',
+          createPortalSessionFn,
+          listSubscriptionsFn
+        )
+      ).rejects.toThrow('Failed to list subscriptions');
     });
   });
 
@@ -745,7 +889,14 @@ describe(StripeService, () => {
     stripeCustomerId: StripeCustomerId,
     returnUrl: Url,
     configId: string,
-    createPortalSessionFn: () => Promise<Stripe.Response<Stripe.BillingPortal.Session>>
+    flow_type:
+      | Extract<
+          Stripe.BillingPortal.SessionCreateParams.FlowData.Type,
+          'subscription_cancel' | 'subscription_update'
+        >
+      | undefined,
+    createPortalSessionFn: () => Promise<Stripe.Response<Stripe.BillingPortal.Session>>,
+    listSubscriptionsFn: () => Promise<{ data: Array<{ id: string; status: string }> }>
   ): Promise<Url> {
     const mockStripeInstance = {
       ...testClocksMockFn(),
@@ -753,6 +904,9 @@ describe(StripeService, () => {
         sessions: {
           create: createPortalSessionFn
         }
+      },
+      subscriptions: {
+        list: listSubscriptionsFn
       }
     } as unknown as Stripe;
 
@@ -763,7 +917,7 @@ describe(StripeService, () => {
       stripeCustomerId,
       returnUrl,
       configId,
-      'subscription_update'
+      flow_type
     );
   }
 
