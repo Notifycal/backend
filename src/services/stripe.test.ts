@@ -640,6 +640,37 @@ describe(StripeService, () => {
       });
     });
 
+    it('should create portal session with flow_data when flowType is payment_method_update and subscriptions exist', async () => {
+      const mockSession = { url: validPortalUrl };
+      const createPortalSessionFn = vi.fn().mockResolvedValue(mockSession);
+      const validSubscriptions = [
+        { id: 'sub_payment', status: 'active' }
+      ];
+      const listSubscriptionsFn = vi.fn().mockResolvedValue({ data: validSubscriptions });
+
+      const result = await testCustomerPortalSession(
+        validStripeCustomerId,
+        validReturnUrl,
+        validStripeCustomerPortalConfigId,
+        'payment_method_update',
+        createPortalSessionFn,
+        listSubscriptionsFn
+      );
+
+      expect(result).toBe(validPortalUrl);
+      expect(listSubscriptionsFn).toHaveBeenCalledTimes(1);
+      expect(createPortalSessionFn).toHaveBeenCalledTimes(1);
+      expect(createPortalSessionFn).toHaveBeenCalledWith({
+        customer: validStripeCustomerId,
+        return_url: validReturnUrl,
+        configuration: validStripeCustomerPortalConfigId,
+        flow_data: {
+          type: 'payment_method_update',
+          subscription: 'sub_payment'
+        }
+      });
+    });
+
     it('should create portal session without flow_data when flowType is provided but no subscriptions exist', async () => {
       const mockSession = { url: validPortalUrl };
       const createPortalSessionFn = vi.fn().mockResolvedValue(mockSession);
@@ -650,6 +681,30 @@ describe(StripeService, () => {
         validReturnUrl,
         validStripeCustomerPortalConfigId,
         'subscription_update',
+        createPortalSessionFn,
+        listSubscriptionsFn
+      );
+
+      expect(result).toBe(validPortalUrl);
+      expect(listSubscriptionsFn).toHaveBeenCalledTimes(1);
+      expect(createPortalSessionFn).toHaveBeenCalledTimes(1);
+      expect(createPortalSessionFn).toHaveBeenCalledWith({
+        customer: validStripeCustomerId,
+        return_url: validReturnUrl,
+        configuration: validStripeCustomerPortalConfigId
+      });
+    });
+
+    it('should create portal session without flow_data when payment_method_update flowType is provided but no subscriptions exist', async () => {
+      const mockSession = { url: validPortalUrl };
+      const createPortalSessionFn = vi.fn().mockResolvedValue(mockSession);
+      const listSubscriptionsFn = vi.fn().mockResolvedValue({ data: [] });
+
+      const result = await testCustomerPortalSession(
+        validStripeCustomerId,
+        validReturnUrl,
+        validStripeCustomerPortalConfigId,
+        'payment_method_update',
         createPortalSessionFn,
         listSubscriptionsFn
       );
@@ -678,6 +733,34 @@ describe(StripeService, () => {
         validReturnUrl,
         validStripeCustomerPortalConfigId,
         'subscription_cancel',
+        createPortalSessionFn,
+        listSubscriptionsFn
+      );
+
+      expect(result).toBe(validPortalUrl);
+      expect(listSubscriptionsFn).toHaveBeenCalledTimes(1);
+      expect(createPortalSessionFn).toHaveBeenCalledTimes(1);
+      expect(createPortalSessionFn).toHaveBeenCalledWith({
+        customer: validStripeCustomerId,
+        return_url: validReturnUrl,
+        configuration: validStripeCustomerPortalConfigId
+      });
+    });
+
+    it('should create portal session without flow_data when payment_method_update flowType is provided but only inactive subscriptions exist', async () => {
+      const mockSession = { url: validPortalUrl };
+      const createPortalSessionFn = vi.fn().mockResolvedValue(mockSession);
+      const inactiveSubscriptions = [
+        { id: 'sub_canceled', status: 'canceled' },
+        { id: 'sub_incomplete', status: 'incomplete' }
+      ];
+      const listSubscriptionsFn = vi.fn().mockResolvedValue({ data: inactiveSubscriptions });
+
+      const result = await testCustomerPortalSession(
+        validStripeCustomerId,
+        validReturnUrl,
+        validStripeCustomerPortalConfigId,
+        'payment_method_update',
         createPortalSessionFn,
         listSubscriptionsFn
       );
@@ -892,7 +975,7 @@ describe(StripeService, () => {
     flow_type:
       | Extract<
           Stripe.BillingPortal.SessionCreateParams.FlowData.Type,
-          'subscription_cancel' | 'subscription_update'
+          'subscription_cancel' | 'subscription_update' | 'payment_method_update'
         >
       | undefined,
     createPortalSessionFn: () => Promise<Stripe.Response<Stripe.BillingPortal.Session>>,

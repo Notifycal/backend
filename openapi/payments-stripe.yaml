@@ -60,7 +60,7 @@ paths:
                     flowType:
                       description: Type of flow for the customer portal session.
                       type: string
-                      enum: ['subscription_cancel', 'subscription_update']
+                      enum: ['subscription_cancel', 'subscription_update', 'payment_method_update']
                   additionalProperties: false
                 - type: object
                   description: Empty request payload

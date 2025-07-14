@@ -49,10 +49,11 @@ describe('Customer Portal Session Handler', () => {
   const validRequestBody = {};
   const validRequestBodyWithFlowType = { flowType: 'subscription_update' };
   const validRequestBodyWithCancelFlow = { flowType: 'subscription_cancel' };
+  const validRequestBodyWithPaymentMethodUpdate = { flowType: 'payment_method_update' };
 
   async function testCustomerPortalSession(
     requestBody: object,
-    expectedFlowType: 'subscription_cancel' | 'subscription_update' | undefined
+    expectedFlowType: 'subscription_cancel' | 'subscription_update' | 'payment_method_update' | undefined
   ) {
     const validEvent = (await testAuthedEvent(
       requestBody,
@@ -254,6 +255,14 @@ describe('Customer Portal Session Handler', () => {
       'subscription_cancel'
     );
   });
+
+  // eslint-disable-next-line vitest/expect-expect
+  it('should create customer portal session with payment_method_update flow_type', async () => {
+    await testCustomerPortalSession(
+      validRequestBodyWithPaymentMethodUpdate,
+      'payment_method_update'
+    );
+  });
 });
 
 const defaultConfig: PostCustomerPortalSessionConfig = {
@@ -288,7 +297,7 @@ function testIt(
     stripeCustomerId: string,
     returnUrl: string,
     configId: string,
-    flowType?: 'subscription_cancel' | 'subscription_update'
+    flowType?: 'subscription_cancel' | 'subscription_update' | 'payment_method_update'
   ) => Promise<string | null>,
   addMetricFn: () => void,
   config: PostCustomerPortalSessionConfig = defaultConfig

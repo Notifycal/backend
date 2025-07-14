@@ -161,24 +161,27 @@ export class StripeService {
     flowType:
       | Extract<
           Stripe.BillingPortal.SessionCreateParams.FlowData.Type,
-          'subscription_cancel' | 'subscription_update'
+          'subscription_cancel' | 'subscription_update' | 'payment_method_update'
         >
       | undefined
   ): Promise<Url> {
     return match(flowType)
-      .with(P.union('subscription_cancel', 'subscription_update'), (flowType) => {
-        return this.getSubscriptions(stripeCustomerId).then((subscriptions) => {
-          const subscriptionId = subscriptions[0]?.id;
-          return subscriptions[0]?.id
-            ? {
-                flow_data: {
-                  type: flowType,
-                  ...(subscriptionId && { subscription: subscriptionId })
+      .with(
+        P.union('subscription_cancel', 'subscription_update', 'payment_method_update'),
+        (flowType) => {
+          return this.getSubscriptions(stripeCustomerId).then((subscriptions) => {
+            const subscriptionId = subscriptions[0]?.id;
+            return subscriptions[0]?.id
+              ? {
+                  flow_data: {
+                    type: flowType,
+                    ...(subscriptionId && { subscription: subscriptionId })
+                  }
                 }
-              }
-            : {};
-        });
-      })
+              : {};
+          });
+        }
+      )
       .with(undefined, () => Promise.resolve({}))
       .exhaustive()
       .then((flowDataConfig) => {

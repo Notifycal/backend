@@ -5,7 +5,7 @@ import type { PostCustomerPortalSessionConfig } from './config';
 
 const createCustomerPortalSessionSchema = z
   .object({
-    flowType: z.enum(['subscription_cancel', 'subscription_update']).optional()
+    flowType: z.enum(['subscription_cancel', 'subscription_update', 'payment_method_update']).optional()
   })
   .optional();
 
