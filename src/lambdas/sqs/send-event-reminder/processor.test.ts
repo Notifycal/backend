@@ -6,6 +6,7 @@ import type { DemoReminderToBeSentEvent } from '@model/app-events/DemoReminderTo
 import type {
   CreditServiceEndpointConfig,
   DemoReminderEndpointConfig,
+  MessagingAlertingEndpointConfig,
   SnsTopicConfig
 } from '@model/Config';
 import type {
@@ -59,7 +60,8 @@ vi.mock('@services/credits-service');
 
 const defaultConfig: VonageEndpointConfig &
   CreditServiceEndpointConfig &
-  DemoReminderEndpointConfig = {
+  DemoReminderEndpointConfig &
+  MessagingAlertingEndpointConfig = {
   vonageConfig: {
     applicationId: 'some app id' as VonageApplicationId,
     webhookBaseURL: 'https://test.com' as Url,
@@ -71,6 +73,9 @@ const defaultConfig: VonageEndpointConfig &
   },
   demoReminderConfig: {
     demoReminderLimit: 1
+  },
+  messagingAlertingConfig: {
+    lowCreditThreshold: 100
   }
 };
 
@@ -392,6 +397,137 @@ describe('Messaging processor', () => {
       });
     });
 
+    describe('lowCreditsDetected event', () => {
+      const lowCreditsThreshold = 100;
+      const configWithLowThreshold = {
+        ...defaultConfig,
+        messagingAlertingConfig: { lowCreditThreshold: lowCreditsThreshold }
+      };
+
+      async function testLowCreditsScenario(
+        creditResult: CreditDeductionResult,
+        expectSendLowCreditsDetectedEvent: boolean,
+        config = configWithLowThreshold
+      ) {
+        const safePublishSpy = vi.fn().mockResolvedValue({ $metadata: {} });
+        const sendMessageSpy = vi.fn().mockResolvedValue(validReturnedUuid);
+        const deductCreditsFn = vi.fn().mockResolvedValue(creditResult);
+
+        await testWithActionableEvent(
+          validActionableEvent,
+          sendMessageSpy,
+          safePublishSpy,
+          deductCreditsFn,
+          true,
+          config
+        );
+
+        if (expectSendLowCreditsDetectedEvent) {
+          expect(safePublishSpy).toHaveBeenCalledWith({
+            ...validActionableEvent,
+            eventType: 'LowCreditsDetected',
+            data: {
+              originalEvent: validActionableEvent.data,
+              lastCreditReductionResult: creditResult
+            }
+          });
+        } else {
+          expect(safePublishSpy).not.toHaveBeenCalledWith(
+            expect.objectContaining({ eventType: 'LowCreditsDetected' })
+          );
+        }
+
+        return safePublishSpy;
+      }
+
+      // eslint-disable-next-line vitest/expect-expect
+      it('should send lowCreditsDetected event when credits cross below threshold', async () => {
+        const creditResult: CreditDeductionSuccess = {
+          success: true,
+          result: 'Success',
+          operationDetails: { fromBalance: 'subscription', quantity: 7 },
+          balances: { subscription: 95, topup: 0 }
+        };
+
+        await testLowCreditsScenario(creditResult, true);
+      });
+
+      // eslint-disable-next-line vitest/expect-expect
+      it('should NOT send lowCreditsDetected event when credits remain above threshold', async () => {
+        const creditResult: CreditDeductionSuccess = {
+          success: true,
+          result: 'Success',
+          operationDetails: { fromBalance: 'subscription', quantity: 7 },
+          balances: { subscription: 200, topup: 50 }
+        };
+
+        await testLowCreditsScenario(creditResult, false);
+      });
+
+      // eslint-disable-next-line vitest/expect-expect
+      it('should NOT send lowCreditsDetected event when credits remain below threshold', async () => {
+        const creditResult: CreditDeductionSuccess = {
+          success: true,
+          result: 'Success',
+          operationDetails: { fromBalance: 'subscription', quantity: 7 },
+          balances: { subscription: 50, topup: 20 }
+        };
+
+        await testLowCreditsScenario(creditResult, false);
+      });
+
+      // eslint-disable-next-line vitest/expect-expect
+      it('should send lowCreditsDetected event when combined subscription and topup credits cross threshold', async () => {
+        const higherThresholdConfig = {
+          ...defaultConfig,
+          messagingAlertingConfig: { lowCreditThreshold: 150 }
+        };
+        const creditResult: CreditDeductionSuccess = {
+          success: true,
+          result: 'Success',
+          operationDetails: { fromBalance: 'topup', quantity: 7 },
+          balances: { subscription: 100, topup: 44 }
+        };
+
+        await testLowCreditsScenario(creditResult, true, higherThresholdConfig);
+      });
+
+      it('should NOT send lowCreditsDetected event when credit deduction fails', async () => {
+        const creditResult: CreditDeductionInsufficientCreditsError = {
+          result: 'InsufficientCredits',
+          success: false,
+          error: new InsufficientCreditsError(
+            'some message that could not be sent',
+            {},
+            new Error('No credits')
+          )
+        };
+
+        const safePublishSpy = await testLowCreditsScenario(creditResult, false);
+
+        expect(safePublishSpy).toHaveBeenCalledWith({
+          ...validActionableEvent,
+          eventType: 'InsufficientCreditsReminderNotSent',
+          data: {
+            originalEvent: validActionableEvent.data,
+            error: creditResult
+          }
+        });
+      });
+
+      // eslint-disable-next-line vitest/expect-expect
+      it('should handle edge case when credits exactly equal threshold after deduction', async () => {
+        const creditResult: CreditDeductionSuccess = {
+          success: true,
+          result: 'Success',
+          operationDetails: { fromBalance: 'subscription', quantity: 7 },
+          balances: { subscription: 100, topup: 0 }
+        };
+
+        await testLowCreditsScenario(creditResult, false);
+      });
+    });
+
     function testWithActionableEvent(
       event: ActionableEventFoundEvent,
       sendMessageFn: () => Promise<Uuid>,
@@ -400,7 +536,8 @@ describe('Messaging processor', () => {
       messagingEnabled: boolean,
       config: VonageEndpointConfig &
         CreditServiceEndpointConfig &
-        DemoReminderEndpointConfig = defaultConfig
+        DemoReminderEndpointConfig &
+        MessagingAlertingEndpointConfig = defaultConfig
     ): Promise<Uuid> {
       return createProcessorAndTest(
         event,
@@ -423,7 +560,8 @@ describe('Messaging processor', () => {
       messagingEnabled: boolean,
       config: VonageEndpointConfig &
         CreditServiceEndpointConfig &
-        DemoReminderEndpointConfig = defaultConfig
+        DemoReminderEndpointConfig &
+        MessagingAlertingEndpointConfig = defaultConfig
     ): Promise<Uuid> {
       return createProcessorAndTest(
         event,
@@ -445,7 +583,10 @@ describe('Messaging processor', () => {
       sendMessageFn: () => Promise<Uuid>,
       safePublishFn: () => Promise<void>,
       messagingEnabled: boolean,
-      config: VonageEndpointConfig & CreditServiceEndpointConfig & DemoReminderEndpointConfig,
+      config: VonageEndpointConfig &
+        CreditServiceEndpointConfig &
+        DemoReminderEndpointConfig &
+        MessagingAlertingEndpointConfig,
       setupCreditService: (creditService: CreditsService<'google.com'>) => void
     ): Promise<Uuid> {
       vi.mocked(MessagingService).mockReturnValue({

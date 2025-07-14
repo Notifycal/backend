@@ -8,7 +8,7 @@ import { eventSchemaGenerator } from './BaseEvent';
 
 const dataSchema = z.object({
   originalEvent: actionableEventFoundEventSchema.shape.data,
-  error: z.unknown()
+  lastCreditReductionResult: z.unknown()
 });
 
 export const lowCreditsDetectedEventSchema = eventSchemaGenerator('LowCreditsDetected', dataSchema);
@@ -17,14 +17,14 @@ export type LowCreditsDetectedEvent = z.infer<typeof lowCreditsDetectedEventSche
 
 export function lowCreditsDetected(
   originalEvent: ActionableEventFoundEvent,
-  creditReductionResult: CreditDeductionResult
+  lastCreditReductionResult: CreditDeductionResult
 ): LowCreditsDetectedEvent {
   return {
     ...originalEvent,
     eventType: 'LowCreditsDetected',
     data: {
       originalEvent: originalEvent.data,
-      error: creditReductionResult
+      lastCreditReductionResult
     }
   };
 }

@@ -20,6 +20,7 @@ import type {
   EncodeRefreshJwtConfig,
   IdempotencyPersistenceConfig,
   IdpConfigs,
+  MessagingAlertingConfig,
   PaymentPlansConfig,
   SnsTopicConfig,
   SqsQueueConfig
@@ -104,6 +105,10 @@ export function setEnvActionableEventFoundTopicConfig(config: SnsTopicConfig): v
 
 export function setEnvMessagingTopicConfig(config: SnsTopicConfig): void {
   process.env.MESSAGING_TOPIC_ARN = config.topicArn;
+}
+
+export function setEnvMessagingAlertingConfig(config: MessagingAlertingConfig): void {
+  process.env.LOW_CREDITS_THRESHOLD = config.lowCreditThreshold.toString();
 }
 
 export function setEnvEmailingTopicConfig(config: SnsTopicConfig): void {

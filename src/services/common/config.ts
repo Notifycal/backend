@@ -25,6 +25,7 @@ import type {
   EncodeRefreshJwtConfig,
   IdempotencyPersistenceConfig,
   IdpEndpointConfig,
+  MessagingAlertingEndpointConfig,
   MessagingEndpointConfig,
   MessagingTopicConfig,
   PaymentPlansConfig,
@@ -258,6 +259,14 @@ export function readMessagingConfig(env: Environment): MessagingEndpointConfig {
   return {
     messagingConfig: {
       enabled: env.get('MESSAGING_ENABLED').required().default('true').asBool()
+    }
+  };
+}
+
+export function readMessagingAlertingConfig(env: Environment): MessagingAlertingEndpointConfig {
+  return {
+    messagingAlertingConfig: {
+      lowCreditThreshold: env.get('LOW_CREDIT_THRESHOLD').default(25).asIntPositive()
     }
   };
 }
