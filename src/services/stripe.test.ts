@@ -548,6 +548,55 @@ describe(StripeService, () => {
   describe('createCustomerPortalSession', () => {
     const validStripeCustomerPortalConfigId = 'cng_rdtsghethergwrg';
 
+    type FlowType = 'subscription_cancel' | 'subscription_update' | 'payment_method_update';
+
+    async function testPortalSession(
+      flowType: FlowType,
+      subscriptionsData: Array<{ id: string; status: string }> = [],
+      expectedFlowData?: { type: FlowType; subscription: string }
+    ) {
+      const mockSession = { url: validPortalUrl };
+      const createPortalSessionFn = vi.fn().mockResolvedValue(mockSession);
+      const listSubscriptionsFn = vi.fn().mockResolvedValue({ data: subscriptionsData });
+
+      const result = await testCustomerPortalSession(
+        validStripeCustomerId,
+        validReturnUrl,
+        validStripeCustomerPortalConfigId,
+        flowType,
+        createPortalSessionFn,
+        listSubscriptionsFn
+      );
+
+      expect(result).toBe(validPortalUrl);
+      expect(listSubscriptionsFn).toHaveBeenCalledTimes(1);
+      expect(listSubscriptionsFn).toHaveBeenCalledWith({
+        customer: validStripeCustomerId,
+        status: 'all',
+        limit: 100
+      });
+      expect(createPortalSessionFn).toHaveBeenCalledTimes(1);
+
+      const expectedCall = {
+        customer: validStripeCustomerId,
+        return_url: validReturnUrl,
+        configuration: validStripeCustomerPortalConfigId,
+        ...(expectedFlowData && { flow_data: expectedFlowData })
+      };
+
+      expect(createPortalSessionFn).toHaveBeenCalledWith(expectedCall);
+
+      if (!expectedFlowData) {
+        // eslint-disable-next-line vitest/max-expects
+        expect(createPortalSessionFn).not.toHaveBeenCalledWith(
+          expect.objectContaining({
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            flow_data: expect.any(Object)
+          })
+        );
+      }
+    }
+
     it('should create customer portal session successfully without flow_data when flowType is undefined', async () => {
       const mockSession = { url: validPortalUrl };
       const createPortalSessionFn = vi.fn().mockResolvedValue(mockSession);
@@ -572,207 +621,56 @@ describe(StripeService, () => {
       expect(listSubscriptionsFn).not.toHaveBeenCalled();
     });
 
+    // eslint-disable-next-line vitest/expect-expect
     it('should create portal session with flow_data when flowType is subscription_update and subscriptions exist', async () => {
-      const mockSession = { url: validPortalUrl };
-      const createPortalSessionFn = vi.fn().mockResolvedValue(mockSession);
-      const validSubscriptions = [
-        { id: 'sub_123', status: 'active' },
-        { id: 'sub_456', status: 'past_due' }
-      ];
-      const listSubscriptionsFn = vi.fn().mockResolvedValue({ data: validSubscriptions });
-
-      const result = await testCustomerPortalSession(
-        validStripeCustomerId,
-        validReturnUrl,
-        validStripeCustomerPortalConfigId,
-        'subscription_update',
-        createPortalSessionFn,
-        listSubscriptionsFn
-      );
-
-      expect(result).toBe(validPortalUrl);
-      expect(listSubscriptionsFn).toHaveBeenCalledTimes(1);
-      expect(listSubscriptionsFn).toHaveBeenCalledWith({
-        customer: validStripeCustomerId,
-        status: 'all',
-        limit: 100
-      });
-      expect(createPortalSessionFn).toHaveBeenCalledTimes(1);
-      expect(createPortalSessionFn).toHaveBeenCalledWith({
-        customer: validStripeCustomerId,
-        return_url: validReturnUrl,
-        configuration: validStripeCustomerPortalConfigId,
-        flow_data: {
-          type: 'subscription_update',
-          subscription: 'sub_123'
-        }
+      await testPortalSession('subscription_update', [{ id: 'sub_123', status: 'active' }], {
+        type: 'subscription_update',
+        subscription: 'sub_123'
       });
     });
 
+    // eslint-disable-next-line vitest/expect-expect
     it('should create portal session with flow_data when flowType is subscription_cancel and subscriptions exist', async () => {
-      const mockSession = { url: validPortalUrl };
-      const createPortalSessionFn = vi.fn().mockResolvedValue(mockSession);
-      const validSubscriptions = [
-        { id: 'sub_789', status: 'active' }
-      ];
-      const listSubscriptionsFn = vi.fn().mockResolvedValue({ data: validSubscriptions });
-
-      const result = await testCustomerPortalSession(
-        validStripeCustomerId,
-        validReturnUrl,
-        validStripeCustomerPortalConfigId,
-        'subscription_cancel',
-        createPortalSessionFn,
-        listSubscriptionsFn
-      );
-
-      expect(result).toBe(validPortalUrl);
-      expect(listSubscriptionsFn).toHaveBeenCalledTimes(1);
-      expect(createPortalSessionFn).toHaveBeenCalledTimes(1);
-      expect(createPortalSessionFn).toHaveBeenCalledWith({
-        customer: validStripeCustomerId,
-        return_url: validReturnUrl,
-        configuration: validStripeCustomerPortalConfigId,
-        flow_data: {
-          type: 'subscription_cancel',
-          subscription: 'sub_789'
-        }
+      await testPortalSession('subscription_cancel', [{ id: 'sub_789', status: 'active' }], {
+        type: 'subscription_cancel',
+        subscription: 'sub_789'
       });
     });
 
+    // eslint-disable-next-line vitest/expect-expect
     it('should create portal session with flow_data when flowType is payment_method_update and subscriptions exist', async () => {
-      const mockSession = { url: validPortalUrl };
-      const createPortalSessionFn = vi.fn().mockResolvedValue(mockSession);
-      const validSubscriptions = [
-        { id: 'sub_payment', status: 'active' }
-      ];
-      const listSubscriptionsFn = vi.fn().mockResolvedValue({ data: validSubscriptions });
-
-      const result = await testCustomerPortalSession(
-        validStripeCustomerId,
-        validReturnUrl,
-        validStripeCustomerPortalConfigId,
-        'payment_method_update',
-        createPortalSessionFn,
-        listSubscriptionsFn
-      );
-
-      expect(result).toBe(validPortalUrl);
-      expect(listSubscriptionsFn).toHaveBeenCalledTimes(1);
-      expect(createPortalSessionFn).toHaveBeenCalledTimes(1);
-      expect(createPortalSessionFn).toHaveBeenCalledWith({
-        customer: validStripeCustomerId,
-        return_url: validReturnUrl,
-        configuration: validStripeCustomerPortalConfigId,
-        flow_data: {
-          type: 'payment_method_update',
-          subscription: 'sub_payment'
-        }
+      await testPortalSession('payment_method_update', [{ id: 'sub_payment', status: 'active' }], {
+        type: 'payment_method_update',
+        subscription: 'sub_payment'
       });
     });
 
-    it('should create portal session without flow_data when flowType is provided but no subscriptions exist', async () => {
-      const mockSession = { url: validPortalUrl };
-      const createPortalSessionFn = vi.fn().mockResolvedValue(mockSession);
-      const listSubscriptionsFn = vi.fn().mockResolvedValue({ data: [] });
-
-      const result = await testCustomerPortalSession(
-        validStripeCustomerId,
-        validReturnUrl,
-        validStripeCustomerPortalConfigId,
-        'subscription_update',
-        createPortalSessionFn,
-        listSubscriptionsFn
-      );
-
-      expect(result).toBe(validPortalUrl);
-      expect(listSubscriptionsFn).toHaveBeenCalledTimes(1);
-      expect(createPortalSessionFn).toHaveBeenCalledTimes(1);
-      expect(createPortalSessionFn).toHaveBeenCalledWith({
-        customer: validStripeCustomerId,
-        return_url: validReturnUrl,
-        configuration: validStripeCustomerPortalConfigId
-      });
+    // eslint-disable-next-line vitest/expect-expect
+    it('should create portal session without flow_data when subscription_update flowType is provided but no subscriptions exist', async () => {
+      await testPortalSession('subscription_update');
     });
 
+    // eslint-disable-next-line vitest/expect-expect
     it('should create portal session without flow_data when payment_method_update flowType is provided but no subscriptions exist', async () => {
-      const mockSession = { url: validPortalUrl };
-      const createPortalSessionFn = vi.fn().mockResolvedValue(mockSession);
-      const listSubscriptionsFn = vi.fn().mockResolvedValue({ data: [] });
-
-      const result = await testCustomerPortalSession(
-        validStripeCustomerId,
-        validReturnUrl,
-        validStripeCustomerPortalConfigId,
-        'payment_method_update',
-        createPortalSessionFn,
-        listSubscriptionsFn
-      );
-
-      expect(result).toBe(validPortalUrl);
-      expect(listSubscriptionsFn).toHaveBeenCalledTimes(1);
-      expect(createPortalSessionFn).toHaveBeenCalledTimes(1);
-      expect(createPortalSessionFn).toHaveBeenCalledWith({
-        customer: validStripeCustomerId,
-        return_url: validReturnUrl,
-        configuration: validStripeCustomerPortalConfigId
-      });
+      await testPortalSession('payment_method_update');
     });
 
-    it('should create portal session without flow_data when flowType is provided but only inactive subscriptions exist', async () => {
-      const mockSession = { url: validPortalUrl };
-      const createPortalSessionFn = vi.fn().mockResolvedValue(mockSession);
+    // eslint-disable-next-line vitest/expect-expect
+    it('should create portal session without flow_data when subscription_cancel flowType is provided but only inactive subscriptions exist', async () => {
       const inactiveSubscriptions = [
         { id: 'sub_canceled', status: 'canceled' },
         { id: 'sub_incomplete', status: 'incomplete' }
       ];
-      const listSubscriptionsFn = vi.fn().mockResolvedValue({ data: inactiveSubscriptions });
-
-      const result = await testCustomerPortalSession(
-        validStripeCustomerId,
-        validReturnUrl,
-        validStripeCustomerPortalConfigId,
-        'subscription_cancel',
-        createPortalSessionFn,
-        listSubscriptionsFn
-      );
-
-      expect(result).toBe(validPortalUrl);
-      expect(listSubscriptionsFn).toHaveBeenCalledTimes(1);
-      expect(createPortalSessionFn).toHaveBeenCalledTimes(1);
-      expect(createPortalSessionFn).toHaveBeenCalledWith({
-        customer: validStripeCustomerId,
-        return_url: validReturnUrl,
-        configuration: validStripeCustomerPortalConfigId
-      });
+      await testPortalSession('subscription_cancel', inactiveSubscriptions);
     });
 
+    // eslint-disable-next-line vitest/expect-expect
     it('should create portal session without flow_data when payment_method_update flowType is provided but only inactive subscriptions exist', async () => {
-      const mockSession = { url: validPortalUrl };
-      const createPortalSessionFn = vi.fn().mockResolvedValue(mockSession);
       const inactiveSubscriptions = [
         { id: 'sub_canceled', status: 'canceled' },
         { id: 'sub_incomplete', status: 'incomplete' }
       ];
-      const listSubscriptionsFn = vi.fn().mockResolvedValue({ data: inactiveSubscriptions });
-
-      const result = await testCustomerPortalSession(
-        validStripeCustomerId,
-        validReturnUrl,
-        validStripeCustomerPortalConfigId,
-        'payment_method_update',
-        createPortalSessionFn,
-        listSubscriptionsFn
-      );
-
-      expect(result).toBe(validPortalUrl);
-      expect(listSubscriptionsFn).toHaveBeenCalledTimes(1);
-      expect(createPortalSessionFn).toHaveBeenCalledTimes(1);
-      expect(createPortalSessionFn).toHaveBeenCalledWith({
-        customer: validStripeCustomerId,
-        return_url: validReturnUrl,
-        configuration: validStripeCustomerPortalConfigId
-      });
+      await testPortalSession('payment_method_update', inactiveSubscriptions);
     });
 
     it('should throw error when customer portal session creation fails', async () => {
