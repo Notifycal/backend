@@ -20,6 +20,7 @@ import { validRawRecord as _validRawRecord } from '@testing/data/sqs-events';
 import {
   setEnvCreditServiceConfig,
   setEnvIdempotencyPersistanceConfig,
+  setEnvMessagingAlertingConfig,
   setEnvMessagingTopicConfig,
   setEnvUserBaseStoreConfig,
   setEnvVonageConfig
@@ -191,6 +192,9 @@ const defaultConfig: EndpointConfig = {
   messagingConfig: {
     enabled: true
   },
+  messagingAlertingConfig: {
+    lowCreditThreshold: 25
+  },
   userBaseStoreConfig: {
     tableName: 'Users-local'
   },
@@ -205,6 +209,7 @@ const defaultConfig: EndpointConfig = {
 function setEnv(config: EndpointConfig): void {
   setEnvVonageConfig(config.vonageConfig);
   setEnvMessagingTopicConfig(config.messagingTopicConfig);
+  setEnvMessagingAlertingConfig(config.messagingAlertingConfig);
   setEnvIdempotencyPersistanceConfig(config);
   setEnvUserBaseStoreConfig(config.userBaseStoreConfig);
   setEnvCreditServiceConfig(config);

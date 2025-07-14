@@ -18,7 +18,12 @@ import {
   insufficientCreditReminderNotSent,
   type InsufficientCreditReminderNotSentEvent
 } from '@model/app-events/InsufficientCreditsReminderNotSentEvent';
-import type { CreditServiceEndpointConfig, DemoReminderEndpointConfig } from '@model/Config';
+import { lowCreditsDetected } from '@model/app-events/LowCreditsDetectedEvent';
+import type {
+  CreditServiceEndpointConfig,
+  DemoReminderEndpointConfig,
+  MessagingAlertingEndpointConfig
+} from '@model/Config';
 import type {
   CreditDeductionInsufficientCreditsError,
   CreditDeductionResult,
@@ -26,7 +31,7 @@ import type {
   DemoCounterLimitReachedError
 } from '@model/Credits';
 import type { VonageEndpointConfig } from '@model/vendor/vonage/config';
-import type { IdpName, UserId, Uuid } from '@notifycal/shared/types';
+import type { IdpName, Uuid } from '@notifycal/shared/types';
 import type { Url } from '@own-types/model';
 import type { CreditsService } from '@services/credits-service';
 import { MessagingService } from '@services/messaging';
@@ -42,7 +47,8 @@ export default class Processor {
   public constructor(
     private readonly config: VonageEndpointConfig &
       CreditServiceEndpointConfig &
-      DemoReminderEndpointConfig,
+      DemoReminderEndpointConfig &
+      MessagingAlertingEndpointConfig,
     private readonly isEnabled: boolean,
     private readonly snsService: SnsService,
     private readonly creditsService: CreditsService<IdpName>,
@@ -98,9 +104,7 @@ export default class Processor {
     event: ActionableEventFoundEvent | DemoReminderToBeSentEvent
   ): Promise<CreditOperationResult> {
     return match(event)
-      .with({ eventType: 'ActionableEventFound' }, (e) =>
-        this.deductCredits(e.userId, e.data.message)
-      )
+      .with({ eventType: 'ActionableEventFound' }, (e) => this.deductCredits(e))
       .with({ eventType: 'DemoReminderToBeSent' }, (e) =>
         this.creditsService.incrementDemoReminderCount(
           e.userId,
@@ -180,16 +184,30 @@ export default class Processor {
       .exhaustive();
   }
 
-  private deductCredits(userId: UserId, message: string): Promise<CreditDeductionResult> {
-    const countResult = count(message);
+  private deductCredits(event: ActionableEventFoundEvent): Promise<CreditDeductionResult> {
+    const countResult = count(event.data.message);
     const creditToDeductPerUnit = this.config.countryToSMSCostCreditsMap['ES'];
     const totalCreditsToDeduct = creditToDeductPerUnit * countResult.messages;
-    return this.creditsService.deductCredits(userId, totalCreditsToDeduct).then(
+    return this.creditsService.deductCredits(event.userId, totalCreditsToDeduct).then(
       tap((result) => {
         logger.info(`Number of SMSs charged: ${countResult.messages}`, {
           estimatedMessageCount: countResult,
           updatedUserCredit: result
         });
+        if (result.success) {
+          const { subscription, topup } = result.balances;
+          const totalUpdatedCredits = subscription + topup;
+          const previousTotalCredits = totalUpdatedCredits + totalCreditsToDeduct;
+          const lowCreditsThreshold = this.config.messagingAlertingConfig.lowCreditThreshold;
+          if (
+            previousTotalCredits >= lowCreditsThreshold &&
+            totalUpdatedCredits < lowCreditsThreshold
+          ) {
+            const lowCreditsDetectedEvent = lowCreditsDetected(event, result);
+            return this.snsService.safePublish(lowCreditsDetectedEvent).then(() => result);
+          }
+        }
+        return result;
       })
     );
   }
