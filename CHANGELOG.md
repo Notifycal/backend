@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.48.0](https://github.com/Notifycal/backend/compare/v0.47.0...v0.48.0) (2025-07-14)
+
+
+### Features
+
+* feedback url in email footers. A bit of refactoring around email templating. ([#818](https://github.com/Notifycal/backend/issues/818)) ([65b4b34](https://github.com/Notifycal/backend/commit/65b4b34025633792ab1408a43fb2ecc52033e399))
+
 ## [0.47.0](https://github.com/Notifycal/backend/compare/v0.46.2...v0.47.0) (2025-07-14)
 
 
