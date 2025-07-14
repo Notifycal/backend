@@ -1,8 +1,6 @@
 import { logger } from '@common/powertools';
-import { insufficientCreditsPartialTemplate } from '@email/templates/insufficient-credits/insufficient-credits.html.hbs';
-import { specificTranslations as insufficientCreditsTranslations } from '@email/templates/insufficient-credits/translations';
-import { lowCreditsDetectedPartialTemplate } from '@email/templates/low-credits-detected/low-credits-detected.html.hbs';
-import { specificTranslations as lowCreditsTranslations } from '@email/templates/low-credits-detected/translations';
+import { insufficientCreditsTemplate } from '@email/templates/insufficient-credits/translations';
+import { lowCreditsDetectedTemplate } from '@email/templates/low-credits-detected/translations';
 import { emailToBeSent, type EmailToBeSentEvent } from '@model/app-events/EmailToBeSentEvent';
 import type {
   CorrelationId,
@@ -43,7 +41,8 @@ describe(recordProcessor, () => {
   const validConfig: AlertForEventsConfig = {
     alertEmailConfig: {
       faqUrl: new URL('https://example.com/faq'),
-      billingUrl: new URL('https://example.com/topup')
+      billingUrl: new URL('https://example.com/topup'),
+      feedbackUrl: new URL('https://example.com/feedback')
     },
     emailingSenderConfig: {
       sender: {
@@ -130,14 +129,10 @@ describe(recordProcessor, () => {
       validEmail,
       validConfig.emailingSenderConfig.sender,
       validLanguage,
-      {
-        partialTemplate: lowCreditsDetectedPartialTemplate,
-        specificTranslations: lowCreditsTranslations,
-        templateVariables: {
-          faqUrl: validConfig.alertEmailConfig.faqUrl.toString(),
-          topupUrl: validConfig.alertEmailConfig.billingUrl.toString()
-        }
-      },
+      lowCreditsDetectedTemplate.withDynamicVariables({
+        billingUrl: validConfig.alertEmailConfig.billingUrl.toString(),
+        feedbackUrl: validConfig.alertEmailConfig.feedbackUrl.toString()
+      }),
       'LowCreditsDetected',
       { eventType: 'LowCreditsDetected' },
       expect.any(Object),
@@ -158,13 +153,10 @@ describe(recordProcessor, () => {
       validEmail,
       validConfig.emailingSenderConfig.sender,
       validLanguage,
-      {
-        partialTemplate: insufficientCreditsPartialTemplate,
-        specificTranslations: insufficientCreditsTranslations,
-        templateVariables: {
-          topupUrl: validConfig.alertEmailConfig.billingUrl.toString()
-        }
-      },
+      insufficientCreditsTemplate.withDynamicVariables({
+        billingUrl: validConfig.alertEmailConfig.billingUrl.toString(),
+        feedbackUrl: validConfig.alertEmailConfig.feedbackUrl.toString()
+      }),
       'InsufficientCreditsReminderNotSent',
       { eventType: 'InsufficientCreditsReminderNotSent' },
       expect.any(Object),
