@@ -14,12 +14,23 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              description: Request payload containing user shopping cart
-              properties:
-                tier: { $ref: './component-definitions.yaml#/components/schemas/Tier' }
-                language: { $ref: './component-definitions.yaml#/components/schemas/LanguageCode' }
-              additionalProperties: false
+              oneOf:
+                - type: object
+                  description: Request payload with tier and language
+                  properties:
+                    tier: { $ref: './component-definitions.yaml#/components/schemas/Tier' }
+                    language:
+                      { $ref: './component-definitions.yaml#/components/schemas/LanguageCode' }
+                  required: [tier, language]
+                  additionalProperties: false
+                - type: object
+                  description: Request payload with topup and language
+                  properties:
+                    topup: { $ref: './component-definitions.yaml#/components/schemas/Topup' }
+                    language:
+                      { $ref: './component-definitions.yaml#/components/schemas/LanguageCode' }
+                  required: [topup, language]
+                  additionalProperties: false
       responses:
         '200': { $ref: './component-definitions.yaml#/components/responses/PaymentSessionResult' }
         '401': { $ref: './component-definitions.yaml#/components/responses/Unauthorised' }
