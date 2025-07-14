@@ -175,7 +175,8 @@ export class StripeService {
 
             if (!hasSubscriptions) return {};
 
-            const needsSubscriptionId = flowType === 'subscription_cancel' || flowType === 'subscription_update';
+            const needsSubscriptionId =
+              flowType === 'subscription_cancel' || flowType === 'subscription_update';
             if (needsSubscriptionId && !subscriptionId) return {};
 
             const flowData: Stripe.BillingPortal.SessionCreateParams.FlowData = {
