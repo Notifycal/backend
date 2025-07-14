@@ -44,6 +44,7 @@ jobs:
           filters: |
             tf:
               - 'tf/**'
+              - 'openapi/**'
               - '.github/workflows/cd.yaml'
             backend:
               - '**'
@@ -140,6 +141,7 @@ jobs:
             tf: 
               - 'tf/*.tf'
               - 'tf/modules/**/*.tf'
+              - 'openapi/**'
               - '!CHANGELOG.md'
             'tf/modules/api_gateway_external_domain':
               - 'tf/modules/api_gateway_external_domain/**'
