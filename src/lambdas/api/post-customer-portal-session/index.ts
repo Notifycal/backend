@@ -48,7 +48,12 @@ async function lambdaHandler(
       );
     }
     return stripeService
-      .createCustomerPortalSession(stripeCustomerId, returnUrl, stripeCustomerPortalConfig.configId)
+      .createCustomerPortalSession(
+        stripeCustomerId,
+        returnUrl,
+        stripeCustomerPortalConfig.configId,
+        event.body.flow_type
+      )
       .then(
         (sessionUrl) => {
           if (sessionUrl) {

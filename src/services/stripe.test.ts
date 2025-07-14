@@ -759,7 +759,12 @@ describe(StripeService, () => {
     setupMocks(mockStripeInstance);
 
     const stripeService = await StripeService.withConfig(validApiKey);
-    return stripeService.createCustomerPortalSession(stripeCustomerId, returnUrl, configId);
+    return stripeService.createCustomerPortalSession(
+      stripeCustomerId,
+      returnUrl,
+      configId,
+      'subscription_update'
+    );
   }
 
   async function testCountSubscriptions(
