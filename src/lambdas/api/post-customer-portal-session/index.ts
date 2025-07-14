@@ -52,7 +52,7 @@ async function lambdaHandler(
         stripeCustomerId,
         returnUrl,
         stripeCustomerPortalConfig.configId,
-        event.body.flowType
+        event.body?.flowType
       )
       .then(
         (sessionUrl) => {
