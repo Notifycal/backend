@@ -4,8 +4,7 @@ import { z } from 'zod';
 import type { PostCustomerPortalSessionConfig } from './config';
 
 const createCustomerPortalSessionSchema = z.object({
-  // eslint-disable-next-line camelcase
-  flow_type: z.enum(['subscription_cancel', 'subscription_update'])
+  flowType: z.enum(['subscription_cancel', 'subscription_update']).optional()
 });
 
 export const eventSchema = authedEventSchema<PostCustomerPortalSessionConfig>().extend({
