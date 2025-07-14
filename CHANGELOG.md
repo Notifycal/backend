@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.49.0](https://github.com/Notifycal/backend/compare/v0.48.1...v0.49.0) (2025-07-14)
+
+
+### Features
+
+* low credits detected event ([#838](https://github.com/Notifycal/backend/issues/838)) ([ca16ab4](https://github.com/Notifycal/backend/commit/ca16ab43c2cb076d06f1ab43e6874cc458ef63d4))
+
 ## [0.48.1](https://github.com/Notifycal/backend/compare/v0.48.0...v0.48.1) (2025-07-14)
 
 
