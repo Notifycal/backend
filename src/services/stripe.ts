@@ -170,27 +170,41 @@ export class StripeService {
         P.union('subscription_cancel', 'subscription_update', 'payment_method_update'),
         (flowType) => {
           return this.getSubscriptions(stripeCustomerId).then((subscriptions) => {
-            const subscriptionId = subscriptions[0]?.id;
-            return subscriptions[0]?.id
-              ? {
-                  flow_data: {
-                    type: flowType,
-                    ...(subscriptionId && { subscription: subscriptionId })
-                  }
-                }
-              : {};
+            const hasSubscriptions = subscriptions.length > 0;
+            const subscription = subscriptions[0];
+            const subscriptionId = subscription?.id;
+
+            if (!hasSubscriptions) return {};
+
+            const needsSubscriptionId =
+              flowType === 'subscription_cancel' || flowType === 'subscription_update';
+            if (needsSubscriptionId && !subscriptionId) return {};
+            if (
+              flowType === 'subscription_cancel' &&
+              subscription &&
+              subscription.cancel_at_period_end
+            )
+              return {};
+
+            const flowData: Stripe.BillingPortal.SessionCreateParams.FlowData = {
+              type: flowType,
+              ...(needsSubscriptionId && { [flowType]: { subscription: subscriptionId } })
+            };
+
+            return { flow_data: flowData };
           });
         }
       )
       .with(undefined, () => Promise.resolve({}))
       .exhaustive()
       .then((flowDataConfig) => {
-        return this.stripeClient.billingPortal.sessions.create({
+        const params: Stripe.BillingPortal.SessionCreateParams = {
           customer: stripeCustomerId,
           return_url: returnUrl,
           configuration: configId,
           ...flowDataConfig
-        });
+        };
+        return this.stripeClient.billingPortal.sessions.create(params);
       })
       .then((session) => session.url as Url);
   }
