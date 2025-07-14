@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.48.1](https://github.com/Notifycal/backend/compare/v0.48.0...v0.48.1) (2025-07-14)
+
+
+### Bug Fixes
+
+* customer portal flow data ([#834](https://github.com/Notifycal/backend/issues/834)) ([928e140](https://github.com/Notifycal/backend/commit/928e1402ac8519c5956e5d8a6cfe10e7bfd2e5f2))
+* **deps:** Update dependency @notifycal/shared to v5.0.1 ([#835](https://github.com/Notifycal/backend/issues/835)) ([a502d5f](https://github.com/Notifycal/backend/commit/a502d5fe74d5fc1486409bdb07201ad11fb4ab68))
+
 ## [0.48.0](https://github.com/Notifycal/backend/compare/v0.47.1...v0.48.0) (2025-07-14)
 
 
