@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.46.2](https://github.com/Notifycal/backend/compare/v0.46.1...v0.46.2) (2025-07-14)
+
+
+### Bug Fixes
+
+* 409 conflict error message ([#823](https://github.com/Notifycal/backend/issues/823)) ([36b0c6a](https://github.com/Notifycal/backend/commit/36b0c6a9b13e5269b9f43a8fa4723c3f47aea1da))
+* **deps:** Update dependency libphonenumber-js to v1.12.10 ([#821](https://github.com/Notifycal/backend/issues/821)) ([7bbcab6](https://github.com/Notifycal/backend/commit/7bbcab67a60594deedeb1c62f0b064f0465dfd1f))
+* update open api topups ([#824](https://github.com/Notifycal/backend/issues/824)) ([e47c04a](https://github.com/Notifycal/backend/commit/e47c04a386434770ca45e388e291a3cc5287c75f))
+
 ## [0.46.1](https://github.com/Notifycal/backend/compare/v0.46.0...v0.46.1) (2025-07-11)
 
 
