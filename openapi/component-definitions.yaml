@@ -222,6 +222,12 @@ components:
         - better
         - best
 
+    Topup:
+      type: string
+      description: user's choice for topups
+      enum:
+        - single
+
     ErrorResponse:
       type: object
       properties:
