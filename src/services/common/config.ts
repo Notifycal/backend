@@ -367,11 +367,7 @@ export function readAlertEmailConfig(env: Environment): AlertEmailEndpointConfig
   return {
     alertEmailConfig: {
       faqUrl: env.get('FAQ_URL').default('https://notifycal.com/faq').asUrlObject(),
-      billingUrl: env.get('BILLING_URL').default('https://notifycal.com/pricing').asUrlObject(),
-      feedbackUrl: env
-        .get('FEEDBACK_URL')
-        .default('https://private.notifycal.com/#/feedback')
-        .asUrlObject()
+      billingUrl: env.get('BILLING_URL').default('https://notifycal.com/pricing').asUrlObject()
     }
   };
 }

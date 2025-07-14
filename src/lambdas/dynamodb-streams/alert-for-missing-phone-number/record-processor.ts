@@ -1,5 +1,6 @@
 import type { Logger } from '@aws-lambda-powertools/logger';
-import { alertMissingPhoneNumberTemplate } from '@email/templates/alert-missing-phone-number/translations';
+import { alertMissingPhoneNumberPartialTemplate } from '@email/templates/alert-missing-phone-number/alert-missing-phone-number.html.hbs';
+import { specificTranslations } from '@email/templates/alert-missing-phone-number/translations';
 import type {
   EmailWithName,
   EventCreationOptions,
@@ -77,10 +78,13 @@ function createEmailEvent(
 ): EmailToBeSentEvent {
   const subEventType: EmailToBeSentEvent['data']['subEventType'] =
     'NoPhoneNumberForCalendarEventFound';
-  const templateConfig: EmailTemplateConfig = alertMissingPhoneNumberTemplate.withDynamicVariables({
-    feedbackUrl: alertEmailConfig.feedbackUrl.toString(),
-    notifycalFaqUrl: alertEmailConfig.faqUrl.toString()
-  });
+  const templateConfig: EmailTemplateConfig = {
+    partialTemplate: alertMissingPhoneNumberPartialTemplate,
+    specificTranslations: specificTranslations,
+    templateVariables: {
+      notifycalFaqUrl: alertEmailConfig.faqUrl.toString()
+    }
+  };
   const metadata = {
     actionableEventFoundCount: updateCounterResult.SuccessCount,
     noPhoneNumberForCalendarEventFoundCount: updateCounterResult.FailureCount,

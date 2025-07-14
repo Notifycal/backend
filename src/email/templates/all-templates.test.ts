@@ -1,54 +1,50 @@
 import { logger } from '@common/powertools';
-import { logo } from '@email/assets/logo.png.base64';
 import type { EmailTemplateConfig } from '@model/Email';
 import type { CorrelationId, Email, IdpId, LanguageCode, UserId } from '@notifycal/shared/types';
 import { EmailTemplateService } from '@services/email-template-service';
 import { mkdirSync, writeFileSync } from 'fs';
 import path from 'path';
 import { describe, expect, it } from 'vitest';
-import { alertMissingPhoneNumberTemplate } from './alert-missing-phone-number/translations';
-import { insufficientCreditsTemplate } from './insufficient-credits/translations';
-import { lowCreditsDetectedTemplate } from './low-credits-detected/translations';
+import { alertMissingPhoneNumberPartialTemplate } from './alert-missing-phone-number/alert-missing-phone-number.html.hbs';
+import { specificTranslations as alertMissingPhoneNumberTranslations } from './alert-missing-phone-number/translations';
+import { insufficientCreditsPartialTemplate } from './insufficient-credits/insufficient-credits.html.hbs';
+import { specificTranslations as insufficientCreditsTranslations } from './insufficient-credits/translations';
+import { lowCreditsDetectedPartialTemplate } from './low-credits-detected/low-credits-detected.html.hbs';
+import { specificTranslations as lowCreditsDetectedTranslations } from './low-credits-detected/translations';
 
-const billingUrl = 'https://app.notifycal.com/billing';
-const feedbackUrl = 'https://app.notifycal.com/feedback';
-const logoOverride = {
-  logoSrc: `data:image/png;base64,${logo}` //Override logoSrc template variable slightly differenty to be able to render it.
-};
+const topupUrl = 'https://app.notifycal.com/billing';
 
 const templates = [
   {
     name: 'low-credits-detected',
-    template: lowCreditsDetectedTemplate.withDynamicVariables({
-      billingUrl,
-      feedbackUrl,
-      ...logoOverride
-    })
+    partialTemplate: lowCreditsDetectedPartialTemplate,
+    specificTranslations: lowCreditsDetectedTranslations,
+    templateVariables: { topupUrl }
   },
   {
     name: 'insufficient-credits',
-    template: insufficientCreditsTemplate.withDynamicVariables({
-      billingUrl,
-      feedbackUrl,
-      ...logoOverride
-    })
+    partialTemplate: insufficientCreditsPartialTemplate,
+    specificTranslations: insufficientCreditsTranslations,
+    templateVariables: { topupUrl }
   },
   {
     name: 'alert-missing-phone-number',
-    template: alertMissingPhoneNumberTemplate.withDynamicVariables({
-      notifycalFaqUrl: 'https://notifycal.com/faq',
-      feedbackUrl,
-      ...logoOverride
-    })
+    partialTemplate: alertMissingPhoneNumberPartialTemplate,
+    specificTranslations: alertMissingPhoneNumberTranslations,
+    templateVariables: { notifycalFaqUrl: 'https://notifycal.com/faq' }
   }
 ];
 
 describe('all email templates', () => {
   // eslint-disable-next-line vitest/require-hook
-  templates.forEach(({ name, template }) => {
+  templates.forEach(({ name, partialTemplate, specificTranslations, templateVariables }) => {
     // eslint-disable-next-line vitest/expect-expect
     it(`should compile the ${name} template`, () => {
-      testEmailTemplate(name, template, __dirname + '/dist');
+      testEmailTemplate(
+        name,
+        { partialTemplate, specificTranslations, templateVariables },
+        __dirname + '/dist'
+      );
     });
   });
 });

@@ -1,7 +1,7 @@
 import type { Logger } from '@aws-lambda-powertools/logger';
 import { logo } from '@email/assets/logo.png.base64';
-import { baseTemplate } from '@email/templates/base/base-template.html.hbs';
-import { commonTranslations } from '@email/templates/base/translations';
+import { baseTemplate } from '@email/base-template.html.hbs';
+import { commonTranslations } from '@email/i18n/translations';
 import type {
   EmailWithName,
   EventCreationOptions,
@@ -67,7 +67,7 @@ export class EmailTemplateService {
     const compiledTemplateFn = this.compileTemplate(
       templateConfig.partialTemplate,
       templateConfig.specificTranslations,
-      templateConfig.dynamicVariables
+      templateConfig.templateVariables
     );
     const emailTemplate = compiledTemplateFn(language);
 
