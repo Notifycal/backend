@@ -19,8 +19,7 @@ paths:
               properties:
                 tier: { $ref: './component-definitions.yaml#/components/schemas/Tier' }
                 topup: { $ref: './component-definitions.yaml#/components/schemas/Topup' }
-                language:
-                  { $ref: './component-definitions.yaml#/components/schemas/LanguageCode' }
+                language: { $ref: './component-definitions.yaml#/components/schemas/LanguageCode' }
               required: [language]
               additionalProperties: false
       responses:
