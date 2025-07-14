@@ -166,31 +166,38 @@ export class StripeService {
       | undefined
   ): Promise<Url> {
     return match(flowType)
-      .with(
-        P.union('subscription_cancel', 'subscription_update', 'payment_method_update'),
-        (flowType) => {
-          return this.getSubscriptions(stripeCustomerId).then((subscriptions) => {
-            const subscriptionId = subscriptions[0]?.id;
-            return subscriptions[0]?.id
-              ? {
-                  flow_data: {
-                    type: flowType,
-                    ...(subscriptionId && { subscription: subscriptionId })
-                  }
-                }
-              : {};
-          });
-        }
-      )
+      .with(P.union('subscription_cancel', 'subscription_update'), (flowType) => {
+        return this.getSubscriptions(stripeCustomerId).then((subscriptions) => {
+          const subscriptionId = subscriptions[0]?.id;
+          if (subscriptionId) {
+            const flowData: Stripe.BillingPortal.SessionCreateParams.FlowData = {
+              type: flowType,
+              [flowType]: { subscription: subscriptionId }
+            };
+            return { flow_data: flowData };
+          } else {
+            return {};
+          }
+        });
+      })
+      .with('payment_method_update', (flowType) => {
+        const flowData: Stripe.BillingPortal.SessionCreateParams.FlowData = {
+          type: flowType
+        };
+        return Promise.resolve({
+          flow_data: flowData
+        });
+      })
       .with(undefined, () => Promise.resolve({}))
       .exhaustive()
       .then((flowDataConfig) => {
-        return this.stripeClient.billingPortal.sessions.create({
+        const params: Stripe.BillingPortal.SessionCreateParams = {
           customer: stripeCustomerId,
           return_url: returnUrl,
           configuration: configId,
           ...flowDataConfig
-        });
+        };
+        return this.stripeClient.billingPortal.sessions.create(params);
       })
       .then((session) => session.url as Url);
   }

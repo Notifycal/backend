@@ -553,7 +553,7 @@ describe(StripeService, () => {
     async function testPortalSession(
       flowType: FlowType,
       subscriptionsData: Array<{ id: string; status: string }> = [],
-      expectedFlowData?: { type: FlowType; subscription: string }
+      expectedFlowData?: Stripe.BillingPortal.SessionCreateParams.FlowData
     ) {
       const mockSession = { url: validPortalUrl };
       const createPortalSessionFn = vi.fn().mockResolvedValue(mockSession);
@@ -569,12 +569,18 @@ describe(StripeService, () => {
       );
 
       expect(result).toBe(validPortalUrl);
-      expect(listSubscriptionsFn).toHaveBeenCalledTimes(1);
-      expect(listSubscriptionsFn).toHaveBeenCalledWith({
-        customer: validStripeCustomerId,
-        status: 'all',
-        limit: 100
-      });
+
+      if (flowType === 'subscription_cancel' || flowType === 'subscription_update') {
+        expect(listSubscriptionsFn).toHaveBeenCalledTimes(1);
+        expect(listSubscriptionsFn).toHaveBeenCalledWith({
+          customer: validStripeCustomerId,
+          status: 'all',
+          limit: 100
+        });
+      } else {
+        expect(listSubscriptionsFn).not.toHaveBeenCalled();
+      }
+
       expect(createPortalSessionFn).toHaveBeenCalledTimes(1);
 
       const expectedCall = {
@@ -625,7 +631,9 @@ describe(StripeService, () => {
     it('should create portal session with flow_data when flowType is subscription_update and subscriptions exist', async () => {
       await testPortalSession('subscription_update', [{ id: 'sub_123', status: 'active' }], {
         type: 'subscription_update',
-        subscription: 'sub_123'
+        subscription_update: {
+          subscription: 'sub_123'
+        }
       });
     });
 
@@ -633,15 +641,16 @@ describe(StripeService, () => {
     it('should create portal session with flow_data when flowType is subscription_cancel and subscriptions exist', async () => {
       await testPortalSession('subscription_cancel', [{ id: 'sub_789', status: 'active' }], {
         type: 'subscription_cancel',
-        subscription: 'sub_789'
+        subscription_cancel: {
+          subscription: 'sub_789'
+        }
       });
     });
 
     // eslint-disable-next-line vitest/expect-expect
     it('should create portal session with flow_data when flowType is payment_method_update and subscriptions exist', async () => {
       await testPortalSession('payment_method_update', [{ id: 'sub_payment', status: 'active' }], {
-        type: 'payment_method_update',
-        subscription: 'sub_payment'
+        type: 'payment_method_update'
       });
     });
 
