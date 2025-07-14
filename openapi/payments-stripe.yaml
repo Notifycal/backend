@@ -14,23 +14,15 @@ paths:
         content:
           application/json:
             schema:
-              oneOf:
-                - type: object
-                  description: Request payload with tier and language
-                  properties:
-                    tier: { $ref: './component-definitions.yaml#/components/schemas/Tier' }
-                    language:
-                      { $ref: './component-definitions.yaml#/components/schemas/LanguageCode' }
-                  required: [tier, language]
-                  additionalProperties: false
-                - type: object
-                  description: Request payload with topup and language
-                  properties:
-                    topup: { $ref: './component-definitions.yaml#/components/schemas/Topup' }
-                    language:
-                      { $ref: './component-definitions.yaml#/components/schemas/LanguageCode' }
-                  required: [topup, language]
-                  additionalProperties: false
+              type: object
+              description: Request payload with tier/topup and language. Must include either tier or topup, but not both. Ideally, the schema would use `oneOf`, but AWS APIGW has selective support for it.
+              properties:
+                tier: { $ref: './component-definitions.yaml#/components/schemas/Tier' }
+                topup: { $ref: './component-definitions.yaml#/components/schemas/Topup' }
+                language:
+                  { $ref: './component-definitions.yaml#/components/schemas/LanguageCode' }
+              required: [language]
+              additionalProperties: false
       responses:
         '200': { $ref: './component-definitions.yaml#/components/responses/PaymentSessionResult' }
         '401': { $ref: './component-definitions.yaml#/components/responses/Unauthorised' }
