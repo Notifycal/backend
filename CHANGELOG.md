@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.47.0](https://github.com/Notifycal/backend/compare/v0.46.2...v0.47.0) (2025-07-14)
+
+
+### Features
+
+* customer-portal flowTypes ([#825](https://github.com/Notifycal/backend/issues/825)) ([c7bee12](https://github.com/Notifycal/backend/commit/c7bee12d8fbf356319d8495b6bde0ad3b251cb1a))
+
+
+### Bug Fixes
+
+* **deps:** Update Middy middleware packages to v6.4.1 ([#828](https://github.com/Notifycal/backend/issues/828)) ([fe4224a](https://github.com/Notifycal/backend/commit/fe4224ae31dfaf5f3a69724f1458e3ae0afe7d18))
+* send user to billing page from customer portal ([#826](https://github.com/Notifycal/backend/issues/826)) ([5392fd6](https://github.com/Notifycal/backend/commit/5392fd6522c3e8ed0f08dbe667f5baa2e1360b81))
+
 ## [0.46.2](https://github.com/Notifycal/backend/compare/v0.46.1...v0.46.2) (2025-07-14)
 
 
