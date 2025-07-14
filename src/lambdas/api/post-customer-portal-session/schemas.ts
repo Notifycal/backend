@@ -1,6 +1,17 @@
+import { JSONStringified } from '@aws-lambda-powertools/parser/helpers';
 import { authedEventSchema } from '@model/lambda-events/ApiGatewayEvents';
-import type { z } from 'zod';
+import { z } from 'zod';
 import type { PostCustomerPortalSessionConfig } from './config';
 
-export const eventSchema = authedEventSchema<PostCustomerPortalSessionConfig>();
+const createCustomerPortalSessionSchema = z
+  .object({
+    flowType: z
+      .enum(['subscription_cancel', 'subscription_update', 'payment_method_update'])
+      .optional()
+  })
+  .optional();
+
+export const eventSchema = authedEventSchema<PostCustomerPortalSessionConfig>().extend({
+  body: JSONStringified(createCustomerPortalSessionSchema)
+});
 export type Event = z.infer<typeof eventSchema>;
