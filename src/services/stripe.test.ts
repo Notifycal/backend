@@ -548,15 +548,67 @@ describe(StripeService, () => {
   describe('createCustomerPortalSession', () => {
     const validStripeCustomerPortalConfigId = 'cng_rdtsghethergwrg';
 
-    it('should create customer portal session successfully and return session URL', async () => {
+    type FlowType = 'subscription_cancel' | 'subscription_update' | 'payment_method_update';
+
+    async function testPortalSession(
+      flowType: FlowType,
+      subscriptionsData: Array<{ id: string; status: string }> = [],
+      expectedFlowData?: { type: FlowType; subscription: string }
+    ) {
       const mockSession = { url: validPortalUrl };
       const createPortalSessionFn = vi.fn().mockResolvedValue(mockSession);
+      const listSubscriptionsFn = vi.fn().mockResolvedValue({ data: subscriptionsData });
 
       const result = await testCustomerPortalSession(
         validStripeCustomerId,
         validReturnUrl,
         validStripeCustomerPortalConfigId,
-        createPortalSessionFn
+        flowType,
+        createPortalSessionFn,
+        listSubscriptionsFn
+      );
+
+      expect(result).toBe(validPortalUrl);
+      expect(listSubscriptionsFn).toHaveBeenCalledTimes(1);
+      expect(listSubscriptionsFn).toHaveBeenCalledWith({
+        customer: validStripeCustomerId,
+        status: 'all',
+        limit: 100
+      });
+      expect(createPortalSessionFn).toHaveBeenCalledTimes(1);
+
+      const expectedCall = {
+        customer: validStripeCustomerId,
+        return_url: validReturnUrl,
+        configuration: validStripeCustomerPortalConfigId,
+        ...(expectedFlowData && { flow_data: expectedFlowData })
+      };
+
+      expect(createPortalSessionFn).toHaveBeenCalledWith(expectedCall);
+
+      if (!expectedFlowData) {
+        // eslint-disable-next-line vitest/max-expects
+        expect(createPortalSessionFn).not.toHaveBeenCalledWith(
+          expect.objectContaining({
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            flow_data: expect.any(Object)
+          })
+        );
+      }
+    }
+
+    it('should create customer portal session successfully without flow_data when flowType is undefined', async () => {
+      const mockSession = { url: validPortalUrl };
+      const createPortalSessionFn = vi.fn().mockResolvedValue(mockSession);
+      const listSubscriptionsFn = vi.fn().mockResolvedValue({ data: [] });
+
+      const result = await testCustomerPortalSession(
+        validStripeCustomerId,
+        validReturnUrl,
+        validStripeCustomerPortalConfigId,
+        undefined,
+        createPortalSessionFn,
+        listSubscriptionsFn
       );
 
       expect(result).toBe(validPortalUrl);
@@ -566,20 +618,93 @@ describe(StripeService, () => {
         return_url: validReturnUrl,
         configuration: validStripeCustomerPortalConfigId
       });
+      expect(listSubscriptionsFn).not.toHaveBeenCalled();
+    });
+
+    // eslint-disable-next-line vitest/expect-expect
+    it('should create portal session with flow_data when flowType is subscription_update and subscriptions exist', async () => {
+      await testPortalSession('subscription_update', [{ id: 'sub_123', status: 'active' }], {
+        type: 'subscription_update',
+        subscription: 'sub_123'
+      });
+    });
+
+    // eslint-disable-next-line vitest/expect-expect
+    it('should create portal session with flow_data when flowType is subscription_cancel and subscriptions exist', async () => {
+      await testPortalSession('subscription_cancel', [{ id: 'sub_789', status: 'active' }], {
+        type: 'subscription_cancel',
+        subscription: 'sub_789'
+      });
+    });
+
+    // eslint-disable-next-line vitest/expect-expect
+    it('should create portal session with flow_data when flowType is payment_method_update and subscriptions exist', async () => {
+      await testPortalSession('payment_method_update', [{ id: 'sub_payment', status: 'active' }], {
+        type: 'payment_method_update',
+        subscription: 'sub_payment'
+      });
+    });
+
+    // eslint-disable-next-line vitest/expect-expect
+    it('should create portal session without flow_data when subscription_update flowType is provided but no subscriptions exist', async () => {
+      await testPortalSession('subscription_update');
+    });
+
+    // eslint-disable-next-line vitest/expect-expect
+    it('should create portal session without flow_data when payment_method_update flowType is provided but no subscriptions exist', async () => {
+      await testPortalSession('payment_method_update');
+    });
+
+    // eslint-disable-next-line vitest/expect-expect
+    it('should create portal session without flow_data when subscription_cancel flowType is provided but only inactive subscriptions exist', async () => {
+      const inactiveSubscriptions = [
+        { id: 'sub_canceled', status: 'canceled' },
+        { id: 'sub_incomplete', status: 'incomplete' }
+      ];
+      await testPortalSession('subscription_cancel', inactiveSubscriptions);
+    });
+
+    // eslint-disable-next-line vitest/expect-expect
+    it('should create portal session without flow_data when payment_method_update flowType is provided but only inactive subscriptions exist', async () => {
+      const inactiveSubscriptions = [
+        { id: 'sub_canceled', status: 'canceled' },
+        { id: 'sub_incomplete', status: 'incomplete' }
+      ];
+      await testPortalSession('payment_method_update', inactiveSubscriptions);
     });
 
     it('should throw error when customer portal session creation fails', async () => {
       const stripeError = new Error('Portal session creation failed');
       const createPortalSessionFn = vi.fn().mockRejectedValue(stripeError);
+      const listSubscriptionsFn = vi.fn().mockResolvedValue({ data: [] });
 
       await expect(
         testCustomerPortalSession(
           validStripeCustomerId,
           validReturnUrl,
           validStripeCustomerPortalConfigId,
-          createPortalSessionFn
+          undefined,
+          createPortalSessionFn,
+          listSubscriptionsFn
         )
       ).rejects.toThrow('Portal session creation failed');
+    });
+
+    it('should throw error when subscription listing fails', async () => {
+      const stripeError = new Error('Failed to list subscriptions');
+      const createPortalSessionFn = vi.fn().mockResolvedValue({ url: validPortalUrl });
+      const listSubscriptionsFn = vi.fn().mockRejectedValue(stripeError);
+
+      await expect(
+        testCustomerPortalSession(
+          validStripeCustomerId,
+          validReturnUrl,
+          validStripeCustomerPortalConfigId,
+          'subscription_update',
+          createPortalSessionFn,
+          listSubscriptionsFn
+        )
+      ).rejects.toThrow('Failed to list subscriptions');
     });
   });
 
@@ -745,7 +870,14 @@ describe(StripeService, () => {
     stripeCustomerId: StripeCustomerId,
     returnUrl: Url,
     configId: string,
-    createPortalSessionFn: () => Promise<Stripe.Response<Stripe.BillingPortal.Session>>
+    flow_type:
+      | Extract<
+          Stripe.BillingPortal.SessionCreateParams.FlowData.Type,
+          'subscription_cancel' | 'subscription_update' | 'payment_method_update'
+        >
+      | undefined,
+    createPortalSessionFn: () => Promise<Stripe.Response<Stripe.BillingPortal.Session>>,
+    listSubscriptionsFn: () => Promise<{ data: Array<{ id: string; status: string }> }>
   ): Promise<Url> {
     const mockStripeInstance = {
       ...testClocksMockFn(),
@@ -753,13 +885,21 @@ describe(StripeService, () => {
         sessions: {
           create: createPortalSessionFn
         }
+      },
+      subscriptions: {
+        list: listSubscriptionsFn
       }
     } as unknown as Stripe;
 
     setupMocks(mockStripeInstance);
 
     const stripeService = await StripeService.withConfig(validApiKey);
-    return stripeService.createCustomerPortalSession(stripeCustomerId, returnUrl, configId);
+    return stripeService.createCustomerPortalSession(
+      stripeCustomerId,
+      returnUrl,
+      configId,
+      flow_type
+    );
   }
 
   async function testCountSubscriptions(

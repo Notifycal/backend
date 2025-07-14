@@ -11,7 +11,7 @@ import type {
 import type { Url } from '@own-types/model';
 import { HttpClient } from '@services/common/http-client';
 import { default as Stripe } from 'stripe';
-import { match } from 'ts-pattern';
+import { match, P } from 'ts-pattern';
 import { AxiosHttpClient } from './stripe-axios-client';
 
 export class StripeService {
@@ -157,29 +157,59 @@ export class StripeService {
   public createCustomerPortalSession(
     stripeCustomerId: StripeCustomerId,
     returnUrl: Url,
-    configId: string
+    configId: string,
+    flowType:
+      | Extract<
+          Stripe.BillingPortal.SessionCreateParams.FlowData.Type,
+          'subscription_cancel' | 'subscription_update' | 'payment_method_update'
+        >
+      | undefined
   ): Promise<Url> {
-    return this.stripeClient.billingPortal.sessions
-      .create({
-        customer: stripeCustomerId,
-        return_url: returnUrl,
-        configuration: configId
+    return match(flowType)
+      .with(
+        P.union('subscription_cancel', 'subscription_update', 'payment_method_update'),
+        (flowType) => {
+          return this.getSubscriptions(stripeCustomerId).then((subscriptions) => {
+            const subscriptionId = subscriptions[0]?.id;
+            return subscriptions[0]?.id
+              ? {
+                  flow_data: {
+                    type: flowType,
+                    ...(subscriptionId && { subscription: subscriptionId })
+                  }
+                }
+              : {};
+          });
+        }
+      )
+      .with(undefined, () => Promise.resolve({}))
+      .exhaustive()
+      .then((flowDataConfig) => {
+        return this.stripeClient.billingPortal.sessions.create({
+          customer: stripeCustomerId,
+          return_url: returnUrl,
+          configuration: configId,
+          ...flowDataConfig
+        });
       })
       .then((session) => session.url as Url);
   }
 
-  public countSubscriptions(stripeCustomerId: StripeCustomerId): Promise<number> {
+  public getSubscriptions(stripeCustomerId: StripeCustomerId): Promise<Array<Stripe.Subscription>> {
     return this.stripeClient.subscriptions
       .list({
         customer: stripeCustomerId,
         status: 'all',
         limit: 100
       })
-      .then(
-        (subscriptions) =>
-          subscriptions.data.filter(
-            (subscription) => subscription.status === 'active' || subscription.status === 'past_due'
-          ).length
+      .then((subscriptions) =>
+        subscriptions.data.filter(
+          (subscription) => subscription.status === 'active' || subscription.status === 'past_due'
+        )
       );
+  }
+
+  public countSubscriptions(stripeCustomerId: StripeCustomerId): Promise<number> {
+    return this.getSubscriptions(stripeCustomerId).then((subscriptions) => subscriptions.length);
   }
 }

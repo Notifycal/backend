@@ -47,10 +47,20 @@ describe('Customer Portal Session Handler', () => {
     permissions: {}
   };
   const validRequestBody = {};
+  const validRequestBodyWithFlowType = { flowType: 'subscription_update' };
+  const validRequestBodyWithCancelFlow = { flowType: 'subscription_cancel' };
+  const validRequestBodyWithPaymentMethodUpdate = { flowType: 'payment_method_update' };
 
-  it('should create customer portal session successfully', async () => {
+  async function testCustomerPortalSession(
+    requestBody: object,
+    expectedFlowType:
+      | 'subscription_cancel'
+      | 'subscription_update'
+      | 'payment_method_update'
+      | undefined
+  ) {
     const validEvent = (await testAuthedEvent(
-      validRequestBody,
+      requestBody,
       {},
       accessTokenSchema,
       validAccessToken
@@ -71,7 +81,8 @@ describe('Customer Portal Session Handler', () => {
     expect(createCustomerPortalSessionFn).toHaveBeenCalledWith(
       validStripeCustomerId,
       validReturnUrl,
-      validStripeCustomerPortalConfigId
+      validStripeCustomerPortalConfigId,
+      expectedFlowType
     );
     expect(addMetricFn).toHaveBeenCalledWith('CustomerPortalSessionCreated', MetricUnit.Count, 1, {
       userId: validUserId
@@ -79,6 +90,11 @@ describe('Customer Portal Session Handler', () => {
     expect(result.statusCode).toBe(200);
 
     assert(result, responseSuccess({ result: { url: validSessionUrl } }));
+  }
+
+  // eslint-disable-next-line vitest/expect-expect
+  it('should create customer portal session successfully', async () => {
+    await testCustomerPortalSession(validRequestBody, undefined);
   });
 
   it('should return CORS error when frontend URL validation fails', async () => {
@@ -161,7 +177,8 @@ describe('Customer Portal Session Handler', () => {
     expect(createCustomerPortalSessionFn).toHaveBeenCalledWith(
       validStripeCustomerId,
       validReturnUrl,
-      validStripeCustomerPortalConfigId
+      validStripeCustomerPortalConfigId,
+      undefined
     );
     expect(addMetricFn).toHaveBeenCalledWith(
       'CustomerPortalSessionCancelled',
@@ -197,7 +214,8 @@ describe('Customer Portal Session Handler', () => {
     expect(createCustomerPortalSessionFn).toHaveBeenCalledWith(
       validStripeCustomerId,
       validReturnUrl,
-      validStripeCustomerPortalConfigId
+      validStripeCustomerPortalConfigId,
+      undefined
     );
     expect(addMetricFn).toHaveBeenCalledWith('CustomerPortalSessionFailed', MetricUnit.Count, 1, {
       userId: validUserId
@@ -224,6 +242,24 @@ describe('Customer Portal Session Handler', () => {
 
     expect(getStripeCustomerIdFn).toHaveBeenCalledWith(validUserId);
     expect(createCustomerPortalSessionFn).not.toHaveBeenCalled();
+  });
+
+  // eslint-disable-next-line vitest/expect-expect
+  it('should create customer portal session with subscription_update flow_type', async () => {
+    await testCustomerPortalSession(validRequestBodyWithFlowType, 'subscription_update');
+  });
+
+  // eslint-disable-next-line vitest/expect-expect
+  it('should create customer portal session with subscription_cancel flow_type', async () => {
+    await testCustomerPortalSession(validRequestBodyWithCancelFlow, 'subscription_cancel');
+  });
+
+  // eslint-disable-next-line vitest/expect-expect
+  it('should create customer portal session with payment_method_update flow_type', async () => {
+    await testCustomerPortalSession(
+      validRequestBodyWithPaymentMethodUpdate,
+      'payment_method_update'
+    );
   });
 });
 
@@ -255,7 +291,12 @@ function setEnv(config: PostCustomerPortalSessionConfig): void {
 function testIt(
   event: APIGatewayProxyEvent,
   getStripeCustomerIdFn: () => Promise<string | null>,
-  createCustomerPortalSessionFn: () => Promise<string | null>,
+  createCustomerPortalSessionFn: (
+    stripeCustomerId: string,
+    returnUrl: string,
+    configId: string,
+    flowType?: 'subscription_cancel' | 'subscription_update' | 'payment_method_update'
+  ) => Promise<string | null>,
   addMetricFn: () => void,
   config: PostCustomerPortalSessionConfig = defaultConfig
 ): Promise<APIGatewayProxyResult> {
