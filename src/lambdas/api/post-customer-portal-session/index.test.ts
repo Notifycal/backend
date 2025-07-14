@@ -53,7 +53,11 @@ describe('Customer Portal Session Handler', () => {
 
   async function testCustomerPortalSession(
     requestBody: object,
-    expectedFlowType: 'subscription_cancel' | 'subscription_update' | 'payment_method_update' | undefined
+    expectedFlowType:
+      | 'subscription_cancel'
+      | 'subscription_update'
+      | 'payment_method_update'
+      | undefined
   ) {
     const validEvent = (await testAuthedEvent(
       requestBody,
@@ -242,18 +246,12 @@ describe('Customer Portal Session Handler', () => {
 
   // eslint-disable-next-line vitest/expect-expect
   it('should create customer portal session with subscription_update flow_type', async () => {
-    await testCustomerPortalSession(
-      validRequestBodyWithFlowType,
-      'subscription_update'
-    );
+    await testCustomerPortalSession(validRequestBodyWithFlowType, 'subscription_update');
   });
 
   // eslint-disable-next-line vitest/expect-expect
   it('should create customer portal session with subscription_cancel flow_type', async () => {
-    await testCustomerPortalSession(
-      validRequestBodyWithCancelFlow,
-      'subscription_cancel'
-    );
+    await testCustomerPortalSession(validRequestBodyWithCancelFlow, 'subscription_cancel');
   });
 
   // eslint-disable-next-line vitest/expect-expect
