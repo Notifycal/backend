@@ -1,6 +1,6 @@
 import { logger } from '@common/powertools';
 import { logo } from '@email/assets/logo.png.base64';
-import { commonTranslations } from '@email/templates/base/translations';
+import { commonTranslations } from '@email/i18n/translations';
 import type { EventCreationOptions, EventSourceIdentity } from '@model/app-events/common';
 import type { EmailToBeSentEvent } from '@model/app-events/EmailToBeSentEvent';
 import type { EmailTemplateConfig } from '@model/Email';
@@ -42,7 +42,7 @@ const validDynamicVariables = {
 const validTemplateConfig: EmailTemplateConfig = {
   partialTemplate: validPartialTemplate,
   specificTranslations: validSpecificTranslations,
-  dynamicVariables: validDynamicVariables
+  templateVariables: validDynamicVariables
 };
 
 const validEmail = 'test@example.com' as Email;
@@ -179,7 +179,7 @@ describe(EmailTemplateService, () => {
     const templateConfig: EmailTemplateConfig = {
       partialTemplate: '{{appName}} - {{rightsReserved}}',
       specificTranslations: validSpecificTranslations,
-      dynamicVariables: {}
+      templateVariables: {}
     };
 
     const emailEvent = service.createEmailEvent(
@@ -202,7 +202,7 @@ describe(EmailTemplateService, () => {
     const templateConfig: EmailTemplateConfig = {
       partialTemplate: '{{appName}} - {{header}}',
       specificTranslations: validSpecificTranslations,
-      dynamicVariables: {}
+      templateVariables: {}
     };
 
     const emailEvent = service.createEmailEvent(
@@ -225,7 +225,7 @@ describe(EmailTemplateService, () => {
     const templateConfig: EmailTemplateConfig = {
       partialTemplate: '{{dynamicVar}}',
       specificTranslations: validSpecificTranslations,
-      dynamicVariables: validDynamicVariables
+      templateVariables: validDynamicVariables
     };
 
     const emailEvent = service.createEmailEvent(
@@ -247,7 +247,7 @@ describe(EmailTemplateService, () => {
     const templateConfig: EmailTemplateConfig = {
       partialTemplate: '{{header}}',
       specificTranslations: validSpecificTranslations,
-      dynamicVariables: {}
+      templateVariables: {}
     };
 
     const englishEvent = service.createEmailEvent(
@@ -283,7 +283,7 @@ describe(EmailTemplateService, () => {
     const templateConfig: EmailTemplateConfig = {
       partialTemplate: '{{logoSrc}}',
       specificTranslations: validSpecificTranslations,
-      dynamicVariables: {}
+      templateVariables: {}
     };
 
     const emailEvent = service.createEmailEvent(
@@ -305,7 +305,7 @@ describe(EmailTemplateService, () => {
     const templateConfig: EmailTemplateConfig = {
       partialTemplate: '{{logoSrc}}',
       specificTranslations: validSpecificTranslations,
-      dynamicVariables: { logoSrc: 'custom-logo-src' }
+      templateVariables: { logoSrc: 'custom-logo-src' }
     };
 
     const emailEvent = service.createEmailEvent(
@@ -327,7 +327,7 @@ describe(EmailTemplateService, () => {
     const templateConfig: EmailTemplateConfig = {
       partialTemplate: '{{header}}',
       specificTranslations: validSpecificTranslations,
-      dynamicVariables: {}
+      templateVariables: {}
     };
 
     const emailEvent = service.createEmailEvent(

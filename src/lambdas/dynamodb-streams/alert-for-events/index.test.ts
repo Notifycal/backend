@@ -46,8 +46,7 @@ function setEnv() {
     },
     alertEmailConfig: {
       faqUrl: new URL('https://some.faq.url'),
-      billingUrl: new URL('https://some.faq.pricing'),
-      feedbackUrl: new URL('https://some.faq.feedback')
+      billingUrl: new URL('https://some.faq.pricing')
     }
   };
   setEnvEmailToBeSentTopicConfig(config.emailToBeSentTopicConfig);
