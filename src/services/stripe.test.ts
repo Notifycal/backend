@@ -570,16 +570,12 @@ describe(StripeService, () => {
 
       expect(result).toBe(validPortalUrl);
 
-      if (flowType === 'subscription_cancel' || flowType === 'subscription_update') {
-        expect(listSubscriptionsFn).toHaveBeenCalledTimes(1);
-        expect(listSubscriptionsFn).toHaveBeenCalledWith({
-          customer: validStripeCustomerId,
-          status: 'all',
-          limit: 100
-        });
-      } else {
-        expect(listSubscriptionsFn).not.toHaveBeenCalled();
-      }
+      expect(listSubscriptionsFn).toHaveBeenCalledTimes(1);
+      expect(listSubscriptionsFn).toHaveBeenCalledWith({
+        customer: validStripeCustomerId,
+        status: 'all',
+        limit: 100
+      });
 
       expect(createPortalSessionFn).toHaveBeenCalledTimes(1);
 
