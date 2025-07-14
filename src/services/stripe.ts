@@ -171,13 +171,20 @@ export class StripeService {
         (flowType) => {
           return this.getSubscriptions(stripeCustomerId).then((subscriptions) => {
             const hasSubscriptions = subscriptions.length > 0;
-            const subscriptionId = subscriptions[0]?.id;
+            const subscription = subscriptions[0];
+            const subscriptionId = subscription?.id;
 
             if (!hasSubscriptions) return {};
 
             const needsSubscriptionId =
               flowType === 'subscription_cancel' || flowType === 'subscription_update';
             if (needsSubscriptionId && !subscriptionId) return {};
+            if (
+              flowType === 'subscription_cancel' &&
+              subscription &&
+              subscription.cancel_at_period_end
+            )
+              return {};
 
             const flowData: Stripe.BillingPortal.SessionCreateParams.FlowData = {
               type: flowType,

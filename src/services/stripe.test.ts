@@ -552,7 +552,7 @@ describe(StripeService, () => {
 
     async function testPortalSession(
       flowType: FlowType,
-      subscriptionsData: Array<{ id: string; status: string }> = [],
+      subscriptionsData: Array<{ id: string; status: string; cancel_at_period_end?: boolean }> = [],
       expectedFlowData?: Stripe.BillingPortal.SessionCreateParams.FlowData
     ) {
       const mockSession = { url: validPortalUrl };
@@ -676,6 +676,14 @@ describe(StripeService, () => {
         { id: 'sub_incomplete', status: 'incomplete' }
       ];
       await testPortalSession('payment_method_update', inactiveSubscriptions);
+    });
+
+    // eslint-disable-next-line vitest/expect-expect
+    it('should create portal session without flow_data when subscription_cancel flowType is provided but subscription is already scheduled to cancel', async () => {
+      const subscriptionsWithCancelScheduled = [
+        { id: 'sub_cancel_scheduled', status: 'active', cancel_at_period_end: true }
+      ];
+      await testPortalSession('subscription_cancel', subscriptionsWithCancelScheduled);
     });
 
     it('should throw error when customer portal session creation fails', async () => {
@@ -882,7 +890,9 @@ describe(StripeService, () => {
         >
       | undefined,
     createPortalSessionFn: () => Promise<Stripe.Response<Stripe.BillingPortal.Session>>,
-    listSubscriptionsFn: () => Promise<{ data: Array<{ id: string; status: string }> }>
+    listSubscriptionsFn: () => Promise<{
+      data: Array<{ id: string; status: string; cancel_at_period_end?: boolean }>;
+    }>
   ): Promise<Url> {
     const mockStripeInstance = {
       ...testClocksMockFn(),
@@ -909,7 +919,9 @@ describe(StripeService, () => {
 
   async function testCountSubscriptions(
     stripeCustomerId: StripeCustomerId,
-    listSubscriptionsFn: () => Promise<{ data: Array<{ id: string; status: string }> }>
+    listSubscriptionsFn: () => Promise<{
+      data: Array<{ id: string; status: string; cancel_at_period_end?: boolean }>;
+    }>
   ): Promise<number> {
     const mockStripeInstance = {
       ...testClocksMockFn(),
