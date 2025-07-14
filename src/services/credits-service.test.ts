@@ -280,8 +280,9 @@ describe(CreditsService, () => {
       expect(addCreditsFn).toHaveBeenCalledWith(
         validUserId,
         validCreditsToAdd,
-        validSubscriptionProduct,
-        expect.any(Logger)
+        validSubscriptionProduct.type,
+        expect.any(Logger),
+        validSubscriptionProduct.id
       );
       expect(result).toStrictEqual({
         success: true,
@@ -312,8 +313,9 @@ describe(CreditsService, () => {
       expect(addCreditsFn).toHaveBeenCalledWith(
         validUserId,
         validCreditsToAdd,
-        validTopupProduct,
-        expect.any(Logger)
+        validTopupProduct.type,
+        expect.any(Logger),
+        undefined
       );
       expect(result).toStrictEqual({
         success: true,
@@ -498,8 +500,7 @@ describe(CreditsService, () => {
       expect(incrementDemoReminderCountFn).toHaveBeenCalledTimes(1);
       expect(incrementDemoReminderCountFn).toHaveBeenCalledWith(
         validUserId,
-        validDemoReminderLimit,
-        expect.any(Logger)
+        validDemoReminderLimit
       );
       expect(result).toStrictEqual({
         success: true,
@@ -550,11 +551,7 @@ describe(CreditsService, () => {
         customLimit
       );
 
-      expect(incrementDemoReminderCountFn).toHaveBeenCalledWith(
-        validUserId,
-        customLimit,
-        expect.any(Logger)
-      );
+      expect(incrementDemoReminderCountFn).toHaveBeenCalledWith(validUserId, customLimit);
       expect(result).toStrictEqual({
         success: true,
         result: 'Success',

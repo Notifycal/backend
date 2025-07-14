@@ -73,8 +73,7 @@ describe(TopupService, () => {
 
     expect(addCreditsFn).toHaveBeenCalledTimes(1);
     expect(addCreditsFn).toHaveBeenCalledWith(validIdentity.userId, 90, {
-      type: 'topup',
-      id: 'single'
+      type: 'topup'
     });
     expect(safePublishFn).toHaveBeenCalledTimes(1);
     expect(safePublishFn).toHaveBeenCalledWith(

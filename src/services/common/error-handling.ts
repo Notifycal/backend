@@ -43,8 +43,18 @@ export function extractErrorMessage(error: unknown): string {
   }
 }
 
-export function rejectWithErrorMessage(baseMsg: string, error: unknown): Promise<never> {
-  return Promise.reject(new Error(baseMsg, { cause: error }));
+export function rejectWithMessage(baseMsg: string): Promise<never> {
+  return Promise.reject(new Error(baseMsg));
+}
+
+export function rejectWithMessageAndError(baseMsg: string, cause: unknown): Promise<never> {
+  return Promise.reject(new Error(baseMsg, { cause }));
+}
+
+export function rejectWithError(error: unknown): Promise<never> {
+  return Promise.reject(
+    error instanceof Error ? error : new Error(String(error), { cause: error })
+  );
 }
 
 function _throwError(

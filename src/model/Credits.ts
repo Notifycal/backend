@@ -6,80 +6,67 @@ export interface CreditOperationDetails {
   fromBalance: 'subscription' | 'topup';
   quantity: number | 'clear' | 'reset';
 }
-export interface CreditDeductionSuccess {
+
+interface BaseSuccess<TResult extends string = 'Success'> {
   readonly success: true;
-  readonly result: 'Success';
-  readonly operationDetails: CreditOperationDetails;
-  readonly balances: {
-    readonly subscription: number;
-    readonly topup: number;
-  };
+  readonly result: TResult;
 }
-export interface CreditDeductionInsufficientCreditsError {
+
+interface BaseError<TResult extends string> {
   readonly success: false;
-  readonly result: 'InsufficientCredits';
+  readonly result: TResult;
+  error: unknown;
+}
+
+interface CreditBalances {
+  readonly subscription: number;
+  readonly topup: number;
+}
+
+export interface CreditDeductionSuccess extends BaseSuccess {
+  readonly operationDetails: CreditOperationDetails;
+  readonly balances: CreditBalances;
+}
+export interface CreditDeductionInsufficientCreditsError extends BaseError<'InsufficientCredits'> {
   error: InsufficientCreditsError;
 }
-export interface CreditDeductionBadRequestError {
-  readonly success: false;
-  readonly result: 'BadRequestError';
-  error: unknown;
-}
-export interface CreditDeductionUnexpectedError {
-  readonly success: false;
-  readonly result: 'UnknownError';
-  error: unknown;
-}
+export type CreditDeductionBadRequestError = BaseError<'BadRequestError'>;
+export type CreditDeductionUnexpectedError = BaseError<'UnknownError'>;
+
 export type CreditDeductionResult =
   | CreditDeductionSuccess
   | CreditDeductionInsufficientCreditsError
   | CreditDeductionBadRequestError
   | CreditDeductionUnexpectedError;
 
-export interface CreditAdditionSuccess {
-  readonly success: true;
-  readonly result: 'Success';
+export interface CreditAdditionSuccess extends BaseSuccess {
   readonly operationDetails: CreditOperationDetails;
-  readonly balances: {
-    readonly subscription: number;
-    readonly topup: number;
-  };
+  readonly balances: CreditBalances;
 }
-export interface CreditAdditionBadRequestError {
-  readonly success: false;
-  readonly result: 'BadRequestError';
-  error: unknown;
-}
-export interface CreditAdditionUnexpectedError {
-  readonly success: false;
-  readonly result: 'UnknownError';
-  error: unknown;
-}
+export type CreditAdditionBadRequestError = BaseError<'BadRequestError'>;
+export type CreditAdditionUnexpectedError = BaseError<'UnknownError'>;
 
 export type CreditAdditionResult =
   | CreditAdditionSuccess
   | CreditAdditionBadRequestError
   | CreditAdditionUnexpectedError;
 
-export interface DemoCounterIncrementSuccess {
-  readonly success: true;
-  readonly result: 'Success';
+export interface DemoCounterIncrementSuccess extends BaseSuccess {
   readonly demoRemindersCount: number;
 }
-
-export interface DemoCounterLimitReachedError {
-  readonly success: false;
-  readonly result: 'DemoCounterLimitReachedError';
-  error: unknown;
-}
-
-export interface DemoCounterIncrementUnexpectedError {
-  readonly success: false;
-  readonly result: 'UnknownError';
-  error: unknown;
-}
+export type DemoCounterLimitReachedError = BaseError<'DemoCounterLimitReachedError'>;
+export type DemoCounterIncrementUnexpectedError = BaseError<'UnknownError'>;
 
 export type DemoCounterIncrementResult =
   | DemoCounterIncrementSuccess
   | DemoCounterLimitReachedError
   | DemoCounterIncrementUnexpectedError;
+
+export interface DemoCounterDecrementSuccess extends BaseSuccess {
+  readonly demoRemindersCount: number;
+}
+export type DemoCounterDecrementUnexpectedError = BaseError<'UnknownError'>;
+
+export type DemoCounterDecrementResult =
+  | DemoCounterDecrementSuccess
+  | DemoCounterDecrementUnexpectedError;

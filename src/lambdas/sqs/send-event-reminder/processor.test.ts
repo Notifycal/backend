@@ -604,6 +604,29 @@ describe('Messaging processor', () => {
         {} as unknown as UserBaseStore<'google.com'>,
         logger
       );
+      // Setup default mock for restoreCredits
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      vi.mocked(CreditsService.prototype.restoreCredits).mockResolvedValue({
+        success: true,
+        result: 'Success',
+        operationDetails: {
+          fromBalance: 'subscription',
+          quantity: 1
+        },
+        balances: {
+          subscription: 100,
+          topup: 0
+        }
+      });
+
+      // Setup default mock for decrementDemoReminderCount
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      vi.mocked(CreditsService.prototype.decrementDemoReminderCount).mockResolvedValue({
+        success: true,
+        result: 'Success',
+        demoRemindersCount: 0
+      });
+
       setupCreditService(creditService);
 
       const messageProcessor = new Processor(

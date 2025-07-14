@@ -1,7 +1,7 @@
 import type { Logger } from '@aws-lambda-powertools/logger';
 import type * as Credits from '@model/Credits';
 import { InsufficientCreditsError } from '@model/Errors';
-import type { IdpName, TierId, TopupId, UserId, UserStatus } from '@notifycal/shared/types';
+import type { IdpName, TierId, UserId, UserStatus } from '@notifycal/shared/types';
 import type { UserBaseStore } from '@services/stores/user-base-store';
 import { P, match } from 'ts-pattern';
 
@@ -65,7 +65,7 @@ export class CreditsService<TIdpName extends IdpName> {
     userId: UserId,
     demoReminderLimit: number
   ): Promise<Credits.DemoCounterIncrementResult> {
-    return this.userStore.incrementDemoReminderCount(userId, demoReminderLimit, this.logger).then(
+    return this.userStore.incrementDemoReminderCount(userId, demoReminderLimit).then(
       (result) => {
         const successResult: Credits.DemoCounterIncrementSuccess = {
           success: true,
@@ -84,6 +84,27 @@ export class CreditsService<TIdpName extends IdpName> {
           return demoLimitError;
         }
         const unexpectedError: Credits.DemoCounterIncrementUnexpectedError = {
+          success: false,
+          result: 'UnknownError',
+          error
+        };
+        return unexpectedError;
+      }
+    );
+  }
+
+  public decrementDemoReminderCount(userId: UserId): Promise<Credits.DemoCounterDecrementResult> {
+    return this.userStore.decrementDemoReminderCount(userId).then(
+      (result) => {
+        const successResult: Credits.DemoCounterDecrementSuccess = {
+          success: true,
+          result: 'Success',
+          demoRemindersCount: result.DemoReminderCount
+        };
+        return successResult;
+      },
+      (error) => {
+        const unexpectedError: Credits.DemoCounterDecrementUnexpectedError = {
           success: false,
           result: 'UnknownError',
           error
@@ -141,24 +162,42 @@ export class CreditsService<TIdpName extends IdpName> {
     product:
       | {
           type: 'subscription';
-          id: TierId;
+          id?: TierId;
         }
       | {
           type: 'topup';
-          id: TopupId;
         }
+  ): Promise<Credits.CreditAdditionResult> {
+    const tierId = product.type === 'subscription' ? product.id : undefined;
+    return this.performCreditAddition(userId, credits, product.type, tierId, 'addCredits');
+  }
+
+  public restoreCredits(
+    userId: UserId,
+    credits: number,
+    balanceType: 'subscription' | 'topup'
+  ): Promise<Credits.CreditAdditionResult> {
+    return this.performCreditAddition(userId, credits, balanceType, undefined, 'restoreCredits');
+  }
+
+  private performCreditAddition(
+    userId: UserId,
+    credits: number,
+    balanceType: 'subscription' | 'topup',
+    tierId: TierId | undefined,
+    operation: 'addCredits' | 'restoreCredits'
   ): Promise<Credits.CreditAdditionResult> {
     if (credits <= 0) {
       return Promise.resolve(this.badRequestCreditError(credits));
     }
 
-    return this.userStore.addCredits(userId, credits, product, this.logger).then(
+    return this.userStore.addCredits(userId, credits, balanceType, this.logger, tierId).then(
       (user) => {
         const creditAdditionOperation: Credits.CreditAdditionSuccess = {
           success: true,
           result: 'Success',
           operationDetails: {
-            fromBalance: product.type,
+            fromBalance: balanceType,
             quantity: credits
           },
           balances: {
@@ -168,7 +207,7 @@ export class CreditsService<TIdpName extends IdpName> {
         };
         return this.userStore
           .updateStatus(userId, 'live')
-          .then(() => creditAdditionOperation, this.errorHandlerForNonIdempotentOp('addCredits'));
+          .then(() => creditAdditionOperation, this.errorHandlerForNonIdempotentOp(operation));
       },
       (error: unknown) => {
         const result: Credits.CreditAdditionUnexpectedError = {
@@ -233,7 +272,7 @@ export class CreditsService<TIdpName extends IdpName> {
   }
 
   private errorHandlerForNonIdempotentOp(
-    operation: 'addCredits'
+    operation: 'addCredits' | 'restoreCredits'
   ): (error: unknown) => Promise<Credits.CreditAdditionUnexpectedError> {
     return (error: unknown) => {
       const msg = `The user status update has failed after the non idempotent operation ${operation} in credit service. We cannot retry...`;
