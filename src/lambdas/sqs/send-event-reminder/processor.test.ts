@@ -428,7 +428,7 @@ describe('Messaging processor', () => {
             eventType: 'LowCreditsDetected',
             data: {
               originalEvent: validActionableEvent.data,
-              error: creditResult
+              lastCreditReductionResult: creditResult
             }
           });
         } else {
