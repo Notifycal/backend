@@ -99,9 +99,9 @@ export default class Processor {
       }
       return this.sendMessage(event).then(
         (messageUuid) => messageUuid,
-        this.onSendFailure(event, deductionResult)
+        this.handleSendError(event, deductionResult)
       );
-    }, this.handleDeductFromAllowanceFailure());
+    }, this.handleDeductFromAllowanceError());
   }
 
   private deductFromAllowance(
@@ -118,14 +118,14 @@ export default class Processor {
       .exhaustive();
   }
 
-  private handleDeductFromAllowanceFailure(): (error: unknown) => Promise<never> {
+  private handleDeductFromAllowanceError(): (error: unknown) => Promise<never> {
     return (error: unknown) => {
       logger.error('Failed to deduct from allowance', { error });
       return rejectWithError(error);
     };
   }
 
-  private onSendFailure(
+  private handleSendError(
     event: ActionableEventFoundEvent | DemoReminderToBeSentEvent,
     result: CreditDeductionSuccess<'deduct'> | DemoCounterIncrementSuccess
   ): (error: unknown) => Promise<never> {
