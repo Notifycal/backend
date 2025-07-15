@@ -16,7 +16,7 @@ export class TopupService<TIdpName extends IdpName> {
     userIdentity: UserIdentity<TIdpName>,
     topup: TopupId,
     quantity: number
-  ): Promise<CreditAdditionResult> {
+  ): Promise<CreditAdditionResult<'add'>> {
     if (quantity < 1) {
       const error = new Error(
         `Error while adding a topup. Quantity cannot be smaller than 1. Quantity: ${quantity}`

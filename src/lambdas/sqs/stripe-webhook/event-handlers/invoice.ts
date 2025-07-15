@@ -219,7 +219,7 @@ export class InvoicePaymentSucceededHandler
     );
   }
 
-  private creditAdditionHandler(result: CreditAdditionResult): Promise<void> {
+  private creditAdditionHandler(result: CreditAdditionResult<'reset' | 'add'>): Promise<void> {
     return match(result)
       .with({ result: 'Success' }, () => Promise.resolve())
       .with({ result: 'UnknownError' }, { result: 'BadRequestError' }, (r) =>

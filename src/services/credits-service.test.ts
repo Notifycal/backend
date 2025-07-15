@@ -63,6 +63,7 @@ describe(CreditsService, () => {
         result: 'Success',
         operationDetails: {
           fromBalance: 'subscription',
+          type: 'deduct',
           quantity: validCredits
         },
         balances: {
@@ -176,7 +177,7 @@ describe(CreditsService, () => {
         result: 'Success',
         operationDetails: {
           fromBalance: 'subscription',
-          quantity: 'reset'
+          type: 'reset'
         },
         balances: {
           subscription: 150,
@@ -236,7 +237,7 @@ describe(CreditsService, () => {
         result: 'Success',
         operationDetails: {
           fromBalance: 'subscription',
-          quantity: 'reset'
+          type: 'reset'
         },
         balances: {
           subscription: 0,
@@ -289,6 +290,7 @@ describe(CreditsService, () => {
         result: 'Success',
         operationDetails: {
           fromBalance: 'subscription',
+          type: 'add',
           quantity: validCreditsToAdd
         },
         balances: {
@@ -322,6 +324,7 @@ describe(CreditsService, () => {
         result: 'Success',
         operationDetails: {
           fromBalance: 'topup',
+          type: 'add',
           quantity: validCreditsToAdd
         },
         balances: {
@@ -429,7 +432,7 @@ describe(CreditsService, () => {
         result: 'Success',
         operationDetails: {
           fromBalance: 'subscription',
-          quantity: 'clear'
+          type: 'clear'
         },
         balances: {
           subscription: 0,
@@ -565,7 +568,7 @@ describe(CreditsService, () => {
     updateStatusFn: () => Promise<void>,
     credits: number,
     userId: UserId = validUserId
-  ): Promise<CreditDeductionResult> {
+  ): Promise<CreditDeductionResult<'deduct'>> {
     const userStoreMock = {
       deductCredits: deductCreditsFn,
       updateStatus: updateStatusFn
@@ -581,7 +584,7 @@ describe(CreditsService, () => {
     credits: number,
     userId: UserId = validUserId,
     tierId: TierId = validTierId
-  ): Promise<CreditAdditionResult> {
+  ): Promise<CreditAdditionResult<'reset'>> {
     const userStoreMock = {
       resetSubscriptionCredits: resetSubscriptionCreditsFn,
       updateStatus: updateStatusFn
@@ -597,7 +600,7 @@ describe(CreditsService, () => {
     credits: number,
     product: { type: 'subscription'; id: TierId } | { type: 'topup'; id: TopupId },
     userId: UserId = validUserId
-  ): Promise<CreditAdditionResult> {
+  ): Promise<CreditAdditionResult<'add'>> {
     const userStoreMock = {
       addCredits: addCreditsFn,
       updateStatus: updateStatusFn
@@ -612,7 +615,7 @@ describe(CreditsService, () => {
     updateStatusFn: () => Promise<void>,
     userId: UserId = validUserId,
     status: UserStatus = validUserStatus
-  ): Promise<CreditDeductionResult> {
+  ): Promise<CreditDeductionResult<'clear'>> {
     const userStoreMock = {
       clearSubscriptionCredits: clearSubscriptionCreditsFn,
       updateStatus: updateStatusFn

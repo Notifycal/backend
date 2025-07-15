@@ -127,12 +127,15 @@ export default class Processor {
 
   private onSendFailure(
     event: ActionableEventFoundEvent | DemoReminderToBeSentEvent,
-    result: CreditDeductionSuccess | DemoCounterIncrementSuccess
+    result: CreditDeductionSuccess<'deduct'> | DemoCounterIncrementSuccess
   ): (error: unknown) => Promise<never> {
     return (error: unknown) =>
       match(event)
         .with({ eventType: 'ActionableEventFound' }, (e) =>
-          this.handleActionableEventSendFailure(e, result as CreditDeductionSuccess)(error)
+          this.handleActionableEventSendFailure(
+            e,
+            result as CreditDeductionSuccess<'deduct'>
+          )(error)
         )
         .with({ eventType: 'DemoReminderToBeSent' }, (e) =>
           this.handleDemoReminderSendFailure(e)(error)
@@ -142,38 +145,31 @@ export default class Processor {
 
   private handleActionableEventSendFailure(
     event: ActionableEventFoundEvent,
-    creditResult: CreditDeductionSuccess
+    creditResult: CreditDeductionSuccess<'deduct'>
   ): (error: unknown) => Promise<never> {
     return (error: unknown) => {
-      const { quantity, fromBalance } = creditResult.operationDetails;
-      if (typeof quantity === 'number') {
-        return this.creditsService.restoreCredits(event.userId, quantity, fromBalance).then(
+      const { operationDetails } = creditResult;
+      return this.creditsService
+        .restoreCredits(event.userId, operationDetails.quantity, operationDetails.fromBalance)
+        .then(
           () => {
             logger.info('Credits restored after message send failure', {
               userId: event.userId,
-              restoredCredits: quantity,
-              balanceType: fromBalance
+              restoredCredits: operationDetails.quantity,
+              balanceType: operationDetails.fromBalance
             });
             return rejectWithError(error);
           },
           (restoreError) => {
             logger.error('Failed to restore credits after message send failure', {
               userId: event.userId,
-              creditsToRestore: quantity,
-              balanceType: fromBalance,
+              creditsToRestore: operationDetails.quantity,
+              balanceType: operationDetails.fromBalance,
               restoreError
             });
             return rejectWithError(error);
           }
         );
-      } else {
-        logger.error('Cannot restore credits: quantity is not a number', {
-          userId: event.userId,
-          quantity,
-          fromBalance
-        });
-        return rejectWithError(error);
-      }
     };
   }
 
@@ -266,7 +262,9 @@ export default class Processor {
       .exhaustive();
   }
 
-  private deductCredits(event: ActionableEventFoundEvent): Promise<CreditDeductionResult> {
+  private deductCredits(
+    event: ActionableEventFoundEvent
+  ): Promise<CreditDeductionResult<'deduct'>> {
     const countResult = count(event.data.message);
     const creditToDeductPerUnit = this.config.countryToSMSCostCreditsMap['ES'];
     const totalCreditsToDeduct = creditToDeductPerUnit * countResult.messages;
@@ -333,9 +331,9 @@ export default class Processor {
 
   private publishLowCreditsDetectedEventIfThresholdHasBeenCrossed(
     event: ActionableEventFoundEvent,
-    result: CreditDeductionSuccess,
+    result: CreditDeductionSuccess<'deduct'>,
     totalCreditsToDeduct: number
-  ): Promise<CreditDeductionResult> {
+  ): Promise<CreditDeductionResult<'deduct'>> {
     const { subscription, topup } = result.balances;
     const totalUpdatedCredits = subscription + topup;
     const previousTotalCredits = totalUpdatedCredits + totalCreditsToDeduct;

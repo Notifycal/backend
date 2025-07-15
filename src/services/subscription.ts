@@ -28,7 +28,10 @@ export class SubscriptionService<TIdpName extends IdpName> {
     private readonly snsService: SnsService
   ) {}
 
-  public create(userIdentity: UserIdentity<TIdpName>, tier: TierId): Promise<CreditAdditionResult> {
+  public create(
+    userIdentity: UserIdentity<TIdpName>,
+    tier: TierId
+  ): Promise<CreditAdditionResult<'reset'>> {
     const credits = this.tierToCreditsMap[tier];
     const operation = this.creditsService.resetSubscriptionCredits(
       userIdentity.userId,
@@ -45,7 +48,10 @@ export class SubscriptionService<TIdpName extends IdpName> {
     );
   }
 
-  public renew(userIdentity: UserIdentity<TIdpName>, tier: TierId): Promise<CreditAdditionResult> {
+  public renew(
+    userIdentity: UserIdentity<TIdpName>,
+    tier: TierId
+  ): Promise<CreditAdditionResult<'reset'>> {
     const credits = this.tierToCreditsMap[tier];
     const operation = this.creditsService.resetSubscriptionCredits(
       userIdentity.userId,
@@ -67,7 +73,7 @@ export class SubscriptionService<TIdpName extends IdpName> {
     previousTier: TierId,
     currentTier: TierId,
     remainingPercentage: Percentage
-  ): Promise<CreditAdditionResult> {
+  ): Promise<CreditAdditionResult<'add'>> {
     const creditsToAdd = calculateUpgradeCredits(
       previousTier,
       currentTier,
@@ -165,7 +171,7 @@ export class SubscriptionService<TIdpName extends IdpName> {
   public cancel(
     userIdentity: UserIdentity<TIdpName>,
     reason: 'unpaid' | 'cancelled'
-  ): Promise<CreditDeductionResult> {
+  ): Promise<CreditDeductionResult<'clear'>> {
     const operation = this.creditsService.clearSubscriptionCredits(userIdentity.userId, reason);
 
     return handleServiceOperation(

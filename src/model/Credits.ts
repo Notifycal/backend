@@ -1,11 +1,17 @@
 import type { InsufficientCreditsError } from './Errors';
 
-export type CreditOperationResult = CreditDeductionResult | DemoCounterIncrementResult;
+export type CreditOperationResult = CreditDeductionResult<'deduct'> | DemoCounterIncrementResult;
 
-export interface CreditOperationDetails {
-  fromBalance: 'subscription' | 'topup';
-  quantity: number | 'clear' | 'reset';
-}
+export type CreditDeductionOperationDetails =
+  | { fromBalance: 'subscription' | 'topup'; type: 'deduct'; quantity: number }
+  | { fromBalance: 'subscription' | 'topup'; type: 'clear' };
+
+export type CreditAdditionOperationDetails =
+  | { fromBalance: 'subscription' | 'topup'; type: 'add'; quantity: number }
+  | { fromBalance: 'subscription' | 'topup'; type: 'reset' };
+
+export type CreditDeductionOperationType = CreditDeductionOperationDetails['type'];
+export type CreditAdditionOperationType = CreditAdditionOperationDetails['type'];
 
 interface BaseSuccess<TResult extends string = 'Success'> {
   readonly success: true;
@@ -23,8 +29,9 @@ interface CreditBalances {
   readonly topup: number;
 }
 
-export interface CreditDeductionSuccess extends BaseSuccess {
-  readonly operationDetails: CreditOperationDetails;
+export interface CreditDeductionSuccess<TOperationType extends CreditDeductionOperationType>
+  extends BaseSuccess {
+  readonly operationDetails: Extract<CreditDeductionOperationDetails, { type: TOperationType }>;
   readonly balances: CreditBalances;
 }
 export interface CreditDeductionInsufficientCreditsError extends BaseError<'InsufficientCredits'> {
@@ -33,21 +40,22 @@ export interface CreditDeductionInsufficientCreditsError extends BaseError<'Insu
 export type CreditDeductionBadRequestError = BaseError<'BadRequestError'>;
 export type CreditDeductionUnexpectedError = BaseError<'UnknownError'>;
 
-export type CreditDeductionResult =
-  | CreditDeductionSuccess
+export type CreditDeductionResult<TOperationType extends CreditDeductionOperationType> =
+  | CreditDeductionSuccess<TOperationType>
   | CreditDeductionInsufficientCreditsError
   | CreditDeductionBadRequestError
   | CreditDeductionUnexpectedError;
 
-export interface CreditAdditionSuccess extends BaseSuccess {
-  readonly operationDetails: CreditOperationDetails;
+export interface CreditAdditionSuccess<TOperationType extends CreditAdditionOperationType>
+  extends BaseSuccess {
+  readonly operationDetails: Extract<CreditAdditionOperationDetails, { type: TOperationType }>;
   readonly balances: CreditBalances;
 }
 export type CreditAdditionBadRequestError = BaseError<'BadRequestError'>;
 export type CreditAdditionUnexpectedError = BaseError<'UnknownError'>;
 
-export type CreditAdditionResult =
-  | CreditAdditionSuccess
+export type CreditAdditionResult<TOperationType extends CreditAdditionOperationType> =
+  | CreditAdditionSuccess<TOperationType>
   | CreditAdditionBadRequestError
   | CreditAdditionUnexpectedError;
 

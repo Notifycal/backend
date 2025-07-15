@@ -14,11 +14,12 @@ describe(TopupService, () => {
   };
   const validTopupId = 'single' as const;
   const validQuantity = 3;
-  const validCreditAdditionResult: CreditAdditionResult = {
+  const validCreditAdditionResult: CreditAdditionResult<'add'> = {
     success: true,
     result: 'Success',
     operationDetails: {
       fromBalance: 'topup',
+      type: 'add',
       quantity: 270
     },
     balances: {
@@ -193,10 +194,10 @@ describe(TopupService, () => {
       userId: UserId,
       amount: number,
       product: { type: 'subscription' | 'topup'; id: TierId | TopupId }
-    ) => Promise<CreditAdditionResult>,
+    ) => Promise<CreditAdditionResult<'add'>>,
     safePublishFn: () => Promise<void>,
     topupToCreditsMap: Record<TopupId, number> = validTopupToCreditsMap
-  ): Promise<CreditAdditionResult> {
+  ): Promise<CreditAdditionResult<'add'>> {
     const creditsServiceMock = {
       addCredits: addCreditsFn
     } as unknown as CreditsService<'google.com'>;

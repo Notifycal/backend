@@ -20,7 +20,7 @@ export function subscriptionUpgradedEvent<TIdpName extends IdpName>(
   currentTier: TierId,
   remainingPercentage: Percentage,
   creditsAdded: number,
-  result: CreditAdditionResult
+  result: CreditAdditionResult<'add'>
 ): SubscriptionUpgradedEvent {
   return {
     ...createEventBase('SubscriptionUpgraded', userIdentity),

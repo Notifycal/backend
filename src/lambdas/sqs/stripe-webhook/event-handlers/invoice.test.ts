@@ -160,11 +160,12 @@ describe(InvoicePaymentSucceededHandler, () => {
     }
   } as Stripe.Invoice;
 
-  const validSuccessResult: CreditAdditionResult = {
+  const validSuccessResult: CreditAdditionResult<'add'> = {
     success: true,
     result: 'Success',
     operationDetails: {
       fromBalance: 'subscription',
+      type: 'add',
       quantity: 100
     },
     balances: {
@@ -173,7 +174,7 @@ describe(InvoicePaymentSucceededHandler, () => {
     }
   };
 
-  const validErrorResult: CreditAdditionResult = {
+  const validErrorResult: CreditAdditionResult<'add'> = {
     success: false,
     result: 'UnknownError',
     error: new Error('Subscription service failed unexpectedly')
@@ -381,7 +382,7 @@ describe(InvoicePaymentSucceededHandler, () => {
     const upgradeFn = vi.fn();
     const downgradeFn = vi.fn();
     const error = new Error('Topup service failed unexpectedly');
-    const validAdditionErrorResult: CreditAdditionResult = {
+    const validAdditionErrorResult: CreditAdditionResult<'add'> = {
       success: false,
       result: 'UnknownError',
       error: error
@@ -857,20 +858,23 @@ describe(InvoicePaymentSucceededHandler, () => {
     createFn: (
       userIdentity: UserIdentity<IdpName>,
       tierId: TierId
-    ) => Promise<CreditAdditionResult>,
-    renewFn: (userIdentity: UserIdentity<IdpName>, tierId: TierId) => Promise<CreditAdditionResult>,
+    ) => Promise<CreditAdditionResult<'reset'>>,
+    renewFn: (
+      userIdentity: UserIdentity<IdpName>,
+      tierId: TierId
+    ) => Promise<CreditAdditionResult<'reset'>>,
     upgradeFn: (
       userIdentity: UserIdentity<IdpName>,
       previousTier: TierId,
       currentTier: TierId,
       remainingPercentage: number
-    ) => Promise<CreditAdditionResult>,
+    ) => Promise<CreditAdditionResult<'add'>>,
     downgradeFn: (userIdentity: UserIdentity<IdpName>) => Promise<void>,
     addTopupFn: (
       userIdentity: UserIdentity<IdpName>,
       topupId: TopupId,
       quantity: number
-    ) => Promise<CreditAdditionResult>,
+    ) => Promise<CreditAdditionResult<'add'>>,
     tiers: TierMap,
     topups: TopupMap = validTopups
   ): Promise<void> {

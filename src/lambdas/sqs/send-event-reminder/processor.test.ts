@@ -118,11 +118,12 @@ const validActionableEvent: ActionableEventFoundEvent = {
   happenedAt: '2024-01-02T15:04:50Z' as DateTime
 };
 
-const validCreditDeductionSuccess: CreditDeductionSuccess = {
+const validCreditDeductionSuccess: CreditDeductionSuccess<'deduct'> = {
   success: true,
   result: 'Success',
   operationDetails: {
     fromBalance: 'subscription',
+    type: 'deduct',
     quantity: 7
   },
   balances: {
@@ -405,7 +406,7 @@ describe('Messaging processor', () => {
       };
 
       async function testLowCreditsScenario(
-        creditResult: CreditDeductionResult,
+        creditResult: CreditDeductionResult<'deduct'>,
         expectSendLowCreditsDetectedEvent: boolean,
         config = configWithLowThreshold
       ) {
@@ -442,10 +443,10 @@ describe('Messaging processor', () => {
 
       // eslint-disable-next-line vitest/expect-expect
       it('should send lowCreditsDetected event when credits cross below threshold', async () => {
-        const creditResult: CreditDeductionSuccess = {
+        const creditResult: CreditDeductionSuccess<'deduct'> = {
           success: true,
           result: 'Success',
-          operationDetails: { fromBalance: 'subscription', quantity: 7 },
+          operationDetails: { fromBalance: 'subscription', type: 'deduct', quantity: 7 },
           balances: { subscription: 95, topup: 0 }
         };
 
@@ -454,10 +455,10 @@ describe('Messaging processor', () => {
 
       // eslint-disable-next-line vitest/expect-expect
       it('should NOT send lowCreditsDetected event when credits remain above threshold', async () => {
-        const creditResult: CreditDeductionSuccess = {
+        const creditResult: CreditDeductionSuccess<'deduct'> = {
           success: true,
           result: 'Success',
-          operationDetails: { fromBalance: 'subscription', quantity: 7 },
+          operationDetails: { fromBalance: 'subscription', type: 'deduct', quantity: 7 },
           balances: { subscription: 200, topup: 50 }
         };
 
@@ -466,10 +467,10 @@ describe('Messaging processor', () => {
 
       // eslint-disable-next-line vitest/expect-expect
       it('should NOT send lowCreditsDetected event when credits remain below threshold', async () => {
-        const creditResult: CreditDeductionSuccess = {
+        const creditResult: CreditDeductionSuccess<'deduct'> = {
           success: true,
           result: 'Success',
-          operationDetails: { fromBalance: 'subscription', quantity: 7 },
+          operationDetails: { fromBalance: 'subscription', type: 'deduct', quantity: 7 },
           balances: { subscription: 50, topup: 20 }
         };
 
@@ -482,10 +483,10 @@ describe('Messaging processor', () => {
           ...defaultConfig,
           messagingAlertingConfig: { lowCreditThreshold: 150 }
         };
-        const creditResult: CreditDeductionSuccess = {
+        const creditResult: CreditDeductionSuccess<'deduct'> = {
           success: true,
           result: 'Success',
-          operationDetails: { fromBalance: 'topup', quantity: 7 },
+          operationDetails: { fromBalance: 'topup', type: 'deduct', quantity: 7 },
           balances: { subscription: 100, topup: 44 }
         };
 
@@ -517,10 +518,10 @@ describe('Messaging processor', () => {
 
       // eslint-disable-next-line vitest/expect-expect
       it('should handle edge case when credits exactly equal threshold after deduction', async () => {
-        const creditResult: CreditDeductionSuccess = {
+        const creditResult: CreditDeductionSuccess<'deduct'> = {
           success: true,
           result: 'Success',
-          operationDetails: { fromBalance: 'subscription', quantity: 7 },
+          operationDetails: { fromBalance: 'subscription', type: 'deduct', quantity: 7 },
           balances: { subscription: 100, topup: 0 }
         };
 
@@ -532,7 +533,7 @@ describe('Messaging processor', () => {
       event: ActionableEventFoundEvent,
       sendMessageFn: () => Promise<Uuid>,
       safePublishFn: () => Promise<void>,
-      deductCreditsFn: () => Promise<CreditDeductionResult>,
+      deductCreditsFn: () => Promise<CreditDeductionResult<'deduct'>>,
       messagingEnabled: boolean,
       config: VonageEndpointConfig &
         CreditServiceEndpointConfig &
@@ -611,6 +612,7 @@ describe('Messaging processor', () => {
         result: 'Success',
         operationDetails: {
           fromBalance: 'subscription',
+          type: 'add',
           quantity: 1
         },
         balances: {

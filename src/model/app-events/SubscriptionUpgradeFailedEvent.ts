@@ -22,7 +22,7 @@ export function subscriptionUpgradeFailedEvent<TIdpName extends IdpName>(
   currentTier: TierId,
   remainingPercentage?: Percentage,
   creditsAdded?: number,
-  result?: CreditAdditionResult,
+  result?: CreditAdditionResult<'add'>,
   error?: unknown
 ): SubscriptionUpgradeFailedEvent {
   return {

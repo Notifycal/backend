@@ -30,11 +30,12 @@ describe('SubscriptionService Event Publishing', () => {
     best: 1000
   };
 
-  const validSuccessResult: CreditAdditionResult = {
+  const validSuccessResult: CreditAdditionResult<'add'> = {
     success: true,
     result: 'Success',
     operationDetails: {
       fromBalance: 'subscription',
+      type: 'add',
       quantity: 100
     },
     balances: {
@@ -43,18 +44,18 @@ describe('SubscriptionService Event Publishing', () => {
     }
   };
 
-  const validErrorResult: CreditAdditionResult = {
+  const validErrorResult: CreditAdditionResult<'add'> = {
     success: false,
     result: 'UnknownError',
     error: new Error('Service unavailable')
   };
 
-  const validSuccessDeduction: CreditDeductionResult = {
+  const validSuccessDeduction: CreditDeductionResult<'clear'> = {
     success: true,
     result: 'Success',
     operationDetails: {
       fromBalance: 'subscription',
-      quantity: 100
+      type: 'clear'
     },
     balances: {
       subscription: 55,
@@ -62,7 +63,7 @@ describe('SubscriptionService Event Publishing', () => {
     }
   };
 
-  const validErrorDeduction: CreditDeductionResult = {
+  const validErrorDeduction: CreditDeductionResult<'clear'> = {
     success: false,
     result: 'UnknownError',
     error: new Error('Deduction failed')

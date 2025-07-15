@@ -14,17 +14,20 @@ export class CreditsService<TIdpName extends IdpName> {
   public async deductCredits(
     userId: UserId,
     credits: number
-  ): Promise<Credits.CreditDeductionResult> {
+  ): Promise<Credits.CreditDeductionResult<'deduct'>> {
     if (credits <= 0) {
-      return Promise.resolve(this.badRequestCreditError(credits));
+      return Promise.resolve(
+        this.badRequestCreditError(credits) as Credits.CreditDeductionBadRequestError
+      );
     }
     return this.userStore.deductCredits(userId, credits, this.logger).then(
       (result) => {
-        const creditDeductionOperation: Credits.CreditDeductionSuccess = {
+        const creditDeductionOperation: Credits.CreditDeductionSuccess<'deduct'> = {
           success: true,
           result: 'Success',
           operationDetails: {
             fromBalance: result.balance,
+            type: 'deduct',
             quantity: result.quantity
           },
           balances: {
@@ -34,7 +37,7 @@ export class CreditsService<TIdpName extends IdpName> {
         };
         return creditDeductionOperation;
       },
-      (error): Promise<Credits.CreditDeductionResult> => {
+      (error): Promise<Credits.CreditDeductionResult<'deduct'>> => {
         return match(error)
           .with(P.instanceOf(InsufficientCreditsError), (insufficientError) => {
             const result: Credits.CreditDeductionInsufficientCreditsError = {
@@ -118,7 +121,7 @@ export class CreditsService<TIdpName extends IdpName> {
     userId: UserId,
     credits: number,
     tierId: TierId
-  ): Promise<Credits.CreditAdditionResult> {
+  ): Promise<Credits.CreditAdditionResult<'reset'>> {
     if (credits < 0) {
       return Promise.resolve({
         success: false,
@@ -129,12 +132,12 @@ export class CreditsService<TIdpName extends IdpName> {
 
     return this.userStore.resetSubscriptionCredits(userId, tierId, credits, this.logger).then(
       (user) => {
-        const creditAdditionOperation: Credits.CreditAdditionSuccess = {
+        const creditAdditionOperation: Credits.CreditAdditionSuccess<'reset'> = {
           success: true,
           result: 'Success',
           operationDetails: {
             fromBalance: 'subscription',
-            quantity: 'reset'
+            type: 'reset'
           },
           balances: {
             subscription: user.Credits.SubscriptionCreditBalance,
@@ -167,7 +170,7 @@ export class CreditsService<TIdpName extends IdpName> {
       | {
           type: 'topup';
         }
-  ): Promise<Credits.CreditAdditionResult> {
+  ): Promise<Credits.CreditAdditionResult<'add'>> {
     const tierId = product.type === 'subscription' ? product.id : undefined;
     return this.performCreditAddition(userId, credits, product.type, tierId, 'addCredits');
   }
@@ -176,7 +179,7 @@ export class CreditsService<TIdpName extends IdpName> {
     userId: UserId,
     credits: number,
     balanceType: 'subscription' | 'topup'
-  ): Promise<Credits.CreditAdditionResult> {
+  ): Promise<Credits.CreditAdditionResult<'add'>> {
     return this.performCreditAddition(userId, credits, balanceType, undefined, 'restoreCredits');
   }
 
@@ -186,18 +189,21 @@ export class CreditsService<TIdpName extends IdpName> {
     balanceType: 'subscription' | 'topup',
     tierId: TierId | undefined,
     operation: 'addCredits' | 'restoreCredits'
-  ): Promise<Credits.CreditAdditionResult> {
+  ): Promise<Credits.CreditAdditionResult<'add'>> {
     if (credits <= 0) {
-      return Promise.resolve(this.badRequestCreditError(credits));
+      return Promise.resolve(
+        this.badRequestCreditError(credits) as Credits.CreditAdditionBadRequestError
+      );
     }
 
     return this.userStore.addCredits(userId, credits, balanceType, this.logger, tierId).then(
       (user) => {
-        const creditAdditionOperation: Credits.CreditAdditionSuccess = {
+        const creditAdditionOperation: Credits.CreditAdditionSuccess<'add'> = {
           success: true,
           result: 'Success',
           operationDetails: {
             fromBalance: balanceType,
+            type: 'add',
             quantity: credits
           },
           balances: {
@@ -223,15 +229,15 @@ export class CreditsService<TIdpName extends IdpName> {
   public clearSubscriptionCredits(
     userId: UserId,
     status: UserStatus
-  ): Promise<Credits.CreditDeductionResult> {
+  ): Promise<Credits.CreditDeductionResult<'clear'>> {
     return this.userStore.clearSubscriptionCredits(userId, this.logger).then(
       (user) => {
-        const creditDeductionOperation: Credits.CreditDeductionSuccess = {
+        const creditDeductionOperation: Credits.CreditDeductionSuccess<'clear'> = {
           success: true,
           result: 'Success',
           operationDetails: {
             fromBalance: 'subscription',
-            quantity: 'clear'
+            type: 'clear'
           },
           balances: {
             subscription: user.Credits.SubscriptionCreditBalance,

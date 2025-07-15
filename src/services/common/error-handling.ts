@@ -1,11 +1,10 @@
 import type { Logger } from '@aws-lambda-powertools/logger';
 import type { LogItemExtraInput } from '@aws-lambda-powertools/logger/types';
 import type { BaseErrorEvent, BaseEvent } from '@model/app-events/BaseEvent';
-import type { CreditAdditionResult, CreditDeductionResult } from '@model/Credits';
 import type { SnsService } from '@services/sns';
 
 export function handleServiceOperation<
-  TResult extends CreditAdditionResult | CreditDeductionResult,
+  TResult extends { success: boolean },
   TEvent extends BaseEvent,
   TErrorEvent extends BaseErrorEvent
 >(

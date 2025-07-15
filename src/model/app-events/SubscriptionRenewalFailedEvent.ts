@@ -19,7 +19,7 @@ export type SubscriptionRenewalFailedEvent = z.infer<typeof subscriptionRenewalF
 export function subscriptionRenewalFailedEvent<TIdpName extends IdpName>(
   userIdentity: UserIdentity<TIdpName>,
   tier: TierId,
-  result?: CreditAdditionResult,
+  result?: CreditAdditionResult<'reset'>,
   error?: unknown
 ): SubscriptionRenewalFailedEvent {
   return {
