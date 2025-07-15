@@ -10,10 +10,12 @@ import type {
   SnsTopicConfig
 } from '@model/Config';
 import type {
+  CreditAdditionResult,
   CreditDeductionInsufficientCreditsError,
   CreditDeductionResult,
   CreditDeductionSuccess,
   CreditDeductionUnexpectedError,
+  DemoCounterDecrementResult,
   DemoCounterIncrementResult,
   DemoCounterLimitReachedError
 } from '@model/Credits';
@@ -260,22 +262,144 @@ describe('Messaging processor', () => {
       });
     });
 
-    it('should return an error if message sending fails - let caller deal with it', async () => {
-      const error = new Error('Booom!');
-      const sendMessageSpy = vi.fn().mockRejectedValue(error);
+    it('should return an error if message sending fails and restore credits successfully', async () => {
+      const sendError = new Error('Message sending failed');
+      const sendMessageSpy = vi.fn().mockRejectedValue(sendError);
       const safePublishSpy = vi.fn();
       const deductCreditsFn = vi.fn().mockResolvedValue(validCreditDeductionSuccess);
+      const restoreCreditsFn = vi.fn().mockResolvedValue({
+        success: true,
+        result: 'Success',
+        operationDetails: {
+          fromBalance: 'subscription',
+          type: 'restore',
+          quantity: 7
+        },
+        balances: {
+          subscription: 407,
+          topup: 5
+        }
+      });
 
-      const result = testWithActionableEvent(
+      const loggerInfoSpy = vi.spyOn(logger, 'info');
+
+      const result = testWithActionableEventAndRestoreCredits(
         validActionableEvent,
         sendMessageSpy,
         safePublishSpy,
         deductCreditsFn,
+        restoreCreditsFn,
         true
       );
 
-      await expect(result).rejects.toThrow(error);
+      await expect(result).rejects.toThrow(sendError);
       expect(sendMessageSpy).toHaveBeenCalledOnce();
+      expect(restoreCreditsFn).toHaveBeenCalledWith(validActionableEvent.userId, 7, 'subscription');
+      expect(loggerInfoSpy).toHaveBeenCalledWith('Credits restored after message send failure', {
+        userId: validActionableEvent.userId,
+        restoredCredits: 7,
+        balanceType: 'subscription'
+      });
+      expect(safePublishSpy).not.toHaveBeenCalled();
+    });
+
+    it('should return an error if message sending fails and credit restoration fails', async () => {
+      const sendError = new Error('Message sending failed');
+      const restoreError = new Error('Restore failed');
+      const sendMessageSpy = vi.fn().mockRejectedValue(sendError);
+      const safePublishSpy = vi.fn();
+      const deductCreditsFn = vi.fn().mockResolvedValue(validCreditDeductionSuccess);
+      const restoreCreditsFn = vi.fn().mockRejectedValue(restoreError);
+
+      const loggerErrorSpy = vi.spyOn(logger, 'error');
+
+      const result = testWithActionableEventAndRestoreCredits(
+        validActionableEvent,
+        sendMessageSpy,
+        safePublishSpy,
+        deductCreditsFn,
+        restoreCreditsFn,
+        true
+      );
+
+      await expect(result).rejects.toThrow(sendError);
+      expect(sendMessageSpy).toHaveBeenCalledOnce();
+      expect(restoreCreditsFn).toHaveBeenCalledWith(validActionableEvent.userId, 7, 'subscription');
+      expect(loggerErrorSpy).toHaveBeenCalledWith(
+        'Failed to restore credits after message send failure',
+        {
+          userId: validActionableEvent.userId,
+          creditsToRestore: 7,
+          balanceType: 'subscription',
+          restoreError
+        }
+      );
+      expect(safePublishSpy).not.toHaveBeenCalled();
+    });
+
+    it('should return an error if demo reminder sending fails and decrement counter successfully', async () => {
+      const sendError = new Error('Demo message sending failed');
+      const sendMessageSpy = vi.fn().mockRejectedValue(sendError);
+      const safePublishSpy = vi.fn();
+      const incrementDemoCounterFn = vi.fn().mockResolvedValue(validDemoCounterSuccess);
+      const decrementDemoCounterFn = vi.fn().mockResolvedValue({
+        success: true as const,
+        result: 'Success' as const,
+        demoRemindersCount: 1
+      });
+
+      const loggerInfoSpy = vi.spyOn(logger, 'info');
+
+      const result = testWithDemoReminderEventAndDecrement(
+        validDemoEvent,
+        sendMessageSpy,
+        safePublishSpy,
+        incrementDemoCounterFn,
+        decrementDemoCounterFn,
+        true
+      );
+
+      await expect(result).rejects.toThrow(sendError);
+      expect(sendMessageSpy).toHaveBeenCalledOnce();
+      expect(decrementDemoCounterFn).toHaveBeenCalledWith(validDemoEvent.userId);
+      expect(loggerInfoSpy).toHaveBeenCalledWith(
+        'Demo counter decremented after message send failure',
+        {
+          userId: validDemoEvent.userId
+        }
+      );
+      expect(safePublishSpy).not.toHaveBeenCalled();
+    });
+
+    it('should return an error if demo reminder sending fails and counter decrement fails', async () => {
+      const sendError = new Error('Demo message sending failed');
+      const decrementError = new Error('Decrement failed');
+      const sendMessageSpy = vi.fn().mockRejectedValue(sendError);
+      const safePublishSpy = vi.fn();
+      const incrementDemoCounterFn = vi.fn().mockResolvedValue(validDemoCounterSuccess);
+      const decrementDemoCounterFn = vi.fn().mockRejectedValue(decrementError);
+
+      const loggerErrorSpy = vi.spyOn(logger, 'error');
+
+      const result = testWithDemoReminderEventAndDecrement(
+        validDemoEvent,
+        sendMessageSpy,
+        safePublishSpy,
+        incrementDemoCounterFn,
+        decrementDemoCounterFn,
+        true
+      );
+
+      await expect(result).rejects.toThrow(sendError);
+      expect(sendMessageSpy).toHaveBeenCalledOnce();
+      expect(decrementDemoCounterFn).toHaveBeenCalledWith(validDemoEvent.userId);
+      expect(loggerErrorSpy).toHaveBeenCalledWith(
+        'Failed to decrement demo counter after message send failure',
+        {
+          userId: validDemoEvent.userId,
+          decrementError
+        }
+      );
       expect(safePublishSpy).not.toHaveBeenCalled();
     });
 
@@ -553,6 +677,33 @@ describe('Messaging processor', () => {
       );
     }
 
+    function testWithActionableEventAndRestoreCredits(
+      event: ActionableEventFoundEvent,
+      sendMessageFn: () => Promise<Uuid>,
+      safePublishFn: () => Promise<void>,
+      deductCreditsFn: () => Promise<CreditDeductionResult<'deduct'>>,
+      restoreCreditsFn: () => Promise<CreditAdditionResult<'restore'>>,
+      messagingEnabled: boolean,
+      config: VonageEndpointConfig &
+        CreditServiceEndpointConfig &
+        DemoReminderEndpointConfig &
+        MessagingAlertingEndpointConfig = defaultConfig
+    ): Promise<Uuid> {
+      return createProcessorAndTest(
+        event,
+        sendMessageFn,
+        safePublishFn,
+        messagingEnabled,
+        config,
+        () => {
+          // eslint-disable-next-line @typescript-eslint/unbound-method
+          vi.mocked(CreditsService.prototype.deductCredits).mockImplementation(deductCreditsFn);
+          // eslint-disable-next-line @typescript-eslint/unbound-method
+          vi.mocked(CreditsService.prototype.restoreCredits).mockImplementation(restoreCreditsFn);
+        }
+      );
+    }
+
     function testWithDemoReminderEvent(
       event: DemoReminderToBeSentEvent,
       sendMessageFn: () => Promise<Uuid>,
@@ -574,6 +725,37 @@ describe('Messaging processor', () => {
           // eslint-disable-next-line @typescript-eslint/unbound-method
           vi.mocked(CreditsService.prototype.incrementDemoReminderCount).mockImplementation(
             incrementDemoCounterFn
+          );
+        }
+      );
+    }
+
+    function testWithDemoReminderEventAndDecrement(
+      event: DemoReminderToBeSentEvent,
+      sendMessageFn: () => Promise<Uuid>,
+      safePublishFn: () => Promise<void>,
+      incrementDemoCounterFn: () => Promise<DemoCounterIncrementResult>,
+      decrementDemoCounterFn: () => Promise<DemoCounterDecrementResult>,
+      messagingEnabled: boolean,
+      config: VonageEndpointConfig &
+        CreditServiceEndpointConfig &
+        DemoReminderEndpointConfig &
+        MessagingAlertingEndpointConfig = defaultConfig
+    ): Promise<Uuid> {
+      return createProcessorAndTest(
+        event,
+        sendMessageFn,
+        safePublishFn,
+        messagingEnabled,
+        config,
+        () => {
+          // eslint-disable-next-line @typescript-eslint/unbound-method
+          vi.mocked(CreditsService.prototype.incrementDemoReminderCount).mockImplementation(
+            incrementDemoCounterFn
+          );
+          // eslint-disable-next-line @typescript-eslint/unbound-method
+          vi.mocked(CreditsService.prototype.decrementDemoReminderCount).mockImplementation(
+            decrementDemoCounterFn
           );
         }
       );
@@ -612,7 +794,7 @@ describe('Messaging processor', () => {
         result: 'Success',
         operationDetails: {
           fromBalance: 'subscription',
-          type: 'add',
+          type: 'restore',
           quantity: 1
         },
         balances: {
@@ -624,8 +806,8 @@ describe('Messaging processor', () => {
       // Setup default mock for decrementDemoReminderCount
       // eslint-disable-next-line @typescript-eslint/unbound-method
       vi.mocked(CreditsService.prototype.decrementDemoReminderCount).mockResolvedValue({
-        success: true,
-        result: 'Success',
+        success: true as const,
+        result: 'Success' as const,
         demoRemindersCount: 0
       });
 

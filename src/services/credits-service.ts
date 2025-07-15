@@ -16,9 +16,7 @@ export class CreditsService<TIdpName extends IdpName> {
     credits: number
   ): Promise<Credits.CreditDeductionResult<'deduct'>> {
     if (credits <= 0) {
-      return Promise.resolve(
-        this.badRequestCreditError(credits) as Credits.CreditDeductionBadRequestError
-      );
+      return Promise.resolve(this.badRequestCreditError(credits));
     }
     return this.userStore.deductCredits(userId, credits, this.logger).then(
       (result) => {
@@ -172,40 +170,39 @@ export class CreditsService<TIdpName extends IdpName> {
         }
   ): Promise<Credits.CreditAdditionResult<'add'>> {
     const tierId = product.type === 'subscription' ? product.id : undefined;
-    return this.performCreditAddition(userId, credits, product.type, tierId, 'addCredits');
+    return this.performCreditAddition(userId, credits, product.type, tierId, 'add');
   }
 
   public restoreCredits(
     userId: UserId,
     credits: number,
     balanceType: 'subscription' | 'topup'
-  ): Promise<Credits.CreditAdditionResult<'add'>> {
-    return this.performCreditAddition(userId, credits, balanceType, undefined, 'restoreCredits');
+  ): Promise<Credits.CreditAdditionResult<'restore'>> {
+    return this.performCreditAddition(userId, credits, balanceType, undefined, 'restore');
   }
 
-  private performCreditAddition(
+  private performCreditAddition<TOperationType extends 'add' | 'restore'>(
     userId: UserId,
     credits: number,
     balanceType: 'subscription' | 'topup',
     tierId: TierId | undefined,
-    operation: 'addCredits' | 'restoreCredits'
-  ): Promise<Credits.CreditAdditionResult<'add'>> {
+    operation: TOperationType
+  ): Promise<Credits.CreditAdditionResult<TOperationType>> {
     if (credits <= 0) {
       return Promise.resolve(
         this.badRequestCreditError(credits) as Credits.CreditAdditionBadRequestError
       );
     }
-
     return this.userStore.addCredits(userId, credits, balanceType, this.logger, tierId).then(
       (user) => {
-        const creditAdditionOperation: Credits.CreditAdditionSuccess<'add'> = {
+        const creditAdditionOperation: Credits.CreditAdditionSuccess<TOperationType> = {
           success: true,
           result: 'Success',
           operationDetails: {
             fromBalance: balanceType,
-            type: 'add',
+            type: operation,
             quantity: credits
-          },
+          } as Extract<Credits.CreditAdditionOperationDetails, { type: TOperationType }>,
           balances: {
             subscription: user.Credits.SubscriptionCreditBalance,
             topup: user.Credits.TopupCreditBalance
@@ -278,10 +275,10 @@ export class CreditsService<TIdpName extends IdpName> {
   }
 
   private errorHandlerForNonIdempotentOp(
-    operation: 'addCredits' | 'restoreCredits'
+    operation: 'add' | 'restore'
   ): (error: unknown) => Promise<Credits.CreditAdditionUnexpectedError> {
     return (error: unknown) => {
-      const msg = `The user status update has failed after the non idempotent operation ${operation} in credit service. We cannot retry...`;
+      const msg = `The user status update has failed after the non idempotent operation ${operation}Credits in credit service. We cannot retry...`;
       const result: Credits.CreditAdditionUnexpectedError = {
         success: false,
         result: 'UnknownError',

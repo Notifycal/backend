@@ -8,6 +8,7 @@ export type CreditDeductionOperationDetails =
 
 export type CreditAdditionOperationDetails =
   | { fromBalance: 'subscription' | 'topup'; type: 'add'; quantity: number }
+  | { fromBalance: 'subscription' | 'topup'; type: 'restore'; quantity: number }
   | { fromBalance: 'subscription' | 'topup'; type: 'reset' };
 
 export type CreditDeductionOperationType = CreditDeductionOperationDetails['type'];
