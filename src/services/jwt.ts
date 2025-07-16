@@ -12,7 +12,7 @@ import type { IdpName, Jwt, UserId, UserIdentity } from '@notifycal/shared/types
 import jwtBuilder from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
 import type { z } from 'zod';
-import { rejectWithErrorMessage } from './common/error-handling';
+import { rejectWithMessageAndError } from './common/error-handling';
 
 export function accessJwtPayload<TIdpName extends IdpName>(
   userIdentity: UserIdentity<TIdpName>
@@ -47,7 +47,7 @@ export function decodeJwt<T extends z.ZodTypeAny>(jwt: Jwt, jwtSchema: T): Promi
       return Promise.reject(new Error(msg));
     }
   } catch (error: unknown) {
-    return rejectWithErrorMessage('JWT decoding failed', error);
+    return rejectWithMessageAndError('JWT decoding failed', error);
   }
 }
 
@@ -74,7 +74,7 @@ export function buildJwt<
       decoded: decoded
     }));
   } catch (error: unknown) {
-    return rejectWithErrorMessage('JWT could not be generated', error);
+    return rejectWithMessageAndError('JWT could not be generated', error);
   }
 }
 
@@ -120,7 +120,7 @@ export function decodeAndVerifyJwtSignature<
     });
     return Promise.resolve(schema.parse(token));
   } catch (error: unknown) {
-    return rejectWithErrorMessage('JWT verification failed', error);
+    return rejectWithMessageAndError('JWT verification failed', error);
   }
 }
 
@@ -135,6 +135,6 @@ export function vonageDecodeAndVerifyJwtSignature<
     });
     return Promise.resolve(schema.parse(token));
   } catch (error: unknown) {
-    return rejectWithErrorMessage('JWT verification failed', error);
+    return rejectWithMessageAndError('JWT verification failed', error);
   }
 }

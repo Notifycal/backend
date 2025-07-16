@@ -19,7 +19,7 @@ export function topupFailedEvent<TIdpName extends IdpName>(
   topupId: TopupId,
   quantity: number,
   credits: number,
-  result: CreditAdditionResult | undefined,
+  result: CreditAdditionResult<'add'> | undefined,
   error: unknown
 ): TopupFailedEvent {
   return {

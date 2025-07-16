@@ -98,4 +98,8 @@ export abstract class BaseStore<TConfig extends BaseStoreConfig> {
     });
     return this._dynamoDbClient.send(command);
   }
+
+  protected isConditionalCheckFailedError(error: unknown): boolean {
+    return error instanceof Error && error.name === 'ConditionalCheckFailedException';
+  }
 }

@@ -19,7 +19,7 @@ export type SubscriptionCreationFailedEvent = z.infer<typeof subscriptionCreatio
 export function subscriptionCreationFailedEvent<TIdpName extends IdpName>(
   userIdentity: UserIdentity<TIdpName>,
   tier: TierId,
-  result?: CreditAdditionResult,
+  result?: CreditAdditionResult<'reset'>,
   error?: unknown
 ): SubscriptionCreationFailedEvent {
   return {

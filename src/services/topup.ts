@@ -16,7 +16,7 @@ export class TopupService<TIdpName extends IdpName> {
     userIdentity: UserIdentity<TIdpName>,
     topup: TopupId,
     quantity: number
-  ): Promise<CreditAdditionResult> {
+  ): Promise<CreditAdditionResult<'add'>> {
     if (quantity < 1) {
       const error = new Error(
         `Error while adding a topup. Quantity cannot be smaller than 1. Quantity: ${quantity}`
@@ -27,8 +27,7 @@ export class TopupService<TIdpName extends IdpName> {
     }
     const credits = this.topupToCreditsMap[topup] * quantity;
     const operation = this.creditsService.addCredits(userIdentity.userId, credits, {
-      type: 'topup',
-      id: 'single'
+      type: 'topup'
     });
 
     return handleServiceOperation(

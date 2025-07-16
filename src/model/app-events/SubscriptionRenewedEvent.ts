@@ -17,7 +17,7 @@ export type SubscriptionRenewedEvent = z.infer<typeof subscriptionRenewedEventSc
 export function subscriptionRenewedEvent<TIdpName extends IdpName>(
   userIdentity: UserIdentity<TIdpName>,
   tier: TierId,
-  result: CreditAdditionResult
+  result: CreditAdditionResult<'reset'>
 ): SubscriptionRenewedEvent {
   return {
     ...createEventBase('SubscriptionRenewed', userIdentity),

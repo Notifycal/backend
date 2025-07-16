@@ -21,7 +21,7 @@ export type SubscriptionCancellationFailedEvent = z.infer<
 export function subscriptionCancellationFailedEvent<TIdpName extends IdpName>(
   userIdentity: UserIdentity<TIdpName>,
   reason: 'unpaid' | 'cancelled',
-  result?: CreditDeductionResult,
+  result?: CreditDeductionResult<'clear'>,
   error?: unknown
 ): SubscriptionCancellationFailedEvent {
   return {

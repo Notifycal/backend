@@ -27,12 +27,15 @@ import type {
 import type {
   CreditDeductionInsufficientCreditsError,
   CreditDeductionResult,
+  CreditDeductionSuccess,
   CreditOperationResult,
+  DemoCounterIncrementSuccess,
   DemoCounterLimitReachedError
 } from '@model/Credits';
 import type { VonageEndpointConfig } from '@model/vendor/vonage/config';
 import type { IdpName, Uuid } from '@notifycal/shared/types';
 import type { Url } from '@own-types/model';
+import { rejectWithError, rejectWithMessageAndError } from '@services/common/error-handling';
 import type { CreditsService } from '@services/credits-service';
 import { MessagingService } from '@services/messaging';
 import type { SnsService } from '@services/sns';
@@ -82,9 +85,7 @@ export default class Processor {
     return webhookUrl;
   }
 
-  public async process(
-    event: ActionableEventFoundEvent | DemoReminderToBeSentEvent
-  ): Promise<Uuid> {
+  public process(event: ActionableEventFoundEvent | DemoReminderToBeSentEvent): Promise<Uuid> {
     const { message, senderDetails, receiverDetails } = event.data;
     logger.appendKeys({
       reminderMessage: message,
@@ -92,12 +93,15 @@ export default class Processor {
       receiverDetails
     });
 
-    return this.deductFromAllowance(event).then((allowanceResult) => {
-      if (!allowanceResult.success) {
-        return this.processAllowanceFailure(allowanceResult, event);
+    return this.deductFromAllowance(event).then((deductionResult) => {
+      if (!deductionResult.success) {
+        return this.processAllowanceFailure(deductionResult, event);
       }
-      return this.sendMessage(event);
-    });
+      return this.sendMessage(event).then(
+        (messageUuid) => messageUuid,
+        this.handleSendError(event, deductionResult)
+      );
+    }, this.handleDeductFromAllowanceError());
   }
 
   private deductFromAllowance(
@@ -112,6 +116,82 @@ export default class Processor {
         )
       )
       .exhaustive();
+  }
+
+  private handleDeductFromAllowanceError(): (error: unknown) => Promise<never> {
+    return (error: unknown) => {
+      logger.error('Failed to deduct from allowance', { error });
+      return rejectWithError(error);
+    };
+  }
+
+  private handleSendError(
+    event: ActionableEventFoundEvent | DemoReminderToBeSentEvent,
+    result: CreditDeductionSuccess<'deduct'> | DemoCounterIncrementSuccess
+  ): (error: unknown) => Promise<never> {
+    return (error: unknown) =>
+      match(event)
+        .with({ eventType: 'ActionableEventFound' }, (e) =>
+          this.handleActionableEventSendFailure(
+            e,
+            result as CreditDeductionSuccess<'deduct'>
+          )(error)
+        )
+        .with({ eventType: 'DemoReminderToBeSent' }, (e) =>
+          this.handleDemoReminderSendFailure(e)(error)
+        )
+        .exhaustive();
+  }
+
+  private handleActionableEventSendFailure(
+    event: ActionableEventFoundEvent,
+    creditResult: CreditDeductionSuccess<'deduct'>
+  ): (error: unknown) => Promise<never> {
+    return (error: unknown) => {
+      const { operationDetails } = creditResult;
+      return this.creditsService
+        .restoreCredits(event.userId, operationDetails.quantity, operationDetails.fromBalance)
+        .then(
+          () => {
+            logger.info('Credits restored after message send failure', {
+              userId: event.userId,
+              restoredCredits: operationDetails.quantity,
+              balanceType: operationDetails.fromBalance
+            });
+            return rejectWithError(error);
+          },
+          (restoreError) => {
+            logger.error('Failed to restore credits after message send failure', {
+              userId: event.userId,
+              creditsToRestore: operationDetails.quantity,
+              balanceType: operationDetails.fromBalance,
+              restoreError
+            });
+            return rejectWithError(error);
+          }
+        );
+    };
+  }
+
+  private handleDemoReminderSendFailure(
+    event: DemoReminderToBeSentEvent
+  ): (error: unknown) => Promise<never> {
+    return (error: unknown) =>
+      this.creditsService.decrementDemoReminderCount(event.userId).then(
+        () => {
+          logger.info('Demo counter decremented after message send failure', {
+            userId: event.userId
+          });
+          return rejectWithError(error);
+        },
+        (decrementError) => {
+          logger.error('Failed to decrement demo counter after message send failure', {
+            userId: event.userId,
+            decrementError
+          });
+          return rejectWithError(error);
+        }
+      );
   }
 
   private sendMessage(event: ActionableEventFoundEvent | DemoReminderToBeSentEvent): Promise<Uuid> {
@@ -164,10 +244,9 @@ export default class Processor {
           event.eventType === 'ActionableEventFound'
             ? 'credit deduction'
             : 'demo counter increment';
-        return Promise.reject(
-          new Error(`A message could not be sent due to a bad request during ${operationType}`, {
-            cause: result.error
-          })
+        return rejectWithMessageAndError(
+          `A message could not be sent due to a bad request during ${operationType}`,
+          result.error
         );
       })
       .with({ result: 'UnknownError' }, () => {
@@ -175,16 +254,17 @@ export default class Processor {
           event.eventType === 'ActionableEventFound'
             ? 'credit deduction'
             : 'demo counter increment';
-        return Promise.reject(
-          new Error(`A message could not be sent due to an unknown issue during ${operationType}`, {
-            cause: result.error
-          })
+        return rejectWithMessageAndError(
+          `A message could not be sent due to an unknown issue during ${operationType}`,
+          result.error
         );
       })
       .exhaustive();
   }
 
-  private deductCredits(event: ActionableEventFoundEvent): Promise<CreditDeductionResult> {
+  private deductCredits(
+    event: ActionableEventFoundEvent
+  ): Promise<CreditDeductionResult<'deduct'>> {
     const countResult = count(event.data.message);
     const creditToDeductPerUnit = this.config.countryToSMSCostCreditsMap['ES'];
     const totalCreditsToDeduct = creditToDeductPerUnit * countResult.messages;
@@ -194,20 +274,13 @@ export default class Processor {
           estimatedMessageCount: countResult,
           updatedUserCredit: result
         });
-        if (result.success) {
-          const { subscription, topup } = result.balances;
-          const totalUpdatedCredits = subscription + topup;
-          const previousTotalCredits = totalUpdatedCredits + totalCreditsToDeduct;
-          const lowCreditsThreshold = this.config.messagingAlertingConfig.lowCreditThreshold;
-          if (
-            previousTotalCredits >= lowCreditsThreshold &&
-            totalUpdatedCredits < lowCreditsThreshold
-          ) {
-            const lowCreditsDetectedEvent = lowCreditsDetected(event, result);
-            return this.snsService.safePublish(lowCreditsDetectedEvent).then(() => result);
-          }
-        }
-        return result;
+        return result.success
+          ? this.publishLowCreditsDetectedEventIfThresholdHasBeenCrossed(
+              event,
+              result,
+              totalCreditsToDeduct
+            )
+          : Promise.resolve(result);
       })
     );
   }
@@ -254,5 +327,21 @@ export default class Processor {
     return this.snsService.safePublish<
       InsufficientCreditReminderNotSentEvent | DemoReminderLimitReachedNotSentEvent
     >(demoLimitEvent);
+  }
+
+  private publishLowCreditsDetectedEventIfThresholdHasBeenCrossed(
+    event: ActionableEventFoundEvent,
+    result: CreditDeductionSuccess<'deduct'>,
+    totalCreditsToDeduct: number
+  ): Promise<CreditDeductionResult<'deduct'>> {
+    const { subscription, topup } = result.balances;
+    const totalUpdatedCredits = subscription + topup;
+    const previousTotalCredits = totalUpdatedCredits + totalCreditsToDeduct;
+    const lowCreditsThreshold = this.config.messagingAlertingConfig.lowCreditThreshold;
+    if (previousTotalCredits >= lowCreditsThreshold && totalUpdatedCredits < lowCreditsThreshold) {
+      const lowCreditsDetectedEvent = lowCreditsDetected(event, result);
+      return this.snsService.safePublish(lowCreditsDetectedEvent).then(() => result);
+    }
+    return Promise.resolve(result);
   }
 }

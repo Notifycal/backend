@@ -17,7 +17,7 @@ export type LowCreditsDetectedEvent = z.infer<typeof lowCreditsDetectedEventSche
 
 export function lowCreditsDetected(
   originalEvent: ActionableEventFoundEvent,
-  lastCreditReductionResult: CreditDeductionResult
+  lastCreditReductionResult: CreditDeductionResult<'deduct'>
 ): LowCreditsDetectedEvent {
   return {
     ...originalEvent,

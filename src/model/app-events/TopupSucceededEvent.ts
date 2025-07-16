@@ -19,7 +19,7 @@ export function topupSucceededEvent<TIdpName extends IdpName>(
   topupId: TopupId,
   quantity: number,
   credits: number,
-  result: CreditAdditionResult
+  result: CreditAdditionResult<'add'>
 ): TopupSucceededEvent {
   return {
     ...createEventBase('TopupSucceeded', userIdentity),
