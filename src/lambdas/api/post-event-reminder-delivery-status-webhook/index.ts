@@ -5,18 +5,28 @@ import type { ActionableEventFoundEvent } from '@model/app-events/ActionableEven
 import type { ActionableEventReminderStatusUpdatedEvent } from '@model/app-events/ActionableEventReminderStatusUpdatedEvent';
 import type { DemoReminderToBeSentEvent } from '@model/app-events/DemoReminderToBeSentEvent';
 import type { DemoReminderToBeSentStatusUpdatedEvent } from '@model/app-events/DemoReminderToBeSentStatusUpdatedEvent';
+import type {
+  CreditAdditionResult,
+  CreditDeductionResult,
+  DemoCounterDecrementResult,
+  DemoCounterIncrementResult
+} from '@model/Credits';
 import { authedEventSchema } from '@model/lambda-events/ApiGatewayEvents';
 import type { DecodeVonageAccessJwtConfig } from '@model/vendor/vonage/config';
 import {
   setupLoggerForAuthedVonageApiRequest,
   vonageAccessTokenSchema,
-  vonageMessageStatusWebhookSchema
+  vonageWebhookMessageStatusPayloadSchema,
+  type VonageWebhookMessageStatusPayload
 } from '@model/vendor/vonage/schemas';
 import type { DateTime, EventId } from '@notifycal/shared/types';
 import { successHandler } from '@services/common/api-response-handlers';
+import { rejectWithMessageAndError } from '@services/common/error-handling';
+import { CreditAdjustmentService } from '@services/credit-adjustment-service';
+import { CreditsService } from '@services/credits-service';
 import { vonageDecodeAndVerifyJwtSignature } from '@services/jwt';
 import { SnsService } from '@services/sns';
-import { mergeErrors } from '@utils/errors';
+import { UserBaseStore } from '@services/stores/user-base-store';
 import { tap } from '@utils/promises';
 import { queryStringObjectToTypedObject } from '@utils/queryString';
 import type { APIGatewayProxyResult, Context } from 'aws-lambda';
@@ -27,16 +37,18 @@ import {
   readReminderDeliveryStatusWebhookConfig,
   type ReminderDeliveryStatusWebhookConfig
 } from './config';
-import { actionableEventQuerySchema, demoReminderToBeSentEventQuerySchema } from './schema';
+import { webhookCorrelationDataSchema, type WebhookCorrelationData } from './schema';
 
 const schema = authedEventSchema<ReminderDeliveryStatusWebhookConfig>().extend({
-  body: JSONStringified(vonageMessageStatusWebhookSchema)
+  body: JSONStringified(vonageWebhookMessageStatusPayloadSchema)
 });
 export type Event = z.infer<typeof schema>;
 
 function buildActionableEventReminderStatusUpdated(
   rebuiltEventObject: Omit<ActionableEventFoundEvent, 'eventType' | 'eventId' | 'happenedAt'>,
-  event: Event['body']
+  event: VonageWebhookMessageStatusPayload,
+  creditDeductionResult: CreditDeductionResult<'deduct'>,
+  creditRestoreResult?: CreditAdditionResult<'restore'>
 ): ActionableEventReminderStatusUpdatedEvent {
   return {
     ...rebuiltEventObject,
@@ -48,14 +60,18 @@ function buildActionableEventReminderStatusUpdated(
       messageUUID: event.message_uuid,
       messageStatusPayload: {
         ...event
-      }
+      },
+      creditDeductionResult,
+      creditRestoreResult
     }
   };
 }
 
 function buildDemoReminderToBeSentReminderStatusUpdated(
   rebuiltEventObject: Omit<DemoReminderToBeSentEvent, 'eventId' | 'happenedAt'>,
-  event: Event['body']
+  event: VonageWebhookMessageStatusPayload,
+  demoCounterIncrementResult: DemoCounterIncrementResult,
+  demoCounterDecrementResult?: DemoCounterDecrementResult
 ): DemoReminderToBeSentStatusUpdatedEvent {
   return {
     ...rebuiltEventObject,
@@ -67,61 +83,68 @@ function buildDemoReminderToBeSentReminderStatusUpdated(
       messageUUID: event.message_uuid,
       messageStatusPayload: {
         ...event
-      }
+      },
+      demoCounterIncrementResult,
+      demoCounterDecrementResult
     }
   };
 }
 
-function parseQueryParams(
+function rebuildWebhookCorrelationData(
   queryParams: Record<string, string>
-): Promise<
-  | Omit<ActionableEventFoundEvent, 'eventId' | 'happenedAt'>
-  | Omit<DemoReminderToBeSentEvent, 'eventId' | 'happenedAt'>
-> {
-  return queryStringObjectToTypedObject(queryParams, actionableEventQuerySchema).catch((error) =>
-    queryStringObjectToTypedObject(queryParams, demoReminderToBeSentEventQuerySchema).catch(
-      (error2) => {
-        return Promise.reject(
-          mergeErrors(
-            [error, error2],
-            'Could not parse query string neither as ActionableEventFoundEvent nor DemoReminderToBeSentEvent'
-          )
-        );
-      }
-    )
+): Promise<WebhookCorrelationData> {
+  logger.info(
+    'Attempting to rebuild data sent to messaging provider out of query string parameters',
+    {
+      queryParams
+    }
   );
-}
-
-function rebuildEvent(
-  queryParams: Record<string, string>,
-  requestBody: Event['body']
-): Promise<ActionableEventReminderStatusUpdatedEvent | DemoReminderToBeSentStatusUpdatedEvent> {
-  logger.info('Attempting to rebuild object from query string parameters', {
-    queryParams
-  });
-  return parseQueryParams(queryParams)
+  return queryStringObjectToTypedObject(queryParams, webhookCorrelationDataSchema)
     .then(
-      tap((partialRebuiltEvent) => {
+      tap((rebuiltWebhookCorrelationData) => {
+        const partialRebuiltEvent = rebuiltWebhookCorrelationData.originalEvent;
         logger.appendKeys({
           userId: partialRebuiltEvent.userId,
           idp: partialRebuiltEvent.idp,
           idpId: partialRebuiltEvent.idpId
         });
-        logger.info('Rebuilt partial event', {
-          rebuiltEventObject: partialRebuiltEvent
+        logger.info('Rebuilt webhook correlation data returned by Vonage', {
+          rebuiltWebhookCorrelationData
         });
       })
     )
-    .then((partialRebuiltEvent) =>
-      match(partialRebuiltEvent)
-        .with({ eventType: 'ActionableEventFound' }, (partialEvent) =>
-          buildActionableEventReminderStatusUpdated(partialEvent, requestBody)
-        )
-        .with({ eventType: 'DemoReminderToBeSent' }, (partialEvent) =>
-          buildDemoReminderToBeSentReminderStatusUpdated(partialEvent, requestBody)
-        )
-        .exhaustive()
-    );
+    .catch((error) => {
+      return rejectWithMessageAndError(
+        'Could not parse query string neither as ActionableEventFoundEvent nor DemoReminderToBeSentEvent along with credit deduction result and estimated message count',
+        error
+      );
+    });
+}
+
+function buildStatusUpdatedEvent(
+  webhookCorrelationData: WebhookCorrelationData,
+  messageStatus: VonageWebhookMessageStatusPayload,
+  restoreResult?: CreditAdditionResult<'restore'>,
+  demoCounterDecrementResult?: DemoCounterDecrementResult
+): ActionableEventReminderStatusUpdatedEvent | DemoReminderToBeSentStatusUpdatedEvent {
+  return match(webhookCorrelationData)
+    .with({ originalEvent: { eventType: 'ActionableEventFound' } }, (correlationData) => {
+      return buildActionableEventReminderStatusUpdated(
+        correlationData.originalEvent,
+        messageStatus,
+        correlationData.creditDeductionResult,
+        restoreResult
+      );
+    })
+    .with({ originalEvent: { eventType: 'DemoReminderToBeSent' } }, (correlationData) =>
+      buildDemoReminderToBeSentReminderStatusUpdated(
+        correlationData.originalEvent,
+        messageStatus,
+        correlationData.creditDeductionResult,
+        demoCounterDecrementResult
+      )
+    )
+    .exhaustive();
 }
 
 async function lambdaHandler(
@@ -131,9 +154,33 @@ async function lambdaHandler(
 ): Promise<APIGatewayProxyResult> {
   const config = event.lambdaConfig;
   const snsService = SnsService.withConfig(config.messagingTopicConfig, logger);
+  const userBaseStore = UserBaseStore.withConfig(config.userBaseStoreConfig, logger);
+  const creditsService = new CreditsService(userBaseStore, logger);
+  const creditAdjustmentService = new CreditAdjustmentService(
+    config.countryToSMSCostCreditsMap,
+    creditsService,
+    logger
+  );
 
-  return rebuildEvent(event.queryStringParameters || {}, event.body)
-    .then((rebuiltEvent) => snsService.safePublish(rebuiltEvent))
+  return rebuildWebhookCorrelationData(event.queryStringParameters || {})
+    .then((webhookData) =>
+      creditAdjustmentService
+        .processWebhookAdjustment(webhookData, event.body)
+        .then(({ creditRestoreResult, demoCounterDecrementResult }) => ({
+          webhookData,
+          creditRestoreResult,
+          demoCounterDecrementResult
+        }))
+    )
+    .then(({ webhookData, creditRestoreResult, demoCounterDecrementResult }) => {
+      const rebuiltEvent = buildStatusUpdatedEvent(
+        webhookData,
+        event.body,
+        creditRestoreResult,
+        demoCounterDecrementResult
+      );
+      return snsService.safePublish(rebuiltEvent);
+    })
     .then(
       () => successHandler()(),
       (err) => {

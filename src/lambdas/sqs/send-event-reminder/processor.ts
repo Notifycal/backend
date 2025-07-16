@@ -1,5 +1,6 @@
 import type { Logger } from '@aws-lambda-powertools/logger';
 import { logger } from '@common/powertools';
+import type { WebhookCorrelationData } from '@lambdas/api/post-event-reminder-delivery-status-webhook/schema';
 import type { ActionableEventFoundEvent } from '@model/app-events/ActionableEventFoundEvent';
 import {
   actionableEventReminderAttemptSent,
@@ -25,10 +26,12 @@ import type {
   MessagingAlertingEndpointConfig
 } from '@model/Config';
 import type {
+  CreditDeductionError,
   CreditDeductionInsufficientCreditsError,
   CreditDeductionResult,
   CreditDeductionSuccess,
-  CreditOperationResult,
+  DemoCounterIncrementError,
+  DemoCounterIncrementResult,
   DemoCounterIncrementSuccess,
   DemoCounterLimitReachedError
 } from '@model/Credits';
@@ -43,6 +46,32 @@ import { tap } from '@utils/promises';
 import { objectToQueryString } from '@utils/queryString';
 import { count } from 'sms-length/src/index';
 import { match } from 'ts-pattern';
+
+type EventDataBase<TEvent, TResult> = {
+  event: TEvent;
+  deductionResult: TResult;
+  numberOfMessagesEstimate: ReturnType<typeof count>;
+};
+
+type ActionableEventData = EventDataBase<
+  ActionableEventFoundEvent,
+  CreditDeductionResult<'deduct'>
+>;
+type DemoReminderData = EventDataBase<DemoReminderToBeSentEvent, DemoCounterIncrementResult>;
+
+type EventWithDeduction = ActionableEventData | DemoReminderData;
+type EventWithSuccessfulDeduction =
+  | EventDataBase<ActionableEventFoundEvent, CreditDeductionSuccess<'deduct'>>
+  | EventDataBase<DemoReminderToBeSentEvent, DemoCounterIncrementSuccess>;
+type EventWithFailedDeduction =
+  | EventDataBase<ActionableEventFoundEvent, CreditDeductionError>
+  | EventDataBase<DemoReminderToBeSentEvent, DemoCounterIncrementError>;
+
+function isSuccessfulDeduction(
+  eventWithDeduction: EventWithDeduction
+): eventWithDeduction is EventWithSuccessfulDeduction {
+  return eventWithDeduction.deductionResult.success;
+}
 
 export default class Processor {
   private readonly _messagingService: MessagingService;
@@ -64,23 +93,30 @@ export default class Processor {
     );
   }
 
-  private buildWebhookUrl(
-    event: ActionableEventFoundEvent | DemoReminderToBeSentEvent,
-    baseWebhookUrl: Url
-  ): Url {
-    const queryStringEventData: Omit<
-      ActionableEventFoundEvent | DemoReminderToBeSentEvent,
-      'eventId' | 'happenedAt'
-    > = {
-      eventType: event.eventType,
-      correlationId: event.correlationId,
-      userId: event.userId,
-      idp: event.idp,
-      idpId: event.idpId,
-      data: event.data
-    };
-    const recordQs = objectToQueryString(queryStringEventData);
-    const webhookUrl = `${baseWebhookUrl}?${recordQs}` as Url;
+  private buildWebhookUrl(eventWithDeduction: EventWithSuccessfulDeduction): Url {
+    const webhookCorrelationData: WebhookCorrelationData = match(eventWithDeduction)
+      .with({ event: { eventType: 'ActionableEventFound' } }, (data) => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { eventId, happenedAt, ...originalEvent } = data.event;
+        return {
+          originalEvent,
+          creditDeductionResult: data.deductionResult,
+          estimatedMessageCount: data.numberOfMessagesEstimate
+        };
+      })
+      .with({ event: { eventType: 'DemoReminderToBeSent' } }, (data) => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { eventId, happenedAt, ...originalEvent } = data.event;
+        return {
+          originalEvent,
+          creditDeductionResult: data.deductionResult,
+          estimatedMessageCount: data.numberOfMessagesEstimate
+        };
+      })
+      .exhaustive();
+
+    const recordQs = objectToQueryString(webhookCorrelationData);
+    const webhookUrl = `${this.config.vonageConfig.webhookBaseURL}?${recordQs}` as Url;
     logger.info('FullWebhookUrl', { webhookUrl });
     return webhookUrl;
   }
@@ -93,27 +129,37 @@ export default class Processor {
       receiverDetails
     });
 
-    return this.deductFromAllowance(event).then((deductionResult) => {
-      if (!deductionResult.success) {
-        return this.processAllowanceFailure(deductionResult, event);
+    return this.deductFromAllowance(event).then((eventWithDeduction) => {
+      if (!isSuccessfulDeduction(eventWithDeduction)) {
+        return this.processAllowanceFailure(eventWithDeduction as EventWithFailedDeduction);
       }
-      return this.sendMessage(event).then(
+      return this.sendMessage(eventWithDeduction).then(
         (messageUuid) => messageUuid,
-        this.handleSendError(event, deductionResult)
+        this.handleSendError(eventWithDeduction)
       );
     }, this.handleDeductFromAllowanceError());
   }
 
   private deductFromAllowance(
     event: ActionableEventFoundEvent | DemoReminderToBeSentEvent
-  ): Promise<CreditOperationResult> {
+  ): Promise<EventWithDeduction> {
+    const numberOfMessagesEstimate = count(event.data.message);
     return match(event)
-      .with({ eventType: 'ActionableEventFound' }, (e) => this.deductCredits(e))
+      .with({ eventType: 'ActionableEventFound' }, (e) =>
+        this.deductCredits(e, numberOfMessagesEstimate).then((deductionResult) => ({
+          event: e,
+          deductionResult,
+          numberOfMessagesEstimate
+        }))
+      )
       .with({ eventType: 'DemoReminderToBeSent' }, (e) =>
-        this.creditsService.incrementDemoReminderCount(
-          e.userId,
-          this.config.demoReminderConfig.demoReminderLimit
-        )
+        this.creditsService
+          .incrementDemoReminderCount(e.userId, this.config.demoReminderConfig.demoReminderLimit)
+          .then((deductionResult) => ({
+            event: e,
+            deductionResult,
+            numberOfMessagesEstimate
+          }))
       )
       .exhaustive();
   }
@@ -126,19 +172,15 @@ export default class Processor {
   }
 
   private handleSendError(
-    event: ActionableEventFoundEvent | DemoReminderToBeSentEvent,
-    result: CreditDeductionSuccess<'deduct'> | DemoCounterIncrementSuccess
+    eventWithDeduction: EventWithSuccessfulDeduction
   ): (error: unknown) => Promise<never> {
     return (error: unknown) =>
-      match(event)
-        .with({ eventType: 'ActionableEventFound' }, (e) =>
-          this.handleActionableEventSendFailure(
-            e,
-            result as CreditDeductionSuccess<'deduct'>
-          )(error)
+      match(eventWithDeduction)
+        .with({ event: { eventType: 'ActionableEventFound' } }, (data) =>
+          this.handleActionableEventSendFailure(data.event, data.deductionResult)(error)
         )
-        .with({ eventType: 'DemoReminderToBeSent' }, (e) =>
-          this.handleDemoReminderSendFailure(e)(error)
+        .with({ event: { eventType: 'DemoReminderToBeSent' } }, (data) =>
+          this.handleDemoReminderSendFailure(data.event)(error)
         )
         .exhaustive();
   }
@@ -194,11 +236,11 @@ export default class Processor {
       );
   }
 
-  private sendMessage(event: ActionableEventFoundEvent | DemoReminderToBeSentEvent): Promise<Uuid> {
+  private sendMessage(eventWithDeduction: EventWithSuccessfulDeduction): Promise<Uuid> {
     const {
       correlationId,
       data: { message, senderDetails, receiverDetails }
-    } = event;
+    } = eventWithDeduction.event;
 
     if (this.isEnabled) {
       logger.info('Sending a message through Vonage');
@@ -208,70 +250,78 @@ export default class Processor {
           senderDetails,
           receiverDetails,
           correlationId,
-          this.buildWebhookUrl(event, this.config.vonageConfig.webhookBaseURL)
+          this.buildWebhookUrl(eventWithDeduction)
         )
         .then((messageUUID) => {
-          return this.publishAttemptSentEvent(event, messageUUID).then(() => messageUUID);
+          return this.publishAttemptSentEvent(eventWithDeduction, messageUUID).then(
+            () => messageUUID
+          );
         });
     } else {
       logger.info('Simulating a message is being sent');
       const fakeUUID = 'fake-uuid' as Uuid;
-      return this.publishAttemptSentEvent(event, fakeUUID).then(() => fakeUUID);
+      return this.publishAttemptSentEvent(eventWithDeduction, fakeUUID).then(() => fakeUUID);
     }
   }
 
-  private processAllowanceFailure(
-    result: CreditOperationResult & { success: false },
-    event: ActionableEventFoundEvent | DemoReminderToBeSentEvent
-  ): Promise<Uuid> {
-    return match(result)
-      .with({ result: 'InsufficientCredits' }, (insufficientResult) => {
-        logger.info('Message not sent due to insufficient credits', { result });
-        return this.publishInsufficientCreditErrorEvent(
-          event as ActionableEventFoundEvent,
-          insufficientResult as CreditDeductionInsufficientCreditsError
-        ).then(() => 'insufficient-credits' as Uuid);
+  private processAllowanceFailure(eventWithDeduction: EventWithFailedDeduction): Promise<Uuid> {
+    return match(eventWithDeduction)
+      .with({ event: { eventType: 'ActionableEventFound' } }, ({ event, deductionResult }) => {
+        return match(deductionResult)
+          .with({ result: 'InsufficientCredits' }, (insufficientResult) => {
+            logger.info('Message not sent due to insufficient credits', {
+              result: insufficientResult
+            });
+            return this.publishInsufficientCreditErrorEvent(event, insufficientResult).then(
+              () => 'insufficient-credits' as Uuid
+            );
+          })
+          .with({ result: 'BadRequestError' }, (badRequestResult) => {
+            return rejectWithMessageAndError(
+              'A message could not be sent due to a bad request during credit deduction',
+              badRequestResult.error
+            );
+          })
+          .with({ result: 'UnknownError' }, (unknownErrorResult) => {
+            return rejectWithMessageAndError(
+              'A message could not be sent due to an unknown issue during credit deduction',
+              unknownErrorResult.error
+            );
+          })
+          .exhaustive();
       })
-      .with({ result: 'DemoCounterLimitReachedError' }, (demoLimitResult) => {
-        logger.info('Demo reminder not sent due to demo limit reached', { result });
-        return this.publishDemoLimitReachedErrorEvent(
-          event as DemoReminderToBeSentEvent,
-          demoLimitResult as DemoCounterLimitReachedError
-        ).then(() => 'demo-limit-reached' as Uuid);
-      })
-      .with({ result: 'BadRequestError' }, () => {
-        const operationType =
-          event.eventType === 'ActionableEventFound'
-            ? 'credit deduction'
-            : 'demo counter increment';
-        return rejectWithMessageAndError(
-          `A message could not be sent due to a bad request during ${operationType}`,
-          result.error
-        );
-      })
-      .with({ result: 'UnknownError' }, () => {
-        const operationType =
-          event.eventType === 'ActionableEventFound'
-            ? 'credit deduction'
-            : 'demo counter increment';
-        return rejectWithMessageAndError(
-          `A message could not be sent due to an unknown issue during ${operationType}`,
-          result.error
-        );
+      .with({ event: { eventType: 'DemoReminderToBeSent' } }, ({ event, deductionResult }) => {
+        return match(deductionResult)
+          .with({ result: 'DemoCounterLimitReachedError' }, (demoLimitResult) => {
+            logger.info('Demo reminder not sent due to demo limit reached', {
+              result: demoLimitResult
+            });
+            return this.publishDemoLimitReachedErrorEvent(event, demoLimitResult).then(
+              () => 'demo-limit-reached' as Uuid
+            );
+          })
+          .with({ result: 'UnknownError' }, (unknownErrorResult) => {
+            return rejectWithMessageAndError(
+              'A message could not be sent due to an unknown issue during demo counter increment',
+              unknownErrorResult.error
+            );
+          })
+          .exhaustive();
       })
       .exhaustive();
   }
 
   private deductCredits(
-    event: ActionableEventFoundEvent
+    event: ActionableEventFoundEvent,
+    estimatedMessageCount: ReturnType<typeof count>
   ): Promise<CreditDeductionResult<'deduct'>> {
-    const countResult = count(event.data.message);
+    // TODO: stop assuming Spain for SMS cost and work it out based on receiver's dial code
     const creditToDeductPerUnit = this.config.countryToSMSCostCreditsMap['ES'];
-    const totalCreditsToDeduct = creditToDeductPerUnit * countResult.messages;
+    const totalCreditsToDeduct = creditToDeductPerUnit * estimatedMessageCount.messages;
     return this.creditsService.deductCredits(event.userId, totalCreditsToDeduct).then(
       tap((result) => {
-        logger.info(`Number of SMSs charged: ${countResult.messages}`, {
-          estimatedMessageCount: countResult,
+        logger.info(`Number of SMSs charged: ${estimatedMessageCount.messages}`, {
+          estimatedMessageCount,
           updatedUserCredit: result
         });
         return result.success
@@ -286,16 +336,16 @@ export default class Processor {
   }
 
   private publishAttemptSentEvent(
-    event: ActionableEventFoundEvent | DemoReminderToBeSentEvent,
+    eventWithDeduction: EventWithSuccessfulDeduction,
     messageUUID: Uuid
   ): Promise<void> {
     logger.info('Publishing an event indicating the attempt to send a message');
-    const attemptSentEvent = match(event)
-      .with({ eventType: 'ActionableEventFound' }, (e) =>
-        actionableEventReminderAttemptSent(e, messageUUID)
+    const attemptSentEvent = match(eventWithDeduction)
+      .with({ event: { eventType: 'ActionableEventFound' } }, ({ event, deductionResult }) =>
+        actionableEventReminderAttemptSent(event, messageUUID, deductionResult)
       )
-      .with({ eventType: 'DemoReminderToBeSent' }, (e) =>
-        demoReminderToBeSentAttemptSent(e, messageUUID)
+      .with({ event: { eventType: 'DemoReminderToBeSent' } }, ({ event, deductionResult }) =>
+        demoReminderToBeSentAttemptSent(event, messageUUID, deductionResult)
       )
       .exhaustive();
     return this.snsService.safePublish<
