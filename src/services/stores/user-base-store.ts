@@ -331,15 +331,7 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
         }
       },
       'increment',
-      (error) => {
-        if (this.isConditionalCheckFailedError(error)) {
-          return Promise.reject(new Error('Demo reminder limit reached'));
-        }
-        return rejectWithMessageAndError(
-          `Failed to increment demo reminder count for user '${userId}'`,
-          error
-        );
-      }
+      'Demo reminder limit reached'
     );
   }
 
@@ -355,18 +347,7 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
         }
       },
       'decrement',
-      (error) => {
-        if (this.isConditionalCheckFailedError(error)) {
-          return rejectWithMessageAndError(
-            'Cannot decrement demo reminder count: count is already at zero or does not exist',
-            error
-          );
-        }
-        return rejectWithMessageAndError(
-          `Failed to decrement demo reminder count for user '${userId}'`,
-          error
-        );
-      }
+      'Cannot decrement demo reminder count: count is already at zero or does not exist'
     );
   }
 
@@ -378,21 +359,30 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
       ExpressionAttributeValues: Record<string, unknown>;
     },
     operation: 'increment' | 'decrement',
-    errorHandler: (error: unknown) => Promise<never>
+    errorMessageOnConditionalCheckFailedError: string
   ): Promise<{ DemoReminderCount: number }> {
     return this.updateCommandRunner({
       Key: { UserId: userId },
       ...updateParams
-    })
-      .then((output) => {
+    }).then(
+      (output) => {
         const updatedUser = output.Attributes as UserStoreRecord<TIdpName> | undefined;
         if (updatedUser && updatedUser.DemoReminderCount !== undefined) {
           return { DemoReminderCount: updatedUser.DemoReminderCount };
         } else {
           return rejectWithMessage(`Unexpected error while ${operation}ing demo reminder count`);
         }
-      })
-      .catch(errorHandler);
+      },
+      (error) => {
+        if (this.isConditionalCheckFailedError(error)) {
+          return rejectWithMessageAndError(errorMessageOnConditionalCheckFailedError, error);
+        }
+        return rejectWithMessageAndError(
+          `Failed to decrement demo reminder count for user '${userId}'`,
+          error
+        );
+      }
+    );
   }
 
   private handleSuccessfulUpdate(
