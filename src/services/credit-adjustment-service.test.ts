@@ -5,6 +5,7 @@ import type { WebhookCorrelationData } from '@lambdas/api/post-event-reminder-de
 import type { CountryToSMSCostCreditsMap } from '@model/Config';
 import type {
   CreditAdditionResult,
+  CreditDeductionResult,
   CreditDeductionSuccess,
   DemoCounterDecrementResult
 } from '@model/Credits';
@@ -238,7 +239,7 @@ describe(CreditAdjustmentService, () => {
         validDecrementDemoReminderCount
       ).then((result) => {
         expect(result).toStrictEqual({
-          creditRestoreResult: validCreditAdditionResult
+          creditAdjustmentResult: validCreditAdditionResult
         });
         expect(validRestoreCredits).toHaveBeenCalledWith(validUserId, 10, 'subscription');
         expect(validDecrementDemoReminderCount).not.toHaveBeenCalled();
@@ -273,7 +274,7 @@ describe(CreditAdjustmentService, () => {
         validDecrementDemoReminderCount
       ).then((result) => {
         expect(result).toStrictEqual({
-          creditRestoreResult: validCreditAdditionResult
+          creditAdjustmentResult: validCreditAdditionResult
         });
         expect(validRestoreCredits).toHaveBeenCalledWith(validUserId, 4, 'subscription');
         expect(validDecrementDemoReminderCount).not.toHaveBeenCalled();
@@ -294,7 +295,7 @@ describe(CreditAdjustmentService, () => {
       };
 
       const categoryErrorFn = vi.fn().mockReturnValue('ok');
-      const validRestoreCredits = vi.fn().mockResolvedValue(validCreditAdditionResult);
+      const validDeductCredits = vi.fn().mockResolvedValue(validCreditDeductionSuccess);
       const validDecrementDemoReminderCount = vi
         .fn()
         .mockResolvedValue(validDemoCounterDecrementResult);
@@ -303,11 +304,14 @@ describe(CreditAdjustmentService, () => {
         webhookDataWithHigherEstimate,
         validDeliveredSMSStatus,
         categoryErrorFn,
-        validRestoreCredits,
-        validDecrementDemoReminderCount
+        vi.fn(),
+        validDecrementDemoReminderCount,
+        validDeductCredits
       ).then((result) => {
-        expect(result).toStrictEqual({});
-        expect(validRestoreCredits).not.toHaveBeenCalled();
+        expect(result).toStrictEqual({
+          creditAdjustmentResult: validCreditDeductionSuccess
+        });
+        expect(validDeductCredits).toHaveBeenCalledWith(validUserId, 4);
         expect(validDecrementDemoReminderCount).not.toHaveBeenCalled();
       });
     });
@@ -347,7 +351,7 @@ describe(CreditAdjustmentService, () => {
         validDecrementDemoReminderCount
       ).then((result) => {
         expect(result).toStrictEqual({
-          demoCounterDecrementResult: validDemoCounterDecrementResult
+          demoCounterAdjustmentResult: validDemoCounterDecrementResult
         });
         expect(validRestoreCredits).not.toHaveBeenCalled();
         expect(validDecrementDemoReminderCount).toHaveBeenCalledWith(validUserId);
@@ -382,7 +386,7 @@ describe(CreditAdjustmentService, () => {
         validDecrementDemoReminderCount
       ).then((result) => {
         expect(result).toStrictEqual({
-          demoCounterDecrementResult: validDemoCounterDecrementResult
+          demoCounterAdjustmentResult: validDemoCounterDecrementResult
         });
         expect(validRestoreCredits).not.toHaveBeenCalled();
         expect(validDecrementDemoReminderCount).toHaveBeenCalledWith(validUserId);
@@ -467,11 +471,13 @@ describe(CreditAdjustmentService, () => {
     vonageStatus: VonageWebhookMessageStatusPayload,
     categorizeErrorFn: () => MessageDeliveryErrorFault | 'ok',
     restoreCreditsFn: () => Promise<CreditAdditionResult<'restore'>>,
-    decrementDemoReminderCountFn: () => Promise<DemoCounterDecrementResult>
+    decrementDemoReminderCountFn: () => Promise<DemoCounterDecrementResult>,
+    deductCreditsFn?: () => Promise<CreditDeductionResult<'deduct'>>
   ) {
     const mockCreditsService = {
       restoreCredits: restoreCreditsFn,
-      decrementDemoReminderCount: decrementDemoReminderCountFn
+      decrementDemoReminderCount: decrementDemoReminderCountFn,
+      deductCredits: deductCreditsFn || vi.fn()
     };
 
     const service = new CreditAdjustmentService(

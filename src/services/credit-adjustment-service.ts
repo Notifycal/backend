@@ -3,6 +3,7 @@ import type { WebhookCorrelationData } from '@lambdas/api/post-event-reminder-de
 import type { CountryToSMSCostCreditsMap } from '@model/Config';
 import type {
   CreditAdditionResult,
+  CreditDeductionResult,
   CreditDeductionSuccess,
   DemoCounterDecrementResult
 } from '@model/Credits';
@@ -13,14 +14,13 @@ import { match } from 'ts-pattern';
 import type { CreditsService } from './credits-service';
 
 type CreditAdjustmentReason =
-  | undefined
   | { type: 'noUsersFaultError' }
-  | { type: 'creditOvercharge'; creditsDifference: number }
-  | { type: 'creditUndercharge'; creditsDifference: number };
+  | { type: 'creditOvercharge'; creditsDifference: number; messageDifference: number }
+  | { type: 'creditUndercharge'; creditsDifference: number; messageDifference: number };
 
 export interface CreditAdjustmentResult {
-  creditRestoreResult?: CreditAdditionResult<'restore'>;
-  demoCounterDecrementResult?: DemoCounterDecrementResult;
+  creditAdjustmentResult?: CreditAdditionResult<'restore'> | CreditDeductionResult<'deduct'>;
+  demoCounterAdjustmentResult?: DemoCounterDecrementResult;
 }
 
 export class CreditAdjustmentService<TIdpName extends IdpName> {
@@ -34,6 +34,13 @@ export class CreditAdjustmentService<TIdpName extends IdpName> {
     webhookData: WebhookCorrelationData,
     vonageStatus: VonageWebhookMessageStatusPayload
   ): Promise<CreditAdjustmentResult> {
+    if (vonageStatus.channel === 'rcs') {
+      this.logger.info('RCS message status received. No credit adjustments needed.', {
+        vonageStatus: vonageStatus.status,
+        messageUuid: vonageStatus.message_uuid
+      });
+      return Promise.resolve({});
+    }
     const actualMessageCount =
       vonageStatus.channel === 'sms' ? vonageStatus.sms?.count_total : undefined;
     if (!actualMessageCount) {
@@ -43,64 +50,9 @@ export class CreditAdjustmentService<TIdpName extends IdpName> {
       });
       return Promise.resolve({});
     }
-
     const estimatedMessageCount = webhookData.estimatedMessageCount.messages;
-    const { userId } = webhookData.originalEvent;
-
-    return match(webhookData.originalEvent)
-      .with({ eventType: 'ActionableEventFound' }, () => {
-        if (
-          !webhookData.creditDeductionResult ||
-          !('operationDetails' in webhookData.creditDeductionResult)
-        ) {
-          this.logger.error(
-            'Credit deduction result is required for ActionableEventFound and must be successful'
-          );
-          return Promise.resolve({});
-        }
-
-        return this.processAdjustment(
-          userId,
-          vonageStatus,
-          actualMessageCount,
-          estimatedMessageCount,
-          this.countryToSMSCostCreditsMap,
-          'ActionableEventFound',
-          webhookData.creditDeductionResult
-        );
-      })
-      .with({ eventType: 'DemoReminderToBeSent' }, () => {
-        return this.processAdjustment(
-          userId,
-          vonageStatus,
-          actualMessageCount,
-          estimatedMessageCount,
-          this.countryToSMSCostCreditsMap,
-          'DemoReminderToBeSent'
-        );
-      })
-      .exhaustive();
-  }
-
-  private processAdjustment(
-    userId: UserId,
-    vonageStatus: VonageWebhookMessageStatusPayload,
-    actualMessageCount: number,
-    estimatedMessageCount: number,
-    countryToSMSCostCreditsMap: CountryToSMSCostCreditsMap,
-    eventType: 'ActionableEventFound' | 'DemoReminderToBeSent',
-    creditDeductionResult?: CreditDeductionSuccess<'deduct'>
-  ): Promise<CreditAdjustmentResult> {
-    if (vonageStatus.channel === 'rcs') {
-      this.logger.info('RCS message status received. No credit adjustments needed.', {
-        vonageStatus: vonageStatus.status,
-        messageUuid: vonageStatus.message_uuid
-      });
-      return Promise.resolve({});
-    }
-
     // TODO: stop assuming Spain for SMS cost and work it out based on receiver's dial code
-    const creditsPerMessage = countryToSMSCostCreditsMap['ES'];
+    const creditsPerMessage = this.countryToSMSCostCreditsMap['ES'];
 
     const adjustmentReason = this.determineCreditAdjustmentReason(
       vonageStatus,
@@ -121,31 +73,24 @@ export class CreditAdjustmentService<TIdpName extends IdpName> {
       return Promise.resolve({});
     }
 
-    return match(eventType)
-      .with('ActionableEventFound', () => {
-        if (!creditDeductionResult) {
-          this.logger.error('Credit deduction result is required for ActionableEventFound');
-          return Promise.resolve({});
-        }
+    return this.doAdjustment(webhookData, adjustmentReason);
+  }
 
+  private doAdjustment(
+    webhookData: WebhookCorrelationData,
+    adjustmentReason: CreditAdjustmentReason
+  ): Promise<CreditAdjustmentResult> {
+    const { userId } = webhookData.originalEvent;
+    return match(webhookData)
+      .with({ originalEvent: { eventType: 'ActionableEventFound' } }, (_webhookData) => {
         return this.doActionableEventCreditAdjustment(
           userId,
           adjustmentReason,
-          creditDeductionResult
+          _webhookData.creditDeductionResult
         );
       })
-      .with('DemoReminderToBeSent', () => {
-        if (
-          adjustmentReason.type === 'noUsersFaultError' ||
-          adjustmentReason.type === 'creditOvercharge'
-        ) {
-          return this.doDemoReminderAdjustment(userId);
-        }
-
-        this.logger.info('No demo reminder adjustment needed for undercharge', {
-          adjustmentReason
-        });
-        return Promise.resolve({});
+      .with({ originalEvent: { eventType: 'DemoReminderToBeSent' } }, () => {
+        return this.doDemoReminderAdjustment(userId, adjustmentReason);
       })
       .exhaustive();
   }
@@ -155,7 +100,7 @@ export class CreditAdjustmentService<TIdpName extends IdpName> {
     actualMessageCount: number,
     estimatedMessageCount: number,
     creditsPerMessage: number
-  ): CreditAdjustmentReason {
+  ): CreditAdjustmentReason | undefined {
     const errorCategory = categorizeError(vonageStatus);
     if (['notifycal', 'vonage', 'transient', 'unknown'].includes(errorCategory)) {
       this.logger.error(
@@ -169,68 +114,85 @@ export class CreditAdjustmentService<TIdpName extends IdpName> {
     }
     const creditsDifference = Math.abs(messageDifference * creditsPerMessage);
     if (messageDifference > 0) {
-      return { type: 'creditOvercharge', creditsDifference };
+      return { type: 'creditOvercharge', creditsDifference, messageDifference };
     }
-    return { type: 'creditUndercharge', creditsDifference };
+    return { type: 'creditUndercharge', creditsDifference, messageDifference };
   }
 
   private doActionableEventCreditAdjustment(
     userId: UserId,
     adjustmentReason: CreditAdjustmentReason,
     creditDeductionResult: CreditDeductionSuccess<'deduct'>
-  ): Promise<{ creditRestoreResult?: CreditAdditionResult<'restore'> }> {
+  ): Promise<CreditAdjustmentResult> {
     const { fromBalance, quantity } = creditDeductionResult.operationDetails;
-
     return match(adjustmentReason)
-      .with(undefined, () => {
-        this.logger.info(
-          'No credit adjustment needed. Exact match between estimated and actual number of messages'
-        );
-        return Promise.resolve({});
-      })
       .with({ type: 'noUsersFaultError' }, () => {
-        // For Vonage errors, we restore credits based on the original deduction
-        // This is a transient error, so we refund the money we charged fully
         return this.creditsService
           .restoreCredits(userId, quantity, fromBalance)
           .then((creditRestoreResult) => {
-            this.logger.info('Credits deducted originally restored due to Vonage transient error', {
-              quantity,
-              fromBalance
-            });
-
-            return { creditRestoreResult };
+            this.logger.info(
+              'All credits deducted originally restored due to Vonage transient error',
+              {
+                quantity,
+                fromBalance
+              }
+            );
+            return { creditAdjustmentResult: creditRestoreResult };
           });
       })
-      .with({ type: 'creditUndercharge' }, ({ creditsDifference }) => {
-        this.logger.warn('User was undercharged. You are welcome', {
-          creditsDifference
-        });
-        return Promise.resolve({});
+      .with({ type: 'creditUndercharge' }, ({ creditsDifference, messageDifference }) => {
+        return this.creditsService
+          .deductCredits(userId, creditsDifference)
+          .then((creditDeductionResult) => {
+            this.logger.info('Credits deducted due to undercharge', {
+              creditsDifference,
+              messageDifference,
+              fromBalance
+            });
+            return { creditAdjustmentResult: creditDeductionResult };
+          });
       })
-      .with({ type: 'creditOvercharge' }, ({ creditsDifference }) => {
+      .with({ type: 'creditOvercharge' }, ({ creditsDifference, messageDifference }) => {
         return this.creditsService
           .restoreCredits(userId, creditsDifference, fromBalance)
           .then((creditRestoreResult) => {
             this.logger.info('Credits restored due to overcharge', {
               creditsDifference,
+              messageDifference,
               fromBalance
             });
-
-            return { creditRestoreResult };
+            return { creditAdjustmentResult: creditRestoreResult };
           });
       })
       .exhaustive();
   }
 
   private async doDemoReminderAdjustment(
-    userId: UserId
-  ): Promise<{ demoCounterDecrementResult?: DemoCounterDecrementResult }> {
-    this.logger.info('Demo reminder counter is going to be decremented due to message failure', {
-      userId
-    });
-    return this.creditsService
-      .decrementDemoReminderCount(userId)
-      .then((demoCounterDecrementResult) => ({ demoCounterDecrementResult }));
+    userId: UserId,
+    adjustmentReason: CreditAdjustmentReason
+  ): Promise<CreditAdjustmentResult> {
+    return match(adjustmentReason)
+      .with({ type: 'noUsersFaultError' }, { type: 'creditOvercharge' }, () => {
+        this.logger.info(
+          'Demo reminder counter is going to be decremented due to message failure',
+          {
+            userId
+          }
+        );
+        return this.creditsService
+          .decrementDemoReminderCount(userId)
+          .then((demoCounterDecrementResult) => ({
+            demoCounterAdjustmentResult: demoCounterDecrementResult
+          }));
+      })
+      .with({ type: 'creditUndercharge' }, ({ creditsDifference, messageDifference }) => {
+        this.logger.info('No demo reminder adjustment needed for undercharge', {
+          adjustmentReason,
+          creditsDifference,
+          messageDifference
+        });
+        return Promise.resolve({});
+      })
+      .exhaustive();
   }
 }

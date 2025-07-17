@@ -48,7 +48,7 @@ function buildActionableEventReminderStatusUpdated(
   rebuiltEventObject: Omit<ActionableEventFoundEvent, 'eventType' | 'eventId' | 'happenedAt'>,
   event: VonageWebhookMessageStatusPayload,
   creditDeductionResult: CreditDeductionResult<'deduct'>,
-  creditRestoreResult?: CreditAdditionResult<'restore'>
+  creditAdjustmentResult?: CreditAdditionResult<'restore'> | CreditDeductionResult<'deduct'>
 ): ActionableEventReminderStatusUpdatedEvent {
   return {
     ...rebuiltEventObject,
@@ -62,7 +62,7 @@ function buildActionableEventReminderStatusUpdated(
         ...event
       },
       creditDeductionResult,
-      creditRestoreResult
+      creditAdjustmentResult
     }
   };
 }
@@ -71,7 +71,7 @@ function buildDemoReminderToBeSentReminderStatusUpdated(
   rebuiltEventObject: Omit<DemoReminderToBeSentEvent, 'eventId' | 'happenedAt'>,
   event: VonageWebhookMessageStatusPayload,
   demoCounterIncrementResult: DemoCounterIncrementResult,
-  demoCounterDecrementResult?: DemoCounterDecrementResult
+  demoCounterAdjustmentResult?: DemoCounterDecrementResult
 ): DemoReminderToBeSentStatusUpdatedEvent {
   return {
     ...rebuiltEventObject,
@@ -85,7 +85,7 @@ function buildDemoReminderToBeSentReminderStatusUpdated(
         ...event
       },
       demoCounterIncrementResult,
-      demoCounterDecrementResult
+      demoCounterAdjustmentResult
     }
   };
 }
@@ -124,7 +124,7 @@ function rebuildWebhookCorrelationData(
 function buildStatusUpdatedEvent(
   webhookCorrelationData: WebhookCorrelationData,
   messageStatus: VonageWebhookMessageStatusPayload,
-  restoreResult?: CreditAdditionResult<'restore'>,
+  restoreResult?: CreditAdditionResult<'restore'> | CreditDeductionResult<'deduct'>,
   demoCounterDecrementResult?: DemoCounterDecrementResult
 ): ActionableEventReminderStatusUpdatedEvent | DemoReminderToBeSentStatusUpdatedEvent {
   return match(webhookCorrelationData)
@@ -166,18 +166,18 @@ async function lambdaHandler(
     .then((webhookData) =>
       creditAdjustmentService
         .processWebhookAdjustment(webhookData, event.body)
-        .then(({ creditRestoreResult, demoCounterDecrementResult }) => ({
+        .then(({ creditAdjustmentResult, demoCounterAdjustmentResult }) => ({
           webhookData,
-          creditRestoreResult,
-          demoCounterDecrementResult
+          creditAdjustmentResult,
+          demoCounterAdjustmentResult
         }))
     )
-    .then(({ webhookData, creditRestoreResult, demoCounterDecrementResult }) => {
+    .then(({ webhookData, creditAdjustmentResult, demoCounterAdjustmentResult }) => {
       const rebuiltEvent = buildStatusUpdatedEvent(
         webhookData,
         event.body,
-        creditRestoreResult,
-        demoCounterDecrementResult
+        creditAdjustmentResult,
+        demoCounterAdjustmentResult
       );
       return snsService.safePublish(rebuiltEvent);
     })

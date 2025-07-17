@@ -1,4 +1,4 @@
-import type { CreditAdditionResult } from '@model/Credits';
+import type { CreditAdditionResult, CreditDeductionResult } from '@model/Credits';
 import { messagingMessageStatusPayloadSchema } from '@model/vendor/vonage/schemas';
 import { z } from 'zod';
 import { actionableEventReminderAttemptSentEventSchema } from './ActionableEventReminderAttemptSentEvent';
@@ -8,7 +8,9 @@ export const actionableEventReminderStatusUpdatedEventSchema = eventSchemaGenera
   'ActionableEventReminderStatusUpdated',
   actionableEventReminderAttemptSentEventSchema.shape.data.extend({
     ...messagingMessageStatusPayloadSchema.shape,
-    creditRestoreResult: z.custom<CreditAdditionResult<'restore'>>().optional()
+    creditAdjustmentResult: z
+      .custom<CreditAdditionResult<'restore'> | CreditDeductionResult<'deduct'>>()
+      .optional()
   })
 );
 

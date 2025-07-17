@@ -8,7 +8,7 @@ export const demoReminderToBeSentStatusUpdatedEventSchema = eventSchemaGenerator
   'DemoReminderToBeSentStatusUpdated',
   demoReminderToBeSentAttemptSentEventSchema.shape.data.extend({
     ...messagingMessageStatusPayloadSchema.shape,
-    demoCounterDecrementResult: z.custom<DemoCounterDecrementResult>().optional()
+    demoCounterAdjustmentResult: z.custom<DemoCounterDecrementResult>().optional()
   })
 );
 
