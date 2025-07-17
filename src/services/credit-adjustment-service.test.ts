@@ -1,3 +1,4 @@
+import { categorizeError, type MessageDeliveryErrorFault } from '@model/vendor/vonage/errors';
 /* eslint-disable camelcase */
 import { logger } from '@common/powertools';
 import type { WebhookCorrelationData } from '@lambdas/api/post-event-reminder-delivery-status-webhook/schema';
@@ -15,6 +16,8 @@ import { v4 } from 'uuid';
 import { describe, expect, it, vi } from 'vitest';
 import { CreditAdjustmentService } from './credit-adjustment-service';
 import type { CreditsService } from './credits-service';
+
+vi.mock('@model/vendor/vonage/errors');
 
 const validUserId: UserId = 'b150d276-e327-51fb-b455-34a87c1c8ecc' as UserId;
 const validIdpName: IdpName = 'google.com';
@@ -81,8 +84,8 @@ const validRejectedSMSStatus: VonageWebhookMessageStatusPayload = {
   error: {
     error: {
       type: 'https://developer.vonage.com/api-errors/messages#rejected',
-      title: 'Rejected',
-      detail: 'Phone number is not in a supported country',
+      title: '1030',
+      detail: 'Internal error  -  There was an error processing your request in the Platform',
       instance: 'bf0ca0bf-5a34-4884-9bfb-4de5e4e5e5e5'
     }
   }
@@ -181,6 +184,7 @@ describe(CreditAdjustmentService, () => {
         client_ref: 'test-client-ref'
       };
 
+      const categoryErrorFn = vi.fn().mockReturnValue('ok');
       const validRestoreCredits = vi.fn().mockResolvedValue(validCreditAdditionResult);
       const validDecrementDemoReminderCount = vi
         .fn()
@@ -189,6 +193,7 @@ describe(CreditAdjustmentService, () => {
       return testIt(
         validActionableEventWebhookData,
         statusWithoutCount,
+        categoryErrorFn,
         validRestoreCredits,
         validDecrementDemoReminderCount
       ).then((result) => {
@@ -203,10 +208,12 @@ describe(CreditAdjustmentService, () => {
       const validDecrementDemoReminderCount = vi
         .fn()
         .mockResolvedValue(validDemoCounterDecrementResult);
+      const categoryErrorFn = vi.fn().mockReturnValue('ok');
 
       return testIt(
         validActionableEventWebhookData,
         validDeliveredSMSStatus,
+        categoryErrorFn,
         validRestoreCredits,
         validDecrementDemoReminderCount
       ).then((result) => {
@@ -221,10 +228,12 @@ describe(CreditAdjustmentService, () => {
       const validDecrementDemoReminderCount = vi
         .fn()
         .mockResolvedValue(validDemoCounterDecrementResult);
+      const categoryErrorFn = vi.fn().mockReturnValue('transient');
 
       return testIt(
         validActionableEventWebhookData,
         validUndeliverableSMSStatus,
+        categoryErrorFn,
         validRestoreCredits,
         validDecrementDemoReminderCount
       ).then((result) => {
@@ -250,6 +259,7 @@ describe(CreditAdjustmentService, () => {
         }
       };
 
+      const categoryErrorFn = vi.fn().mockReturnValue('ok');
       const validRestoreCredits = vi.fn().mockResolvedValue(validCreditAdditionResult);
       const validDecrementDemoReminderCount = vi
         .fn()
@@ -258,6 +268,7 @@ describe(CreditAdjustmentService, () => {
       return testIt(
         validActionableEventWebhookData,
         statusWithHigherCount,
+        categoryErrorFn,
         validRestoreCredits,
         validDecrementDemoReminderCount
       ).then((result) => {
@@ -282,6 +293,7 @@ describe(CreditAdjustmentService, () => {
         }
       };
 
+      const categoryErrorFn = vi.fn().mockReturnValue('ok');
       const validRestoreCredits = vi.fn().mockResolvedValue(validCreditAdditionResult);
       const validDecrementDemoReminderCount = vi
         .fn()
@@ -290,6 +302,7 @@ describe(CreditAdjustmentService, () => {
       return testIt(
         webhookDataWithHigherEstimate,
         validDeliveredSMSStatus,
+        categoryErrorFn,
         validRestoreCredits,
         validDecrementDemoReminderCount
       ).then((result) => {
@@ -305,9 +318,11 @@ describe(CreditAdjustmentService, () => {
         .fn()
         .mockResolvedValue(validDemoCounterDecrementResult);
 
+      const categoryErrorFn = vi.fn().mockReturnValue('ok');
       return testIt(
         validDemoReminderWebhookData,
         validDeliveredSMSStatus,
+        categoryErrorFn,
         validRestoreCredits,
         validDecrementDemoReminderCount
       ).then((result) => {
@@ -323,9 +338,11 @@ describe(CreditAdjustmentService, () => {
         .fn()
         .mockResolvedValue(validDemoCounterDecrementResult);
 
+      const categoryErrorFn = vi.fn().mockReturnValue('transient');
       return testIt(
         validDemoReminderWebhookData,
         validUndeliverableSMSStatus,
+        categoryErrorFn,
         validRestoreCredits,
         validDecrementDemoReminderCount
       ).then((result) => {
@@ -351,6 +368,7 @@ describe(CreditAdjustmentService, () => {
         }
       };
 
+      const categoryErrorFn = vi.fn().mockReturnValue('ok');
       const validRestoreCredits = vi.fn().mockResolvedValue(validCreditAdditionResult);
       const validDecrementDemoReminderCount = vi
         .fn()
@@ -359,6 +377,7 @@ describe(CreditAdjustmentService, () => {
       return testIt(
         validDemoReminderWebhookData,
         statusWithHigherCount,
+        categoryErrorFn,
         validRestoreCredits,
         validDecrementDemoReminderCount
       ).then((result) => {
@@ -383,6 +402,7 @@ describe(CreditAdjustmentService, () => {
         }
       };
 
+      const categoryErrorFn = vi.fn().mockReturnValue('ok');
       const validRestoreCredits = vi.fn().mockResolvedValue(validCreditAdditionResult);
       const validDecrementDemoReminderCount = vi
         .fn()
@@ -391,6 +411,7 @@ describe(CreditAdjustmentService, () => {
       return testIt(
         webhookDataWithHigherEstimate,
         validDeliveredSMSStatus,
+        categoryErrorFn,
         validRestoreCredits,
         validDecrementDemoReminderCount
       ).then((result) => {
@@ -406,9 +427,11 @@ describe(CreditAdjustmentService, () => {
         .fn()
         .mockResolvedValue(validDemoCounterDecrementResult);
 
+      const categoryErrorFn = vi.fn().mockReturnValue('ok');
       return testIt(
         validActionableEventWebhookData,
         validRCSStatus,
+        categoryErrorFn,
         validRestoreCredits,
         validDecrementDemoReminderCount
       ).then((result) => {
@@ -418,7 +441,8 @@ describe(CreditAdjustmentService, () => {
       });
     });
 
-    it('should handle non-transient errors properly', () => {
+    it("should handle user's fault error properly", () => {
+      const categoryErrorFn = vi.fn().mockReturnValue('user');
       const validRestoreCredits = vi.fn().mockResolvedValue(validCreditAdditionResult);
       const validDecrementDemoReminderCount = vi
         .fn()
@@ -427,6 +451,7 @@ describe(CreditAdjustmentService, () => {
       return testIt(
         validActionableEventWebhookData,
         validRejectedSMSStatus,
+        categoryErrorFn,
         validRestoreCredits,
         validDecrementDemoReminderCount
       ).then((result) => {
@@ -440,12 +465,13 @@ describe(CreditAdjustmentService, () => {
   function testIt(
     webhookData: WebhookCorrelationData,
     vonageStatus: VonageWebhookMessageStatusPayload,
-    restoreCredits: () => Promise<CreditAdditionResult<'restore'>>,
-    decrementDemoReminderCount: () => Promise<DemoCounterDecrementResult>
+    categorizeErrorFn: () => MessageDeliveryErrorFault | 'ok',
+    restoreCreditsFn: () => Promise<CreditAdditionResult<'restore'>>,
+    decrementDemoReminderCountFn: () => Promise<DemoCounterDecrementResult>
   ) {
     const mockCreditsService = {
-      restoreCredits,
-      decrementDemoReminderCount
+      restoreCredits: restoreCreditsFn,
+      decrementDemoReminderCount: decrementDemoReminderCountFn
     };
 
     const service = new CreditAdjustmentService(
@@ -453,6 +479,8 @@ describe(CreditAdjustmentService, () => {
       mockCreditsService as unknown as CreditsService<IdpName>,
       logger
     );
+
+    vi.mocked(categorizeError).mockImplementation(categorizeErrorFn);
 
     return service.processWebhookAdjustment(webhookData, vonageStatus);
   }

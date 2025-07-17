@@ -6,15 +6,15 @@ import type {
   CreditDeductionSuccess,
   DemoCounterDecrementResult
 } from '@model/Credits';
+import { categorizeError } from '@model/vendor/vonage/errors';
 import type { VonageWebhookMessageStatusPayload } from '@model/vendor/vonage/schemas';
-import { isTransientError } from '@model/vendor/vonage/utils';
 import type { IdpName, UserId } from '@notifycal/shared/types';
 import { match } from 'ts-pattern';
 import type { CreditsService } from './credits-service';
 
 type CreditAdjustmentReason =
   | undefined
-  | { type: 'vonageError' }
+  | { type: 'noUsersFaultError' }
   | { type: 'creditOvercharge'; creditsDifference: number }
   | { type: 'creditUndercharge'; creditsDifference: number };
 
@@ -112,7 +112,7 @@ export class CreditAdjustmentService<TIdpName extends IdpName> {
     if (!adjustmentReason) {
       this.logger.info('No need to adjust credits or demo counter for this message status', {
         vonageStatus: vonageStatus.status,
-        vonageError: vonageStatus.error,
+        noUsersFaultError: vonageStatus.error,
         messageUuid: vonageStatus.message_uuid,
         actualMessageCount,
         estimatedMessageCount,
@@ -128,19 +128,18 @@ export class CreditAdjustmentService<TIdpName extends IdpName> {
           return Promise.resolve({});
         }
 
-        return this.handleActionableEventCreditAdjustment(
+        return this.doActionableEventCreditAdjustment(
           userId,
           adjustmentReason,
           creditDeductionResult
         );
       })
       .with('DemoReminderToBeSent', () => {
-        // For demo reminders, we only process on Vonage errors or overcharges
         if (
-          adjustmentReason.type === 'vonageError' ||
+          adjustmentReason.type === 'noUsersFaultError' ||
           adjustmentReason.type === 'creditOvercharge'
         ) {
-          return this.handleDemoReminderAdjustment(userId);
+          return this.doDemoReminderAdjustment(userId);
         }
 
         this.logger.info('No demo reminder adjustment needed for undercharge', {
@@ -157,9 +156,12 @@ export class CreditAdjustmentService<TIdpName extends IdpName> {
     estimatedMessageCount: number,
     creditsPerMessage: number
   ): CreditAdjustmentReason {
-    const hasTransientError = isTransientError(vonageStatus);
-    if (hasTransientError) {
-      return { type: 'vonageError' };
+    const errorCategory = categorizeError(vonageStatus);
+    if (['notifycal', 'vonage', 'transient', 'unknown'].includes(errorCategory)) {
+      this.logger.error(
+        `Vonage has notified us of an error that we interpreted as reimbursable. We are potentially losing money`
+      );
+      return { type: 'noUsersFaultError' };
     }
     const messageDifference = actualMessageCount - estimatedMessageCount;
     if (messageDifference === 0) {
@@ -172,7 +174,7 @@ export class CreditAdjustmentService<TIdpName extends IdpName> {
     return { type: 'creditUndercharge', creditsDifference };
   }
 
-  private handleActionableEventCreditAdjustment(
+  private doActionableEventCreditAdjustment(
     userId: UserId,
     adjustmentReason: CreditAdjustmentReason,
     creditDeductionResult: CreditDeductionSuccess<'deduct'>
@@ -186,9 +188,9 @@ export class CreditAdjustmentService<TIdpName extends IdpName> {
         );
         return Promise.resolve({});
       })
-      .with({ type: 'vonageError' }, () => {
+      .with({ type: 'noUsersFaultError' }, () => {
         // For Vonage errors, we restore credits based on the original deduction
-        // This is a transient error, so we give back what we charged
+        // This is a transient error, so we refund the money we charged fully
         return this.creditsService
           .restoreCredits(userId, quantity, fromBalance)
           .then((creditRestoreResult) => {
@@ -201,7 +203,7 @@ export class CreditAdjustmentService<TIdpName extends IdpName> {
           });
       })
       .with({ type: 'creditUndercharge' }, ({ creditsDifference }) => {
-        this.logger.info('User was undercharged. You are welcome', {
+        this.logger.warn('User was undercharged. You are welcome', {
           creditsDifference
         });
         return Promise.resolve({});
@@ -221,7 +223,7 @@ export class CreditAdjustmentService<TIdpName extends IdpName> {
       .exhaustive();
   }
 
-  private async handleDemoReminderAdjustment(
+  private async doDemoReminderAdjustment(
     userId: UserId
   ): Promise<{ demoCounterDecrementResult?: DemoCounterDecrementResult }> {
     this.logger.info('Demo reminder counter is going to be decremented due to message failure', {
