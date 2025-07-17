@@ -373,7 +373,7 @@ describe('POST Event reminder delivery status webhook', () => {
             topup: eventQSP['creditDeductionResult[balances][topup]']
           }
         },
-        creditRestoreResult: undefined
+        creditAdjustmentResult: undefined
       },
       happenedAt: validFixedDate.toISOString(),
       eventId: validFixedUUID
@@ -394,8 +394,8 @@ describe('POST Event reminder delivery status webhook', () => {
       error: {
         error: {
           type: 'https://developer.vonage.com/api/messages#rate-limit',
-          title: 'Rate Limit',
-          detail: 'Rate limit exceeded temporarily',
+          title: '1030',
+          detail: 'Internal error  -  There was an error processing your request in the Platform',
           instance: 'bf0ca0bf927b3b52e3cb03217e1a1ddf'
         }
       }
@@ -407,7 +407,7 @@ describe('POST Event reminder delivery status webhook', () => {
       validActionableEventFoundQSPObject
     );
 
-    const validCreditRestoreResult = {
+    const validCreditAdjustmentResult = {
       success: true as const,
       result: 'Success' as const,
       operationDetails: {
@@ -423,7 +423,7 @@ describe('POST Event reminder delivery status webhook', () => {
 
     const processWebhookAdjustmentMock = vi
       .fn()
-      .mockResolvedValue({ creditRestoreResult: validCreditRestoreResult });
+      .mockResolvedValue({ creditAdjustmentResult: validCreditAdjustmentResult });
     await testIt(event as APIGatewayProxyEvent, safePublishMock, processWebhookAdjustmentMock);
 
     expect(processWebhookAdjustmentMock).toHaveBeenCalledTimes(1);
@@ -513,7 +513,7 @@ describe('POST Event reminder delivery status webhook', () => {
             topup: eventQSP['creditDeductionResult[balances][topup]']
           }
         },
-        creditRestoreResult: validCreditRestoreResult
+        creditAdjustmentResult: validCreditAdjustmentResult
       },
       happenedAt: validFixedDate.toISOString(),
       eventId: validFixedUUID
@@ -542,7 +542,7 @@ describe('POST Event reminder delivery status webhook', () => {
       validActionableEventFoundQSPObject
     );
 
-    const validCreditRestoreResult = {
+    const validCreditAdjustmentResult = {
       success: true as const,
       result: 'Success' as const,
       operationDetails: {
@@ -558,7 +558,7 @@ describe('POST Event reminder delivery status webhook', () => {
 
     const processWebhookAdjustmentMock = vi
       .fn()
-      .mockResolvedValue({ creditRestoreResult: validCreditRestoreResult });
+      .mockResolvedValue({ creditAdjustmentResult: validCreditAdjustmentResult });
     await testIt(event as APIGatewayProxyEvent, safePublishMock, processWebhookAdjustmentMock);
 
     expect(processWebhookAdjustmentMock).toHaveBeenCalledTimes(1);
@@ -648,7 +648,7 @@ describe('POST Event reminder delivery status webhook', () => {
             topup: eventQSP['creditDeductionResult[balances][topup]']
           }
         },
-        creditRestoreResult: validCreditRestoreResult
+        creditAdjustmentResult: validCreditAdjustmentResult
       },
       happenedAt: validFixedDate.toISOString(),
       eventId: validFixedUUID
@@ -736,7 +736,7 @@ describe('POST Event reminder delivery status webhook', () => {
           result: eventQSP['creditDeductionResult[result]'],
           demoRemindersCount: eventQSP['creditDeductionResult[demoRemindersCount]']
         },
-        demoCounterDecrementResult: undefined
+        demoCounterAdjustmentResult: undefined
       },
       happenedAt: validFixedDate.toISOString(),
       eventId: validFixedUUID
@@ -757,8 +757,9 @@ describe('POST Event reminder delivery status webhook', () => {
       error: {
         error: {
           type: 'https://developer.vonage.com/api/messages#rate-limit',
-          title: 'Rate Limit',
-          detail: 'Rate limit exceeded temporarily',
+          title: '1000',
+          detail:
+            'Throttled - You have exceeded the submission capacity allowed on this account. Please wait and retry',
           instance: 'bf0ca0bf927b3b52e3cb03217e1a1ddf'
         }
       }
@@ -770,7 +771,7 @@ describe('POST Event reminder delivery status webhook', () => {
       validDemoReminderToBeSentQSPObject
     );
 
-    const validDemoCounterDecrementResult = {
+    const validDemoCounterAdjustmentResult = {
       success: true as const,
       result: 'Success' as const,
       demoRemindersCount: 1
@@ -778,7 +779,7 @@ describe('POST Event reminder delivery status webhook', () => {
 
     const processWebhookAdjustmentMock = vi
       .fn()
-      .mockResolvedValue({ demoCounterDecrementResult: validDemoCounterDecrementResult });
+      .mockResolvedValue({ demoCounterAdjustmentResult: validDemoCounterAdjustmentResult });
     await testIt(event as APIGatewayProxyEvent, safePublishMock, processWebhookAdjustmentMock);
 
     expect(processWebhookAdjustmentMock).toHaveBeenCalledTimes(1);
@@ -842,7 +843,7 @@ describe('POST Event reminder delivery status webhook', () => {
           result: eventQSP['creditDeductionResult[result]'],
           demoRemindersCount: eventQSP['creditDeductionResult[demoRemindersCount]']
         },
-        demoCounterDecrementResult: validDemoCounterDecrementResult
+        demoCounterAdjustmentResult: validDemoCounterAdjustmentResult
       },
       happenedAt: validFixedDate.toISOString(),
       eventId: validFixedUUID
@@ -961,7 +962,7 @@ describe('POST Event reminder delivery status webhook', () => {
             topup: eventQSP['creditDeductionResult[balances][topup]']
           }
         },
-        creditRestoreResult: undefined
+        creditAdjustmentResult: undefined
       },
       happenedAt: validFixedDate.toISOString(),
       eventId: validFixedUUID
@@ -1054,7 +1055,7 @@ describe('POST Event reminder delivery status webhook', () => {
           result: eventQSP['creditDeductionResult[result]'],
           demoRemindersCount: eventQSP['creditDeductionResult[demoRemindersCount]']
         },
-        demoCounterDecrementResult: undefined
+        demoCounterAdjustmentResult: undefined
       },
       happenedAt: validFixedDate.toISOString(),
       eventId: validFixedUUID
