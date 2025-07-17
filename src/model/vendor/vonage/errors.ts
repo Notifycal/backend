@@ -11,19 +11,29 @@ export function categorizeError(
   if (status !== 'rejected' && status !== 'undeliverable') {
     return 'ok';
   }
-  let errorNumber: number = 0;
-  try {
-    errorNumber = Number.parseInt(error?.error.title || '0');
-  } catch (e) {
-    logger.error('Error parsing Vonage error title', {
-      error: e,
+  
+  if (!error?.error?.title) {
+    logger.warn('Missing error title in Vonage status', {
+      messageUuid: messageStatus.message_uuid,
+      messageStatus
+    });
+    return 'unknown';
+  }
+
+  const errorCode = error.error.title.trim();
+  const errorNumber = Number.parseInt(errorCode, 10);
+  
+  if (Number.isNaN(errorNumber)) {
+    logger.error('Invalid error code format in Vonage status', {
       messageUuid: messageStatus.message_uuid,
       messageStatus,
-      errorTitle: error?.error.title
+      errorTitle: error.error.title
     });
+    return 'unknown';
   }
+
   // eslint-disable-next-line no-use-before-define
-  return codes.find((c) => c.code.trim().toLowerCase() === String(errorNumber))?.fault || 'unknown';
+  return codeMap.get(errorCode) || 'unknown';
 }
 
 // curl 'https://developer.vonage.com/api/v1/developer/api/docs/messages?vendorId=vonage' | jq .errors
@@ -411,3 +421,7 @@ const codes: Array<{
     fault: 'notifycal'
   }
 ];
+
+const codeMap = new Map<string, MessageDeliveryErrorFault>(
+  codes.map((c) => [c.code.trim(), c.fault])
+);
