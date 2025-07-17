@@ -1,7 +1,7 @@
-import type { CreditDeductionResult } from '@model/Credits';
+import { creditDeductionDeductResultSchema, type CreditDeductionResult } from '@model/Credits';
 import { messagingSentPayloadSchema } from '@model/vendor/vonage/schemas';
 import type { Uuid } from '@notifycal/shared/types';
-import { z } from 'zod';
+import type { z } from 'zod';
 import {
   actionableEventFoundEventSchema,
   type ActionableEventFoundEvent
@@ -12,7 +12,7 @@ export const actionableEventReminderAttemptSentEventSchema = eventSchemaGenerato
   'ActionableEventReminderAttemptSent',
   actionableEventFoundEventSchema.shape.data.extend({
     ...messagingSentPayloadSchema.shape,
-    creditDeductionResult: z.custom<CreditDeductionResult<'deduct'>>()
+    creditDeductionResult: creditDeductionDeductResultSchema
   })
 );
 

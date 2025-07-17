@@ -221,7 +221,7 @@ export class InvoicePaymentSucceededHandler
 
   private creditAdditionHandler(result: CreditAdditionResult<'reset' | 'add'>): Promise<void> {
     return match(result)
-      .with({ result: 'Success' }, () => Promise.resolve())
+      .with({ success: true }, () => Promise.resolve())
       .with({ result: 'UnknownError' }, { result: 'BadRequestError' }, (r) =>
         // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
         Promise.reject(r.error)

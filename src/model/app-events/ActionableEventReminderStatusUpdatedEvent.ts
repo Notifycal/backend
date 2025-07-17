@@ -1,9 +1,13 @@
-import type { CreditAdditionResult, CreditDeductionResult } from '@model/Credits';
 import {
-  type VonageWebhookMessageStatusPayload,
-  messagingMessageStatusPayloadSchema
+  creditAdjustmentResultSchema,
+  type CreditAdditionResult,
+  type CreditDeductionResult
+} from '@model/Credits';
+import {
+  messagingMessageStatusPayloadSchema,
+  type VonageWebhookMessageStatusPayload
 } from '@model/vendor/vonage/schemas';
-import { z } from 'zod';
+import type { z } from 'zod';
 import type { ActionableEventFoundEvent } from './ActionableEventFoundEvent';
 import { actionableEventReminderAttemptSentEventSchema } from './ActionableEventReminderAttemptSentEvent';
 import { eventSchemaGenerator } from './BaseEvent';
@@ -13,9 +17,7 @@ export const actionableEventReminderStatusUpdatedEventSchema = eventSchemaGenera
   'ActionableEventReminderStatusUpdated',
   actionableEventReminderAttemptSentEventSchema.shape.data.extend({
     ...messagingMessageStatusPayloadSchema.shape,
-    creditAdjustmentResult: z
-      .custom<CreditAdditionResult<'restore'> | CreditDeductionResult<'deduct'>>()
-      .optional()
+    creditAdjustmentResult: creditAdjustmentResultSchema.optional()
   })
 );
 
