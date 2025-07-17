@@ -3,12 +3,11 @@ import {
   type VonageWebhookMessageStatusPayload,
   messagingMessageStatusPayloadSchema
 } from '@model/vendor/vonage/schemas';
-import type { DateTime, EventId } from '@notifycal/shared/types';
-import { v4 } from 'uuid';
 import { z } from 'zod';
 import { eventSchemaGenerator } from './BaseEvent';
 import { demoReminderToBeSentAttemptSentEventSchema } from './DemoReminderToBeSentAttemptSentEvent';
 import type { DemoReminderToBeSentEvent } from './DemoReminderToBeSentEvent';
+import { createEventBase } from './common';
 
 export const demoReminderToBeSentStatusUpdatedEventSchema = eventSchemaGenerator(
   'DemoReminderToBeSentStatusUpdated',
@@ -29,10 +28,9 @@ export function demoReminderToBeSentReminderStatusUpdated(
   demoCounterAdjustmentResult?: DemoCounterDecrementResult
 ): DemoReminderToBeSentStatusUpdatedEvent {
   return {
-    ...rebuiltEventObject,
-    eventType: 'DemoReminderToBeSentStatusUpdated',
-    eventId: v4() as EventId,
-    happenedAt: new Date().toISOString() as DateTime,
+    ...createEventBase('DemoReminderToBeSentStatusUpdated', rebuiltEventObject, {
+      correlationId: rebuiltEventObject.correlationId
+    }),
     data: {
       ...rebuiltEventObject.data,
       messageUUID: event.message_uuid,
