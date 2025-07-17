@@ -10,7 +10,7 @@ import type {
 import { categorizeError } from '@model/vendor/vonage/errors';
 import type { VonageWebhookMessageStatusPayload } from '@model/vendor/vonage/schemas';
 import type { IdpName, UserId } from '@notifycal/shared/types';
-import { match } from 'ts-pattern';
+import { match, P } from 'ts-pattern';
 import type { CreditsService } from './credits-service';
 
 type CreditAdjustmentReason =
@@ -172,7 +172,7 @@ export class CreditAdjustmentService<TIdpName extends IdpName> {
     adjustmentReason: CreditAdjustmentReason
   ): Promise<CreditAdjustmentResult> {
     return match(adjustmentReason)
-      .with({ type: 'noUsersFaultError' }, { type: 'creditOvercharge' }, () => {
+      .with({ type: P.union('noUsersFaultError', 'creditOvercharge') }, () => {
         this.logger.info(
           'Demo reminder counter is going to be decremented due to message failure',
           {
