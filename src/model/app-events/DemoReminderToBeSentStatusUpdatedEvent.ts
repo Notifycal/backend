@@ -1,8 +1,13 @@
-import type { DemoCounterDecrementResult } from '@model/Credits';
-import { messagingMessageStatusPayloadSchema } from '@model/vendor/vonage/schemas';
+import type { DemoCounterDecrementResult, DemoCounterIncrementResult } from '@model/Credits';
+import {
+  type VonageWebhookMessageStatusPayload,
+  messagingMessageStatusPayloadSchema
+} from '@model/vendor/vonage/schemas';
 import { z } from 'zod';
 import { eventSchemaGenerator } from './BaseEvent';
 import { demoReminderToBeSentAttemptSentEventSchema } from './DemoReminderToBeSentAttemptSentEvent';
+import type { DemoReminderToBeSentEvent } from './DemoReminderToBeSentEvent';
+import { createEventBase } from './common';
 
 export const demoReminderToBeSentStatusUpdatedEventSchema = eventSchemaGenerator(
   'DemoReminderToBeSentStatusUpdated',
@@ -15,3 +20,25 @@ export const demoReminderToBeSentStatusUpdatedEventSchema = eventSchemaGenerator
 export type DemoReminderToBeSentStatusUpdatedEvent = z.infer<
   typeof demoReminderToBeSentStatusUpdatedEventSchema
 >;
+
+export function demoReminderToBeSentReminderStatusUpdated(
+  rebuiltEventObject: Omit<DemoReminderToBeSentEvent, 'eventId' | 'happenedAt'>,
+  event: VonageWebhookMessageStatusPayload,
+  demoCounterIncrementResult: DemoCounterIncrementResult,
+  demoCounterAdjustmentResult?: DemoCounterDecrementResult
+): DemoReminderToBeSentStatusUpdatedEvent {
+  return {
+    ...createEventBase('DemoReminderToBeSentStatusUpdated', rebuiltEventObject, {
+      correlationId: rebuiltEventObject.correlationId
+    }),
+    data: {
+      ...rebuiltEventObject.data,
+      messageUUID: event.message_uuid,
+      messageStatusPayload: {
+        ...event
+      },
+      demoCounterIncrementResult,
+      demoCounterAdjustmentResult
+    }
+  };
+}
