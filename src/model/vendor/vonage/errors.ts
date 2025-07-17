@@ -11,7 +11,7 @@ export function categorizeError(
   if (status !== 'rejected' && status !== 'undeliverable') {
     return 'ok';
   }
-  
+
   if (!error?.error?.title) {
     logger.warn('Missing error title in Vonage status', {
       messageUuid: messageStatus.message_uuid,
@@ -22,7 +22,7 @@ export function categorizeError(
 
   const errorCode = error.error.title.trim();
   const errorNumber = Number.parseInt(errorCode, 10);
-  
+
   if (Number.isNaN(errorNumber)) {
     logger.error('Invalid error code format in Vonage status', {
       messageUuid: messageStatus.message_uuid,
