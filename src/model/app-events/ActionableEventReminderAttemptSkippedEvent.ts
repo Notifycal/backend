@@ -4,7 +4,7 @@ import { eventSchemaGenerator } from './BaseEvent';
 
 export const actionableEventReminderAttemptSkippedEventSchema = eventSchemaGenerator(
   'ActionableEventReminderAttemptSkipped',
-  actionableEventReminderAttemptSentEventSchema.shape.data
+  actionableEventReminderAttemptSentEventSchema.shape.data.omit({ creditDeductionResult: true })
 );
 
 export type ActionableEventReminderAttemptSkippedEvent = z.infer<

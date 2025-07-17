@@ -1,5 +1,7 @@
 import { actionableEventFoundEventSchema } from '@model/app-events/ActionableEventFoundEvent';
 import { demoReminderToBeSentEventSchema } from '@model/app-events/DemoReminderToBeSentEvent';
+import type { CreditDeductionSuccess, DemoCounterIncrementSuccess } from '@model/Credits';
+import type { count } from 'sms-length';
 import { z } from 'zod';
 
 const actionableEventFoundEventDataSchema = actionableEventFoundEventSchema.shape.data;
@@ -24,3 +26,18 @@ export const demoReminderToBeSentEventQuerySchema = demoReminderToBeSentEventSch
   eventId: true,
   happenedAt: true
 });
+
+export const webhookCorrelationDataSchema = z.union([
+  z.object({
+    originalEvent: actionableEventQuerySchema,
+    creditDeductionResult: z.custom<CreditDeductionSuccess<'deduct'>>(),
+    estimatedMessageCount: z.custom<ReturnType<typeof count>>()
+  }),
+  z.object({
+    originalEvent: demoReminderToBeSentEventQuerySchema,
+    creditDeductionResult: z.custom<DemoCounterIncrementSuccess>(),
+    estimatedMessageCount: z.custom<ReturnType<typeof count>>()
+  })
+]);
+
+export type WebhookCorrelationData = z.infer<typeof webhookCorrelationDataSchema>;

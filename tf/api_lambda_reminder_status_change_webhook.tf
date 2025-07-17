@@ -10,6 +10,17 @@ data "aws_iam_policy_document" "event_reminder_status_change_webhook_iam_policyd
       module.messaging_topic.sns_topic_arn
     ]
   }
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "dynamodb:UpdateItem",
+    ]
+
+    resources = [
+      aws_dynamodb_table.users.arn
+    ]
+  }
 }
 
 module "event_reminder_status_change_webhook_lambda" {
@@ -51,7 +62,7 @@ module "event_reminder_status_change_webhook_lambda" {
     VONAGE_WEBHOOK_JWT_SIGNING_SECRET = var.vonage_auth_config.webhook_jwt_signing_secret
     VONAGE_JWT_ALGORITHM              = "HS256"
     VONAGE_JWT_ISSUER                 = "Vonage"
-  }, local.messaging_topic_env_vars, local.common_lambda_env_vars, local.common_api_lambda_env_vars)
+  }, local.messaging_topic_env_vars, local.users_persistance_env_vars, local.credits_service_env_vars, local.common_api_lambda_env_vars)
 }
 
 module "event_reminder_status_change_webhook_lambda_alias" {

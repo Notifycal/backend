@@ -190,17 +190,15 @@ describe('Messaging processor', () => {
         validActionableEvent.data.senderDetails,
         validActionableEvent.data.receiverDetails,
         validActionableEvent.correlationId,
-        // eslint-disable-next-line vitest/no-conditional-expect
-        expect.stringContaining(defaultConfig.vonageConfig.webhookBaseURL) &&
-          // eslint-disable-next-line vitest/no-conditional-expect
-          expect.stringContaining('data%5Bmessage%5D=This%20is%20some%20message')
+        expect.stringContaining(defaultConfig.vonageConfig.webhookBaseURL)
       );
       expect(safePublishSpy).toHaveBeenCalledWith({
         ...validActionableEvent,
         eventType: 'ActionableEventReminderAttemptSent',
         data: {
           ...validActionableEvent.data,
-          messageUUID: validReturnedUuid
+          messageUUID: validReturnedUuid,
+          creditDeductionResult: validCreditDeductionSuccess
         }
       });
       expect(loggerAppendKeysSpy).toHaveBeenCalledWith({
@@ -257,7 +255,8 @@ describe('Messaging processor', () => {
         eventType: 'ActionableEventReminderAttemptSent',
         data: {
           ...validActionableEvent.data,
-          messageUUID: 'fake-uuid'
+          messageUUID: 'fake-uuid',
+          creditDeductionResult: validCreditDeductionSuccess
         }
       });
     });
@@ -283,7 +282,7 @@ describe('Messaging processor', () => {
 
       const loggerInfoSpy = vi.spyOn(logger, 'info');
 
-      const result = testWithActionableEventAndRestoreCredits(
+      const result = testItWithRestore(
         validActionableEvent,
         sendMessageSpy,
         safePublishSpy,
@@ -313,7 +312,7 @@ describe('Messaging processor', () => {
 
       const loggerErrorSpy = vi.spyOn(logger, 'error');
 
-      const result = testWithActionableEventAndRestoreCredits(
+      const result = testItWithRestore(
         validActionableEvent,
         sendMessageSpy,
         safePublishSpy,
@@ -524,7 +523,7 @@ describe('Messaging processor', () => {
 
     describe('lowCreditsDetected event', () => {
       const lowCreditsThreshold = 100;
-      const configWithLowThreshold = {
+      const validConfigWithLowThreshold = {
         ...defaultConfig,
         messagingAlertingConfig: { lowCreditThreshold: lowCreditsThreshold }
       };
@@ -532,7 +531,7 @@ describe('Messaging processor', () => {
       async function testLowCreditsScenario(
         creditResult: CreditDeductionResult<'deduct'>,
         expectSendLowCreditsDetectedEvent: boolean,
-        config = configWithLowThreshold
+        config = validConfigWithLowThreshold
       ) {
         const safePublishSpy = vi.fn().mockResolvedValue({ $metadata: {} });
         const sendMessageSpy = vi.fn().mockResolvedValue(validReturnedUuid);
@@ -603,22 +602,22 @@ describe('Messaging processor', () => {
 
       // eslint-disable-next-line vitest/expect-expect
       it('should send lowCreditsDetected event when combined subscription and topup credits cross threshold', async () => {
-        const higherThresholdConfig = {
+        const validHigherThresholdConfig = {
           ...defaultConfig,
           messagingAlertingConfig: { lowCreditThreshold: 150 }
         };
-        const creditResult: CreditDeductionSuccess<'deduct'> = {
+        const validCreditResult: CreditDeductionSuccess<'deduct'> = {
           success: true,
           result: 'Success',
           operationDetails: { fromBalance: 'topup', type: 'deduct', quantity: 7 },
           balances: { subscription: 100, topup: 44 }
         };
 
-        await testLowCreditsScenario(creditResult, true, higherThresholdConfig);
+        await testLowCreditsScenario(validCreditResult, true, validHigherThresholdConfig);
       });
 
       it('should NOT send lowCreditsDetected event when credit deduction fails', async () => {
-        const creditResult: CreditDeductionInsufficientCreditsError = {
+        const invalidCreditResult: CreditDeductionInsufficientCreditsError = {
           result: 'InsufficientCredits',
           success: false,
           error: new InsufficientCreditsError(
@@ -628,28 +627,28 @@ describe('Messaging processor', () => {
           )
         };
 
-        const safePublishSpy = await testLowCreditsScenario(creditResult, false);
+        const safePublishSpy = await testLowCreditsScenario(invalidCreditResult, false);
 
         expect(safePublishSpy).toHaveBeenCalledWith({
           ...validActionableEvent,
           eventType: 'InsufficientCreditsReminderNotSent',
           data: {
             originalEvent: validActionableEvent.data,
-            error: creditResult
+            error: invalidCreditResult
           }
         });
       });
 
       // eslint-disable-next-line vitest/expect-expect
       it('should handle edge case when credits exactly equal threshold after deduction', async () => {
-        const creditResult: CreditDeductionSuccess<'deduct'> = {
+        const validCreditResultAtThreshold: CreditDeductionSuccess<'deduct'> = {
           success: true,
           result: 'Success',
           operationDetails: { fromBalance: 'subscription', type: 'deduct', quantity: 7 },
           balances: { subscription: 100, topup: 0 }
         };
 
-        await testLowCreditsScenario(creditResult, false);
+        await testLowCreditsScenario(validCreditResultAtThreshold, false);
       });
     });
 
@@ -677,7 +676,7 @@ describe('Messaging processor', () => {
       );
     }
 
-    function testWithActionableEventAndRestoreCredits(
+    function testItWithRestore(
       event: ActionableEventFoundEvent,
       sendMessageFn: () => Promise<Uuid>,
       safePublishFn: () => Promise<void>,

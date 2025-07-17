@@ -1,6 +1,11 @@
 import type { InsufficientCreditsError } from './Errors';
 
-export type CreditOperationResult = CreditDeductionResult<'deduct'> | DemoCounterIncrementResult;
+export type CreditAllowanceOperationResult =
+  | CreditDeductionResult<'deduct'>
+  | DemoCounterIncrementResult;
+export type CreditAllowanceOperationSuccess =
+  | CreditDeductionSuccess<'deduct'>
+  | DemoCounterIncrementSuccess;
 
 export type CreditDeductionOperationDetails =
   | { fromBalance: 'subscription' | 'topup'; type: 'deduct'; quantity: number }
@@ -40,12 +45,14 @@ export interface CreditDeductionInsufficientCreditsError extends BaseError<'Insu
 }
 export type CreditDeductionBadRequestError = BaseError<'BadRequestError'>;
 export type CreditDeductionUnexpectedError = BaseError<'UnknownError'>;
-
-export type CreditDeductionResult<TOperationType extends CreditDeductionOperationType> =
-  | CreditDeductionSuccess<TOperationType>
+export type CreditDeductionError =
   | CreditDeductionInsufficientCreditsError
   | CreditDeductionBadRequestError
   | CreditDeductionUnexpectedError;
+
+export type CreditDeductionResult<TOperationType extends CreditDeductionOperationType> =
+  | CreditDeductionSuccess<TOperationType>
+  | CreditDeductionError;
 
 export interface CreditAdditionSuccess<TOperationType extends CreditAdditionOperationType>
   extends BaseSuccess {
@@ -65,11 +72,11 @@ export interface DemoCounterIncrementSuccess extends BaseSuccess {
 }
 export type DemoCounterLimitReachedError = BaseError<'DemoCounterLimitReachedError'>;
 export type DemoCounterIncrementUnexpectedError = BaseError<'UnknownError'>;
-
-export type DemoCounterIncrementResult =
-  | DemoCounterIncrementSuccess
+export type DemoCounterIncrementError =
   | DemoCounterLimitReachedError
   | DemoCounterIncrementUnexpectedError;
+
+export type DemoCounterIncrementResult = DemoCounterIncrementSuccess | DemoCounterIncrementError;
 
 export interface DemoCounterDecrementSuccess extends BaseSuccess {
   readonly demoRemindersCount: number;
