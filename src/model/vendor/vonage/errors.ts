@@ -8,7 +8,7 @@ export function categorizeError(
   messageStatus: VonageWebhookMessageStatusPayload
 ): MessageDeliveryErrorFault | 'ok' {
   const { status, error } = messageStatus;
-  if (status !== 'rejected' && status !== 'undeliverable') {
+  if (!['rejected', 'undeliverable'].includes(status)) {
     return 'ok';
   }
 
