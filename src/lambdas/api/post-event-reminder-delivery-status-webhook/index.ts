@@ -1,15 +1,18 @@
 import { JSONStringified } from '@aws-lambda-powertools/parser/helpers';
 import { protectedEndpointMiddlewareCustom } from '@common/lambda-middleware';
 import { logger } from '@common/powertools';
-import type { ActionableEventFoundEvent } from '@model/app-events/ActionableEventFoundEvent';
-import type { ActionableEventReminderStatusUpdatedEvent } from '@model/app-events/ActionableEventReminderStatusUpdatedEvent';
-import type { DemoReminderToBeSentEvent } from '@model/app-events/DemoReminderToBeSentEvent';
-import type { DemoReminderToBeSentStatusUpdatedEvent } from '@model/app-events/DemoReminderToBeSentStatusUpdatedEvent';
+import {
+  actionableEventReminderStatusUpdated,
+  type ActionableEventReminderStatusUpdatedEvent
+} from '@model/app-events/ActionableEventReminderStatusUpdatedEvent';
+import {
+  demoReminderToBeSentReminderStatusUpdated,
+  type DemoReminderToBeSentStatusUpdatedEvent
+} from '@model/app-events/DemoReminderToBeSentStatusUpdatedEvent';
 import type {
   CreditAdditionResult,
   CreditDeductionResult,
-  DemoCounterDecrementResult,
-  DemoCounterIncrementResult
+  DemoCounterDecrementResult
 } from '@model/Credits';
 import { authedEventSchema } from '@model/lambda-events/ApiGatewayEvents';
 import type { DecodeVonageAccessJwtConfig } from '@model/vendor/vonage/config';
@@ -19,7 +22,6 @@ import {
   vonageWebhookMessageStatusPayloadSchema,
   type VonageWebhookMessageStatusPayload
 } from '@model/vendor/vonage/schemas';
-import type { DateTime, EventId } from '@notifycal/shared/types';
 import { successHandler } from '@services/common/api-response-handlers';
 import { rejectWithMessageAndError } from '@services/common/error-handling';
 import { CreditAdjustmentService } from '@services/credit-adjustment-service';
@@ -31,7 +33,6 @@ import { tap } from '@utils/promises';
 import { queryStringObjectToTypedObject } from '@utils/queryString';
 import type { APIGatewayProxyResult, Context } from 'aws-lambda';
 import { match } from 'ts-pattern';
-import { v4 } from 'uuid';
 import type { z } from 'zod';
 import {
   readReminderDeliveryStatusWebhookConfig,
@@ -43,52 +44,6 @@ const schema = authedEventSchema<ReminderDeliveryStatusWebhookConfig>().extend({
   body: JSONStringified(vonageWebhookMessageStatusPayloadSchema)
 });
 export type Event = z.infer<typeof schema>;
-
-function buildActionableEventReminderStatusUpdated(
-  rebuiltEventObject: Omit<ActionableEventFoundEvent, 'eventType' | 'eventId' | 'happenedAt'>,
-  event: VonageWebhookMessageStatusPayload,
-  creditDeductionResult: CreditDeductionResult<'deduct'>,
-  creditAdjustmentResult?: CreditAdditionResult<'restore'> | CreditDeductionResult<'deduct'>
-): ActionableEventReminderStatusUpdatedEvent {
-  return {
-    ...rebuiltEventObject,
-    eventType: 'ActionableEventReminderStatusUpdated',
-    eventId: v4() as EventId,
-    happenedAt: new Date().toISOString() as DateTime,
-    data: {
-      ...rebuiltEventObject.data,
-      messageUUID: event.message_uuid,
-      messageStatusPayload: {
-        ...event
-      },
-      creditDeductionResult,
-      creditAdjustmentResult
-    }
-  };
-}
-
-function buildDemoReminderToBeSentReminderStatusUpdated(
-  rebuiltEventObject: Omit<DemoReminderToBeSentEvent, 'eventId' | 'happenedAt'>,
-  event: VonageWebhookMessageStatusPayload,
-  demoCounterIncrementResult: DemoCounterIncrementResult,
-  demoCounterAdjustmentResult?: DemoCounterDecrementResult
-): DemoReminderToBeSentStatusUpdatedEvent {
-  return {
-    ...rebuiltEventObject,
-    eventType: 'DemoReminderToBeSentStatusUpdated',
-    eventId: v4() as EventId,
-    happenedAt: new Date().toISOString() as DateTime,
-    data: {
-      ...rebuiltEventObject.data,
-      messageUUID: event.message_uuid,
-      messageStatusPayload: {
-        ...event
-      },
-      demoCounterIncrementResult,
-      demoCounterAdjustmentResult
-    }
-  };
-}
 
 function rebuildWebhookCorrelationData(
   queryParams: Record<string, string>
@@ -129,7 +84,7 @@ function buildStatusUpdatedEvent(
 ): ActionableEventReminderStatusUpdatedEvent | DemoReminderToBeSentStatusUpdatedEvent {
   return match(webhookCorrelationData)
     .with({ originalEvent: { eventType: 'ActionableEventFound' } }, (correlationData) => {
-      return buildActionableEventReminderStatusUpdated(
+      return actionableEventReminderStatusUpdated(
         correlationData.originalEvent,
         messageStatus,
         correlationData.creditDeductionResult,
@@ -137,7 +92,7 @@ function buildStatusUpdatedEvent(
       );
     })
     .with({ originalEvent: { eventType: 'DemoReminderToBeSent' } }, (correlationData) =>
-      buildDemoReminderToBeSentReminderStatusUpdated(
+      demoReminderToBeSentReminderStatusUpdated(
         correlationData.originalEvent,
         messageStatus,
         correlationData.creditDeductionResult,
