@@ -35,7 +35,7 @@ import type {
 import type { PhoneNumberE164, Url } from '@own-types/model';
 import { CreditsService } from '@services/credits-service';
 import {
-  MessagingService,
+  VonageMessagingService,
   type VonageApplicationId,
   type VonagePrivateKey
 } from '@services/messaging';
@@ -771,9 +771,9 @@ describe('Messaging processor', () => {
         MessagingAlertingEndpointConfig,
       setupCreditService: (creditService: CreditsService<'google.com'>) => void
     ): Promise<Uuid> {
-      vi.mocked(MessagingService).mockReturnValue({
+      vi.mocked(VonageMessagingService).mockReturnValue({
         sendMessage: sendMessageFn
-      } as unknown as MessagingService);
+      } as unknown as VonageMessagingService);
 
       const snsServiceMock = {
         safePublish: safePublishFn

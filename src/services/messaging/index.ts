@@ -16,7 +16,7 @@ export type VonageApplicationId = Brand<string, 'VonageApplicationId'>;
 export type VonagePrivateKey = Brand<string, 'PrivateKey'>;
 export type VonageJwtSigningSecret = Brand<string, 'JwtSigningSecret'>;
 
-export class MessagingService {
+export class VonageMessagingService {
   protected _client: Vonage;
 
   public constructor(

@@ -40,7 +40,7 @@ import type { IdpName, Uuid } from '@notifycal/shared/types';
 import type { Url } from '@own-types/model';
 import { rejectWithError, rejectWithMessageAndError } from '@services/common/error-handling';
 import type { CreditsService } from '@services/credits-service';
-import { MessagingService } from '@services/messaging';
+import { VonageMessagingService } from '@services/messaging';
 import type { SnsService } from '@services/sns';
 import { tap } from '@utils/promises';
 import { objectToQueryString } from '@utils/queryString';
@@ -74,7 +74,7 @@ function isSuccessfulDeduction(
 }
 
 export default class Processor {
-  private readonly _messagingService: MessagingService;
+  private readonly _messagingService: VonageMessagingService;
 
   public constructor(
     private readonly config: VonageEndpointConfig &
@@ -86,7 +86,7 @@ export default class Processor {
     private readonly creditsService: CreditsService<IdpName>,
     logger: Logger
   ) {
-    this._messagingService = new MessagingService(
+    this._messagingService = new VonageMessagingService(
       config.vonageConfig.applicationId,
       config.vonageConfig.privateKey,
       logger
