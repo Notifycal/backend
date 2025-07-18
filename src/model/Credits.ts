@@ -37,9 +37,13 @@ const creditDeductionOperationTypeSchema = z.enum(['deduct', 'clear']);
 const creditAdditionOperationTypeSchema = z.enum(['add', 'restore', 'reset']);
 
 const baseSuccessSchema = z.object({
-  success: z.coerce.boolean().refine((val) => val === true, {
-    message: 'Success must be true'
-  }),
+  success: z.preprocess((val) => {
+    const coerced = z.coerce.boolean().parse(val);
+    if (coerced !== true) {
+      throw new Error('Success must be true');
+    }
+    return coerced;
+  }, z.literal(true)),
   result: z.string()
 });
 
