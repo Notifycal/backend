@@ -34,13 +34,13 @@ import type {
 } from '@notifycal/shared/types';
 import type { PhoneNumberE164, Url } from '@own-types/model';
 import { CreditsService } from '@services/credits-service';
+import { SnsService } from '@services/sns';
+import type { UserBaseStore } from '@services/stores/user-base-store';
 import {
   VonageMessagingService,
   type VonageApplicationId,
   type VonagePrivateKey
-} from '@services/messaging';
-import { SnsService } from '@services/sns';
-import type { UserBaseStore } from '@services/stores/user-base-store';
+} from '@services/vonage';
 import { describe, expect, it, vi } from 'vitest';
 import Processor from './processor';
 
@@ -57,7 +57,7 @@ vi.mock('@common/powertools', () => {
     logger: mockLogger
   };
 });
-vi.mock('@services/messaging');
+vi.mock('@services/vonage');
 vi.mock('@services/credits-service');
 
 const defaultConfig: VonageEndpointConfig &
