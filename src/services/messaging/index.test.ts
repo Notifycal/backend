@@ -4,6 +4,7 @@ import type { PublishCommandOutput } from '@aws-sdk/client-sns';
 import { logger } from '@common/powertools';
 import type { ActionableEventFoundEvent } from '@model/app-events/ActionableEventFoundEvent';
 import type { DemoReminderToBeSentEvent } from '@model/app-events/DemoReminderToBeSentEvent';
+import type { MessagingEndpointConfig } from '@model/Config';
 import type { CreditDeductionSuccess } from '@model/Credits';
 import type { VonageEndpointConfig } from '@model/vendor/vonage/config';
 import type { Uuid } from '@notifycal/shared/types';
@@ -37,12 +38,15 @@ vi.mock('@common/powertools', () => {
   };
 });
 
-const validConfig: VonageEndpointConfig = {
+const validConfig: VonageEndpointConfig & MessagingEndpointConfig = {
   vonageConfig: {
     applicationId: 'some-app-id' as VonageApplicationId,
     webhookBaseURL: 'https://test.com' as Url,
     privateKeySSMPath: 'some-path',
     privateKey: 'some-private-key' as VonagePrivateKey
+  },
+  messagingConfig: {
+    enabled: true
   }
 };
 
@@ -109,14 +113,7 @@ describe(MessagingService, () => {
       const loggerInfoSpy = vi.spyOn(logger, 'info');
       const eventWithDeduction = createActionableEventWithSuccessfulDeduction(validActionableEvent);
 
-      const result = testIt(
-        eventWithDeduction,
-        safePublishFn,
-        sendMessageFn,
-        validConfig,
-        true,
-        logger
-      );
+      const result = testIt(eventWithDeduction, safePublishFn, sendMessageFn, validConfig, logger);
 
       await expect(result).resolves.toBe(validReturnedUuid);
       expect(sendMessageFn).toHaveBeenCalledWith(
@@ -143,13 +140,18 @@ describe(MessagingService, () => {
       const safePublishFn = vi.fn().mockResolvedValue(safePublishSuccess);
       const loggerInfoSpy = vi.spyOn(logger, 'info');
       const eventWithDeduction = createActionableEventWithSuccessfulDeduction(validActionableEvent);
+      const messaggingDisabledConfig = {
+        ...validConfig,
+        messagingConfig: {
+          enabled: false
+        }
+      };
 
       const result = testIt(
         eventWithDeduction,
         safePublishFn,
         sendMessageFn,
-        validConfig,
-        false,
+        messaggingDisabledConfig,
         logger
       );
 
@@ -175,14 +177,7 @@ describe(MessagingService, () => {
       const safePublishFn = vi.fn().mockResolvedValue(safePublishSuccess);
       const eventWithDeduction = createDemoEventWithSuccessfulDeduction(validDemoEvent);
 
-      const result = testIt(
-        eventWithDeduction,
-        safePublishFn,
-        sendMessageFn,
-        validConfig,
-        true,
-        logger
-      );
+      const result = testIt(eventWithDeduction, safePublishFn, sendMessageFn, validConfig, logger);
 
       return expect(result)
         .resolves.toBe(validReturnedUuid)
@@ -216,14 +211,7 @@ describe(MessagingService, () => {
       const loggerInfoSpy = vi.spyOn(logger, 'info');
       const eventWithDeduction = createActionableEventWithSuccessfulDeduction(validActionableEvent);
 
-      const result = testIt(
-        eventWithDeduction,
-        safePublishFn,
-        sendMessageFn,
-        validConfig,
-        true,
-        logger
-      );
+      const result = testIt(eventWithDeduction, safePublishFn, sendMessageFn, validConfig, logger);
 
       return expect(result)
         .resolves.toBe(validReturnedUuid)
@@ -246,14 +234,7 @@ describe(MessagingService, () => {
       const loggerInfoSpy = vi.spyOn(logger, 'info');
       const eventWithDeduction = createActionableEventWithSuccessfulDeduction(validActionableEvent);
 
-      const result = testIt(
-        eventWithDeduction,
-        safePublishFn,
-        sendMessageFn,
-        validConfig,
-        true,
-        logger
-      );
+      const result = testIt(eventWithDeduction, safePublishFn, sendMessageFn, validConfig, logger);
 
       return expect(result)
         .resolves.toBe(validReturnedUuid)
@@ -276,8 +257,7 @@ describe(MessagingService, () => {
       eventWithDeduction: EventWithSuccessfulDeduction,
       safePublishFn: () => Promise<void>,
       sendMessageFn: () => Promise<Uuid>,
-      config: VonageEndpointConfig,
-      isEnabled: boolean,
+      config: VonageEndpointConfig & MessagingEndpointConfig,
       logger: Logger
     ): Promise<Uuid> {
       // eslint-disable-next-line @typescript-eslint/unbound-method
@@ -290,7 +270,6 @@ describe(MessagingService, () => {
       const messagingService = new MessagingService(
         config,
         snsServiceMock as unknown as SnsService,
-        isEnabled,
         logger
       );
       return messagingService.sendMessage(eventWithDeduction);

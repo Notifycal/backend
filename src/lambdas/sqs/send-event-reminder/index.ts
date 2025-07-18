@@ -68,7 +68,6 @@ function lambdaHandler(
   const messageProcessor = new IdempotentProcessor(
     config,
     config.idempotencyPersistenceConfig,
-    config.messagingConfig.enabled,
     context,
     snsService,
     creditsService,

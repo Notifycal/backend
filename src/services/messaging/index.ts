@@ -8,6 +8,7 @@ import {
   demoReminderToBeSentAttemptSent,
   type DemoReminderToBeSentAttemptSentEvent
 } from '@model/app-events/DemoReminderToBeSentAttemptSentEvent';
+import type { MessagingEndpointConfig } from '@model/Config';
 import type { VonageEndpointConfig } from '@model/vendor/vonage/config';
 import type { Url, Uuid } from '@notifycal/shared/types';
 import { objectToQueryString } from '@utils/queryString';
@@ -19,9 +20,8 @@ import type { EventWithSuccessfulDeduction } from './model';
 export class MessagingService {
   private readonly _messagingService: VonageMessagingService;
   public constructor(
-    private readonly config: VonageEndpointConfig,
+    private readonly config: VonageEndpointConfig & MessagingEndpointConfig,
     private readonly snsService: SnsService,
-    private readonly isEnabled: boolean,
     private readonly logger: Logger
   ) {
     this._messagingService = new VonageMessagingService(
@@ -37,7 +37,7 @@ export class MessagingService {
       data: { message, senderDetails, receiverDetails }
     } = eventWithDeduction.event;
 
-    if (this.isEnabled) {
+    if (this.config.messagingConfig.enabled) {
       this.logger.info('Sending a message through Vonage');
       return this._messagingService
         .sendMessage(

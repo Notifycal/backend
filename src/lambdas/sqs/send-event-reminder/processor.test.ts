@@ -8,6 +8,7 @@ import type {
   CreditServiceEndpointConfig,
   DemoReminderEndpointConfig,
   MessagingAlertingEndpointConfig,
+  MessagingEndpointConfig,
   SnsTopicConfig
 } from '@model/Config';
 import type {
@@ -55,6 +56,7 @@ vi.mock('@services/credits-service');
 const defaultConfig: VonageEndpointConfig &
   CreditServiceEndpointConfig &
   DemoReminderEndpointConfig &
+  MessagingEndpointConfig &
   MessagingAlertingEndpointConfig = {
   vonageConfig: {
     applicationId: 'some app id' as VonageApplicationId,
@@ -70,6 +72,9 @@ const defaultConfig: VonageEndpointConfig &
   },
   messagingAlertingConfig: {
     lowCreditThreshold: 100
+  },
+  messagingConfig: {
+    enabled: true
   }
 };
 
@@ -102,7 +107,6 @@ describe('Messaging processor', () => {
     it('should process actionable event successfully', async () => {
       const sendMessageSpy = vi.fn().mockResolvedValue(validReturnedUuid);
       const safePublishSpy = vi.fn().mockResolvedValue(safePublishSuccess);
-      const messagingEnabled = true;
       const deductCreditsFn = vi.fn().mockResolvedValue(validCreditDeductionSuccess);
       const loggerAppendKeysSpy = vi.spyOn(logger, 'appendKeys');
 
@@ -110,8 +114,7 @@ describe('Messaging processor', () => {
         validActionableEvent,
         sendMessageSpy,
         safePublishSpy,
-        deductCreditsFn,
-        messagingEnabled
+        deductCreditsFn
       );
 
       expect(result).toStrictEqual(validReturnedUuid);
@@ -126,15 +129,13 @@ describe('Messaging processor', () => {
     it('should deduct credits when a message is sent', async () => {
       const sendMessageSpy = vi.fn().mockResolvedValue(validReturnedUuid);
       const safePublishSpy = vi.fn().mockResolvedValue(safePublishSuccess);
-      const messagingEnabled = true;
       const deductCreditsFn = vi.fn().mockResolvedValue(validCreditDeductionSuccess);
 
       const result = await testWithActionableEvent(
         validActionableEvent,
         sendMessageSpy,
         safePublishSpy,
-        deductCreditsFn,
-        messagingEnabled
+        deductCreditsFn
       );
 
       expect(result).toStrictEqual(validReturnedUuid);
@@ -170,8 +171,7 @@ describe('Messaging processor', () => {
         sendMessageSpy,
         safePublishSpy,
         deductCreditsFn,
-        restoreCreditsFn,
-        true
+        restoreCreditsFn
       );
 
       await expect(result).rejects.toThrow(sendError);
@@ -199,8 +199,7 @@ describe('Messaging processor', () => {
         sendMessageSpy,
         safePublishSpyRestore,
         deductCreditsFn,
-        restoreCreditsFn,
-        true
+        restoreCreditsFn
       );
 
       await expect(result).rejects.toThrow(sendError);
@@ -235,8 +234,7 @@ describe('Messaging processor', () => {
         sendMessageSpy,
         safePublishSpyDecrement,
         incrementDemoCounterFn,
-        decrementDemoCounterFn,
-        true
+        decrementDemoCounterFn
       );
 
       await expect(result).rejects.toThrow(sendError);
@@ -265,8 +263,7 @@ describe('Messaging processor', () => {
         sendMessageSpy,
         safePublishSpyDemoError,
         incrementDemoCounterFn,
-        decrementDemoCounterFn,
-        true
+        decrementDemoCounterFn
       );
 
       await expect(result).rejects.toThrow(sendError);
@@ -300,8 +297,7 @@ describe('Messaging processor', () => {
         validActionableEvent,
         sendMessageSpy,
         safePublishSpy,
-        deductCreditsFn,
-        true
+        deductCreditsFn
       );
 
       expect(result).toBe('insufficient-credits');
@@ -332,8 +328,7 @@ describe('Messaging processor', () => {
         validActionableEvent,
         sendMessageSpy,
         safePublishSpy,
-        deductCreditsFn,
-        true
+        deductCreditsFn
       );
 
       await expect(result).rejects.toThrow(
@@ -345,7 +340,6 @@ describe('Messaging processor', () => {
 
     it('should process demo reminder event successfully', async () => {
       const sendMessageSpy = vi.fn().mockResolvedValue(validReturnedUuid);
-      const messagingEnabled = true;
       const incrementDemoCounterFn = vi.fn().mockResolvedValue(validDemoCounterSuccess);
       const demoReminderlimit = 1;
       const safePublishSpy = vi.fn().mockResolvedValue(safePublishSuccess);
@@ -354,8 +348,7 @@ describe('Messaging processor', () => {
         validDemoEvent,
         sendMessageSpy,
         safePublishSpy,
-        incrementDemoCounterFn,
-        messagingEnabled
+        incrementDemoCounterFn
       );
 
       expect(result).toStrictEqual(validReturnedUuid);
@@ -377,8 +370,7 @@ describe('Messaging processor', () => {
         validDemoEvent,
         sendMessageSpy,
         safePublishSpy,
-        incrementDemoCounterFn,
-        true
+        incrementDemoCounterFn
       );
 
       expect(result).toBe('demo-limit-reached');
@@ -416,7 +408,6 @@ describe('Messaging processor', () => {
           sendMessageSpy,
           safePublishSpy,
           deductCreditsFn,
-          true,
           config
         );
 
@@ -531,13 +522,13 @@ describe('Messaging processor', () => {
       sendMessageFn: () => Promise<Uuid>,
       safePublishFn: () => Promise<void>,
       deductCreditsFn: () => Promise<CreditDeductionResult<'deduct'>>,
-      messagingEnabled: boolean,
       config: VonageEndpointConfig &
         CreditServiceEndpointConfig &
         DemoReminderEndpointConfig &
+        MessagingEndpointConfig &
         MessagingAlertingEndpointConfig = defaultConfig
     ): Promise<Uuid> {
-      return createProcessorAndTest(event, sendMessageFn, safePublishFn, messagingEnabled, config, {
+      return createProcessorAndTest(event, sendMessageFn, safePublishFn, config, {
         deductCreditsFn
       });
     }
@@ -548,13 +539,13 @@ describe('Messaging processor', () => {
       safePublishFn: () => Promise<void>,
       deductCreditsFn: () => Promise<CreditDeductionResult<'deduct'>>,
       restoreCreditsFn: () => Promise<CreditAdditionResult<'restore'>>,
-      messagingEnabled: boolean,
       config: VonageEndpointConfig &
         CreditServiceEndpointConfig &
         DemoReminderEndpointConfig &
+        MessagingEndpointConfig &
         MessagingAlertingEndpointConfig = defaultConfig
     ): Promise<Uuid> {
-      return createProcessorAndTest(event, sendMessageFn, safePublishFn, messagingEnabled, config, {
+      return createProcessorAndTest(event, sendMessageFn, safePublishFn, config, {
         deductCreditsFn,
         restoreCreditsFn
       });
@@ -565,13 +556,13 @@ describe('Messaging processor', () => {
       sendMessageFn: () => Promise<Uuid>,
       safePublishFn: () => Promise<void>,
       incrementDemoCounterFn: () => Promise<DemoCounterIncrementResult>,
-      messagingEnabled: boolean,
       config: VonageEndpointConfig &
         CreditServiceEndpointConfig &
         DemoReminderEndpointConfig &
+        MessagingEndpointConfig &
         MessagingAlertingEndpointConfig = defaultConfig
     ): Promise<Uuid> {
-      return createProcessorAndTest(event, sendMessageFn, safePublishFn, messagingEnabled, config, {
+      return createProcessorAndTest(event, sendMessageFn, safePublishFn, config, {
         incrementDemoCounterFn
       });
     }
@@ -582,13 +573,13 @@ describe('Messaging processor', () => {
       safePublishFn: () => Promise<void>,
       incrementDemoCounterFn: () => Promise<DemoCounterIncrementResult>,
       decrementDemoCounterFn: () => Promise<DemoCounterDecrementResult>,
-      messagingEnabled: boolean,
       config: VonageEndpointConfig &
         CreditServiceEndpointConfig &
         DemoReminderEndpointConfig &
+        MessagingEndpointConfig &
         MessagingAlertingEndpointConfig = defaultConfig
     ): Promise<Uuid> {
-      return createProcessorAndTest(event, sendMessageFn, safePublishFn, messagingEnabled, config, {
+      return createProcessorAndTest(event, sendMessageFn, safePublishFn, config, {
         incrementDemoCounterFn,
         decrementDemoCounterFn
       });
@@ -598,10 +589,10 @@ describe('Messaging processor', () => {
       event: ActionableEventFoundEvent | DemoReminderToBeSentEvent,
       sendMessageFn: () => Promise<Uuid>,
       safePublishFn: () => Promise<void>,
-      messagingEnabled: boolean,
       config: VonageEndpointConfig &
         CreditServiceEndpointConfig &
         DemoReminderEndpointConfig &
+        MessagingEndpointConfig &
         MessagingAlertingEndpointConfig,
       creditServiceFns: {
         deductCreditsFn?: () => Promise<CreditDeductionResult<'deduct'>>;
@@ -645,13 +636,7 @@ describe('Messaging processor', () => {
         creditServiceFns.decrementDemoCounterFn || vi.fn()
       );
 
-      const messageProcessor = new Processor(
-        config,
-        messagingEnabled,
-        snsService,
-        creditService,
-        logger
-      );
+      const messageProcessor = new Processor(config, snsService, creditService, logger);
       return messageProcessor.process(event);
     }
   });

@@ -14,7 +14,8 @@ import { lowCreditsDetected } from '@model/app-events/LowCreditsDetectedEvent';
 import type {
   CreditServiceEndpointConfig,
   DemoReminderEndpointConfig,
-  MessagingAlertingEndpointConfig
+  MessagingAlertingEndpointConfig,
+  MessagingEndpointConfig
 } from '@model/Config';
 import type {
   CreditDeductionInsufficientCreditsError,
@@ -45,13 +46,13 @@ export default class Processor {
     private readonly config: VonageEndpointConfig &
       CreditServiceEndpointConfig &
       DemoReminderEndpointConfig &
+      MessagingEndpointConfig &
       MessagingAlertingEndpointConfig,
-    isEnabled: boolean,
     private readonly snsService: SnsService,
     private readonly creditsService: CreditsService<IdpName>,
     logger: Logger
   ) {
-    this._messagingService = new MessagingService(config, snsService, isEnabled, logger);
+    this._messagingService = new MessagingService(config, snsService, logger);
   }
 
   public process(event: ActionableEventFoundEvent | DemoReminderToBeSentEvent): Promise<Uuid> {
