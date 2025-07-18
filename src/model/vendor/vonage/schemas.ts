@@ -67,6 +67,12 @@ export const vonageWebhookMessageStatusPayloadSchema = z.discriminatedUnion('cha
   messageStatusSMSSchema,
   messageStatusRCSSchema
 ]);
+export type VonageWebhookMessageStatusSmsPayload = z.infer<
+  typeof vonageWebhookMessageStatusPayloadSchema
+>;
+export type VonageWebhookMessageStatusRcsPayload = z.infer<
+  typeof vonageWebhookMessageStatusPayloadSchema
+>;
 export type VonageWebhookMessageStatusPayload = z.infer<
   typeof vonageWebhookMessageStatusPayloadSchema
 >;

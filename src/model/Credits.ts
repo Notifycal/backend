@@ -8,7 +8,7 @@ const creditDeductionOperationDetailsSchema = z.discriminatedUnion('type', [
   z.object({
     fromBalance: fromBalanceSchema,
     type: z.literal('deduct'),
-    quantity: z.number()
+    quantity: z.coerce.number()
   }),
   z.object({
     fromBalance: fromBalanceSchema,
@@ -37,19 +37,21 @@ const creditDeductionOperationTypeSchema = z.enum(['deduct', 'clear']);
 const creditAdditionOperationTypeSchema = z.enum(['add', 'restore', 'reset']);
 
 const baseSuccessSchema = z.object({
-  success: z.literal(true),
+  success: z.coerce.boolean().refine((val) => val === true, {
+    message: 'Success must be true'
+  }),
   result: z.string()
 });
 
 const baseErrorSchema = z.object({
   success: z.literal(false),
   result: z.string(),
-  error: z.unknown().optional()
+  error: z.unknown()
 });
 
 const creditBalancesSchema = z.object({
-  subscription: z.number(),
-  topup: z.number()
+  subscription: z.coerce.number(),
+  topup: z.coerce.number()
 });
 
 const creditDeductionSuccessSchema = baseSuccessSchema.extend({
@@ -57,11 +59,12 @@ const creditDeductionSuccessSchema = baseSuccessSchema.extend({
   balances: creditBalancesSchema
 });
 
+// Heads-up: Coercing is being applied in non string fields so that the schema can be reused in Vonage webhook event/metadata rebuilding.
 const creditDeductionDeductSuccessSchema = baseSuccessSchema.extend({
   operationDetails: z.object({
     fromBalance: fromBalanceSchema,
     type: z.literal('deduct'),
-    quantity: z.number()
+    quantity: z.coerce.number()
   }),
   balances: creditBalancesSchema
 });
@@ -111,31 +114,32 @@ const creditAdditionUnexpectedErrorSchema = baseErrorSchema.extend({
 const creditAdditionResultSchema = z.union([
   creditAdditionSuccessSchema,
   creditAdditionBadRequestErrorSchema,
-  creditAdditionUnexpectedErrorSchema,
+  creditAdditionUnexpectedErrorSchema
 ]);
 
 const creditAdditionRestoreSuccessSchema = baseSuccessSchema.extend({
   operationDetails: z.object({
     fromBalance: fromBalanceSchema,
     type: z.literal('restore'),
-    quantity: z.number(),
+    quantity: z.number()
   }),
-  balances: creditBalancesSchema,
+  balances: creditBalancesSchema
 });
 
 const creditAdditionRestoreResultSchema = z.union([
   creditAdditionRestoreSuccessSchema,
   creditAdditionBadRequestErrorSchema,
-  creditAdditionUnexpectedErrorSchema,
+  creditAdditionUnexpectedErrorSchema
 ]);
 
 const creditAdjustmentResultSchema = z.union([
   creditAdditionRestoreResultSchema,
-  creditDeductionDeductResultSchema,
+  creditDeductionDeductResultSchema
 ]);
 
+// Heads-up: Coercing is being applied in non string fields so that the schema can be reused in Vonage webhook event/metadata rebuilding.
 const demoCounterIncrementSuccessSchema = baseSuccessSchema.extend({
-  demoRemindersCount: z.number()
+  demoRemindersCount: z.coerce.number()
 });
 
 const demoCounterLimitReachedErrorSchema = baseErrorSchema.extend({
@@ -231,16 +235,17 @@ export type DemoCounterDecrementResult = z.infer<typeof demoCounterDecrementResu
 export type CreditAllowanceOperationResult = z.infer<typeof creditAllowanceOperationResultSchema>;
 export type CreditAllowanceOperationSuccess = z.infer<typeof creditAllowanceOperationSuccessSchema>;
 
-export { 
-  creditDeductionDeductSuccessSchema,
-  creditDeductionDeductResultSchema,
-  creditDeductionResultSchema,
-  creditAdditionResultSchema,
-  creditAdditionRestoreSuccessSchema,
+export {
   creditAdditionRestoreResultSchema,
+  creditAdditionRestoreSuccessSchema,
+  creditAdditionResultSchema,
   creditAdjustmentResultSchema,
-  demoCounterIncrementSuccessSchema,
-  demoCounterIncrementResultSchema,
-  demoCounterDecrementSuccessSchema,
+  creditDeductionDeductResultSchema,
+  creditDeductionDeductSuccessSchema,
+  creditDeductionResultSchema,
   demoCounterDecrementResultSchema,
+  demoCounterDecrementSuccessSchema,
+  demoCounterIncrementResultSchema,
+  demoCounterIncrementSuccessSchema
 };
+
