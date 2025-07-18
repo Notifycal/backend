@@ -1,19 +1,10 @@
 import type { Logger } from '@aws-lambda-powertools/logger';
 import { logger } from '@common/powertools';
-import type { WebhookCorrelationData } from '@lambdas/api/post-event-reminder-delivery-status-webhook/schema';
 import type { ActionableEventFoundEvent } from '@model/app-events/ActionableEventFoundEvent';
-import {
-  actionableEventReminderAttemptSent,
-  type ActionableEventReminderAttemptSentEvent
-} from '@model/app-events/ActionableEventReminderAttemptSentEvent';
 import {
   demoReminderLimitReachedNotSent,
   type DemoReminderLimitReachedNotSentEvent
 } from '@model/app-events/DemoReminderLimitReachedNotSentEvent';
-import {
-  demoReminderToBeSentAttemptSent,
-  type DemoReminderToBeSentAttemptSentEvent
-} from '@model/app-events/DemoReminderToBeSentAttemptSentEvent';
 import type { DemoReminderToBeSentEvent } from '@model/app-events/DemoReminderToBeSentEvent';
 import {
   insufficientCreditReminderNotSent,
@@ -26,99 +17,41 @@ import type {
   MessagingAlertingEndpointConfig
 } from '@model/Config';
 import type {
-  CreditDeductionError,
   CreditDeductionInsufficientCreditsError,
   CreditDeductionResult,
   CreditDeductionSuccess,
-  DemoCounterIncrementError,
-  DemoCounterIncrementResult,
-  DemoCounterIncrementSuccess,
   DemoCounterLimitReachedError
 } from '@model/Credits';
 import type { VonageEndpointConfig } from '@model/vendor/vonage/config';
 import type { IdpName, Uuid } from '@notifycal/shared/types';
-import type { Url } from '@own-types/model';
 import { rejectWithError, rejectWithMessageAndError } from '@services/common/error-handling';
 import type { CreditsService } from '@services/credits-service';
+import { MessagingService } from '@services/messaging';
+import {
+  type EventWithDeduction,
+  type EventWithFailedDeduction,
+  type EventWithSuccessfulDeduction,
+  isSuccessfulDeduction
+} from '@services/messaging/model';
 import type { SnsService } from '@services/sns';
-import { VonageMessagingService } from '@services/vonage';
 import { tap } from '@utils/promises';
-import { objectToQueryString } from '@utils/queryString';
 import { count } from 'sms-length/src/index';
 import { match } from 'ts-pattern';
 
-type EventDataBase<TEvent, TResult> = {
-  event: TEvent;
-  deductionResult: TResult;
-  numberOfMessagesEstimate: ReturnType<typeof count>;
-};
-
-type ActionableEventData = EventDataBase<
-  ActionableEventFoundEvent,
-  CreditDeductionResult<'deduct'>
->;
-type DemoReminderData = EventDataBase<DemoReminderToBeSentEvent, DemoCounterIncrementResult>;
-
-type EventWithDeduction = ActionableEventData | DemoReminderData;
-type EventWithSuccessfulDeduction =
-  | EventDataBase<ActionableEventFoundEvent, CreditDeductionSuccess<'deduct'>>
-  | EventDataBase<DemoReminderToBeSentEvent, DemoCounterIncrementSuccess>;
-type EventWithFailedDeduction =
-  | EventDataBase<ActionableEventFoundEvent, CreditDeductionError>
-  | EventDataBase<DemoReminderToBeSentEvent, DemoCounterIncrementError>;
-
-function isSuccessfulDeduction(
-  eventWithDeduction: EventWithDeduction
-): eventWithDeduction is EventWithSuccessfulDeduction {
-  return eventWithDeduction.deductionResult.success;
-}
-
 export default class Processor {
-  private readonly _messagingService: VonageMessagingService;
+  private readonly _messagingService: MessagingService;
 
   public constructor(
     private readonly config: VonageEndpointConfig &
       CreditServiceEndpointConfig &
       DemoReminderEndpointConfig &
       MessagingAlertingEndpointConfig,
-    private readonly isEnabled: boolean,
+    isEnabled: boolean,
     private readonly snsService: SnsService,
     private readonly creditsService: CreditsService<IdpName>,
     logger: Logger
   ) {
-    this._messagingService = new VonageMessagingService(
-      config.vonageConfig.applicationId,
-      config.vonageConfig.privateKey,
-      logger
-    );
-  }
-
-  private buildWebhookUrl(eventWithDeduction: EventWithSuccessfulDeduction): Url {
-    const webhookCorrelationData: WebhookCorrelationData = match(eventWithDeduction)
-      .with({ event: { eventType: 'ActionableEventFound' } }, (data) => {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { eventId, happenedAt, ...originalEvent } = data.event;
-        return {
-          originalEvent,
-          creditDeductionResult: data.deductionResult,
-          estimatedMessageCount: data.numberOfMessagesEstimate
-        };
-      })
-      .with({ event: { eventType: 'DemoReminderToBeSent' } }, (data) => {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { eventId, happenedAt, ...originalEvent } = data.event;
-        return {
-          originalEvent,
-          creditDeductionResult: data.deductionResult,
-          estimatedMessageCount: data.numberOfMessagesEstimate
-        };
-      })
-      .exhaustive();
-
-    const recordQs = objectToQueryString(webhookCorrelationData);
-    const webhookUrl = `${this.config.vonageConfig.webhookBaseURL}?${recordQs}` as Url;
-    logger.info('FullWebhookUrl', { webhookUrl });
-    return webhookUrl;
+    this._messagingService = new MessagingService(config, snsService, isEnabled, logger);
   }
 
   public process(event: ActionableEventFoundEvent | DemoReminderToBeSentEvent): Promise<Uuid> {
@@ -133,10 +66,9 @@ export default class Processor {
       if (!isSuccessfulDeduction(eventWithDeduction)) {
         return this.processAllowanceFailure(eventWithDeduction as EventWithFailedDeduction);
       }
-      return this.sendMessage(eventWithDeduction).then(
-        (messageUuid) => messageUuid,
-        this.handleSendError(eventWithDeduction)
-      );
+      return this._messagingService
+        .sendMessage(eventWithDeduction)
+        .then((messageUuid) => messageUuid, this.handleSendError(eventWithDeduction));
     }, this.handleDeductFromAllowanceError());
   }
 
@@ -236,34 +168,6 @@ export default class Processor {
       );
   }
 
-  private sendMessage(eventWithDeduction: EventWithSuccessfulDeduction): Promise<Uuid> {
-    const {
-      correlationId,
-      data: { message, senderDetails, receiverDetails }
-    } = eventWithDeduction.event;
-
-    if (this.isEnabled) {
-      logger.info('Sending a message through Vonage');
-      return this._messagingService
-        .sendMessage(
-          message,
-          senderDetails,
-          receiverDetails,
-          correlationId,
-          this.buildWebhookUrl(eventWithDeduction)
-        )
-        .then((messageUUID) => {
-          return this.publishAttemptSentEvent(eventWithDeduction, messageUUID).then(
-            () => messageUUID
-          );
-        });
-    } else {
-      logger.info('Simulating a message is being sent');
-      const fakeUUID = 'fake-uuid' as Uuid;
-      return this.publishAttemptSentEvent(eventWithDeduction, fakeUUID).then(() => fakeUUID);
-    }
-  }
-
   private processAllowanceFailure(eventWithDeduction: EventWithFailedDeduction): Promise<Uuid> {
     return match(eventWithDeduction)
       .with({ event: { eventType: 'ActionableEventFound' } }, ({ event, deductionResult }) => {
@@ -333,24 +237,6 @@ export default class Processor {
           : Promise.resolve(result);
       })
     );
-  }
-
-  private publishAttemptSentEvent(
-    eventWithDeduction: EventWithSuccessfulDeduction,
-    messageUUID: Uuid
-  ): Promise<void> {
-    logger.info('Publishing an event indicating the attempt to send a message');
-    const attemptSentEvent = match(eventWithDeduction)
-      .with({ event: { eventType: 'ActionableEventFound' } }, ({ event, deductionResult }) =>
-        actionableEventReminderAttemptSent(event, messageUUID, deductionResult)
-      )
-      .with({ event: { eventType: 'DemoReminderToBeSent' } }, ({ event, deductionResult }) =>
-        demoReminderToBeSentAttemptSent(event, messageUUID, deductionResult)
-      )
-      .exhaustive();
-    return this.snsService.safePublish<
-      ActionableEventReminderAttemptSentEvent | DemoReminderToBeSentAttemptSentEvent
-    >(attemptSentEvent);
   }
 
   private publishInsufficientCreditErrorEvent(
