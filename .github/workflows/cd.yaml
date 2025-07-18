@@ -54,7 +54,6 @@ jobs:
               - '.github/workflows/cd.yaml'
 
   build:
-    if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -62,7 +61,8 @@ jobs:
       packages: read
     needs: preflight
     if: |
-      needs.preflight.outputs.backend == 'true' || github.event_name != 'pull_request'
+      github.event.pull_request.draft == false &&
+      (needs.preflight.outputs.backend == 'true' || github.event_name != 'pull_request')
     steps:
       - uses: actions/checkout@v4
       - name: Generate .npmrc
@@ -110,7 +110,6 @@ jobs:
           path: dist/build.zip
 
   tofu:
-    if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -119,7 +118,8 @@ jobs:
     needs: preflight
     # Runs if there are changes to the infra (PR) or the event isn't PR
     if: |
-      needs.preflight.outputs.infra == 'true' || github.event_name != 'pull_request'
+      github.event.pull_request.draft == false &&
+      (needs.preflight.outputs.infra == 'true' || github.event_name != 'pull_request')
     steps:
       - name: Get GH token from Github App
         id: gh-app-auth
