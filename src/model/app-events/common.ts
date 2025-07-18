@@ -21,7 +21,7 @@ export const errorSchema = z.object({
 export const runSchema = z.object({
   lowerBoundStartTime: z.string().transform((data) => data as DateTime),
   upperBoundStartTime: z.string().transform((data) => data as DateTime),
-  slidingWindowInMinutes: z.number().int().positive()
+  slidingWindowInMinutes: z.coerce.number().int().positive()
 });
 
 export const eventIdSchema = z

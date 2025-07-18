@@ -36,16 +36,20 @@ const creditAdditionOperationDetailsSchema = z.discriminatedUnion('type', [
 const creditDeductionOperationTypeSchema = z.enum(['deduct', 'clear']);
 const creditAdditionOperationTypeSchema = z.enum(['add', 'restore', 'reset']);
 
-const baseSuccessSchema = z.object({
-  success: z.preprocess((val) => {
-    const coerced = z.coerce.boolean().parse(val);
-    if (coerced !== true) {
-      throw new Error('Success must be true');
-    }
-    return coerced;
-  }, z.literal(true)),
-  result: z.string()
-});
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+const baseSuccessSchema = (_coerced: boolean = false) =>
+  z.object({
+    success: _coerced
+      ? z.preprocess((val) => {
+          const coerced = z.coerce.boolean().parse(val);
+          if (coerced !== true) {
+            throw new Error('Success must be true');
+          }
+          return coerced;
+        }, z.literal(true))
+      : z.literal(true),
+    result: z.string()
+  });
 
 const baseErrorSchema = z.object({
   success: z.literal(false),
@@ -53,25 +57,27 @@ const baseErrorSchema = z.object({
   error: z.unknown()
 });
 
-const creditBalancesSchema = z.object({
-  subscription: z.coerce.number(),
-  topup: z.coerce.number()
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+const creditBalancesSchema = (coerced: boolean = false) => z.object({
+  subscription: z.number({ coerce: coerced }),
+  topup: z.number({ coerce: coerced })
 });
 
-const creditDeductionSuccessSchema = baseSuccessSchema.extend({
+const creditDeductionSuccessSchema = baseSuccessSchema().extend({
   operationDetails: creditDeductionOperationDetailsSchema,
-  balances: creditBalancesSchema
+  balances: creditBalancesSchema()
 });
 
-// Heads-up: Coercing is being applied in non string fields so that the schema can be reused in Vonage webhook event/metadata rebuilding.
-const creditDeductionDeductSuccessSchema = baseSuccessSchema.extend({
-  operationDetails: z.object({
-    fromBalance: fromBalanceSchema,
-    type: z.literal('deduct'),
-    quantity: z.coerce.number()
-  }),
-  balances: creditBalancesSchema
-});
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type, @typescript-eslint/explicit-module-boundary-types
+const creditDeductionDeductSuccessSchema = (coerced: boolean = false) =>
+  baseSuccessSchema(coerced).extend({
+    operationDetails: z.object({
+      fromBalance: fromBalanceSchema,
+      type: z.literal('deduct'),
+      quantity: z.number({ coerce: coerced })
+    }),
+    balances: creditBalancesSchema(coerced)
+  });
 
 const creditDeductionInsufficientCreditsErrorSchema = baseErrorSchema.extend({
   result: z.literal('InsufficientCredits'),
@@ -98,13 +104,13 @@ const creditDeductionResultSchema = z.union([
 ]);
 
 const creditDeductionDeductResultSchema = z.union([
-  creditDeductionDeductSuccessSchema,
+  creditDeductionDeductSuccessSchema(),
   creditDeductionErrorSchema
 ]);
 
-const creditAdditionSuccessSchema = baseSuccessSchema.extend({
+const creditAdditionSuccessSchema = baseSuccessSchema().extend({
   operationDetails: creditAdditionOperationDetailsSchema,
-  balances: creditBalancesSchema
+  balances: creditBalancesSchema()
 });
 
 const creditAdditionBadRequestErrorSchema = baseErrorSchema.extend({
@@ -121,13 +127,13 @@ const creditAdditionResultSchema = z.union([
   creditAdditionUnexpectedErrorSchema
 ]);
 
-const creditAdditionRestoreSuccessSchema = baseSuccessSchema.extend({
+const creditAdditionRestoreSuccessSchema = baseSuccessSchema().extend({
   operationDetails: z.object({
     fromBalance: fromBalanceSchema,
     type: z.literal('restore'),
     quantity: z.number()
   }),
-  balances: creditBalancesSchema
+  balances: creditBalancesSchema()
 });
 
 const creditAdditionRestoreResultSchema = z.union([
@@ -141,10 +147,11 @@ const creditAdjustmentResultSchema = z.union([
   creditDeductionDeductResultSchema
 ]);
 
-// Heads-up: Coercing is being applied in non string fields so that the schema can be reused in Vonage webhook event/metadata rebuilding.
-const demoCounterIncrementSuccessSchema = baseSuccessSchema.extend({
-  demoRemindersCount: z.coerce.number()
-});
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type, @typescript-eslint/explicit-module-boundary-types
+const demoCounterIncrementSuccessSchema = (coerced: boolean = false) =>
+  baseSuccessSchema(coerced).extend({
+    demoRemindersCount: z.number({ coerce: coerced })
+  });
 
 const demoCounterLimitReachedErrorSchema = baseErrorSchema.extend({
   result: z.literal('DemoCounterLimitReachedError')
@@ -160,11 +167,11 @@ const demoCounterIncrementErrorSchema = z.union([
 ]);
 
 const demoCounterIncrementResultSchema = z.union([
-  demoCounterIncrementSuccessSchema,
+  demoCounterIncrementSuccessSchema(),
   demoCounterIncrementErrorSchema
 ]);
 
-const demoCounterDecrementSuccessSchema = baseSuccessSchema.extend({
+const demoCounterDecrementSuccessSchema = baseSuccessSchema().extend({
   demoRemindersCount: z.number()
 });
 
@@ -184,14 +191,15 @@ const creditAllowanceOperationResultSchema = z.union([
 
 const creditAllowanceOperationSuccessSchema = z.union([
   creditDeductionSuccessSchema,
-  demoCounterIncrementSuccessSchema
+  demoCounterIncrementSuccessSchema()
 ]);
 
 export type CreditDeductionOperationDetails = z.infer<typeof creditDeductionOperationDetailsSchema>;
 export type CreditAdditionOperationDetails = z.infer<typeof creditAdditionOperationDetailsSchema>;
 export type CreditDeductionOperationType = z.infer<typeof creditDeductionOperationTypeSchema>;
 export type CreditAdditionOperationType = z.infer<typeof creditAdditionOperationTypeSchema>;
-export type CreditBalances = z.infer<typeof creditBalancesSchema>;
+const defaultCreditBalanceSchema = creditBalancesSchema();
+export type CreditBalances = z.infer<typeof defaultCreditBalanceSchema>;
 
 export interface CreditDeductionSuccess<TOperationType extends CreditDeductionOperationType>
   extends z.infer<typeof creditDeductionSuccessSchema> {
@@ -222,7 +230,8 @@ export type CreditAdditionResult<TOperationType extends CreditAdditionOperationT
   | CreditAdditionBadRequestError
   | CreditAdditionUnexpectedError;
 
-export type DemoCounterIncrementSuccess = z.infer<typeof demoCounterIncrementSuccessSchema>;
+const defaultDemoCounterIncrementSuccessSchema = demoCounterIncrementSuccessSchema();
+export type DemoCounterIncrementSuccess = z.infer<typeof defaultDemoCounterIncrementSuccessSchema>;
 export type DemoCounterLimitReachedError = z.infer<typeof demoCounterLimitReachedErrorSchema>;
 export type DemoCounterIncrementUnexpectedError = z.infer<
   typeof demoCounterIncrementUnexpectedErrorSchema
