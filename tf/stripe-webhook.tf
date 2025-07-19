@@ -20,7 +20,14 @@ module "stripe_webhook" {
     "invoice.payment_failed",
     "checkout.session.completed"
   ]
-  streams_to_return = toset(local.streams_to_return)
+  integration_config = {
+    eventbridge = {
+      streams_to_return = toset(local.streams_to_return)
+      event_bus_dlq = {
+        arn = aws_sqs_queue.global_unprocessable.arn
+      }
+    }
+  }
 }
 
 resource "aws_cloudwatch_event_target" "all_events" {

@@ -16,22 +16,36 @@ variable "stripe_webhook_events" {
   ]
 }
 
-variable "event_bus_dlq" {
+variable "integration_config" {
+  description = "Configuration for the integration (provide either eventbridge or webhook block)"
   type = object({
-    arn = optional(string, null)
-  })
-  description = <<EOT
-[Lifted from original docs] Configuration details of the Amazon SQS queue for EventBridge to use as a dead-letter queue (DLQ). 
-This block supports the following arguments:
-  arn - (Optional) The ARN of the SQS queue specified as the target for the dead-letter queue.
-EOT
-  default     = null
-}
+    # EventBridge-specific configuration
+    eventbridge = optional(object({
+      event_bus_dlq = optional(object({
+        arn = optional(string, null)
+      }), null)
+      streams_to_return = optional(set(string), ["all-events"])
+    }), null)
 
-variable "streams_to_return" {
-  type        = set(string)
-  description = "EventBridge fanout. It creates as many EventBridge rules off the event bus as items present in this set parameter."
-  default     = ["all-events"]
+    # Webhook-specific configuration  
+    webhook = optional(object({
+      url = string
+    }), null)
+  })
+
+  validation {
+    condition     = (var.integration_config.eventbridge != null) != (var.integration_config.webhook != null)
+    error_message = "Exactly one of 'eventbridge' or 'webhook' configuration must be provided."
+  }
+
+  validation {
+    condition = (
+      var.integration_config.webhook != null ?
+      can(regex("^https?://", var.integration_config.webhook.url)) :
+      true
+    )
+    error_message = "Webhook URL must be a valid HTTP or HTTPS URL."
+  }
 }
 
 variable "api_version" {
