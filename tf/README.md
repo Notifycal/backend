@@ -13,8 +13,8 @@
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.3.0 |
-| <a name="provider_awscc"></a> [awscc](#provider\_awscc) | 1.49.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | >= 5.0 |
+| <a name="provider_awscc"></a> [awscc](#provider\_awscc) | >= 1.0 |
 
 ## Modules
 
@@ -59,7 +59,8 @@
 | <a name="module_post_refresh_lambda_alias"></a> [post\_refresh\_lambda\_alias](#module\_post\_refresh\_lambda\_alias) | terraform-aws-modules/lambda/aws//modules/alias | ~> 8.0 |
 | <a name="module_send_email_lambda"></a> [send\_email\_lambda](#module\_send\_email\_lambda) | terraform-aws-modules/lambda/aws | ~> 8.0 |
 | <a name="module_send_event_reminder_lambda"></a> [send\_event\_reminder\_lambda](#module\_send\_event\_reminder\_lambda) | terraform-aws-modules/lambda/aws | ~> 8.0 |
-| <a name="module_stripe_webhook"></a> [stripe\_webhook](#module\_stripe\_webhook) | ./modules/stripe-event-bridge-webhook | n/a |
+| <a name="module_stripe_admin_webhook"></a> [stripe\_admin\_webhook](#module\_stripe\_admin\_webhook) | ./modules/stripe-webhook | n/a |
+| <a name="module_stripe_webhook"></a> [stripe\_webhook](#module\_stripe\_webhook) | ./modules/stripe-webhook | n/a |
 | <a name="module_stripe_webhook_lambda"></a> [stripe\_webhook\_lambda](#module\_stripe\_webhook\_lambda) | terraform-aws-modules/lambda/aws | ~> 8.0 |
 | <a name="module_stripe_webhook_queue"></a> [stripe\_webhook\_queue](#module\_stripe\_webhook\_queue) | ./modules/sqs | n/a |
 | <a name="module_user_calendar_fetched_queue"></a> [user\_calendar\_fetched\_queue](#module\_user\_calendar\_fetched\_queue) | ./modules/sqs | n/a |
@@ -158,6 +159,7 @@
 | <a name="input_openapi_spec_file"></a> [openapi\_spec\_file](#input\_openapi\_spec\_file) | Name of the OpenAPI spec file for this API | `string` | `"spec.yaml"` | no |
 | <a name="input_payment_plans"></a> [payment\_plans](#input\_payment\_plans) | Configuration for subscription tiers. E.g.: Good, Better, Best and topups E.g.: x100 | <pre>object({<br/>    tiers = map(object({<br/>      price_id = string<br/>      name     = string<br/>      credits  = number<br/>    }))<br/>    topups = map(object({<br/>      price_id = string<br/>      name     = string<br/>      credits  = number<br/>    }))<br/>  })</pre> | n/a | yes |
 | <a name="input_stripe_admin_api_key"></a> [stripe\_admin\_api\_key](#input\_stripe\_admin\_api\_key) | Stripe admin API key | `string` | n/a | yes |
+| <a name="input_stripe_admin_webhook_url"></a> [stripe\_admin\_webhook\_url](#input\_stripe\_admin\_webhook\_url) | Endpoint URL for Stripe to send admin-level updates such us new customer, disputes open, etc.. Typically, it will be the Stripe Slack App. It requires a manual step: check out https://notifycal.slack.com/marketplace/A0F81FNVC-stripe | `optional(string)` | n/a | yes |
 | <a name="input_stripe_api_version"></a> [stripe\_api\_version](#input\_stripe\_api\_version) | n/a | `string` | `"2025-05-28.basil"` | no |
 | <a name="input_stripe_operating_api_key"></a> [stripe\_operating\_api\_key](#input\_stripe\_operating\_api\_key) | Stripe operating API key | `string` | n/a | yes |
 | <a name="input_tax_id"></a> [tax\_id](#input\_tax\_id) | ID to reference to tax resource in Stripe. Typically, it will be a tax id that involves adding 21% of VAT (Spanish IVA) | `string` | n/a | yes |
