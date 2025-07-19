@@ -2,7 +2,7 @@ locals {
   streams_to_return = ["all-events"]
 }
 module "stripe_webhook" {
-  source               = "./modules/stripe-event-bridge-webhook"
+  source               = "./modules/stripe-webhook"
   environment          = var.environment
   aws_region           = var.aws_region
   api_version          = var.stripe_api_version

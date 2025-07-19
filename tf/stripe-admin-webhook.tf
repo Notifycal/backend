@@ -11,7 +11,7 @@ provider "restapi" {
 
 module "stripe_admin_webhook" {
   count                = var.stripe_admin_webhook_url != null ? 1 : 0
-  source               = "./modules/stripe-event-bridge-webhook"
+  source               = "./modules/stripe-webhook"
   environment          = var.environment
   aws_region           = var.aws_region
   api_version          = var.stripe_api_version
