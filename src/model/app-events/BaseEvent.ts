@@ -29,6 +29,7 @@ export const successEventTypeSchema = z.union([
   z.literal('ActionableEventReminderAttemptSent'),
   z.literal('ActionableEventReminderAttemptSkipped'),
   z.literal('ActionableEventReminderStatusUpdated'),
+  z.literal('CreditsAdjusted'),
   insufficientCreditsReminderNotSentEventType,
   z.literal('DemoReminderToBeSent'),
   z.literal('DemoReminderToBeSentAttemptFailed'),

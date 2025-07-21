@@ -1,6 +1,6 @@
 import type { Logger } from '@aws-lambda-powertools/logger';
-import { logger } from '@common/powertools';
 import type { ActionableEventFoundEvent } from '@model/app-events/ActionableEventFoundEvent';
+import { creditsAdjustedEvent } from '@model/app-events/CreditsAdjustedEvent';
 import {
   demoReminderLimitReachedNotSent,
   type DemoReminderLimitReachedNotSentEvent
@@ -18,6 +18,7 @@ import type {
   MessagingEndpointConfig
 } from '@model/Config';
 import type {
+  CreditAdditionResult,
   CreditDeductionInsufficientCreditsError,
   CreditDeductionResult,
   CreditDeductionSuccess,
@@ -50,14 +51,14 @@ export default class Processor {
       MessagingAlertingEndpointConfig,
     private readonly snsService: SnsService,
     private readonly creditsService: CreditsService<IdpName>,
-    logger: Logger
+    private readonly logger: Logger
   ) {
     this._messagingService = new MessagingService(config, snsService, logger);
   }
 
   public process(event: ActionableEventFoundEvent | DemoReminderToBeSentEvent): Promise<Uuid> {
     const { message, senderDetails, receiverDetails } = event.data;
-    logger.appendKeys({
+    this.logger.appendKeys({
       reminderMessage: message,
       senderDetails,
       receiverDetails
@@ -99,7 +100,7 @@ export default class Processor {
 
   private handleDeductFromAllowanceError(): (error: unknown) => Promise<never> {
     return (error: unknown) => {
-      logger.error('Failed to deduct from allowance', { error });
+      this.logger.error('Failed to deduct from allowance', { error });
       return rejectWithError(error);
     };
   }
@@ -127,25 +128,34 @@ export default class Processor {
       return this.creditsService
         .restoreCredits(event.userId, operationDetails.quantity, operationDetails.fromBalance)
         .then(
-          () => {
-            logger.info('Credits restored after message send failure', {
+          tap((creditRestoreResult) => {
+            this.logger.info('Credits restored after message send failure', {
               userId: event.userId,
               restoredCredits: operationDetails.quantity,
               balanceType: operationDetails.fromBalance
             });
-            return rejectWithError(error);
-          },
+            return this.publishCreditsAdjusted(event, creditRestoreResult);
+          }),
           (restoreError) => {
-            logger.error('Failed to restore credits after message send failure', {
+            this.logger.error('Failed to restore credits after message send failure', {
               userId: event.userId,
               creditsToRestore: operationDetails.quantity,
               balanceType: operationDetails.fromBalance,
               restoreError
             });
-            return rejectWithError(error);
           }
-        );
+        )
+        .then(() => rejectWithError(error));
     };
+  }
+  private publishCreditsAdjusted(
+    originalEvent: ActionableEventFoundEvent,
+    creditRestoreResult: CreditAdditionResult<'restore'>
+  ): Promise<void> {
+    const adjustedEvent = creditsAdjustedEvent(originalEvent, creditRestoreResult);
+    return this.snsService.safePublish(adjustedEvent).catch((error) => {
+      this.logger.warn('Failed to publish CreditsAdjusted event', { error, adjustedEvent });
+    });
   }
 
   private handleDemoReminderSendFailure(
@@ -154,13 +164,13 @@ export default class Processor {
     return (error: unknown) =>
       this.creditsService.decrementDemoReminderCount(event.userId).then(
         () => {
-          logger.info('Demo counter decremented after message send failure', {
+          this.logger.info('Demo counter decremented after message send failure', {
             userId: event.userId
           });
           return rejectWithError(error);
         },
         (decrementError) => {
-          logger.error('Failed to decrement demo counter after message send failure', {
+          this.logger.error('Failed to decrement demo counter after message send failure', {
             userId: event.userId,
             decrementError
           });
@@ -174,7 +184,7 @@ export default class Processor {
       .with({ event: { eventType: 'ActionableEventFound' } }, ({ event, deductionResult }) => {
         return match(deductionResult)
           .with({ result: 'InsufficientCredits' }, (insufficientResult) => {
-            logger.info('Message not sent due to insufficient credits', {
+            this.logger.info('Message not sent due to insufficient credits', {
               result: insufficientResult
             });
             return this.publishInsufficientCreditErrorEvent(event, insufficientResult).then(
@@ -198,7 +208,7 @@ export default class Processor {
       .with({ event: { eventType: 'DemoReminderToBeSent' } }, ({ event, deductionResult }) => {
         return match(deductionResult)
           .with({ result: 'DemoCounterLimitReachedError' }, (demoLimitResult) => {
-            logger.info('Demo reminder not sent due to demo limit reached', {
+            this.logger.info('Demo reminder not sent due to demo limit reached', {
               result: demoLimitResult
             });
             return this.publishDemoLimitReachedErrorEvent(event, demoLimitResult).then(
@@ -225,7 +235,7 @@ export default class Processor {
     const totalCreditsToDeduct = creditToDeductPerUnit * estimatedMessageCount.messages;
     return this.creditsService.deductCredits(event.userId, totalCreditsToDeduct).then(
       tap((result) => {
-        logger.info(`Number of SMSs charged: ${estimatedMessageCount.messages}`, {
+        this.logger.info(`Number of SMSs charged: ${estimatedMessageCount.messages}`, {
           estimatedMessageCount,
           updatedUserCredit: result
         });
@@ -244,7 +254,7 @@ export default class Processor {
     event: ActionableEventFoundEvent,
     creditError: CreditDeductionInsufficientCreditsError
   ): Promise<void> {
-    logger.info(
+    this.logger.info(
       'Publishing an event indicating a message could not be sent due to user having insufficient credits'
     );
     const insufficientCreditEvent = insufficientCreditReminderNotSent(event, creditError);
@@ -257,7 +267,7 @@ export default class Processor {
     event: DemoReminderToBeSentEvent,
     demoLimitError: DemoCounterLimitReachedError
   ): Promise<void> {
-    logger.info(
+    this.logger.info(
       'Publishing an event indicating a demo reminder could not be sent due to demo limit reached'
     );
     const demoLimitEvent = demoReminderLimitReachedNotSent(event, demoLimitError);

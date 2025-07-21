@@ -17,6 +17,7 @@ import { v4 } from 'uuid';
 import { describe, expect, it, vi } from 'vitest';
 import { CreditAdjustmentService } from './credit-adjustment-service';
 import type { CreditsService } from './credits-service';
+import type { SnsService } from './sns';
 
 vi.mock('@model/vendor/vonage/errors');
 
@@ -191,16 +192,22 @@ describe(CreditAdjustmentService, () => {
         .fn()
         .mockResolvedValue(validDemoCounterDecrementResult);
 
-      return testIt(
+      const snsPublishFn = vi.fn().mockResolvedValue(undefined);
+
+      const result = testIt(
         validActionableEventWebhookData,
         statusWithoutCount,
         categoryErrorFn,
+        snsPublishFn,
         validRestoreCredits,
         validDecrementDemoReminderCount
-      ).then((result) => {
-        expect(result).toStrictEqual({});
+      );
+
+      return result.then((adjustmentResult) => {
+        expect(adjustmentResult).toStrictEqual({});
         expect(validRestoreCredits).not.toHaveBeenCalled();
         expect(validDecrementDemoReminderCount).not.toHaveBeenCalled();
+        expect(snsPublishFn).not.toHaveBeenCalled();
       });
     });
 
@@ -210,17 +217,22 @@ describe(CreditAdjustmentService, () => {
         .fn()
         .mockResolvedValue(validDemoCounterDecrementResult);
       const categoryErrorFn = vi.fn().mockReturnValue('ok');
+      const snsPublishFn = vi.fn().mockResolvedValue(undefined);
 
-      return testIt(
+      const result = testIt(
         validActionableEventWebhookData,
         validDeliveredSMSStatus,
         categoryErrorFn,
+        snsPublishFn,
         validRestoreCredits,
         validDecrementDemoReminderCount
-      ).then((result) => {
-        expect(result).toStrictEqual({});
+      );
+
+      return result.then((adjustmentResult) => {
+        expect(adjustmentResult).toStrictEqual({});
         expect(validRestoreCredits).not.toHaveBeenCalled();
         expect(validDecrementDemoReminderCount).not.toHaveBeenCalled();
+        expect(snsPublishFn).not.toHaveBeenCalled();
       });
     });
 
@@ -230,19 +242,35 @@ describe(CreditAdjustmentService, () => {
         .fn()
         .mockResolvedValue(validDemoCounterDecrementResult);
       const categoryErrorFn = vi.fn().mockReturnValue('transient');
+      const snsPublishFn = vi.fn().mockResolvedValue(undefined);
 
-      return testIt(
+      const result = testIt(
         validActionableEventWebhookData,
         validUndeliverableSMSStatus,
         categoryErrorFn,
+        snsPublishFn,
         validRestoreCredits,
         validDecrementDemoReminderCount
-      ).then((result) => {
-        expect(result).toStrictEqual({
+      );
+
+      return result.then((adjustmentResult) => {
+        expect(adjustmentResult).toStrictEqual({
           creditAdjustmentResult: validCreditAdditionResult
         });
         expect(validRestoreCredits).toHaveBeenCalledWith(validUserId, 10, 'subscription');
         expect(validDecrementDemoReminderCount).not.toHaveBeenCalled();
+
+        expect(snsPublishFn).toHaveBeenCalledOnce();
+        expect(snsPublishFn).toHaveBeenCalledWith(
+          expect.objectContaining({
+            eventType: 'CreditsAdjusted',
+            userId: validActionableEventWebhookData.originalEvent.userId,
+            data: {
+              creditRestoreResult: validCreditAdditionResult,
+              creditDeductionResult: undefined
+            }
+          })
+        );
       });
     });
 
@@ -266,18 +294,34 @@ describe(CreditAdjustmentService, () => {
         .fn()
         .mockResolvedValue(validDemoCounterDecrementResult);
 
-      return testIt(
+      const snsPublishFn = vi.fn().mockResolvedValue(undefined);
+
+      const result = testIt(
         validActionableEventWebhookData,
         statusWithHigherCount,
         categoryErrorFn,
+        snsPublishFn,
         validRestoreCredits,
         validDecrementDemoReminderCount
-      ).then((result) => {
-        expect(result).toStrictEqual({
+      );
+
+      return result.then((adjustmentResult) => {
+        expect(adjustmentResult).toStrictEqual({
           creditAdjustmentResult: validCreditAdditionResult
         });
         expect(validRestoreCredits).toHaveBeenCalledWith(validUserId, 4, 'subscription');
         expect(validDecrementDemoReminderCount).not.toHaveBeenCalled();
+
+        expect(snsPublishFn).toHaveBeenCalledOnce();
+        expect(snsPublishFn).toHaveBeenCalledWith(
+          expect.objectContaining({
+            eventType: 'CreditsAdjusted',
+            data: {
+              creditRestoreResult: validCreditAdditionResult,
+              creditDeductionResult: undefined
+            }
+          })
+        );
       });
     });
 
@@ -300,19 +344,35 @@ describe(CreditAdjustmentService, () => {
         .fn()
         .mockResolvedValue(validDemoCounterDecrementResult);
 
-      return testIt(
+      const snsPublishFn = vi.fn().mockResolvedValue(undefined);
+
+      const result = testIt(
         webhookDataWithHigherEstimate,
         validDeliveredSMSStatus,
         categoryErrorFn,
+        snsPublishFn,
         vi.fn(),
         validDecrementDemoReminderCount,
         validDeductCredits
-      ).then((result) => {
-        expect(result).toStrictEqual({
+      );
+
+      return result.then((adjustmentResult) => {
+        expect(adjustmentResult).toStrictEqual({
           creditAdjustmentResult: validCreditDeductionSuccess
         });
         expect(validDeductCredits).toHaveBeenCalledWith(validUserId, 4);
         expect(validDecrementDemoReminderCount).not.toHaveBeenCalled();
+
+        expect(snsPublishFn).toHaveBeenCalledOnce();
+        expect(snsPublishFn).toHaveBeenCalledWith(
+          expect.objectContaining({
+            eventType: 'CreditsAdjusted',
+            data: {
+              creditRestoreResult: undefined,
+              creditDeductionResult: validCreditDeductionSuccess
+            }
+          })
+        );
       });
     });
 
@@ -321,18 +381,23 @@ describe(CreditAdjustmentService, () => {
       const validDecrementDemoReminderCount = vi
         .fn()
         .mockResolvedValue(validDemoCounterDecrementResult);
+      const snsPublishFn = vi.fn().mockResolvedValue(undefined);
 
       const categoryErrorFn = vi.fn().mockReturnValue('ok');
-      return testIt(
+      const result = testIt(
         validDemoReminderWebhookData,
         validDeliveredSMSStatus,
         categoryErrorFn,
+        snsPublishFn,
         validRestoreCredits,
         validDecrementDemoReminderCount
-      ).then((result) => {
-        expect(result).toStrictEqual({});
+      );
+
+      return result.then((adjustmentResult) => {
+        expect(adjustmentResult).toStrictEqual({});
         expect(validRestoreCredits).not.toHaveBeenCalled();
         expect(validDecrementDemoReminderCount).not.toHaveBeenCalled();
+        expect(snsPublishFn).not.toHaveBeenCalled();
       });
     });
 
@@ -343,18 +408,24 @@ describe(CreditAdjustmentService, () => {
         .mockResolvedValue(validDemoCounterDecrementResult);
 
       const categoryErrorFn = vi.fn().mockReturnValue('transient');
-      return testIt(
+      const snsPublishFn = vi.fn().mockResolvedValue(undefined);
+
+      const result = testIt(
         validDemoReminderWebhookData,
         validUndeliverableSMSStatus,
         categoryErrorFn,
+        snsPublishFn,
         validRestoreCredits,
         validDecrementDemoReminderCount
-      ).then((result) => {
-        expect(result).toStrictEqual({
+      );
+
+      return result.then((adjustmentResult) => {
+        expect(adjustmentResult).toStrictEqual({
           demoCounterAdjustmentResult: validDemoCounterDecrementResult
         });
         expect(validRestoreCredits).not.toHaveBeenCalled();
         expect(validDecrementDemoReminderCount).toHaveBeenCalledWith(validUserId);
+        expect(snsPublishFn).not.toHaveBeenCalled();
       });
     });
 
@@ -378,18 +449,24 @@ describe(CreditAdjustmentService, () => {
         .fn()
         .mockResolvedValue(validDemoCounterDecrementResult);
 
-      return testIt(
+      const snsPublishFn = vi.fn().mockResolvedValue(undefined);
+
+      const result = testIt(
         validDemoReminderWebhookData,
         statusWithHigherCount,
         categoryErrorFn,
+        snsPublishFn,
         validRestoreCredits,
         validDecrementDemoReminderCount
-      ).then((result) => {
-        expect(result).toStrictEqual({
+      );
+
+      return result.then((adjustmentResult) => {
+        expect(adjustmentResult).toStrictEqual({
           demoCounterAdjustmentResult: validDemoCounterDecrementResult
         });
         expect(validRestoreCredits).not.toHaveBeenCalled();
         expect(validDecrementDemoReminderCount).toHaveBeenCalledWith(validUserId);
+        expect(snsPublishFn).not.toHaveBeenCalled();
       });
     });
 
@@ -412,16 +489,22 @@ describe(CreditAdjustmentService, () => {
         .fn()
         .mockResolvedValue(validDemoCounterDecrementResult);
 
-      return testIt(
+      const snsPublishFn = vi.fn().mockResolvedValue(undefined);
+
+      const result = testIt(
         webhookDataWithHigherEstimate,
         validDeliveredSMSStatus,
         categoryErrorFn,
+        snsPublishFn,
         validRestoreCredits,
         validDecrementDemoReminderCount
-      ).then((result) => {
-        expect(result).toStrictEqual({});
+      );
+
+      return result.then((adjustmentResult) => {
+        expect(adjustmentResult).toStrictEqual({});
         expect(validRestoreCredits).not.toHaveBeenCalled();
         expect(validDecrementDemoReminderCount).not.toHaveBeenCalled();
+        expect(snsPublishFn).not.toHaveBeenCalled();
       });
     });
 
@@ -432,16 +515,22 @@ describe(CreditAdjustmentService, () => {
         .mockResolvedValue(validDemoCounterDecrementResult);
 
       const categoryErrorFn = vi.fn().mockReturnValue('ok');
-      return testIt(
+      const snsPublishFn = vi.fn().mockResolvedValue(undefined);
+
+      const result = testIt(
         validActionableEventWebhookData,
         validRCSStatus,
         categoryErrorFn,
+        snsPublishFn,
         validRestoreCredits,
         validDecrementDemoReminderCount
-      ).then((result) => {
-        expect(result).toStrictEqual({});
+      );
+
+      return result.then((adjustmentResult) => {
+        expect(adjustmentResult).toStrictEqual({});
         expect(validRestoreCredits).not.toHaveBeenCalled();
         expect(validDecrementDemoReminderCount).not.toHaveBeenCalled();
+        expect(snsPublishFn).not.toHaveBeenCalled();
       });
     });
 
@@ -452,16 +541,22 @@ describe(CreditAdjustmentService, () => {
         .fn()
         .mockResolvedValue(validDemoCounterDecrementResult);
 
-      return testIt(
+      const snsPublishFn = vi.fn().mockResolvedValue(undefined);
+
+      const result = testIt(
         validActionableEventWebhookData,
         validRejectedSMSStatus,
         categoryErrorFn,
+        snsPublishFn,
         validRestoreCredits,
         validDecrementDemoReminderCount
-      ).then((result) => {
-        expect(result).toStrictEqual({});
+      );
+
+      return result.then((adjustmentResult) => {
+        expect(adjustmentResult).toStrictEqual({});
         expect(validRestoreCredits).not.toHaveBeenCalled();
         expect(validDecrementDemoReminderCount).not.toHaveBeenCalled();
+        expect(snsPublishFn).not.toHaveBeenCalled();
       });
     });
   });
@@ -470,6 +565,7 @@ describe(CreditAdjustmentService, () => {
     webhookData: WebhookCorrelationData,
     vonageStatus: VonageWebhookMessageStatusPayload,
     categorizeErrorFn: () => MessageDeliveryErrorFault | 'ok',
+    snsPublishFn: () => Promise<void>,
     restoreCreditsFn: () => Promise<CreditAdditionResult<'restore'>>,
     decrementDemoReminderCountFn: () => Promise<DemoCounterDecrementResult>,
     deductCreditsFn?: () => Promise<CreditDeductionResult<'deduct'>>
@@ -480,9 +576,14 @@ describe(CreditAdjustmentService, () => {
       deductCredits: deductCreditsFn || vi.fn()
     };
 
+    const mockSnsService = {
+      safePublish: snsPublishFn
+    };
+
     const service = new CreditAdjustmentService(
       validCountryToSMSCostCreditsMap,
       mockCreditsService as unknown as CreditsService<IdpName>,
+      mockSnsService as unknown as SnsService,
       logger
     );
 
