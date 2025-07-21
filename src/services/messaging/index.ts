@@ -14,8 +14,8 @@ import type { Url, Uuid } from '@notifycal/shared/types';
 import { objectToQueryString } from '@utils/queryString';
 import { match } from 'ts-pattern';
 import type { SnsService } from '../sns';
-import { VonageMessagingService } from '../vonage';
 import type { EventWithSuccessfulDeduction } from './model';
+import { VonageMessagingService } from './vonage';
 
 export class MessagingService {
   private readonly _messagingService: VonageMessagingService;
