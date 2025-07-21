@@ -1,5 +1,5 @@
 import { Auth } from '@vonage/auth';
-import { RCSText, SMS } from '@vonage/messages';
+import { Channels, MessageTypes, RCSText, SMS } from '@vonage/messages';
 import { Vonage } from '@vonage/server-sdk';
 
 import { rethrowError } from '@services/common/error-handling';
@@ -39,22 +39,33 @@ export class VonageMessagingService {
     clientRef: string,
     webhookUrl: Url
   ): Promise<Uuid> {
-    const MessageBuilder = match(sender)
-      .with({ type: 'phone' }, () => SMS)
-      .with({ type: 'rcs' }, () => RCSText)
-      .exhaustive();
-
     try {
-      const messageObject = new MessageBuilder({
-        to: receiver.phoneNumber,
-        from: match(sender)
-          .with({ type: 'phone' }, (phone) => phone.phoneNumber)
-          .with({ type: 'rcs' }, (rcs) => rcs.identifier)
-          .exhaustive(),
-        clientRef,
-        text: messageBody,
-        webhookUrl
-      });
+      const messageObject = match(sender)
+        .with(
+          { type: 'phone' },
+          (phoneSender) =>
+            new SMS({
+              to: receiver.phoneNumber,
+              from: phoneSender.phoneNumber,
+              clientRef,
+              text: messageBody,
+              webhookUrl,
+              channel: Channels.SMS,
+              messageType: MessageTypes.TEXT
+            })
+        )
+        .with(
+          { type: 'rcs' },
+          (rcsSender) =>
+            new RCSText({
+              to: receiver.phoneNumber,
+              from: rcsSender.identifier,
+              clientRef,
+              text: messageBody,
+              webhookUrl
+            })
+        )
+        .exhaustive();
       const { messageUUID } = await withIntegrationMetrics('Vonage', 'SendEventReminder', () =>
         this._client.messages.send(messageObject)
       );
