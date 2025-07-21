@@ -1,6 +1,4 @@
 import type { Logger } from '@aws-lambda-powertools/logger';
-import type { UpdateCommandOutput } from '@aws-sdk/lib-dynamodb';
-import { InsufficientCreditsError } from '@model/Errors';
 import type { AuthorizationForIdp } from '@model/IdpAuthorization';
 import type { ReminderConfigStoreRecord } from '@model/store/ReminderConfigStoreRecord';
 import type { UserIdpAuthorizationStoreRecord } from '@model/store/UserIdpAuthorizationStoreRecord';
@@ -13,23 +11,22 @@ import type {
   UserId,
   UserStatus
 } from '@notifycal/shared/types';
-import {
-  rejectWithError,
-  rejectWithMessage,
-  rejectWithMessageAndError,
-  throwError
-} from '@services/common/error-handling';
+import { rejectWithMessageAndError } from '@services/common/error-handling';
 import { BaseStore, type BaseStoreConfig } from '../common/base-store';
+import {
+  UserCreditsBaseStore,
+  type CreditOperationPersistenceResult
+} from './user-credits-base-store';
+import { UserDemoReminderService } from './user-demo-reminder-service';
 
 export type UserBaseStoreConfig = BaseStoreConfig;
 export type UserBaseStoreEndpointConfig = { userBaseStoreConfig: UserBaseStoreConfig };
-export interface CreditOperationPersistenceResult {
-  user: UserStoreRecordCredits;
-  balance: 'subscription' | 'topup';
-  quantity: number;
-}
+export type { CreditOperationPersistenceResult } from './user-credits-base-store';
 
 export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseStoreConfig> {
+  private readonly creditsService: UserCreditsBaseStore;
+  private readonly demoReminderService: UserDemoReminderService<TIdpName>;
+
   public static withConfig<TIdpName extends IdpName>(
     config: UserBaseStoreConfig,
     logger: Logger
@@ -39,6 +36,8 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
 
   private constructor(config: UserBaseStoreConfig, logger: Logger) {
     super(config, logger);
+    this.creditsService = new UserCreditsBaseStore(config, logger);
+    this.demoReminderService = new UserDemoReminderService(config, logger);
   }
 
   public getUserById(id: UserId): Promise<UserStoreRecord<TIdpName> | undefined> {
@@ -181,57 +180,12 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
     }).then(() => null);
   }
 
-  private attemptDeduction(
-    userId: UserId,
-    amount: number,
-    creditType: 'SubscriptionCreditBalance' | 'TopupCreditBalance'
-  ): Promise<UpdateCommandOutput> {
-    return this.updateCommandRunner({
-      Key: { UserId: userId },
-      UpdateExpression: `SET Credits.${creditType} = Credits.${creditType} - :amount`,
-      ConditionExpression: `attribute_exists(Credits.${creditType}) AND Credits.${creditType} >= :amount`,
-      ExpressionAttributeValues: {
-        ':amount': amount
-      }
-    });
-  }
-
   public deductCredits(
     userId: UserId,
     amount: number,
     logger: Logger
   ): Promise<CreditOperationPersistenceResult> {
-    return this.attemptDeduction(userId, amount, 'SubscriptionCreditBalance').then(
-      (r) => ({
-        user: this.handleSuccessfulUpdate(r, logger),
-        balance: 'subscription',
-        quantity: amount
-      }),
-      (error) => {
-        if (this.isConditionalCheckFailedError(error)) {
-          return this.attemptDeduction(userId, amount, 'TopupCreditBalance').then(
-            (r) => ({
-              user: this.handleSuccessfulUpdate(r, logger),
-              balance: 'topup',
-              quantity: amount
-            }),
-            (error) => {
-              if (this.isConditionalCheckFailedError(error)) {
-                return Promise.reject(
-                  new InsufficientCreditsError(
-                    `Failed to deduct credits for user '${userId}' - insufficient balance in both subscription and topup`,
-                    {},
-                    error
-                  )
-                );
-              }
-              return rejectWithError(error);
-            }
-          );
-        }
-        return rejectWithError(error);
-      }
-    );
+    return this.creditsService.deductCredits(userId, amount, logger);
   }
 
   public addCredits(
@@ -241,35 +195,7 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
     logger: Logger,
     tierId?: TierId
   ): Promise<UserStoreRecordCredits> {
-    const creditType =
-      balanceType === 'subscription' ? 'SubscriptionCreditBalance' : 'TopupCreditBalance';
-    const shouldUpdateTier = balanceType === 'subscription' && tierId !== undefined;
-
-    const updateExpressionParts = [
-      `SET Credits.${creditType} = if_not_exists(Credits.${creditType}, :zero) + :amount`,
-      ...(shouldUpdateTier ? ['Credits.Tier = :tierId'] : [])
-    ];
-    const expressionAttributeValues = {
-      ':amount': amount,
-      ':zero': 0,
-      ...(shouldUpdateTier ? { ':tierId': tierId } : {})
-    };
-    return this.updateCommandRunner({
-      Key: { UserId: userId },
-      UpdateExpression: updateExpressionParts.join(', '),
-      ConditionExpression: 'attribute_exists(Credits)',
-      ExpressionAttributeValues: expressionAttributeValues
-    })
-      .then((r) => this.handleSuccessfulUpdate(r, logger))
-      .catch((error: unknown) => {
-        if (this.isConditionalCheckFailedError(error)) {
-          return rejectWithMessageAndError(
-            `Failed to add credits for user '${userId}' - Credits field does not exist`,
-            error
-          );
-        }
-        return rejectWithError(error);
-      });
+    return this.creditsService.addCredits(userId, amount, balanceType, logger, tierId);
   }
 
   public resetSubscriptionCredits(
@@ -278,128 +204,21 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
     amount: number,
     logger: Logger
   ): Promise<UserStoreRecordCredits> {
-    return this.updateCommandRunner({
-      Key: { UserId: userId },
-      UpdateExpression: 'SET Credits.SubscriptionCreditBalance = :amount, Credits.Tier = :tierId',
-      ConditionExpression: 'attribute_exists(Credits)',
-      ExpressionAttributeValues: {
-        ':amount': amount,
-        ':tierId': tierId
-      }
-    })
-      .then((r) => this.handleSuccessfulUpdate(r, logger))
-      .catch((error) => {
-        if (this.isConditionalCheckFailedError(error)) {
-          return rejectWithError(error);
-        }
-        return this.updateCommandRunner({
-          Key: { UserId: userId },
-          UpdateExpression: 'SET Credits = :credits',
-          ExpressionAttributeValues: {
-            ':credits': {
-              SubscriptionCreditBalance: amount,
-              Tier: tierId,
-              TopupCreditBalance: 0
-            }
-          }
-        }).then((r) => this.handleSuccessfulUpdate(r, logger));
-      });
+    return this.creditsService.resetSubscriptionCredits(userId, tierId, amount, logger);
   }
 
   public clearSubscriptionCredits(userId: UserId, logger: Logger): Promise<UserStoreRecordCredits> {
-    return this.updateCommandRunner({
-      Key: { UserId: userId },
-      UpdateExpression: 'REMOVE Credits.SubscriptionCreditBalance, Credits.Tier'
-    }).then((r) => this.handleSuccessfulUpdate(r, logger));
+    return this.creditsService.clearSubscriptionCredits(userId, logger);
   }
 
   public incrementDemoReminderCount(
     userId: UserId,
     demoReminderLimit: number
   ): Promise<{ DemoReminderCount: number }> {
-    return this.updateDemoReminderCount(
-      userId,
-      {
-        UpdateExpression:
-          'SET DemoReminderCount = if_not_exists(DemoReminderCount, :zero) + :increment',
-        ConditionExpression:
-          'attribute_not_exists(DemoReminderCount) OR DemoReminderCount < :limit',
-        ExpressionAttributeValues: {
-          ':increment': 1,
-          ':limit': demoReminderLimit,
-          ':zero': 0
-        }
-      },
-      'increment',
-      'Demo reminder limit reached'
-    );
+    return this.demoReminderService.incrementDemoReminderCount(userId, demoReminderLimit);
   }
 
   public decrementDemoReminderCount(userId: UserId): Promise<{ DemoReminderCount: number }> {
-    return this.updateDemoReminderCount(
-      userId,
-      {
-        UpdateExpression: 'SET DemoReminderCount = DemoReminderCount - :decrement',
-        ConditionExpression: 'attribute_exists(DemoReminderCount) AND DemoReminderCount > :zero',
-        ExpressionAttributeValues: {
-          ':decrement': 1,
-          ':zero': 0
-        }
-      },
-      'decrement',
-      'Cannot decrement demo reminder count: count is already at zero or does not exist'
-    );
-  }
-
-  private updateDemoReminderCount(
-    userId: UserId,
-    updateParams: {
-      UpdateExpression: string;
-      ConditionExpression: string;
-      ExpressionAttributeValues: Record<string, unknown>;
-    },
-    operation: 'increment' | 'decrement',
-    errorMessageOnConditionalCheckFailedError: string
-  ): Promise<{ DemoReminderCount: number }> {
-    return this.updateCommandRunner({
-      Key: { UserId: userId },
-      ...updateParams
-    }).then(
-      (output) => {
-        const updatedUser = output.Attributes as UserStoreRecord<TIdpName> | undefined;
-        if (updatedUser && updatedUser.DemoReminderCount !== undefined) {
-          return { DemoReminderCount: updatedUser.DemoReminderCount };
-        } else {
-          return rejectWithMessage(`Unexpected error while ${operation}ing demo reminder count`);
-        }
-      },
-      (error) => {
-        if (this.isConditionalCheckFailedError(error)) {
-          return rejectWithMessageAndError(errorMessageOnConditionalCheckFailedError, error);
-        }
-        return rejectWithMessageAndError(
-          `Failed to decrement demo reminder count for user '${userId}'`,
-          error
-        );
-      }
-    );
-  }
-
-  private handleSuccessfulUpdate(
-    output: UpdateCommandOutput,
-    logger: Logger
-  ): UserStoreRecordCredits {
-    const updatedUser = output.Attributes as UserStoreRecord<TIdpName> | undefined;
-    if (updatedUser && updatedUser.Credits) {
-      return {
-        Credits: {
-          ...updatedUser.Credits,
-          SubscriptionCreditBalance: updatedUser.Credits.SubscriptionCreditBalance ?? 0,
-          TopupCreditBalance: updatedUser.Credits.TopupCreditBalance ?? 0
-        }
-      };
-    } else {
-      throwError('Unexpected error while updating credits from persistance', logger);
-    }
+    return this.demoReminderService.decrementDemoReminderCount(userId);
   }
 }
