@@ -1,14 +1,3 @@
-provider "restapi" {
-  uri                   = "https://api.stripe.com/v2"
-  write_returns_object  = true
-  create_returns_object = true
-  headers = {
-    Authorization  = "Bearer ${var.stripe_admin_api_key}"
-    Stripe-Version = var.stripe_api_version
-    Content-Type   = "application/json"
-  }
-}
-
 module "stripe_admin_webhook" {
   count                = var.stripe_admin_webhook_url != null ? 1 : 0
   source               = "./modules/stripe-webhook"
