@@ -1,3 +1,3 @@
 locals {
-  integration_type = var.integration_config.eventbridge != null ? "eventbridge" : "webhook"
+  integration_type = can(var.integration_config.eventbridge) ? "eventbridge" : "webhook"
 }
