@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.51.1](https://github.com/Notifycal/backend/compare/v0.51.0...v0.51.1) (2025-07-21)
+
+
+### Bug Fixes
+
+* IaC issue stripe webhook module ([#867](https://github.com/Notifycal/backend/issues/867)) ([c03cf80](https://github.com/Notifycal/backend/commit/c03cf800bfd606d39dc2c57be31d9b41c9ee94d3))
+
 ## [0.51.0](https://github.com/Notifycal/backend/compare/v0.50.0...v0.51.0) (2025-07-21)
 
 
