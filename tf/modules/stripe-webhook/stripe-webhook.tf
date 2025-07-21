@@ -45,6 +45,8 @@ resource "restapi_object" "stripe_event_destination" {
   id_attribute = "id"
   ignore_changes_to = [
     "amazon_eventbridge",
+    "webhook_endpoint",
+    "enabled_events",
     "created",
     "id",
     "include",
