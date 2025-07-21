@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.51.0](https://github.com/Notifycal/backend/compare/v0.50.0...v0.51.0) (2025-07-21)
+
+
+### Features
+
+* stripe admin webhook ([#862](https://github.com/Notifycal/backend/issues/862)) ([91424b4](https://github.com/Notifycal/backend/commit/91424b40003b3d60574b2bbf6ecb15a5995dd1be))
+
+
+### Bug Fixes
+
+* **deps:** Update Node.js Dependencies ([#843](https://github.com/Notifycal/backend/issues/843)) ([22cd782](https://github.com/Notifycal/backend/commit/22cd7826c8a2761a5d50ad52fc78bac2cd3fa506))
+
 ## [0.50.0](https://github.com/Notifycal/backend/compare/v0.49.0...v0.50.0) (2025-07-21)
 
 
