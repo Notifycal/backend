@@ -58,10 +58,11 @@ const baseErrorSchema = z.object({
 });
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-const creditBalancesSchema = (coerced: boolean = false) => z.object({
-  subscription: z.number({ coerce: coerced }),
-  topup: z.number({ coerce: coerced })
-});
+const creditBalancesSchema = (coerced: boolean = false) =>
+  z.object({
+    subscription: z.number({ coerce: coerced }),
+    topup: z.number({ coerce: coerced })
+  });
 
 const creditDeductionSuccessSchema = baseSuccessSchema().extend({
   operationDetails: creditDeductionOperationDetailsSchema,
