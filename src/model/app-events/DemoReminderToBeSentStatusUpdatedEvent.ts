@@ -1,9 +1,14 @@
-import type { DemoCounterDecrementResult, DemoCounterIncrementResult } from '@model/Credits';
 import {
-  type VonageWebhookMessageStatusPayload,
-  messagingMessageStatusPayloadSchema
+  demoCounterDecrementResultSchema,
+  demoCounterIncrementResultSchema,
+  type DemoCounterDecrementResult,
+  type DemoCounterIncrementResult
+} from '@model/Credits';
+import {
+  messagingMessageStatusPayloadSchema,
+  type VonageWebhookMessageStatusPayload
 } from '@model/vendor/vonage/schemas';
-import { z } from 'zod';
+import type { z } from 'zod';
 import { eventSchemaGenerator } from './BaseEvent';
 import { demoReminderToBeSentAttemptSentEventSchema } from './DemoReminderToBeSentAttemptSentEvent';
 import type { DemoReminderToBeSentEvent } from './DemoReminderToBeSentEvent';
@@ -13,7 +18,8 @@ export const demoReminderToBeSentStatusUpdatedEventSchema = eventSchemaGenerator
   'DemoReminderToBeSentStatusUpdated',
   demoReminderToBeSentAttemptSentEventSchema.shape.data.extend({
     ...messagingMessageStatusPayloadSchema.shape,
-    demoCounterAdjustmentResult: z.custom<DemoCounterDecrementResult>().optional()
+    demoCounterIncrementResult: demoCounterIncrementResultSchema,
+    demoCounterAdjustmentResult: demoCounterDecrementResultSchema.optional()
   })
 );
 
