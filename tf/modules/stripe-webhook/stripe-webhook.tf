@@ -5,9 +5,9 @@ data "aws_caller_identity" "current" {
 locals {
   aws_account_id = local.integration_type == "eventbridge" ? data.aws_caller_identity.current[0].account_id : null
 
-  # Common payload for both integration types
+  webhook_name = "${local.integration_type}-${var.environment}"
   base_payload = {
-    name           = "${local.integration_type}-${var.environment}"
+    name           = local.webhook_name
     description    = "${title(local.integration_type)} integration ${var.environment}"
     include        = []
     enabled_events = var.stripe_webhook_events
@@ -37,10 +37,7 @@ locals {
     } : null
   })
   create_request_payload = local.integration_type == "eventbridge" ? local.create_eventbridge_payload : local.create_webhook_payload
-
-  update_eventbridge_payload = merge(local.base_payload, { name = "event-bridge-bus-${var.environment}" })
-  update_webhook_payload     = merge(local.base_payload, { name = "webhook-${var.environment}" })
-  update_request_payload     = local.integration_type == "eventbridge" ? local.update_eventbridge_payload : local.update_webhook_payload
+  update_request_payload = local.base_payload
 }
 
 resource "restapi_object" "stripe_event_destination" {
