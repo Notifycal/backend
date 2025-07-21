@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.52.0](https://github.com/Notifycal/backend/compare/v0.51.1...v0.52.0) (2025-07-21)
+
+
+### Features
+
+* fire credit adjusted event ([#869](https://github.com/Notifycal/backend/issues/869)) ([14d3d45](https://github.com/Notifycal/backend/commit/14d3d45b58720bd5f9039e500444f53c096859fe))
+
+
+### Bug Fixes
+
+* reset subscription credits. And logging. ([#871](https://github.com/Notifycal/backend/issues/871)) ([fb98a0e](https://github.com/Notifycal/backend/commit/fb98a0e96a1849302c24e3cfb393d52f8eca7d13))
+
 ## [0.51.1](https://github.com/Notifycal/backend/compare/v0.51.0...v0.51.1) (2025-07-21)
 
 
