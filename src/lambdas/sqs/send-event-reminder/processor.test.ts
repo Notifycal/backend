@@ -143,7 +143,7 @@ describe('Messaging processor', () => {
       const sendError = new Error('Message sending failed');
       const sendMessageFn = vi.fn().mockRejectedValue(sendError);
       const deductCreditsFn = vi.fn().mockResolvedValue(validCreditDeductionSuccess);
-      const restoreCreditsFn = vi.fn().mockResolvedValue({
+      const creditRestoreResult = {
         success: true,
         result: 'Success',
         operationDetails: {
@@ -155,7 +155,8 @@ describe('Messaging processor', () => {
           subscription: 407,
           topup: 5
         }
-      });
+      } as const;
+      const restoreCreditsFn = vi.fn().mockResolvedValue(creditRestoreResult);
       const loggerInfoSpy = vi.spyOn(logger, 'info');
       const safePublishFn = vi.fn().mockResolvedValue(safePublishSuccess);
 
@@ -172,6 +173,18 @@ describe('Messaging processor', () => {
         restoredCredits: 7,
         balanceType: 'subscription'
       });
+      expect(safePublishFn).toHaveBeenCalledWith(
+        expect.objectContaining({
+          eventType: 'CreditsAdjusted',
+          userId: validActionableEvent.userId,
+          idp: validActionableEvent.idp,
+          idpId: validActionableEvent.idpId,
+          data: {
+            creditRestoreResult,
+            creditDeductionResult: undefined
+          }
+        })
+      );
     });
 
     it('should return an error if message sending fails and credit restoration fails', async () => {

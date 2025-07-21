@@ -187,9 +187,8 @@ export class CreditAdjustmentService<TIdpName extends IdpName> {
     creditRestoreResult?: CreditAdditionResult<'restore'>,
     creditDeductionResult?: CreditDeductionResult<'deduct'>
   ): Promise<void> {
-    const { userId: originalUserId, idp, idpId } = originalEvent;
     const adjustedEvent = creditsAdjustedEvent(
-      { userId: originalUserId, idp, idpId },
+      originalEvent,
       creditRestoreResult,
       creditDeductionResult
     );
