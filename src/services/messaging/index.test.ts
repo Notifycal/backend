@@ -9,12 +9,12 @@ import type { CreditDeductionSuccess } from '@model/Credits';
 import type { VonageEndpointConfig } from '@model/vendor/vonage/config';
 import type { Uuid } from '@notifycal/shared/types';
 import type { Url } from '@own-types/model';
-import { SnsService } from '@services/sns';
 import {
   VonageMessagingService,
   type VonageApplicationId,
   type VonagePrivateKey
-} from '@services/vonage';
+} from '@services/messaging/vonage';
+import { SnsService } from '@services/sns';
 import {
   validActionableEventEvent,
   validDemoReminderToBeSentEvent
@@ -24,7 +24,7 @@ import { MessagingService } from './index';
 import type { EventWithSuccessfulDeduction } from './model';
 
 vi.mock('@services/sns');
-vi.mock('@services/vonage');
+vi.mock('@services/messaging/vonage');
 vi.mock('@common/powertools', () => {
   const mockLogger = Object.create(Logger.prototype) as LoggerInterface;
   mockLogger.appendKeys = vi.fn();

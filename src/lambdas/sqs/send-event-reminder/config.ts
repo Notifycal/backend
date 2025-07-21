@@ -21,8 +21,8 @@ import {
   readVonageConfig
 } from '@services/common/config';
 import { rethrowError, throwError } from '@services/common/error-handling';
+import type { VonagePrivateKey } from '@services/messaging/vonage';
 import type { UserBaseStoreEndpointConfig } from '@services/stores/user-base-store';
-import type { VonagePrivateKey } from '@services/vonage';
 
 export type SendEventReminderConfig = VonageEndpointConfig &
   IdempotencyPersistenceConfig &

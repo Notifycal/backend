@@ -27,9 +27,9 @@ import type { Uuid } from '@notifycal/shared/types';
 import type { Url } from '@own-types/model';
 import { CreditsService } from '@services/credits-service';
 import { MessagingService } from '@services/messaging';
+import type { VonageApplicationId, VonagePrivateKey } from '@services/messaging/vonage';
 import { SnsService } from '@services/sns';
 import type { UserBaseStore } from '@services/stores/user-base-store';
-import type { VonageApplicationId, VonagePrivateKey } from '@services/vonage';
 import {
   validActionableEventEvent,
   validDemoReminderToBeSentEvent
