@@ -1,5 +1,6 @@
 import type { Logger } from '@aws-lambda-powertools/logger';
 import type { WebhookCorrelationData } from '@lambdas/api/post-event-reminder-delivery-status-webhook/schema';
+import { creditsAdjustedEvent } from '@model/app-events/CreditsAdjustedEvent';
 import type { CountryToSMSCostCreditsMap } from '@model/Config';
 import type {
   CreditAdditionResult,
@@ -10,8 +11,10 @@ import type {
 import { categorizeError } from '@model/vendor/vonage/errors';
 import type { VonageWebhookMessageStatusPayload } from '@model/vendor/vonage/schemas';
 import type { IdpName, UserId } from '@notifycal/shared/types';
+import { tap } from '@utils/promises';
 import { match, P } from 'ts-pattern';
 import type { CreditsService } from './credits-service';
+import type { SnsService } from './sns';
 
 type CreditAdjustmentReason =
   | { type: 'noUsersFaultError' }
@@ -27,6 +30,7 @@ export class CreditAdjustmentService<TIdpName extends IdpName> {
   public constructor(
     private readonly countryToSMSCostCreditsMap: CountryToSMSCostCreditsMap,
     private readonly creditsService: CreditsService<TIdpName>,
+    private readonly snsService: SnsService,
     private readonly logger: Logger
   ) {}
 
@@ -86,7 +90,8 @@ export class CreditAdjustmentService<TIdpName extends IdpName> {
         return this.doActionableEventCreditAdjustment(
           userId,
           adjustmentReason,
-          _webhookData.creditDeductionResult
+          _webhookData.creditDeductionResult,
+          _webhookData.originalEvent
         );
       })
       .with({ originalEvent: { eventType: 'DemoReminderToBeSent' } }, () => {
@@ -122,49 +127,75 @@ export class CreditAdjustmentService<TIdpName extends IdpName> {
   private doActionableEventCreditAdjustment(
     userId: UserId,
     adjustmentReason: CreditAdjustmentReason,
-    creditDeductionResult: CreditDeductionSuccess<'deduct'>
+    creditDeductionResult: CreditDeductionSuccess<'deduct'>,
+    originalEvent: WebhookCorrelationData['originalEvent']
   ): Promise<CreditAdjustmentResult> {
     const { fromBalance, quantity } = creditDeductionResult.operationDetails;
     return match(adjustmentReason)
       .with({ type: 'noUsersFaultError' }, () => {
         return this.creditsService
           .restoreCredits(userId, quantity, fromBalance)
-          .then((creditRestoreResult) => {
-            this.logger.info(
-              'All credits deducted originally restored due to Vonage transient error',
-              {
-                quantity,
-                fromBalance
-              }
-            );
-            return { creditAdjustmentResult: creditRestoreResult };
-          });
+          .then(
+            tap((creditRestoreResult) => {
+              this.logger.info(
+                'All credits deducted originally restored due to Vonage transient error',
+                {
+                  quantity,
+                  fromBalance
+                }
+              );
+              return this.publishCreditsAdjusted(originalEvent, creditRestoreResult);
+            })
+          )
+          .then((creditRestoreResult) => ({ creditAdjustmentResult: creditRestoreResult }));
       })
       .with({ type: 'creditUndercharge' }, ({ creditsDifference, messageDifference }) => {
         return this.creditsService
           .deductCredits(userId, creditsDifference)
-          .then((creditDeductionResult) => {
-            this.logger.info('Credits deducted due to undercharge', {
-              creditsDifference,
-              messageDifference,
-              fromBalance
-            });
-            return { creditAdjustmentResult: creditDeductionResult };
-          });
+          .then(
+            tap((creditDeductionResult) => {
+              this.logger.info('Credits deducted due to undercharge', {
+                creditsDifference,
+                messageDifference,
+                fromBalance
+              });
+              return this.publishCreditsAdjusted(originalEvent, undefined, creditDeductionResult);
+            })
+          )
+          .then((creditDeductionResult) => ({ creditAdjustmentResult: creditDeductionResult }));
       })
       .with({ type: 'creditOvercharge' }, ({ creditsDifference, messageDifference }) => {
         return this.creditsService
           .restoreCredits(userId, creditsDifference, fromBalance)
-          .then((creditRestoreResult) => {
-            this.logger.info('Credits restored due to overcharge', {
-              creditsDifference,
-              messageDifference,
-              fromBalance
-            });
-            return { creditAdjustmentResult: creditRestoreResult };
-          });
+          .then(
+            tap((creditRestoreResult) => {
+              this.logger.info('Credits restored due to overcharge', {
+                creditsDifference,
+                messageDifference,
+                fromBalance
+              });
+              return this.publishCreditsAdjusted(originalEvent, creditRestoreResult);
+            })
+          )
+          .then((creditRestoreResult) => ({ creditAdjustmentResult: creditRestoreResult }));
       })
       .exhaustive();
+  }
+
+  private publishCreditsAdjusted(
+    originalEvent: WebhookCorrelationData['originalEvent'],
+    creditRestoreResult?: CreditAdditionResult<'restore'>,
+    creditDeductionResult?: CreditDeductionResult<'deduct'>
+  ): Promise<void> {
+    const { userId: originalUserId, idp, idpId } = originalEvent;
+    const adjustedEvent = creditsAdjustedEvent(
+      { userId: originalUserId, idp, idpId },
+      creditRestoreResult,
+      creditDeductionResult
+    );
+    return this.snsService.safePublish(adjustedEvent).catch((error) => {
+      this.logger.warn('Failed to publish CreditsAdjusted event', { error, adjustedEvent });
+    });
   }
 
   private async doDemoReminderAdjustment(

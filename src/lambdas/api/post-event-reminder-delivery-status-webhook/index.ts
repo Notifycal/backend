@@ -114,6 +114,7 @@ async function lambdaHandler(
   const creditAdjustmentService = new CreditAdjustmentService(
     config.countryToSMSCostCreditsMap,
     creditsService,
+    snsService,
     logger
   );
 
