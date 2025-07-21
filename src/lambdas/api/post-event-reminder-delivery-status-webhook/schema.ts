@@ -18,9 +18,6 @@ export const actionableEventQuerySchema = actionableEventFoundEventSchema
     data: actionableEventFoundEventDataSchema.extend({
       calendarEvent: actionableEventFoundEventDataSchema.shape.calendarEvent.extend({
         isAllDayEvent: z.string().transform((val) => val === 'true')
-      }),
-      run: actionableEventFoundEventDataSchema.shape.run.extend({
-        slidingWindowInMinutes: z.coerce.number().int().positive()
       })
     })
   });
@@ -29,17 +26,17 @@ export const demoReminderToBeSentEventQuerySchema = demoReminderToBeSentEventSch
   eventId: true,
   happenedAt: true
 });
-
+const coerced = true;
 export const webhookCorrelationDataSchema = z.union([
   z.object({
     originalEvent: actionableEventQuerySchema,
-    creditDeductionResult: creditDeductionDeductSuccessSchema,
-    estimatedMessageCount: smsLengthCountEstimateResultSchema
+    creditDeductionResult: creditDeductionDeductSuccessSchema(coerced),
+    estimatedMessageCount: smsLengthCountEstimateResultSchema(coerced)
   }),
   z.object({
     originalEvent: demoReminderToBeSentEventQuerySchema,
-    creditDeductionResult: demoCounterIncrementSuccessSchema,
-    estimatedMessageCount: smsLengthCountEstimateResultSchema
+    creditDeductionResult: demoCounterIncrementSuccessSchema(coerced),
+    estimatedMessageCount: smsLengthCountEstimateResultSchema(coerced)
   })
 ]);
 
