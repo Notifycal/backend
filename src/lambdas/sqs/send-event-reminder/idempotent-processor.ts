@@ -9,7 +9,8 @@ import type { DemoReminderToBeSentEvent } from '@model/app-events/DemoReminderTo
 import type {
   CreditServiceEndpointConfig,
   DemoReminderEndpointConfig,
-  MessagingAlertingEndpointConfig
+  MessagingAlertingEndpointConfig,
+  MessagingEndpointConfig
 } from '@model/Config';
 import type { VonageEndpointConfig } from '@model/vendor/vonage/config';
 import type { IdpName, Uuid } from '@notifycal/shared/types';
@@ -27,16 +28,16 @@ export class IdempotentProcessor extends AbstractIdempotentProcessor<Uuid> {
     config: VonageEndpointConfig &
       CreditServiceEndpointConfig &
       DemoReminderEndpointConfig &
+      MessagingEndpointConfig &
       MessagingAlertingEndpointConfig,
     persistanceConfig: DynamoDBPersistenceOptions,
-    isEnabled: boolean,
     context: Context,
     private readonly snsService: SnsService,
     creditService: CreditsService<IdpName>,
     logger: Logger
   ) {
     super(persistanceConfig, context, logger);
-    this.processor = new Processor(config, isEnabled, snsService, creditService, logger);
+    this.processor = new Processor(config, snsService, creditService, logger);
   }
 
   public sendReminderIdempotently(
