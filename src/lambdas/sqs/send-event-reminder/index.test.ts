@@ -14,8 +14,8 @@ import type {
   Uuid
 } from '@notifycal/shared/types';
 import type { AwsArn, PhoneNumberE164, Url } from '@own-types/model';
+import type { VonageApplicationId } from '@services/messaging/vonage';
 import { UserBaseStore } from '@services/stores/user-base-store';
-import type { VonageApplicationId } from '@services/vonage';
 import { validRawRecord as _validRawRecord } from '@testing/data/sqs-events';
 import {
   setEnvCreditServiceConfig,

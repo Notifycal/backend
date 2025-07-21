@@ -2,7 +2,11 @@ import type { Algorithm, Duration } from '@model/Config';
 import type { DecodeVonageAccessJwtConfig } from '@model/vendor/vonage/config';
 import type { Jwt, Uuid } from '@notifycal/shared/types';
 import type { AwsArn } from '@own-types/model';
-import type { VonageApiKey, VonageApplicationId, VonageJwtSigningSecret } from '@services/vonage';
+import type {
+  VonageApiKey,
+  VonageApplicationId,
+  VonageJwtSigningSecret
+} from '@services/messaging/vonage';
 import { c, testVonageAuthedEvent } from '@testing/data/apigateway';
 import {
   responseErrorNoCorsHeaders,
