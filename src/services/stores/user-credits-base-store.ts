@@ -3,11 +3,7 @@ import type { UpdateCommandOutput } from '@aws-sdk/lib-dynamodb';
 import { InsufficientCreditsError } from '@model/Errors';
 import type { UserStoreRecordCredits } from '@model/store/UserStoreRecord';
 import type { TierId, UserId } from '@notifycal/shared/types';
-import {
-  rejectWithError,
-  rejectWithMessageAndError,
-  throwError
-} from '@services/common/error-handling';
+import { rejectWithMessageAndError, throwError } from '@services/common/error-handling';
 import { BaseStore, type BaseStoreConfig } from '../common/base-store';
 
 export interface CreditOperationPersistenceResult {
@@ -65,11 +61,11 @@ export class UserCreditsBaseStore extends BaseStore<BaseStoreConfig> {
                   )
                 );
               }
-              return rejectWithError(error);
+              return rejectWithMessageAndError(`Error while deducting topup credits`, error);
             }
           );
         }
-        return rejectWithError(error);
+        return rejectWithMessageAndError(`Error while deducting subscription credits`, error);
       }
     );
   }
@@ -108,7 +104,7 @@ export class UserCreditsBaseStore extends BaseStore<BaseStoreConfig> {
             error
           );
         }
-        return rejectWithError(error);
+        return rejectWithMessageAndError(`Error while adding ${balanceType} credits`, error);
       });
   }
 
@@ -129,8 +125,11 @@ export class UserCreditsBaseStore extends BaseStore<BaseStoreConfig> {
     })
       .then((r) => this.handleSuccessfulUpdate(r, logger))
       .catch((error) => {
-        if (this.isConditionalCheckFailedError(error)) {
-          return rejectWithError(error);
+        if (!this.isConditionalCheckFailedError(error)) {
+          return rejectWithMessageAndError(
+            `Error while reseting subscription credits. First go`,
+            error
+          );
         }
         return this.updateCommandRunner({
           Key: { UserId: userId },
@@ -142,7 +141,10 @@ export class UserCreditsBaseStore extends BaseStore<BaseStoreConfig> {
               TopupCreditBalance: 0
             }
           }
-        }).then((r) => this.handleSuccessfulUpdate(r, logger));
+        }).then(
+          (r) => this.handleSuccessfulUpdate(r, logger),
+          this.handleError(`Error while reseting subscription credits. Second go`)
+        );
       });
   }
 
@@ -150,7 +152,10 @@ export class UserCreditsBaseStore extends BaseStore<BaseStoreConfig> {
     return this.updateCommandRunner({
       Key: { UserId: userId },
       UpdateExpression: 'REMOVE Credits.SubscriptionCreditBalance, Credits.Tier'
-    }).then((r) => this.handleSuccessfulUpdate(r, logger));
+    }).then(
+      (r) => this.handleSuccessfulUpdate(r, logger),
+      this.handleError(`Error while clearing subscription credits`)
+    );
   }
 
   private handleSuccessfulUpdate(
@@ -171,5 +176,9 @@ export class UserCreditsBaseStore extends BaseStore<BaseStoreConfig> {
     } else {
       throwError('Unexpected error while updating credits from persistance', logger);
     }
+  }
+
+  private handleError(message: string): (error: unknown) => Promise<never> {
+    return (error: unknown) => rejectWithMessageAndError(message, error);
   }
 }
