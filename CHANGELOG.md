@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.50.0](https://github.com/Notifycal/backend/compare/v0.49.0...v0.50.0) (2025-07-21)
+
+
+### Features
+
+* adjust credits in vonage webhook if error in deduction ([#847](https://github.com/Notifycal/backend/issues/847)) ([e0417e3](https://github.com/Notifycal/backend/commit/e0417e38404fa103040eff7adc563b47557379e4))
+* restore credits if message sending fails. ([#840](https://github.com/Notifycal/backend/issues/840)) ([762291e](https://github.com/Notifycal/backend/commit/762291ea2f8d4750446621d9e30e233f26ad3a56))
+
+
+### Bug Fixes
+
+* **deps:** Update dependency @notifycal/shared to v5.0.2 ([#849](https://github.com/Notifycal/backend/issues/849)) ([9001ac0](https://github.com/Notifycal/backend/commit/9001ac076037c8bbbb3ad957ee36bbad6e1ac470))
+* **deps:** Update dependency googleapis to v153 ([#844](https://github.com/Notifycal/backend/issues/844)) ([acc0281](https://github.com/Notifycal/backend/commit/acc0281232f72f5223f77ef8637aef0efc7352bc))
+* remove z.custom ([#852](https://github.com/Notifycal/backend/issues/852)) ([75f39ba](https://github.com/Notifycal/backend/commit/75f39ba7472d6e18f7999b7afa87bbe196750c64))
+
 ## [0.49.0](https://github.com/Notifycal/backend/compare/v0.48.1...v0.49.0) (2025-07-14)
 
 

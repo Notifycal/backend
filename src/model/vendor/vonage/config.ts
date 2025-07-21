@@ -5,7 +5,7 @@ import type {
   VonageApplicationId,
   VonageJwtSigningSecret,
   VonagePrivateKey
-} from '@services/messaging';
+} from '@services/vonage';
 import type { z } from 'zod';
 import type { vonageAccessTokenSchema } from './schemas';
 

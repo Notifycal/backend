@@ -1,12 +1,8 @@
 import type { Algorithm, Duration } from '@model/Config';
 import type { DecodeVonageAccessJwtConfig } from '@model/vendor/vonage/config';
-import type { Jwt } from '@notifycal/shared/types';
+import type { Jwt, Uuid } from '@notifycal/shared/types';
 import type { AwsArn } from '@own-types/model';
-import type {
-  VonageApiKey,
-  VonageApplicationId,
-  VonageJwtSigningSecret
-} from '@services/messaging';
+import type { VonageApiKey, VonageApplicationId, VonageJwtSigningSecret } from '@services/vonage';
 import { c, testVonageAuthedEvent } from '@testing/data/apigateway';
 import {
   responseErrorNoCorsHeaders,
@@ -26,6 +22,11 @@ vi.mock('@services/credits-service');
 vi.mock('@services/stores/user-base-store');
 
 import { logger } from '@common/powertools';
+import type {
+  VonageWebhookMessageStatusPayload,
+  VonageWebhookMessageStatusRcsPayload,
+  VonageWebhookMessageStatusSmsPayload
+} from '@model/vendor/vonage/schemas';
 import {
   CreditAdjustmentService,
   type CreditAdjustmentResult
@@ -39,9 +40,9 @@ import {
 import { tap } from '@utils/promises';
 
 /* eslint-disable camelcase */
-const invalidBodies = [
+const invalidBodies: Array<VonageWebhookMessageStatusPayload> = [
   {
-    message_uuid: 'not-a-valid-uuid',
+    message_uuid: 'not-a-valid-uuid' as Uuid,
     channel: 'sms',
     to: '447700900000',
     from: '447700900001',
@@ -49,11 +50,11 @@ const invalidBodies = [
     status: 'submitted',
     usage: {
       currency: 'EUR',
-      price: '0.0333'
+      price: 0.0333
     }
   },
   {
-    message_uuid: 'cccccccc-dddd-4eee-8fff-0123456789ab',
+    message_uuid: 'cccccccc-dddd-4eee-8fff-0123456789ab' as Uuid,
     channel: 'sms',
     to: '447700900000',
     from: '447700900001',
@@ -61,11 +62,11 @@ const invalidBodies = [
     status: 'submitted',
     usage: {
       currency: 'EUR',
-      price: '0.0333'
+      price: 0.0333
     }
   },
   {
-    message_uuid: 'dddddddd-eeee-4fff-8aaa-0123456789ab',
+    message_uuid: 'dddddddd-eeee-4fff-8aaa-0123456789ab' as Uuid,
     channel: 'rcs',
     to: '447700900003',
     from: 'Vonage',
@@ -73,19 +74,19 @@ const invalidBodies = [
     status: 'wrong_status'
   },
   {
-    message_uuid: 'eeeeeeee-ffff-4aaa-8bbb-0123456789ab',
+    message_uuid: 'eeeeeeee-ffff-4aaa-8bbb-0123456789ab' as Uuid,
     channel: 'sms',
     to: '447700900000',
     from: '447700900001',
     timestamp: '2025-02-03T12:14:25Z',
     status: 'submitted',
     usage: {
-      currency: 'USD',
-      price: '0.0333'
+      currency: 'USD', // this is invalid
+      price: 0.0333
     }
   },
   {
-    message_uuid: 'ffffffff-aaaa-4bbb-8ccc-0123456789ab',
+    message_uuid: 'ffffffff-aaaa-4bbb-8ccc-0123456789ab' as Uuid,
     channel: 'sms',
     to: '123',
     from: '447700900001',
@@ -97,35 +98,34 @@ const invalidBodies = [
     }
   },
   {}
-];
+].map((v) => v as unknown as VonageWebhookMessageStatusPayload);
 
-const validBodies = [
-  {
-    message_uuid: 'aaaaaaaa-bbbb-4ccc-8ddd-0123456789ab',
-    channel: 'sms',
-    to: '447700900000',
-    from: '447700900001',
-    timestamp: '2025-02-03T12:14:25Z',
-    status: 'submitted',
-    usage: {
-      currency: 'EUR',
-      price: '0.0333'
-    },
-    sms: {
-      count_total: '2'
-    },
-    client_ref: 'foobar1234'
+const validSmsBody: VonageWebhookMessageStatusSmsPayload = {
+  message_uuid: 'aaaaaaaa-bbbb-4ccc-8ddd-0123456789ab' as Uuid,
+  channel: 'sms',
+  to: '447700900000',
+  from: '447700900001',
+  timestamp: '2025-02-03T12:14:25Z',
+  status: 'submitted',
+  usage: {
+    currency: 'EUR',
+    price: 0.0333
   },
-  {
-    message_uuid: 'bbbbbbbb-cccc-4ddd-8eee-0123456789ab',
-    channel: 'rcs',
-    to: '447700900002',
-    from: 'Vonage',
-    timestamp: '2025-02-03T14:20:00Z',
-    status: 'read',
-    client_ref: 'foobar1234'
-  }
-];
+  sms: {
+    count_total: 2
+  },
+  client_ref: 'foobar1234'
+};
+const validRcsBody: VonageWebhookMessageStatusRcsPayload = {
+  message_uuid: 'bbbbbbbb-cccc-4ddd-8eee-0123456789ab' as Uuid,
+  channel: 'rcs',
+  to: '447700900002',
+  from: 'Vonage',
+  timestamp: '2025-02-03T14:20:00Z',
+  status: 'read',
+  client_ref: 'foobar1234'
+};
+const validBodies: Array<VonageWebhookMessageStatusPayload> = [validSmsBody, validRcsBody];
 
 export interface EncodeVonageAccessJwtConfig {
   signingSecret: string;
@@ -191,7 +191,11 @@ const validActionableEventFoundQSPObject = {
   'creditDeductionResult[balances][topup]': '5',
 
   'estimatedMessageCount[messages]': '1',
-  'estimatedMessageCount[encoding]': 'GSM7'
+  'estimatedMessageCount[encoding]': 'GSM_7BIT',
+  'estimatedMessageCount[remaining]': '34',
+  'estimatedMessageCount[inCurrentMessage]': '2',
+  'estimatedMessageCount[characterPerMessage]': '160',
+  'estimatedMessageCount[length]': '3'
 };
 
 const validDemoReminderToBeSentQSPObject = {
@@ -215,7 +219,11 @@ const validDemoReminderToBeSentQSPObject = {
   'creditDeductionResult[demoRemindersCount]': '2',
 
   'estimatedMessageCount[messages]': '1',
-  'estimatedMessageCount[encoding]': 'GSM7'
+  'estimatedMessageCount[encoding]': 'GSM_7BIT',
+  'estimatedMessageCount[remaining]': '34',
+  'estimatedMessageCount[inCurrentMessage]': '2',
+  'estimatedMessageCount[characterPerMessage]': '160',
+  'estimatedMessageCount[length]': '3'
 };
 
 function mockUuid(uuid: string): void {
@@ -255,7 +263,7 @@ describe('POST Event reminder delivery status webhook', () => {
   });
 
   it('should fail with 401 Unauthorized if the JWT token is invalid', async () => {
-    const validChosenBody = validBodies[0];
+    const validChosenBody = validSmsBody;
     const invalidJwt = 'invalid-jwt-token' as Jwt;
     const event = testVonageAuthedEvent(
       validChosenBody,
@@ -275,7 +283,7 @@ describe('POST Event reminder delivery status webhook', () => {
     const validFixedUUID = '0de651ef-535e-4d2e-b9ff-7bf43f5a01ac';
     mockUuid(validFixedUUID);
 
-    const validChosenBody = validBodies[0]!;
+    const validChosenBody: VonageWebhookMessageStatusSmsPayload = validSmsBody;
 
     const event = testVonageAuthedEvent(
       validChosenBody,
@@ -296,7 +304,7 @@ describe('POST Event reminder delivery status webhook', () => {
         }),
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         estimatedMessageCount: expect.objectContaining({
-          messages: '1'
+          messages: 1
         })
       }),
       expect.objectContaining({
@@ -321,13 +329,13 @@ describe('POST Event reminder delivery status webhook', () => {
         messageStatusPayload: {
           ...validChosenBody,
           usage: {
-            ...validChosenBody.usage,
-            price: parseFloat(validChosenBody.usage?.price || '')
+            ...validChosenBody?.usage,
+            price: validChosenBody.usage?.price
           },
           sms: {
             ...validChosenBody.sms,
             // eslint-disable-next-line camelcase
-            count_total: parseInt(validChosenBody.sms?.count_total || '')
+            count_total: validChosenBody.sms?.count_total
           }
         },
         messageUUID: validChosenBody.message_uuid,
@@ -335,8 +343,8 @@ describe('POST Event reminder delivery status webhook', () => {
         run: {
           lowerBoundStartTime: eventQSP['originalEvent[data][run][lowerBoundStartTime]'],
           upperBoundStartTime: eventQSP['originalEvent[data][run][upperBoundStartTime]'],
-          slidingWindowInMinutes: parseInt(
-            eventQSP['originalEvent[data][run][slidingWindowInMinutes]']!
+          slidingWindowInMinutes: Number(
+            eventQSP['originalEvent[data][run][slidingWindowInMinutes]']
           )
         },
         senderDetails: {
@@ -361,16 +369,16 @@ describe('POST Event reminder delivery status webhook', () => {
           timeZone: eventQSP['originalEvent[data][calendarEvent][timeZone]']
         },
         creditDeductionResult: {
-          success: eventQSP['creditDeductionResult[success]'],
+          success: Boolean(eventQSP['creditDeductionResult[success]']),
           result: eventQSP['creditDeductionResult[result]'],
           operationDetails: {
             fromBalance: eventQSP['creditDeductionResult[operationDetails][fromBalance]'],
             type: eventQSP['creditDeductionResult[operationDetails][type]'],
-            quantity: eventQSP['creditDeductionResult[operationDetails][quantity]']
+            quantity: Number(eventQSP['creditDeductionResult[operationDetails][quantity]'])
           },
           balances: {
-            subscription: eventQSP['creditDeductionResult[balances][subscription]'],
-            topup: eventQSP['creditDeductionResult[balances][topup]']
+            subscription: Number(eventQSP['creditDeductionResult[balances][subscription]']),
+            topup: Number(eventQSP['creditDeductionResult[balances][topup]'])
           }
         },
         creditAdjustmentResult: undefined
@@ -389,7 +397,7 @@ describe('POST Event reminder delivery status webhook', () => {
     mockUuid(validFixedUUID);
 
     const validChosenBodyWithError = {
-      ...validBodies[0]!,
+      ...validSmsBody,
       status: 'rejected' as const,
       error: {
         error: {
@@ -436,7 +444,7 @@ describe('POST Event reminder delivery status webhook', () => {
         }),
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         estimatedMessageCount: expect.objectContaining({
-          messages: '1'
+          messages: 1
         })
       }),
       expect.objectContaining({
@@ -462,12 +470,12 @@ describe('POST Event reminder delivery status webhook', () => {
           ...validChosenBodyWithError,
           usage: {
             ...validChosenBodyWithError.usage,
-            price: parseFloat(validChosenBodyWithError.usage?.price || '')
+            price: validChosenBodyWithError.usage?.price
           },
           sms: {
             ...validChosenBodyWithError.sms,
             // eslint-disable-next-line camelcase
-            count_total: parseInt(validChosenBodyWithError.sms?.count_total || '')
+            count_total: Number(validChosenBodyWithError.sms?.count_total || '')
           }
         },
         messageUUID: validChosenBodyWithError.message_uuid,
@@ -475,8 +483,8 @@ describe('POST Event reminder delivery status webhook', () => {
         run: {
           lowerBoundStartTime: eventQSP['originalEvent[data][run][lowerBoundStartTime]'],
           upperBoundStartTime: eventQSP['originalEvent[data][run][upperBoundStartTime]'],
-          slidingWindowInMinutes: parseInt(
-            eventQSP['originalEvent[data][run][slidingWindowInMinutes]']!
+          slidingWindowInMinutes: Number(
+            eventQSP['originalEvent[data][run][slidingWindowInMinutes]']
           )
         },
         senderDetails: {
@@ -501,16 +509,16 @@ describe('POST Event reminder delivery status webhook', () => {
           timeZone: eventQSP['originalEvent[data][calendarEvent][timeZone]']
         },
         creditDeductionResult: {
-          success: eventQSP['creditDeductionResult[success]'],
+          success: Boolean(eventQSP['creditDeductionResult[success]']),
           result: eventQSP['creditDeductionResult[result]'],
           operationDetails: {
             fromBalance: eventQSP['creditDeductionResult[operationDetails][fromBalance]'],
             type: eventQSP['creditDeductionResult[operationDetails][type]'],
-            quantity: eventQSP['creditDeductionResult[operationDetails][quantity]']
+            quantity: Number(eventQSP['creditDeductionResult[operationDetails][quantity]'])
           },
           balances: {
-            subscription: eventQSP['creditDeductionResult[balances][subscription]'],
-            topup: eventQSP['creditDeductionResult[balances][topup]']
+            subscription: Number(eventQSP['creditDeductionResult[balances][subscription]']),
+            topup: Number(eventQSP['creditDeductionResult[balances][topup]'])
           }
         },
         creditAdjustmentResult: validCreditAdjustmentResult
@@ -529,7 +537,7 @@ describe('POST Event reminder delivery status webhook', () => {
     mockUuid(validFixedUUID);
 
     const validChosenBodyWithOvercharge = {
-      ...validBodies[0]!,
+      ...validSmsBody,
       sms: {
         // eslint-disable-next-line camelcase
         count_total: '3'
@@ -571,7 +579,7 @@ describe('POST Event reminder delivery status webhook', () => {
         }),
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         estimatedMessageCount: expect.objectContaining({
-          messages: '1'
+          messages: 1
         })
       }),
       expect.objectContaining({
@@ -597,12 +605,12 @@ describe('POST Event reminder delivery status webhook', () => {
           ...validChosenBodyWithOvercharge,
           usage: {
             ...validChosenBodyWithOvercharge.usage,
-            price: parseFloat(validChosenBodyWithOvercharge.usage?.price || '')
+            price: validChosenBodyWithOvercharge.usage?.price
           },
           sms: {
             ...validChosenBodyWithOvercharge.sms,
             // eslint-disable-next-line camelcase
-            count_total: parseInt(validChosenBodyWithOvercharge.sms?.count_total || '')
+            count_total: Number(validChosenBodyWithOvercharge.sms?.count_total || '')
           }
         },
         messageUUID: validChosenBodyWithOvercharge.message_uuid,
@@ -610,8 +618,8 @@ describe('POST Event reminder delivery status webhook', () => {
         run: {
           lowerBoundStartTime: eventQSP['originalEvent[data][run][lowerBoundStartTime]'],
           upperBoundStartTime: eventQSP['originalEvent[data][run][upperBoundStartTime]'],
-          slidingWindowInMinutes: parseInt(
-            eventQSP['originalEvent[data][run][slidingWindowInMinutes]']!
+          slidingWindowInMinutes: Number(
+            eventQSP['originalEvent[data][run][slidingWindowInMinutes]']
           )
         },
         senderDetails: {
@@ -636,16 +644,16 @@ describe('POST Event reminder delivery status webhook', () => {
           timeZone: eventQSP['originalEvent[data][calendarEvent][timeZone]']
         },
         creditDeductionResult: {
-          success: eventQSP['creditDeductionResult[success]'],
+          success: Boolean(eventQSP['creditDeductionResult[success]']),
           result: eventQSP['creditDeductionResult[result]'],
           operationDetails: {
             fromBalance: eventQSP['creditDeductionResult[operationDetails][fromBalance]'],
             type: eventQSP['creditDeductionResult[operationDetails][type]'],
-            quantity: eventQSP['creditDeductionResult[operationDetails][quantity]']
+            quantity: Number(eventQSP['creditDeductionResult[operationDetails][quantity]'] || '')
           },
           balances: {
-            subscription: eventQSP['creditDeductionResult[balances][subscription]'],
-            topup: eventQSP['creditDeductionResult[balances][topup]']
+            subscription: Number(eventQSP['creditDeductionResult[balances][subscription]'] || ''),
+            topup: Number(eventQSP['creditDeductionResult[balances][topup]'] || '')
           }
         },
         creditAdjustmentResult: validCreditAdjustmentResult
@@ -663,7 +671,7 @@ describe('POST Event reminder delivery status webhook', () => {
     const validFixedUUID = '0de651ef-535e-4d2e-b9ff-7bf43f5a0aaa';
     mockUuid(validFixedUUID);
 
-    const validChosenBody = validBodies[0]!;
+    const validChosenBody = validSmsBody;
 
     const event = testVonageAuthedEvent(
       validChosenBody,
@@ -684,7 +692,7 @@ describe('POST Event reminder delivery status webhook', () => {
         }),
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         estimatedMessageCount: expect.objectContaining({
-          messages: '1'
+          messages: 1
         })
       }),
       expect.objectContaining({
@@ -710,12 +718,12 @@ describe('POST Event reminder delivery status webhook', () => {
           ...validChosenBody,
           usage: {
             ...validChosenBody.usage,
-            price: parseFloat(validChosenBody.usage?.price || '')
+            price: validChosenBody.usage?.price
           },
           sms: {
             ...validChosenBody.sms,
             // eslint-disable-next-line camelcase
-            count_total: parseInt(validChosenBody.sms?.count_total || '')
+            count_total: Number(validChosenBody.sms?.count_total || '')
           }
         },
         messageUUID: validChosenBody.message_uuid,
@@ -732,9 +740,9 @@ describe('POST Event reminder delivery status webhook', () => {
           countryCode: eventQSP['originalEvent[data][senderDetails][countryCode]']
         },
         demoCounterIncrementResult: {
-          success: eventQSP['creditDeductionResult[success]'],
+          success: Boolean(eventQSP['creditDeductionResult[success]']),
           result: eventQSP['creditDeductionResult[result]'],
-          demoRemindersCount: eventQSP['creditDeductionResult[demoRemindersCount]']
+          demoRemindersCount: Number(eventQSP['creditDeductionResult[demoRemindersCount]'] || '')
         },
         demoCounterAdjustmentResult: undefined
       },
@@ -752,7 +760,7 @@ describe('POST Event reminder delivery status webhook', () => {
     mockUuid(validFixedUUID);
 
     const validChosenBodyWithError = {
-      ...validBodies[0]!,
+      ...validSmsBody,
       status: 'rejected' as const,
       error: {
         error: {
@@ -792,7 +800,7 @@ describe('POST Event reminder delivery status webhook', () => {
         }),
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         estimatedMessageCount: expect.objectContaining({
-          messages: '1'
+          messages: 1
         })
       }),
       expect.objectContaining({
@@ -818,12 +826,12 @@ describe('POST Event reminder delivery status webhook', () => {
           ...validChosenBodyWithError,
           usage: {
             ...validChosenBodyWithError.usage,
-            price: parseFloat(validChosenBodyWithError.usage?.price || '')
+            price: validChosenBodyWithError.usage?.price
           },
           sms: {
             ...validChosenBodyWithError.sms,
             // eslint-disable-next-line camelcase
-            count_total: parseInt(validChosenBodyWithError.sms?.count_total || '')
+            count_total: Number(validChosenBodyWithError.sms?.count_total || '')
           }
         },
         messageUUID: validChosenBodyWithError.message_uuid,
@@ -839,9 +847,9 @@ describe('POST Event reminder delivery status webhook', () => {
           countryCode: eventQSP['originalEvent[data][senderDetails][countryCode]']
         },
         demoCounterIncrementResult: {
-          success: eventQSP['creditDeductionResult[success]'],
+          success: Boolean(eventQSP['creditDeductionResult[success]']),
           result: eventQSP['creditDeductionResult[result]'],
-          demoRemindersCount: eventQSP['creditDeductionResult[demoRemindersCount]']
+          demoRemindersCount: Number(eventQSP['creditDeductionResult[demoRemindersCount]'] || '')
         },
         demoCounterAdjustmentResult: validDemoCounterAdjustmentResult
       },
@@ -859,7 +867,7 @@ describe('POST Event reminder delivery status webhook', () => {
     mockUuid(validFixedUUID);
 
     const validChosenBodyWithExactMatch = {
-      ...validBodies[0]!,
+      ...validSmsBody,
       sms: {
         // eslint-disable-next-line camelcase
         count_total: '1'
@@ -885,7 +893,7 @@ describe('POST Event reminder delivery status webhook', () => {
         }),
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         estimatedMessageCount: expect.objectContaining({
-          messages: '1'
+          messages: 1
         })
       }),
       expect.objectContaining({
@@ -911,12 +919,12 @@ describe('POST Event reminder delivery status webhook', () => {
           ...validChosenBodyWithExactMatch,
           usage: {
             ...validChosenBodyWithExactMatch.usage,
-            price: parseFloat(validChosenBodyWithExactMatch.usage?.price || '')
+            price: validChosenBodyWithExactMatch.usage?.price
           },
           sms: {
             ...validChosenBodyWithExactMatch.sms,
             // eslint-disable-next-line camelcase
-            count_total: parseInt(validChosenBodyWithExactMatch.sms?.count_total || '')
+            count_total: Number(validChosenBodyWithExactMatch.sms?.count_total || '')
           }
         },
         messageUUID: validChosenBodyWithExactMatch.message_uuid,
@@ -924,8 +932,8 @@ describe('POST Event reminder delivery status webhook', () => {
         run: {
           lowerBoundStartTime: eventQSP['originalEvent[data][run][lowerBoundStartTime]'],
           upperBoundStartTime: eventQSP['originalEvent[data][run][upperBoundStartTime]'],
-          slidingWindowInMinutes: parseInt(
-            eventQSP['originalEvent[data][run][slidingWindowInMinutes]']!
+          slidingWindowInMinutes: Number(
+            eventQSP['originalEvent[data][run][slidingWindowInMinutes]']
           )
         },
         senderDetails: {
@@ -950,16 +958,16 @@ describe('POST Event reminder delivery status webhook', () => {
           timeZone: eventQSP['originalEvent[data][calendarEvent][timeZone]']
         },
         creditDeductionResult: {
-          success: eventQSP['creditDeductionResult[success]'],
+          success: Boolean(eventQSP['creditDeductionResult[success]']),
           result: eventQSP['creditDeductionResult[result]'],
           operationDetails: {
             fromBalance: eventQSP['creditDeductionResult[operationDetails][fromBalance]'],
             type: eventQSP['creditDeductionResult[operationDetails][type]'],
-            quantity: eventQSP['creditDeductionResult[operationDetails][quantity]']
+            quantity: Number(eventQSP['creditDeductionResult[operationDetails][quantity]'] || '')
           },
           balances: {
-            subscription: eventQSP['creditDeductionResult[balances][subscription]'],
-            topup: eventQSP['creditDeductionResult[balances][topup]']
+            subscription: Number(eventQSP['creditDeductionResult[balances][subscription]'] || ''),
+            topup: Number(eventQSP['creditDeductionResult[balances][topup]'] || '')
           }
         },
         creditAdjustmentResult: undefined
@@ -977,11 +985,11 @@ describe('POST Event reminder delivery status webhook', () => {
     const validFixedUUID = '0de651ef-535e-4d2e-b9ff-7bf43f5a0aaa';
     mockUuid(validFixedUUID);
 
-    const validChosenBodyWithExactMatch = {
-      ...validBodies[0]!,
+    const validChosenBodyWithExactMatch: VonageWebhookMessageStatusSmsPayload = {
+      ...validSmsBody,
       sms: {
         // eslint-disable-next-line camelcase
-        count_total: '1'
+        count_total: 1
       }
     };
 
@@ -1004,7 +1012,7 @@ describe('POST Event reminder delivery status webhook', () => {
         }),
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         estimatedMessageCount: expect.objectContaining({
-          messages: '1'
+          messages: 1
         })
       }),
       expect.objectContaining({
@@ -1030,12 +1038,12 @@ describe('POST Event reminder delivery status webhook', () => {
           ...validChosenBodyWithExactMatch,
           usage: {
             ...validChosenBodyWithExactMatch.usage,
-            price: parseFloat(validChosenBodyWithExactMatch.usage?.price || '')
+            price: validChosenBodyWithExactMatch.usage?.price
           },
           sms: {
             ...validChosenBodyWithExactMatch.sms,
             // eslint-disable-next-line camelcase
-            count_total: parseInt(validChosenBodyWithExactMatch.sms?.count_total || '')
+            count_total: Number(validChosenBodyWithExactMatch.sms?.count_total || '')
           }
         },
         messageUUID: validChosenBodyWithExactMatch.message_uuid,
@@ -1051,9 +1059,9 @@ describe('POST Event reminder delivery status webhook', () => {
           countryCode: eventQSP['originalEvent[data][senderDetails][countryCode]']
         },
         demoCounterIncrementResult: {
-          success: eventQSP['creditDeductionResult[success]'],
+          success: Boolean(eventQSP['creditDeductionResult[success]']),
           result: eventQSP['creditDeductionResult[result]'],
-          demoRemindersCount: eventQSP['creditDeductionResult[demoRemindersCount]']
+          demoRemindersCount: Number(eventQSP['creditDeductionResult[demoRemindersCount]'])
         },
         demoCounterAdjustmentResult: undefined
       },

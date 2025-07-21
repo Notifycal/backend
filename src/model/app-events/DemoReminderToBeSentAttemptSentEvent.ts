@@ -1,7 +1,7 @@
 import { messagingSentPayloadSchema } from '@model/vendor/vonage/schemas';
 import type { Uuid } from '@notifycal/shared/types';
-import { z } from 'zod';
-import type { DemoCounterIncrementResult } from './../Credits';
+import type { z } from 'zod';
+import { demoCounterIncrementResultSchema, type DemoCounterIncrementResult } from './../Credits';
 import { eventSchemaGenerator } from './BaseEvent';
 import {
   demoReminderToBeSentEventSchema,
@@ -12,7 +12,7 @@ export const demoReminderToBeSentAttemptSentEventSchema = eventSchemaGenerator(
   'DemoReminderToBeSentAttemptSent',
   demoReminderToBeSentEventSchema.shape.data.extend({
     ...messagingSentPayloadSchema.shape,
-    demoCounterIncrementResult: z.custom<DemoCounterIncrementResult>()
+    demoCounterIncrementResult: demoCounterIncrementResultSchema
   })
 );
 
