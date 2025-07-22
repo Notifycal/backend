@@ -135,7 +135,7 @@ export class StripeService {
         client_reference_id: userId,
         success_url: successRedirectUrl,
         cancel_url: cancelRedirectUrl,
-        locale: language,
+        locale: language === 'ca' ? 'es' : language,
         line_items: [lineItemConfig],
         metadata: {
           userId,

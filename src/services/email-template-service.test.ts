@@ -32,6 +32,11 @@ const validSpecificTranslations: Record<LanguageCode, TestTranslations> = {
     subject: 'Asunto de Prueba',
     header: 'Encabezado de Prueba',
     message: 'Mensaje de Prueba'
+  },
+  ca: {
+    subject: 'Asunt d Prueba',
+    header: 'Encabezadot d Prueba',
+    message: 'Mensag d Prueba'
   }
 };
 

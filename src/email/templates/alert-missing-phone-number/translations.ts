@@ -38,6 +38,18 @@ const specificTranslations: Record<LanguageCode, EmailTextVariables> = {
     helpOffer:
       'Need assistance or found an issue? Visit our feedback form to get help or report any problems you encounter.',
     thankYou: 'Thank you for choosing Notifycal!'
+  },
+  ca: {
+    subject: 'Alerta: Recordatori no enviat',
+    mainMessage:
+      'Hem detectat que un o més recordatoris programats no s\'han pogut enviar perquè faltava la informació de contacte als esdeveniments de calendari corresponents.',
+    tipTitle: 'Solució',
+    tipContent:
+      'Per garantir que tots els vostres recordatoris arribin al seu destí, assegureu-vos que cada esdeveniment del vostre calendari inclogui un número de telèfon o correu electrònic de contacte del destinatari.',
+    visitNotifycalFaq: 'Per a més informació, consulteu les nostres',
+    helpOffer:
+      'Necessiteu ajuda o heu trobat algun problema? Visiteu el nostre formulari de comentaris per obtenir assistència o informar de qualsevol inconvenient.',
+    thankYou: 'Gràcies per confiar en Notifycal!'
   }
 };
 
