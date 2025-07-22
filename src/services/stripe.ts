@@ -188,6 +188,12 @@ export class StripeService {
 
             const flowData: Stripe.BillingPortal.SessionCreateParams.FlowData = {
               type: flowType,
+              after_completion: {
+                type: 'redirect',
+                redirect: {
+                  return_url: returnUrl
+                }
+              },
               ...(needsSubscriptionId && { [flowType]: { subscription: subscriptionId } })
             };
 

@@ -221,7 +221,9 @@ export function setEnvCustomerPortalConfig(config: StripeCustomerPortalConfig): 
 
 export function setEnvStripeCheckoutConfig(config: StripeCheckoutConfig): void {
   process.env.STRIPE_SUCCESS_REDIRECT_URL_PATH = config.successRedirectUrlPath;
-  process.env.STRIPE_CANCEL_REDIRECT_URL_PATH = config.cancelRedirectUrlPath;
+  process.env.STRIPE_CANCEL_SUBSCRIPTION_REDIRECT_URL_PATH =
+    config.cancelSubscriptionRedirectUrlPath;
+  process.env.STRIPE_CANCEL_TOPUP_REDIRECT_URL_PATH = config.cancelTopupRedirectUrlPath;
   process.env.STRIPE_TAX_ID = config.taxId;
 }
 
