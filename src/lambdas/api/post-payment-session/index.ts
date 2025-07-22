@@ -96,7 +96,12 @@ async function lambdaHandler(
   const { stripeAuthConfig, stripeCheckoutConfig, paymentPlans, userBaseStoreConfig } =
     event.lambdaConfig;
   const apiKey = stripeAuthConfig.apiKey;
-  const { successRedirectUrlPath, cancelRedirectUrlPath, taxId } = stripeCheckoutConfig;
+  const {
+    successRedirectUrlPath,
+    cancelSubscriptionRedirectUrlPath,
+    cancelTopupRedirectUrlPath,
+    taxId
+  } = stripeCheckoutConfig;
   const { language } = event.body;
 
   const selectedProduct = match(event.body)
@@ -111,6 +116,10 @@ async function lambdaHandler(
   if (!frontendUrl) {
     return corsErrorResponse;
   }
+  const cancelRedirectUrlPath = match(selectedProduct.type)
+    .with('tier', () => cancelSubscriptionRedirectUrlPath)
+    .with('topup', () => cancelTopupRedirectUrlPath)
+    .exhaustive();
   const successRedirectUrl = `${frontendUrl}${successRedirectUrlPath}` as Url;
   const cancelRedirectUrl = `${frontendUrl}${cancelRedirectUrlPath}` as Url;
 

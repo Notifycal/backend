@@ -107,7 +107,7 @@ describe('POST Payment checkout session', () => {
         defaultConfig.paymentPlans.tiers.good,
         'es',
         `${defaultConfig.corsConfig.allowedOrigins[0]}/success`,
-        `${defaultConfig.corsConfig.allowedOrigins[0]}/cancel`,
+        `${defaultConfig.corsConfig.allowedOrigins[0]}/cancel-subscription`,
         defaultConfig.stripeCheckoutConfig.taxId
       );
       expect(addMetricFn).toHaveBeenCalledWith('PaymentSessionCreated', MetricUnit.Count, 1, {
@@ -246,7 +246,7 @@ describe('POST Payment checkout session', () => {
         defaultConfig.paymentPlans.tiers.good,
         'es',
         `${defaultConfig.corsConfig.allowedOrigins[0]}/success`,
-        `${defaultConfig.corsConfig.allowedOrigins[0]}/cancel`,
+        `${defaultConfig.corsConfig.allowedOrigins[0]}/cancel-subscription`,
         defaultConfig.stripeCheckoutConfig.taxId
       );
       expect(addMetricFn).toHaveBeenCalledWith('PaymentSessionCreated', MetricUnit.Count, 1, {
@@ -295,7 +295,7 @@ describe('POST Payment checkout session', () => {
         defaultConfig.paymentPlans.topups.single,
         'en',
         `${defaultConfig.corsConfig.allowedOrigins[0]}/success`,
-        `${defaultConfig.corsConfig.allowedOrigins[0]}/cancel`,
+        `${defaultConfig.corsConfig.allowedOrigins[0]}/cancel-topup`,
         defaultConfig.stripeCheckoutConfig.taxId
       );
       expect(addMetricFn).toHaveBeenCalledWith('PaymentSessionCreated', MetricUnit.Count, 1, {
@@ -344,7 +344,7 @@ describe('POST Payment checkout session', () => {
         defaultConfig.paymentPlans.topups.single,
         'en',
         `${defaultConfig.corsConfig.allowedOrigins[0]}/success`,
-        `${defaultConfig.corsConfig.allowedOrigins[0]}/cancel`,
+        `${defaultConfig.corsConfig.allowedOrigins[0]}/cancel-topup`,
         defaultConfig.stripeCheckoutConfig.taxId
       );
       expect(addMetricFn).toHaveBeenCalledWith('PaymentSessionCreated', MetricUnit.Count, 1, {
@@ -700,7 +700,8 @@ const defaultConfig: PostPaymentCheckoutSessionConfig = {
   },
   stripeCheckoutConfig: {
     successRedirectUrlPath: '/success' as Url,
-    cancelRedirectUrlPath: '/cancel' as Url,
+    cancelSubscriptionRedirectUrlPath: '/cancel-subscription' as Url,
+    cancelTopupRedirectUrlPath: '/cancel-topup' as Url,
     taxId: 'tx_dtftbhetrhgertgh'
   },
   paymentPlans: validPaymentPlans,
