@@ -583,7 +583,17 @@ describe(StripeService, () => {
         customer: validStripeCustomerId,
         return_url: validReturnUrl,
         configuration: validStripeCustomerPortalConfigId,
-        ...(expectedFlowData && { flow_data: expectedFlowData })
+        ...(expectedFlowData && {
+          flow_data: {
+            ...expectedFlowData,
+            after_completion: {
+              type: 'redirect',
+              redirect: {
+                return_url: validReturnUrl
+              }
+            }
+          }
+        })
       };
 
       expect(createPortalSessionFn).toHaveBeenCalledWith(expectedCall);
@@ -616,9 +626,9 @@ describe(StripeService, () => {
       expect(result).toBe(validPortalUrl);
       expect(createPortalSessionFn).toHaveBeenCalledTimes(1);
       expect(createPortalSessionFn).toHaveBeenCalledWith({
-        customer: validStripeCustomerId,
         return_url: validReturnUrl,
-        configuration: validStripeCustomerPortalConfigId
+        configuration: validStripeCustomerPortalConfigId,
+        customer: validStripeCustomerId
       });
       expect(listSubscriptionsFn).not.toHaveBeenCalled();
     });
