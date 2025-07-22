@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.53.0](https://github.com/Notifycal/backend/compare/v0.52.0...v0.53.0) (2025-07-22)
+
+
+### Features
+
+* customer portal redirect after completion. payment session subscription/topup cancel redirect ([#873](https://github.com/Notifycal/backend/issues/873)) ([ea4d9f0](https://github.com/Notifycal/backend/commit/ea4d9f051b37e6b22f4f8b029f1d17637d2cb923))
+
 ## [0.52.0](https://github.com/Notifycal/backend/compare/v0.51.1...v0.52.0) (2025-07-21)
 
 
