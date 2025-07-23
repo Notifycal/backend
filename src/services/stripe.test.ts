@@ -547,6 +547,7 @@ describe(StripeService, () => {
 
   describe('createCustomerPortalSession', () => {
     const validStripeCustomerPortalConfigId = 'cng_rdtsghethergwrg';
+    const validLanguage: LanguageCode = 'es';
 
     type FlowType = 'subscription_cancel' | 'subscription_update' | 'payment_method_update';
 
@@ -563,6 +564,7 @@ describe(StripeService, () => {
         validStripeCustomerId,
         validReturnUrl,
         validStripeCustomerPortalConfigId,
+        validLanguage,
         flowType,
         createPortalSessionFn,
         listSubscriptionsFn
@@ -583,6 +585,7 @@ describe(StripeService, () => {
         customer: validStripeCustomerId,
         return_url: validReturnUrl,
         configuration: validStripeCustomerPortalConfigId,
+        locale: validLanguage,
         ...(expectedFlowData && {
           flow_data: {
             ...expectedFlowData,
@@ -618,6 +621,7 @@ describe(StripeService, () => {
         validStripeCustomerId,
         validReturnUrl,
         validStripeCustomerPortalConfigId,
+        validLanguage,
         undefined,
         createPortalSessionFn,
         listSubscriptionsFn
@@ -628,7 +632,8 @@ describe(StripeService, () => {
       expect(createPortalSessionFn).toHaveBeenCalledWith({
         return_url: validReturnUrl,
         configuration: validStripeCustomerPortalConfigId,
-        customer: validStripeCustomerId
+        customer: validStripeCustomerId,
+        locale: validLanguage
       });
       expect(listSubscriptionsFn).not.toHaveBeenCalled();
     });
@@ -706,6 +711,7 @@ describe(StripeService, () => {
           validStripeCustomerId,
           validReturnUrl,
           validStripeCustomerPortalConfigId,
+          validLanguage,
           undefined,
           createPortalSessionFn,
           listSubscriptionsFn
@@ -723,6 +729,7 @@ describe(StripeService, () => {
           validStripeCustomerId,
           validReturnUrl,
           validStripeCustomerPortalConfigId,
+          validLanguage,
           'subscription_update',
           createPortalSessionFn,
           listSubscriptionsFn
@@ -893,6 +900,7 @@ describe(StripeService, () => {
     stripeCustomerId: StripeCustomerId,
     returnUrl: Url,
     configId: string,
+    language: LanguageCode,
     flow_type:
       | Extract<
           Stripe.BillingPortal.SessionCreateParams.FlowData.Type,
@@ -923,6 +931,7 @@ describe(StripeService, () => {
       stripeCustomerId,
       returnUrl,
       configId,
+      language,
       flow_type
     );
   }

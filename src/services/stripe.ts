@@ -158,6 +158,7 @@ export class StripeService {
     stripeCustomerId: StripeCustomerId,
     returnUrl: Url,
     configId: string,
+    language: LanguageCode,
     flowType:
       | Extract<
           Stripe.BillingPortal.SessionCreateParams.FlowData.Type,
@@ -208,6 +209,7 @@ export class StripeService {
           customer: stripeCustomerId,
           return_url: returnUrl,
           configuration: configId,
+          locale: language,
           ...flowDataConfig
         };
         return this.stripeClient.billingPortal.sessions.create(params);

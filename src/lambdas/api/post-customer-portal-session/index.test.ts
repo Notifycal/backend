@@ -2,7 +2,7 @@ import { MetricUnit } from '@aws-lambda-powertools/metrics';
 import { corsErrorResponse } from '@common/cors-middleware';
 import { metrics } from '@common/powertools';
 import { accessTokenSchema, type OurAccessTokenClaims } from '@model/Jwt';
-import type { Email, IdpId, IdpName, UserId } from '@notifycal/shared/types';
+import type { Email, IdpId, IdpName, LanguageCode, UserId } from '@notifycal/shared/types';
 import type { Url } from '@own-types/model';
 import { UserBaseStore } from '@services/stores/user-base-store';
 import { StripeService } from '@services/stripe';
@@ -46,10 +46,16 @@ describe('Customer Portal Session Handler', () => {
     role: 'user',
     permissions: {}
   };
-  const validRequestBody = {};
-  const validRequestBodyWithFlowType = { flowType: 'subscription_update' };
-  const validRequestBodyWithCancelFlow = { flowType: 'subscription_cancel' };
-  const validRequestBodyWithPaymentMethodUpdate = { flowType: 'payment_method_update' };
+  const validLanguage: LanguageCode = 'es';
+  const validRequestBody = {
+    language: validLanguage
+  };
+  const validRequestBodyWithFlowType = { ...validRequestBody, flowType: 'subscription_update' };
+  const validRequestBodyWithCancelFlow = { ...validRequestBody, flowType: 'subscription_cancel' };
+  const validRequestBodyWithPaymentMethodUpdate = {
+    ...validRequestBody,
+    flowType: 'payment_method_update'
+  };
 
   async function testCustomerPortalSession(
     requestBody: object,
@@ -82,6 +88,7 @@ describe('Customer Portal Session Handler', () => {
       validStripeCustomerId,
       validReturnUrl,
       validStripeCustomerPortalConfigId,
+      validLanguage,
       expectedFlowType
     );
     expect(addMetricFn).toHaveBeenCalledWith('CustomerPortalSessionCreated', MetricUnit.Count, 1, {
@@ -178,6 +185,7 @@ describe('Customer Portal Session Handler', () => {
       validStripeCustomerId,
       validReturnUrl,
       validStripeCustomerPortalConfigId,
+      validLanguage,
       undefined
     );
     expect(addMetricFn).toHaveBeenCalledWith(
@@ -215,6 +223,7 @@ describe('Customer Portal Session Handler', () => {
       validStripeCustomerId,
       validReturnUrl,
       validStripeCustomerPortalConfigId,
+      validLanguage,
       undefined
     );
     expect(addMetricFn).toHaveBeenCalledWith('CustomerPortalSessionFailed', MetricUnit.Count, 1, {
