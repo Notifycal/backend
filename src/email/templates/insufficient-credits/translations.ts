@@ -39,7 +39,7 @@ const specificTranslations: Record<LanguageCode, EmailTextVariables> = {
       'Lamentablement, no hem pogut enviar un o més recordatoris programats per crèdits insuficients al vostre compte. Per reprendre el servei de recordatoris, cal recarregar el vostre compte.',
     tipTitle: 'Acció Requerida',
     tipContent:
-      'Recarregueu el vostre compte immediatament per reprendre l\'enviament de recordatoris i assegurar que no es perdin les vostres cites.',
+      "Recarregueu el vostre compte immediatament per reprendre l'enviament de recordatoris i assegurar que no es perdin les vostres cites.",
     topupAction: 'Recarregar Compte Ara'
   }
 };

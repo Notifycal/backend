@@ -42,7 +42,7 @@ const specificTranslations: Record<LanguageCode, EmailTextVariables> = {
   ca: {
     subject: 'Alerta: Recordatori no enviat',
     mainMessage:
-      'Hem detectat que un o més recordatoris programats no s\'han pogut enviar perquè faltava la informació de contacte als esdeveniments de calendari corresponents.',
+      "Hem detectat que un o més recordatoris programats no s'han pogut enviar perquè faltava la informació de contacte als esdeveniments de calendari corresponents.",
     tipTitle: 'Solució',
     tipContent:
       'Per garantir que tots els vostres recordatoris arribin al seu destí, assegureu-vos que cada esdeveniment del vostre calendari inclogui un número de telèfon o correu electrònic de contacte del destinatari.',

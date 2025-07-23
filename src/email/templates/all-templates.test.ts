@@ -60,7 +60,7 @@ export function testEmailTemplate(
 ): void {
   const emailTemplateService = new EmailTemplateService(logger);
 
-  const supportedLanguages: Array<LanguageCode> = ['en', 'es'];
+  const supportedLanguages: Array<LanguageCode> = ['en', 'es', 'ca'];
   supportedLanguages.forEach((lang) => {
     const emailEvent = emailTemplateService.createEmailEvent(
       'test@example.com' as Email,
