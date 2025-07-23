@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.54.0](https://github.com/Notifycal/backend/compare/v0.53.0...v0.54.0) (2025-07-23)
+
+
+### Features
+
+* customer portal language ([#880](https://github.com/Notifycal/backend/issues/880)) ([bfeb9ac](https://github.com/Notifycal/backend/commit/bfeb9acb978db952df3d201e9ea5db1c7a5aa5cb))
+
+
+### Bug Fixes
+
+* **deps:** Update dependency @notifycal/shared to v5.0.4 ([#881](https://github.com/Notifycal/backend/issues/881)) ([ad202af](https://github.com/Notifycal/backend/commit/ad202afc212c1db462d97c738a2c73f6c60485ed))
+* **deps:** Update dependency axios to v1.11.0 ([#878](https://github.com/Notifycal/backend/issues/878)) ([7fc7aaf](https://github.com/Notifycal/backend/commit/7fc7aaf070dc5dafd8a25dda91e86963acfcc17d))
+
 ## [0.53.0](https://github.com/Notifycal/backend/compare/v0.52.0...v0.53.0) (2025-07-22)
 
 
