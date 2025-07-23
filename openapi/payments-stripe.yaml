@@ -52,7 +52,7 @@ paths:
                   type: string
                   enum: ['subscription_cancel', 'subscription_update', 'payment_method_update']
                 language: { $ref: './component-definitions.yaml#/components/schemas/LanguageCode' }
-                required: [language]
+              required: [language]
               additionalProperties: false
       responses:
         '200':
