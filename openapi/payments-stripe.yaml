@@ -51,6 +51,8 @@ paths:
                   description: Type of flow for the customer portal session.
                   type: string
                   enum: ['subscription_cancel', 'subscription_update', 'payment_method_update']
+                language: { $ref: './component-definitions.yaml#/components/schemas/LanguageCode' }
+              required: [language]
               additionalProperties: false
       responses:
         '200':
