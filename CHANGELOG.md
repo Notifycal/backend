@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.54.1](https://github.com/Notifycal/backend/compare/v0.54.0...v0.54.1) (2025-07-23)
+
+
+### Bug Fixes
+
+* **deps:** Update dependency googleapis to v154 ([#882](https://github.com/Notifycal/backend/issues/882)) ([b23ca46](https://github.com/Notifycal/backend/commit/b23ca4626b6c6c51ff61dcb8309e6cb8b52d97db))
+* update customer portal API spec. Forgot to commit this file earlier ([99ffca1](https://github.com/Notifycal/backend/commit/99ffca191994b44b280f8a4b188974e5d9ea30fc))
+* update customer portal API spec. Forgot to commit this file earlier. Again ([d247fdc](https://github.com/Notifycal/backend/commit/d247fdcc881a8af54a744cfd39dcf6ed63d71be6))
+
 ## [0.54.0](https://github.com/Notifycal/backend/compare/v0.53.0...v0.54.0) (2025-07-23)
 
 
