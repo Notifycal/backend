@@ -209,7 +209,7 @@ export class StripeService {
           customer: stripeCustomerId,
           return_url: returnUrl,
           configuration: configId,
-          locale: language,
+          locale: language === 'ca' ? 'es' : language,
           ...flowDataConfig
         };
         return this.stripeClient.billingPortal.sessions.create(params);
