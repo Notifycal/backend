@@ -32,6 +32,15 @@ const specificTranslations: Record<LanguageCode, EmailTextVariables> = {
     tipContent:
       'Top up your account now to ensure all your scheduled reminders are sent without interruption.',
     billingAction: 'Top Up Account'
+  },
+  ca: {
+    subject: 'Alerta: Crèdits baixos detectats',
+    mainMessage:
+      "Hem detectat que els vostres crèdits s'estan acabant. Per evitar interrupcions en el servei de recordatoris, us recomanem que recarregueu el vostre compte aviat.",
+    tipTitle: 'Acció Recomanada',
+    tipContent:
+      "Recarregueu el vostre compte ara per assegurar que tots els vostres recordatoris programats s'enviïn sense interrupcions.",
+    billingAction: 'Recarregar Compte'
   }
 };
 

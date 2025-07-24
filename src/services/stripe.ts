@@ -135,7 +135,7 @@ export class StripeService {
         client_reference_id: userId,
         success_url: successRedirectUrl,
         cancel_url: cancelRedirectUrl,
-        locale: language,
+        locale: language === 'ca' ? 'es' : language,
         line_items: [lineItemConfig],
         metadata: {
           userId,
@@ -209,7 +209,7 @@ export class StripeService {
           customer: stripeCustomerId,
           return_url: returnUrl,
           configuration: configId,
-          locale: language,
+          locale: language === 'ca' ? 'es' : language,
           ...flowDataConfig
         };
         return this.stripeClient.billingPortal.sessions.create(params);

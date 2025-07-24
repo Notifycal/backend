@@ -30,5 +30,14 @@ export const commonTranslations: Record<LanguageCode, EmailCommonTranslations> =
     helpOfferLinkText: 'Click here.',
     thankYou: 'Thank you for choosing Notifycal!',
     rightsReserved: 'All rights reserved'
+  },
+  ca: {
+    appName: 'Notifycal',
+    greeting: 'Estimat/da usuari/a,',
+    helpOfferText:
+      'Necessiteu ajuda o heu trobat algun problema? Visiteu el nostre formulari de comentaris per obtenir assistència o informar de qualsevol inconvenient.',
+    helpOfferLinkText: 'Feu clic aquí.',
+    thankYou: 'Gràcies per confiar en Notifycal!',
+    rightsReserved: 'Tots els drets reservats'
   }
 };
