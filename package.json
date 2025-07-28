@@ -97,6 +97,7 @@
     "typescript-eslint": "^8.24.1",
     "vite": "^7.0.0",
     "vite-tsconfig-paths": "^5.1.4",
-    "vitest": "^3.0.2"
+    "vitest": "^3.0.2",
+    "yaml": "^2.8.0"
   }
 }
