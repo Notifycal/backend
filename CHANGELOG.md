@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.55.1](https://github.com/Notifycal/backend/compare/v0.55.0...v0.55.1) (2025-07-29)
+
+
+### Bug Fixes
+
+* **deps:** Update dependency ts-pattern to v5.8.0 ([#890](https://github.com/Notifycal/backend/issues/890)) ([17a9be2](https://github.com/Notifycal/backend/commit/17a9be28955881662d5b486058f0442a03f9df8d))
+* **deps:** Update Google packages ([#889](https://github.com/Notifycal/backend/issues/889)) ([552e5b8](https://github.com/Notifycal/backend/commit/552e5b8ae0e758784975ac39e336a3bd26e4192e))
+* **deps:** Update Terraform cloudflare to v4.52.1 ([#891](https://github.com/Notifycal/backend/issues/891)) ([6bb2fdd](https://github.com/Notifycal/backend/commit/6bb2fdd5d870837801fe5f9b2e8e8d639c85048e))
+* linting process ([#892](https://github.com/Notifycal/backend/issues/892)) ([43466f8](https://github.com/Notifycal/backend/commit/43466f8d4d951bcbcff8b7c80199ef216d3b0b65))
+
 ## [0.55.0](https://github.com/Notifycal/backend/compare/v0.54.1...v0.55.0) (2025-07-24)
 
 
