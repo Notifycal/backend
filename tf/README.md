@@ -6,15 +6,15 @@
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.5 |
 | <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 5.0 |
 | <a name="requirement_awscc"></a> [awscc](#requirement\_awscc) | >= 1.0 |
-| <a name="requirement_cloudflare"></a> [cloudflare](#requirement\_cloudflare) | 4.52.0 |
+| <a name="requirement_cloudflare"></a> [cloudflare](#requirement\_cloudflare) | 4.52.1 |
 | <a name="requirement_restapi"></a> [restapi](#requirement\_restapi) | >= 2.0.1 |
 
 ## Providers
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.4.0 |
-| <a name="provider_awscc"></a> [awscc](#provider\_awscc) | 1.49.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.6.0 |
+| <a name="provider_awscc"></a> [awscc](#provider\_awscc) | 1.50.0 |
 
 ## Modules
 
