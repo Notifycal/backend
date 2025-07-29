@@ -294,12 +294,12 @@ variable "customer_portal_configuration_id" {
 }
 
 variable "stripe_operating_api_key" {
-  description = "Stripe operating API key"
+  description = "Stripe operating API key. See stripe.README.md"
   type        = string
   sensitive   = true
 }
 variable "stripe_admin_api_key" {
-  description = "Stripe admin API key"
+  description = "Stripe admin API key. See stripe.README.md"
   type        = string
   sensitive   = true
 }
