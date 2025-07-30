@@ -123,7 +123,8 @@ export const validStripeCheckoutSessionCompletedEvent: EventBridgeEvent<
       total_details: { amount_discount: 0, amount_shipping: 0, amount_tax: 0 },
       ui_mode: 'hosted',
       url: null,
-      wallet_options: null
+      wallet_options: null,
+      origin_context: null
     }
   },
   livemode: false,
