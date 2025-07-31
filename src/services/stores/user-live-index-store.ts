@@ -38,7 +38,7 @@ export class UserLiveIndexStore<
     const queryCommand = {
       KeyConditionExpression: 'UserStatus = :status',
       FilterExpression:
-        'attribute_exists(Config) AND size(Config) > :configMinSize AND attribute_exists(Config.calendars)',
+        'attribute_exists(Config) AND size(Config) > :configMinSize AND attribute_exists(Config.Calendars)',
       ExpressionAttributeValues: {
         ':status': 'live',
         ':configMinSize': 0
