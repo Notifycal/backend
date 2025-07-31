@@ -1,4 +1,5 @@
 import { actionableEventFoundEventSchema } from '@model/app-events/ActionableEventFoundEvent';
+import { calendarEventDataLightened } from '@model/app-events/ActionableEventReminderStatusUpdatedEvent';
 import { demoReminderToBeSentEventSchema } from '@model/app-events/DemoReminderToBeSentEvent';
 import {
   creditDeductionDeductSuccessSchema,
@@ -7,36 +8,45 @@ import {
 import { smsLengthCountEstimateResultSchema } from '@model/Sms';
 import { z } from 'zod';
 
-const actionableEventFoundEventDataSchema = actionableEventFoundEventSchema.shape.data;
-export const actionableEventQuerySchema = actionableEventFoundEventSchema
+export const actionableEventFoundLightenedSchema = actionableEventFoundEventSchema
   .omit({
     eventId: true,
     happenedAt: true
   })
-  // I hate this, but writing something generic to coerce specific schema paths proved quite challenging
   .extend({
-    data: actionableEventFoundEventDataSchema.extend({
-      calendarEvent: actionableEventFoundEventDataSchema.shape.calendarEvent.extend({
-        isAllDayEvent: z.string().transform((val) => val === 'true')
+    data: actionableEventFoundEventSchema.shape.data
+      .extend({
+        calendarEvent: calendarEventDataLightened
       })
-    })
+      .omit({ message: true })
+  });
+export type ActionableEventFoundLightenedEvent = z.infer<
+  typeof actionableEventFoundLightenedSchema
+>;
+
+export const demoReminderToBeSentEventLightenedSchema = demoReminderToBeSentEventSchema
+  .omit({
+    eventId: true,
+    happenedAt: true
+  })
+  .extend({
+    data: demoReminderToBeSentEventSchema.shape.data.omit({ message: true })
   });
 
-export const demoReminderToBeSentEventQuerySchema = demoReminderToBeSentEventSchema.omit({
-  eventId: true,
-  happenedAt: true
-});
+export type DemoReminderToBeSentLightenedEvent = z.infer<
+  typeof demoReminderToBeSentEventLightenedSchema
+>;
 const coerced = true;
 export const webhookCorrelationDataSchema = z.union([
   z.object({
-    originalEvent: actionableEventQuerySchema,
+    originalEvent: actionableEventFoundLightenedSchema,
     creditDeductionResult: creditDeductionDeductSuccessSchema(coerced),
-    estimatedMessageCount: smsLengthCountEstimateResultSchema(coerced)
+    estimatedMessageCount: smsLengthCountEstimateResultSchema(coerced).pick({ messages: true })
   }),
   z.object({
-    originalEvent: demoReminderToBeSentEventQuerySchema,
+    originalEvent: demoReminderToBeSentEventLightenedSchema,
     creditDeductionResult: demoCounterIncrementSuccessSchema(coerced),
-    estimatedMessageCount: smsLengthCountEstimateResultSchema(coerced)
+    estimatedMessageCount: smsLengthCountEstimateResultSchema(coerced).pick({ messages: true })
   })
 ]);
 

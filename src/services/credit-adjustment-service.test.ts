@@ -128,11 +128,6 @@ const validActionableEventWebhookData: WebhookCorrelationData = {
   originalEvent: validActionableEventEvent,
   creditDeductionResult: validCreditDeductionSuccess,
   estimatedMessageCount: {
-    encoding: 'GSM_7BIT',
-    length: 50,
-    characterPerMessage: 160,
-    inCurrentMessage: 50,
-    remaining: 110,
     messages: 1
   }
 };
@@ -154,8 +149,7 @@ const validDemoReminderWebhookData: WebhookCorrelationData = {
         type: 'phone',
         phoneNumber: '+34666999888' as PhoneNumberE164,
         countryCode: 'ES'
-      },
-      message: 'Demo reminder message'
+      }
     }
   },
   creditDeductionResult: {
@@ -164,11 +158,6 @@ const validDemoReminderWebhookData: WebhookCorrelationData = {
     demoRemindersCount: 5
   },
   estimatedMessageCount: {
-    encoding: 'GSM_7BIT',
-    length: 50,
-    characterPerMessage: 160,
-    inCurrentMessage: 50,
-    remaining: 110,
     messages: 1
   }
 };
@@ -329,11 +318,6 @@ describe(CreditAdjustmentService, () => {
       const webhookDataWithHigherEstimate: WebhookCorrelationData = {
         ...validActionableEventWebhookData,
         estimatedMessageCount: {
-          encoding: 'GSM_7BIT',
-          length: 150,
-          characterPerMessage: 160,
-          inCurrentMessage: 150,
-          remaining: 330,
           messages: 3
         }
       };
@@ -474,11 +458,6 @@ describe(CreditAdjustmentService, () => {
       const webhookDataWithHigherEstimate: WebhookCorrelationData = {
         ...validDemoReminderWebhookData,
         estimatedMessageCount: {
-          encoding: 'GSM_7BIT',
-          length: 150,
-          characterPerMessage: 160,
-          inCurrentMessage: 150,
-          remaining: 330,
           messages: 3
         }
       };

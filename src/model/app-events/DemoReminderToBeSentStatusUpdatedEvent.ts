@@ -1,3 +1,4 @@
+import type { DemoReminderToBeSentLightenedEvent } from '@lambdas/api/post-event-reminder-delivery-status-webhook/schema';
 import {
   demoCounterDecrementResultSchema,
   demoCounterIncrementResultSchema,
@@ -11,16 +12,17 @@ import {
 import type { z } from 'zod';
 import { eventSchemaGenerator } from './BaseEvent';
 import { demoReminderToBeSentAttemptSentEventSchema } from './DemoReminderToBeSentAttemptSentEvent';
-import type { DemoReminderToBeSentEvent } from './DemoReminderToBeSentEvent';
 import { createEventBase } from './common';
 
 export const demoReminderToBeSentStatusUpdatedEventSchema = eventSchemaGenerator(
   'DemoReminderToBeSentStatusUpdated',
-  demoReminderToBeSentAttemptSentEventSchema.shape.data.extend({
-    ...messagingMessageStatusPayloadSchema.shape,
-    demoCounterIncrementResult: demoCounterIncrementResultSchema,
-    demoCounterAdjustmentResult: demoCounterDecrementResultSchema.optional()
-  })
+  demoReminderToBeSentAttemptSentEventSchema.shape.data
+    .extend({
+      ...messagingMessageStatusPayloadSchema.shape,
+      demoCounterIncrementResult: demoCounterIncrementResultSchema,
+      demoCounterAdjustmentResult: demoCounterDecrementResultSchema.optional()
+    })
+    .omit({ message: true })
 );
 
 export type DemoReminderToBeSentStatusUpdatedEvent = z.infer<
@@ -28,7 +30,7 @@ export type DemoReminderToBeSentStatusUpdatedEvent = z.infer<
 >;
 
 export function demoReminderToBeSentReminderStatusUpdated(
-  rebuiltEventObject: Omit<DemoReminderToBeSentEvent, 'eventId' | 'happenedAt'>,
+  rebuiltEventObject: DemoReminderToBeSentLightenedEvent,
   event: VonageWebhookMessageStatusPayload,
   demoCounterIncrementResult: DemoCounterIncrementResult,
   demoCounterAdjustmentResult?: DemoCounterDecrementResult
