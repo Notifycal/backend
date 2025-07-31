@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.55.3](https://github.com/Notifycal/backend/compare/v0.55.2...v0.55.3) (2025-07-31)
+
+
+### Bug Fixes
+
+* live users query ([#900](https://github.com/Notifycal/backend/issues/900)) ([bca5df7](https://github.com/Notifycal/backend/commit/bca5df72db086687a6632b41b37661523b3df2b0))
+
 ## [0.55.2](https://github.com/Notifycal/backend/compare/v0.55.1...v0.55.2) (2025-07-31)
 
 
