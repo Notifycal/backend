@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.55.2](https://github.com/Notifycal/backend/compare/v0.55.1...v0.55.2) (2025-07-31)
+
+
+### Bug Fixes
+
+* **deps:** Update dependency stripe to v18.4.0 ([#897](https://github.com/Notifycal/backend/issues/897)) ([a7965f3](https://github.com/Notifycal/backend/commit/a7965f3fb996b79c29407e7c7c26141de4ab36f6))
+
 ## [0.55.1](https://github.com/Notifycal/backend/compare/v0.55.0...v0.55.1) (2025-07-29)
 
 
