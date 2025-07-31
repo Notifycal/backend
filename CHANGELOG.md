@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.55.4](https://github.com/Notifycal/backend/compare/v0.55.3...v0.55.4) (2025-07-31)
+
+
+### Bug Fixes
+
+* webhook url vonage too long ([#902](https://github.com/Notifycal/backend/issues/902)) ([f675093](https://github.com/Notifycal/backend/commit/f6750939b6ecc306d84cea61175baab78d5a17bf))
+
 ## [0.55.3](https://github.com/Notifycal/backend/compare/v0.55.2...v0.55.3) (2025-07-31)
 
 
