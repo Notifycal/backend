@@ -11,7 +11,9 @@ import {
 import type { MessagingEndpointConfig } from '@model/Config';
 import type { VonageEndpointConfig } from '@model/vendor/vonage/config';
 import type { Url, Uuid } from '@notifycal/shared/types';
+import { omitDeep } from '@utils/object';
 import { objectToQueryString } from '@utils/queryString';
+import { pick } from 'radashi';
 import { match } from 'ts-pattern';
 import type { SnsService } from '../sns';
 import type { EventWithSuccessfulDeduction } from './model';
@@ -64,19 +66,26 @@ export class MessagingService {
       .with({ event: { eventType: 'ActionableEventFound' } }, (data) => {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { eventId, happenedAt, ...originalEvent } = data.event;
+        const omittedProperties = [
+          'data.message',
+          'data.calendarEvent.summary',
+          'data.calendarEvent.startTime',
+          'data.calendarEvent.isAllDayEvent',
+          'data.calendarEvent.timeZone'
+        ] as const;
         return {
-          originalEvent,
+          originalEvent: omitDeep(originalEvent, ...omittedProperties),
           creditDeductionResult: data.deductionResult,
-          estimatedMessageCount: data.numberOfMessagesEstimate
+          estimatedMessageCount: pick(data.numberOfMessagesEstimate, ['messages'])
         };
       })
       .with({ event: { eventType: 'DemoReminderToBeSent' } }, (data) => {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { eventId, happenedAt, ...originalEvent } = data.event;
         return {
-          originalEvent,
+          originalEvent: omitDeep(originalEvent, 'data.message'),
           creditDeductionResult: data.deductionResult,
-          estimatedMessageCount: data.numberOfMessagesEstimate
+          estimatedMessageCount: pick(data.numberOfMessagesEstimate, ['messages'])
         };
       })
       .exhaustive();

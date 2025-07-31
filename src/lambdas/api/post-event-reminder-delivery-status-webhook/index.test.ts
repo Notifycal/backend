@@ -343,7 +343,6 @@ describe('POST Event reminder delivery status webhook', () => {
           }
         },
         messageUUID: validChosenBody.message_uuid,
-        message: eventQSP['originalEvent[data][message]'],
         run: {
           lowerBoundStartTime: eventQSP['originalEvent[data][run][lowerBoundStartTime]'],
           upperBoundStartTime: eventQSP['originalEvent[data][run][upperBoundStartTime]'],
@@ -366,11 +365,7 @@ describe('POST Event reminder delivery status webhook', () => {
           name: eventQSP['originalEvent[data][calendar][name]']
         },
         calendarEvent: {
-          attendees: [{ id: 'attendee@test.com' }],
-          id: eventQSP['originalEvent[data][calendarEvent][id]'],
-          isAllDayEvent: eventQSP['originalEvent[data][calendarEvent][isAllDayEvent]'] === 'true',
-          startTime: eventQSP['originalEvent[data][calendarEvent][startTime]'],
-          timeZone: eventQSP['originalEvent[data][calendarEvent][timeZone]']
+          id: eventQSP['originalEvent[data][calendarEvent][id]']
         },
         creditDeductionResult: {
           success: Boolean(eventQSP['creditDeductionResult[success]']),
@@ -483,7 +478,6 @@ describe('POST Event reminder delivery status webhook', () => {
           }
         },
         messageUUID: validChosenBodyWithError.message_uuid,
-        message: eventQSP['originalEvent[data][message]'],
         run: {
           lowerBoundStartTime: eventQSP['originalEvent[data][run][lowerBoundStartTime]'],
           upperBoundStartTime: eventQSP['originalEvent[data][run][upperBoundStartTime]'],
@@ -506,11 +500,7 @@ describe('POST Event reminder delivery status webhook', () => {
           name: eventQSP['originalEvent[data][calendar][name]']
         },
         calendarEvent: {
-          attendees: [{ id: 'attendee@test.com' }],
-          id: eventQSP['originalEvent[data][calendarEvent][id]'],
-          isAllDayEvent: eventQSP['originalEvent[data][calendarEvent][isAllDayEvent]'] === 'true',
-          startTime: eventQSP['originalEvent[data][calendarEvent][startTime]'],
-          timeZone: eventQSP['originalEvent[data][calendarEvent][timeZone]']
+          id: eventQSP['originalEvent[data][calendarEvent][id]']
         },
         creditDeductionResult: {
           success: Boolean(eventQSP['creditDeductionResult[success]']),
@@ -618,7 +608,6 @@ describe('POST Event reminder delivery status webhook', () => {
           }
         },
         messageUUID: validChosenBodyWithOvercharge.message_uuid,
-        message: eventQSP['originalEvent[data][message]'],
         run: {
           lowerBoundStartTime: eventQSP['originalEvent[data][run][lowerBoundStartTime]'],
           upperBoundStartTime: eventQSP['originalEvent[data][run][upperBoundStartTime]'],
@@ -641,11 +630,7 @@ describe('POST Event reminder delivery status webhook', () => {
           name: eventQSP['originalEvent[data][calendar][name]']
         },
         calendarEvent: {
-          attendees: [{ id: 'attendee@test.com' }],
-          id: eventQSP['originalEvent[data][calendarEvent][id]'],
-          isAllDayEvent: eventQSP['originalEvent[data][calendarEvent][isAllDayEvent]'] === 'true',
-          startTime: eventQSP['originalEvent[data][calendarEvent][startTime]'],
-          timeZone: eventQSP['originalEvent[data][calendarEvent][timeZone]']
+          id: eventQSP['originalEvent[data][calendarEvent][id]']
         },
         creditDeductionResult: {
           success: Boolean(eventQSP['creditDeductionResult[success]']),
@@ -731,8 +716,6 @@ describe('POST Event reminder delivery status webhook', () => {
           }
         },
         messageUUID: validChosenBody.message_uuid,
-        message: eventQSP['originalEvent[data][message]'],
-
         senderDetails: {
           phoneNumber: eventQSP['originalEvent[data][senderDetails][phoneNumber]'],
           type: eventQSP['originalEvent[data][senderDetails][type]'],
@@ -839,7 +822,6 @@ describe('POST Event reminder delivery status webhook', () => {
           }
         },
         messageUUID: validChosenBodyWithError.message_uuid,
-        message: eventQSP['originalEvent[data][message]'],
         senderDetails: {
           phoneNumber: eventQSP['originalEvent[data][senderDetails][phoneNumber]'],
           type: eventQSP['originalEvent[data][senderDetails][type]'],
@@ -932,7 +914,6 @@ describe('POST Event reminder delivery status webhook', () => {
           }
         },
         messageUUID: validChosenBodyWithExactMatch.message_uuid,
-        message: eventQSP['originalEvent[data][message]'],
         run: {
           lowerBoundStartTime: eventQSP['originalEvent[data][run][lowerBoundStartTime]'],
           upperBoundStartTime: eventQSP['originalEvent[data][run][upperBoundStartTime]'],
@@ -955,11 +936,7 @@ describe('POST Event reminder delivery status webhook', () => {
           name: eventQSP['originalEvent[data][calendar][name]']
         },
         calendarEvent: {
-          attendees: [{ id: 'attendee@test.com' }],
-          id: eventQSP['originalEvent[data][calendarEvent][id]'],
-          isAllDayEvent: eventQSP['originalEvent[data][calendarEvent][isAllDayEvent]'] === 'true',
-          startTime: eventQSP['originalEvent[data][calendarEvent][startTime]'],
-          timeZone: eventQSP['originalEvent[data][calendarEvent][timeZone]']
+          id: eventQSP['originalEvent[data][calendarEvent][id]']
         },
         creditDeductionResult: {
           success: Boolean(eventQSP['creditDeductionResult[success]']),
@@ -1051,7 +1028,6 @@ describe('POST Event reminder delivery status webhook', () => {
           }
         },
         messageUUID: validChosenBodyWithExactMatch.message_uuid,
-        message: eventQSP['originalEvent[data][message]'],
         senderDetails: {
           phoneNumber: eventQSP['originalEvent[data][senderDetails][phoneNumber]'],
           type: eventQSP['originalEvent[data][senderDetails][type]'],
