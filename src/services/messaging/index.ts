@@ -66,8 +66,15 @@ export class MessagingService {
       .with({ event: { eventType: 'ActionableEventFound' } }, (data) => {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { eventId, happenedAt, ...originalEvent } = data.event;
+        const omittedProperties = [
+          'data.message',
+          'data.calendarEvent.summary',
+          'data.calendarEvent.startTime',
+          'data.calendarEvent.isAllDayEvent',
+          'data.calendarEvent.timeZone'
+        ] as const;
         return {
-          originalEvent: omitDeep(originalEvent, 'data.message'),
+          originalEvent: omitDeep(originalEvent, ...omittedProperties),
           creditDeductionResult: data.deductionResult,
           estimatedMessageCount: pick(data.numberOfMessagesEstimate, ['messages'])
         };
