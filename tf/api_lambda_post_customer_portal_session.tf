@@ -46,7 +46,7 @@ module "post_customer_portal_session_lambda" {
 
   environment_variables = merge({
     STRIPE_API_KEY                         = var.stripe_operating_api_key
-    STRIPE_CUSTOMER_PORTAL_RETURN_URL_PATH = "/#/dashboard/billing"
+    STRIPE_CUSTOMER_PORTAL_RETURN_URL_PATH = "/#/billing"
     STRIPE_CUSTOMER_PORTAL_CONFIG_ID       = var.customer_portal_configuration_id
   }, local.users_persistance_env_vars, local.protected_endpoint_env_vars, local.common_lambda_env_vars, local.common_api_lambda_env_vars)
 }
