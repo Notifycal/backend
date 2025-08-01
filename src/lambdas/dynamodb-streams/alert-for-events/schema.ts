@@ -1,10 +1,6 @@
-import { DynamoDBMarshalled } from '@aws-lambda-powertools/parser/helpers/dynamodb';
-import {
-  DynamoDBStreamSchema,
-  DynamoDBStreamChangeRecordBase
-} from '@aws-lambda-powertools/parser/schemas/dynamodb';
 import { insufficientCreditReminderNotSentEventSchema } from '@model/app-events/InsufficientCreditsReminderNotSentEvent';
 import { lowCreditsDetectedEventSchema } from '@model/app-events/LowCreditsDetectedEvent';
+import { dynamoDbStreamsSchema } from '@model/lambda-events/DynamoDbStreamsEvents';
 import { auditTrailStoreRecordSchema } from '@model/store/AuditTrailStoreRecord';
 import { z } from 'zod';
 import type { AlertForEventsConfig } from './config';
@@ -40,18 +36,9 @@ export const payloadSchemas = z.union([
   auditTrailInsufficientCreditReminderNotSentEventSchema
 ]);
 
-const dynamodbSchema = DynamoDBStreamChangeRecordBase.extend({
-  NewImage: DynamoDBMarshalled(payloadSchemas)
-});
-
-const extendedRecordSchema = DynamoDBStreamSchema.shape.Records.element.extend({
-  dynamodb: dynamodbSchema
-});
-
-export const eventSchema = z.object({
-  lambdaConfig: z.custom<AlertForEventsConfig>(),
-  Records: extendedRecordSchema.array()
-});
+export const eventSchema = dynamoDbStreamsSchema<typeof payloadSchemas, AlertForEventsConfig>(
+  payloadSchemas
+);
 
 export type Event = z.infer<typeof eventSchema>;
 export type Record = Event['Records'][number];

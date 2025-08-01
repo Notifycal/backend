@@ -81,6 +81,7 @@ export function defaultEventHandlers(
   ]);
 }
 
+// eslint-disable-next-line @typescript-eslint/no-duplicate-type-constituents
 function toProductToCreditsMap<T extends TierId | TopupId>(
   items: Record<string, { id: T; credits: number }>
 ): Record<T, number> {
