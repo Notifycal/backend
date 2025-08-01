@@ -69,6 +69,7 @@ Each time a new Stripe environment is created (sandbox or production), the Custo
 ### 🔧 Required Manual Steps
 
 **Configure Downgrade Behavior:**
+
 - [Navigate to the Customer Portal settings](https://dashboard.stripe.com/test/settings/billing/portal) in your Stripe Dashboard
 - Set downgrades to take effect at the **end of the current billing period**. This prevents immediate plan changes and ensures customers receive full value for their current billing cycle
 
