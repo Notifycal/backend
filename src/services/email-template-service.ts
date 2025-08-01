@@ -1,8 +1,15 @@
 import type { Logger } from '@aws-lambda-powertools/logger';
-import { logo } from '@email-templates/assets/logo.png.base64';
-import { baseTemplate } from '@email-templates/base-template.html.hbs';
-import { commonTranslations } from '@email-templates/i18n/translations';
-import type { LanguageCode } from '@notifycal/shared/types';
+import { logo } from '@email/assets/logo.png.base64';
+import { baseTemplate } from '@email/templates/base/base-template.html.hbs';
+import { commonTranslations } from '@email/templates/base/translations';
+import type {
+  EmailWithName,
+  EventCreationOptions,
+  EventSourceIdentity
+} from '@model/app-events/common';
+import { emailToBeSent, type EmailToBeSentEvent } from '@model/app-events/EmailToBeSentEvent';
+import type { EmailTemplateConfig, EmailTemplateResult } from '@model/Email';
+import type { Email, LanguageCode } from '@notifycal/shared/types';
 import type {
   ContentType,
   EmailHtmlBody,
@@ -11,22 +18,6 @@ import type {
 } from '@own-types/model';
 import { TemplateCompiler } from './template-compiler';
 
-export interface EmailTemplateData {
-  [key: string]: string | number | boolean | undefined;
-}
-
-export interface EmailAttachment {
-  type: 'inline';
-  base64Content: EmailInlineAttachementBase64;
-  contentType: ContentType;
-}
-
-export interface EmailTemplateResult {
-  htmlBody: EmailHtmlBody;
-  subject: EmailSubject;
-  inlineAttachments: Record<string, EmailAttachment>;
-}
-
 export class EmailTemplateService {
   private readonly templateCompiler: TemplateCompiler;
 
@@ -34,7 +25,7 @@ export class EmailTemplateService {
     this.templateCompiler = new TemplateCompiler(logger);
   }
 
-  public compileTemplate<TEmailTemplateData extends Record<string, string>>(
+  private compileTemplate<TEmailTemplateData extends Record<string, string>>(
     partialTemplate: string,
     specificTranslations: Record<LanguageCode, TEmailTemplateData>,
     dynamicVariables: Record<string, string> = {}
@@ -44,7 +35,7 @@ export class EmailTemplateService {
 
     return (language: LanguageCode): EmailTemplateResult => {
       const logoFilename = `logo.png`;
-      const templateData: EmailTemplateData = {
+      const templateData: TEmailTemplateData = {
         ...commonTranslations[language],
         ...specificTranslations[language],
         logoSrc: `cid:${logoFilename}`,
@@ -63,5 +54,53 @@ export class EmailTemplateService {
         }
       };
     };
+  }
+
+  private interpolateEmail(
+    email: Email,
+    sender: EmailWithName,
+    language: LanguageCode,
+    templateConfig: EmailTemplateConfig,
+    subEventType: EmailToBeSentEvent['data']['subEventType'],
+    metadata: Record<string, string | number | undefined>
+  ): EmailToBeSentEvent['data'] {
+    const compiledTemplateFn = this.compileTemplate(
+      templateConfig.partialTemplate,
+      templateConfig.specificTranslations,
+      templateConfig.dynamicVariables
+    );
+    const emailTemplate = compiledTemplateFn(language);
+
+    return {
+      from: sender,
+      to: email,
+      subject: emailTemplate.subject,
+      htmlBody: emailTemplate.htmlBody,
+      tags: [],
+      subEventType,
+      inlineAttachments: emailTemplate.inlineAttachments,
+      metadata
+    };
+  }
+
+  public createEmailEvent(
+    email: Email,
+    sender: EmailWithName,
+    language: LanguageCode,
+    templateConfig: EmailTemplateConfig,
+    subEventType: EmailToBeSentEvent['data']['subEventType'],
+    metadata: Record<string, string | number | undefined>,
+    userIdentity: EventSourceIdentity,
+    options: EventCreationOptions
+  ): EmailToBeSentEvent {
+    const eventData = this.interpolateEmail(
+      email,
+      sender,
+      language,
+      templateConfig,
+      subEventType,
+      metadata
+    );
+    return emailToBeSent(userIdentity, eventData, options);
   }
 }

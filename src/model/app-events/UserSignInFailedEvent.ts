@@ -1,6 +1,6 @@
 import type { UserStoreRecord } from '@model/store/UserStoreRecord';
 import { unixTimestampSchema } from '@notifycal/shared/schemas';
-import type { Identity, IdpName } from '@notifycal/shared/types';
+import type { IdpName, UserIdentity } from '@notifycal/shared/types';
 import { z } from 'zod';
 import { errorEventSchemaGenerator } from './BaseEvent';
 import { createEventBase } from './common';
@@ -13,11 +13,11 @@ export const userSignInFailedEventSchema = errorEventSchemaGenerator('UserSignIn
 export type UserSignInFailedEvent = z.infer<typeof userSignInFailedEventSchema>;
 
 export function userSignInFailed<TIdpName extends IdpName>(
-  identity: Identity<TIdpName>,
+  userIdentity: UserIdentity<TIdpName>,
   userBeforeLogin: UserStoreRecord<TIdpName>
 ): UserSignInFailedEvent {
   return {
-    ...createEventBase('UserSignInFailed', identity),
+    ...createEventBase('UserSignInFailed', userIdentity),
     data: {
       lastSignInAt: userBeforeLogin.LastSignInAt
     }

@@ -3,7 +3,7 @@ import { unprotectedCrossDomainEndpointMiddleware } from '@common/lambda-middlew
 import { logger } from '@common/powertools';
 import { refreshTokenSchema } from '@model/Jwt';
 import { apiEventSchema } from '@model/lambda-events/ApiGatewayEvents';
-import { extractIdentity } from '@model/UserIdentity';
+import { extractUserIdentity } from '@model/UserIdentity';
 import type { Jwt } from '@notifycal/shared/types';
 import { _successHandler, buildJwtsAndStoreRefreshJwt } from '@services/auth';
 import { errorHandler } from '@services/common/api-response-handlers';
@@ -53,7 +53,7 @@ function lambdaHandler(
               idpId: user.IdpId
             });
             return buildJwtsAndStoreRefreshJwt(
-              extractIdentity(user),
+              extractUserIdentity(user),
               config.encodeAccessJwtConfig,
               config.encodeRefreshJwtConfig,
               refreshTokenStore

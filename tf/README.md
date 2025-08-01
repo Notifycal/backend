@@ -6,15 +6,15 @@
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.5 |
 | <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 5.0 |
 | <a name="requirement_awscc"></a> [awscc](#requirement\_awscc) | >= 1.0 |
-| <a name="requirement_cloudflare"></a> [cloudflare](#requirement\_cloudflare) | 4.52.0 |
+| <a name="requirement_cloudflare"></a> [cloudflare](#requirement\_cloudflare) | 4.52.1 |
 | <a name="requirement_restapi"></a> [restapi](#requirement\_restapi) | >= 2.0.1 |
 
 ## Providers
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.2.0 |
-| <a name="provider_awscc"></a> [awscc](#provider\_awscc) | 1.48.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.7.0 |
+| <a name="provider_awscc"></a> [awscc](#provider\_awscc) | 1.51.0 |
 
 ## Modules
 
@@ -59,7 +59,8 @@
 | <a name="module_post_refresh_lambda_alias"></a> [post\_refresh\_lambda\_alias](#module\_post\_refresh\_lambda\_alias) | terraform-aws-modules/lambda/aws//modules/alias | ~> 8.0 |
 | <a name="module_send_email_lambda"></a> [send\_email\_lambda](#module\_send\_email\_lambda) | terraform-aws-modules/lambda/aws | ~> 8.0 |
 | <a name="module_send_event_reminder_lambda"></a> [send\_event\_reminder\_lambda](#module\_send\_event\_reminder\_lambda) | terraform-aws-modules/lambda/aws | ~> 8.0 |
-| <a name="module_stripe_webhook"></a> [stripe\_webhook](#module\_stripe\_webhook) | ./modules/stripe-event-bridge-webhook | n/a |
+| <a name="module_stripe_admin_webhook"></a> [stripe\_admin\_webhook](#module\_stripe\_admin\_webhook) | ./modules/stripe-webhook | n/a |
+| <a name="module_stripe_webhook"></a> [stripe\_webhook](#module\_stripe\_webhook) | ./modules/stripe-webhook | n/a |
 | <a name="module_stripe_webhook_lambda"></a> [stripe\_webhook\_lambda](#module\_stripe\_webhook\_lambda) | terraform-aws-modules/lambda/aws | ~> 8.0 |
 | <a name="module_stripe_webhook_queue"></a> [stripe\_webhook\_queue](#module\_stripe\_webhook\_queue) | ./modules/sqs | n/a |
 | <a name="module_user_calendar_fetched_queue"></a> [user\_calendar\_fetched\_queue](#module\_user\_calendar\_fetched\_queue) | ./modules/sqs | n/a |
@@ -143,6 +144,7 @@
 | <a name="input_enable_data_protection"></a> [enable\_data\_protection](#input\_enable\_data\_protection) | n/a | `bool` | `true` | no |
 | <a name="input_enable_xray_active_tracing"></a> [enable\_xray\_active\_tracing](#input\_enable\_xray\_active\_tracing) | n/a | `bool` | `true` | no |
 | <a name="input_environment"></a> [environment](#input\_environment) | n/a | `string` | n/a | yes |
+| <a name="input_frontend_url"></a> [frontend\_url](#input\_frontend\_url) | n/a | `string` | `"https://private.notifycal.com"` | no |
 | <a name="input_google_oauth_config"></a> [google\_oauth\_config](#input\_google\_oauth\_config) | n/a | <pre>object({<br/>    client_id         = string<br/>    client_secret     = string<br/>    redirect_url_list = list(string)<br/>  })</pre> | n/a | yes |
 | <a name="input_jwt_config"></a> [jwt\_config](#input\_jwt\_config) | n/a | <pre>object({<br/>    access = object({<br/>      algorithm  = string<br/>      audience   = string<br/>      expiration = string<br/>      issuer     = string<br/>    })<br/>    refresh = object({<br/>      algorithm  = string<br/>      audience   = string<br/>      expiration = string<br/>      issuer     = string<br/>    })<br/>  })</pre> | n/a | yes |
 | <a name="input_jwt_keys"></a> [jwt\_keys](#input\_jwt\_keys) | n/a | <pre>object({<br/>    access = object({<br/>      public_key  = string<br/>      private_key = string<br/>    })<br/>    refresh = object({<br/>      public_key  = string<br/>      private_key = string<br/>    })<br/>  })</pre> | n/a | yes |
@@ -156,9 +158,10 @@
 | <a name="input_observability"></a> [observability](#input\_observability) | n/a | <pre>object({<br/>    alert_notifier = object({<br/>      slack_channel = string<br/>    })<br/>    alert_config = optional(object({<br/>      treat_missing_data       = optional(string, "missing")<br/>      notify_insufficient_data = optional(bool, true)<br/>      }), {<br/>      treat_missing_data       = "missing"<br/>      notify_insufficient_data = true<br/>    })<br/>  })</pre> | n/a | yes |
 | <a name="input_openapi_spec_file"></a> [openapi\_spec\_file](#input\_openapi\_spec\_file) | Name of the OpenAPI spec file for this API | `string` | `"spec.yaml"` | no |
 | <a name="input_payment_plans"></a> [payment\_plans](#input\_payment\_plans) | Configuration for subscription tiers. E.g.: Good, Better, Best and topups E.g.: x100 | <pre>object({<br/>    tiers = map(object({<br/>      price_id = string<br/>      name     = string<br/>      credits  = number<br/>    }))<br/>    topups = map(object({<br/>      price_id = string<br/>      name     = string<br/>      credits  = number<br/>    }))<br/>  })</pre> | n/a | yes |
-| <a name="input_stripe_admin_api_key"></a> [stripe\_admin\_api\_key](#input\_stripe\_admin\_api\_key) | Stripe admin API key | `string` | n/a | yes |
+| <a name="input_stripe_admin_api_key"></a> [stripe\_admin\_api\_key](#input\_stripe\_admin\_api\_key) | Stripe admin API key. See stripe.README.md | `string` | n/a | yes |
+| <a name="input_stripe_admin_webhook_url"></a> [stripe\_admin\_webhook\_url](#input\_stripe\_admin\_webhook\_url) | Endpoint URL for Stripe to send admin-level updates such us new customer, disputes open, etc.. Typically, it will be the Stripe Slack App. It requires a manual step: check out https://notifycal.slack.com/marketplace/A0F81FNVC-stripe | `string` | `null` | no |
 | <a name="input_stripe_api_version"></a> [stripe\_api\_version](#input\_stripe\_api\_version) | n/a | `string` | `"2025-05-28.basil"` | no |
-| <a name="input_stripe_operating_api_key"></a> [stripe\_operating\_api\_key](#input\_stripe\_operating\_api\_key) | Stripe operating API key | `string` | n/a | yes |
+| <a name="input_stripe_operating_api_key"></a> [stripe\_operating\_api\_key](#input\_stripe\_operating\_api\_key) | Stripe operating API key. See stripe.README.md | `string` | n/a | yes |
 | <a name="input_tax_id"></a> [tax\_id](#input\_tax\_id) | ID to reference to tax resource in Stripe. Typically, it will be a tax id that involves adding 21% of VAT (Spanish IVA) | `string` | n/a | yes |
 | <a name="input_vendor_alarm_config"></a> [vendor\_alarm\_config](#input\_vendor\_alarm\_config) | Configuration for each integration vendor's error rate alarm | <pre>object({<br/>    Vonage = object({<br/>      error_rate_threshold      = number<br/>      evaluation_period_seconds = number<br/>      datapoints_to_alarm       = number<br/>      evaluation_periods        = number<br/>    })<br/>    Mailgun = object({<br/>      error_rate_threshold      = number<br/>      evaluation_period_seconds = number<br/>      datapoints_to_alarm       = number<br/>      evaluation_periods        = number<br/>    })<br/>    Google = object({<br/>      error_rate_threshold      = number<br/>      evaluation_period_seconds = number<br/>      datapoints_to_alarm       = number<br/>      evaluation_periods        = number<br/>    })<br/>  })</pre> | <pre>{<br/>  "Google": {<br/>    "datapoints_to_alarm": 1,<br/>    "error_rate_threshold": 2,<br/>    "evaluation_period_seconds": 3600,<br/>    "evaluation_periods": 1<br/>  },<br/>  "Mailgun": {<br/>    "datapoints_to_alarm": 1,<br/>    "error_rate_threshold": 5,<br/>    "evaluation_period_seconds": 3600,<br/>    "evaluation_periods": 1<br/>  },<br/>  "Vonage": {<br/>    "datapoints_to_alarm": 1,<br/>    "error_rate_threshold": 2,<br/>    "evaluation_period_seconds": 3600,<br/>    "evaluation_periods": 1<br/>  }<br/>}</pre> | no |
 | <a name="input_vonage_auth_config"></a> [vonage\_auth\_config](#input\_vonage\_auth\_config) | n/a | <pre>object({<br/>    api_key                    = string<br/>    application_id             = string<br/>    private_key_secret_path    = string<br/>    webhook_jwt_signing_secret = string<br/>  })</pre> | n/a | yes |

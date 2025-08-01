@@ -17,6 +17,10 @@ import { ourStripeEventTypeZodLiteralArray } from './StripeWebhookEventFiredEven
 export const noPhoneNumberForCalendarEventFoundEventType = z.literal(
   'NoPhoneNumberForCalendarEventFound'
 );
+export const lowCreditsDetectedEventType = z.literal('LowCreditsDetected');
+export const insufficientCreditsReminderNotSentEventType = z.literal(
+  'InsufficientCreditsReminderNotSent'
+);
 
 export const successEventTypeSchema = z.union([
   z.literal('UserCalendarFetched'),
@@ -25,7 +29,8 @@ export const successEventTypeSchema = z.union([
   z.literal('ActionableEventReminderAttemptSent'),
   z.literal('ActionableEventReminderAttemptSkipped'),
   z.literal('ActionableEventReminderStatusUpdated'),
-  z.literal('InsufficientCreditReminderNotSent'),
+  z.literal('CreditsAdjusted'),
+  insufficientCreditsReminderNotSentEventType,
   z.literal('DemoReminderToBeSent'),
   z.literal('DemoReminderToBeSentAttemptFailed'),
   z.literal('DemoReminderToBeSentAttemptSent'),
@@ -47,7 +52,7 @@ export const successEventTypeSchema = z.union([
   z.literal('SubscriptionDowngradeScheduled'),
   z.literal('SubscriptionCancelled'),
   z.literal('TopupSucceeded'),
-  z.literal('LowCreditsDetected'),
+  lowCreditsDetectedEventType,
   ...ourStripeEventTypeZodLiteralArray
 ]);
 export const errorEventTypeSchema = z.union([

@@ -30,6 +30,11 @@ variable "base_domain" {
   default = "notifycal.com"
 }
 
+variable "frontend_url" {
+  type    = string
+  default = "https://private.notifycal.com"
+}
+
 variable "domain_prefix" {
   type    = string
   default = "api"
@@ -289,12 +294,12 @@ variable "customer_portal_configuration_id" {
 }
 
 variable "stripe_operating_api_key" {
-  description = "Stripe operating API key"
+  description = "Stripe operating API key. See stripe.README.md"
   type        = string
   sensitive   = true
 }
 variable "stripe_admin_api_key" {
-  description = "Stripe admin API key"
+  description = "Stripe admin API key. See stripe.README.md"
   type        = string
   sensitive   = true
 }
@@ -302,4 +307,11 @@ variable "stripe_admin_api_key" {
 variable "stripe_api_version" {
   type    = string
   default = "2025-05-28.basil"
+}
+
+variable "stripe_admin_webhook_url" {
+  description = "Endpoint URL for Stripe to send admin-level updates such us new customer, disputes open, etc.. Typically, it will be the Stripe Slack App. It requires a manual step: check out https://notifycal.slack.com/marketplace/A0F81FNVC-stripe"
+  type        = string
+  sensitive   = true
+  default     = null
 }

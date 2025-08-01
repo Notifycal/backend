@@ -1,11 +1,10 @@
 import type { Logger } from '@aws-lambda-powertools/logger';
 import type { LogItemExtraInput } from '@aws-lambda-powertools/logger/types';
 import type { BaseErrorEvent, BaseEvent } from '@model/app-events/BaseEvent';
-import type { CreditAdditionResult, CreditDeductionResult } from '@services/credits-service';
 import type { SnsService } from '@services/sns';
 
 export function handleServiceOperation<
-  TResult extends CreditAdditionResult | CreditDeductionResult,
+  TResult extends { success: boolean },
   TEvent extends BaseEvent,
   TErrorEvent extends BaseErrorEvent
 >(
@@ -43,8 +42,18 @@ export function extractErrorMessage(error: unknown): string {
   }
 }
 
-export function rejectWithErrorMessage(baseMsg: string, error: unknown): Promise<never> {
-  return Promise.reject(new Error(baseMsg, { cause: error }));
+export function rejectWithMessage(baseMsg: string): Promise<never> {
+  return Promise.reject(new Error(baseMsg));
+}
+
+export function rejectWithMessageAndError(baseMsg: string, cause: unknown): Promise<never> {
+  return Promise.reject(new Error(baseMsg, { cause }));
+}
+
+export function rejectWithError(error: unknown): Promise<never> {
+  return Promise.reject(
+    error instanceof Error ? error : new Error(String(error), { cause: error })
+  );
 }
 
 function _throwError(
@@ -74,4 +83,14 @@ export function rethrowError(
 
 export function throwError(msg: string, logger: Logger, ...extraInput: LogItemExtraInput): never {
   _throwError(msg, logger, undefined, 'error', ...[...extraInput]);
+}
+
+export function rethrowErrorHandler(
+  message: string,
+  logger: Logger,
+  ...extraInput: LogItemExtraInput
+): (error: unknown) => Promise<void | undefined> {
+  return (error: unknown) => {
+    rethrowError(message, error, logger, ...[...extraInput]);
+  };
 }

@@ -3,12 +3,12 @@ import { logger } from '@common/powertools';
 import type { Tier, Topup } from '@model/PaymentPlans';
 import type {
   Email,
-  Identity,
   IdpId,
   IdpName,
   LanguageCode,
   StripeCustomerId,
-  UserId
+  UserId,
+  UserIdentity
 } from '@notifycal/shared/types';
 import type { Url } from '@own-types/model';
 import { HttpClient } from '@services/common/http-client';
@@ -31,7 +31,7 @@ const validApiKey = 'sk_test_123456789';
 describe(StripeService, () => {
   const validUserId = 'cfaa8471-f4cc-44da-bc22-ddc4b735a847' as UserId;
   const validEmail = 'test@notifycal.com' as Email;
-  const validIdentity: Identity<'google.com'> = {
+  const validIdentity: UserIdentity<'google.com'> = {
     userId: validUserId,
     idp: 'google.com',
     idpId: '1234567890' as IdpId,
@@ -76,7 +76,7 @@ describe(StripeService, () => {
     expect(HttpClient).toHaveBeenCalledWith(undefined, undefined, 'Stripe');
     expect(mockConstructor).toHaveBeenCalledTimes(1);
     expect(mockConstructor).toHaveBeenCalledWith(validApiKey, {
-      apiVersion: '2025-06-30.basil',
+      apiVersion: '2025-07-30.basil',
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       httpClient: expect.any(Object)
     });
@@ -89,8 +89,8 @@ describe(StripeService, () => {
       const result = await testCreateCustomer(validIdentity, createCustomerFn);
 
       // eslint-disable-next-line @typescript-eslint/unbound-method
-      expect(logger.info).toHaveBeenCalledWith('Creating customer in Stripe for identity', {
-        identity: validIdentity
+      expect(logger.info).toHaveBeenCalledWith('Creating customer in Stripe for user identity', {
+        userIdentity: validIdentity
       });
       expect(result).toBe(validStripeCustomerId);
       expect(createCustomerFn).toHaveBeenCalledTimes(1);
@@ -547,39 +547,194 @@ describe(StripeService, () => {
 
   describe('createCustomerPortalSession', () => {
     const validStripeCustomerPortalConfigId = 'cng_rdtsghethergwrg';
+    const validLanguage: LanguageCode = 'es';
 
-    it('should create customer portal session successfully and return session URL', async () => {
+    type FlowType = 'subscription_cancel' | 'subscription_update' | 'payment_method_update';
+
+    async function testPortalSession(
+      flowType: FlowType,
+      subscriptionsData: Array<{ id: string; status: string; cancel_at_period_end?: boolean }> = [],
+      expectedFlowData?: Stripe.BillingPortal.SessionCreateParams.FlowData
+    ) {
       const mockSession = { url: validPortalUrl };
       const createPortalSessionFn = vi.fn().mockResolvedValue(mockSession);
+      const listSubscriptionsFn = vi.fn().mockResolvedValue({ data: subscriptionsData });
 
       const result = await testCustomerPortalSession(
         validStripeCustomerId,
         validReturnUrl,
         validStripeCustomerPortalConfigId,
-        createPortalSessionFn
+        validLanguage,
+        flowType,
+        createPortalSessionFn,
+        listSubscriptionsFn
+      );
+
+      expect(result).toBe(validPortalUrl);
+
+      expect(listSubscriptionsFn).toHaveBeenCalledTimes(1);
+      expect(listSubscriptionsFn).toHaveBeenCalledWith({
+        customer: validStripeCustomerId,
+        status: 'all',
+        limit: 100
+      });
+
+      expect(createPortalSessionFn).toHaveBeenCalledTimes(1);
+
+      const expectedCall = {
+        customer: validStripeCustomerId,
+        return_url: validReturnUrl,
+        configuration: validStripeCustomerPortalConfigId,
+        locale: validLanguage,
+        ...(expectedFlowData && {
+          flow_data: {
+            ...expectedFlowData,
+            after_completion: {
+              type: 'redirect',
+              redirect: {
+                return_url: validReturnUrl
+              }
+            }
+          }
+        })
+      };
+
+      expect(createPortalSessionFn).toHaveBeenCalledWith(expectedCall);
+
+      if (!expectedFlowData) {
+        // eslint-disable-next-line vitest/max-expects
+        expect(createPortalSessionFn).not.toHaveBeenCalledWith(
+          expect.objectContaining({
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            flow_data: expect.any(Object)
+          })
+        );
+      }
+    }
+
+    it('should create customer portal session successfully without flow_data when flowType is undefined', async () => {
+      const mockSession = { url: validPortalUrl };
+      const createPortalSessionFn = vi.fn().mockResolvedValue(mockSession);
+      const listSubscriptionsFn = vi.fn().mockResolvedValue({ data: [] });
+
+      const result = await testCustomerPortalSession(
+        validStripeCustomerId,
+        validReturnUrl,
+        validStripeCustomerPortalConfigId,
+        validLanguage,
+        undefined,
+        createPortalSessionFn,
+        listSubscriptionsFn
       );
 
       expect(result).toBe(validPortalUrl);
       expect(createPortalSessionFn).toHaveBeenCalledTimes(1);
       expect(createPortalSessionFn).toHaveBeenCalledWith({
-        customer: validStripeCustomerId,
         return_url: validReturnUrl,
-        configuration: validStripeCustomerPortalConfigId
+        configuration: validStripeCustomerPortalConfigId,
+        customer: validStripeCustomerId,
+        locale: validLanguage
       });
+      expect(listSubscriptionsFn).not.toHaveBeenCalled();
+    });
+
+    // eslint-disable-next-line vitest/expect-expect
+    it('should create portal session with flow_data when flowType is subscription_update and subscriptions exist', async () => {
+      await testPortalSession('subscription_update', [{ id: 'sub_123', status: 'active' }], {
+        type: 'subscription_update',
+        subscription_update: {
+          subscription: 'sub_123'
+        }
+      });
+    });
+
+    // eslint-disable-next-line vitest/expect-expect
+    it('should create portal session with flow_data when flowType is subscription_cancel and subscriptions exist', async () => {
+      await testPortalSession('subscription_cancel', [{ id: 'sub_789', status: 'active' }], {
+        type: 'subscription_cancel',
+        subscription_cancel: {
+          subscription: 'sub_789'
+        }
+      });
+    });
+
+    // eslint-disable-next-line vitest/expect-expect
+    it('should create portal session with flow_data when flowType is payment_method_update and subscriptions exist', async () => {
+      await testPortalSession('payment_method_update', [{ id: 'sub_payment', status: 'active' }], {
+        type: 'payment_method_update'
+      });
+    });
+
+    // eslint-disable-next-line vitest/expect-expect
+    it('should create portal session without flow_data when subscription_update flowType is provided but no subscriptions exist', async () => {
+      await testPortalSession('subscription_update');
+    });
+
+    // eslint-disable-next-line vitest/expect-expect
+    it('should create portal session without flow_data when payment_method_update flowType is provided but no subscriptions exist', async () => {
+      await testPortalSession('payment_method_update');
+    });
+
+    // eslint-disable-next-line vitest/expect-expect
+    it('should create portal session without flow_data when subscription_cancel flowType is provided but only inactive subscriptions exist', async () => {
+      const inactiveSubscriptions = [
+        { id: 'sub_canceled', status: 'canceled' },
+        { id: 'sub_incomplete', status: 'incomplete' }
+      ];
+      await testPortalSession('subscription_cancel', inactiveSubscriptions);
+    });
+
+    // eslint-disable-next-line vitest/expect-expect
+    it('should create portal session without flow_data when payment_method_update flowType is provided but only inactive subscriptions exist', async () => {
+      const inactiveSubscriptions = [
+        { id: 'sub_canceled', status: 'canceled' },
+        { id: 'sub_incomplete', status: 'incomplete' }
+      ];
+      await testPortalSession('payment_method_update', inactiveSubscriptions);
+    });
+
+    // eslint-disable-next-line vitest/expect-expect
+    it('should create portal session without flow_data when subscription_cancel flowType is provided but subscription is already scheduled to cancel', async () => {
+      const subscriptionsWithCancelScheduled = [
+        { id: 'sub_cancel_scheduled', status: 'active', cancel_at_period_end: true }
+      ];
+      await testPortalSession('subscription_cancel', subscriptionsWithCancelScheduled);
     });
 
     it('should throw error when customer portal session creation fails', async () => {
       const stripeError = new Error('Portal session creation failed');
       const createPortalSessionFn = vi.fn().mockRejectedValue(stripeError);
+      const listSubscriptionsFn = vi.fn().mockResolvedValue({ data: [] });
 
       await expect(
         testCustomerPortalSession(
           validStripeCustomerId,
           validReturnUrl,
           validStripeCustomerPortalConfigId,
-          createPortalSessionFn
+          validLanguage,
+          undefined,
+          createPortalSessionFn,
+          listSubscriptionsFn
         )
       ).rejects.toThrow('Portal session creation failed');
+    });
+
+    it('should throw error when subscription listing fails', async () => {
+      const stripeError = new Error('Failed to list subscriptions');
+      const createPortalSessionFn = vi.fn().mockResolvedValue({ url: validPortalUrl });
+      const listSubscriptionsFn = vi.fn().mockRejectedValue(stripeError);
+
+      await expect(
+        testCustomerPortalSession(
+          validStripeCustomerId,
+          validReturnUrl,
+          validStripeCustomerPortalConfigId,
+          validLanguage,
+          'subscription_update',
+          createPortalSessionFn,
+          listSubscriptionsFn
+        )
+      ).rejects.toThrow('Failed to list subscriptions');
     });
   });
 
@@ -691,7 +846,7 @@ describe(StripeService, () => {
   });
 
   async function testCreateCustomer(
-    identity: Identity<IdpName>,
+    userIdentity: UserIdentity<IdpName>,
     createCustomerFn: () => Promise<{ id: string }>,
     testClockListFn: MockInstance = vi.fn().mockRejectedValue(new Error('Testing in anger')),
     testClockCreateFn: MockInstance = vi.fn().mockRejectedValue(new Error('Testing in anger'))
@@ -706,12 +861,12 @@ describe(StripeService, () => {
     setupMocks(mockStripeInstance);
 
     const stripeService = await StripeService.withConfig(validApiKey);
-    return stripeService.createCustomer(identity);
+    return stripeService.createCustomer(userIdentity);
   }
 
   async function testCheckoutSession(
     stripeCustomerId: StripeCustomerId,
-    identity: Identity<IdpName>,
+    userIdentity: UserIdentity<IdpName>,
     product: Tier | Topup,
     language: LanguageCode,
     successRedirectUrl: Url,
@@ -732,7 +887,7 @@ describe(StripeService, () => {
     const stripeService = await StripeService.withConfig(validApiKey);
     return stripeService.createCheckoutSession(
       stripeCustomerId,
-      identity,
+      userIdentity,
       product,
       language,
       successRedirectUrl,
@@ -745,7 +900,17 @@ describe(StripeService, () => {
     stripeCustomerId: StripeCustomerId,
     returnUrl: Url,
     configId: string,
-    createPortalSessionFn: () => Promise<Stripe.Response<Stripe.BillingPortal.Session>>
+    language: LanguageCode,
+    flow_type:
+      | Extract<
+          Stripe.BillingPortal.SessionCreateParams.FlowData.Type,
+          'subscription_cancel' | 'subscription_update' | 'payment_method_update'
+        >
+      | undefined,
+    createPortalSessionFn: () => Promise<Stripe.Response<Stripe.BillingPortal.Session>>,
+    listSubscriptionsFn: () => Promise<{
+      data: Array<{ id: string; status: string; cancel_at_period_end?: boolean }>;
+    }>
   ): Promise<Url> {
     const mockStripeInstance = {
       ...testClocksMockFn(),
@@ -753,18 +918,29 @@ describe(StripeService, () => {
         sessions: {
           create: createPortalSessionFn
         }
+      },
+      subscriptions: {
+        list: listSubscriptionsFn
       }
     } as unknown as Stripe;
 
     setupMocks(mockStripeInstance);
 
     const stripeService = await StripeService.withConfig(validApiKey);
-    return stripeService.createCustomerPortalSession(stripeCustomerId, returnUrl, configId);
+    return stripeService.createCustomerPortalSession(
+      stripeCustomerId,
+      returnUrl,
+      configId,
+      language,
+      flow_type
+    );
   }
 
   async function testCountSubscriptions(
     stripeCustomerId: StripeCustomerId,
-    listSubscriptionsFn: () => Promise<{ data: Array<{ id: string; status: string }> }>
+    listSubscriptionsFn: () => Promise<{
+      data: Array<{ id: string; status: string; cancel_at_period_end?: boolean }>;
+    }>
   ): Promise<number> {
     const mockStripeInstance = {
       ...testClocksMockFn(),

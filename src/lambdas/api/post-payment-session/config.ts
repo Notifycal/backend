@@ -12,7 +12,8 @@ import { promiseTry } from '@utils/promises';
 
 export interface StripeCheckoutConfig {
   successRedirectUrlPath: Url;
-  cancelRedirectUrlPath: Url;
+  cancelSubscriptionRedirectUrlPath: Url;
+  cancelTopupRedirectUrlPath: Url;
   taxId: string;
 }
 
@@ -41,8 +42,12 @@ function readStripeConfig(env: Environment): StripeCheckoutEndpointConfig {
         .get('STRIPE_SUCCESS_REDIRECT_URL_PATH')
         .required()
         .asString() as Url,
-      cancelRedirectUrlPath: env
-        .get('STRIPE_CANCEL_REDIRECT_URL_PATH')
+      cancelSubscriptionRedirectUrlPath: env
+        .get('STRIPE_CANCEL_SUBSCRIPTION_REDIRECT_URL_PATH')
+        .required()
+        .asString() as Url,
+      cancelTopupRedirectUrlPath: env
+        .get('STRIPE_CANCEL_TOPUP_REDIRECT_URL_PATH')
         .required()
         .asString() as Url,
       taxId: env.get('STRIPE_TAX_ID').required().asString()

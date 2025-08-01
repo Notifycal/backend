@@ -140,6 +140,6 @@ module "send_event_reminder_lambda" {
     VONAGE_SSM_PATH_PRIVATE_KEY = data.aws_ssm_parameter.vonage_private_key.name
     VONAGE_WEBHOOK_BASE_URL     = "${local.api_url}/api/v1/webhook/reminder-status"
 
-    COUNTRY_CODE_TO_SMS_COST_MAP = jsonencode(var.country_to_sms_cost_map)
-  }, local.messaging_topic_env_vars, local.idempotency_persistance_env_vars, local.users_persistance_env_vars, local.demo_reminder_limit_env_vars, local.common_lambda_env_vars)
+    LOW_CREDIT_THRESHOLD = 25
+  }, local.messaging_topic_env_vars, local.idempotency_persistance_env_vars, local.users_persistance_env_vars, local.demo_reminder_limit_env_vars, local.credits_service_env_vars, local.common_lambda_env_vars)
 }

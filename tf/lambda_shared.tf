@@ -77,6 +77,15 @@ locals {
   demo_reminder_limit_env_vars = {
     DEMO_REMINDER_LIMIT = 1
   }
+  credits_service_env_vars = {
+    COUNTRY_CODE_TO_SMS_COST_MAP = jsonencode(var.country_to_sms_cost_map)
+  }
+
+  alert_email_config_env_vars = {
+    BILLING_URL  = "${var.frontend_url}/#/billing"
+    FAQ_URL      = "https://${var.base_domain}/faq"
+    FEEDBACK_URL = "${var.frontend_url}/#/feedback"
+  }
 
   type_mapping = {
     tiers  = "tier"

@@ -3,7 +3,7 @@ import { corsErrorResponse } from '@common/cors-middleware';
 import { protectedEndpointMiddleware } from '@common/lambda-middleware';
 import { logger, metrics } from '@common/powertools';
 import type { Tier, Topup } from '@model/PaymentPlans';
-import type { Identity, IdpName, StripeCustomerId } from '@notifycal/shared/types';
+import type { IdpName, StripeCustomerId, UserIdentity } from '@notifycal/shared/types';
 import type { Url } from '@own-types/model';
 import {
   errorHandler,
@@ -19,15 +19,15 @@ import { readPostPaymentCheckoutSessionConfig } from './config';
 import { type Event, eventSchema } from './schemas';
 
 function createCustomerOrRetrieve(
-  identity: Identity<IdpName>,
+  userIdentity: UserIdentity<IdpName>,
   userBaseStore: UserBaseStore<IdpName>,
   stripeService: StripeService
 ): Promise<StripeCustomerId> {
   return userBaseStore
-    .getStripeCustomerId(identity.userId)
+    .getStripeCustomerId(userIdentity.userId)
     .catch((error) => {
       logger.error('Failed to get stripe customer ID from database', {
-        userId: identity.userId,
+        userId: userIdentity.userId,
         error
       });
       throw error;
@@ -37,21 +37,21 @@ function createCustomerOrRetrieve(
         return Promise.resolve(stripeCustomerIdOrNot);
       } else {
         return stripeService
-          .createCustomer(identity)
+          .createCustomer(userIdentity)
           .catch((error) => {
             logger.error('Failed to create stripe customer', {
-              userId: identity.userId,
-              email: identity.email,
+              userId: userIdentity.userId,
+              email: userIdentity.email,
               error
             });
             throw error;
           })
           .then((stripeCustomerId) =>
             userBaseStore
-              .setStripeCustomerId(identity.userId, stripeCustomerId)
+              .setStripeCustomerId(userIdentity.userId, stripeCustomerId)
               .catch((error) => {
                 logger.error('Failed to save stripe customer ID to database', {
-                  userId: identity.userId,
+                  userId: userIdentity.userId,
                   stripeCustomerId,
                   error
                 });
@@ -67,7 +67,7 @@ function checkEligibility(
   stripeCustomerId: StripeCustomerId,
   selectedProduct: Tier | Topup,
   stripeService: StripeService,
-  identity: Identity<IdpName>
+  userIdentity: UserIdentity<IdpName>
 ): Promise<{ eligible: boolean; stripeCustomerId: StripeCustomerId }> {
   if (selectedProduct.type === 'topup') {
     return Promise.resolve({ eligible: true, stripeCustomerId });
@@ -76,7 +76,7 @@ function checkEligibility(
   return stripeService.countSubscriptions(stripeCustomerId).then((activeSubscriptionCount) => {
     if (activeSubscriptionCount >= 1) {
       logger.info('Customer already has an active subscription', {
-        userId: identity.userId,
+        userId: userIdentity.userId,
         stripeCustomerId,
         activeSubscriptionCount
       });
@@ -92,11 +92,16 @@ async function lambdaHandler(
   _ctx: Context
 ): Promise<APIGatewayProxyResult> {
   const { userId, idp, idpId, email } = event.requestContext.authorizer.payload;
-  const identity = { userId, idp, idpId, email };
+  const userIdentity = { userId, idp, idpId, email };
   const { stripeAuthConfig, stripeCheckoutConfig, paymentPlans, userBaseStoreConfig } =
     event.lambdaConfig;
   const apiKey = stripeAuthConfig.apiKey;
-  const { successRedirectUrlPath, cancelRedirectUrlPath, taxId } = stripeCheckoutConfig;
+  const {
+    successRedirectUrlPath,
+    cancelSubscriptionRedirectUrlPath,
+    cancelTopupRedirectUrlPath,
+    taxId
+  } = stripeCheckoutConfig;
   const { language } = event.body;
 
   const selectedProduct = match(event.body)
@@ -111,6 +116,10 @@ async function lambdaHandler(
   if (!frontendUrl) {
     return corsErrorResponse;
   }
+  const cancelRedirectUrlPath = match(selectedProduct.type)
+    .with('tier', () => cancelSubscriptionRedirectUrlPath)
+    .with('topup', () => cancelTopupRedirectUrlPath)
+    .exhaustive();
   const successRedirectUrl = `${frontendUrl}${successRedirectUrlPath}` as Url;
   const cancelRedirectUrl = `${frontendUrl}${cancelRedirectUrlPath}` as Url;
 
@@ -121,9 +130,9 @@ async function lambdaHandler(
   const userBaseStore = UserBaseStore.withConfig(userBaseStoreConfig, logger);
   const stripeService = await StripeService.withConfig(apiKey);
 
-  return createCustomerOrRetrieve(identity, userBaseStore, stripeService)
+  return createCustomerOrRetrieve(userIdentity, userBaseStore, stripeService)
     .then((stripeCustomerId) =>
-      checkEligibility(stripeCustomerId, selectedProduct, stripeService, identity)
+      checkEligibility(stripeCustomerId, selectedProduct, stripeService, userIdentity)
     )
     .then((eligibilityResult) => {
       if (!eligibilityResult.eligible) {
@@ -139,7 +148,7 @@ async function lambdaHandler(
       return stripeService
         .createCheckoutSession(
           eligibilityResult.stripeCustomerId,
-          identity,
+          userIdentity,
           selectedProduct,
           language,
           successRedirectUrl,
@@ -159,7 +168,7 @@ async function lambdaHandler(
           },
           (error) => {
             logger.error('Failed to create stripe checkout session', {
-              userId: identity.userId,
+              userId: userIdentity.userId,
               stripeCustomerId: eligibilityResult.stripeCustomerId,
               product: selectedProduct.id,
               error

@@ -1,8 +1,8 @@
 /* eslint-disable camelcase */
 import type { Logger } from '@aws-lambda-powertools/logger';
+import type { CreditAdditionResult } from '@model/Credits';
 import type { TierMap, TopupMap } from '@model/PaymentPlans';
-import type { Identity, IdpName, TierId, TopupId } from '@notifycal/shared/types';
-import type { CreditAdditionResult } from '@services/credits-service';
+import type { IdpName, TierId, TopupId, UserIdentity } from '@notifycal/shared/types';
 import type { SubscriptionService } from '@services/subscription';
 import type { TopupService } from '@services/topup';
 import type Stripe from 'stripe';
@@ -22,13 +22,16 @@ export class InvoiceCreatedHandler
     super(stripeEventType);
   }
 
-  public handle(event: Stripe.InvoiceCreatedEvent, identity: Identity<IdpName>): Promise<void> {
+  public handle(
+    event: Stripe.InvoiceCreatedEvent,
+    userIdentity: UserIdentity<IdpName>
+  ): Promise<void> {
     const invoice = event.data.object;
     this.logger.info('Handling invoice created', {
       invoiceId: invoice.id,
       customerId: invoice.customer,
       amount: invoice.amount_due,
-      userId: identity.userId
+      userId: userIdentity.userId
     });
     return Promise.resolve();
   }
@@ -51,7 +54,7 @@ export class InvoicePaymentSucceededHandler
 
   public handle(
     event: Stripe.InvoicePaymentSucceededEvent,
-    identity: Identity<IdpName>
+    userIdentity: UserIdentity<IdpName>
   ): Promise<void> {
     const invoice = event.data.object;
     this.logger.info('Handling invoice payment succeeded', {
@@ -59,15 +62,19 @@ export class InvoicePaymentSucceededHandler
       customerId: invoice.customer,
       amount: invoice.amount_paid,
       billingReason: invoice.billing_reason,
-      userId: identity.userId
+      userId: userIdentity.userId
     });
     return match(invoice)
-      .with({ billing_reason: 'subscription_create' }, () => this.createHandler(invoice, identity))
-      .with({ billing_reason: 'subscription_cycle' }, () => this.renewHandler(invoice, identity))
-      .with({ billing_reason: 'subscription_update' }, (invoice) =>
-        this.handleSubscriptionUpdate(identity, invoice)
+      .with({ billing_reason: 'subscription_create' }, () =>
+        this.createHandler(invoice, userIdentity)
       )
-      .with({ billing_reason: 'manual' }, (invoice) => this.topupHandler(invoice, identity))
+      .with({ billing_reason: 'subscription_cycle' }, () =>
+        this.renewHandler(invoice, userIdentity)
+      )
+      .with({ billing_reason: 'subscription_update' }, (invoice) =>
+        this.handleSubscriptionUpdate(userIdentity, invoice)
+      )
+      .with({ billing_reason: 'manual' }, (invoice) => this.topupHandler(invoice, userIdentity))
       .otherwise((invoice) => {
         this.logger.warn('Unhandled billing reason', {
           invoiceId: invoice.id,
@@ -77,33 +84,41 @@ export class InvoicePaymentSucceededHandler
       });
   }
 
-  private createHandler(invoice: Stripe.Invoice, identity: Identity<IdpName>): Promise<void> {
+  private createHandler(
+    invoice: Stripe.Invoice,
+    userIdentity: UserIdentity<IdpName>
+  ): Promise<void> {
     const firstConceptInInvoice = invoice.lines.data[0];
     return this.extractProduct(firstConceptInInvoice, this.tiers).then(
       (tierId) =>
         this.subscriptionService
-          .create(identity, tierId)
+          .create(userIdentity, tierId)
           .then((r) => this.creditAdditionHandler(r)),
       (error) => this.errorHandler('create-subscription')(error)
     );
   }
 
-  private renewHandler(invoice: Stripe.Invoice, identity: Identity<IdpName>): Promise<void> {
+  private renewHandler(
+    invoice: Stripe.Invoice,
+    userIdentity: UserIdentity<IdpName>
+  ): Promise<void> {
     const firstConceptInInvoice = invoice.lines.data[0];
     return this.extractProduct(firstConceptInInvoice, this.tiers).then(
       (tierId) =>
-        this.subscriptionService.renew(identity, tierId).then((r) => this.creditAdditionHandler(r)),
+        this.subscriptionService
+          .renew(userIdentity, tierId)
+          .then((r) => this.creditAdditionHandler(r)),
       (error) => this.errorHandler('renew-subscription')(error)
     );
   }
 
   private handleSubscriptionUpdate(
-    identity: Identity<IdpName>,
+    userIdentity: UserIdentity<IdpName>,
     invoice: Stripe.Invoice
   ): Promise<void> {
     const updateType = this.determineUpdateType(invoice);
     return this.extractUpdateTiers(invoice).then(
-      (tiers) => this.executeSubscriptionUpdate(identity, invoice, tiers, updateType),
+      (tiers) => this.executeSubscriptionUpdate(userIdentity, invoice, tiers, updateType),
       (error) =>
         Promise.reject(
           new Error(
@@ -147,7 +162,7 @@ export class InvoicePaymentSucceededHandler
   }
 
   private async executeSubscriptionUpdate(
-    identity: Identity<IdpName>,
+    userIdentity: UserIdentity<IdpName>,
     invoice: Stripe.Invoice,
     tiers: { previousTier: TierId; currentTier: TierId },
     updateType: 'upgrade-subscription' | 'downgrade-subscription' | 'undetermined'
@@ -157,7 +172,7 @@ export class InvoicePaymentSucceededHandler
         return this.calculateRemainingCyclePercentageFromInvoice(invoice)
           .then((remainingPercentage) =>
             this.subscriptionService.upgrade(
-              identity,
+              userIdentity,
               tiers.previousTier,
               tiers.currentTier,
               remainingPercentage
@@ -170,7 +185,7 @@ export class InvoicePaymentSucceededHandler
       })
       .with('downgrade-subscription', () =>
         this.subscriptionService
-          .scheduleDowngrade(identity)
+          .scheduleDowngrade(userIdentity)
           .catch((error) => this.errorHandler('downgrade-subscription')(error))
       )
       .with('undetermined', () =>
@@ -183,7 +198,10 @@ export class InvoicePaymentSucceededHandler
       .exhaustive();
   }
 
-  private topupHandler(invoice: Stripe.Invoice, identity: Identity<IdpName>): Promise<void> {
+  private topupHandler(
+    invoice: Stripe.Invoice,
+    userIdentity: UserIdentity<IdpName>
+  ): Promise<void> {
     const product = invoice.lines.data[0];
     const quantity = product?.quantity || 0;
     if (quantity <= 0) {
@@ -193,7 +211,7 @@ export class InvoicePaymentSucceededHandler
     }
     return this.extractProduct(product, this.topups).then(
       (topupId) =>
-        this.topupService.add(identity, topupId, quantity).then(
+        this.topupService.add(userIdentity, topupId, quantity).then(
           (r) => this.creditAdditionHandler(r),
           (error) => this.errorHandler('topup')(error)
         ),
@@ -201,14 +219,14 @@ export class InvoicePaymentSucceededHandler
     );
   }
 
-  private creditAdditionHandler(result: CreditAdditionResult): Promise<void> {
-    return match(result)
-      .with({ result: 'Success' }, () => Promise.resolve())
-      .with({ result: 'UnknownError' }, { result: 'BadRequestError' }, (r) =>
+  private creditAdditionHandler(result: CreditAdditionResult<'reset' | 'add'>): Promise<void> {
+    return (
+      match(result)
+        .with({ success: true }, () => Promise.resolve())
         // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
-        Promise.reject(r.error)
-      )
-      .exhaustive();
+        .with({ success: false }, (r) => Promise.reject(r.error))
+        .exhaustive()
+    );
   }
 
   private errorHandler(
@@ -258,14 +276,14 @@ export class InvoicePaymentFailedHandler
 
   public handle(
     event: Stripe.InvoicePaymentFailedEvent,
-    identity: Identity<IdpName>
+    userIdentity: UserIdentity<IdpName>
   ): Promise<void> {
     const invoice = event.data.object;
     this.logger.info('Handling invoice payment failed', {
       invoiceId: invoice.id,
       customerId: invoice.customer,
       amount: invoice.amount_due,
-      userId: identity.userId
+      userId: userIdentity.userId
     });
     return Promise.resolve();
   }

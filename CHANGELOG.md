@@ -1,5 +1,209 @@
 # Changelog
 
+## [0.55.5](https://github.com/Notifycal/backend/compare/v0.55.4...v0.55.5) (2025-08-01)
+
+
+### Bug Fixes
+
+* secure stripe admin webhook url ([#905](https://github.com/Notifycal/backend/issues/905)) ([5c3e61a](https://github.com/Notifycal/backend/commit/5c3e61a3eab89bec3733e6a8cd643288b7a8719f))
+* stripe success redirections ([#907](https://github.com/Notifycal/backend/issues/907)) ([410cc6a](https://github.com/Notifycal/backend/commit/410cc6a5f18c43d1e06f8edec937b4d5822b1d13))
+
+## [0.55.4](https://github.com/Notifycal/backend/compare/v0.55.3...v0.55.4) (2025-07-31)
+
+
+### Bug Fixes
+
+* webhook url vonage too long ([#902](https://github.com/Notifycal/backend/issues/902)) ([f675093](https://github.com/Notifycal/backend/commit/f6750939b6ecc306d84cea61175baab78d5a17bf))
+
+## [0.55.3](https://github.com/Notifycal/backend/compare/v0.55.2...v0.55.3) (2025-07-31)
+
+
+### Bug Fixes
+
+* live users query ([#900](https://github.com/Notifycal/backend/issues/900)) ([bca5df7](https://github.com/Notifycal/backend/commit/bca5df72db086687a6632b41b37661523b3df2b0))
+
+## [0.55.2](https://github.com/Notifycal/backend/compare/v0.55.1...v0.55.2) (2025-07-31)
+
+
+### Bug Fixes
+
+* **deps:** Update dependency stripe to v18.4.0 ([#897](https://github.com/Notifycal/backend/issues/897)) ([a7965f3](https://github.com/Notifycal/backend/commit/a7965f3fb996b79c29407e7c7c26141de4ab36f6))
+
+## [0.55.1](https://github.com/Notifycal/backend/compare/v0.55.0...v0.55.1) (2025-07-29)
+
+
+### Bug Fixes
+
+* **deps:** Update dependency ts-pattern to v5.8.0 ([#890](https://github.com/Notifycal/backend/issues/890)) ([17a9be2](https://github.com/Notifycal/backend/commit/17a9be28955881662d5b486058f0442a03f9df8d))
+* **deps:** Update Google packages ([#889](https://github.com/Notifycal/backend/issues/889)) ([552e5b8](https://github.com/Notifycal/backend/commit/552e5b8ae0e758784975ac39e336a3bd26e4192e))
+* **deps:** Update Terraform cloudflare to v4.52.1 ([#891](https://github.com/Notifycal/backend/issues/891)) ([6bb2fdd](https://github.com/Notifycal/backend/commit/6bb2fdd5d870837801fe5f9b2e8e8d639c85048e))
+* linting process ([#892](https://github.com/Notifycal/backend/issues/892)) ([43466f8](https://github.com/Notifycal/backend/commit/43466f8d4d951bcbcff8b7c80199ef216d3b0b65))
+
+## [0.55.0](https://github.com/Notifycal/backend/compare/v0.54.1...v0.55.0) (2025-07-24)
+
+
+### Features
+
+* i18n catalan ([#876](https://github.com/Notifycal/backend/issues/876)) ([ed106a0](https://github.com/Notifycal/backend/commit/ed106a03e94a20ea7cc0dff242db21fbe7a0afb7))
+
+## [0.54.1](https://github.com/Notifycal/backend/compare/v0.54.0...v0.54.1) (2025-07-23)
+
+
+### Bug Fixes
+
+* **deps:** Update dependency googleapis to v154 ([#882](https://github.com/Notifycal/backend/issues/882)) ([b23ca46](https://github.com/Notifycal/backend/commit/b23ca4626b6c6c51ff61dcb8309e6cb8b52d97db))
+* update customer portal API spec. Forgot to commit this file earlier ([99ffca1](https://github.com/Notifycal/backend/commit/99ffca191994b44b280f8a4b188974e5d9ea30fc))
+* update customer portal API spec. Forgot to commit this file earlier. Again ([d247fdc](https://github.com/Notifycal/backend/commit/d247fdcc881a8af54a744cfd39dcf6ed63d71be6))
+
+## [0.54.0](https://github.com/Notifycal/backend/compare/v0.53.0...v0.54.0) (2025-07-23)
+
+
+### Features
+
+* customer portal language ([#880](https://github.com/Notifycal/backend/issues/880)) ([bfeb9ac](https://github.com/Notifycal/backend/commit/bfeb9acb978db952df3d201e9ea5db1c7a5aa5cb))
+
+
+### Bug Fixes
+
+* **deps:** Update dependency @notifycal/shared to v5.0.4 ([#881](https://github.com/Notifycal/backend/issues/881)) ([ad202af](https://github.com/Notifycal/backend/commit/ad202afc212c1db462d97c738a2c73f6c60485ed))
+* **deps:** Update dependency axios to v1.11.0 ([#878](https://github.com/Notifycal/backend/issues/878)) ([7fc7aaf](https://github.com/Notifycal/backend/commit/7fc7aaf070dc5dafd8a25dda91e86963acfcc17d))
+
+## [0.53.0](https://github.com/Notifycal/backend/compare/v0.52.0...v0.53.0) (2025-07-22)
+
+
+### Features
+
+* customer portal redirect after completion. payment session subscription/topup cancel redirect ([#873](https://github.com/Notifycal/backend/issues/873)) ([ea4d9f0](https://github.com/Notifycal/backend/commit/ea4d9f051b37e6b22f4f8b029f1d17637d2cb923))
+
+## [0.52.0](https://github.com/Notifycal/backend/compare/v0.51.1...v0.52.0) (2025-07-21)
+
+
+### Features
+
+* fire credit adjusted event ([#869](https://github.com/Notifycal/backend/issues/869)) ([14d3d45](https://github.com/Notifycal/backend/commit/14d3d45b58720bd5f9039e500444f53c096859fe))
+
+
+### Bug Fixes
+
+* reset subscription credits. And logging. ([#871](https://github.com/Notifycal/backend/issues/871)) ([fb98a0e](https://github.com/Notifycal/backend/commit/fb98a0e96a1849302c24e3cfb393d52f8eca7d13))
+
+## [0.51.1](https://github.com/Notifycal/backend/compare/v0.51.0...v0.51.1) (2025-07-21)
+
+
+### Bug Fixes
+
+* IaC issue stripe webhook module ([#867](https://github.com/Notifycal/backend/issues/867)) ([c03cf80](https://github.com/Notifycal/backend/commit/c03cf800bfd606d39dc2c57be31d9b41c9ee94d3))
+
+## [0.51.0](https://github.com/Notifycal/backend/compare/v0.50.0...v0.51.0) (2025-07-21)
+
+
+### Features
+
+* stripe admin webhook ([#862](https://github.com/Notifycal/backend/issues/862)) ([91424b4](https://github.com/Notifycal/backend/commit/91424b40003b3d60574b2bbf6ecb15a5995dd1be))
+
+
+### Bug Fixes
+
+* **deps:** Update Node.js Dependencies ([#843](https://github.com/Notifycal/backend/issues/843)) ([22cd782](https://github.com/Notifycal/backend/commit/22cd7826c8a2761a5d50ad52fc78bac2cd3fa506))
+
+## [0.50.0](https://github.com/Notifycal/backend/compare/v0.49.0...v0.50.0) (2025-07-21)
+
+
+### Features
+
+* adjust credits in vonage webhook if error in deduction ([#847](https://github.com/Notifycal/backend/issues/847)) ([e0417e3](https://github.com/Notifycal/backend/commit/e0417e38404fa103040eff7adc563b47557379e4))
+* restore credits if message sending fails. ([#840](https://github.com/Notifycal/backend/issues/840)) ([762291e](https://github.com/Notifycal/backend/commit/762291ea2f8d4750446621d9e30e233f26ad3a56))
+
+
+### Bug Fixes
+
+* **deps:** Update dependency @notifycal/shared to v5.0.2 ([#849](https://github.com/Notifycal/backend/issues/849)) ([9001ac0](https://github.com/Notifycal/backend/commit/9001ac076037c8bbbb3ad957ee36bbad6e1ac470))
+* **deps:** Update dependency googleapis to v153 ([#844](https://github.com/Notifycal/backend/issues/844)) ([acc0281](https://github.com/Notifycal/backend/commit/acc0281232f72f5223f77ef8637aef0efc7352bc))
+* remove z.custom ([#852](https://github.com/Notifycal/backend/issues/852)) ([75f39ba](https://github.com/Notifycal/backend/commit/75f39ba7472d6e18f7999b7afa87bbe196750c64))
+
+## [0.49.0](https://github.com/Notifycal/backend/compare/v0.48.1...v0.49.0) (2025-07-14)
+
+
+### Features
+
+* low credits detected event ([#838](https://github.com/Notifycal/backend/issues/838)) ([ca16ab4](https://github.com/Notifycal/backend/commit/ca16ab43c2cb076d06f1ab43e6874cc458ef63d4))
+
+## [0.48.1](https://github.com/Notifycal/backend/compare/v0.48.0...v0.48.1) (2025-07-14)
+
+
+### Bug Fixes
+
+* customer portal flow data ([#834](https://github.com/Notifycal/backend/issues/834)) ([928e140](https://github.com/Notifycal/backend/commit/928e1402ac8519c5956e5d8a6cfe10e7bfd2e5f2))
+* **deps:** Update dependency @notifycal/shared to v5.0.1 ([#835](https://github.com/Notifycal/backend/issues/835)) ([a502d5f](https://github.com/Notifycal/backend/commit/a502d5fe74d5fc1486409bdb07201ad11fb4ab68))
+
+## [0.48.0](https://github.com/Notifycal/backend/compare/v0.47.1...v0.48.0) (2025-07-14)
+
+
+### Features
+
+* feedback url in email footers. A bit of refactoring around email templating. ([#818](https://github.com/Notifycal/backend/issues/818)) ([e055e51](https://github.com/Notifycal/backend/commit/e055e51ba5d0f2b95c43c5da3d1770d3ed67ab0f))
+
+## [0.47.1](https://github.com/Notifycal/backend/compare/v0.47.0...v0.47.1) (2025-07-14)
+
+
+### Features
+
+* feedback url in email footers. A bit of refactoring around email templating. ([#818](https://github.com/Notifycal/backend/issues/818)) ([65b4b34](https://github.com/Notifycal/backend/commit/65b4b34025633792ab1408a43fb2ecc52033e399))
+
+
+### Bug Fixes
+
+* api gateway openapi shit support. oneOf cannot contain . What a … ([#830](https://github.com/Notifycal/backend/issues/830)) ([cf37d21](https://github.com/Notifycal/backend/commit/cf37d2172bfcf6a62907aea16deed75a13bb7965))
+
+
+### Miscellaneous Chores
+
+* release 0.47.1 ([782f4b8](https://github.com/Notifycal/backend/commit/782f4b8543247dc5140995849a5b2daf41e83f72))
+
+## [0.47.0](https://github.com/Notifycal/backend/compare/v0.46.2...v0.47.0) (2025-07-14)
+
+
+### Features
+
+* customer-portal flowTypes ([#825](https://github.com/Notifycal/backend/issues/825)) ([c7bee12](https://github.com/Notifycal/backend/commit/c7bee12d8fbf356319d8495b6bde0ad3b251cb1a))
+
+
+### Bug Fixes
+
+* **deps:** Update Middy middleware packages to v6.4.1 ([#828](https://github.com/Notifycal/backend/issues/828)) ([fe4224a](https://github.com/Notifycal/backend/commit/fe4224ae31dfaf5f3a69724f1458e3ae0afe7d18))
+* send user to billing page from customer portal ([#826](https://github.com/Notifycal/backend/issues/826)) ([5392fd6](https://github.com/Notifycal/backend/commit/5392fd6522c3e8ed0f08dbe667f5baa2e1360b81))
+
+## [0.46.2](https://github.com/Notifycal/backend/compare/v0.46.1...v0.46.2) (2025-07-14)
+
+
+### Bug Fixes
+
+* 409 conflict error message ([#823](https://github.com/Notifycal/backend/issues/823)) ([36b0c6a](https://github.com/Notifycal/backend/commit/36b0c6a9b13e5269b9f43a8fa4723c3f47aea1da))
+* **deps:** Update dependency libphonenumber-js to v1.12.10 ([#821](https://github.com/Notifycal/backend/issues/821)) ([7bbcab6](https://github.com/Notifycal/backend/commit/7bbcab67a60594deedeb1c62f0b064f0465dfd1f))
+* update open api topups ([#824](https://github.com/Notifycal/backend/issues/824)) ([e47c04a](https://github.com/Notifycal/backend/commit/e47c04a386434770ca45e388e291a3cc5287c75f))
+
+## [0.46.1](https://github.com/Notifycal/backend/compare/v0.46.0...v0.46.1) (2025-07-11)
+
+
+### Bug Fixes
+
+* **ci:** use `latest` instead of `main` ([#812](https://github.com/Notifycal/backend/issues/812)) ([e63e5ec](https://github.com/Notifycal/backend/commit/e63e5ec70f7a9e1c97ad757622f99eb926874e12))
+
+## [0.46.0](https://github.com/Notifycal/backend/compare/v0.45.1...v0.46.0) (2025-07-11)
+
+
+### Features
+
+* alert for events ([#797](https://github.com/Notifycal/backend/issues/797)) ([1651320](https://github.com/Notifycal/backend/commit/16513205f611ac314630a9ef96b95e6a4e1a1a39))
+* implementation for alert for events. Low credits detected and i… ([#811](https://github.com/Notifycal/backend/issues/811)) ([8a0f867](https://github.com/Notifycal/backend/commit/8a0f867a8a530838ee7def049eb7c0cd06e94fd3))
+
+
+### Bug Fixes
+
+* **deps:** Update dependency @notifycal/shared to v4.9.0 ([#814](https://github.com/Notifycal/backend/issues/814)) ([c1091f8](https://github.com/Notifycal/backend/commit/c1091f89b77873993ea07d15cc257f824c6efd64))
+* **deps:** Update dependency googleapis to v152 ([#800](https://github.com/Notifycal/backend/issues/800)) ([e7ed2ec](https://github.com/Notifycal/backend/commit/e7ed2ec5ca22a542631911711eba652b9125a0a9))
+* **deps:** Update dependency luxon to v3.7.1 ([#807](https://github.com/Notifycal/backend/issues/807)) ([2276097](https://github.com/Notifycal/backend/commit/22760979b8312a464a5ee6ffd577e22b7d6b02c4))
+
 ## [0.45.1](https://github.com/Notifycal/backend/compare/v0.45.0...v0.45.1) (2025-07-09)
 
 

@@ -4,7 +4,7 @@ import { demoReminderToBeSentAttemptSentEventSchema } from './DemoReminderToBeSe
 
 export const demoReminderToBeSentAttemptSkippedEventEventSchema = eventSchemaGenerator(
   'DemoReminderToBeSentAttemptSkipped',
-  demoReminderToBeSentAttemptSentEventSchema.shape.data
+  demoReminderToBeSentAttemptSentEventSchema.shape.data.omit({ demoCounterIncrementResult: true })
 );
 
 export type DemoReminderToBeSentAttemptSkippedEvent = z.infer<

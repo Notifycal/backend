@@ -1,19 +1,16 @@
 /* eslint-disable vitest/expect-expect */
+import type { CreditAdditionResult, CreditDeductionResult } from '@model/Credits';
 import type {
   Email,
-  Identity,
   IdpId,
   IdpName,
   Percentage,
   TierId,
-  UserId
+  UserId,
+  UserIdentity
 } from '@notifycal/shared/types';
 import { describe, expect, it, vi } from 'vitest';
-import type {
-  CreditAdditionResult,
-  CreditDeductionResult,
-  CreditsService
-} from './credits-service';
+import type { CreditsService } from './credits-service';
 import type { SnsService } from './sns';
 import { calculateUpgradeCredits, SubscriptionService } from './subscription';
 
@@ -22,7 +19,7 @@ describe(SubscriptionService, () => {
   const validGoodTier = 'good' as TierId;
   const validBetterTier = 'better' as TierId;
   const validBestTier = 'best' as TierId;
-  const validIdentity: Identity<IdpName> = {
+  const validIdentity: UserIdentity<IdpName> = {
     userId: validUserId,
     idp: 'google.com',
     idpId: 'google-user-123' as IdpId,
@@ -36,12 +33,12 @@ describe(SubscriptionService, () => {
     best: 1000
   };
 
-  const validSuccessResult: CreditAdditionResult = {
+  const validSuccessResult: CreditAdditionResult<'reset'> = {
     success: true,
     result: 'Success',
     operationDetails: {
       fromBalance: 'subscription',
-      quantity: 100
+      type: 'reset'
     },
     balances: {
       subscription: 150,
@@ -49,18 +46,18 @@ describe(SubscriptionService, () => {
     }
   };
 
-  const validErrorResult: CreditAdditionResult = {
+  const validErrorResult: CreditAdditionResult<'add'> = {
     success: false,
     result: 'UnknownError',
     error: new Error('Service unavailable')
   };
 
-  const validSuccessDeduction: CreditDeductionResult = {
+  const validSuccessDeduction: CreditDeductionResult<'clear'> = {
     success: true,
     result: 'Success',
     operationDetails: {
       fromBalance: 'subscription',
-      quantity: 50
+      type: 'clear'
     },
     balances: {
       subscription: 55,
@@ -117,17 +114,17 @@ describe(SubscriptionService, () => {
     });
 
     function testItCreate(
-      resetFn: () => Promise<CreditAdditionResult>,
-      identity: Identity<IdpName> = validIdentity,
+      resetFn: () => Promise<CreditAdditionResult<'reset'>>,
+      userIdentity: UserIdentity<IdpName> = validIdentity,
       tier: TierId = validGoodTier,
       map = validTierToCreditsMap
-    ): Promise<CreditAdditionResult> {
+    ): Promise<CreditAdditionResult<'reset'>> {
       const service = new SubscriptionService(
         { resetSubscriptionCredits: resetFn } as unknown as CreditsService<IdpName>,
         map,
         mockSnsService
       );
-      return service.create(identity, tier);
+      return service.create(userIdentity, tier);
     }
   });
 
@@ -179,17 +176,17 @@ describe(SubscriptionService, () => {
     });
 
     function testItRenew(
-      resetFn: () => Promise<CreditAdditionResult>,
-      identity: Identity<IdpName> = validIdentity,
+      resetFn: () => Promise<CreditAdditionResult<'reset'>>,
+      userIdentity: UserIdentity<IdpName> = validIdentity,
       tier: TierId = validGoodTier,
       map = validTierToCreditsMap
-    ): Promise<CreditAdditionResult> {
+    ): Promise<CreditAdditionResult<'reset'>> {
       const service = new SubscriptionService(
         { resetSubscriptionCredits: resetFn } as unknown as CreditsService<IdpName>,
         map,
         mockSnsService
       );
-      return service.renew(identity, tier);
+      return service.renew(userIdentity, tier);
     }
   });
 
@@ -287,18 +284,18 @@ describe(SubscriptionService, () => {
     });
 
     function testItUpgrade(
-      addFn: () => Promise<CreditAdditionResult>,
-      identity: Identity<IdpName>,
+      addFn: () => Promise<CreditAdditionResult<'add'>>,
+      userIdentity: UserIdentity<IdpName>,
       prev: TierId,
       curr: TierId,
       remainingPercentage: Percentage
-    ): Promise<CreditAdditionResult> {
+    ): Promise<CreditAdditionResult<'add'>> {
       const service = new SubscriptionService(
         { addCredits: addFn } as unknown as CreditsService<IdpName>,
         validTierToCreditsMap,
         mockSnsService
       );
-      return service.upgrade(identity, prev, curr, remainingPercentage);
+      return service.upgrade(userIdentity, prev, curr, remainingPercentage);
     }
   });
 
@@ -326,11 +323,11 @@ describe(SubscriptionService, () => {
     });
 
     function testItCancel(
-      deleteFn: () => Promise<CreditDeductionResult>,
+      clearFn: () => Promise<CreditDeductionResult<'clear'>>,
       reason: 'unpaid' | 'cancelled'
-    ): Promise<CreditDeductionResult> {
+    ): Promise<CreditDeductionResult<'clear'>> {
       const service = new SubscriptionService(
-        { clearSubscriptionCredits: deleteFn } as unknown as CreditsService<IdpName>,
+        { clearSubscriptionCredits: clearFn } as unknown as CreditsService<IdpName>,
         validTierToCreditsMap,
         mockSnsService
       );

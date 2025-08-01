@@ -2,9 +2,9 @@ import type { AuthorizationForIdp } from '@model/IdpAuthorization';
 
 import type {
   DateTime,
-  Identity,
   IdpName,
-  ReminderConfigTransformed
+  ReminderConfigTransformed,
+  UserIdentity
 } from '@notifycal/shared/types';
 
 export interface UserCalendar {
@@ -20,7 +20,7 @@ export interface LiveUserConfig extends Omit<ReminderConfigTransformed, 'confirm
   };
 }
 
-export interface LiveUser<TIdpName extends IdpName> extends Identity<TIdpName> {
+export interface LiveUser<TIdpName extends IdpName> extends UserIdentity<TIdpName> {
   config: ReminderConfigTransformed;
   idpAuthorization: AuthorizationForIdp<TIdpName>;
 }

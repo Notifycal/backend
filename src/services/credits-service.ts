@@ -1,92 +1,9 @@
 import type { Logger } from '@aws-lambda-powertools/logger';
+import type * as Credits from '@model/Credits';
 import { InsufficientCreditsError } from '@model/Errors';
-import type { IdpName, TierId, TopupId, UserId, UserStatus } from '@notifycal/shared/types';
+import type { IdpName, TierId, UserId, UserStatus } from '@notifycal/shared/types';
 import type { UserBaseStore } from '@services/stores/user-base-store';
 import { P, match } from 'ts-pattern';
-
-export type CreditOperationResult = CreditDeductionResult | DemoCounterIncrementResult;
-
-export interface CreditOperationDetails {
-  fromBalance: 'subscription' | 'topup';
-  quantity: number | 'clear' | 'reset';
-}
-export interface CreditDeductionSuccess {
-  readonly success: true;
-  readonly result: 'Success';
-  readonly operationDetails: CreditOperationDetails;
-  readonly balances: {
-    readonly subscription: number;
-    readonly topup: number;
-  };
-}
-export interface CreditDeductionInsufficientCreditsError {
-  readonly success: false;
-  readonly result: 'InsufficientCredits';
-  error: InsufficientCreditsError;
-}
-export interface CreditDeductionBadRequestError {
-  readonly success: false;
-  readonly result: 'BadRequestError';
-  error: unknown;
-}
-export interface CreditDeductionUnexpectedError {
-  readonly success: false;
-  readonly result: 'UnknownError';
-  error: unknown;
-}
-export type CreditDeductionResult =
-  | CreditDeductionSuccess
-  | CreditDeductionInsufficientCreditsError
-  | CreditDeductionBadRequestError
-  | CreditDeductionUnexpectedError;
-
-export interface CreditAdditionSuccess {
-  readonly success: true;
-  readonly result: 'Success';
-  readonly operationDetails: CreditOperationDetails;
-  readonly balances: {
-    readonly subscription: number;
-    readonly topup: number;
-  };
-}
-export interface CreditAdditionBadRequestError {
-  readonly success: false;
-  readonly result: 'BadRequestError';
-  error: unknown;
-}
-export interface CreditAdditionUnexpectedError {
-  readonly success: false;
-  readonly result: 'UnknownError';
-  error: unknown;
-}
-
-export type CreditAdditionResult =
-  | CreditAdditionSuccess
-  | CreditAdditionBadRequestError
-  | CreditAdditionUnexpectedError;
-
-export interface DemoCounterIncrementSuccess {
-  readonly success: true;
-  readonly result: 'Success';
-  readonly demoRemindersCount: number;
-}
-
-export interface DemoCounterLimitReachedError {
-  readonly success: false;
-  readonly result: 'DemoCounterLimitReachedError';
-  error: unknown;
-}
-
-export interface DemoCounterIncrementUnexpectedError {
-  readonly success: false;
-  readonly result: 'UnknownError';
-  error: unknown;
-}
-
-export type DemoCounterIncrementResult =
-  | DemoCounterIncrementSuccess
-  | DemoCounterLimitReachedError
-  | DemoCounterIncrementUnexpectedError;
 
 export class CreditsService<TIdpName extends IdpName> {
   public constructor(
@@ -94,17 +11,21 @@ export class CreditsService<TIdpName extends IdpName> {
     private readonly logger: Logger
   ) {}
 
-  public async deductCredits(userId: UserId, credits: number): Promise<CreditDeductionResult> {
+  public async deductCredits(
+    userId: UserId,
+    credits: number
+  ): Promise<Credits.CreditDeductionResult<'deduct'>> {
     if (credits <= 0) {
       return Promise.resolve(this.badRequestCreditError(credits));
     }
     return this.userStore.deductCredits(userId, credits, this.logger).then(
       (result) => {
-        const creditDeductionOperation: CreditDeductionSuccess = {
+        const creditDeductionOperation: Credits.CreditDeductionSuccess<'deduct'> = {
           success: true,
           result: 'Success',
           operationDetails: {
             fromBalance: result.balance,
+            type: 'deduct',
             quantity: result.quantity
           },
           balances: {
@@ -114,10 +35,10 @@ export class CreditsService<TIdpName extends IdpName> {
         };
         return creditDeductionOperation;
       },
-      (error): Promise<CreditDeductionResult> => {
+      (error): Promise<Credits.CreditDeductionResult<'deduct'>> => {
         return match(error)
           .with(P.instanceOf(InsufficientCreditsError), (insufficientError) => {
-            const result: CreditDeductionInsufficientCreditsError = {
+            const result: Credits.CreditDeductionInsufficientCreditsError = {
               success: false,
               result: 'InsufficientCredits',
               error: insufficientError
@@ -130,7 +51,7 @@ export class CreditsService<TIdpName extends IdpName> {
               );
           })
           .otherwise((unexpectedError) => {
-            const result: CreditDeductionUnexpectedError = {
+            const result: Credits.CreditDeductionUnexpectedError = {
               success: false,
               result: 'UnknownError',
               error: unexpectedError
@@ -144,10 +65,10 @@ export class CreditsService<TIdpName extends IdpName> {
   public incrementDemoReminderCount(
     userId: UserId,
     demoReminderLimit: number
-  ): Promise<DemoCounterIncrementResult> {
-    return this.userStore.incrementDemoReminderCount(userId, demoReminderLimit, this.logger).then(
+  ): Promise<Credits.DemoCounterIncrementResult> {
+    return this.userStore.incrementDemoReminderCount(userId, demoReminderLimit).then(
       (result) => {
-        const successResult: DemoCounterIncrementSuccess = {
+        const successResult: Credits.DemoCounterIncrementSuccess = {
           success: true,
           result: 'Success',
           demoRemindersCount: result.DemoReminderCount
@@ -156,14 +77,35 @@ export class CreditsService<TIdpName extends IdpName> {
       },
       (error) => {
         if (error instanceof Error && error.message === 'Demo reminder limit reached') {
-          const demoLimitError: DemoCounterLimitReachedError = {
+          const demoLimitError: Credits.DemoCounterLimitReachedError = {
             success: false,
             result: 'DemoCounterLimitReachedError',
             error
           };
           return demoLimitError;
         }
-        const unexpectedError: DemoCounterIncrementUnexpectedError = {
+        const unexpectedError: Credits.DemoCounterIncrementUnexpectedError = {
+          success: false,
+          result: 'UnknownError',
+          error
+        };
+        return unexpectedError;
+      }
+    );
+  }
+
+  public decrementDemoReminderCount(userId: UserId): Promise<Credits.DemoCounterDecrementResult> {
+    return this.userStore.decrementDemoReminderCount(userId).then(
+      (result) => {
+        const successResult: Credits.DemoCounterDecrementSuccess = {
+          success: true,
+          result: 'Success',
+          demoRemindersCount: result.DemoReminderCount
+        };
+        return successResult;
+      },
+      (error) => {
+        const unexpectedError: Credits.DemoCounterDecrementUnexpectedError = {
           success: false,
           result: 'UnknownError',
           error
@@ -177,7 +119,7 @@ export class CreditsService<TIdpName extends IdpName> {
     userId: UserId,
     credits: number,
     tierId: TierId
-  ): Promise<CreditAdditionResult> {
+  ): Promise<Credits.CreditAdditionResult<'reset'>> {
     if (credits < 0) {
       return Promise.resolve({
         success: false,
@@ -188,12 +130,12 @@ export class CreditsService<TIdpName extends IdpName> {
 
     return this.userStore.resetSubscriptionCredits(userId, tierId, credits, this.logger).then(
       (user) => {
-        const creditAdditionOperation: CreditAdditionSuccess = {
+        const creditAdditionOperation: Credits.CreditAdditionSuccess<'reset'> = {
           success: true,
           result: 'Success',
           operationDetails: {
             fromBalance: 'subscription',
-            quantity: 'reset'
+            type: 'reset'
           },
           balances: {
             subscription: user.Credits.SubscriptionCreditBalance,
@@ -205,7 +147,7 @@ export class CreditsService<TIdpName extends IdpName> {
           .then(() => creditAdditionOperation, this.errorHandlerForIdempotentOp('resetCredits'));
       },
       (error: unknown) => {
-        const result: CreditAdditionUnexpectedError = {
+        const result: Credits.CreditAdditionUnexpectedError = {
           success: false,
           result: 'UnknownError',
           error
@@ -221,26 +163,46 @@ export class CreditsService<TIdpName extends IdpName> {
     product:
       | {
           type: 'subscription';
-          id: TierId;
+          id?: TierId;
         }
       | {
           type: 'topup';
-          id: TopupId;
         }
-  ): Promise<CreditAdditionResult> {
-    if (credits <= 0) {
-      return Promise.resolve(this.badRequestCreditError(credits));
-    }
+  ): Promise<Credits.CreditAdditionResult<'add'>> {
+    const tierId = product.type === 'subscription' ? product.id : undefined;
+    return this.performCreditAddition(userId, credits, product.type, tierId, 'add');
+  }
 
-    return this.userStore.addCredits(userId, credits, product, this.logger).then(
+  public restoreCredits(
+    userId: UserId,
+    credits: number,
+    balanceType: 'subscription' | 'topup'
+  ): Promise<Credits.CreditAdditionResult<'restore'>> {
+    return this.performCreditAddition(userId, credits, balanceType, undefined, 'restore');
+  }
+
+  private performCreditAddition<TOperationType extends 'add' | 'restore'>(
+    userId: UserId,
+    credits: number,
+    balanceType: 'subscription' | 'topup',
+    tierId: TierId | undefined,
+    operation: TOperationType
+  ): Promise<Credits.CreditAdditionResult<TOperationType>> {
+    if (credits <= 0) {
+      return Promise.resolve(
+        this.badRequestCreditError(credits) as Credits.CreditAdditionBadRequestError
+      );
+    }
+    return this.userStore.addCredits(userId, credits, balanceType, this.logger, tierId).then(
       (user) => {
-        const creditAdditionOperation: CreditAdditionSuccess = {
+        const creditAdditionOperation: Credits.CreditAdditionSuccess<TOperationType> = {
           success: true,
           result: 'Success',
           operationDetails: {
-            fromBalance: product.type,
+            fromBalance: balanceType,
+            type: operation,
             quantity: credits
-          },
+          } as Extract<Credits.CreditAdditionOperationDetails, { type: TOperationType }>,
           balances: {
             subscription: user.Credits.SubscriptionCreditBalance,
             topup: user.Credits.TopupCreditBalance
@@ -248,10 +210,10 @@ export class CreditsService<TIdpName extends IdpName> {
         };
         return this.userStore
           .updateStatus(userId, 'live')
-          .then(() => creditAdditionOperation, this.errorHandlerForNonIdempotentOp('addCredits'));
+          .then(() => creditAdditionOperation, this.errorHandlerForNonIdempotentOp(operation));
       },
       (error: unknown) => {
-        const result: CreditAdditionUnexpectedError = {
+        const result: Credits.CreditAdditionUnexpectedError = {
           success: false,
           result: 'UnknownError',
           error
@@ -264,15 +226,15 @@ export class CreditsService<TIdpName extends IdpName> {
   public clearSubscriptionCredits(
     userId: UserId,
     status: UserStatus
-  ): Promise<CreditDeductionResult> {
+  ): Promise<Credits.CreditDeductionResult<'clear'>> {
     return this.userStore.clearSubscriptionCredits(userId, this.logger).then(
       (user) => {
-        const creditDeductionOperation: CreditDeductionSuccess = {
+        const creditDeductionOperation: Credits.CreditDeductionSuccess<'clear'> = {
           success: true,
           result: 'Success',
           operationDetails: {
             fromBalance: 'subscription',
-            quantity: 'clear'
+            type: 'clear'
           },
           balances: {
             subscription: user.Credits.SubscriptionCreditBalance,
@@ -284,7 +246,7 @@ export class CreditsService<TIdpName extends IdpName> {
           .then(() => creditDeductionOperation, this.errorHandlerForIdempotentOp('deleteCredits'));
       },
       (error: unknown) => {
-        const result: CreditDeductionUnexpectedError = {
+        const result: Credits.CreditDeductionUnexpectedError = {
           success: false,
           result: 'UnknownError',
           error
@@ -313,11 +275,11 @@ export class CreditsService<TIdpName extends IdpName> {
   }
 
   private errorHandlerForNonIdempotentOp(
-    operation: 'addCredits'
-  ): (error: unknown) => Promise<CreditAdditionUnexpectedError> {
+    operation: 'add' | 'restore'
+  ): (error: unknown) => Promise<Credits.CreditAdditionUnexpectedError> {
     return (error: unknown) => {
-      const msg = `The user status update has failed after the non idempotent operation ${operation} in credit service. We cannot retry...`;
-      const result: CreditAdditionUnexpectedError = {
+      const msg = `The user status update has failed after the non idempotent operation ${operation}Credits in credit service. We cannot retry...`;
+      const result: Credits.CreditAdditionUnexpectedError = {
         success: false,
         result: 'UnknownError',
         error
@@ -331,7 +293,7 @@ export class CreditsService<TIdpName extends IdpName> {
 
   private badRequestCreditError(
     credits: number
-  ): CreditDeductionBadRequestError | CreditAdditionBadRequestError {
+  ): Credits.CreditDeductionBadRequestError | Credits.CreditAdditionBadRequestError {
     return {
       success: false,
       result: 'BadRequestError',

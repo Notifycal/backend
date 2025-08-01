@@ -1,38 +1,42 @@
 import type { Logger } from '@aws-lambda-powertools/logger';
-import { logger } from '@common/powertools';
 import type { ActionableEventFoundEvent } from '@model/app-events/ActionableEventFoundEvent';
-import {
-  actionableEventReminderAttemptSent,
-  type ActionableEventReminderAttemptSentEvent
-} from '@model/app-events/ActionableEventReminderAttemptSentEvent';
+import { creditsAdjustedEvent } from '@model/app-events/CreditsAdjustedEvent';
 import {
   demoReminderLimitReachedNotSent,
   type DemoReminderLimitReachedNotSentEvent
 } from '@model/app-events/DemoReminderLimitReachedNotSentEvent';
-import {
-  demoReminderToBeSentAttemptSent,
-  type DemoReminderToBeSentAttemptSentEvent
-} from '@model/app-events/DemoReminderToBeSentAttemptSentEvent';
 import type { DemoReminderToBeSentEvent } from '@model/app-events/DemoReminderToBeSentEvent';
 import {
   insufficientCreditReminderNotSent,
   type InsufficientCreditReminderNotSentEvent
-} from '@model/app-events/InsufficientCreditReminderNotSentEvent';
-import type { CreditServiceEndpointConfig, DemoReminderEndpointConfig } from '@model/Config';
-import type { VonageEndpointConfig } from '@model/vendor/vonage/config';
-import type { IdpName, UserId, Uuid } from '@notifycal/shared/types';
-import type { Url } from '@own-types/model';
+} from '@model/app-events/InsufficientCreditsReminderNotSentEvent';
+import { lowCreditsDetected } from '@model/app-events/LowCreditsDetectedEvent';
 import type {
+  CreditServiceEndpointConfig,
+  DemoReminderEndpointConfig,
+  MessagingAlertingEndpointConfig,
+  MessagingEndpointConfig
+} from '@model/Config';
+import type {
+  CreditAdditionResult,
   CreditDeductionInsufficientCreditsError,
   CreditDeductionResult,
-  CreditOperationResult,
-  CreditsService,
+  CreditDeductionSuccess,
   DemoCounterLimitReachedError
-} from '@services/credits-service';
+} from '@model/Credits';
+import type { VonageEndpointConfig } from '@model/vendor/vonage/config';
+import type { IdpName, Uuid } from '@notifycal/shared/types';
+import { rejectWithError, rejectWithMessageAndError } from '@services/common/error-handling';
+import type { CreditsService } from '@services/credits-service';
 import { MessagingService } from '@services/messaging';
+import {
+  type EventWithDeduction,
+  type EventWithFailedDeduction,
+  type EventWithSuccessfulDeduction,
+  isSuccessfulDeduction
+} from '@services/messaging/model';
 import type { SnsService } from '@services/sns';
 import { tap } from '@utils/promises';
-import { objectToQueryString } from '@utils/queryString';
 import { count } from 'sms-length/src/index';
 import { match } from 'ts-pattern';
 
@@ -42,181 +46,215 @@ export default class Processor {
   public constructor(
     private readonly config: VonageEndpointConfig &
       CreditServiceEndpointConfig &
-      DemoReminderEndpointConfig,
-    private readonly isEnabled: boolean,
+      DemoReminderEndpointConfig &
+      MessagingEndpointConfig &
+      MessagingAlertingEndpointConfig,
     private readonly snsService: SnsService,
     private readonly creditsService: CreditsService<IdpName>,
-    logger: Logger
+    private readonly logger: Logger
   ) {
-    this._messagingService = new MessagingService(
-      config.vonageConfig.applicationId,
-      config.vonageConfig.privateKey,
-      logger
-    );
+    this._messagingService = new MessagingService(config, snsService, logger);
   }
 
-  private buildWebhookUrl(
-    event: ActionableEventFoundEvent | DemoReminderToBeSentEvent,
-    baseWebhookUrl: Url
-  ): Url {
-    const queryStringEventData: Omit<
-      ActionableEventFoundEvent | DemoReminderToBeSentEvent,
-      'eventId' | 'happenedAt'
-    > = {
-      eventType: event.eventType,
-      correlationId: event.correlationId,
-      userId: event.userId,
-      idp: event.idp,
-      idpId: event.idpId,
-      data: event.data
-    };
-    const recordQs = objectToQueryString(queryStringEventData);
-    const webhookUrl = `${baseWebhookUrl}?${recordQs}` as Url;
-    logger.info('FullWebhookUrl', { webhookUrl });
-    return webhookUrl;
-  }
-
-  public async process(
-    event: ActionableEventFoundEvent | DemoReminderToBeSentEvent
-  ): Promise<Uuid> {
+  public process(event: ActionableEventFoundEvent | DemoReminderToBeSentEvent): Promise<Uuid> {
     const { message, senderDetails, receiverDetails } = event.data;
-    logger.appendKeys({
+    this.logger.appendKeys({
       reminderMessage: message,
       senderDetails,
       receiverDetails
     });
 
-    return this.deductFromAllowance(event).then((allowanceResult) => {
-      if (!allowanceResult.success) {
-        return this.processAllowanceFailure(allowanceResult, event);
+    return this.deductFromAllowance(event).then((eventWithDeduction) => {
+      if (!isSuccessfulDeduction(eventWithDeduction)) {
+        return this.processAllowanceFailure(eventWithDeduction as EventWithFailedDeduction);
       }
-      return this.sendMessage(event);
-    });
+      return this._messagingService
+        .sendMessage(eventWithDeduction)
+        .then((messageUuid) => messageUuid, this.handleSendError(eventWithDeduction));
+    }, this.handleDeductFromAllowanceError());
   }
 
   private deductFromAllowance(
     event: ActionableEventFoundEvent | DemoReminderToBeSentEvent
-  ): Promise<CreditOperationResult> {
+  ): Promise<EventWithDeduction> {
+    const numberOfMessagesEstimate = count(event.data.message);
     return match(event)
       .with({ eventType: 'ActionableEventFound' }, (e) =>
-        this.deductCredits(e.userId, e.data.message)
+        this.deductCredits(e, numberOfMessagesEstimate).then((deductionResult) => ({
+          event: e,
+          deductionResult,
+          numberOfMessagesEstimate
+        }))
       )
       .with({ eventType: 'DemoReminderToBeSent' }, (e) =>
-        this.creditsService.incrementDemoReminderCount(
-          e.userId,
-          this.config.demoReminderConfig.demoReminderLimit
-        )
+        this.creditsService
+          .incrementDemoReminderCount(e.userId, this.config.demoReminderConfig.demoReminderLimit)
+          .then((deductionResult) => ({
+            event: e,
+            deductionResult,
+            numberOfMessagesEstimate
+          }))
       )
       .exhaustive();
   }
 
-  private sendMessage(event: ActionableEventFoundEvent | DemoReminderToBeSentEvent): Promise<Uuid> {
-    const {
-      correlationId,
-      data: { message, senderDetails, receiverDetails }
-    } = event;
-
-    if (this.isEnabled) {
-      logger.info('Sending a message through Vonage');
-      return this._messagingService
-        .sendMessage(
-          message,
-          senderDetails,
-          receiverDetails,
-          correlationId,
-          this.buildWebhookUrl(event, this.config.vonageConfig.webhookBaseURL)
-        )
-        .then((messageUUID) => {
-          return this.publishAttemptSentEvent(event, messageUUID).then(() => messageUUID);
-        });
-    } else {
-      logger.info('Simulating a message is being sent');
-      const fakeUUID = 'fake-uuid' as Uuid;
-      return this.publishAttemptSentEvent(event, fakeUUID).then(() => fakeUUID);
-    }
+  private handleDeductFromAllowanceError(): (error: unknown) => Promise<never> {
+    return (error: unknown) => {
+      this.logger.error('Failed to deduct from allowance', { error });
+      return rejectWithError(error);
+    };
   }
 
-  private processAllowanceFailure(
-    result: CreditOperationResult & { success: false },
-    event: ActionableEventFoundEvent | DemoReminderToBeSentEvent
-  ): Promise<Uuid> {
-    return match(result)
-      .with({ result: 'InsufficientCredits' }, (insufficientResult) => {
-        logger.info('Message not sent due to insufficient credits', { result });
-        return this.publishInsufficientCreditErrorEvent(
-          event as ActionableEventFoundEvent,
-          insufficientResult as CreditDeductionInsufficientCreditsError
-        ).then(() => 'insufficient-credits' as Uuid);
-      })
-      .with({ result: 'DemoCounterLimitReachedError' }, (demoLimitResult) => {
-        logger.info('Demo reminder not sent due to demo limit reached', { result });
-        return this.publishDemoLimitReachedErrorEvent(
-          event as DemoReminderToBeSentEvent,
-          demoLimitResult as DemoCounterLimitReachedError
-        ).then(() => 'demo-limit-reached' as Uuid);
-      })
-      .with({ result: 'BadRequestError' }, () => {
-        const operationType =
-          event.eventType === 'ActionableEventFound'
-            ? 'credit deduction'
-            : 'demo counter increment';
-        return Promise.reject(
-          new Error(`A message could not be sent due to a bad request during ${operationType}`, {
-            cause: result.error
+  private handleSendError(
+    eventWithDeduction: EventWithSuccessfulDeduction
+  ): (error: unknown) => Promise<never> {
+    return (error: unknown) =>
+      match(eventWithDeduction)
+        .with({ event: { eventType: 'ActionableEventFound' } }, (data) =>
+          this.handleActionableEventSendFailure(data.event, data.deductionResult)(error)
+        )
+        .with({ event: { eventType: 'DemoReminderToBeSent' } }, (data) =>
+          this.handleDemoReminderSendFailure(data.event)(error)
+        )
+        .exhaustive();
+  }
+
+  private handleActionableEventSendFailure(
+    event: ActionableEventFoundEvent,
+    creditResult: CreditDeductionSuccess<'deduct'>
+  ): (error: unknown) => Promise<never> {
+    return (error: unknown) => {
+      const { operationDetails } = creditResult;
+      return this.creditsService
+        .restoreCredits(event.userId, operationDetails.quantity, operationDetails.fromBalance)
+        .then(
+          tap((creditRestoreResult) => {
+            this.logger.info('Credits restored after message send failure', {
+              userId: event.userId,
+              restoredCredits: operationDetails.quantity,
+              balanceType: operationDetails.fromBalance
+            });
+            return this.publishCreditsAdjusted(event, creditRestoreResult);
+          }),
+          (restoreError) => {
+            this.logger.error('Failed to restore credits after message send failure', {
+              userId: event.userId,
+              creditsToRestore: operationDetails.quantity,
+              balanceType: operationDetails.fromBalance,
+              restoreError
+            });
+          }
+        )
+        .then(() => rejectWithError(error));
+    };
+  }
+  private publishCreditsAdjusted(
+    originalEvent: ActionableEventFoundEvent,
+    creditRestoreResult: CreditAdditionResult<'restore'>
+  ): Promise<void> {
+    const adjustedEvent = creditsAdjustedEvent(originalEvent, creditRestoreResult);
+    return this.snsService.safePublish(adjustedEvent).catch((error) => {
+      this.logger.warn('Failed to publish CreditsAdjusted event', { error, adjustedEvent });
+    });
+  }
+
+  private handleDemoReminderSendFailure(
+    event: DemoReminderToBeSentEvent
+  ): (error: unknown) => Promise<never> {
+    return (error: unknown) =>
+      this.creditsService.decrementDemoReminderCount(event.userId).then(
+        () => {
+          this.logger.info('Demo counter decremented after message send failure', {
+            userId: event.userId
+          });
+          return rejectWithError(error);
+        },
+        (decrementError) => {
+          this.logger.error('Failed to decrement demo counter after message send failure', {
+            userId: event.userId,
+            decrementError
+          });
+          return rejectWithError(error);
+        }
+      );
+  }
+
+  private processAllowanceFailure(eventWithDeduction: EventWithFailedDeduction): Promise<Uuid> {
+    return match(eventWithDeduction)
+      .with({ event: { eventType: 'ActionableEventFound' } }, ({ event, deductionResult }) => {
+        return match(deductionResult)
+          .with({ result: 'InsufficientCredits' }, (insufficientResult) => {
+            this.logger.info('Message not sent due to insufficient credits', {
+              result: insufficientResult
+            });
+            return this.publishInsufficientCreditErrorEvent(event, insufficientResult).then(
+              () => 'insufficient-credits' as Uuid
+            );
           })
-        );
-      })
-      .with({ result: 'UnknownError' }, () => {
-        const operationType =
-          event.eventType === 'ActionableEventFound'
-            ? 'credit deduction'
-            : 'demo counter increment';
-        return Promise.reject(
-          new Error(`A message could not be sent due to an unknown issue during ${operationType}`, {
-            cause: result.error
+          .with({ result: 'BadRequestError' }, (badRequestResult) => {
+            return rejectWithMessageAndError(
+              'A message could not be sent due to a bad request during credit deduction',
+              badRequestResult.error
+            );
           })
-        );
+          .with({ result: 'UnknownError' }, (unknownErrorResult) => {
+            return rejectWithMessageAndError(
+              'A message could not be sent due to an unknown issue during credit deduction',
+              unknownErrorResult.error
+            );
+          })
+          .exhaustive();
+      })
+      .with({ event: { eventType: 'DemoReminderToBeSent' } }, ({ event, deductionResult }) => {
+        return match(deductionResult)
+          .with({ result: 'DemoCounterLimitReachedError' }, (demoLimitResult) => {
+            this.logger.info('Demo reminder not sent due to demo limit reached', {
+              result: demoLimitResult
+            });
+            return this.publishDemoLimitReachedErrorEvent(event, demoLimitResult).then(
+              () => 'demo-limit-reached' as Uuid
+            );
+          })
+          .with({ result: 'UnknownError' }, (unknownErrorResult) => {
+            return rejectWithMessageAndError(
+              'A message could not be sent due to an unknown issue during demo counter increment',
+              unknownErrorResult.error
+            );
+          })
+          .exhaustive();
       })
       .exhaustive();
   }
 
-  private deductCredits(userId: UserId, message: string): Promise<CreditDeductionResult> {
-    const countResult = count(message);
+  private deductCredits(
+    event: ActionableEventFoundEvent,
+    estimatedMessageCount: ReturnType<typeof count>
+  ): Promise<CreditDeductionResult<'deduct'>> {
+    // TODO: stop assuming Spain for SMS cost and work it out based on receiver's dial code
     const creditToDeductPerUnit = this.config.countryToSMSCostCreditsMap['ES'];
-    const totalCreditsToDeduct = creditToDeductPerUnit * countResult.messages;
-    return this.creditsService.deductCredits(userId, totalCreditsToDeduct).then(
+    const totalCreditsToDeduct = creditToDeductPerUnit * estimatedMessageCount.messages;
+    return this.creditsService.deductCredits(event.userId, totalCreditsToDeduct).then(
       tap((result) => {
-        logger.info(`Number of SMSs charged: ${countResult.messages}`, {
-          estimatedMessageCount: countResult,
+        this.logger.info(`Number of SMSs charged: ${estimatedMessageCount.messages}`, {
+          estimatedMessageCount,
           updatedUserCredit: result
         });
+        return result.success
+          ? this.publishLowCreditsDetectedEventIfThresholdHasBeenCrossed(
+              event,
+              result,
+              totalCreditsToDeduct
+            )
+          : Promise.resolve(result);
       })
     );
-  }
-
-  private publishAttemptSentEvent(
-    event: ActionableEventFoundEvent | DemoReminderToBeSentEvent,
-    messageUUID: Uuid
-  ): Promise<void> {
-    logger.info('Publishing an event indicating the attempt to send a message');
-    const attemptSentEvent = match(event)
-      .with({ eventType: 'ActionableEventFound' }, (e) =>
-        actionableEventReminderAttemptSent(e, messageUUID)
-      )
-      .with({ eventType: 'DemoReminderToBeSent' }, (e) =>
-        demoReminderToBeSentAttemptSent(e, messageUUID)
-      )
-      .exhaustive();
-    return this.snsService.safePublish<
-      ActionableEventReminderAttemptSentEvent | DemoReminderToBeSentAttemptSentEvent
-    >(attemptSentEvent);
   }
 
   private publishInsufficientCreditErrorEvent(
     event: ActionableEventFoundEvent,
     creditError: CreditDeductionInsufficientCreditsError
   ): Promise<void> {
-    logger.info(
+    this.logger.info(
       'Publishing an event indicating a message could not be sent due to user having insufficient credits'
     );
     const insufficientCreditEvent = insufficientCreditReminderNotSent(event, creditError);
@@ -229,12 +267,28 @@ export default class Processor {
     event: DemoReminderToBeSentEvent,
     demoLimitError: DemoCounterLimitReachedError
   ): Promise<void> {
-    logger.info(
+    this.logger.info(
       'Publishing an event indicating a demo reminder could not be sent due to demo limit reached'
     );
     const demoLimitEvent = demoReminderLimitReachedNotSent(event, demoLimitError);
     return this.snsService.safePublish<
       InsufficientCreditReminderNotSentEvent | DemoReminderLimitReachedNotSentEvent
     >(demoLimitEvent);
+  }
+
+  private publishLowCreditsDetectedEventIfThresholdHasBeenCrossed(
+    event: ActionableEventFoundEvent,
+    result: CreditDeductionSuccess<'deduct'>,
+    totalCreditsToDeduct: number
+  ): Promise<CreditDeductionResult<'deduct'>> {
+    const { subscription, topup } = result.balances;
+    const totalUpdatedCredits = subscription + topup;
+    const previousTotalCredits = totalUpdatedCredits + totalCreditsToDeduct;
+    const lowCreditsThreshold = this.config.messagingAlertingConfig.lowCreditThreshold;
+    if (previousTotalCredits >= lowCreditsThreshold && totalUpdatedCredits < lowCreditsThreshold) {
+      const lowCreditsDetectedEvent = lowCreditsDetected(event, result);
+      return this.snsService.safePublish(lowCreditsDetectedEvent).then(() => result);
+    }
+    return Promise.resolve(result);
   }
 }

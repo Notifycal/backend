@@ -3,15 +3,15 @@ import { logger } from '@common/powertools';
 import type { Tier, Topup } from '@model/PaymentPlans';
 import type {
   Email,
-  Identity,
   IdpName,
   LanguageCode,
-  StripeCustomerId
+  StripeCustomerId,
+  UserIdentity
 } from '@notifycal/shared/types';
 import type { Url } from '@own-types/model';
 import { HttpClient } from '@services/common/http-client';
 import { default as Stripe } from 'stripe';
-import { match } from 'ts-pattern';
+import { match, P } from 'ts-pattern';
 import { AxiosHttpClient } from './stripe-axios-client';
 
 export class StripeService {
@@ -26,7 +26,7 @@ export class StripeService {
   public static async withConfig(apiKey: string): Promise<StripeService> {
     const httpClient = new HttpClient(undefined, undefined, 'Stripe');
     const stripeClient = new Stripe(apiKey, {
-      apiVersion: '2025-06-30.basil',
+      apiVersion: '2025-07-30.basil',
       httpClient: new AxiosHttpClient(httpClient.getAxiosInstance())
     });
 
@@ -62,10 +62,10 @@ export class StripeService {
         }));
   }
 
-  public createCustomer(identity: Identity<IdpName>): Promise<StripeCustomerId> {
-    const { userId, idp, idpId, email } = identity;
-    logger.info(`Creating customer in Stripe for identity`, {
-      identity
+  public createCustomer(userIdentity: UserIdentity<IdpName>): Promise<StripeCustomerId> {
+    const { userId, idp, idpId, email } = userIdentity;
+    logger.info(`Creating customer in Stripe for user identity`, {
+      userIdentity
     });
     const params: Stripe.CustomerCreateParams = {
       email: email,
@@ -85,14 +85,14 @@ export class StripeService {
 
   public createCheckoutSession(
     stripeCustomerId: StripeCustomerId,
-    identity: Identity<IdpName>,
+    userIdentity: UserIdentity<IdpName>,
     product: Tier | Topup,
     language: LanguageCode,
     successRedirectUrl: Url,
     cancelRedirectUrl: Url,
     taxId: string
   ): Promise<Url | null> {
-    const { userId, idp, idpId, email } = identity;
+    const { userId, idp, idpId, email } = userIdentity;
     const productConfig: Partial<Stripe.Checkout.SessionCreateParams> = match(product.type)
       .with('tier', () => ({ mode: 'subscription' as const }))
       .with('topup', () => ({
@@ -135,7 +135,7 @@ export class StripeService {
         client_reference_id: userId,
         success_url: successRedirectUrl,
         cancel_url: cancelRedirectUrl,
-        locale: language,
+        locale: language === 'ca' ? 'es' : language,
         line_items: [lineItemConfig],
         metadata: {
           userId,
@@ -157,29 +157,81 @@ export class StripeService {
   public createCustomerPortalSession(
     stripeCustomerId: StripeCustomerId,
     returnUrl: Url,
-    configId: string
+    configId: string,
+    language: LanguageCode,
+    flowType:
+      | Extract<
+          Stripe.BillingPortal.SessionCreateParams.FlowData.Type,
+          'subscription_cancel' | 'subscription_update' | 'payment_method_update'
+        >
+      | undefined
   ): Promise<Url> {
-    return this.stripeClient.billingPortal.sessions
-      .create({
-        customer: stripeCustomerId,
-        return_url: returnUrl,
-        configuration: configId
+    return match(flowType)
+      .with(
+        P.union('subscription_cancel', 'subscription_update', 'payment_method_update'),
+        (flowType) => {
+          return this.getSubscriptions(stripeCustomerId).then((subscriptions) => {
+            const hasSubscriptions = subscriptions.length > 0;
+            const subscription = subscriptions[0];
+            const subscriptionId = subscription?.id;
+
+            if (!hasSubscriptions) return {};
+
+            const needsSubscriptionId =
+              flowType === 'subscription_cancel' || flowType === 'subscription_update';
+            if (needsSubscriptionId && !subscriptionId) return {};
+            if (
+              flowType === 'subscription_cancel' &&
+              subscription &&
+              subscription.cancel_at_period_end
+            )
+              return {};
+
+            const flowData: Stripe.BillingPortal.SessionCreateParams.FlowData = {
+              type: flowType,
+              after_completion: {
+                type: 'redirect',
+                redirect: {
+                  return_url: returnUrl
+                }
+              },
+              ...(needsSubscriptionId && { [flowType]: { subscription: subscriptionId } })
+            };
+
+            return { flow_data: flowData };
+          });
+        }
+      )
+      .with(undefined, () => Promise.resolve({}))
+      .exhaustive()
+      .then((flowDataConfig) => {
+        const params: Stripe.BillingPortal.SessionCreateParams = {
+          customer: stripeCustomerId,
+          return_url: returnUrl,
+          configuration: configId,
+          locale: language === 'ca' ? 'es' : language,
+          ...flowDataConfig
+        };
+        return this.stripeClient.billingPortal.sessions.create(params);
       })
       .then((session) => session.url as Url);
   }
 
-  public countSubscriptions(stripeCustomerId: StripeCustomerId): Promise<number> {
+  public getSubscriptions(stripeCustomerId: StripeCustomerId): Promise<Array<Stripe.Subscription>> {
     return this.stripeClient.subscriptions
       .list({
         customer: stripeCustomerId,
         status: 'all',
         limit: 100
       })
-      .then(
-        (subscriptions) =>
-          subscriptions.data.filter(
-            (subscription) => subscription.status === 'active' || subscription.status === 'past_due'
-          ).length
+      .then((subscriptions) =>
+        subscriptions.data.filter(
+          (subscription) => subscription.status === 'active' || subscription.status === 'past_due'
+        )
       );
+  }
+
+  public countSubscriptions(stripeCustomerId: StripeCustomerId): Promise<number> {
+    return this.getSubscriptions(stripeCustomerId).then((subscriptions) => subscriptions.length);
   }
 }

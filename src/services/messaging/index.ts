@@ -1,67 +1,116 @@
-import { Auth } from '@vonage/auth';
-import { RCSText, SMS } from '@vonage/messages';
-import { Vonage } from '@vonage/server-sdk';
-
-import { rethrowError } from '@services/common/error-handling';
-
 import type { Logger } from '@aws-lambda-powertools/logger';
-import type { ReceiverStandardContact, SenderStandardContact } from '@model/app-events/common';
-import type { Brand, Uuid } from '@notifycal/shared/types';
-import type { Url } from '@own-types/model';
-import { withIntegrationMetrics } from '@services/observability/metrics';
+import type { WebhookCorrelationData } from '@lambdas/api/post-event-reminder-delivery-status-webhook/schema';
+import {
+  actionableEventReminderAttemptSent,
+  type ActionableEventReminderAttemptSentEvent
+} from '@model/app-events/ActionableEventReminderAttemptSentEvent';
+import {
+  demoReminderToBeSentAttemptSent,
+  type DemoReminderToBeSentAttemptSentEvent
+} from '@model/app-events/DemoReminderToBeSentAttemptSentEvent';
+import type { MessagingEndpointConfig } from '@model/Config';
+import type { VonageEndpointConfig } from '@model/vendor/vonage/config';
+import type { Url, Uuid } from '@notifycal/shared/types';
+import { omitDeep } from '@utils/object';
+import { objectToQueryString } from '@utils/queryString';
+import { pick } from 'radashi';
 import { match } from 'ts-pattern';
-
-export type VonageApiKey = Brand<string, 'VonageApiKey'>;
-export type VonageApplicationId = Brand<string, 'VonageApplicationId'>;
-export type VonagePrivateKey = Brand<string, 'PrivateKey'>;
-export type VonageJwtSigningSecret = Brand<string, 'JwtSigningSecret'>;
+import type { SnsService } from '../sns';
+import type { EventWithSuccessfulDeduction } from './model';
+import { VonageMessagingService } from './vonage';
 
 export class MessagingService {
-  protected _client: Vonage;
-
+  private readonly _messagingService: VonageMessagingService;
   public constructor(
-    applicationId: VonageApplicationId,
-    privateKey: VonagePrivateKey,
+    private readonly config: VonageEndpointConfig & MessagingEndpointConfig,
+    private readonly snsService: SnsService,
     private readonly logger: Logger
   ) {
-    this._client = new Vonage(
-      new Auth({
-        privateKey,
-        applicationId
-      })
+    this._messagingService = new VonageMessagingService(
+      config.vonageConfig.applicationId,
+      config.vonageConfig.privateKey,
+      logger
     );
   }
 
-  public async sendMessage(
-    messageBody: string,
-    sender: SenderStandardContact,
-    receiver: ReceiverStandardContact,
-    clientRef: string,
-    webhookUrl: Url
-  ): Promise<Uuid> {
-    const MessageBuilder = match(sender)
-      .with({ type: 'phone' }, () => SMS)
-      .with({ type: 'rcs' }, () => RCSText)
+  public sendMessage(eventWithDeduction: EventWithSuccessfulDeduction): Promise<Uuid> {
+    const {
+      correlationId,
+      data: { message, senderDetails, receiverDetails }
+    } = eventWithDeduction.event;
+
+    if (this.config.messagingConfig.enabled) {
+      this.logger.info('Sending a message through Vonage');
+      return this._messagingService
+        .sendMessage(
+          message,
+          senderDetails,
+          receiverDetails,
+          correlationId,
+          this.buildWebhookUrl(eventWithDeduction)
+        )
+        .then((messageUUID) => {
+          return this.publishAttemptSentEvent(eventWithDeduction, messageUUID).then(
+            () => messageUUID
+          );
+        });
+    } else {
+      this.logger.info('Simulating a message is being sent');
+      const fakeUUID = 'fake-uuid' as Uuid;
+      return this.publishAttemptSentEvent(eventWithDeduction, fakeUUID).then(() => fakeUUID);
+    }
+  }
+
+  private buildWebhookUrl(eventWithDeduction: EventWithSuccessfulDeduction): Url {
+    const webhookCorrelationData: WebhookCorrelationData = match(eventWithDeduction)
+      .with({ event: { eventType: 'ActionableEventFound' } }, (data) => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { eventId, happenedAt, ...originalEvent } = data.event;
+        const omittedProperties = [
+          'data.message',
+          'data.calendarEvent.summary',
+          'data.calendarEvent.startTime',
+          'data.calendarEvent.isAllDayEvent',
+          'data.calendarEvent.timeZone'
+        ] as const;
+        return {
+          originalEvent: omitDeep(originalEvent, ...omittedProperties),
+          creditDeductionResult: data.deductionResult,
+          estimatedMessageCount: pick(data.numberOfMessagesEstimate, ['messages'])
+        };
+      })
+      .with({ event: { eventType: 'DemoReminderToBeSent' } }, (data) => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { eventId, happenedAt, ...originalEvent } = data.event;
+        return {
+          originalEvent: omitDeep(originalEvent, 'data.message'),
+          creditDeductionResult: data.deductionResult,
+          estimatedMessageCount: pick(data.numberOfMessagesEstimate, ['messages'])
+        };
+      })
       .exhaustive();
 
-    try {
-      const messageObject = new MessageBuilder({
-        to: receiver.phoneNumber,
-        from: match(sender)
-          .with({ type: 'phone' }, (phone) => phone.phoneNumber)
-          .with({ type: 'rcs' }, (rcs) => rcs.identifier)
-          .exhaustive(),
-        clientRef,
-        text: messageBody,
-        webhookUrl
-      });
-      const { messageUUID } = await withIntegrationMetrics('Vonage', 'SendEventReminder', () =>
-        this._client.messages.send(messageObject)
-      );
+    const recordQs = objectToQueryString(webhookCorrelationData);
+    const webhookUrl = `${this.config.vonageConfig.webhookBaseURL}?${recordQs}` as Url;
+    this.logger.info('FullWebhookUrl', { webhookUrl });
+    return webhookUrl;
+  }
 
-      return messageUUID as Uuid;
-    } catch (error) {
-      rethrowError(`Vonage API failed to send the reminder: ${clientRef}`, error, this.logger);
-    }
+  private publishAttemptSentEvent(
+    eventWithDeduction: EventWithSuccessfulDeduction,
+    messageUUID: Uuid
+  ): Promise<void> {
+    this.logger.info('Publishing an event indicating the attempt to send a message');
+    const attemptSentEvent = match(eventWithDeduction)
+      .with({ event: { eventType: 'ActionableEventFound' } }, ({ event, deductionResult }) =>
+        actionableEventReminderAttemptSent(event, messageUUID, deductionResult)
+      )
+      .with({ event: { eventType: 'DemoReminderToBeSent' } }, ({ event, deductionResult }) =>
+        demoReminderToBeSentAttemptSent(event, messageUUID, deductionResult)
+      )
+      .exhaustive();
+    return this.snsService.safePublish<
+      ActionableEventReminderAttemptSentEvent | DemoReminderToBeSentAttemptSentEvent
+    >(attemptSentEvent);
   }
 }

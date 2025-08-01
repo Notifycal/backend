@@ -1,11 +1,12 @@
-import type { Email, Identity, IdpId, TierId, TopupId, UserId } from '@notifycal/shared/types';
+import type { CreditAdditionResult } from '@model/Credits';
+import type { Email, IdpId, TierId, TopupId, UserId, UserIdentity } from '@notifycal/shared/types';
 import { describe, expect, it, vi } from 'vitest';
-import type { CreditAdditionResult, CreditsService } from './credits-service';
+import type { CreditsService } from './credits-service';
 import type { SnsService } from './sns';
 import { TopupService } from './topup';
 
 describe(TopupService, () => {
-  const validIdentity: Identity<'google.com'> = {
+  const validIdentity: UserIdentity<'google.com'> = {
     idp: 'google.com',
     idpId: 'idp-123' as IdpId,
     userId: 'user-123' as UserId,
@@ -13,11 +14,12 @@ describe(TopupService, () => {
   };
   const validTopupId = 'single' as const;
   const validQuantity = 3;
-  const validCreditAdditionResult: CreditAdditionResult = {
+  const validCreditAdditionResult: CreditAdditionResult<'add'> = {
     success: true,
     result: 'Success',
     operationDetails: {
       fromBalance: 'topup',
+      type: 'add',
       quantity: 270
     },
     balances: {
@@ -72,8 +74,7 @@ describe(TopupService, () => {
 
     expect(addCreditsFn).toHaveBeenCalledTimes(1);
     expect(addCreditsFn).toHaveBeenCalledWith(validIdentity.userId, 90, {
-      type: 'topup',
-      id: 'single'
+      type: 'topup'
     });
     expect(safePublishFn).toHaveBeenCalledTimes(1);
     expect(safePublishFn).toHaveBeenCalledWith(
@@ -186,17 +187,17 @@ describe(TopupService, () => {
   });
 
   function testIt(
-    identity: Identity<'google.com'>,
+    userIdentity: UserIdentity<'google.com'>,
     topup: TopupId,
     quantity: number,
     addCreditsFn: (
       userId: UserId,
       amount: number,
       product: { type: 'subscription' | 'topup'; id: TierId | TopupId }
-    ) => Promise<CreditAdditionResult>,
+    ) => Promise<CreditAdditionResult<'add'>>,
     safePublishFn: () => Promise<void>,
     topupToCreditsMap: Record<TopupId, number> = validTopupToCreditsMap
-  ): Promise<CreditAdditionResult> {
+  ): Promise<CreditAdditionResult<'add'>> {
     const creditsServiceMock = {
       addCredits: addCreditsFn
     } as unknown as CreditsService<'google.com'>;
@@ -205,6 +206,6 @@ describe(TopupService, () => {
     } as unknown as SnsService;
 
     const topupService = new TopupService(creditsServiceMock, topupToCreditsMap, snsServiceMock);
-    return topupService.add(identity, topup, quantity);
+    return topupService.add(userIdentity, topup, quantity);
   }
 });

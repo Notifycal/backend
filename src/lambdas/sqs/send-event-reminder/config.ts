@@ -4,6 +4,7 @@ import type {
   CreditServiceEndpointConfig,
   DemoReminderEndpointConfig,
   IdempotencyPersistenceConfig,
+  MessagingAlertingEndpointConfig,
   MessagingEndpointConfig,
   MessagingTopicConfig
 } from '@model/Config';
@@ -13,19 +14,21 @@ import {
   readDemoReminderLimitConfig,
   readEnv,
   readIdempotencyPersistenceConfig,
+  readMessagingAlertingConfig,
   readMessagingConfig,
   readMessagingTopicConfig,
   readUserBaseStoreConfig,
   readVonageConfig
 } from '@services/common/config';
 import { rethrowError, throwError } from '@services/common/error-handling';
-import type { VonagePrivateKey } from '@services/messaging';
+import type { VonagePrivateKey } from '@services/messaging/vonage';
 import type { UserBaseStoreEndpointConfig } from '@services/stores/user-base-store';
 
 export type SendEventReminderConfig = VonageEndpointConfig &
   IdempotencyPersistenceConfig &
   MessagingTopicConfig &
   MessagingEndpointConfig &
+  MessagingAlertingEndpointConfig &
   UserBaseStoreEndpointConfig &
   CreditServiceEndpointConfig &
   DemoReminderEndpointConfig;
@@ -62,6 +65,7 @@ export async function readSendEventReminderConfig(vonagePrivateKeyCache: {
       },
       ...readIdempotencyPersistenceConfig(env),
       ...readMessagingTopicConfig(env),
+      ...readMessagingAlertingConfig(env),
       ...readMessagingConfig(env),
       ...readUserBaseStoreConfig(env),
       ...readCreditServiceConfig(env),

@@ -21,7 +21,7 @@ export const errorSchema = z.object({
 export const runSchema = z.object({
   lowerBoundStartTime: z.string().transform((data) => data as DateTime),
   upperBoundStartTime: z.string().transform((data) => data as DateTime),
-  slidingWindowInMinutes: z.number().int().positive()
+  slidingWindowInMinutes: z.coerce.number().int().positive()
 });
 
 export const eventIdSchema = z
@@ -81,6 +81,8 @@ export function createEventBase<TEventType extends EventType>(
     correlationId: options.correlationId ?? (eventId as CorrelationId),
     eventType,
     happenedAt: options.happenedAt ?? (new Date().toISOString() as DateTime),
-    ...source
+    userId: source.userId,
+    idp: source.idp,
+    idpId: source.idpId
   };
 }

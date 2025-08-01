@@ -63,12 +63,21 @@ const messageStatusRCSSchema = messageStatusBaseSchema.extend({
   destination: destinationSchema.optional()
 });
 
-export const vonageMessageStatusWebhookSchema = z.discriminatedUnion('channel', [
+export const vonageWebhookMessageStatusPayloadSchema = z.discriminatedUnion('channel', [
   messageStatusSMSSchema,
   messageStatusRCSSchema
 ]);
-/* eslint-enable camelcase */
+export type VonageWebhookMessageStatusSmsPayload = z.infer<
+  typeof vonageWebhookMessageStatusPayloadSchema
+>;
+export type VonageWebhookMessageStatusRcsPayload = z.infer<
+  typeof vonageWebhookMessageStatusPayloadSchema
+>;
+export type VonageWebhookMessageStatusPayload = z.infer<
+  typeof vonageWebhookMessageStatusPayloadSchema
+>;
 
+/* eslint-enable camelcase */
 export const vonageAccessTokenSchema = z.object({
   header: z.object({
     alg: z.string(),
@@ -104,7 +113,7 @@ export const messagingSentPayloadSchema = z.object({
 });
 
 export const messagingMessageStatusPayloadSchema = z.object({
-  messageStatusPayload: vonageMessageStatusWebhookSchema
+  messageStatusPayload: vonageWebhookMessageStatusPayloadSchema
 });
 
 export const messagingErrorPayloadSchema = z.object({

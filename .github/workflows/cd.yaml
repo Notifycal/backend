@@ -6,6 +6,7 @@ on:
     branches:
       - main
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
     branches:
       - main
     paths-ignore:
@@ -19,6 +20,7 @@ concurrency:
 
 jobs:
   preflight:
+    if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     permissions:
       pull-requests: read
@@ -44,6 +46,7 @@ jobs:
           filters: |
             tf:
               - 'tf/**'
+              - 'openapi/**'
               - '.github/workflows/cd.yaml'
             backend:
               - '**'
@@ -59,7 +62,8 @@ jobs:
       packages: read
     needs: preflight
     if: |
-      needs.preflight.outputs.backend == 'true' || github.event_name != 'pull_request'
+      github.event.pull_request.draft == false &&
+      (needs.preflight.outputs.backend == 'true' || github.event_name != 'pull_request')
     steps:
       - uses: actions/checkout@v4
       - name: Generate .npmrc
@@ -115,7 +119,8 @@ jobs:
     needs: preflight
     # Runs if there are changes to the infra (PR) or the event isn't PR
     if: |
-      needs.preflight.outputs.infra == 'true' || github.event_name != 'pull_request'
+      github.event.pull_request.draft == false &&
+      (needs.preflight.outputs.infra == 'true' || github.event_name != 'pull_request')
     steps:
       - name: Get GH token from Github App
         id: gh-app-auth
@@ -140,6 +145,7 @@ jobs:
             tf: 
               - 'tf/*.tf'
               - 'tf/modules/**/*.tf'
+              - 'openapi/**'
               - '!CHANGELOG.md'
             'tf/modules/api_gateway_external_domain':
               - 'tf/modules/api_gateway_external_domain/**'

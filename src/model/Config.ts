@@ -129,6 +129,13 @@ export interface MessagingConfig {
 export interface MessagingEndpointConfig {
   messagingConfig: MessagingConfig;
 }
+export interface MessagingAlertingConfig {
+  lowCreditThreshold: number;
+}
+export interface MessagingAlertingEndpointConfig {
+  messagingAlertingConfig: MessagingAlertingConfig;
+}
+
 export interface EmailingConfig {
   enabled: boolean;
 }

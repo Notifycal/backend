@@ -1,4 +1,5 @@
 import type { ActionableEventFoundEvent } from '@model/app-events/ActionableEventFoundEvent';
+import type { DemoReminderToBeSentEvent } from '@model/app-events/DemoReminderToBeSentEvent';
 import type { NoPhoneNumberForCalendarEventFoundEvent } from '@model/app-events/NoPhoneNumberForCalendarEventFoundEvent';
 import type { UserCalendarFetchedEvent } from '@model/app-events/UserCalendarFetchedEvent';
 import type {
@@ -140,6 +141,29 @@ export const validActionableEventEvent: ActionableEventFoundEvent = {
   happenedAt: '2025-05-09T13:00:00Z' as DateTime
 };
 
+export const validDemoReminderToBeSentEvent: DemoReminderToBeSentEvent = {
+  data: {
+    receiverDetails: {
+      type: 'phone',
+      phoneNumber: '+34123456789' as PhoneNumberE164,
+      countryCode: 'ES'
+    },
+    senderDetails: {
+      type: 'phone',
+      phoneNumber: '+34666999888' as PhoneNumberE164,
+      countryCode: 'ES'
+    },
+    message: 'This is a demo message'
+  },
+  correlationId: '0de651ef-535e-4d2e-b9ff-7bf43f5aaaaa' as CorrelationId,
+  eventId: '0de651ef-535e-4d2e-b9ff-7bf43f5a01ac' as EventId,
+  userId: '0de651ef-535e-4d2e-b9ff-7bf43f5a0000' as UserId,
+  idp: 'google.com',
+  idpId: '45346356356' as IdpId,
+  eventType: 'DemoReminderToBeSent',
+  happenedAt: '2024-01-02T15:04:50Z' as DateTime
+};
+
 export const noPhoneNumberForCalendarEventFoundEvent: NoPhoneNumberForCalendarEventFoundEvent = {
   eventId: '0de651ef-535e-4d2e-b9ff-7bf43f5a0000' as EventId,
   eventType: 'NoPhoneNumberForCalendarEventFound',
@@ -224,7 +248,7 @@ export const insufficientCreditsReminderNotSentEvent: AuditTrailStoreRecord = {
   UserId: '0de651ef-535e-4d2e-b9ff-7bf43f5a0001' as UserId,
   Idp: 'google.com',
   IdpId: '45346356357' as IdpId,
-  EventType: 'InsufficientCreditReminderNotSent',
+  EventType: 'InsufficientCreditsReminderNotSent',
   HappenedAt: '2024-01-02T15:04:51Z' as DateTime,
   Origin: 'somewhere' as AuditTrailStoreRecordOrigin
 };

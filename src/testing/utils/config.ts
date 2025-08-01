@@ -20,6 +20,7 @@ import type {
   EncodeRefreshJwtConfig,
   IdempotencyPersistenceConfig,
   IdpConfigs,
+  MessagingAlertingConfig,
   PaymentPlansConfig,
   SnsTopicConfig,
   SqsQueueConfig
@@ -104,6 +105,10 @@ export function setEnvActionableEventFoundTopicConfig(config: SnsTopicConfig): v
 
 export function setEnvMessagingTopicConfig(config: SnsTopicConfig): void {
   process.env.MESSAGING_TOPIC_ARN = config.topicArn;
+}
+
+export function setEnvMessagingAlertingConfig(config: MessagingAlertingConfig): void {
+  process.env.LOW_CREDITS_THRESHOLD = config.lowCreditThreshold.toString();
 }
 
 export function setEnvEmailingTopicConfig(config: SnsTopicConfig): void {
@@ -216,7 +221,9 @@ export function setEnvCustomerPortalConfig(config: StripeCustomerPortalConfig): 
 
 export function setEnvStripeCheckoutConfig(config: StripeCheckoutConfig): void {
   process.env.STRIPE_SUCCESS_REDIRECT_URL_PATH = config.successRedirectUrlPath;
-  process.env.STRIPE_CANCEL_REDIRECT_URL_PATH = config.cancelRedirectUrlPath;
+  process.env.STRIPE_CANCEL_SUBSCRIPTION_REDIRECT_URL_PATH =
+    config.cancelSubscriptionRedirectUrlPath;
+  process.env.STRIPE_CANCEL_TOPUP_REDIRECT_URL_PATH = config.cancelTopupRedirectUrlPath;
   process.env.STRIPE_TAX_ID = config.taxId;
 }
 

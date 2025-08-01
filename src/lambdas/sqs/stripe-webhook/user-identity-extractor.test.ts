@@ -3,19 +3,19 @@ import type { Logger } from '@aws-lambda-powertools/logger';
 import type { PaymentUserStoreRecord } from '@model/store/UserPaymentStoreRecord';
 import type {
   Email,
-  Identity,
   IdpId,
   IdpName,
   StripeCustomerId,
-  UserId
+  UserId,
+  UserIdentity
 } from '@notifycal/shared/types';
 import type { PaymentUserIndexStore } from '@services/stores/payment-user-index-store';
 import type { Stripe } from 'stripe';
 import { v4 } from 'uuid';
 import { describe, expect, it, vi } from 'vitest';
-import { StripeIdentityExtractor } from './identity-extractor';
+import { StripeUserIdentityExtractor } from './user-identity-extractor';
 
-describe(StripeIdentityExtractor, () => {
+describe(StripeUserIdentityExtractor, () => {
   const validStripeCustomerId = 'cus_123' as StripeCustomerId;
   const validUserId = v4() as UserId;
   const validIdp = 'google.com';
@@ -30,7 +30,7 @@ describe(StripeIdentityExtractor, () => {
     Email: validEmail
   };
 
-  const validIdentity: Identity<IdpName> = {
+  const validIdentity: UserIdentity<IdpName> = {
     userId: validUserId,
     idp: validIdp,
     idpId: validIdpId,
@@ -87,7 +87,7 @@ describe(StripeIdentityExtractor, () => {
   } as unknown as Stripe.Checkout.Session;
 
   describe('customer events', () => {
-    it('should extract identity from customer.created event', async () => {
+    it('should extract user identity from customer.created event', async () => {
       const event: Stripe.Event = {
         id: 'evt_123',
         object: 'event',
@@ -108,7 +108,7 @@ describe(StripeIdentityExtractor, () => {
       expect(result).toStrictEqual(validIdentity);
     });
 
-    it('should extract identity from customer.updated event', async () => {
+    it('should extract user identity from customer.updated event', async () => {
       const event: Stripe.Event = {
         id: 'evt_123',
         object: 'event',
@@ -129,7 +129,7 @@ describe(StripeIdentityExtractor, () => {
       expect(result).toStrictEqual(validIdentity);
     });
 
-    it('should extract identity from customer.deleted event', async () => {
+    it('should extract user identity from customer.deleted event', async () => {
       const event: Stripe.Event = {
         id: 'evt_123',
         object: 'event',
@@ -152,7 +152,7 @@ describe(StripeIdentityExtractor, () => {
   });
 
   describe('subscription events', () => {
-    it('should extract identity from customer.subscription.created event', async () => {
+    it('should extract user identity from customer.subscription.created event', async () => {
       const event: Stripe.Event = {
         id: 'evt_123',
         object: 'event',
@@ -173,7 +173,7 @@ describe(StripeIdentityExtractor, () => {
       expect(result).toStrictEqual(validIdentity);
     });
 
-    it('should extract identity from customer.subscription.updated event', async () => {
+    it('should extract user identity from customer.subscription.updated event', async () => {
       const event: Stripe.Event = {
         id: 'evt_123',
         object: 'event',
@@ -194,7 +194,7 @@ describe(StripeIdentityExtractor, () => {
       expect(result).toStrictEqual(validIdentity);
     });
 
-    it('should extract identity from customer.subscription.deleted event', async () => {
+    it('should extract user identity from customer.subscription.deleted event', async () => {
       const event: Stripe.Event = {
         id: 'evt_123',
         object: 'event',
@@ -215,7 +215,7 @@ describe(StripeIdentityExtractor, () => {
       expect(result).toStrictEqual(validIdentity);
     });
 
-    it('should extract identity from customer.subscription.paused event', async () => {
+    it('should extract user identity from customer.subscription.paused event', async () => {
       const event: Stripe.Event = {
         id: 'evt_123',
         object: 'event',
@@ -236,7 +236,7 @@ describe(StripeIdentityExtractor, () => {
       expect(result).toStrictEqual(validIdentity);
     });
 
-    it('should extract identity from customer.subscription.resumed event', async () => {
+    it('should extract user identity from customer.subscription.resumed event', async () => {
       const event: Stripe.Event = {
         id: 'evt_123',
         object: 'event',
@@ -259,7 +259,7 @@ describe(StripeIdentityExtractor, () => {
   });
 
   describe('invoice events', () => {
-    it('should extract identity from invoice.created event', async () => {
+    it('should extract user identity from invoice.created event', async () => {
       const event: Stripe.Event = {
         id: 'evt_123',
         object: 'event',
@@ -280,7 +280,7 @@ describe(StripeIdentityExtractor, () => {
       expect(result).toStrictEqual(validIdentity);
     });
 
-    it('should extract identity from invoice.payment_succeeded event', async () => {
+    it('should extract user identity from invoice.payment_succeeded event', async () => {
       const event: Stripe.Event = {
         id: 'evt_123',
         object: 'event',
@@ -301,7 +301,7 @@ describe(StripeIdentityExtractor, () => {
       expect(result).toStrictEqual(validIdentity);
     });
 
-    it('should extract identity from invoice.payment_failed event', async () => {
+    it('should extract user identity from invoice.payment_failed event', async () => {
       const event: Stripe.Event = {
         id: 'evt_123',
         object: 'event',
@@ -324,7 +324,7 @@ describe(StripeIdentityExtractor, () => {
   });
 
   describe('payment intent events', () => {
-    it('should extract identity from payment_intent.succeeded event', async () => {
+    it('should extract user identity from payment_intent.succeeded event', async () => {
       const event: Stripe.Event = {
         id: 'evt_123',
         object: 'event',
@@ -345,7 +345,7 @@ describe(StripeIdentityExtractor, () => {
       expect(result).toStrictEqual(validIdentity);
     });
 
-    it('should extract identity from payment_intent.payment_failed event', async () => {
+    it('should extract user identity from payment_intent.payment_failed event', async () => {
       const event: Stripe.Event = {
         id: 'evt_123',
         object: 'event',
@@ -368,7 +368,7 @@ describe(StripeIdentityExtractor, () => {
   });
 
   describe('checkout session events', () => {
-    it('should extract identity from checkout.session.completed event', async () => {
+    it('should extract user identity from checkout.session.completed event', async () => {
       const event: Stripe.Event = {
         id: 'evt_123',
         object: 'event',
@@ -568,9 +568,9 @@ describe(StripeIdentityExtractor, () => {
 
   function testIt(
     event: Stripe.Event,
-    getPaymentUserByStripeCustomerIdFn: () => Promise<Identity<IdpName> | null | undefined>,
+    getPaymentUserByStripeCustomerIdFn: () => Promise<UserIdentity<IdpName> | null | undefined>,
     errorLoggerFn: () => void
-  ): Promise<Identity<IdpName>> {
+  ): Promise<UserIdentity<IdpName>> {
     const userPaymentIndexStoreMock = {
       getPaymentUserByStripeCustomerId: getPaymentUserByStripeCustomerIdFn
     } as unknown as PaymentUserIndexStore<IdpName>;
@@ -579,7 +579,7 @@ describe(StripeIdentityExtractor, () => {
       error: errorLoggerFn
     } as unknown as Logger;
 
-    const extractor = new StripeIdentityExtractor(userPaymentIndexStoreMock, loggerMock);
+    const extractor = new StripeUserIdentityExtractor(userPaymentIndexStoreMock, loggerMock);
     return extractor.extract(event);
   }
 });

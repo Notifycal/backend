@@ -1,23 +1,21 @@
 import type { Logger } from '@aws-lambda-powertools/logger';
-import { alertMissingPhoneNumberPartialTemplate } from '@email-templates/alert-missing-phone-number/alert-missing-phone-number.html.hbs';
-import { specificTranslations } from '@email-templates/alert-missing-phone-number/translations';
-import type { EmailWithName } from '@model/app-events/common';
+import { alertMissingPhoneNumberTemplate } from '@email/templates/alert-missing-phone-number/translations';
+import type {
+  EmailWithName,
+  EventCreationOptions,
+  EventSourceIdentity
+} from '@model/app-events/common';
 import type { EmailToBeSentEvent } from '@model/app-events/EmailToBeSentEvent';
 import type { EmailingSenderEndpointConfig } from '@model/Config';
+import type { EmailTemplateConfig } from '@model/Email';
 import {
   EventTypeDate,
   type AlertCounterKeyNames,
   type AlertStoreRecord
 } from '@model/store/AlertStoreRecord';
-import type {
-  DateTime,
-  Email,
-  EventId,
-  IdpName,
-  LanguageCode,
-  UserId
-} from '@notifycal/shared/types';
-import { rethrowError } from '@services/common/error-handling';
+import { extractIdentity } from '@model/store/AuditTrailStoreRecord';
+import type { Email, IdpName, LanguageCode, UserId } from '@notifycal/shared/types';
+import { rethrowErrorHandler } from '@services/common/error-handling';
 import { EmailTemplateService } from '@services/email-template-service';
 import type { SnsService } from '@services/sns';
 import type { AlertsBaseStore } from '@services/stores/alerts-base-store';
@@ -25,28 +23,16 @@ import type { UserBaseStore } from '@services/stores/user-base-store';
 import { tap } from '@utils/promises';
 import { DateTime as DT } from 'luxon';
 import { match } from 'ts-pattern';
-import { v4 } from 'uuid';
-import type { AlertEmailConfig, AlertEndpointConfig, AlertThresholdConfig } from './config';
+import type {
+  AlertEmailConfig,
+  AlertEmailEndpointConfig,
+  AlertEndpointConfig,
+  AlertThresholdConfig
+} from './config';
 import type {
   AuditTrailActionableEventFoundEvent,
   AuditTrailNoPhoneNumberForCalendarEventFoundEvent
 } from './schema';
-
-function emailToBeSent(
-  origin: AuditTrailActionableEventFoundEvent | AuditTrailNoPhoneNumberForCalendarEventFoundEvent,
-  data: EmailToBeSentEvent['data']
-): EmailToBeSentEvent {
-  return {
-    eventId: v4() as EventId,
-    correlationId: origin.CorrelationId,
-    eventType: 'EmailToBeSent',
-    happenedAt: new Date().toISOString() as DateTime,
-    userId: origin.UserId,
-    idp: origin.Idp,
-    idpId: origin.IdpId,
-    data: data
-  };
-}
 
 function updateCounterOnEventReceived(
   alertName: EventTypeDate,
@@ -79,7 +65,8 @@ function updateCounterOnAlertSent(
   );
 }
 
-function interpolateEmail(
+function createEmailEvent(
+  event: AuditTrailActionableEventFoundEvent | AuditTrailNoPhoneNumberForCalendarEventFoundEvent,
   email: Email,
   sender: EmailWithName,
   language: LanguageCode,
@@ -87,38 +74,37 @@ function interpolateEmail(
   errorRate: number,
   alertEmailConfig: AlertEmailConfig,
   logger: Logger
-): EmailToBeSentEvent['data'] {
+): EmailToBeSentEvent {
   const subEventType: EmailToBeSentEvent['data']['subEventType'] =
     'NoPhoneNumberForCalendarEventFound';
-
-  const emailTemplateService = new EmailTemplateService(logger);
-  const compiledTemplateFn = emailTemplateService.compileTemplate(
-    alertMissingPhoneNumberPartialTemplate,
-    specificTranslations,
-    {
-      notifycalFaqUrl: alertEmailConfig.faqUrl.toString()
-    }
-  );
-  const emailTemplate = compiledTemplateFn(language);
-
-  return {
-    from: sender,
-    to: email,
-    subject: emailTemplate.subject,
-    htmlBody: emailTemplate.htmlBody,
-    tags: [],
-    subEventType,
-    inlineAttachments: emailTemplate.inlineAttachments,
-    metadata: {
-      actionableEventFoundCount: updateCounterResult.SuccessCount,
-      noPhoneNumberForCalendarEventFoundCount: updateCounterResult.FailureCount,
-      errorRate,
-      notificationsSentCountBeforeUpdate: updateCounterResult.NotificationSentCount
-    }
+  const templateConfig: EmailTemplateConfig = alertMissingPhoneNumberTemplate.withDynamicVariables({
+    feedbackUrl: alertEmailConfig.feedbackUrl.toString(),
+    notifycalFaqUrl: alertEmailConfig.faqUrl.toString()
+  });
+  const metadata = {
+    actionableEventFoundCount: updateCounterResult.SuccessCount,
+    noPhoneNumberForCalendarEventFoundCount: updateCounterResult.FailureCount,
+    errorRate,
+    notificationsSentCountBeforeUpdate: updateCounterResult.NotificationSentCount
   };
+  const userIdentity: EventSourceIdentity = extractIdentity(event);
+  const options: EventCreationOptions = {
+    correlationId: event.CorrelationId
+  };
+
+  return new EmailTemplateService(logger).createEmailEvent(
+    email,
+    sender,
+    language,
+    templateConfig,
+    subEventType,
+    metadata,
+    userIdentity,
+    options
+  );
 }
 
-function sendAlert(
+function sendPhoneNumberAlert(
   event: AuditTrailActionableEventFoundEvent | AuditTrailNoPhoneNumberForCalendarEventFoundEvent,
   alertName: EventTypeDate,
   alertDiscriminator: UserId,
@@ -132,8 +118,8 @@ function sendAlert(
   snsService: SnsService,
   logger: Logger
 ): Promise<void> {
-  logger.info(`Sending alert to user`);
-  const alertData = interpolateEmail(
+  const alertEvent = createEmailEvent(
+    event,
     email,
     sender,
     language,
@@ -142,7 +128,7 @@ function sendAlert(
     alertEmailConfig,
     logger
   );
-  const alertEvent: EmailToBeSentEvent = emailToBeSent(event, alertData);
+
   return snsService
     .publish(alertEvent)
     .then(tap(() => updateCounterOnAlertSent(alertName, alertDiscriminator, alertsBaseStore)))
@@ -179,20 +165,9 @@ function shouldAlert(
   );
 }
 
-function errorHandler(
-  eventId: EventId,
-  logger: Logger
-): (error: unknown) => Promise<void | undefined> {
-  return (error: unknown) => {
-    rethrowError(`(Re)-Throwing error on purpose to notify of batch item failure`, error, logger, {
-      eventId: eventId
-    });
-  };
-}
-
 export function recordProcessor(
   event: AuditTrailActionableEventFoundEvent | AuditTrailNoPhoneNumberForCalendarEventFoundEvent,
-  config: AlertEndpointConfig & EmailingSenderEndpointConfig,
+  config: AlertEndpointConfig & EmailingSenderEndpointConfig & AlertEmailEndpointConfig,
   alertsBaseStore: AlertsBaseStore,
   userBaseStore: UserBaseStore<IdpName>,
   snsService: SnsService,
@@ -214,7 +189,7 @@ export function recordProcessor(
         return userBaseStore.getEmailAndLanguageById(event.UserId).then((emailAndLanguage) => {
           if (emailAndLanguage) {
             const { Email, Language } = emailAndLanguage;
-            return sendAlert(
+            return sendPhoneNumberAlert(
               event,
               alertName,
               alertDiscriminator,
@@ -238,5 +213,13 @@ export function recordProcessor(
       }
       return Promise.resolve();
     })
-    .catch(errorHandler(event.EventId, logger));
+    .catch(
+      rethrowErrorHandler(
+        `(Re)-Throwing error on purpose to notify of batch item failure`,
+        logger,
+        {
+          eventId: event.EventId
+        }
+      )
+    );
 }

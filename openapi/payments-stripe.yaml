@@ -15,10 +15,12 @@ paths:
           application/json:
             schema:
               type: object
-              description: Request payload containing user shopping cart
+              description: Request payload with tier/topup and language. Must include either tier or topup, but not both. Ideally, the schema would use `oneOf`, but AWS APIGW has selective support for it.
               properties:
                 tier: { $ref: './component-definitions.yaml#/components/schemas/Tier' }
+                topup: { $ref: './component-definitions.yaml#/components/schemas/Topup' }
                 language: { $ref: './component-definitions.yaml#/components/schemas/LanguageCode' }
+              required: [language]
               additionalProperties: false
       responses:
         '200': { $ref: './component-definitions.yaml#/components/responses/PaymentSessionResult' }
@@ -37,6 +39,21 @@ paths:
       operationId: customerPortalSession
       description: Creates customer portal session with vendor
       tags: [payments]
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Request payload containing customer portal session config
+              properties:
+                flowType:
+                  description: Type of flow for the customer portal session.
+                  type: string
+                  enum: ['subscription_cancel', 'subscription_update', 'payment_method_update']
+                language: { $ref: './component-definitions.yaml#/components/schemas/LanguageCode' }
+              required: [language]
+              additionalProperties: false
       responses:
         '200':
           { $ref: './component-definitions.yaml#/components/responses/CustomerPortalSessionResult' }

@@ -2,11 +2,11 @@ import type { Algorithm } from '@model/Config';
 import type { AuthorizationForIdp } from '@model/IdpAuthorization';
 import type {
   Email,
-  Identity,
   IdpId,
   IdpName,
   Jwt,
   UnixTimestamp,
+  UserIdentity,
   Uuid
 } from '@notifycal/shared/types';
 import type { AwsArn, PrivateKey } from '@own-types/model';
@@ -41,7 +41,7 @@ import { handler, type Event } from './index';
 describe('POST Login', () => {
   const userEmail = 'test@notifycal.com' as Email;
   const validUserId = validJwts.accessToken.decoded.payload.userId;
-  const validIdentity: Identity<'google.com'> = {
+  const validIdentity: UserIdentity<'google.com'> = {
     userId: validJwts.accessToken.decoded.payload.userId,
     email: userEmail,
     idp: 'google.com',
@@ -51,7 +51,7 @@ describe('POST Login', () => {
     refreshToken: 'some_google_refressssh_token'
   };
   const validVerifyGoogleIdentityFn = (): Promise<
-    [Identity<'google.com'>, AuthorizationForIdp<'google.com'>]
+    [UserIdentity<'google.com'>, AuthorizationForIdp<'google.com'>]
   > => Promise.resolve([validIdentity, validAuthorization]);
   const validQueryParams = {
     idp: 'google.com'
@@ -252,7 +252,7 @@ describe('POST Login', () => {
 // eslint-disable-next-line @typescript-eslint/require-await
 async function testit<T extends IdpName>(
   event: APIGatewayProxyEvent,
-  verifyGoogleIdentityFn: () => Promise<[Identity<T>, AuthorizationForIdp<T>]>,
+  verifyGoogleIdentityFn: () => Promise<[UserIdentity<T>, AuthorizationForIdp<T>]>,
   signInOrUpUserFn: () => Promise<EncodedAndDecodedJwts>,
   env: LoginConfig = defaultEnv
 ): Promise<APIGatewayProxyResult> {

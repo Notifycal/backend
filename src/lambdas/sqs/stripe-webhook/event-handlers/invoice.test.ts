@@ -1,16 +1,16 @@
 /* eslint-disable camelcase */
 import type { Logger } from '@aws-lambda-powertools/logger';
+import type { CreditAdditionResult } from '@model/Credits';
 import type { TierMap, TopupMap } from '@model/PaymentPlans';
 import type {
   Email,
-  Identity,
   IdpId,
   IdpName,
   TierId,
   TopupId,
-  UserId
+  UserId,
+  UserIdentity
 } from '@notifycal/shared/types';
-import type { CreditAdditionResult } from '@services/credits-service';
 import type { SubscriptionService } from '@services/subscription';
 import type { TopupService } from '@services/topup';
 import { validPaymentPlans } from '@testing/data/pricing';
@@ -19,7 +19,7 @@ import { describe, expect, it, vi, type Mock } from 'vitest';
 import { InvoicePaymentSucceededHandler } from './invoice';
 
 describe(InvoicePaymentSucceededHandler, () => {
-  const validIdentity: Identity<IdpName> = {
+  const validIdentity: UserIdentity<IdpName> = {
     userId: 'user-123' as UserId,
     email: 'user@example.com' as Email,
     idp: 'google.com',
@@ -160,11 +160,12 @@ describe(InvoicePaymentSucceededHandler, () => {
     }
   } as Stripe.Invoice;
 
-  const validSuccessResult: CreditAdditionResult = {
+  const validSuccessResult: CreditAdditionResult<'add'> = {
     success: true,
     result: 'Success',
     operationDetails: {
       fromBalance: 'subscription',
+      type: 'add',
       quantity: 100
     },
     balances: {
@@ -173,7 +174,7 @@ describe(InvoicePaymentSucceededHandler, () => {
     }
   };
 
-  const validErrorResult: CreditAdditionResult = {
+  const validErrorResult: CreditAdditionResult<'add'> = {
     success: false,
     result: 'UnknownError',
     error: new Error('Subscription service failed unexpectedly')
@@ -381,7 +382,7 @@ describe(InvoicePaymentSucceededHandler, () => {
     const upgradeFn = vi.fn();
     const downgradeFn = vi.fn();
     const error = new Error('Topup service failed unexpectedly');
-    const validAdditionErrorResult: CreditAdditionResult = {
+    const validAdditionErrorResult: CreditAdditionResult<'add'> = {
       success: false,
       result: 'UnknownError',
       error: error
@@ -853,21 +854,27 @@ describe(InvoicePaymentSucceededHandler, () => {
 
   function testIt(
     event: Stripe.InvoicePaymentSucceededEvent,
-    identity: Identity<IdpName>,
-    createFn: (identity: Identity<IdpName>, tierId: TierId) => Promise<CreditAdditionResult>,
-    renewFn: (identity: Identity<IdpName>, tierId: TierId) => Promise<CreditAdditionResult>,
+    userIdentity: UserIdentity<IdpName>,
+    createFn: (
+      userIdentity: UserIdentity<IdpName>,
+      tierId: TierId
+    ) => Promise<CreditAdditionResult<'reset'>>,
+    renewFn: (
+      userIdentity: UserIdentity<IdpName>,
+      tierId: TierId
+    ) => Promise<CreditAdditionResult<'reset'>>,
     upgradeFn: (
-      identity: Identity<IdpName>,
+      userIdentity: UserIdentity<IdpName>,
       previousTier: TierId,
       currentTier: TierId,
       remainingPercentage: number
-    ) => Promise<CreditAdditionResult>,
-    downgradeFn: (identity: Identity<IdpName>) => Promise<void>,
+    ) => Promise<CreditAdditionResult<'add'>>,
+    downgradeFn: (userIdentity: UserIdentity<IdpName>) => Promise<void>,
     addTopupFn: (
-      identity: Identity<IdpName>,
+      userIdentity: UserIdentity<IdpName>,
       topupId: TopupId,
       quantity: number
-    ) => Promise<CreditAdditionResult>,
+    ) => Promise<CreditAdditionResult<'add'>>,
     tiers: TierMap,
     topups: TopupMap = validTopups
   ): Promise<void> {
@@ -897,6 +904,6 @@ describe(InvoicePaymentSucceededHandler, () => {
       loggerMock
     );
 
-    return handler.handle(event, identity);
+    return handler.handle(event, userIdentity);
   }
 });

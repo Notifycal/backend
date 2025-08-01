@@ -1,13 +1,12 @@
-import type { ActionableEventReminderStatusUpdatedEvent } from '@model/app-events/ActionableEventReminderStatusUpdatedEvent';
 import type { Algorithm, Duration } from '@model/Config';
 import type { DecodeVonageAccessJwtConfig } from '@model/vendor/vonage/config';
-import type { Jwt } from '@notifycal/shared/types';
+import type { Jwt, Uuid } from '@notifycal/shared/types';
 import type { AwsArn } from '@own-types/model';
 import type {
   VonageApiKey,
   VonageApplicationId,
   VonageJwtSigningSecret
-} from '@services/messaging';
+} from '@services/messaging/vonage';
 import { c, testVonageAuthedEvent } from '@testing/data/apigateway';
 import {
   responseErrorNoCorsHeaders,
@@ -21,15 +20,33 @@ import type { ReminderDeliveryStatusWebhookConfig } from './config';
 // @ts-expect-error cjs handler export
 import { handler, type Event } from './index';
 
+vi.mock('@services/sns');
+vi.mock('@services/credit-adjustment-service');
+vi.mock('@services/credits-service');
+vi.mock('@services/stores/user-base-store');
+
 import { logger } from '@common/powertools';
-import type { DemoReminderToBeSentStatusUpdatedEvent } from '@model/app-events/DemoReminderToBeSentStatusUpdatedEvent';
+import type {
+  VonageWebhookMessageStatusPayload,
+  VonageWebhookMessageStatusRcsPayload,
+  VonageWebhookMessageStatusSmsPayload
+} from '@model/vendor/vonage/schemas';
+import {
+  CreditAdjustmentService,
+  type CreditAdjustmentResult
+} from '@services/credit-adjustment-service';
 import { SnsService } from '@services/sns';
-import { setEnvMessagingTopicConfig } from '@testing/utils/config';
+import {
+  setEnvCreditServiceConfig,
+  setEnvMessagingTopicConfig,
+  setEnvUserBaseStoreConfig
+} from '@testing/utils/config';
+import { tap } from '@utils/promises';
 
 /* eslint-disable camelcase */
-const invalidBodies = [
+const invalidBodies: Array<VonageWebhookMessageStatusPayload> = [
   {
-    message_uuid: 'not-a-valid-uuid',
+    message_uuid: 'not-a-valid-uuid' as Uuid,
     channel: 'sms',
     to: '447700900000',
     from: '447700900001',
@@ -37,11 +54,11 @@ const invalidBodies = [
     status: 'submitted',
     usage: {
       currency: 'EUR',
-      price: '0.0333'
+      price: 0.0333
     }
   },
   {
-    message_uuid: 'cccccccc-dddd-4eee-8fff-0123456789ab',
+    message_uuid: 'cccccccc-dddd-4eee-8fff-0123456789ab' as Uuid,
     channel: 'sms',
     to: '447700900000',
     from: '447700900001',
@@ -49,11 +66,11 @@ const invalidBodies = [
     status: 'submitted',
     usage: {
       currency: 'EUR',
-      price: '0.0333'
+      price: 0.0333
     }
   },
   {
-    message_uuid: 'dddddddd-eeee-4fff-8aaa-0123456789ab',
+    message_uuid: 'dddddddd-eeee-4fff-8aaa-0123456789ab' as Uuid,
     channel: 'rcs',
     to: '447700900003',
     from: 'Vonage',
@@ -61,19 +78,19 @@ const invalidBodies = [
     status: 'wrong_status'
   },
   {
-    message_uuid: 'eeeeeeee-ffff-4aaa-8bbb-0123456789ab',
+    message_uuid: 'eeeeeeee-ffff-4aaa-8bbb-0123456789ab' as Uuid,
     channel: 'sms',
     to: '447700900000',
     from: '447700900001',
     timestamp: '2025-02-03T12:14:25Z',
     status: 'submitted',
     usage: {
-      currency: 'USD',
-      price: '0.0333'
+      currency: 'USD', // this is invalid
+      price: 0.0333
     }
   },
   {
-    message_uuid: 'ffffffff-aaaa-4bbb-8ccc-0123456789ab',
+    message_uuid: 'ffffffff-aaaa-4bbb-8ccc-0123456789ab' as Uuid,
     channel: 'sms',
     to: '123',
     from: '447700900001',
@@ -85,35 +102,34 @@ const invalidBodies = [
     }
   },
   {}
-];
+].map((v) => v as unknown as VonageWebhookMessageStatusPayload);
 
-const validBodies = [
-  {
-    message_uuid: 'aaaaaaaa-bbbb-4ccc-8ddd-0123456789ab',
-    channel: 'sms',
-    to: '447700900000',
-    from: '447700900001',
-    timestamp: '2025-02-03T12:14:25Z',
-    status: 'submitted',
-    usage: {
-      currency: 'EUR',
-      price: '0.0333'
-    },
-    sms: {
-      count_total: '2'
-    },
-    client_ref: 'foobar1234'
+const validSmsBody: VonageWebhookMessageStatusSmsPayload = {
+  message_uuid: 'aaaaaaaa-bbbb-4ccc-8ddd-0123456789ab' as Uuid,
+  channel: 'sms',
+  to: '447700900000',
+  from: '447700900001',
+  timestamp: '2025-02-03T12:14:25Z',
+  status: 'submitted',
+  usage: {
+    currency: 'EUR',
+    price: 0.0333
   },
-  {
-    message_uuid: 'bbbbbbbb-cccc-4ddd-8eee-0123456789ab',
-    channel: 'rcs',
-    to: '447700900002',
-    from: 'Vonage',
-    timestamp: '2025-02-03T14:20:00Z',
-    status: 'read',
-    client_ref: 'foobar1234'
-  }
-];
+  sms: {
+    count_total: 2
+  },
+  client_ref: 'foobar1234'
+};
+const validRcsBody: VonageWebhookMessageStatusRcsPayload = {
+  message_uuid: 'bbbbbbbb-cccc-4ddd-8eee-0123456789ab' as Uuid,
+  channel: 'rcs',
+  to: '447700900002',
+  from: 'Vonage',
+  timestamp: '2025-02-03T14:20:00Z',
+  status: 'read',
+  client_ref: 'foobar1234'
+};
+const validBodies: Array<VonageWebhookMessageStatusPayload> = [validSmsBody, validRcsBody];
 
 export interface EncodeVonageAccessJwtConfig {
   signingSecret: string;
@@ -142,51 +158,83 @@ const validVonageEncodeJwtConfig: EncodeVonageAccessJwtConfig = {
 };
 
 const validActionableEventFoundQSPObject = {
-  userId: '96f3d941-1155-4d50-ac5a-19345fb7e9ef',
-  idpId: 'google-123',
-  idp: 'google.com',
-  eventType: 'ActionableEventFound',
-  correlationId: 'c1625a78-7337-4fd8-a6c4-a0afb9c0ceb9',
-  'data[run][slidingWindowInMinutes]': '30',
-  'data[run][lowerBoundStartTime]': '2023-01-01T00:00:00Z',
-  'data[run][upperBoundStartTime]': '2023-01-01T00:29:59Z',
+  'originalEvent[userId]': '96f3d941-1155-4d50-ac5a-19345fb7e9ef',
+  'originalEvent[idpId]': 'google-123',
+  'originalEvent[idp]': 'google.com',
+  'originalEvent[eventType]': 'ActionableEventFound',
+  'originalEvent[correlationId]': 'c1625a78-7337-4fd8-a6c4-a0afb9c0ceb9',
+  'originalEvent[data][run][slidingWindowInMinutes]': '30',
+  'originalEvent[data][run][lowerBoundStartTime]': '2023-01-01T00:00:00Z',
+  'originalEvent[data][run][upperBoundStartTime]': '2023-01-01T00:29:59Z',
 
-  'data[message]': 'This is a test message!',
+  'originalEvent[data][message]': 'This is a test message!',
 
-  'data[receiverDetails][phoneNumber]': '+34654321987',
-  'data[receiverDetails][type]': 'phone',
-  'data[receiverDetails][countryCode]': 'ES',
+  'originalEvent[data][receiverDetails][phoneNumber]': '+34654321987',
+  'originalEvent[data][receiverDetails][type]': 'phone',
+  'originalEvent[data][receiverDetails][countryCode]': 'ES',
 
-  'data[senderDetails][phoneNumber]': '+34654321987',
-  'data[senderDetails][type]': 'phone',
-  'data[senderDetails][countryCode]': 'ES',
+  'originalEvent[data][senderDetails][phoneNumber]': '+34654321987',
+  'originalEvent[data][senderDetails][type]': 'phone',
+  'originalEvent[data][senderDetails][countryCode]': 'ES',
 
-  'data[calendar][id]': 'someCalendarId',
-  'data[calendar][name]': 'Some Calendar Name',
+  'originalEvent[data][calendar][id]': 'someCalendarId',
+  'originalEvent[data][calendar][name]': 'Some Calendar Name',
 
-  'data[calendarEvent][attendees][0][id]': 'attendee@test.com',
-  'data[calendarEvent][id]': 'event-1',
-  'data[calendarEvent][isAllDayEvent]': 'false',
-  'data[calendarEvent][startTime]': '2024-01-02T15:05:00Z',
-  'data[calendarEvent][timeZone]': 'Europe/Madrid'
+  'originalEvent[data][calendarEvent][attendees][0][id]': 'attendee@test.com',
+  'originalEvent[data][calendarEvent][id]': 'event-1',
+  'originalEvent[data][calendarEvent][isAllDayEvent]': 'false',
+  'originalEvent[data][calendarEvent][startTime]': '2024-01-02T15:05:00Z',
+  'originalEvent[data][calendarEvent][timeZone]': 'Europe/Madrid',
+
+  'creditDeductionResult[success]': 'true',
+  'creditDeductionResult[result]': 'Success',
+  'creditDeductionResult[operationDetails][fromBalance]': 'subscription',
+  'creditDeductionResult[operationDetails][type]': 'deduct',
+  'creditDeductionResult[operationDetails][quantity]': '7',
+  'creditDeductionResult[balances][subscription]': '400',
+  'creditDeductionResult[balances][topup]': '5',
+
+  'estimatedMessageCount[messages]': '1',
+  'estimatedMessageCount[encoding]': 'GSM_7BIT',
+  'estimatedMessageCount[remaining]': '34',
+  'estimatedMessageCount[inCurrentMessage]': '2',
+  'estimatedMessageCount[characterPerMessage]': '160',
+  'estimatedMessageCount[length]': '3'
 };
 
 const validDemoReminderToBeSentQSPObject = {
-  userId: '96f3d941-1155-4d50-ac5a-19345fb7e988',
-  idpId: 'google-456',
-  idp: 'google.com',
-  eventType: 'DemoReminderToBeSent',
-  correlationId: 'c1625a78-7337-4fd8-a6c4-a0afb9c0ceb9',
-  'data[message]': 'This is a test message!',
+  'originalEvent[userId]': '96f3d941-1155-4d50-ac5a-19345fb7e988',
+  'originalEvent[idpId]': 'google-456',
+  'originalEvent[idp]': 'google.com',
+  'originalEvent[eventType]': 'DemoReminderToBeSent',
+  'originalEvent[correlationId]': 'c1625a78-7337-4fd8-a6c4-a0afb9c0ceb9',
+  'originalEvent[data][message]': 'This is a test message!',
 
-  'data[receiverDetails][phoneNumber]': '+34654321987',
-  'data[receiverDetails][type]': 'phone',
-  'data[receiverDetails][countryCode]': 'ES',
+  'originalEvent[data][receiverDetails][phoneNumber]': '+34654321987',
+  'originalEvent[data][receiverDetails][type]': 'phone',
+  'originalEvent[data][receiverDetails][countryCode]': 'ES',
 
-  'data[senderDetails][phoneNumber]': '+34654321987',
-  'data[senderDetails][type]': 'phone',
-  'data[senderDetails][countryCode]': 'ES'
+  'originalEvent[data][senderDetails][phoneNumber]': '+34654321987',
+  'originalEvent[data][senderDetails][type]': 'phone',
+  'originalEvent[data][senderDetails][countryCode]': 'ES',
+
+  'creditDeductionResult[success]': 'true',
+  'creditDeductionResult[result]': 'Success',
+  'creditDeductionResult[demoRemindersCount]': '2',
+
+  'estimatedMessageCount[messages]': '1',
+  'estimatedMessageCount[encoding]': 'GSM_7BIT',
+  'estimatedMessageCount[remaining]': '34',
+  'estimatedMessageCount[inCurrentMessage]': '2',
+  'estimatedMessageCount[characterPerMessage]': '160',
+  'estimatedMessageCount[length]': '3'
 };
+
+function mockUuid(uuid: string): void {
+  vi.mocked<(options?: Version4Options, buf?: undefined, offset?: number) => string>(
+    uuidv4
+  ).mockReturnValue(uuid);
+}
 
 describe('POST Event reminder delivery status webhook', () => {
   it.each(invalidBodies)(
@@ -198,9 +246,8 @@ describe('POST Event reminder delivery status webhook', () => {
         validActionableEventFoundQSPObject
       ) as APIGatewayProxyEvent;
 
-      return testit(event).then((resp) => {
-        assert(resp, responseErrorNoCorsHeaders(400));
-      });
+      const resp = await testIt(event, vi.fn(), () => Promise.resolve({}));
+      assert(resp, responseErrorNoCorsHeaders(400));
     }
   );
 
@@ -211,43 +258,66 @@ describe('POST Event reminder delivery status webhook', () => {
       validActionableEventFoundQSPObject
     ) as APIGatewayProxyEvent;
 
-    return testit(event).then((resp) => {
-      assert(resp, responseSuccessNoCorsHeaders());
-    });
+    const processWebhookAdjustmentMock = vi.fn().mockResolvedValue({});
+    const resp = await testIt(event, vi.fn(), processWebhookAdjustmentMock);
+
+    assert(resp, responseSuccessNoCorsHeaders());
+
+    expect(processWebhookAdjustmentMock).toHaveBeenCalledTimes(1);
   });
 
   it('should fail with 401 Unauthorized if the JWT token is invalid', async () => {
-    const chosenBody = validBodies[0];
+    const validChosenBody = validSmsBody;
+    const invalidJwt = 'invalid-jwt-token' as Jwt;
     const event = testVonageAuthedEvent(
-      chosenBody,
-      'invalid-jwt-token' as Jwt,
+      validChosenBody,
+      invalidJwt,
       validActionableEventFoundQSPObject
     ) as APIGatewayProxyEvent;
 
-    return testit(event).then((resp) => {
-      assert(resp, responseErrorNoCorsHeaders(401));
-    });
+    const resp = await testIt(event, vi.fn(), () => Promise.resolve({}));
+    assert(resp, responseErrorNoCorsHeaders(401));
   });
 
   it('should publish a ActionableEventReminderStatusUpdated event to sns service', async () => {
     const safePublishMock = vi.fn();
-    const fixedDate = new Date('2025-03-26T08:20:53.240Z');
-    vi.setSystemTime(fixedDate);
+    const validFixedDate = new Date('2025-03-26T08:20:53.240Z');
+    vi.setSystemTime(validFixedDate);
 
-    const fixedUUID = '0de651ef-535e-4d2e-b9ff-7bf43f5a01ac';
-    vi.mocked<(options?: Version4Options, buf?: undefined, offset?: number) => string>(
-      uuidv4
-    ).mockReturnValue(fixedUUID);
+    const validFixedUUID = '0de651ef-535e-4d2e-b9ff-7bf43f5a01ac';
+    mockUuid(validFixedUUID);
 
-    const chosenBody = validBodies[0]!;
+    const validChosenBody: VonageWebhookMessageStatusSmsPayload = validSmsBody;
 
     const event = testVonageAuthedEvent(
-      chosenBody,
+      validChosenBody,
       validVonageJwt,
       validActionableEventFoundQSPObject
     );
 
-    await testit(event as APIGatewayProxyEvent, safePublishMock);
+    const processWebhookAdjustmentMock = vi.fn().mockResolvedValue({});
+    await testIt(event as APIGatewayProxyEvent, safePublishMock, processWebhookAdjustmentMock);
+
+    expect(processWebhookAdjustmentMock).toHaveBeenCalledTimes(1);
+    expect(processWebhookAdjustmentMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        originalEvent: expect.objectContaining({
+          eventType: 'ActionableEventFound',
+          userId: '96f3d941-1155-4d50-ac5a-19345fb7e9ef'
+        }),
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        estimatedMessageCount: expect.objectContaining({
+          messages: 1
+        })
+      }),
+      expect.objectContaining({
+        // eslint-disable-next-line camelcase
+        message_uuid: validChosenBody.message_uuid,
+        channel: 'sms',
+        status: 'submitted'
+      })
+    );
 
     const eventQSP = event.queryStringParameters || {};
 
@@ -255,79 +325,372 @@ describe('POST Event reminder delivery status webhook', () => {
     expect(safePublishMock).toHaveBeenCalledTimes(1);
     expect(safePublishMock).toHaveBeenCalledWith({
       eventType: 'ActionableEventReminderStatusUpdated',
-      correlationId: eventQSP.correlationId,
-      userId: eventQSP.userId,
-      idpId: eventQSP.idpId,
-      idp: eventQSP.idp,
+      correlationId: eventQSP['originalEvent[correlationId]'],
+      userId: eventQSP['originalEvent[userId]'],
+      idpId: eventQSP['originalEvent[idpId]'],
+      idp: eventQSP['originalEvent[idp]'],
       data: {
         messageStatusPayload: {
-          ...chosenBody,
+          ...validChosenBody,
           usage: {
-            ...chosenBody.usage,
-            price: parseFloat(chosenBody.usage?.price || '')
+            ...validChosenBody?.usage,
+            price: validChosenBody.usage?.price
           },
           sms: {
-            ...chosenBody.sms,
+            ...validChosenBody.sms,
             // eslint-disable-next-line camelcase
-            count_total: parseInt(chosenBody.sms?.count_total || '')
+            count_total: validChosenBody.sms?.count_total
           }
         },
-        messageUUID: chosenBody.message_uuid,
-        message: eventQSP['data[message]'],
+        messageUUID: validChosenBody.message_uuid,
         run: {
-          lowerBoundStartTime: eventQSP['data[run][lowerBoundStartTime]'],
-          upperBoundStartTime: eventQSP['data[run][upperBoundStartTime]'],
-          slidingWindowInMinutes: parseInt(eventQSP['data[run][slidingWindowInMinutes]']!)
+          lowerBoundStartTime: eventQSP['originalEvent[data][run][lowerBoundStartTime]'],
+          upperBoundStartTime: eventQSP['originalEvent[data][run][upperBoundStartTime]'],
+          slidingWindowInMinutes: Number(
+            eventQSP['originalEvent[data][run][slidingWindowInMinutes]']
+          )
         },
         senderDetails: {
-          phoneNumber: eventQSP['data[senderDetails][phoneNumber]'],
-          type: eventQSP['data[senderDetails][type]'],
-          countryCode: eventQSP['data[senderDetails][countryCode]']
+          phoneNumber: eventQSP['originalEvent[data][senderDetails][phoneNumber]'],
+          type: eventQSP['originalEvent[data][senderDetails][type]'],
+          countryCode: eventQSP['originalEvent[data][senderDetails][countryCode]']
         },
         receiverDetails: {
-          phoneNumber: eventQSP['data[receiverDetails][phoneNumber]'],
-          type: eventQSP['data[receiverDetails][type]'],
-          countryCode: eventQSP['data[senderDetails][countryCode]']
+          phoneNumber: eventQSP['originalEvent[data][receiverDetails][phoneNumber]'],
+          type: eventQSP['originalEvent[data][receiverDetails][type]'],
+          countryCode: eventQSP['originalEvent[data][senderDetails][countryCode]']
         },
         calendar: {
-          id: eventQSP['data[calendar][id]'],
-          name: eventQSP['data[calendar][name]']
+          id: eventQSP['originalEvent[data][calendar][id]'],
+          name: eventQSP['originalEvent[data][calendar][name]']
         },
         calendarEvent: {
-          attendees: [{ id: 'attendee@test.com' }],
-          id: eventQSP['data[calendarEvent][id]'],
-          isAllDayEvent: eventQSP['data[calendarEvent][isAllDayEvent]'] === 'true',
-          startTime: eventQSP['data[calendarEvent][startTime]'],
-          timeZone: eventQSP['data[calendarEvent][timeZone]']
-        }
+          id: eventQSP['originalEvent[data][calendarEvent][id]']
+        },
+        creditDeductionResult: {
+          success: Boolean(eventQSP['creditDeductionResult[success]']),
+          result: eventQSP['creditDeductionResult[result]'],
+          operationDetails: {
+            fromBalance: eventQSP['creditDeductionResult[operationDetails][fromBalance]'],
+            type: eventQSP['creditDeductionResult[operationDetails][type]'],
+            quantity: Number(eventQSP['creditDeductionResult[operationDetails][quantity]'])
+          },
+          balances: {
+            subscription: Number(eventQSP['creditDeductionResult[balances][subscription]']),
+            topup: Number(eventQSP['creditDeductionResult[balances][topup]'])
+          }
+        },
+        creditAdjustmentResult: undefined
       },
-      happenedAt: fixedDate.toISOString(),
-      eventId: fixedUUID
-    } as ActionableEventReminderStatusUpdatedEvent);
+      happenedAt: validFixedDate.toISOString(),
+      eventId: validFixedUUID
+    });
+  });
 
-    // Cleanup
-    vi.useRealTimers();
+  it('should publish a ActionableEventReminderStatusUpdated event with credit restoration when Vonage error occurs', async () => {
+    const safePublishMock = vi.fn();
+    const validFixedDate = new Date('2025-03-26T08:20:53.240Z');
+    vi.setSystemTime(validFixedDate);
+
+    const validFixedUUID = '0de651ef-535e-4d2e-b9ff-7bf43f5a01ac';
+    mockUuid(validFixedUUID);
+
+    const validChosenBodyWithError = {
+      ...validSmsBody,
+      status: 'rejected' as const,
+      error: {
+        error: {
+          type: 'https://developer.vonage.com/api/messages#rate-limit',
+          title: '1030',
+          detail: 'Internal error  -  There was an error processing your request in the Platform',
+          instance: 'bf0ca0bf927b3b52e3cb03217e1a1ddf'
+        }
+      }
+    };
+
+    const event = testVonageAuthedEvent(
+      validChosenBodyWithError,
+      validVonageJwt,
+      validActionableEventFoundQSPObject
+    );
+
+    const validCreditAdjustmentResult = {
+      success: true as const,
+      result: 'Success' as const,
+      operationDetails: {
+        fromBalance: 'subscription' as const,
+        type: 'restore' as const,
+        quantity: 7
+      },
+      balances: {
+        subscription: 407,
+        topup: 5
+      }
+    };
+
+    const processWebhookAdjustmentMock = vi
+      .fn()
+      .mockResolvedValue({ creditAdjustmentResult: validCreditAdjustmentResult });
+    await testIt(event as APIGatewayProxyEvent, safePublishMock, processWebhookAdjustmentMock);
+
+    expect(processWebhookAdjustmentMock).toHaveBeenCalledTimes(1);
+    expect(processWebhookAdjustmentMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        originalEvent: expect.objectContaining({
+          eventType: 'ActionableEventFound',
+          userId: '96f3d941-1155-4d50-ac5a-19345fb7e9ef'
+        }),
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        estimatedMessageCount: expect.objectContaining({
+          messages: 1
+        })
+      }),
+      expect.objectContaining({
+        // eslint-disable-next-line camelcase
+        message_uuid: validChosenBodyWithError.message_uuid,
+        channel: 'sms',
+        status: 'rejected'
+      })
+    );
+
+    const eventQSP = event.queryStringParameters || {};
+
+    expect(event.queryStringParameters).not.toBeNull();
+    expect(safePublishMock).toHaveBeenCalledTimes(1);
+    expect(safePublishMock).toHaveBeenCalledWith({
+      eventType: 'ActionableEventReminderStatusUpdated',
+      correlationId: eventQSP['originalEvent[correlationId]'],
+      userId: eventQSP['originalEvent[userId]'],
+      idpId: eventQSP['originalEvent[idpId]'],
+      idp: eventQSP['originalEvent[idp]'],
+      data: {
+        messageStatusPayload: {
+          ...validChosenBodyWithError,
+          usage: {
+            ...validChosenBodyWithError.usage,
+            price: validChosenBodyWithError.usage?.price
+          },
+          sms: {
+            ...validChosenBodyWithError.sms,
+            // eslint-disable-next-line camelcase
+            count_total: Number(validChosenBodyWithError.sms?.count_total || '')
+          }
+        },
+        messageUUID: validChosenBodyWithError.message_uuid,
+        run: {
+          lowerBoundStartTime: eventQSP['originalEvent[data][run][lowerBoundStartTime]'],
+          upperBoundStartTime: eventQSP['originalEvent[data][run][upperBoundStartTime]'],
+          slidingWindowInMinutes: Number(
+            eventQSP['originalEvent[data][run][slidingWindowInMinutes]']
+          )
+        },
+        senderDetails: {
+          phoneNumber: eventQSP['originalEvent[data][senderDetails][phoneNumber]'],
+          type: eventQSP['originalEvent[data][senderDetails][type]'],
+          countryCode: eventQSP['originalEvent[data][senderDetails][countryCode]']
+        },
+        receiverDetails: {
+          phoneNumber: eventQSP['originalEvent[data][receiverDetails][phoneNumber]'],
+          type: eventQSP['originalEvent[data][receiverDetails][type]'],
+          countryCode: eventQSP['originalEvent[data][senderDetails][countryCode]']
+        },
+        calendar: {
+          id: eventQSP['originalEvent[data][calendar][id]'],
+          name: eventQSP['originalEvent[data][calendar][name]']
+        },
+        calendarEvent: {
+          id: eventQSP['originalEvent[data][calendarEvent][id]']
+        },
+        creditDeductionResult: {
+          success: Boolean(eventQSP['creditDeductionResult[success]']),
+          result: eventQSP['creditDeductionResult[result]'],
+          operationDetails: {
+            fromBalance: eventQSP['creditDeductionResult[operationDetails][fromBalance]'],
+            type: eventQSP['creditDeductionResult[operationDetails][type]'],
+            quantity: Number(eventQSP['creditDeductionResult[operationDetails][quantity]'])
+          },
+          balances: {
+            subscription: Number(eventQSP['creditDeductionResult[balances][subscription]']),
+            topup: Number(eventQSP['creditDeductionResult[balances][topup]'])
+          }
+        },
+        creditAdjustmentResult: validCreditAdjustmentResult
+      },
+      happenedAt: validFixedDate.toISOString(),
+      eventId: validFixedUUID
+    });
+  });
+
+  it('should publish a ActionableEventReminderStatusUpdated event with credit restoration when message count is higher than estimated', async () => {
+    const safePublishMock = vi.fn();
+    const validFixedDate = new Date('2025-03-26T08:20:53.240Z');
+    vi.setSystemTime(validFixedDate);
+
+    const validFixedUUID = '0de651ef-535e-4d2e-b9ff-7bf43f5a01ac';
+    mockUuid(validFixedUUID);
+
+    const validChosenBodyWithOvercharge = {
+      ...validSmsBody,
+      sms: {
+        // eslint-disable-next-line camelcase
+        count_total: '3'
+      }
+    };
+
+    const event = testVonageAuthedEvent(
+      validChosenBodyWithOvercharge,
+      validVonageJwt,
+      validActionableEventFoundQSPObject
+    );
+
+    const validCreditAdjustmentResult = {
+      success: true as const,
+      result: 'Success' as const,
+      operationDetails: {
+        fromBalance: 'subscription' as const,
+        type: 'restore' as const,
+        quantity: 2
+      },
+      balances: {
+        subscription: 402,
+        topup: 5
+      }
+    };
+
+    const processWebhookAdjustmentMock = vi
+      .fn()
+      .mockResolvedValue({ creditAdjustmentResult: validCreditAdjustmentResult });
+    await testIt(event as APIGatewayProxyEvent, safePublishMock, processWebhookAdjustmentMock);
+
+    expect(processWebhookAdjustmentMock).toHaveBeenCalledTimes(1);
+    expect(processWebhookAdjustmentMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        originalEvent: expect.objectContaining({
+          eventType: 'ActionableEventFound',
+          userId: '96f3d941-1155-4d50-ac5a-19345fb7e9ef'
+        }),
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        estimatedMessageCount: expect.objectContaining({
+          messages: 1
+        })
+      }),
+      expect.objectContaining({
+        // eslint-disable-next-line camelcase
+        message_uuid: validChosenBodyWithOvercharge.message_uuid,
+        channel: 'sms',
+        status: 'submitted'
+      })
+    );
+
+    const eventQSP = event.queryStringParameters || {};
+
+    expect(event.queryStringParameters).not.toBeNull();
+    expect(safePublishMock).toHaveBeenCalledTimes(1);
+    expect(safePublishMock).toHaveBeenCalledWith({
+      eventType: 'ActionableEventReminderStatusUpdated',
+      correlationId: eventQSP['originalEvent[correlationId]'],
+      userId: eventQSP['originalEvent[userId]'],
+      idpId: eventQSP['originalEvent[idpId]'],
+      idp: eventQSP['originalEvent[idp]'],
+      data: {
+        messageStatusPayload: {
+          ...validChosenBodyWithOvercharge,
+          usage: {
+            ...validChosenBodyWithOvercharge.usage,
+            price: validChosenBodyWithOvercharge.usage?.price
+          },
+          sms: {
+            ...validChosenBodyWithOvercharge.sms,
+            // eslint-disable-next-line camelcase
+            count_total: Number(validChosenBodyWithOvercharge.sms?.count_total || '')
+          }
+        },
+        messageUUID: validChosenBodyWithOvercharge.message_uuid,
+        run: {
+          lowerBoundStartTime: eventQSP['originalEvent[data][run][lowerBoundStartTime]'],
+          upperBoundStartTime: eventQSP['originalEvent[data][run][upperBoundStartTime]'],
+          slidingWindowInMinutes: Number(
+            eventQSP['originalEvent[data][run][slidingWindowInMinutes]']
+          )
+        },
+        senderDetails: {
+          phoneNumber: eventQSP['originalEvent[data][senderDetails][phoneNumber]'],
+          type: eventQSP['originalEvent[data][senderDetails][type]'],
+          countryCode: eventQSP['originalEvent[data][senderDetails][countryCode]']
+        },
+        receiverDetails: {
+          phoneNumber: eventQSP['originalEvent[data][receiverDetails][phoneNumber]'],
+          type: eventQSP['originalEvent[data][receiverDetails][type]'],
+          countryCode: eventQSP['originalEvent[data][senderDetails][countryCode]']
+        },
+        calendar: {
+          id: eventQSP['originalEvent[data][calendar][id]'],
+          name: eventQSP['originalEvent[data][calendar][name]']
+        },
+        calendarEvent: {
+          id: eventQSP['originalEvent[data][calendarEvent][id]']
+        },
+        creditDeductionResult: {
+          success: Boolean(eventQSP['creditDeductionResult[success]']),
+          result: eventQSP['creditDeductionResult[result]'],
+          operationDetails: {
+            fromBalance: eventQSP['creditDeductionResult[operationDetails][fromBalance]'],
+            type: eventQSP['creditDeductionResult[operationDetails][type]'],
+            quantity: Number(eventQSP['creditDeductionResult[operationDetails][quantity]'] || '')
+          },
+          balances: {
+            subscription: Number(eventQSP['creditDeductionResult[balances][subscription]'] || ''),
+            topup: Number(eventQSP['creditDeductionResult[balances][topup]'] || '')
+          }
+        },
+        creditAdjustmentResult: validCreditAdjustmentResult
+      },
+      happenedAt: validFixedDate.toISOString(),
+      eventId: validFixedUUID
+    });
   });
 
   it('should publish a DemoReminderToBeSentStatusUpdated event to sns service', async () => {
     const safePublishMock = vi.fn();
-    const fixedDate = new Date('2025-03-26T08:20:53.444Z');
-    vi.setSystemTime(fixedDate);
+    const validFixedDate = new Date('2025-03-26T08:20:53.444Z');
+    vi.setSystemTime(validFixedDate);
 
-    const fixedUUID = '0de651ef-535e-4d2e-b9ff-7bf43f5a0aaa';
-    vi.mocked<(options?: Version4Options, buf?: undefined, offset?: number) => string>(
-      uuidv4
-    ).mockReturnValue(fixedUUID);
+    const validFixedUUID = '0de651ef-535e-4d2e-b9ff-7bf43f5a0aaa';
+    mockUuid(validFixedUUID);
 
-    const chosenBody = validBodies[0]!;
+    const validChosenBody = validSmsBody;
 
     const event = testVonageAuthedEvent(
-      chosenBody,
+      validChosenBody,
       validVonageJwt,
       validDemoReminderToBeSentQSPObject
     );
 
-    await testit(event as APIGatewayProxyEvent, safePublishMock);
+    const processWebhookAdjustmentMock = vi.fn().mockResolvedValue({});
+    await testIt(event as APIGatewayProxyEvent, safePublishMock, processWebhookAdjustmentMock);
+
+    expect(processWebhookAdjustmentMock).toHaveBeenCalledTimes(1);
+    expect(processWebhookAdjustmentMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        originalEvent: expect.objectContaining({
+          eventType: 'DemoReminderToBeSent',
+          userId: '96f3d941-1155-4d50-ac5a-19345fb7e988'
+        }),
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        estimatedMessageCount: expect.objectContaining({
+          messages: 1
+        })
+      }),
+      expect.objectContaining({
+        // eslint-disable-next-line camelcase
+        message_uuid: validChosenBody.message_uuid,
+        channel: 'sms',
+        status: 'submitted'
+      })
+    );
 
     const eventQSP = event.queryStringParameters || {};
 
@@ -335,62 +698,379 @@ describe('POST Event reminder delivery status webhook', () => {
     expect(safePublishMock).toHaveBeenCalledTimes(1);
     expect(safePublishMock).toHaveBeenCalledWith({
       eventType: 'DemoReminderToBeSentStatusUpdated',
-      correlationId: eventQSP.correlationId,
-      userId: eventQSP.userId,
-      idpId: eventQSP.idpId,
-      idp: eventQSP.idp,
+      correlationId: eventQSP['originalEvent[correlationId]'],
+      userId: eventQSP['originalEvent[userId]'],
+      idpId: eventQSP['originalEvent[idpId]'],
+      idp: eventQSP['originalEvent[idp]'],
       data: {
         messageStatusPayload: {
-          ...chosenBody,
+          ...validChosenBody,
           usage: {
-            ...chosenBody.usage,
-            price: parseFloat(chosenBody.usage?.price || '')
+            ...validChosenBody.usage,
+            price: validChosenBody.usage?.price
           },
           sms: {
-            ...chosenBody.sms,
+            ...validChosenBody.sms,
             // eslint-disable-next-line camelcase
-            count_total: parseInt(chosenBody.sms?.count_total || '')
+            count_total: Number(validChosenBody.sms?.count_total || '')
           }
         },
-        messageUUID: chosenBody.message_uuid,
-        message: eventQSP['data[message]'],
-
+        messageUUID: validChosenBody.message_uuid,
         senderDetails: {
-          phoneNumber: eventQSP['data[senderDetails][phoneNumber]'],
-          type: eventQSP['data[senderDetails][type]'],
-          countryCode: eventQSP['data[senderDetails][countryCode]']
+          phoneNumber: eventQSP['originalEvent[data][senderDetails][phoneNumber]'],
+          type: eventQSP['originalEvent[data][senderDetails][type]'],
+          countryCode: eventQSP['originalEvent[data][senderDetails][countryCode]']
         },
         receiverDetails: {
-          phoneNumber: eventQSP['data[receiverDetails][phoneNumber]'],
-          type: eventQSP['data[receiverDetails][type]'],
-          countryCode: eventQSP['data[senderDetails][countryCode]']
-        }
+          phoneNumber: eventQSP['originalEvent[data][receiverDetails][phoneNumber]'],
+          type: eventQSP['originalEvent[data][receiverDetails][type]'],
+          countryCode: eventQSP['originalEvent[data][senderDetails][countryCode]']
+        },
+        demoCounterIncrementResult: {
+          success: Boolean(eventQSP['creditDeductionResult[success]']),
+          result: eventQSP['creditDeductionResult[result]'],
+          demoRemindersCount: Number(eventQSP['creditDeductionResult[demoRemindersCount]'] || '')
+        },
+        demoCounterAdjustmentResult: undefined
       },
-      happenedAt: fixedDate.toISOString(),
-      eventId: fixedUUID
-    } as DemoReminderToBeSentStatusUpdatedEvent);
+      happenedAt: validFixedDate.toISOString(),
+      eventId: validFixedUUID
+    });
+  });
 
-    // Cleanup
-    vi.useRealTimers();
+  it('should publish a DemoReminderToBeSentStatusUpdated event with demo counter decrement when Vonage error occurs', async () => {
+    const safePublishMock = vi.fn();
+    const validFixedDate = new Date('2025-03-26T08:20:53.444Z');
+    vi.setSystemTime(validFixedDate);
+
+    const validFixedUUID = '0de651ef-535e-4d2e-b9ff-7bf43f5a0aaa';
+    mockUuid(validFixedUUID);
+
+    const validChosenBodyWithError = {
+      ...validSmsBody,
+      status: 'rejected' as const,
+      error: {
+        error: {
+          type: 'https://developer.vonage.com/api/messages#rate-limit',
+          title: '1000',
+          detail:
+            'Throttled - You have exceeded the submission capacity allowed on this account. Please wait and retry',
+          instance: 'bf0ca0bf927b3b52e3cb03217e1a1ddf'
+        }
+      }
+    };
+
+    const event = testVonageAuthedEvent(
+      validChosenBodyWithError,
+      validVonageJwt,
+      validDemoReminderToBeSentQSPObject
+    );
+
+    const validDemoCounterAdjustmentResult = {
+      success: true as const,
+      result: 'Success' as const,
+      demoRemindersCount: 1
+    };
+
+    const processWebhookAdjustmentMock = vi
+      .fn()
+      .mockResolvedValue({ demoCounterAdjustmentResult: validDemoCounterAdjustmentResult });
+    await testIt(event as APIGatewayProxyEvent, safePublishMock, processWebhookAdjustmentMock);
+
+    expect(processWebhookAdjustmentMock).toHaveBeenCalledTimes(1);
+    expect(processWebhookAdjustmentMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        originalEvent: expect.objectContaining({
+          eventType: 'DemoReminderToBeSent',
+          userId: '96f3d941-1155-4d50-ac5a-19345fb7e988'
+        }),
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        estimatedMessageCount: expect.objectContaining({
+          messages: 1
+        })
+      }),
+      expect.objectContaining({
+        // eslint-disable-next-line camelcase
+        message_uuid: validChosenBodyWithError.message_uuid,
+        channel: 'sms',
+        status: 'rejected'
+      })
+    );
+
+    const eventQSP = event.queryStringParameters || {};
+
+    expect(event.queryStringParameters).not.toBeNull();
+    expect(safePublishMock).toHaveBeenCalledTimes(1);
+    expect(safePublishMock).toHaveBeenCalledWith({
+      eventType: 'DemoReminderToBeSentStatusUpdated',
+      correlationId: eventQSP['originalEvent[correlationId]'],
+      userId: eventQSP['originalEvent[userId]'],
+      idpId: eventQSP['originalEvent[idpId]'],
+      idp: eventQSP['originalEvent[idp]'],
+      data: {
+        messageStatusPayload: {
+          ...validChosenBodyWithError,
+          usage: {
+            ...validChosenBodyWithError.usage,
+            price: validChosenBodyWithError.usage?.price
+          },
+          sms: {
+            ...validChosenBodyWithError.sms,
+            // eslint-disable-next-line camelcase
+            count_total: Number(validChosenBodyWithError.sms?.count_total || '')
+          }
+        },
+        messageUUID: validChosenBodyWithError.message_uuid,
+        senderDetails: {
+          phoneNumber: eventQSP['originalEvent[data][senderDetails][phoneNumber]'],
+          type: eventQSP['originalEvent[data][senderDetails][type]'],
+          countryCode: eventQSP['originalEvent[data][senderDetails][countryCode]']
+        },
+        receiverDetails: {
+          phoneNumber: eventQSP['originalEvent[data][receiverDetails][phoneNumber]'],
+          type: eventQSP['originalEvent[data][receiverDetails][type]'],
+          countryCode: eventQSP['originalEvent[data][senderDetails][countryCode]']
+        },
+        demoCounterIncrementResult: {
+          success: Boolean(eventQSP['creditDeductionResult[success]']),
+          result: eventQSP['creditDeductionResult[result]'],
+          demoRemindersCount: Number(eventQSP['creditDeductionResult[demoRemindersCount]'] || '')
+        },
+        demoCounterAdjustmentResult: validDemoCounterAdjustmentResult
+      },
+      happenedAt: validFixedDate.toISOString(),
+      eventId: validFixedUUID
+    });
+  });
+
+  it('should not restore credits when message count matches estimation', async () => {
+    const safePublishMock = vi.fn();
+    const validFixedDate = new Date('2025-03-26T08:20:53.240Z');
+    vi.setSystemTime(validFixedDate);
+
+    const validFixedUUID = '0de651ef-535e-4d2e-b9ff-7bf43f5a01ac';
+    mockUuid(validFixedUUID);
+
+    const validChosenBodyWithExactMatch = {
+      ...validSmsBody,
+      sms: {
+        // eslint-disable-next-line camelcase
+        count_total: '1'
+      }
+    };
+
+    const event = testVonageAuthedEvent(
+      validChosenBodyWithExactMatch,
+      validVonageJwt,
+      validActionableEventFoundQSPObject
+    );
+
+    const processWebhookAdjustmentMock = vi.fn().mockResolvedValue({});
+    await testIt(event as APIGatewayProxyEvent, safePublishMock, processWebhookAdjustmentMock);
+
+    expect(processWebhookAdjustmentMock).toHaveBeenCalledTimes(1);
+    expect(processWebhookAdjustmentMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        originalEvent: expect.objectContaining({
+          eventType: 'ActionableEventFound',
+          userId: '96f3d941-1155-4d50-ac5a-19345fb7e9ef'
+        }),
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        estimatedMessageCount: expect.objectContaining({
+          messages: 1
+        })
+      }),
+      expect.objectContaining({
+        // eslint-disable-next-line camelcase
+        message_uuid: validChosenBodyWithExactMatch.message_uuid,
+        channel: 'sms',
+        status: 'submitted'
+      })
+    );
+
+    const eventQSP = event.queryStringParameters || {};
+
+    expect(event.queryStringParameters).not.toBeNull();
+    expect(safePublishMock).toHaveBeenCalledTimes(1);
+    expect(safePublishMock).toHaveBeenCalledWith({
+      eventType: 'ActionableEventReminderStatusUpdated',
+      correlationId: eventQSP['originalEvent[correlationId]'],
+      userId: eventQSP['originalEvent[userId]'],
+      idpId: eventQSP['originalEvent[idpId]'],
+      idp: eventQSP['originalEvent[idp]'],
+      data: {
+        messageStatusPayload: {
+          ...validChosenBodyWithExactMatch,
+          usage: {
+            ...validChosenBodyWithExactMatch.usage,
+            price: validChosenBodyWithExactMatch.usage?.price
+          },
+          sms: {
+            ...validChosenBodyWithExactMatch.sms,
+            // eslint-disable-next-line camelcase
+            count_total: Number(validChosenBodyWithExactMatch.sms?.count_total || '')
+          }
+        },
+        messageUUID: validChosenBodyWithExactMatch.message_uuid,
+        run: {
+          lowerBoundStartTime: eventQSP['originalEvent[data][run][lowerBoundStartTime]'],
+          upperBoundStartTime: eventQSP['originalEvent[data][run][upperBoundStartTime]'],
+          slidingWindowInMinutes: Number(
+            eventQSP['originalEvent[data][run][slidingWindowInMinutes]']
+          )
+        },
+        senderDetails: {
+          phoneNumber: eventQSP['originalEvent[data][senderDetails][phoneNumber]'],
+          type: eventQSP['originalEvent[data][senderDetails][type]'],
+          countryCode: eventQSP['originalEvent[data][senderDetails][countryCode]']
+        },
+        receiverDetails: {
+          phoneNumber: eventQSP['originalEvent[data][receiverDetails][phoneNumber]'],
+          type: eventQSP['originalEvent[data][receiverDetails][type]'],
+          countryCode: eventQSP['originalEvent[data][senderDetails][countryCode]']
+        },
+        calendar: {
+          id: eventQSP['originalEvent[data][calendar][id]'],
+          name: eventQSP['originalEvent[data][calendar][name]']
+        },
+        calendarEvent: {
+          id: eventQSP['originalEvent[data][calendarEvent][id]']
+        },
+        creditDeductionResult: {
+          success: Boolean(eventQSP['creditDeductionResult[success]']),
+          result: eventQSP['creditDeductionResult[result]'],
+          operationDetails: {
+            fromBalance: eventQSP['creditDeductionResult[operationDetails][fromBalance]'],
+            type: eventQSP['creditDeductionResult[operationDetails][type]'],
+            quantity: Number(eventQSP['creditDeductionResult[operationDetails][quantity]'] || '')
+          },
+          balances: {
+            subscription: Number(eventQSP['creditDeductionResult[balances][subscription]'] || ''),
+            topup: Number(eventQSP['creditDeductionResult[balances][topup]'] || '')
+          }
+        },
+        creditAdjustmentResult: undefined
+      },
+      happenedAt: validFixedDate.toISOString(),
+      eventId: validFixedUUID
+    });
+  });
+
+  it('should not decrement demo counter when message count matches estimation for demo reminder', async () => {
+    const safePublishMock = vi.fn();
+    const validFixedDate = new Date('2025-03-26T08:20:53.444Z');
+    vi.setSystemTime(validFixedDate);
+
+    const validFixedUUID = '0de651ef-535e-4d2e-b9ff-7bf43f5a0aaa';
+    mockUuid(validFixedUUID);
+
+    const validChosenBodyWithExactMatch: VonageWebhookMessageStatusSmsPayload = {
+      ...validSmsBody,
+      sms: {
+        // eslint-disable-next-line camelcase
+        count_total: 1
+      }
+    };
+
+    const event = testVonageAuthedEvent(
+      validChosenBodyWithExactMatch,
+      validVonageJwt,
+      validDemoReminderToBeSentQSPObject
+    );
+
+    const processWebhookAdjustmentMock = vi.fn().mockResolvedValue({});
+    await testIt(event as APIGatewayProxyEvent, safePublishMock, processWebhookAdjustmentMock);
+
+    expect(processWebhookAdjustmentMock).toHaveBeenCalledTimes(1);
+    expect(processWebhookAdjustmentMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        originalEvent: expect.objectContaining({
+          eventType: 'DemoReminderToBeSent',
+          userId: '96f3d941-1155-4d50-ac5a-19345fb7e988'
+        }),
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        estimatedMessageCount: expect.objectContaining({
+          messages: 1
+        })
+      }),
+      expect.objectContaining({
+        // eslint-disable-next-line camelcase
+        message_uuid: validChosenBodyWithExactMatch.message_uuid,
+        channel: 'sms',
+        status: 'submitted'
+      })
+    );
+
+    const eventQSP = event.queryStringParameters || {};
+
+    expect(event.queryStringParameters).not.toBeNull();
+    expect(safePublishMock).toHaveBeenCalledTimes(1);
+    expect(safePublishMock).toHaveBeenCalledWith({
+      eventType: 'DemoReminderToBeSentStatusUpdated',
+      correlationId: eventQSP['originalEvent[correlationId]'],
+      userId: eventQSP['originalEvent[userId]'],
+      idpId: eventQSP['originalEvent[idpId]'],
+      idp: eventQSP['originalEvent[idp]'],
+      data: {
+        messageStatusPayload: {
+          ...validChosenBodyWithExactMatch,
+          usage: {
+            ...validChosenBodyWithExactMatch.usage,
+            price: validChosenBodyWithExactMatch.usage?.price
+          },
+          sms: {
+            ...validChosenBodyWithExactMatch.sms,
+            // eslint-disable-next-line camelcase
+            count_total: Number(validChosenBodyWithExactMatch.sms?.count_total || '')
+          }
+        },
+        messageUUID: validChosenBodyWithExactMatch.message_uuid,
+        senderDetails: {
+          phoneNumber: eventQSP['originalEvent[data][senderDetails][phoneNumber]'],
+          type: eventQSP['originalEvent[data][senderDetails][type]'],
+          countryCode: eventQSP['originalEvent[data][senderDetails][countryCode]']
+        },
+        receiverDetails: {
+          phoneNumber: eventQSP['originalEvent[data][receiverDetails][phoneNumber]'],
+          type: eventQSP['originalEvent[data][receiverDetails][type]'],
+          countryCode: eventQSP['originalEvent[data][senderDetails][countryCode]']
+        },
+        demoCounterIncrementResult: {
+          success: Boolean(eventQSP['creditDeductionResult[success]']),
+          result: eventQSP['creditDeductionResult[result]'],
+          demoRemindersCount: Number(eventQSP['creditDeductionResult[demoRemindersCount]'])
+        },
+        demoCounterAdjustmentResult: undefined
+      },
+      happenedAt: validFixedDate.toISOString(),
+      eventId: validFixedUUID
+    });
   });
 
   it('should log an error and success if it cannot rebuild the neither ActionableEventFound nor DemoReminderToBeSent event from query string', async () => {
     const errorLoggerSpy = vi.spyOn(logger, 'error');
 
-    const chosenBody = validBodies[1];
-    const incompleteQueryStringObject = {
-      userId: '96f3d941-1155-4d50-ac5a-19345fb7e9ef',
-      idpId: 'google-123',
-      idp: 'google.com'
+    const validChosenBody = validBodies[1];
+    const invalidIncompleteQueryStringObject = {
+      'originalEvent[userId]': '96f3d941-1155-4d50-ac5a-19345fb7e9ef',
+      'originalEvent[idpId]': 'google-123',
+      'originalEvent[idp]': 'google.com'
     };
     const event = testVonageAuthedEvent(
-      chosenBody,
+      validChosenBody,
       validVonageJwt,
-      incompleteQueryStringObject
+      invalidIncompleteQueryStringObject
     ) as APIGatewayProxyEvent;
 
-    const resp = await testit(event);
+    const processWebhookAdjustmentMock = vi.fn().mockResolvedValue({});
+    const resp = await testIt(event, vi.fn(), processWebhookAdjustmentMock);
     assert(resp, responseSuccessNoCorsHeaders());
+
+    // Should NOT call processWebhookAdjustment because query string rebuild fails
+    expect(processWebhookAdjustmentMock).not.toHaveBeenCalled();
 
     expect(errorLoggerSpy).toHaveBeenCalledWith(
       'Could not rebuild event from query string',
@@ -398,13 +1078,13 @@ describe('POST Event reminder delivery status webhook', () => {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         error: expect.objectContaining({
           message:
-            'Could not parse query string neither as ActionableEventFoundEvent nor DemoReminderToBeSentEvent'
+            'Could not parse query string neither as ActionableEventFoundEvent nor DemoReminderToBeSentEvent along with credit deduction result and estimated message count'
         })
       })
     );
   });
 
-  const defaultEnv = {
+  const validDefaultEnv = {
     messagingTopicConfig: {
       topicArn: 'some-aws-arn' as AwsArn
     },
@@ -414,6 +1094,13 @@ describe('POST Event reminder delivery status webhook', () => {
       apiKey: validDecodedVonageJwt.api_key as VonageApiKey,
       algorithm: 'HS256' as Algorithm,
       issuer: 'Vonage'
+    },
+    userBaseStoreConfig: {
+      tableName: 'Users-local'
+    },
+    countryToSMSCostCreditsMap: {
+      ES: 1,
+      US: 2
     }
   };
 
@@ -428,21 +1115,28 @@ describe('POST Event reminder delivery status webhook', () => {
   function setEnv(config: ReminderDeliveryStatusWebhookConfig) {
     setEnvDecodeVonageJwtConfig(config.decodeAccessJwtConfig);
     setEnvMessagingTopicConfig(config.messagingTopicConfig);
+    setEnvUserBaseStoreConfig(config.userBaseStoreConfig);
+    setEnvCreditServiceConfig({ countryToSMSCostCreditsMap: config.countryToSMSCostCreditsMap });
   }
 
-  // eslint-disable-next-line @typescript-eslint/require-await
-  async function testit(
+  function testIt(
     event: APIGatewayProxyEvent,
     safePublishFn: () => Promise<void> = vi.fn(),
-    env: ReminderDeliveryStatusWebhookConfig = defaultEnv
+    processWebhookAdjustmentFn: () => Promise<CreditAdjustmentResult>,
+    env: ReminderDeliveryStatusWebhookConfig = validDefaultEnv
   ): Promise<APIGatewayProxyResult> {
     setEnv(env);
-    vi.mock('@services/sns');
+
     const snsServiceMock = {
       safePublish: safePublishFn
     };
     // eslint-disable-next-line @typescript-eslint/unbound-method
     vi.mocked(SnsService.withConfig).mockReturnValue(snsServiceMock as unknown as SnsService);
+
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    vi.mocked(CreditAdjustmentService.prototype.processWebhookAdjustment).mockImplementation(
+      processWebhookAdjustmentFn
+    );
 
     vi.mock('uuid', async () => {
       // eslint-disable-next-line @typescript-eslint/consistent-type-imports
@@ -453,7 +1147,11 @@ describe('POST Event reminder delivery status webhook', () => {
       };
     });
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
-    return handler(event as unknown as Event, c);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+    return handler(event as unknown as Event, c).then(
+      tap(() => {
+        vi.useRealTimers();
+      })
+    );
   }
 });

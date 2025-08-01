@@ -47,8 +47,15 @@ async function lambdaHandler(
         'User does not have a Stripe customer ID whereas it should have one. This is totally unexpected'
       );
     }
+    const { flowType, language } = event.body;
     return stripeService
-      .createCustomerPortalSession(stripeCustomerId, returnUrl, stripeCustomerPortalConfig.configId)
+      .createCustomerPortalSession(
+        stripeCustomerId,
+        returnUrl,
+        stripeCustomerPortalConfig.configId,
+        language,
+        flowType
+      )
       .then(
         (sessionUrl) => {
           if (sessionUrl) {

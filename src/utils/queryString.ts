@@ -10,12 +10,13 @@ export function queryStringToObject(queryString: string): Record<string, unknown
   return parse(queryString);
 }
 
-export function queryStringObjectToTypedObject<TSchema extends z.ZodObject>(
+export function queryStringObjectToTypedObject<TSchema extends z.ZodTypeAny>(
   queryStringFlatObject: Record<string, string>,
   schema: TSchema
 ): Promise<z.infer<typeof schema>> {
   return promiseTry(() => {
     const raw = queryStringToObject(objectToQueryString(queryStringFlatObject));
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return schema.parse(raw);
   });
 }
