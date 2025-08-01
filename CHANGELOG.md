@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.55.5](https://github.com/Notifycal/backend/compare/v0.55.4...v0.55.5) (2025-08-01)
+
+
+### Bug Fixes
+
+* secure stripe admin webhook url ([#905](https://github.com/Notifycal/backend/issues/905)) ([5c3e61a](https://github.com/Notifycal/backend/commit/5c3e61a3eab89bec3733e6a8cd643288b7a8719f))
+* stripe success redirections ([#907](https://github.com/Notifycal/backend/issues/907)) ([410cc6a](https://github.com/Notifycal/backend/commit/410cc6a5f18c43d1e06f8edec937b4d5822b1d13))
+
 ## [0.55.4](https://github.com/Notifycal/backend/compare/v0.55.3...v0.55.4) (2025-07-31)
 
 
