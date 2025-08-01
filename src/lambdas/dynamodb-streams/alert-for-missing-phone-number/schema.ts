@@ -1,5 +1,8 @@
 import { DynamoDBMarshalled } from '@aws-lambda-powertools/parser/helpers/dynamodb';
-import { DynamoDBStreamSchema } from '@aws-lambda-powertools/parser/schemas';
+import {
+  DynamoDBStreamSchema,
+  DynamoDBStreamChangeRecordBase
+} from '@aws-lambda-powertools/parser/schemas/dynamodb';
 import { actionableEventFoundEventSchema } from '@model/app-events/ActionableEventFoundEvent';
 import { noPhoneNumberForCalendarEventFoundEventSchema } from '@model/app-events/NoPhoneNumberForCalendarEventFoundEvent';
 import { auditTrailStoreRecordSchema } from '@model/store/AuditTrailStoreRecord';
@@ -39,11 +42,9 @@ export const payloadSchemas = z.union([
   auditTrailNoPhoneNumberForCalendarEventFoundEventSchema
 ]);
 
-const dynamodbSchema = DynamoDBStreamSchema.shape.Records.element.shape.dynamodb
-  .innerType()
-  .extend({
-    NewImage: DynamoDBMarshalled(payloadSchemas)
-  });
+const dynamodbSchema = DynamoDBStreamChangeRecordBase.extend({
+  NewImage: DynamoDBMarshalled(payloadSchemas)
+});
 
 const extendedRecordSchema = DynamoDBStreamSchema.shape.Records.element.extend({
   dynamodb: dynamodbSchema

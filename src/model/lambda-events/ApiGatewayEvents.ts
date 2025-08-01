@@ -3,6 +3,7 @@ import type { AccessToken } from '@model/Jwt';
 import type { APIGatewayProxyEventBase } from 'aws-lambda';
 import { z } from 'zod';
 
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type, @typescript-eslint/explicit-module-boundary-types
 export function apiEventSchema<TEndpointConfig>() {
   return APIGatewayProxyEventSchema.extend({
     version: z.string().optional(),
@@ -14,6 +15,7 @@ export function apiEventSchema<TEndpointConfig>() {
   });
 }
 
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type, @typescript-eslint/explicit-module-boundary-types
 export function authedEventSchema<TEndpointConfig, TAccessToken = AccessToken>() {
   const schema = apiEventSchema<TEndpointConfig>();
   return schema.extend({

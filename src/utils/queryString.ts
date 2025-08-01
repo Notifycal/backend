@@ -16,7 +16,6 @@ export function queryStringObjectToTypedObject<TSchema extends z.ZodTypeAny>(
 ): Promise<z.infer<typeof schema>> {
   return promiseTry(() => {
     const raw = queryStringToObject(objectToQueryString(queryStringFlatObject));
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return schema.parse(raw);
   });
 }

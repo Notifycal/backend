@@ -1,5 +1,5 @@
 import type { OurAccessTokenClaims } from '@model/Jwt';
-import type { Email, Identity, IdpId, IdpName, UserId } from '@notifycal/shared/types';
+import type { Email, IdpId, IdpName, UserId, UserIdentity } from '@notifycal/shared/types';
 
 const validUserId = 'cfaa8471-f4cc-44da-bc22-ddc4b735a847' as UserId;
 const validEmail = 'test@notifycal.com' as Email;
@@ -7,7 +7,7 @@ const validEmail = 'test@notifycal.com' as Email;
 export function _validIdentity(
   userId: UserId = validUserId,
   email: Email = validEmail
-): Identity<IdpName> {
+): UserIdentity<IdpName> {
   return {
     userId: userId,
     email: email,

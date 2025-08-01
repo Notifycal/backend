@@ -46,12 +46,18 @@ export class IdempotentProcessor extends AbstractIdempotentProcessor<EmailSendSu
     );
   }
 
-  private onError(event: EmailToBeSentEvent): () => Promise<void> {
-    const errorEvent: EmailToBeSentAttemptFailedEvent = {
-      ...event,
-      eventType: 'EmailToBeSentAttemptFailed' as const
+  private onError(event: EmailToBeSentEvent): (error: unknown) => Promise<void> {
+    return (error: unknown) => {
+      const errorEvent: EmailToBeSentAttemptFailedEvent = {
+        ...event,
+        eventType: 'EmailToBeSentAttemptFailed' as const,
+        data: {
+          ...event.data,
+          errorPayload: error
+        }
+      };
+      return this.snsService.safePublish(errorEvent);
     };
-    return () => this.snsService.safePublish(errorEvent);
   }
 
   private onIdempotencyHit(

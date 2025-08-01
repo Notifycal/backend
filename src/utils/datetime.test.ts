@@ -65,7 +65,7 @@ describe(timezoneValidator, () => {
       addIssue: vi.fn()
     };
 
-    const validator = timezoneValidator();
+    const validator = timezoneValidator;
     const result = validator(timezone as TimeZone, mockContext);
 
     expect(result).toBe(true);
@@ -90,7 +90,7 @@ describe(timezoneValidator, () => {
       addIssue: vi.fn()
     };
 
-    const validator = timezoneValidator();
+    const validator = timezoneValidator;
     const result = validator(timezone as TimeZone, mockContext);
 
     expect(result).toBe(false);
@@ -115,7 +115,7 @@ describe(timezoneValidator, () => {
       addIssue: vi.fn()
     };
 
-    const validator = timezoneValidator();
+    const validator = timezoneValidator;
     const result = validator(timezone as unknown as TimeZone, mockContext);
 
     expect(result).toBe(false);
@@ -126,7 +126,7 @@ describe(timezoneValidator, () => {
     const TimezoneSchema = z
       .string()
       .transform((data) => data as TimeZone)
-      .refine(timezoneValidator);
+      .refine(timezoneValidator, 'Invalid timezone');
 
     const validResult = TimezoneSchema.safeParse('America/Chicago');
 
@@ -145,7 +145,7 @@ describe(timezoneValidator, () => {
       addIssue: vi.fn()
     };
 
-    const validator = timezoneValidator();
+    const validator = timezoneValidator;
     const result = validator('Etc/GMT+0' as TimeZone, mockContext);
 
     expect(result).toBe(true);
