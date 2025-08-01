@@ -51,7 +51,7 @@ module "post_payment_session_lambda" {
     STRIPE_API_KEY                               = var.stripe_operating_api_key
     STRIPE_SUCCESS_REDIRECT_URL_PATH             = "/#/payment-success"
     STRIPE_CANCEL_SUBSCRIPTION_REDIRECT_URL_PATH = "/#/onboarding/tier-selection"
-    STRIPE_CANCEL_TOPUP_REDIRECT_URL_PATH        = "/#/dashboard/billing"
+    STRIPE_CANCEL_TOPUP_REDIRECT_URL_PATH        = "/#/billing"
     STRIPE_TAX_ID                                = var.tax_id
   }, local.payment_plans_env_vars, local.users_persistance_env_vars, local.protected_endpoint_env_vars, local.common_lambda_env_vars, local.common_api_lambda_env_vars)
 }
