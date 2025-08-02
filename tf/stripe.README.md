@@ -59,3 +59,24 @@ This document defines the roles and permissions associated with the two API keys
 | Operating API Key | Runtime operations     | Lambdas & webhook | Restricted  | Platform backend        |
 
 > ⚠️ If the Operating Key is found to be used outside its permitted scope (e.g. product creation), treat it as a **security incident**.
+
+---
+
+## 3. ⚙️ Manual Customer Portal Configuration
+
+Each time a new Stripe environment is created (sandbox or production), the Customer Portal requires manual configuration that cannot be automated through Terraform.
+
+### 🔧 Required Manual Steps
+
+**Configure Downgrade Behavior:**
+
+- [Navigate to the Customer Portal settings](https://dashboard.stripe.com/test/settings/billing/portal) in your Stripe Dashboard
+- Set downgrades to take effect at the **end of the current billing period**. This prevents immediate plan changes and ensures customers receive full value for their current billing cycle
+
+### 📋 Configuration Steps
+
+1. Log into your Stripe Dashboard
+2. Go to **Settings** → **Billing** → **Customer Portal**
+3. Under **Subscription**, configure:
+   - **Downgrades**: Set to "Wait until end of billing period to update"
+   - This ensures downgrade changes don't take effect immediately
