@@ -5,8 +5,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
 import { remainingPeriodPercentage, timezoneValidator } from './datetime';
 
-export const dateTimeSchema = z
-  .string()
+export const dateTimeSchema = z.iso
   .datetime()
   .transform((data) => data as DateTime)
   .transform((v) => DT.fromISO(v).toUTC());
@@ -61,11 +60,12 @@ describe(timezoneValidator, () => {
     'America/Argentina/Buenos_Aires'
   ])('should validate correct timezone: %s', (timezone) => {
     const mockContext = {
-      addIssue: vi.fn(),
-      path: []
+      value: undefined,
+      issues: [],
+      addIssue: vi.fn()
     };
 
-    const validator = timezoneValidator();
+    const validator = timezoneValidator;
     const result = validator(timezone as TimeZone, mockContext);
 
     expect(result).toBe(true);
@@ -85,18 +85,19 @@ describe(timezoneValidator, () => {
     'UTC+'
   ])('should reject invalid timezone format: %s', (timezone) => {
     const mockContext = {
-      addIssue: vi.fn(),
-      path: []
+      value: undefined,
+      issues: [],
+      addIssue: vi.fn()
     };
 
-    const validator = timezoneValidator();
+    const validator = timezoneValidator;
     const result = validator(timezone as TimeZone, mockContext);
 
     expect(result).toBe(false);
     expect(mockContext.addIssue).toHaveBeenCalledTimes(1);
     expect(mockContext.addIssue).toHaveBeenCalledWith(
       expect.objectContaining({
-        code: z.ZodIssueCode.custom,
+        code: 'custom',
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         message: expect.stringContaining('Invalid timezone')
       })
@@ -109,11 +110,12 @@ describe(timezoneValidator, () => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
   ])('should reject %s value', (timezone, _label) => {
     const mockContext = {
-      addIssue: vi.fn(),
-      path: []
+      value: undefined,
+      issues: [],
+      addIssue: vi.fn()
     };
 
-    const validator = timezoneValidator();
+    const validator = timezoneValidator;
     const result = validator(timezone as unknown as TimeZone, mockContext);
 
     expect(result).toBe(false);
@@ -124,7 +126,7 @@ describe(timezoneValidator, () => {
     const TimezoneSchema = z
       .string()
       .transform((data) => data as TimeZone)
-      .superRefine(timezoneValidator());
+      .refine(timezoneValidator, 'Invalid timezone');
 
     const validResult = TimezoneSchema.safeParse('America/Chicago');
 
@@ -138,11 +140,12 @@ describe(timezoneValidator, () => {
 
   it('should validate Etc/GMT+0', () => {
     const mockContext = {
-      addIssue: vi.fn(),
-      path: []
+      value: undefined,
+      issues: [],
+      addIssue: vi.fn()
     };
 
-    const validator = timezoneValidator();
+    const validator = timezoneValidator;
     const result = validator('Etc/GMT+0' as TimeZone, mockContext);
 
     expect(result).toBe(true);

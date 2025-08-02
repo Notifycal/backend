@@ -10,7 +10,6 @@ import type { PrivateKey, PublicKey } from '@own-types/model';
 import { buildJwt, type EncodedAndDecodedJwts } from '@services/jwt';
 import dotenv from 'dotenv';
 import * as fs from 'fs';
-import type { SignOptions } from 'jsonwebtoken';
 import path from 'path';
 import { z } from 'zod';
 
@@ -69,13 +68,10 @@ export const tokenSchemaSkeleton = z.object({
   signature: z.string()
 });
 
-export function testJwt<
-  TSchema extends typeof tokenSchemaSkeleton,
-  TConfig extends SignOptions & { secretOrPrivateKey: string }
->(
-  jwtSchema: TSchema = accessTokenSchema as unknown as TSchema,
-  payload: z.infer<typeof jwtSchema.shape.payload> = getDefaultAccessTokenPayload(),
-  config: TConfig = getDefaultEncodeAccessJwtConfig() as unknown as TConfig
+export function testJwt(
+  jwtSchema: typeof accessTokenSchema = accessTokenSchema,
+  payload: OurAccessTokenClaims = getDefaultAccessTokenPayload(),
+  config: EncodeAccessJwtConfig = getDefaultEncodeAccessJwtConfig()
 ): Promise<string> {
   return buildJwt(payload, jwtSchema, userId, config).then((jwts) => jwts.encoded);
 }

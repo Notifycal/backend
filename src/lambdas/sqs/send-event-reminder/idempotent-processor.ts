@@ -64,21 +64,30 @@ export class IdempotentProcessor extends AbstractIdempotentProcessor<Uuid> {
 
   private onError(
     event: ActionableEventFoundEvent | DemoReminderToBeSentEvent
-  ): () => Promise<void> {
-    const errorEvent = match(event)
-      .with({ eventType: 'ActionableEventFound' }, (e) => ({
-        ...e,
-        eventType: 'ActionableEventReminderAttemptFailed' as const
-      }))
-      .with({ eventType: 'DemoReminderToBeSent' }, (e) => ({
-        ...e,
-        eventType: 'DemoReminderToBeSentAttemptFailed' as const
-      }))
-      .exhaustive();
-    return () =>
-      this.snsService.safePublish<
+  ): (error: unknown) => Promise<void> {
+    return (error: unknown) => {
+      const errorEvent = match(event)
+        .with({ eventType: 'ActionableEventFound' }, (e) => ({
+          ...e,
+          eventType: 'ActionableEventReminderAttemptFailed' as const,
+          data: {
+            ...e.data,
+            providerErrorPayload: error
+          }
+        }))
+        .with({ eventType: 'DemoReminderToBeSent' }, (e) => ({
+          ...e,
+          eventType: 'DemoReminderToBeSentAttemptFailed' as const,
+          data: {
+            ...e.data,
+            providerErrorPayload: error
+          }
+        }))
+        .exhaustive();
+      return this.snsService.safePublish<
         ActionableEventReminderAttemptFailedEvent | DemoReminderToBeSentAttemptFailedEvent
       >(errorEvent);
+    };
   }
 
   private onIdempotencyHit(
