@@ -1,9 +1,10 @@
+import { coerzableNumberSchema } from '@utils/zod';
 import type { count } from 'sms-length';
 import z from 'zod';
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, @typescript-eslint/explicit-module-boundary-types
 export const smsLengthCountEstimateResultSchema = (coerced: boolean = false) => {
-  const coerceableNumberSchema = coerced ? z.coerce.number() : z.number();
+  const coerceableNumberSchema = coerzableNumberSchema(coerced);
   return z.object({
     encoding: z.union([z.literal('GSM_7BIT'), z.literal('GSM_7BIT_EXT'), z.literal('UTF16')]),
     length: coerceableNumberSchema,
