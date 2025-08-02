@@ -74,10 +74,7 @@ export type EventType = SuccessEventType | ErrorEventType;
 export const dataSchema = z.object({}).passthrough();
 export type Data = z.infer<typeof dataSchema>;
 export const googleIdpSchema = z.literal('google.com');
-export const correlationIdSchema = z
-  .string()
-  .uuid()
-  .transform((data) => data as CorrelationId);
+export const correlationIdSchema = z.guid().transform((data) => data as CorrelationId);
 export const notApplicableSchema = z.literal('N/A');
 export const systemSchema = z.literal('System');
 
