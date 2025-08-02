@@ -34,7 +34,7 @@ export const idp: Record<IdpName, IdpName> = {
 export const identitySchema = z.object({
   userId: userIdSchema,
   email: emailSchema,
-  idp: z.nativeEnum(idp),
+  idp: z.enum(idp),
   idpId: idpIdSchema
 });
 export const ourAccessTokenClaimsSchema = z
@@ -42,14 +42,18 @@ export const ourAccessTokenClaimsSchema = z
     role: z.literal('user'),
     permissions: z.object({})
   })
-  .merge(identitySchema);
-export const accessTokenPayloadSchema = tokenPayloadBaseSchema.merge(ourAccessTokenClaimsSchema);
+  .extend(identitySchema.shape);
+export const accessTokenPayloadSchema = tokenPayloadBaseSchema.extend(
+  ourAccessTokenClaimsSchema.shape
+);
 export const accessTokenSchema = tokenSchemaBase.extend({
   payload: accessTokenPayloadSchema
 });
 
 export const ourRefreshTokenClaimsSchema = z.object({});
-export const refreshTokenPayloadSchema = tokenPayloadBaseSchema.merge(ourRefreshTokenClaimsSchema);
+export const refreshTokenPayloadSchema = tokenPayloadBaseSchema.extend(
+  ourRefreshTokenClaimsSchema.shape
+);
 export const refreshTokenSchema = tokenSchemaBase.extend({
   payload: refreshTokenPayloadSchema
 });

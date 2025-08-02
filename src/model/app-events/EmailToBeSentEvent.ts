@@ -26,7 +26,7 @@ const inlineAttachmentSchema = z.object({
 });
 export type EmailInlineAttachment = z.infer<typeof inlineAttachmentSchema>;
 
-const inlineAttachments = z.record(inlineAttachmentSchema);
+const inlineAttachments = z.record(z.string(), inlineAttachmentSchema);
 
 const emailSubEventTypeSchema = z.union([
   noPhoneNumberForCalendarEventFoundEventType,

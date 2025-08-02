@@ -270,7 +270,7 @@ export const stripeEventBaseSchema = z
       .nullable(),
     data: z.object({
       object: z.unknown(),
-      previous_attributes: z.record(z.unknown()).optional()
+      previous_attributes: z.record(z.string(), z.unknown()).optional()
     }),
     api_version: z.string().nullable()
   })

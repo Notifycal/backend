@@ -10,7 +10,7 @@ export function apiEventSchema<TEndpointConfig>() {
     routeKey: z.string().optional(),
     rawPath: z.string().optional(),
     rawQueryString: z.string().optional(),
-    queryStringParameters: z.record(z.string()).nullable().optional(),
+    queryStringParameters: z.record(z.string(), z.string()).nullable().optional(),
     lambdaConfig: z.custom<TEndpointConfig>()
   });
 }

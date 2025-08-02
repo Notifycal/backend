@@ -24,7 +24,7 @@ export abstract class AbstractIdempotentProcessor<TSuccessResponse> {
     processorFn: AsyncFunction<TArgs, TSuccessResponse>,
     args: TArgs,
     onIdempotencyHit: (response: TSuccessResponse) => Promise<void>,
-    onError: (error?: unknown) => Promise<void>,
+    onError: (error: unknown) => Promise<void>,
     idempotencyOptions: IdempotencyConfigOptions,
     idempotencyFunctionOptions: {
       dataIndexArgument: number;

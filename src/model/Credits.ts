@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
+import { coerzableNumberSchema } from '@utils/zod';
 import { z } from 'zod';
 import type { InsufficientCreditsError } from './Errors';
 
@@ -60,8 +61,8 @@ const baseErrorSchema = z.object({
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 const creditBalancesSchema = (coerced: boolean = false) =>
   z.object({
-    subscription: z.number({ coerce: coerced }),
-    topup: z.number({ coerce: coerced })
+    subscription: coerzableNumberSchema(coerced),
+    topup: coerzableNumberSchema(coerced)
   });
 
 const creditDeductionSuccessSchema = baseSuccessSchema().extend({
@@ -75,7 +76,7 @@ const creditDeductionDeductSuccessSchema = (coerced: boolean = false) =>
     operationDetails: z.object({
       fromBalance: fromBalanceSchema,
       type: z.literal('deduct'),
-      quantity: z.number({ coerce: coerced })
+      quantity: coerzableNumberSchema(coerced)
     }),
     balances: creditBalancesSchema(coerced)
   });
@@ -151,7 +152,7 @@ const creditAdjustmentResultSchema = z.union([
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, @typescript-eslint/explicit-module-boundary-types
 const demoCounterIncrementSuccessSchema = (coerced: boolean = false) =>
   baseSuccessSchema(coerced).extend({
-    demoRemindersCount: z.number({ coerce: coerced })
+    demoRemindersCount: coerzableNumberSchema(coerced)
   });
 
 const demoCounterLimitReachedErrorSchema = baseErrorSchema.extend({
