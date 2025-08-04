@@ -83,12 +83,12 @@ export class UserCreditsBaseStore extends BaseStore<BaseStoreConfig> {
 
     const updateExpressionParts = [
       `SET Credits.${creditType} = if_not_exists(Credits.${creditType}, :zero) + :amount`,
-      ...(shouldUpdateTier ? ['Credits.Tier = :tierId'] : [])
+      ...(shouldUpdateTier ? ['Credits.Tier = :tierId', 'Credits.UsableTierCredits = Credits.UsableTierCredits + :usableTierCredits'] : [])
     ];
     const expressionAttributeValues = {
       ':amount': amount,
       ':zero': 0,
-      ...(shouldUpdateTier ? { ':tierId': tierId } : {})
+      ...(shouldUpdateTier ? { ':tierId': tierId, ':usableTierCredits': amount } : {})
     };
     return this.updateCommandRunner({
       Key: { UserId: userId },
@@ -116,11 +116,12 @@ export class UserCreditsBaseStore extends BaseStore<BaseStoreConfig> {
   ): Promise<UserStoreRecordCredits> {
     return this.updateCommandRunner({
       Key: { UserId: userId },
-      UpdateExpression: 'SET Credits.SubscriptionCreditBalance = :amount, Credits.Tier = :tierId',
+      UpdateExpression: 'SET Credits.SubscriptionCreditBalance = :amount, Credits.Tier = :tierId, Credits.UsableTierCredits = :usableTierCredits',
       ConditionExpression: 'attribute_exists(Credits)',
       ExpressionAttributeValues: {
         ':amount': amount,
-        ':tierId': tierId
+        ':tierId': tierId,
+        ':usableTierCredits': amount,
       }
     })
       .then((r) => this.handleSuccessfulUpdate(r, logger))
@@ -137,6 +138,7 @@ export class UserCreditsBaseStore extends BaseStore<BaseStoreConfig> {
           ExpressionAttributeValues: {
             ':credits': {
               SubscriptionCreditBalance: amount,
+              UsableTierCredits: amount,
               Tier: tierId,
               TopupCreditBalance: 0
             }
@@ -151,7 +153,7 @@ export class UserCreditsBaseStore extends BaseStore<BaseStoreConfig> {
   public clearSubscriptionCredits(userId: UserId, logger: Logger): Promise<UserStoreRecordCredits> {
     return this.updateCommandRunner({
       Key: { UserId: userId },
-      UpdateExpression: 'REMOVE Credits.SubscriptionCreditBalance, Credits.Tier'
+      UpdateExpression: 'REMOVE Credits.SubscriptionCreditBalance, Credits.Tier, Credits.UsableTierCredits'
     }).then(
       (r) => this.handleSuccessfulUpdate(r, logger),
       this.handleError(`Error while clearing subscription credits`)
