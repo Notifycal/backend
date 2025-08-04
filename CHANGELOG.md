@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.55.7](https://github.com/Notifycal/backend/compare/v0.55.6...v0.55.7) (2025-08-04)
+
+
+### Bug Fixes
+
+* **deps:** Update dependency @notifycal/shared to v6.1.0 ([#913](https://github.com/Notifycal/backend/issues/913)) ([0f0aee4](https://github.com/Notifycal/backend/commit/0f0aee480e4d011bb547a1d86b004bb18965d927))
+* post Zod 4 upgrade. z.uuid() is stricter than before. ([#911](https://github.com/Notifycal/backend/issues/911)) ([04ef5f2](https://github.com/Notifycal/backend/commit/04ef5f2d7b09b140019b528bea82d64e61977d24))
+
 ## [0.55.6](https://github.com/Notifycal/backend/compare/v0.55.5...v0.55.6) (2025-08-02)
 
 
