@@ -220,7 +220,12 @@ describe('SubscriptionService Event Publishing', () => {
       const currentPlanPaidPercentage = 50 as Percentage;
       const expectedCreditsToAdd = 175;
 
-      await service.upgrade(validIdentity, validGoodTier, validBetterTier, currentPlanPaidPercentage);
+      await service.upgrade(
+        validIdentity,
+        validGoodTier,
+        validBetterTier,
+        currentPlanPaidPercentage
+      );
 
       expect(safePublishFn).toHaveBeenCalledTimes(1);
       expect(safePublishFn).toHaveBeenCalledWith(
@@ -247,7 +252,12 @@ describe('SubscriptionService Event Publishing', () => {
       const currentPlanPaidPercentage = 50 as Percentage;
       const expectedCreditsToAdd = 175;
 
-      await service.upgrade(validIdentity, validGoodTier, validBetterTier, currentPlanPaidPercentage);
+      await service.upgrade(
+        validIdentity,
+        validGoodTier,
+        validBetterTier,
+        currentPlanPaidPercentage
+      );
 
       expect(safePublishFn).toHaveBeenCalledTimes(1);
       expect(safePublishFn).toHaveBeenCalledWith(
