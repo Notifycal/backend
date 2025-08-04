@@ -217,10 +217,10 @@ describe('SubscriptionService Event Publishing', () => {
       const addFn = vi.fn().mockResolvedValue(validSuccessResult);
       const safePublishFn = vi.fn().mockResolvedValue(undefined);
       const service = testIt({ addCredits: addFn }, safePublishFn);
-      const remainingPercentage = 50 as Percentage;
+      const currentPlanPaidPercentage = 50 as Percentage;
       const expectedCreditsToAdd = 175;
 
-      await service.upgrade(validIdentity, validGoodTier, validBetterTier, remainingPercentage);
+      await service.upgrade(validIdentity, validGoodTier, validBetterTier, currentPlanPaidPercentage);
 
       expect(safePublishFn).toHaveBeenCalledTimes(1);
       expect(safePublishFn).toHaveBeenCalledWith(
@@ -232,7 +232,7 @@ describe('SubscriptionService Event Publishing', () => {
           data: {
             previousTier: validGoodTier,
             currentTier: validBetterTier,
-            remainingPercentage: remainingPercentage,
+            currentPlanPaidPercentage: currentPlanPaidPercentage,
             creditsAdded: expectedCreditsToAdd,
             result: validSuccessResult
           }
@@ -244,10 +244,10 @@ describe('SubscriptionService Event Publishing', () => {
       const addFn = vi.fn().mockResolvedValue(validErrorResult);
       const safePublishFn = vi.fn().mockResolvedValue(undefined);
       const service = testIt({ addCredits: addFn }, safePublishFn);
-      const remainingPercentage = 50 as Percentage;
+      const currentPlanPaidPercentage = 50 as Percentage;
       const expectedCreditsToAdd = 175;
 
-      await service.upgrade(validIdentity, validGoodTier, validBetterTier, remainingPercentage);
+      await service.upgrade(validIdentity, validGoodTier, validBetterTier, currentPlanPaidPercentage);
 
       expect(safePublishFn).toHaveBeenCalledTimes(1);
       expect(safePublishFn).toHaveBeenCalledWith(
@@ -259,7 +259,7 @@ describe('SubscriptionService Event Publishing', () => {
           data: {
             previousTier: validGoodTier,
             currentTier: validBetterTier,
-            remainingPercentage: remainingPercentage,
+            currentPlanPaidPercentage: currentPlanPaidPercentage,
             creditsAdded: expectedCreditsToAdd,
             result: validErrorResult,
             error: undefined
@@ -273,11 +273,11 @@ describe('SubscriptionService Event Publishing', () => {
       const addFn = vi.fn().mockRejectedValue(error);
       const safePublishFn = vi.fn().mockResolvedValue(undefined);
       const service = testIt({ addCredits: addFn }, safePublishFn);
-      const remainingPercentage = 50 as Percentage;
+      const currentPlanPaidPercentage = 50 as Percentage;
       const expectedCreditsToAdd = 175;
 
       await expect(
-        service.upgrade(validIdentity, validGoodTier, validBetterTier, remainingPercentage)
+        service.upgrade(validIdentity, validGoodTier, validBetterTier, currentPlanPaidPercentage)
       ).rejects.toThrow('Service error');
 
       expect(safePublishFn).toHaveBeenCalledTimes(1);
@@ -290,7 +290,7 @@ describe('SubscriptionService Event Publishing', () => {
           data: {
             previousTier: validGoodTier,
             currentTier: validBetterTier,
-            remainingPercentage: remainingPercentage,
+            currentPlanPaidPercentage: currentPlanPaidPercentage,
             creditsAdded: expectedCreditsToAdd,
             result: undefined,
             error: error
@@ -317,7 +317,7 @@ describe('SubscriptionService Event Publishing', () => {
           data: expect.objectContaining({
             previousTier: validGoodTier,
             currentTier: validBetterTier,
-            remainingPercentage: invalidPercentage,
+            currentPlanPaidPercentage: invalidPercentage,
             creditsAdded: 0,
             // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             result: expect.objectContaining({
@@ -334,9 +334,9 @@ describe('SubscriptionService Event Publishing', () => {
     it('should publish SubscriptionUpgradeFailed event for zero credits', async () => {
       const safePublishFn = vi.fn().mockResolvedValue(undefined);
       const service = testIt({}, safePublishFn);
-      const remainingPercentage = 0 as Percentage;
+      const currentPlanPaidPercentage = 0 as Percentage;
 
-      await service.upgrade(validIdentity, validGoodTier, validGoodTier, remainingPercentage);
+      await service.upgrade(validIdentity, validGoodTier, validGoodTier, currentPlanPaidPercentage);
 
       expect(safePublishFn).toHaveBeenCalledTimes(1);
       expect(safePublishFn).toHaveBeenCalledWith(
@@ -349,7 +349,7 @@ describe('SubscriptionService Event Publishing', () => {
           data: expect.objectContaining({
             previousTier: validGoodTier,
             currentTier: validGoodTier,
-            remainingPercentage: remainingPercentage,
+            currentPlanPaidPercentage: currentPlanPaidPercentage,
             creditsAdded: 0,
             // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             result: expect.objectContaining({

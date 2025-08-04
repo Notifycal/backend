@@ -77,7 +77,7 @@ export class SubscriptionService<TIdpName extends IdpName> {
     logger.info('Upgrade details', {
       previousTier,
       currentTier,
-      remainingPercentage: currentPlanPaidPercentage,
+      currentPlanPaidPercentage,
       creditsToAdd
     });
     if (currentPlanPaidPercentage < 0 || currentPlanPaidPercentage > 100) {

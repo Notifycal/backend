@@ -881,7 +881,7 @@ describe(InvoicePaymentSucceededHandler, () => {
       userIdentity: UserIdentity<IdpName>,
       previousTier: TierId,
       currentTier: TierId,
-      remainingPercentage: number
+      currentPlanPaidPercentage: number
     ) => Promise<CreditAdditionResult<'add'>>,
     downgradeFn: (userIdentity: UserIdentity<IdpName>) => Promise<void>,
     addTopupFn: (
