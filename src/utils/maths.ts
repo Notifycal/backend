@@ -16,5 +16,5 @@ export function calculateRemainingPercentageFromAmounts(
 
   const remainingPercentage = (remainingAmount / fullAmount) * 100;
   const factor = 10 ** 5;
-  return Math.trunc(remainingPercentage * factor) / factor;
+  return Math.round(remainingPercentage * factor) / factor;
 }

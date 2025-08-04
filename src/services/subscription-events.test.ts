@@ -26,7 +26,7 @@ describe('SubscriptionService Event Publishing', () => {
 
   const validTierToCreditsMap: Record<TierId, number> = {
     good: 100,
-    better: 500,
+    better: 350,
     best: 1000
   };
 
@@ -218,7 +218,7 @@ describe('SubscriptionService Event Publishing', () => {
       const safePublishFn = vi.fn().mockResolvedValue(undefined);
       const service = testIt({ addCredits: addFn }, safePublishFn);
       const remainingPercentage = 50 as Percentage;
-      const expectedCreditsToAdd = 200;
+      const expectedCreditsToAdd = 175;
 
       await service.upgrade(validIdentity, validGoodTier, validBetterTier, remainingPercentage);
 
@@ -245,7 +245,7 @@ describe('SubscriptionService Event Publishing', () => {
       const safePublishFn = vi.fn().mockResolvedValue(undefined);
       const service = testIt({ addCredits: addFn }, safePublishFn);
       const remainingPercentage = 50 as Percentage;
-      const expectedCreditsToAdd = 200;
+      const expectedCreditsToAdd = 175;
 
       await service.upgrade(validIdentity, validGoodTier, validBetterTier, remainingPercentage);
 
@@ -274,7 +274,7 @@ describe('SubscriptionService Event Publishing', () => {
       const safePublishFn = vi.fn().mockResolvedValue(undefined);
       const service = testIt({ addCredits: addFn }, safePublishFn);
       const remainingPercentage = 50 as Percentage;
-      const expectedCreditsToAdd = 200;
+      const expectedCreditsToAdd = 175;
 
       await expect(
         service.upgrade(validIdentity, validGoodTier, validBetterTier, remainingPercentage)
@@ -334,7 +334,7 @@ describe('SubscriptionService Event Publishing', () => {
     it('should publish SubscriptionUpgradeFailed event for zero credits', async () => {
       const safePublishFn = vi.fn().mockResolvedValue(undefined);
       const service = testIt({}, safePublishFn);
-      const remainingPercentage = 50 as Percentage;
+      const remainingPercentage = 0 as Percentage;
 
       await service.upgrade(validIdentity, validGoodTier, validGoodTier, remainingPercentage);
 

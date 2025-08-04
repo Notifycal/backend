@@ -8,6 +8,12 @@ describe(calculateRemainingPercentageFromAmounts, () => {
     expect(result).toBe(99.9);
   });
 
+  it('should get precision right', () => {
+    const result = calculateRemainingPercentageFromAmounts(1450, 2500);
+
+    expect(result).toBe(58);
+  });
+
   it('should calculate 50% remaining when credit is 1250 of 2500', () => {
     const result = calculateRemainingPercentageFromAmounts(1250, 2500);
 

@@ -8,17 +8,12 @@ import type { CreditAdditionResult, CreditDeductionResult } from '@model/Credits
 import { handleServiceOperation } from './common/error-handling';
 
 export function calculateUpgradeCredits(
-  previousTier: TierId,
   currentTier: TierId,
-  remainingCyclePercentage: Percentage,
+  currentPlanPaidPercentage: Percentage,
   tierToCreditsMap: Record<TierId, number>
 ): number {
-  const previousPlan = tierToCreditsMap[previousTier];
   const currentPlan = tierToCreditsMap[currentTier];
-
-  const creditDifference = currentPlan - previousPlan;
-  const creditsToAdd = Math.ceil(creditDifference * (remainingCyclePercentage / 100));
-  return creditsToAdd;
+  return Math.ceil(currentPlan * (currentPlanPaidPercentage / 100));
 }
 
 export class SubscriptionService<TIdpName extends IdpName> {
@@ -72,25 +67,24 @@ export class SubscriptionService<TIdpName extends IdpName> {
     userIdentity: UserIdentity<TIdpName>,
     previousTier: TierId,
     currentTier: TierId,
-    remainingPercentage: Percentage
+    currentPlanPaidPercentage: Percentage
   ): Promise<CreditAdditionResult<'add'>> {
     const creditsToAdd = calculateUpgradeCredits(
-      previousTier,
       currentTier,
-      remainingPercentage,
+      currentPlanPaidPercentage,
       this.tierToCreditsMap
     );
     logger.info('Upgrade details', {
       previousTier,
       currentTier,
-      remainingPercentage,
+      remainingPercentage: currentPlanPaidPercentage,
       creditsToAdd
     });
-    if (remainingPercentage < 0 || remainingPercentage > 100) {
+    if (currentPlanPaidPercentage < 0 || currentPlanPaidPercentage > 100) {
       const result = {
         success: false as const,
         result: 'UnknownError' as const,
-        error: new Error(`Invalid remaining percentage: ${remainingPercentage}`)
+        error: new Error(`Invalid remaining percentage: ${currentPlanPaidPercentage}`)
       };
       return this.snsService
         .safePublish(
@@ -98,7 +92,7 @@ export class SubscriptionService<TIdpName extends IdpName> {
             userIdentity,
             previousTier,
             currentTier,
-            remainingPercentage,
+            currentPlanPaidPercentage,
             0,
             result,
             result.error
@@ -119,7 +113,7 @@ export class SubscriptionService<TIdpName extends IdpName> {
             userIdentity,
             previousTier,
             currentTier,
-            remainingPercentage,
+            currentPlanPaidPercentage,
             0,
             result,
             result.error
@@ -140,7 +134,7 @@ export class SubscriptionService<TIdpName extends IdpName> {
           userIdentity,
           previousTier,
           currentTier,
-          remainingPercentage,
+          currentPlanPaidPercentage,
           creditsToAdd,
           result
         ),
@@ -149,7 +143,7 @@ export class SubscriptionService<TIdpName extends IdpName> {
           userIdentity,
           previousTier,
           currentTier,
-          remainingPercentage,
+          currentPlanPaidPercentage,
           creditsToAdd,
           result,
           error

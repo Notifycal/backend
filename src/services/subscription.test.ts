@@ -29,7 +29,7 @@ describe(SubscriptionService, () => {
 
   const validTierToCreditsMap: Record<TierId, number> = {
     good: 100,
-    better: 500,
+    better: 350,
     best: 1000
   };
 
@@ -77,7 +77,7 @@ describe(SubscriptionService, () => {
       const resetFn = vi.fn().mockResolvedValue(validSuccessResult);
       await testItCreate(resetFn, validIdentity, validBetterTier);
 
-      expect(resetFn).toHaveBeenCalledWith(validUserId, 500, validBetterTier);
+      expect(resetFn).toHaveBeenCalledWith(validUserId, 350, validBetterTier);
     });
 
     it('should create subscription for best tier and add correct credits', async () => {
@@ -140,7 +140,7 @@ describe(SubscriptionService, () => {
       const resetFn = vi.fn().mockResolvedValue(validSuccessResult);
       await testItRenew(resetFn, validIdentity, validBetterTier);
 
-      expect(resetFn).toHaveBeenCalledWith(validUserId, 500, validBetterTier);
+      expect(resetFn).toHaveBeenCalledWith(validUserId, 350, validBetterTier);
     });
 
     it('should renew subscription for best tier and add correct credits', async () => {
@@ -201,7 +201,7 @@ describe(SubscriptionService, () => {
         50 as Percentage
       );
 
-      expect(addFn).toHaveBeenCalledWith(validUserId, 200, {
+      expect(addFn).toHaveBeenCalledWith(validUserId, 175, {
         type: 'subscription',
         id: validBetterTier
       });
@@ -251,7 +251,7 @@ describe(SubscriptionService, () => {
         validIdentity,
         validGoodTier,
         validGoodTier,
-        50 as Percentage
+        0 as Percentage
       );
 
       expect(result).toStrictEqual({
@@ -288,14 +288,14 @@ describe(SubscriptionService, () => {
       userIdentity: UserIdentity<IdpName>,
       prev: TierId,
       curr: TierId,
-      remainingPercentage: Percentage
+      currentPlanPaidPercentage: Percentage
     ): Promise<CreditAdditionResult<'add'>> {
       const service = new SubscriptionService(
         { addCredits: addFn } as unknown as CreditsService<IdpName>,
         validTierToCreditsMap,
         mockSnsService
       );
-      return service.upgrade(userIdentity, prev, curr, remainingPercentage);
+      return service.upgrade(userIdentity, prev, curr, currentPlanPaidPercentage);
     }
   });
 
@@ -358,50 +358,46 @@ describe(calculateUpgradeCredits, () => {
     best: 1000
   };
 
-  it('should return 0 if tiers are the same regardless of remaining period', () => {
-    expectIt('good', 'good', 100, 0);
-    expectIt('better', 'better', 75, 0);
-    expectIt('best', 'best', 0, 0);
+  it('should return full tier credits if 100% of the period is paid', () => {
+    expectIt('good', 100, 100);
+    expectIt('better', 100, 350);
+    expectIt('best', 100, 1000);
   });
 
-  it('should return correct credits for partial upgrade (rounded up)', () => {
-    expectIt('good', 'better', 50, Math.ceil((350 - 100) * 0.5));
-    expectIt('better', 'best', 25, Math.ceil((1000 - 350) * 0.25));
+  it('should return partial tier credits based on paid percentage (rounded up)', () => {
+    expectIt('good', 50, 50);
+    expectIt('better', 25, 88);
+    expectIt('best', 75, 750);
   });
 
-  it('should return full credit difference if 100% of the period remains', () => {
-    expectIt('good', 'better', 100, 250);
-    expectIt('better', 'best', 100, 650);
+  it('should return 0 credits if 0% of the period is paid', () => {
+    expectIt('good', 0, 0);
+    expectIt('better', 0, 0);
+    expectIt('best', 0, 0);
   });
 
-  it('should return 0 credits if 0% of the period remains', () => {
-    expectIt('good', 'better', 0, 0);
-    expectIt('better', 'best', 0, 0);
+  it('should return almost all credits if almost 100% is paid', () => {
+    expectIt('good', 99.99818, 100);
+    expectIt('better', 99.99818, 350);
+    expectIt('best', 99.99818, 1000);
   });
 
-  it('should return almost all credits if most of the period remains', () => {
-    expectIt('good', 'better', 99.99818, 250);
-    expectIt('better', 'best', 99.99818, 650);
-  });
-
-  it('should return almost no credits if most of the period has gone by', () => {
-    expectIt('good', 'better', 0.00003, 1);
-    expectIt('better', 'best', 0.00003, 1);
-  });
-
-  it('should return negative value if current tier is lower than previous (inadvertent downgrade)', () => {
-    expectIt('better', 'good', 100, -250);
-    expectIt('best', 'good', 50, -450);
-    expectIt('best', 'better', 25, -162);
+  it('should return minimal credits (rounded up) if very small percentage is paid', () => {
+    expectIt('good', 0.00003, 1);
+    expectIt('better', 0.00003, 1);
+    expectIt('best', 0.00003, 1);
   });
 
   function expectIt(
-    previous: TierId,
     current: TierId,
-    remainingPct: Percentage,
+    currentPlanPaidPercentage: Percentage,
     expected: number
   ): void {
-    const result = calculateUpgradeCredits(previous, current, remainingPct, validTierToCreditsMap);
+    const result = calculateUpgradeCredits(
+      current,
+      currentPlanPaidPercentage,
+      validTierToCreditsMap
+    );
 
     expect(result).toBe(expected);
   }

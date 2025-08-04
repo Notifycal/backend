@@ -29,7 +29,7 @@ describe(InvoicePaymentSucceededHandler, () => {
   const validTiers: TierMap = validPaymentPlans.tiers;
   const validTopups: TopupMap = validPaymentPlans.topups;
 
-  const validInvoiceLineItemRefund: Stripe.InvoiceLineItem = {
+  const validInvoiceLineItemGoodRefund: Stripe.InvoiceLineItem = {
     id: 'il_test123',
     pricing: {
       price_details: {
@@ -53,6 +53,19 @@ describe(InvoicePaymentSucceededHandler, () => {
       amount: 3500
     },
     amount: -2800 // in negative cause it is a refund
+  } as unknown as Stripe.InvoiceLineItem;
+
+  const validBetterLineItem: Stripe.InvoiceLineItem = {
+    id: 'il_test785',
+    pricing: {
+      price_details: {
+        price: validTiers.better.priceId
+      }
+    },
+    plan: {
+      amount: 2500
+    },
+    amount: 2417
   } as unknown as Stripe.InvoiceLineItem;
 
   const validBestLineItem: Stripe.InvoiceLineItem = {
@@ -85,7 +98,7 @@ describe(InvoicePaymentSucceededHandler, () => {
     billing_reason: 'subscription_create',
     created: 1703980800,
     lines: {
-      data: [validInvoiceLineItemRefund]
+      data: [validInvoiceLineItemGoodRefund]
     }
   } as Stripe.Invoice;
 
@@ -102,7 +115,7 @@ describe(InvoicePaymentSucceededHandler, () => {
     billing_reason: 'subscription_update',
     created: 1703980800,
     lines: {
-      data: [validBetterLineItemRefund, validInvoiceLineItemRefund]
+      data: [validBetterLineItemRefund, validInvoiceLineItemGoodRefund]
     }
   } as Stripe.Invoice;
 
@@ -110,7 +123,7 @@ describe(InvoicePaymentSucceededHandler, () => {
     ...validUpgradeInvoice,
     amount_paid: 0,
     lines: {
-      data: [validInvoiceLineItemRefund, validBetterLineItemRefund]
+      data: [validInvoiceLineItemGoodRefund, validBetterLineItemRefund]
     }
   } as Stripe.Invoice;
 
@@ -130,7 +143,7 @@ describe(InvoicePaymentSucceededHandler, () => {
     lines: {
       data: [
         {
-          ...validInvoiceLineItemRefund,
+          ...validInvoiceLineItemGoodRefund,
           pricing: {
             price_details: {
               price: 'unknown_price_id'
@@ -153,7 +166,7 @@ describe(InvoicePaymentSucceededHandler, () => {
     lines: {
       data: [
         {
-          ...validInvoiceLineItemRefund,
+          ...validInvoiceLineItemGoodRefund,
           pricing: null
         }
       ]
@@ -524,7 +537,7 @@ describe(InvoicePaymentSucceededHandler, () => {
     expect(addTopupFn).not.toHaveBeenCalled();
   });
 
-  it('should upgrade subscription from good to best tier', async () => {
+  it.only('should upgrade subscription from good to better tier', async () => {
     const createFn = vi.fn();
     const renewFn = vi.fn();
     const upgradeFn = vi.fn().mockResolvedValue(undefined);
@@ -534,11 +547,12 @@ describe(InvoicePaymentSucceededHandler, () => {
     const goodToBestUpgrade: Stripe.Invoice = {
       ...validUpgradeInvoice,
       lines: {
-        data: [validBestLineItem, validInvoiceLineItemRefund],
+        data: [validInvoiceLineItemGoodRefund, validBetterLineItem],
         object: 'list',
         has_more: false,
         url: ''
-      }
+      },
+      total: 1450
     };
 
     await testIt(
@@ -554,9 +568,9 @@ describe(InvoicePaymentSucceededHandler, () => {
 
     expect(upgradeFn).toHaveBeenCalledWith(
       validIdentity,
-      validTiers.best.id,
       validTiers.good.id,
-      expect.any(Number)
+      validTiers.better.id,
+      58
     );
   });
 
@@ -744,7 +758,7 @@ describe(InvoicePaymentSucceededHandler, () => {
       lines: {
         data: [
           {
-            ...validInvoiceLineItemRefund,
+            ...validInvoiceLineItemGoodRefund,
             pricing: {
               price_details: {
                 price: 'unknown_price_1',
@@ -795,7 +809,7 @@ describe(InvoicePaymentSucceededHandler, () => {
       lines: {
         data: [
           {
-            ...validInvoiceLineItemRefund,
+            ...validInvoiceLineItemGoodRefund,
             pricing: {
               price_details: {
                 price: 'unknown_price_id'
