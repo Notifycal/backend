@@ -114,8 +114,9 @@ describe(InvoicePaymentSucceededHandler, () => {
     amount_due: 1000,
     billing_reason: 'subscription_update',
     created: 1703980800,
+    total: 1000,
     lines: {
-      data: [validBetterLineItemRefund, validInvoiceLineItemGoodRefund]
+      data: [validInvoiceLineItemGoodRefund, validBetterLineItem]
     }
   } as Stripe.Invoice;
 
@@ -499,8 +500,8 @@ describe(InvoicePaymentSucceededHandler, () => {
     expect(upgradeFn).toHaveBeenCalledTimes(1);
     expect(upgradeFn).toHaveBeenCalledWith(
       validIdentity,
-      validTiers.better.id,
       validTiers.good.id,
+      validTiers.better.id,
       expect.any(Number)
     );
     expect(downgradeFn).not.toHaveBeenCalled();
@@ -537,7 +538,7 @@ describe(InvoicePaymentSucceededHandler, () => {
     expect(addTopupFn).not.toHaveBeenCalled();
   });
 
-  it.only('should upgrade subscription from good to better tier', async () => {
+  it('should upgrade subscription from good to better tier', async () => {
     const createFn = vi.fn();
     const renewFn = vi.fn();
     const upgradeFn = vi.fn().mockResolvedValue(undefined);
