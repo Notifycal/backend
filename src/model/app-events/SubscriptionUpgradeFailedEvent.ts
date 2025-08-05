@@ -20,7 +20,7 @@ export function subscriptionUpgradeFailedEvent<TIdpName extends IdpName>(
   userIdentity: UserIdentity<TIdpName>,
   previousTier: TierId,
   currentTier: TierId,
-  remainingPercentage?: Percentage,
+  currentPlanPaidPercentage?: Percentage,
   creditsAdded?: number,
   result?: CreditAdditionResult<'add'>,
   error?: unknown
@@ -30,7 +30,7 @@ export function subscriptionUpgradeFailedEvent<TIdpName extends IdpName>(
     data: {
       previousTier,
       currentTier,
-      remainingPercentage,
+      currentPlanPaidPercentage,
       creditsAdded,
       result,
       error

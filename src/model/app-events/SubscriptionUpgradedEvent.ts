@@ -18,7 +18,7 @@ export function subscriptionUpgradedEvent<TIdpName extends IdpName>(
   userIdentity: UserIdentity<TIdpName>,
   previousTier: TierId,
   currentTier: TierId,
-  remainingPercentage: Percentage,
+  currentPlanPaidPercentage: Percentage,
   creditsAdded: number,
   result: CreditAdditionResult<'add'>
 ): SubscriptionUpgradedEvent {
@@ -27,7 +27,7 @@ export function subscriptionUpgradedEvent<TIdpName extends IdpName>(
     data: {
       previousTier,
       currentTier,
-      remainingPercentage,
+      currentPlanPaidPercentage,
       creditsAdded,
       result
     }

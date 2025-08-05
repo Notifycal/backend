@@ -1,7 +1,7 @@
 import type { DateTime, Percentage, TimeZone, UnixTimestamp } from '@notifycal/shared/types';
 import type { Period } from '@own-types/model';
 import { DateTime as DT } from 'luxon';
-import { z } from 'zod';
+import type { z } from 'zod';
 
 export function isWithinBoundaries(
   startTime: DateTime,
@@ -15,19 +15,30 @@ export function isWithinBoundaries(
   );
 }
 
-export function timezoneValidator(): (arg: TimeZone, ctx: z.RefinementCtx) => boolean {
-  return (data, context) => {
-    const dt = DT.now().setZone(data);
-    if (!data || !dt.isValid) {
-      context.addIssue({
-        code: z.ZodIssueCode.custom,
+export function timezoneValidator(arg: TimeZone, ctx?: z.RefinementCtx): boolean {
+  if (!arg) {
+    if (ctx) {
+      ctx.addIssue({
+        code: 'custom',
+        message: 'Invalid timezone: timezone is required',
+        fatal: true
+      });
+    }
+    return false;
+  }
+
+  const dt = DT.now().setZone(arg);
+  if (!dt.isValid) {
+    if (ctx) {
+      ctx.addIssue({
+        code: 'custom',
         message: `Invalid timezone: ${dt.invalidReason || 'invalid format - not in IANA TZDB format'}`,
         fatal: true
       });
-      return false;
     }
-    return true;
-  };
+    return false;
+  }
+  return true;
 }
 
 export function remainingPeriodPercentage(period: Period, now: UnixTimestamp): Percentage {

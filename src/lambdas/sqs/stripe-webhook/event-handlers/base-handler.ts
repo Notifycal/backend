@@ -18,21 +18,24 @@ export abstract class BaseHandler {
       );
   }
 
-  protected calculateRemainingCyclePercentageFromInvoice(
+  protected calculateCurrentPlanPaidPercentageFromInvoice(
     invoice: Stripe.Invoice
   ): Promise<Percentage> {
-    const previousPlanLineItem = invoice.lines.data.find((item) => item.amount < 0);
-    if (!previousPlanLineItem) {
-      return Promise.reject(new Error('Could not find previous plan line item in invoice'));
+    const totalPaidInCents = invoice.total;
+    const currentPlanLineItem = invoice.lines.data.find((item) => item.amount > 0);
+    if (!currentPlanLineItem) {
+      return Promise.reject(new Error('Could not find current plan line item in invoice'));
     }
-    const creditAmount = Math.abs(previousPlanLineItem.amount);
-    let fullPlanAmount: number | undefined;
-    if (!fullPlanAmount && 'plan' in previousPlanLineItem && previousPlanLineItem.plan) {
-      fullPlanAmount = (previousPlanLineItem.plan as Stripe.Plan).amount || undefined;
+    let fullPlanAmountInCents: number | undefined;
+    if (!fullPlanAmountInCents && 'plan' in currentPlanLineItem && currentPlanLineItem.plan) {
+      fullPlanAmountInCents = (currentPlanLineItem.plan as Stripe.Plan).amount || undefined;
     }
-    if (!fullPlanAmount) {
+    if (!fullPlanAmountInCents) {
       return Promise.reject(new Error('Could not determine full plan amount from invoice'));
     }
-    return Promise.resolve(calculateRemainingPercentageFromAmounts(creditAmount, fullPlanAmount));
+    console.log();
+    return Promise.resolve(
+      calculateRemainingPercentageFromAmounts(totalPaidInCents, fullPlanAmountInCents)
+    );
   }
 }

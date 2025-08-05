@@ -108,7 +108,7 @@ export function buildJwts<
 }
 
 export function decodeAndVerifyJwtSignature<
-  T extends z.AnyZodObject,
+  T extends z.ZodObject,
   TConfig extends DecodeAccessJwtConfig = DecodeAccessJwtConfig
 >(jwt: Jwt, schema: T, config: TConfig): Promise<z.infer<T>> {
   try {
@@ -125,7 +125,7 @@ export function decodeAndVerifyJwtSignature<
 }
 
 export function vonageDecodeAndVerifyJwtSignature<
-  T extends z.AnyZodObject,
+  T extends z.ZodObject,
   TConfig extends DecodeVonageAccessJwtConfig = DecodeVonageAccessJwtConfig
 >(jwt: Jwt, schema: T, config: TConfig): Promise<z.infer<T>> {
   try {

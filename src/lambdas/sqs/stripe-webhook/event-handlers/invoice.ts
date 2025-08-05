@@ -169,13 +169,13 @@ export class InvoicePaymentSucceededHandler
   ): Promise<void> {
     return match(updateType)
       .with('upgrade-subscription', () => {
-        return this.calculateRemainingCyclePercentageFromInvoice(invoice)
-          .then((remainingPercentage) =>
+        return this.calculateCurrentPlanPaidPercentageFromInvoice(invoice)
+          .then((currentPlanPaidPercentage) =>
             this.subscriptionService.upgrade(
               userIdentity,
               tiers.previousTier,
               tiers.currentTier,
-              remainingPercentage
+              currentPlanPaidPercentage
             )
           )
           .then(

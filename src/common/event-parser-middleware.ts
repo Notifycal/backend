@@ -16,7 +16,7 @@ import { hasCorsConfig } from './utils-middleware';
 
 function eventParser<
   TConfig extends OptionalCorsEndpointConfig,
-  TSchema extends z.AnyZodObject,
+  TSchema extends z.ZodObject,
   TResult
 >(
   request: Request<EventWithConfig<TConfig>, TResult, Error, Context>,
@@ -26,7 +26,7 @@ function eventParser<
   const parserFn = parser({ schema }).before;
   if (parserFn) {
     try {
-      parserFn(request);
+      parserFn(request as Request<z.output<TSchema>, TResult, Error, Context>);
     } catch (error: unknown) {
       const baseMsg = `payload does not satisfy the schema`;
       const errorMsg = `Lambda ${baseMsg}`;
@@ -52,7 +52,7 @@ function eventParser<
 
 export function eventParserMiddleware<
   TConfig extends OptionalCorsEndpointConfig,
-  TSchema extends z.AnyZodObject,
+  TSchema extends z.ZodObject,
   TResult
 >(schema: TSchema, isApiRequest: boolean): MiddlewareObj<EventWithConfig<TConfig>, TResult> {
   return {
