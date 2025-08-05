@@ -170,6 +170,7 @@
 
 | Name | Description |
 |------|-------------|
+| <a name="output_api_url"></a> [api\_url](#output\_api\_url) | n/a |
 | <a name="output_global_dlq_lambdas"></a> [global\_dlq\_lambdas](#output\_global\_dlq\_lambdas) | n/a |
 | <a name="output_global_dlq_sqs"></a> [global\_dlq\_sqs](#output\_global\_dlq\_sqs) | n/a |
 <!-- END_TF_DOCS -->
