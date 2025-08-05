@@ -1,4 +1,5 @@
 /* eslint-disable vitest/expect-expect */
+import { logger } from '@common/powertools';
 import type { CreditAdditionResult, CreditDeductionResult } from '@model/Credits';
 import type {
   Email,
@@ -122,7 +123,8 @@ describe(SubscriptionService, () => {
       const service = new SubscriptionService(
         { resetSubscriptionCredits: resetFn } as unknown as CreditsService<IdpName>,
         map,
-        mockSnsService
+        mockSnsService,
+        logger
       );
       return service.create(userIdentity, tier);
     }
@@ -184,7 +186,8 @@ describe(SubscriptionService, () => {
       const service = new SubscriptionService(
         { resetSubscriptionCredits: resetFn } as unknown as CreditsService<IdpName>,
         map,
-        mockSnsService
+        mockSnsService,
+        logger
       );
       return service.renew(userIdentity, tier);
     }
@@ -293,7 +296,8 @@ describe(SubscriptionService, () => {
       const service = new SubscriptionService(
         { addCredits: addFn } as unknown as CreditsService<IdpName>,
         validTierToCreditsMap,
-        mockSnsService
+        mockSnsService,
+        logger
       );
       return service.upgrade(userIdentity, prev, curr, currentPlanPaidPercentage);
     }
@@ -329,7 +333,8 @@ describe(SubscriptionService, () => {
       const service = new SubscriptionService(
         { clearSubscriptionCredits: clearFn } as unknown as CreditsService<IdpName>,
         validTierToCreditsMap,
-        mockSnsService
+        mockSnsService,
+        logger
       );
       return service.cancel(validIdentity, reason);
     }
@@ -344,7 +349,8 @@ describe(SubscriptionService, () => {
       const service = new SubscriptionService(
         {} as CreditsService<IdpName>,
         validTierToCreditsMap,
-        mockSnsService
+        mockSnsService,
+        logger
       );
       return service.scheduleDowngrade(validIdentity);
     }

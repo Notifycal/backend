@@ -20,7 +20,7 @@ export function subscriptionCreationFailedEvent<TIdpName extends IdpName>(
   userIdentity: UserIdentity<TIdpName>,
   tier: TierId,
   result?: CreditAdditionResult<'reset'>,
-  error?: unknown
+  error?: string
 ): SubscriptionCreationFailedEvent {
   return {
     ...createEventBase('SubscriptionCreationFailed', userIdentity),

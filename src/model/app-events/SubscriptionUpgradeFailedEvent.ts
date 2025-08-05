@@ -23,7 +23,7 @@ export function subscriptionUpgradeFailedEvent<TIdpName extends IdpName>(
   currentPlanPaidPercentage?: Percentage,
   creditsAdded?: number,
   result?: CreditAdditionResult<'add'>,
-  error?: unknown
+  error?: string
 ): SubscriptionUpgradeFailedEvent {
   return {
     ...createEventBase('SubscriptionUpgradeFailed', userIdentity),

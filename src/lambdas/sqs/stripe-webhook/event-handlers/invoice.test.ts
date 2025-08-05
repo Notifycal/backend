@@ -571,7 +571,7 @@ describe(InvoicePaymentSucceededHandler, () => {
       validIdentity,
       validTiers.good.id,
       validTiers.better.id,
-      58
+      98
     );
   });
 

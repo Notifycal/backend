@@ -18,24 +18,59 @@ export abstract class BaseHandler {
       );
   }
 
+  protected extractPlanAmountFromLineItem(lineItem: Stripe.InvoiceLineItem): number | undefined {
+    return 'plan' in lineItem && lineItem.plan
+      ? (lineItem.plan as Stripe.Plan).amount || undefined
+      : undefined;
+  }
+
+  protected findAndValidateLineItem(
+    items: Array<Stripe.InvoiceLineItem>,
+    predicate: (item: Stripe.InvoiceLineItem) => boolean,
+    itemType: string
+  ): Stripe.InvoiceLineItem {
+    const lineItem = items.find(predicate);
+    if (!lineItem) {
+      throw new Error(`Could not find ${itemType} plan line item in invoice`);
+    }
+    return lineItem;
+  }
+
+  protected extractAndValidatePlanAmount(
+    lineItem: Stripe.InvoiceLineItem,
+    itemType: string
+  ): number {
+    const planAmount = this.extractPlanAmountFromLineItem(lineItem);
+    if (!planAmount) {
+      throw new Error(`Could not determine ${itemType} plan amount from invoice`);
+    }
+    return planAmount;
+  }
+
   protected calculateCurrentPlanPaidPercentageFromInvoice(
     invoice: Stripe.Invoice
   ): Promise<Percentage> {
-    const totalPaidInCents = invoice.total;
-    const currentPlanLineItem = invoice.lines.data.find((item) => item.amount > 0);
-    if (!currentPlanLineItem) {
-      return Promise.reject(new Error('Could not find current plan line item in invoice'));
-    }
-    let fullPlanAmountInCents: number | undefined;
-    if (!fullPlanAmountInCents && 'plan' in currentPlanLineItem && currentPlanLineItem.plan) {
-      fullPlanAmountInCents = (currentPlanLineItem.plan as Stripe.Plan).amount || undefined;
-    }
-    if (!fullPlanAmountInCents) {
-      return Promise.reject(new Error('Could not determine full plan amount from invoice'));
-    }
-    console.log();
-    return Promise.resolve(
-      calculateRemainingPercentageFromAmounts(totalPaidInCents, fullPlanAmountInCents)
-    );
+    return Promise.resolve().then(() => {
+      const totalPaidInCents = invoice.total;
+      const previousPlanLineItem = this.findAndValidateLineItem(
+        invoice.lines.data,
+        (item) => item.amount < 0,
+        'previous'
+      );
+      const currentPlanLineItem = this.findAndValidateLineItem(
+        invoice.lines.data,
+        (item) => item.amount > 0,
+        'current'
+      );
+      const currentPlanAmount = this.extractAndValidatePlanAmount(currentPlanLineItem, 'current');
+      const previousPlanAmount = this.extractAndValidatePlanAmount(
+        previousPlanLineItem,
+        'previous'
+      );
+      return calculateRemainingPercentageFromAmounts(
+        totalPaidInCents + previousPlanAmount,
+        currentPlanAmount
+      );
+    });
   }
 }

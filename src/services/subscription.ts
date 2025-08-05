@@ -4,8 +4,9 @@ import type { IdpName, Percentage, TierId, UserIdentity } from '@notifycal/share
 import type { CreditsService } from './credits-service';
 import type { SnsService } from './sns';
 
+import type { Logger } from '@aws-lambda-powertools/logger';
 import type { CreditAdditionResult, CreditDeductionResult } from '@model/Credits';
-import { handleServiceOperation } from './common/error-handling';
+import { extractErrorMessage, handleServiceOperation } from './common/error-handling';
 
 export function calculateUpgradeCredits(
   currentTier: TierId,
@@ -20,7 +21,8 @@ export class SubscriptionService<TIdpName extends IdpName> {
   public constructor(
     private readonly creditsService: CreditsService<TIdpName>,
     private readonly tierToCreditsMap: Record<TierId, number>,
-    private readonly snsService: SnsService
+    private readonly snsService: SnsService,
+    private readonly logger: Logger
   ) {}
 
   public create(
@@ -38,8 +40,15 @@ export class SubscriptionService<TIdpName extends IdpName> {
       operation,
       (result) => SubscriptionEvents.subscriptionCreatedEvent(userIdentity, tier, result),
       (result, error) =>
-        SubscriptionEvents.subscriptionCreationFailedEvent(userIdentity, tier, result, error),
-      this.snsService
+        SubscriptionEvents.subscriptionCreationFailedEvent(
+          userIdentity,
+          tier,
+          result,
+          extractErrorMessage(error)
+        ),
+      'creating a subscription',
+      this.snsService,
+      this.logger
     );
   }
 
@@ -58,8 +67,15 @@ export class SubscriptionService<TIdpName extends IdpName> {
       operation,
       (result) => SubscriptionEvents.subscriptionRenewedEvent(userIdentity, tier, result),
       (result, error) =>
-        SubscriptionEvents.subscriptionRenewalFailedEvent(userIdentity, tier, result, error),
-      this.snsService
+        SubscriptionEvents.subscriptionRenewalFailedEvent(
+          userIdentity,
+          tier,
+          result,
+          extractErrorMessage(error)
+        ),
+      'renewing a subscription',
+      this.snsService,
+      this.logger
     );
   }
 
@@ -95,7 +111,7 @@ export class SubscriptionService<TIdpName extends IdpName> {
             currentPlanPaidPercentage,
             0,
             result,
-            result.error
+            extractErrorMessage(result.error)
           )
         )
         .then(() => result);
@@ -116,7 +132,7 @@ export class SubscriptionService<TIdpName extends IdpName> {
             currentPlanPaidPercentage,
             0,
             result,
-            result.error
+            extractErrorMessage(result.error)
           )
         )
         .then(() => result);
@@ -146,9 +162,11 @@ export class SubscriptionService<TIdpName extends IdpName> {
           currentPlanPaidPercentage,
           creditsToAdd,
           result,
-          error
+          extractErrorMessage(error)
         ),
-      this.snsService
+      'upgrading a subscription',
+      this.snsService,
+      this.logger
     );
   }
 
@@ -172,8 +190,15 @@ export class SubscriptionService<TIdpName extends IdpName> {
       operation,
       (result) => SubscriptionEvents.subscriptionCancelledEvent(userIdentity, reason, result),
       (result, error) =>
-        SubscriptionEvents.subscriptionCancellationFailedEvent(userIdentity, reason, result, error),
-      this.snsService
+        SubscriptionEvents.subscriptionCancellationFailedEvent(
+          userIdentity,
+          reason,
+          result,
+          extractErrorMessage(error)
+        ),
+      `cancelling a subscription with reason '${reason}'`,
+      this.snsService,
+      this.logger
     );
   }
 }

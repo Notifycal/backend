@@ -1,3 +1,4 @@
+import { logger } from '@common/powertools';
 import type { CreditAdditionResult, CreditDeductionResult } from '@model/Credits';
 import type {
   Email,
@@ -504,7 +505,8 @@ describe('SubscriptionService Event Publishing', () => {
     return new SubscriptionService(
       creditsServiceFns as CreditsService<IdpName>,
       validTierToCreditsMap,
-      snsService
+      snsService,
+      logger
     );
   }
 });

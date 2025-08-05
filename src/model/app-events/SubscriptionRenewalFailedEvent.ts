@@ -20,7 +20,7 @@ export function subscriptionRenewalFailedEvent<TIdpName extends IdpName>(
   userIdentity: UserIdentity<TIdpName>,
   tier: TierId,
   result?: CreditAdditionResult<'reset'>,
-  error?: unknown
+  error?: string
 ): SubscriptionRenewalFailedEvent {
   return {
     ...createEventBase('SubscriptionRenewalFailed', userIdentity),
