@@ -1,3 +1,4 @@
+import { logger } from '@common/powertools';
 import type { CreditAdditionResult } from '@model/Credits';
 import type { Email, IdpId, TierId, TopupId, UserId, UserIdentity } from '@notifycal/shared/types';
 import { describe, expect, it, vi } from 'vitest';
@@ -117,7 +118,7 @@ describe(TopupService, () => {
           topupId: validTopupId,
           quantity: 0,
           credits: 0,
-          error
+          error: error.message
         }
       })
     );
@@ -148,7 +149,7 @@ describe(TopupService, () => {
         data: {
           topupId: validTopupId,
           quantity: -3,
-          error,
+          error: error.message,
           credits: 0
         }
       })
@@ -180,7 +181,7 @@ describe(TopupService, () => {
           topupId: validTopupId,
           quantity: validQuantity,
           credits: validTopupToCreditsMap[validTopupId] * validQuantity,
-          error
+          error: error.message
         }
       })
     );
@@ -205,7 +206,12 @@ describe(TopupService, () => {
       safePublish: vi.fn().mockImplementation(safePublishFn)
     } as unknown as SnsService;
 
-    const topupService = new TopupService(creditsServiceMock, topupToCreditsMap, snsServiceMock);
+    const topupService = new TopupService(
+      creditsServiceMock,
+      topupToCreditsMap,
+      snsServiceMock,
+      logger
+    );
     return topupService.add(userIdentity, topup, quantity);
   }
 });

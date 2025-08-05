@@ -114,9 +114,15 @@ export function recordProcessor(
   const subscriptionService = new SubscriptionService(
     creditsService,
     toProductToCreditsMap(tiers),
-    snsService
+    snsService,
+    logger
   );
-  const topupService = new TopupService(creditsService, toProductToCreditsMap(topups), snsService);
+  const topupService = new TopupService(
+    creditsService,
+    toProductToCreditsMap(topups),
+    snsService,
+    logger
+  );
   const ourHandlers = eventHandlerFactory(subscriptionService, topupService, tiers, topups, logger);
   const processor = new StripeEventProcessor(
     new StripeUserIdentityExtractor(userPaymentIndexStore, logger),

@@ -22,7 +22,7 @@ export function subscriptionCancellationFailedEvent<TIdpName extends IdpName>(
   userIdentity: UserIdentity<TIdpName>,
   reason: 'unpaid' | 'cancelled',
   result?: CreditDeductionResult<'clear'>,
-  error?: unknown
+  error?: string
 ): SubscriptionCancellationFailedEvent {
   return {
     ...createEventBase('SubscriptionCancellationFailed', userIdentity),
