@@ -6,6 +6,7 @@ import type {
   IdpName,
   LanguageCode,
   StripeCustomerId,
+  UnixTimestamp,
   UserIdentity
 } from '@notifycal/shared/types';
 import type { Url } from '@own-types/model';
@@ -233,5 +234,44 @@ export class StripeService {
 
   public countSubscriptions(stripeCustomerId: StripeCustomerId): Promise<number> {
     return this.getSubscriptions(stripeCustomerId).then((subscriptions) => subscriptions.length);
+  }
+
+  public totalPaidInSubscriptionInvoicesWithinPeriod(
+    subscriptionId: string,
+    periodStart: UnixTimestamp,
+    periodEnd: UnixTimestamp
+  ): Promise<number> {
+    const creationOrRenewalOrUpgrade: Array<Stripe.Invoice.BillingReason> = [
+      'subscription_create',
+      'subscription_update',
+      'subscription_cycle'
+    ];
+    const billingReasonPredicate = (i: Stripe.Invoice): boolean => {
+      return (
+        i.status === 'paid' &&
+        i.billing_reason !== null &&
+        creationOrRenewalOrUpgrade.includes(i.billing_reason) &&
+        i.amount_paid > 0
+      );
+    };
+    return this.getInvoicesInPeriod(subscriptionId, periodStart, periodEnd).then((invoices) => {
+      return invoices.data
+        .filter(billingReasonPredicate)
+        .reduce((sum, invoice) => sum + invoice.amount_paid, 0);
+    });
+  }
+
+  private getInvoicesInPeriod(
+    subscriptionId: string,
+    periodStart: UnixTimestamp,
+    periodEnd: UnixTimestamp
+  ): Stripe.ApiListPromise<Stripe.Invoice> {
+    return this.stripeClient.invoices.list({
+      subscription: subscriptionId,
+      created: {
+        gte: periodStart,
+        lte: periodEnd
+      }
+    });
   }
 }

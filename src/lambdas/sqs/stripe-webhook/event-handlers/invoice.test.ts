@@ -11,6 +11,7 @@ import type {
   UserId,
   UserIdentity
 } from '@notifycal/shared/types';
+import type { StripeService } from '@services/stripe';
 import type { SubscriptionService } from '@services/subscription';
 import type { TopupService } from '@services/topup';
 import { validPaymentPlans } from '@testing/data/pricing';
@@ -31,6 +32,10 @@ describe(InvoicePaymentSucceededHandler, () => {
 
   const validInvoiceLineItemGoodRefund: Stripe.InvoiceLineItem = {
     id: 'il_test123',
+    subscription: 'sub_test_123',
+    period: {
+      end: 1757087480
+    },
     pricing: {
       price_details: {
         price: validTiers.good.priceId
@@ -44,6 +49,10 @@ describe(InvoicePaymentSucceededHandler, () => {
 
   const validBetterLineItemRefund: Stripe.InvoiceLineItem = {
     id: 'il_test456',
+    subscription: 'sub_test_123',
+    period: {
+      end: 1757087480
+    },
     pricing: {
       price_details: {
         price: validTiers.better.priceId
@@ -57,6 +66,10 @@ describe(InvoicePaymentSucceededHandler, () => {
 
   const validBetterLineItem: Stripe.InvoiceLineItem = {
     id: 'il_test785',
+    subscription: 'sub_test_123',
+    period: {
+      end: 1757087480
+    },
     pricing: {
       price_details: {
         price: validTiers.better.priceId
@@ -70,6 +83,10 @@ describe(InvoicePaymentSucceededHandler, () => {
 
   const validBestLineItem: Stripe.InvoiceLineItem = {
     id: 'il_test789',
+    subscription: 'sub_test_123',
+    period: {
+      end: 1757087480
+    },
     pricing: {
       price_details: {
         price: validTiers.best.priceId
@@ -77,11 +94,16 @@ describe(InvoicePaymentSucceededHandler, () => {
     },
     plan: {
       amount: 6000
-    }
+    },
+    amount: 6000
   } as unknown as Stripe.InvoiceLineItem;
 
   const validTopupLineItem: Stripe.InvoiceLineItem = {
     id: 'il_topup123',
+    subscription: 'sub_test_123',
+    period: {
+      end: 1757087480
+    },
     quantity: 100,
     pricing: {
       price_details: {
@@ -97,6 +119,7 @@ describe(InvoicePaymentSucceededHandler, () => {
     amount_due: 2000,
     billing_reason: 'subscription_create',
     created: 1703980800,
+    period_start: 1640908800,
     lines: {
       data: [validInvoiceLineItemGoodRefund]
     }
@@ -114,6 +137,7 @@ describe(InvoicePaymentSucceededHandler, () => {
     amount_due: 1000,
     billing_reason: 'subscription_update',
     created: 1703980800,
+    period_start: 1754409080,
     total: 1000,
     lines: {
       data: [validInvoiceLineItemGoodRefund, validBetterLineItem]
@@ -134,6 +158,7 @@ describe(InvoicePaymentSucceededHandler, () => {
     amount_paid: 1000,
     billing_reason: 'manual',
     created: 1703980800,
+    period_start: 1640908800,
     lines: {
       data: [validTopupLineItem]
     }
@@ -485,6 +510,7 @@ describe(InvoicePaymentSucceededHandler, () => {
     const upgradeFn = vi.fn().mockResolvedValue(undefined);
     const downgradeFn = vi.fn();
     const addTopupFn = vi.fn();
+    const totalPaidInBillingCycleWithRespectToCurrentPlanFn = vi.fn(() => Promise.resolve(700));
 
     await testIt(
       validEvent(validUpgradeInvoice),
@@ -494,7 +520,8 @@ describe(InvoicePaymentSucceededHandler, () => {
       upgradeFn,
       downgradeFn,
       addTopupFn,
-      validTiers
+      validTiers,
+      totalPaidInBillingCycleWithRespectToCurrentPlanFn
     );
 
     expect(upgradeFn).toHaveBeenCalledTimes(1);
@@ -544,6 +571,7 @@ describe(InvoicePaymentSucceededHandler, () => {
     const upgradeFn = vi.fn().mockResolvedValue(undefined);
     const downgradeFn = vi.fn();
     const addTopupFn = vi.fn();
+    const totalPaidInBillingCycleWithRespectToCurrentPlanFn = vi.fn(() => Promise.resolve(2450));
 
     const goodToBestUpgrade: Stripe.Invoice = {
       ...validUpgradeInvoice,
@@ -564,7 +592,8 @@ describe(InvoicePaymentSucceededHandler, () => {
       upgradeFn,
       downgradeFn,
       addTopupFn,
-      validTiers
+      validTiers,
+      totalPaidInBillingCycleWithRespectToCurrentPlanFn
     );
 
     expect(upgradeFn).toHaveBeenCalledWith(
@@ -891,6 +920,7 @@ describe(InvoicePaymentSucceededHandler, () => {
       quantity: number
     ) => Promise<CreditAdditionResult<'add'>>,
     tiers: TierMap,
+    totalPaidInSubscriptionInvoicesWithinPeriodFn?: () => Promise<number>,
     topups: TopupMap = validTopups
   ): Promise<void> {
     const subscriptionServiceMock = {
@@ -910,12 +940,17 @@ describe(InvoicePaymentSucceededHandler, () => {
       error: vi.fn()
     } as unknown as Logger;
 
+    const stripeServiceMock = {
+      totalPaidInSubscriptionInvoicesWithinPeriod: totalPaidInSubscriptionInvoicesWithinPeriodFn
+    } as unknown as StripeService;
+
     const handler = new InvoicePaymentSucceededHandler(
       'invoice.payment_succeeded',
       tiers,
       topups,
       subscriptionServiceMock,
       topupServiceMock,
+      stripeServiceMock,
       loggerMock
     );
 
