@@ -25,7 +25,7 @@ function fromStoreRecord(credits: UserCreditsRecordStore): UserCredits {
     subscriptionCreditBalance: credits.SubscriptionCreditBalance,
     usableTierCredits: credits.UsableTierCredits,
     tier: credits.Tier,
-    topupCreditBalance: credits.TopupCreditBalance,
+    topupCreditBalance: credits.TopupCreditBalance
   };
 }
 
