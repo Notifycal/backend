@@ -16,6 +16,7 @@ data "aws_iam_policy_document" "stripe_webhook_iam_policydoc" {
     effect = "Allow"
 
     actions = [
+      "dynamodb:GetItem",
       "dynamodb:UpdateItem"
     ]
 
