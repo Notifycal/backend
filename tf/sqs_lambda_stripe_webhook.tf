@@ -107,5 +107,5 @@ module "stripe_webhook_lambda" {
 
   environment_variables = merge({
     PAYMENT_WEBHOOK_TOPIC_ARN = module.payment_webhook_topic.sns_topic_arn
-  }, local.payment_plans_env_vars, local.common_lambda_env_vars, local.users_persistance_env_vars, local.payment_users_index_persistance_env_vars)
+  }, local.payment_plans_env_vars, local.stripe_auth_env_vars, local.common_lambda_env_vars, local.users_persistance_env_vars, local.payment_users_index_persistance_env_vars)
 }
