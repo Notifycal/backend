@@ -11,6 +11,7 @@ OUT_DIR=dist
 TF_TOOL="${TF_TOOL:-terragrunt}"
 
 STACK_NAME=$1
+REPOSITORY="${STACK_NAME//_/-}"
 STACK_VERSION=$2
 
 # running path is the working dir as this script makes "changes" in the
@@ -21,7 +22,8 @@ echo
 echo "Running $0..."
 echo "==================================="
 echo "STACK NAME: ${STACK_NAME}"
-echo "STACK_VERSION: ${STACK_VERSION}"    # Assumes STACK_NAME == repository name
+echo "REPOSITORY: ${REPOSITORY}"
+echo "STACK_VERSION: ${STACK_VERSION}"
 echo "PATH: $RUNNING_PATH"
 echo "==================================="
 echo
@@ -31,11 +33,11 @@ echo "Retrieving release from Github..."
 TMP_DIR=$(mktemp -d "/tmp/${STACK_NAME}.XXXXX")
 
 if [[ "${STACK_VERSION}" == "latest" ]]; then
-  latest_release=$(gh release list --repo "${_GH_ORG}/${STACK_NAME}" --json name,isLatest --jq '.[] | select(.isLatest)|.name')
+  latest_release=$(gh release list --repo "${_GH_ORG}/${REPOSITORY}" --json name,isLatest --jq '.[] | select(.isLatest)|.name')
   echo "Downloading the latest release (${latest_release}) as STACK_VERSION is 'latest'"
-  gh release download "${latest_release}" --repo "${_GH_ORG}/${STACK_NAME}" --dir "${TMP_DIR}"
+  gh release download "${latest_release}" --repo "${_GH_ORG}/${REPOSITORY}" --dir "${TMP_DIR}"
 else
-  gh release download "${STACK_VERSION}" --repo "${_GH_ORG}/${STACK_NAME}" --dir "${TMP_DIR}"
+  gh release download "${STACK_VERSION}" --repo "${_GH_ORG}/${REPOSITORY}" --dir "${TMP_DIR}"
 fi
 
 

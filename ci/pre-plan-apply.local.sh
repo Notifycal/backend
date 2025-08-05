@@ -4,8 +4,9 @@ if [[ "$DEBUG" == true ]]; then
   set -ex
 fi
 STACK_NAME="$1"
+REPOSITORY="${STACK_NAME//_/-}"
 STACK_VERSION="$2"
-REPO_PATH=$(realpath $(dirname $(dirname "$0")))
+REPO_PATH="$(realpath "$(dirname "$(dirname "$0")")")"
 
 # running path is the working dir as this script makes "changes" in the
 # actual TF "execution folder"
@@ -15,6 +16,7 @@ echo
 echo "Running $0..."
 echo "==================================="
 echo "STACK NAME: ${STACK_NAME}"
+echo "REPOSITORY: ${REPOSITORY}"
 echo "STACK_VERSION: ${STACK_VERSION}"    # Assumes STACK_NAME == repository name
 echo "PWD: $RUNNING_PATH"
 echo "REPO_PATH: $REPO_PATH"
