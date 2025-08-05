@@ -28,6 +28,7 @@ describe(CreditsService, () => {
   const validUserWithCredits: UserStoreRecordCredits = {
     Credits: {
       SubscriptionCreditBalance: 150,
+      UsableTierCredits: 150,
       Tier: 'good',
       TopupCreditBalance: 44
     }
@@ -36,6 +37,7 @@ describe(CreditsService, () => {
   const validUserWithZeroCredits: UserStoreRecordCredits = {
     Credits: {
       SubscriptionCreditBalance: 0,
+      UsableTierCredits: 150,
       Tier: 'good',
       TopupCreditBalance: 0
     }
