@@ -94,7 +94,8 @@ export class UserCreditsBaseStore extends BaseStore<BaseStoreConfig> {
     const expressionAttributeValues = isSubscriptionUpdate
       ? {
           ':amount': amount,
-          ':tierId': tierId
+          ':tierId': tierId,
+          ':usableTierCredits': amount
         }
       : {
           ':amount': amount,
@@ -149,6 +150,7 @@ export class UserCreditsBaseStore extends BaseStore<BaseStoreConfig> {
           ExpressionAttributeValues: {
             ':credits': {
               SubscriptionCreditBalance: amount,
+              UsableTierCredits: amount,
               Tier: tierId,
               TopupCreditBalance: 0
             }

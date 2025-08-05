@@ -15,6 +15,7 @@ import {
 
 export interface UserCreditsRecordStore {
   SubscriptionCreditBalance: number;
+  UsableTierCredits: number;
   Tier: TierId;
   TopupCreditBalance: number;
 }
@@ -22,6 +23,7 @@ export interface UserCreditsRecordStore {
 function fromStoreRecord(credits: UserCreditsRecordStore): UserCredits {
   return {
     subscriptionCreditBalance: credits.SubscriptionCreditBalance,
+    usableTierCredits: credits.UsableTierCredits,
     tier: credits.Tier,
     topupCreditBalance: credits.TopupCreditBalance
   };

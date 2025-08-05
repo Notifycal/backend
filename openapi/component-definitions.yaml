@@ -28,6 +28,8 @@ components:
           properties:
             subscriptionCreditBalance:
               type: integer
+            usableTierCredits:
+              type: integer
             tier:
               type: string
             topupCreditBalance:
