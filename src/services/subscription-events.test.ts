@@ -111,7 +111,7 @@ describe('SubscriptionService Event Publishing', () => {
           data: {
             tier: validGoodTier,
             result: validErrorResult,
-            error: undefined
+            error: 'An unknown error occurred. Error: undefined'
           }
         })
       );
@@ -135,7 +135,7 @@ describe('SubscriptionService Event Publishing', () => {
           data: {
             tier: validGoodTier,
             result: undefined,
-            error: error
+            error: error.message
           }
         })
       );
@@ -182,7 +182,7 @@ describe('SubscriptionService Event Publishing', () => {
           data: {
             tier: validBetterTier,
             result: validErrorResult,
-            error: undefined
+            error: 'An unknown error occurred. Error: undefined'
           }
         })
       );
@@ -206,7 +206,7 @@ describe('SubscriptionService Event Publishing', () => {
           data: {
             tier: validBetterTier,
             result: undefined,
-            error: error
+            error: error.message
           }
         })
       );
@@ -273,7 +273,7 @@ describe('SubscriptionService Event Publishing', () => {
             currentPlanPaidPercentage: currentPlanPaidPercentage,
             creditsAdded: expectedCreditsToAdd,
             result: validErrorResult,
-            error: undefined
+            error: 'An unknown error occurred. Error: undefined'
           }
         })
       );
@@ -304,7 +304,7 @@ describe('SubscriptionService Event Publishing', () => {
             currentPlanPaidPercentage: currentPlanPaidPercentage,
             creditsAdded: expectedCreditsToAdd,
             result: undefined,
-            error: error
+            error: error.message
           }
         })
       );
@@ -415,7 +415,7 @@ describe('SubscriptionService Event Publishing', () => {
           data: {
             reason: 'cancelled',
             result: validErrorDeduction,
-            error: undefined
+            error: 'An unknown error occurred. Error: undefined'
           }
         })
       );
@@ -439,7 +439,7 @@ describe('SubscriptionService Event Publishing', () => {
           data: {
             reason: 'unpaid',
             result: undefined,
-            error: error
+            error: error.message
           }
         })
       );

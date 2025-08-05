@@ -118,7 +118,7 @@ describe(TopupService, () => {
           topupId: validTopupId,
           quantity: 0,
           credits: 0,
-          error
+          error: error.message
         }
       })
     );
@@ -149,7 +149,7 @@ describe(TopupService, () => {
         data: {
           topupId: validTopupId,
           quantity: -3,
-          error,
+          error: error.message,
           credits: 0
         }
       })
@@ -181,7 +181,7 @@ describe(TopupService, () => {
           topupId: validTopupId,
           quantity: validQuantity,
           credits: validTopupToCreditsMap[validTopupId] * validQuantity,
-          error
+          error: error.message
         }
       })
     );
