@@ -241,17 +241,18 @@ export class StripeService {
     periodStart: UnixTimestamp,
     periodEnd: UnixTimestamp
   ): Promise<number> {
+    // In order to understand Stripe stuff and this filtering, here are the [docs](https://docs.stripe.com/api/invoices/object)
     const creationOrRenewalOrUpgrade: Array<Stripe.Invoice.BillingReason> = [
       'subscription_create',
-      'subscription_update',
-      'subscription_cycle'
+      'subscription_update', // Upgrade or downgrade
+      'subscription_cycle' // Renewal
     ];
     const billingReasonPredicate = (i: Stripe.Invoice): boolean => {
       return (
         i.status === 'paid' &&
         i.billing_reason !== null &&
         creationOrRenewalOrUpgrade.includes(i.billing_reason) &&
-        i.amount_paid > 0
+        i.amount_paid > 0 // 'total' !== 'amount paid'. From docs: total -> "Total after discounts and taxes" whereas amount_paid has no interpretation.
       );
     };
     return this.getInvoicesInPeriod(subscriptionId, periodStart, periodEnd).then((invoices) => {
