@@ -6,6 +6,7 @@ import { CreditsService } from '@services/credits-service';
 import { SnsService } from '@services/sns';
 import { PaymentUserIndexStore } from '@services/stores/payment-user-index-store';
 import { UserBaseStore } from '@services/stores/user-base-store';
+import { StripeService } from '@services/stripe';
 import { SubscriptionService } from '@services/subscription';
 import { TopupService } from '@services/topup';
 import type { Stripe } from 'stripe';
@@ -44,6 +45,7 @@ export function defaultEventHandlers(
   topupService: TopupService<IdpName>,
   tiers: TierMap,
   topups: TopupMap,
+  stripeService: StripeService,
   logger: Logger
 ): Map<StripeEventType, EventHandlerBuilder<Stripe.Event>> {
   return new Map<StripeEventType, EventHandlerBuilder<Stripe.Event>>([
@@ -72,6 +74,7 @@ export function defaultEventHandlers(
           topups,
           subscriptionService,
           topupService,
+          stripeService,
           logger
         )
     ],
@@ -90,13 +93,14 @@ function toProductToCreditsMap<T extends TierId | TopupId>(
   >;
 }
 
-export function recordProcessor(
+export async function recordProcessor(
   record: SqsRecord['body'],
   eventHandlerFactory: (
     subscriptionService: SubscriptionService<IdpName>,
     topupService: TopupService<IdpName>,
     tiers: TierMap,
     topups: TopupMap,
+    stripeService: StripeService,
     logger: Logger
   ) => Map<StripeEventType, EventHandlerBuilder<Stripe.Event>> = defaultEventHandlers,
   config: StripeWebhookConfig,
@@ -111,6 +115,7 @@ export function recordProcessor(
   const creditsService = new CreditsService(userStore, logger);
   const { tiers, topups } = config.paymentPlans;
   const snsService = SnsService.withConfig(config.paymentWebhookTopicConfig, logger);
+  const stripeService = await StripeService.withConfig(config.stripeAuthConfig.apiKey);
   const subscriptionService = new SubscriptionService(
     creditsService,
     toProductToCreditsMap(tiers),
@@ -123,7 +128,14 @@ export function recordProcessor(
     snsService,
     logger
   );
-  const ourHandlers = eventHandlerFactory(subscriptionService, topupService, tiers, topups, logger);
+  const ourHandlers = eventHandlerFactory(
+    subscriptionService,
+    topupService,
+    tiers,
+    topups,
+    stripeService,
+    logger
+  );
   const processor = new StripeEventProcessor(
     new StripeUserIdentityExtractor(userPaymentIndexStore, logger),
     ourHandlers,

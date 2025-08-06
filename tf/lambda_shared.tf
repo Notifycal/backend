@@ -74,6 +74,9 @@ locals {
   }
   idps_configs_env_vars = local.google_idp_config_env_vars
 
+  stripe_auth_env_vars = {
+    STRIPE_API_KEY = var.stripe_operating_api_key
+  }
   demo_reminder_limit_env_vars = {
     DEMO_REMINDER_LIMIT = 1
   }

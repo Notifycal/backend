@@ -3,6 +3,7 @@ import type { Logger } from '@aws-lambda-powertools/logger';
 import type { CreditAdditionResult } from '@model/Credits';
 import type { TierMap, TopupMap } from '@model/PaymentPlans';
 import type { IdpName, TierId, TopupId, UserIdentity } from '@notifycal/shared/types';
+import type { StripeService } from '@services/stripe';
 import type { SubscriptionService } from '@services/subscription';
 import type { TopupService } from '@services/topup';
 import type Stripe from 'stripe';
@@ -47,6 +48,7 @@ export class InvoicePaymentSucceededHandler
     private readonly topups: TopupMap,
     private readonly subscriptionService: SubscriptionService<IdpName>,
     private readonly topupService: TopupService<IdpName>,
+    private readonly stripeService: StripeService,
     private readonly logger: Logger
   ) {
     super(stripeEventType);
@@ -169,7 +171,7 @@ export class InvoicePaymentSucceededHandler
   ): Promise<void> {
     return match(updateType)
       .with('upgrade-subscription', () => {
-        return this.calculateCurrentPlanPaidPercentageFromInvoice(invoice)
+        return this.totalPaidInBillingCycleWithRespectToCurrentPlan(invoice, this.stripeService)
           .then((currentPlanPaidPercentage) =>
             this.subscriptionService.upgrade(
               userIdentity,

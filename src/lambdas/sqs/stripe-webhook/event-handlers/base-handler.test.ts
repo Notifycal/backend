@@ -1,12 +1,41 @@
+import type { UnixTimestamp } from '@notifycal/shared/types';
+import type { StripeService } from '@services/stripe';
 import type Stripe from 'stripe';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { BaseHandler } from './base-handler';
 
 describe(BaseHandler, () => {
-  const createValidLineItem = (amount: number, planAmount: number): Stripe.InvoiceLineItem =>
+  const createValidLineItem = (
+    amount: number,
+    planAmount: number,
+    subscriptionId = 'sub_test_123',
+    periodEnd = 1640995200 as UnixTimestamp
+  ): Stripe.InvoiceLineItem =>
     ({
       id: `il_test_${Math.random()}`,
       amount,
+      subscription: subscriptionId,
+      period: {
+        end: periodEnd
+      },
+      plan: {
+        amount: planAmount
+      } as Stripe.Plan
+    }) as unknown as Stripe.InvoiceLineItem;
+
+  const createValidLineItemWithSubscriptionObject = (
+    amount: number,
+    planAmount: number,
+    subscriptionId = 'sub_test_123',
+    periodEnd = 1640995200 as UnixTimestamp
+  ): Stripe.InvoiceLineItem =>
+    ({
+      id: `il_test_${Math.random()}`,
+      amount,
+      subscription: { id: subscriptionId } as Stripe.Subscription,
+      period: {
+        end: periodEnd
+      },
       plan: {
         amount: planAmount
       } as Stripe.Plan
@@ -19,118 +48,226 @@ describe(BaseHandler, () => {
     }) as Stripe.InvoiceLineItem;
 
   const createValidInvoice = (
-    total: number,
-    previousPlanAmount: number,
-    currentPlanAmount: number
+    lineItems: Array<Stripe.InvoiceLineItem>,
+    periodStart = 1640908800 as UnixTimestamp
   ): Stripe.Invoice =>
     ({
       id: `in_test_${Math.random()}`,
-      total,
+      // eslint-disable-next-line camelcase
+      period_start: periodStart,
       lines: {
-        data: [
-          createValidLineItem(-Math.abs(previousPlanAmount), previousPlanAmount), // Previous plan refund (negative amount)
-          createValidLineItem(currentPlanAmount, currentPlanAmount) // Current plan charge
-        ]
+        data: lineItems
       }
-    }) as Stripe.Invoice;
+    }) as unknown as Stripe.Invoice;
 
-  describe('calculateCurrentPlanPaidPercentageFromInvoice', () => {
-    it('calculates how much of new tier is covered when customer upgrades from good to better', async () => {
-      // Customer originally paid €10 (good tier), now upgrading to €25 (better tier)
-      // Stripe automatically calculates: €10 refund (unused portion) + €15 prorated charge (remaining cycle)
-      // Total customer contribution: €10 (already paid) + €10 (refund credit) + €15 (prorated new tier) = €25
-      const validInvoice = createValidInvoice(1500, 1000, 2500);
+  describe('totalPaidInBillingCycleWithRespectToCurrentPlan', () => {
+    it('calculates 100% when customer has paid exactly the current plan amount', async () => {
+      // Customer has paid exactly €25 for a €25 premium plan
+      const currentPlanLineItem = createValidLineItem(2500, 2500);
+      const validInvoice = createValidInvoice([currentPlanLineItem]);
+      const totalPaidInSubscriptionInvoicesWithinPeriodFn = vi.fn(() => Promise.resolve(2500));
 
-      const result = await testCalculateCurrentPlanPaidPercentageFromInvoice(validInvoice);
+      const result = await testTotalPaidInBillingCycleWithRespectToCurrentPlan(
+        validInvoice,
+        totalPaidInSubscriptionInvoicesWithinPeriodFn
+      );
 
-      // Total customer contribution (€25) covers 100% of new tier cost (€25)
+      expect(result).toBe(100);
+      expect(totalPaidInSubscriptionInvoicesWithinPeriodFn).toHaveBeenCalledWith(
+        'sub_test_123',
+        1640908800,
+        1640995200
+      );
+    });
+
+    it('calculates 100% when customer has paid exactly the current plan amount due to prorated billing', async () => {
+      // In Stripe's prorated billing, the customer will never pay more than the plan amount
+      // This test simulates the exact payment scenario
+      const currentPlanLineItem = createValidLineItem(2500, 2500);
+      const validInvoice = createValidInvoice([currentPlanLineItem]);
+      const totalPaidInSubscriptionInvoicesWithinPeriodFn = vi.fn(() => Promise.resolve(2500));
+
+      const result = await testTotalPaidInBillingCycleWithRespectToCurrentPlan(
+        validInvoice,
+        totalPaidInSubscriptionInvoicesWithinPeriodFn
+      );
+
       expect(result).toBe(100);
     });
 
-    it('calculates how much of new tier is covered when customer upgrades from better to best', async () => {
-      // Customer originally paid €25 (better tier), now upgrading to €60 (best tier)
-      // Stripe automatically calculates: €1 refund (small unused portion) + €36 prorated charge (remaining cycle)
-      // Total customer contribution: €25 (already paid) + €1 (refund credit) + €36 (prorated new tier) = €37
-      const validInvoice = createValidInvoice(3600, 100, 6000);
+    it('calculates correct percentage for multi-upgrade scenario matching comment example', async () => {
+      // Simulates: Day 1: €10, Day 2: €14.51 + €33.87 = €58.38 total of €60 enterprise plan
+      // Expected: 58.38/60 = 97.3% (matching the comment example)
+      const currentPlanLineItem = createValidLineItem(6000, 6000); // €60 enterprise plan
+      const validInvoice = createValidInvoice([currentPlanLineItem]);
+      const totalPaidInSubscriptionInvoicesWithinPeriodFn = vi.fn(() => Promise.resolve(5838)); // €58.38
 
-      const result = await testCalculateCurrentPlanPaidPercentageFromInvoice(validInvoice);
+      const result = await testTotalPaidInBillingCycleWithRespectToCurrentPlan(
+        validInvoice,
+        totalPaidInSubscriptionInvoicesWithinPeriodFn
+      );
 
-      // Total customer contribution (€37) covers 61.67% of new tier cost (€60)
-      expect(result).toBe(61.66667);
+      expect(result).toBe(97.3);
     });
 
-    it('calculates how much of new tier is covered when customer upgrades from good to best with prorated refund', async () => {
-      // Customer originally paid €10 (good tier), now upgrading to €60 (best tier)
-      // Stripe automatically calculates: €5 refund (half month unused) + €55 prorated charge (remaining cycle)
-      // Total customer contribution: €10 (already paid) + €5 (refund credit) + €55 (prorated new tier) = €60
-      const validInvoice = createValidInvoice(5500, 500, 6000);
+    it('handles subscription ID as string correctly', async () => {
+      const currentPlanLineItem = createValidLineItem(2500, 2500, 'sub_string_123');
+      const validInvoice = createValidInvoice([currentPlanLineItem]);
+      const totalPaidInSubscriptionInvoicesWithinPeriodFn = vi.fn(() => Promise.resolve(2500));
 
-      const result = await testCalculateCurrentPlanPaidPercentageFromInvoice(validInvoice);
+      const result = await testTotalPaidInBillingCycleWithRespectToCurrentPlan(
+        validInvoice,
+        totalPaidInSubscriptionInvoicesWithinPeriodFn
+      );
 
-      // Total customer contribution (€60) covers 100% of new tier cost (€60)
       expect(result).toBe(100);
+      expect(totalPaidInSubscriptionInvoicesWithinPeriodFn).toHaveBeenCalledWith(
+        'sub_string_123',
+        1640908800,
+        1640995200
+      );
     });
 
-    it('rejects when invoice is missing the new tier line item', async () => {
-      const invalidInvoice = {
-        id: 'in_test_invalid',
-        total: 1500,
-        lines: {
-          data: [createValidLineItem(-1000, 1000)] // Only refund from previous tier
-        }
-      } as Stripe.Invoice;
+    it('handles subscription ID as Stripe.Subscription object correctly', async () => {
+      const currentPlanLineItem = createValidLineItemWithSubscriptionObject(
+        2500,
+        2500,
+        'sub_object_123'
+      );
+      const validInvoice = createValidInvoice([currentPlanLineItem]);
+      const totalPaidInSubscriptionInvoicesWithinPeriodFn = vi.fn(() => Promise.resolve(2500));
+
+      const result = await testTotalPaidInBillingCycleWithRespectToCurrentPlan(
+        validInvoice,
+        totalPaidInSubscriptionInvoicesWithinPeriodFn
+      );
+
+      expect(result).toBe(100);
+      expect(totalPaidInSubscriptionInvoicesWithinPeriodFn).toHaveBeenCalledWith(
+        'sub_object_123',
+        1640908800,
+        1640995200
+      );
+    });
+
+    it('rejects when invoice has no line items', async () => {
+      const invalidInvoice = createValidInvoice([]);
+      const totalPaidInSubscriptionInvoicesWithinPeriodFn = vi.fn(() => Promise.resolve(2500));
 
       await expect(
-        testCalculateCurrentPlanPaidPercentageFromInvoice(invalidInvoice)
+        testTotalPaidInBillingCycleWithRespectToCurrentPlan(
+          invalidInvoice,
+          totalPaidInSubscriptionInvoicesWithinPeriodFn
+        )
+      ).rejects.toThrow('Invoice has no line items');
+    });
+
+    it('rejects when line item has no subscription ID', async () => {
+      const invalidLineItem = {
+        id: 'il_test_invalid',
+        amount: 2500,
+        subscription: null,
+        period: { end: 1640995200 },
+        plan: { amount: 2500 }
+      } as unknown as Stripe.InvoiceLineItem;
+      const invalidInvoice = createValidInvoice([invalidLineItem]);
+      const totalPaidInSubscriptionInvoicesWithinPeriodFn = vi.fn(() => Promise.resolve(2500));
+
+      await expect(
+        testTotalPaidInBillingCycleWithRespectToCurrentPlan(
+          invalidInvoice,
+          totalPaidInSubscriptionInvoicesWithinPeriodFn
+        )
+      ).rejects.toThrow('Could not extract subscription ID from invoice line item');
+    });
+
+    it('rejects when no positive amount line item is found', async () => {
+      const negativeLineItem = createValidLineItem(-1000, 1000);
+      const zeroLineItem = createValidLineItem(0, 2500);
+      const invalidInvoice = createValidInvoice([negativeLineItem, zeroLineItem]);
+      const totalPaidInSubscriptionInvoicesWithinPeriodFn = vi.fn(() => Promise.resolve(2500));
+
+      await expect(
+        testTotalPaidInBillingCycleWithRespectToCurrentPlan(
+          invalidInvoice,
+          totalPaidInSubscriptionInvoicesWithinPeriodFn
+        )
       ).rejects.toThrow('Could not find current plan line item in invoice');
     });
 
-    it('rejects when invoice is missing the previous tier refund line item', async () => {
-      const invalidInvoice = {
-        id: 'in_test_invalid',
-        total: 2500,
-        lines: {
-          data: [createValidLineItem(2500, 2500)] // Only new tier charge, no previous tier refund
-        }
-      } as Stripe.Invoice;
+    it('rejects when current plan line item has no pricing information', async () => {
+      const invalidLineItem = {
+        ...createInvalidLineItem(2500),
+        subscription: 'sub_test_123',
+        period: { end: 1640995200 }
+      } as unknown as Stripe.InvoiceLineItem;
+      const invalidInvoice = createValidInvoice([invalidLineItem]);
+      const totalPaidInSubscriptionInvoicesWithinPeriodFn = vi.fn(() => Promise.resolve(2500));
 
       await expect(
-        testCalculateCurrentPlanPaidPercentageFromInvoice(invalidInvoice)
-      ).rejects.toThrow('Could not find previous plan line item in invoice');
-    });
-
-    it('rejects when new tier line item has no pricing information', async () => {
-      const invalidInvoice = {
-        id: 'in_test_invalid',
-        total: 1500,
-        lines: {
-          data: [
-            createValidLineItem(-1000, 1000), // Previous tier refund (good tier)
-            createInvalidLineItem(2500) // New tier without pricing info (better tier)
-          ]
-        }
-      } as Stripe.Invoice;
-
-      await expect(
-        testCalculateCurrentPlanPaidPercentageFromInvoice(invalidInvoice)
+        testTotalPaidInBillingCycleWithRespectToCurrentPlan(
+          invalidInvoice,
+          totalPaidInSubscriptionInvoicesWithinPeriodFn
+        )
       ).rejects.toThrow('Could not determine current plan amount from invoice');
     });
 
-    it('rejects when previous tier refund has no pricing information', async () => {
-      const invalidInvoice = {
-        id: 'in_test_invalid',
-        total: 1500,
-        lines: {
-          data: [
-            createInvalidLineItem(-1000), // Previous tier refund without pricing info (good tier)
-            createValidLineItem(2500, 2500) // New tier charge (better tier)
-          ]
-        }
-      } as Stripe.Invoice;
+    it('rejects when StripeService throws an error', async () => {
+      const currentPlanLineItem = createValidLineItem(2500, 2500);
+      const validInvoice = createValidInvoice([currentPlanLineItem]);
+      const totalPaidInSubscriptionInvoicesWithinPeriodFn = vi.fn(() =>
+        Promise.reject(new Error('Stripe API error'))
+      );
 
       await expect(
-        testCalculateCurrentPlanPaidPercentageFromInvoice(invalidInvoice)
-      ).rejects.toThrow('Could not determine previous plan amount from invoice');
+        testTotalPaidInBillingCycleWithRespectToCurrentPlan(
+          validInvoice,
+          totalPaidInSubscriptionInvoicesWithinPeriodFn
+        )
+      ).rejects.toThrow('Stripe API error');
+    });
+  });
+
+  describe('extractSubscriptionIdFromInvoice', () => {
+    it('extracts subscription ID when subscription is a string', () => {
+      const lineItem = createValidLineItem(2500, 2500, 'sub_string_123');
+      const validInvoice = createValidInvoice([lineItem]);
+
+      const result = testExtractSubscriptionIdFromInvoice(validInvoice);
+
+      expect(result).toBe('sub_string_123');
+    });
+
+    it('extracts subscription ID when subscription is a Stripe.Subscription object', () => {
+      const lineItem = createValidLineItemWithSubscriptionObject(2500, 2500, 'sub_object_123');
+      const validInvoice = createValidInvoice([lineItem]);
+
+      const result = testExtractSubscriptionIdFromInvoice(validInvoice);
+
+      expect(result).toBe('sub_object_123');
+    });
+
+    it('throws error when invoice has no line items', () => {
+      const invalidInvoice = createValidInvoice([]);
+
+      expect(() => testExtractSubscriptionIdFromInvoice(invalidInvoice)).toThrow(
+        'Invoice has no line items'
+      );
+    });
+
+    it('throws error when line item has no subscription', () => {
+      const invalidLineItem = {
+        id: 'il_test_invalid',
+        amount: 2500,
+        subscription: null,
+        period: { end: 1640995200 },
+        plan: { amount: 2500 }
+      } as unknown as Stripe.InvoiceLineItem;
+      const invalidInvoice = createValidInvoice([invalidLineItem]);
+
+      expect(() => testExtractSubscriptionIdFromInvoice(invalidInvoice)).toThrow(
+        'Could not extract subscription ID from invoice line item'
+      );
     });
   });
 
@@ -191,8 +328,15 @@ class TestableBaseHandler extends BaseHandler {
     super('invoice.payment_succeeded');
   }
 
-  public testCalculateCurrentPlanPaidPercentageFromInvoice(invoice: Stripe.Invoice) {
-    return this.calculateCurrentPlanPaidPercentageFromInvoice(invoice);
+  public testTotalPaidInBillingCycleWithRespectToCurrentPlan(
+    invoice: Stripe.Invoice,
+    stripeService: StripeService
+  ) {
+    return this.totalPaidInBillingCycleWithRespectToCurrentPlan(invoice, stripeService);
+  }
+
+  public testExtractSubscriptionIdFromInvoice(invoice: Stripe.Invoice) {
+    return this.extractSubscriptionIdFromInvoice(invoice);
   }
 
   public testFindAndValidateLineItem(
@@ -208,9 +352,21 @@ class TestableBaseHandler extends BaseHandler {
   }
 }
 
-function testCalculateCurrentPlanPaidPercentageFromInvoice(invoice: Stripe.Invoice) {
+function testTotalPaidInBillingCycleWithRespectToCurrentPlan(
+  invoice: Stripe.Invoice,
+  totalPaidInSubscriptionInvoicesWithinPeriodFn: () => Promise<number>
+) {
+  const stripeServiceMock = {
+    totalPaidInSubscriptionInvoicesWithinPeriod: totalPaidInSubscriptionInvoicesWithinPeriodFn
+  } as unknown as StripeService;
+
   const handler = new TestableBaseHandler();
-  return handler.testCalculateCurrentPlanPaidPercentageFromInvoice(invoice);
+  return handler.testTotalPaidInBillingCycleWithRespectToCurrentPlan(invoice, stripeServiceMock);
+}
+
+function testExtractSubscriptionIdFromInvoice(invoice: Stripe.Invoice) {
+  const handler = new TestableBaseHandler();
+  return handler.testExtractSubscriptionIdFromInvoice(invoice);
 }
 
 function testFindAndValidateLineItem(

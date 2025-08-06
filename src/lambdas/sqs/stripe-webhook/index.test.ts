@@ -7,6 +7,7 @@ import {
   setEnvPaymentPlansConfig,
   setEnvPaymentUserStoreConfig,
   setEnvPaymentWebhookTopicConfig,
+  setEnvStripeAuthConfig,
   setEnvUserBaseStoreConfig
 } from '@testing/utils/config';
 import type { SQSEvent, SQSRecord } from 'aws-lambda';
@@ -34,12 +35,16 @@ function setEnv(): void {
     paymentPlans: validPaymentPlans,
     paymentWebhookTopicConfig: {
       topicArn: 'payment-webhook-topic' as AwsArn
+    },
+    stripeAuthConfig: {
+      apiKey: 'fake_api_key'
     }
   };
   setEnvUserBaseStoreConfig(config.userBaseStoreConfig);
   setEnvPaymentUserStoreConfig(config.paymentUserIndexStoreConfig);
   setEnvPaymentPlansConfig(config.paymentPlans);
   setEnvPaymentWebhookTopicConfig(config.paymentWebhookTopicConfig);
+  setEnvStripeAuthConfig(config.stripeAuthConfig);
 }
 
 vi.mock('./record-processor');

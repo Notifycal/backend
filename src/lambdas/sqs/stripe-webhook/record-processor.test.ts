@@ -58,6 +58,9 @@ describe(recordProcessor, () => {
     paymentPlans: validPaymentPlans,
     paymentWebhookTopicConfig: {
       topicArn: 'payment-webhook-topic' as AwsArn
+    },
+    stripeAuthConfig: {
+      apiKey: 'fake_api_key'
     }
   };
 

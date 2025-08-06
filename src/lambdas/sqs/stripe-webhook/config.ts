@@ -1,9 +1,11 @@
+import type { StripeAuthEndpointConfig } from '@lambdas/api/post-payment-session/config';
 import type { PaymentPlansEndpointConfig, PaymentWebhookTopicConfig } from '@model/Config';
 import {
   readEnv,
   readPaymentPlans,
   readPaymentUserIndexConfig,
   readPaymentWebhookTopicConfig,
+  readStripeAuthConfig,
   readUserBaseStoreConfig
 } from '@services/common/config';
 import type { PaymentUserIndexStoreEndpointConfig } from '@services/stores/payment-user-index-store';
@@ -13,7 +15,8 @@ import { promiseTry } from '@utils/promises';
 export type StripeWebhookConfig = UserBaseStoreEndpointConfig &
   PaymentPlansEndpointConfig &
   PaymentWebhookTopicConfig &
-  PaymentUserIndexStoreEndpointConfig;
+  PaymentUserIndexStoreEndpointConfig &
+  StripeAuthEndpointConfig;
 
 export function readStripeWebhookConfig(): Promise<StripeWebhookConfig> {
   const env = readEnv();
@@ -21,6 +24,7 @@ export function readStripeWebhookConfig(): Promise<StripeWebhookConfig> {
     ...readUserBaseStoreConfig(env),
     ...readPaymentUserIndexConfig(env),
     ...readPaymentPlans(env),
-    ...readPaymentWebhookTopicConfig(env)
+    ...readPaymentWebhookTopicConfig(env),
+    ...readStripeAuthConfig(env)
   }));
 }
