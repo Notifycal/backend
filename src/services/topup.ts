@@ -1,8 +1,9 @@
+import type { Logger } from '@aws-lambda-powertools/logger';
 import { topupFailedEvent } from '@model/app-events/TopupFailedEvent';
 import { topupSucceededEvent } from '@model/app-events/TopupSucceededEvent';
 import type { CreditAdditionResult } from '@model/Credits';
 import type { IdpName, TopupId, UserIdentity } from '@notifycal/shared/types';
-import { handleServiceOperation } from './common/error-handling';
+import { extractErrorMessage, handleServiceOperation } from './common/error-handling';
 import type { CreditsService } from './credits-service';
 import type { SnsService } from './sns';
 
@@ -10,7 +11,8 @@ export class TopupService<TIdpName extends IdpName> {
   public constructor(
     private readonly creditsService: CreditsService<TIdpName>,
     private readonly topupToCreditsMap: Record<TopupId, number>,
-    private readonly snsService: SnsService
+    private readonly snsService: SnsService,
+    private readonly logger: Logger
   ) {}
   public add(
     userIdentity: UserIdentity<TIdpName>,
@@ -22,7 +24,9 @@ export class TopupService<TIdpName extends IdpName> {
         `Error while adding a topup. Quantity cannot be smaller than 1. Quantity: ${quantity}`
       );
       return this.snsService
-        .safePublish(topupFailedEvent(userIdentity, topup, quantity, 0, undefined, error))
+        .safePublish(
+          topupFailedEvent(userIdentity, topup, quantity, 0, undefined, extractErrorMessage(error))
+        )
         .then(() => Promise.reject(error));
     }
     const credits = this.topupToCreditsMap[topup] * quantity;
@@ -33,8 +37,18 @@ export class TopupService<TIdpName extends IdpName> {
     return handleServiceOperation(
       operation,
       (result) => topupSucceededEvent(userIdentity, topup, quantity, credits, result),
-      (result, error) => topupFailedEvent(userIdentity, topup, quantity, credits, result, error),
-      this.snsService
+      (result, error) =>
+        topupFailedEvent(
+          userIdentity,
+          topup,
+          quantity,
+          credits,
+          result,
+          extractErrorMessage(error)
+        ),
+      'adding a topup',
+      this.snsService,
+      this.logger
     );
   }
 }

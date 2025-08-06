@@ -24,7 +24,7 @@ export type UserBaseStoreEndpointConfig = { userBaseStoreConfig: UserBaseStoreCo
 export type { CreditOperationPersistenceResult } from './user-credits-base-store';
 
 export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseStoreConfig> {
-  private readonly creditsService: UserCreditsBaseStore;
+  private readonly userCreditsBaseStore: UserCreditsBaseStore;
   private readonly demoReminderService: UserDemoReminderService<TIdpName>;
 
   public static withConfig<TIdpName extends IdpName>(
@@ -36,7 +36,7 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
 
   private constructor(config: UserBaseStoreConfig, logger: Logger) {
     super(config, logger);
-    this.creditsService = new UserCreditsBaseStore(config, logger);
+    this.userCreditsBaseStore = new UserCreditsBaseStore(config, logger);
     this.demoReminderService = new UserDemoReminderService(config, logger);
   }
 
@@ -185,7 +185,7 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
     amount: number,
     logger: Logger
   ): Promise<CreditOperationPersistenceResult> {
-    return this.creditsService.deductCredits(userId, amount, logger);
+    return this.userCreditsBaseStore.deductCredits(userId, amount, logger);
   }
 
   public addCredits(
@@ -195,7 +195,7 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
     logger: Logger,
     tierId?: TierId
   ): Promise<UserStoreRecordCredits> {
-    return this.creditsService.addCredits(userId, amount, balanceType, logger, tierId);
+    return this.userCreditsBaseStore.addCredits(userId, amount, balanceType, logger, tierId);
   }
 
   public resetSubscriptionCredits(
@@ -204,11 +204,11 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
     amount: number,
     logger: Logger
   ): Promise<UserStoreRecordCredits> {
-    return this.creditsService.resetSubscriptionCredits(userId, tierId, amount, logger);
+    return this.userCreditsBaseStore.resetSubscriptionCredits(userId, tierId, amount, logger);
   }
 
   public clearSubscriptionCredits(userId: UserId, logger: Logger): Promise<UserStoreRecordCredits> {
-    return this.creditsService.clearSubscriptionCredits(userId, logger);
+    return this.userCreditsBaseStore.clearSubscriptionCredits(userId, logger);
   }
 
   public incrementDemoReminderCount(

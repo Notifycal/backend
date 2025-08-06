@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.56.0](https://github.com/Notifycal/backend/compare/v0.55.7...v0.56.0) (2025-08-05)
+
+
+### Features
+
+* usable-tier-credits ([#919](https://github.com/Notifycal/backend/issues/919)) ([3f2575c](https://github.com/Notifycal/backend/commit/3f2575c2843150334df1a9d27c7d8d27d24a7417))
+
+
+### Bug Fixes
+
+* **deps:** Update dependency google-auth-library to v10.2.1 ([#917](https://github.com/Notifycal/backend/issues/917)) ([82b7715](https://github.com/Notifycal/backend/commit/82b7715d99f2254361e5fc3a7744e16abeb85021))
+* **deps:** Update dependency googleapis to v155 ([#920](https://github.com/Notifycal/backend/issues/920)) ([f356cd1](https://github.com/Notifycal/backend/commit/f356cd19e02c3a5c6d1182ec1916afdd2ac8d9dd))
+* expose API URL as output ([#924](https://github.com/Notifycal/backend/issues/924)) ([15b4395](https://github.com/Notifycal/backend/commit/15b4395105f2111424d98d1961ff4519e376341f))
+* upgrade calculation ([#914](https://github.com/Notifycal/backend/issues/914)) ([c2cb440](https://github.com/Notifycal/backend/commit/c2cb440f7b7fde716ff40926f6bfaa118b9c332e))
+* upgrade calculation part2. WIP ([#921](https://github.com/Notifycal/backend/issues/921)) ([0cc6d7d](https://github.com/Notifycal/backend/commit/0cc6d7df9ed76314202203369df382cd7ab31471))
+
 ## [0.55.7](https://github.com/Notifycal/backend/compare/v0.55.6...v0.55.7) (2025-08-04)
 
 

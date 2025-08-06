@@ -11,11 +11,18 @@ export function handleServiceOperation<
   operation: Promise<TResult>,
   successEventFactory: (data: TResult) => TEvent,
   failureEventFactory: (result: TResult | undefined, error: unknown) => TErrorEvent,
-  snsService: SnsService
+  operationDescription: string,
+  snsService: SnsService,
+  logger: Logger
 ): Promise<TResult> {
   return operation
     .then((result) => {
       const isSuccess = result.success;
+      if (!isSuccess) {
+        logger.error(
+          `An error ocurred when performing a payment-related operation: ${operationDescription}`
+        );
+      }
       return snsService
         .safePublish(
           isSuccess ? successEventFactory(result) : failureEventFactory(result, undefined)
@@ -23,6 +30,10 @@ export function handleServiceOperation<
         .then(() => result);
     })
     .catch((error) => {
+      logger.error(
+        `An error ocurred when performing a payment-related operation: ${operationDescription}`,
+        { error }
+      );
       return (
         snsService
           .safePublish(failureEventFactory(undefined, error))
@@ -38,7 +49,7 @@ export function extractErrorMessage(error: unknown): string {
   } else if (typeof error === 'string') {
     return error;
   } else {
-    return 'An unknown error occurred.';
+    return `An unknown error occurred. Error: ${JSON.stringify(error)}`;
   }
 }
 
