@@ -5,6 +5,7 @@ import {
   type ActionableEventFoundEvent
 } from './ActionableEventFoundEvent';
 import { eventSchemaGenerator } from './BaseEvent';
+import { createEventBase } from './common';
 
 const dataSchema = z.object({
   originalEvent: actionableEventFoundEventSchema.shape.data,
@@ -25,8 +26,9 @@ export function insufficientCreditReminderNotSent(
   creditReductionResult: CreditDeductionInsufficientCreditsError
 ): InsufficientCreditReminderNotSentEvent {
   return {
-    ...originalEvent,
-    eventType: 'InsufficientCreditsReminderNotSent',
+    ...createEventBase('InsufficientCreditsReminderNotSent', originalEvent, {
+      correlationId: originalEvent.correlationId
+    }),
     data: {
       originalEvent: originalEvent.data,
       error: creditReductionResult

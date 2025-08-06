@@ -7,6 +7,7 @@ import {
   demoReminderToBeSentEventSchema,
   type DemoReminderToBeSentEvent
 } from './DemoReminderToBeSentEvent';
+import { createEventBase } from './common';
 
 export const demoReminderToBeSentAttemptSentEventSchema = eventSchemaGenerator(
   'DemoReminderToBeSentAttemptSent',
@@ -26,8 +27,9 @@ export function demoReminderToBeSentAttemptSent(
   demoCounterIncrementResult: DemoCounterIncrementResult
 ): DemoReminderToBeSentAttemptSentEvent {
   return {
-    ...originalEvent,
-    eventType: 'DemoReminderToBeSentAttemptSent',
+    ...createEventBase('DemoReminderToBeSentAttemptSent', originalEvent, {
+      correlationId: originalEvent.correlationId
+    }),
     data: {
       ...originalEvent.data,
       messageUUID: messageSentUUID,

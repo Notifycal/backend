@@ -40,7 +40,8 @@ export interface CronRunForEvent {
 
 function toEvents(
   item: LiveUserStoreRecord<'google.com'> & UserIdpAuthorizationStoreRecord<'google.com'>,
-  run: z.infer<typeof userCalendarFetchedEventSchema.shape.data.shape.run>
+  run: z.infer<typeof userCalendarFetchedEventSchema.shape.data.shape.run>,
+  correlationId: CorrelationId
 ): Array<UserCalendarFetchedEvent> {
   const senderCountryCode = match(item.Config.Business.SenderContact)
     .with({ Type: 'phone', CountryCode: P.any }, (phone) => phone.CountryCode)
@@ -72,7 +73,7 @@ function toEvents(
       idpId: item.IdpId,
       userId: item.UserId,
       eventType: 'UserCalendarFetched',
-      correlationId: eventId as CorrelationId, // Same as EventId cause it is the first event in the chain
+      correlationId: correlationId,
       data: data,
       sensitiveData: {
         idpAuthorization: item.IdpAuthorization
@@ -129,7 +130,7 @@ async function lambdaHandler(event: Event, _context: Context): Promise<void> {
             idp: user.Idp
           });
           if (user.Config.Calendars && user.Config.Calendars.length > 0) {
-            return Promise.resolve(toEvents(user, run));
+            return Promise.resolve(toEvents(user, run, systemEvent.correlationId));
           } else {
             const errorEvent = noUserCalendarFound(record, run, extractUserIdentity(user));
             return snsService.safePublish(errorEvent).then(() => []);

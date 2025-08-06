@@ -1,6 +1,6 @@
 import type { Logger } from '@aws-lambda-powertools/logger';
 import { logger } from '@common/powertools';
-import type { EmailToBeSentAttemptSentEvent } from '@model/app-events/EmailToBeSentAttemptSentEvent';
+import { emailToBeSentAttemptSentEvent } from '@model/app-events/EmailToBeSentAttemptSentEvent';
 import type { EmailToBeSentEvent } from '@model/app-events/EmailToBeSentEvent';
 import type { MailgunConfig } from '@model/vendor/mailgun/config';
 import type { EmailSendSuccessResponse } from '@model/vendor/mailgun/schemas';
@@ -43,15 +43,7 @@ export class Processor {
     sendResponse: EmailSendSuccessResponse
   ): Promise<void> {
     logger.info('Attempt to publish an event');
-    const e: EmailToBeSentAttemptSentEvent = {
-      ...event,
-      eventType: 'EmailToBeSentAttemptSent' as const,
-      data: {
-        ...event.data,
-        vendorResponse: sendResponse
-      }
-    };
-    return this.snsService.safePublish(e);
+    return this.snsService.safePublish(emailToBeSentAttemptSentEvent(event, sendResponse));
   }
 
   private sendEmail(event: EmailToBeSentEvent): Promise<EmailSendSuccessResponse> {

@@ -5,6 +5,7 @@ import {
   type ActionableEventFoundEvent
 } from './ActionableEventFoundEvent';
 import { eventSchemaGenerator } from './BaseEvent';
+import { createEventBase } from './common';
 
 const dataSchema = z.object({
   originalEvent: actionableEventFoundEventSchema.shape.data,
@@ -20,8 +21,9 @@ export function lowCreditsDetected(
   lastCreditReductionResult: CreditDeductionResult<'deduct'>
 ): LowCreditsDetectedEvent {
   return {
-    ...originalEvent,
-    eventType: 'LowCreditsDetected',
+    ...createEventBase('LowCreditsDetected', originalEvent, {
+      correlationId: originalEvent.correlationId
+    }),
     data: {
       originalEvent: originalEvent.data,
       lastCreditReductionResult

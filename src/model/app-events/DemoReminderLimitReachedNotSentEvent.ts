@@ -5,6 +5,7 @@ import {
   type DemoReminderToBeSentEvent,
   demoReminderToBeSentEventSchema
 } from './DemoReminderToBeSentEvent';
+import { createEventBase } from './common';
 
 const dataSchema = z.object({
   originalEvent: demoReminderToBeSentEventSchema.shape.data,
@@ -25,8 +26,9 @@ export function demoReminderLimitReachedNotSent(
   demoLimitReachedError: DemoCounterLimitReachedError
 ): DemoReminderLimitReachedNotSentEvent {
   return {
-    ...originalEvent,
-    eventType: 'DemoReminderLimitReachedNotSent',
+    ...createEventBase('DemoReminderLimitReachedNotSent', originalEvent, {
+      correlationId: originalEvent.correlationId
+    }),
     data: {
       originalEvent: {
         ...originalEvent.data

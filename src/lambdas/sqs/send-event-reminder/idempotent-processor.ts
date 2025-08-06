@@ -1,10 +1,22 @@
 import type { DynamoDBPersistenceOptions } from '@aws-lambda-powertools/idempotency/dynamodb/types';
 import type { Logger } from '@aws-lambda-powertools/logger';
 import type { ActionableEventFoundEvent } from '@model/app-events/ActionableEventFoundEvent';
-import type { ActionableEventReminderAttemptFailedEvent } from '@model/app-events/ActionableEventReminderAttemptFailedEvent';
-import type { ActionableEventReminderAttemptSkippedEvent } from '@model/app-events/ActionableEventReminderAttemptSkippedEvent';
-import type { DemoReminderToBeSentAttemptFailedEvent } from '@model/app-events/DemoReminderToBeSentAttemptFailedEvent';
-import type { DemoReminderToBeSentAttemptSkippedEvent } from '@model/app-events/DemoReminderToBeSentAttemptSkippedEvent';
+import {
+  actionableEventReminderAttemptFailed,
+  type ActionableEventReminderAttemptFailedEvent
+} from '@model/app-events/ActionableEventReminderAttemptFailedEvent';
+import {
+  actionableEventReminderAttemptSkipped,
+  type ActionableEventReminderAttemptSkippedEvent
+} from '@model/app-events/ActionableEventReminderAttemptSkippedEvent';
+import {
+  demoReminderToBeSentAttemptFailed,
+  type DemoReminderToBeSentAttemptFailedEvent
+} from '@model/app-events/DemoReminderToBeSentAttemptFailedEvent';
+import {
+  demoReminderToBeSentAttemptSkipped,
+  type DemoReminderToBeSentAttemptSkippedEvent
+} from '@model/app-events/DemoReminderToBeSentAttemptSkippedEvent';
 import type { DemoReminderToBeSentEvent } from '@model/app-events/DemoReminderToBeSentEvent';
 import type {
   CreditServiceEndpointConfig,
@@ -15,6 +27,7 @@ import type {
 import type { VonageEndpointConfig } from '@model/vendor/vonage/config';
 import type { IdpName, Uuid } from '@notifycal/shared/types';
 import { AbstractIdempotentProcessor } from '@services/abstract-idempotent-processor';
+import { extractErrorMessage } from '@services/common/error-handling';
 import type { CreditsService } from '@services/credits-service';
 import type { SnsService } from '@services/sns';
 import type { Context } from 'aws-lambda';
@@ -67,22 +80,12 @@ export class IdempotentProcessor extends AbstractIdempotentProcessor<Uuid> {
   ): (error: unknown) => Promise<void> {
     return (error: unknown) => {
       const errorEvent = match(event)
-        .with({ eventType: 'ActionableEventFound' }, (e) => ({
-          ...e,
-          eventType: 'ActionableEventReminderAttemptFailed' as const,
-          data: {
-            ...e.data,
-            providerErrorPayload: error
-          }
-        }))
-        .with({ eventType: 'DemoReminderToBeSent' }, (e) => ({
-          ...e,
-          eventType: 'DemoReminderToBeSentAttemptFailed' as const,
-          data: {
-            ...e.data,
-            providerErrorPayload: error
-          }
-        }))
+        .with({ eventType: 'ActionableEventFound' }, (e) =>
+          actionableEventReminderAttemptFailed(e, extractErrorMessage(error))
+        )
+        .with({ eventType: 'DemoReminderToBeSent' }, (e) =>
+          demoReminderToBeSentAttemptFailed(e, extractErrorMessage(error))
+        )
         .exhaustive();
       return this.snsService.safePublish<
         ActionableEventReminderAttemptFailedEvent | DemoReminderToBeSentAttemptFailedEvent
@@ -95,22 +98,12 @@ export class IdempotentProcessor extends AbstractIdempotentProcessor<Uuid> {
   ): (messageUUID: Uuid) => Promise<void> {
     return (messageUUID: Uuid) => {
       const e = match(event)
-        .with({ eventType: 'ActionableEventFound' }, (e) => ({
-          ...e,
-          eventType: 'ActionableEventReminderAttemptSkipped' as const,
-          data: {
-            ...e.data,
-            messageUUID
-          }
-        }))
-        .with({ eventType: 'DemoReminderToBeSent' }, (e) => ({
-          ...e,
-          eventType: 'DemoReminderToBeSentAttemptSkipped' as const,
-          data: {
-            ...e.data,
-            messageUUID
-          }
-        }))
+        .with({ eventType: 'ActionableEventFound' }, (e) =>
+          actionableEventReminderAttemptSkipped(e, messageUUID)
+        )
+        .with({ eventType: 'DemoReminderToBeSent' }, (e) =>
+          demoReminderToBeSentAttemptSkipped(e, messageUUID)
+        )
         .exhaustive();
       return this.snsService.safePublish<
         ActionableEventReminderAttemptSkippedEvent | DemoReminderToBeSentAttemptSkippedEvent
