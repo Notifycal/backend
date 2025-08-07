@@ -37,7 +37,6 @@ function ensureMessageIsCheap(msg: string): string {
   const gsm7bitMsg = normalizeToGSM7Bit(msg);
   const lengthHardLimit = 3 * GSM_7_BIT_MESSAGE_LENGTH;
   const threeMessageLimitMessage = gsm7bitMsg.substring(0, lengthHardLimit);
-  console.error(threeMessageLimitMessage);
   if (gsm7bitMsg !== threeMessageLimitMessage) {
     logger.warn(`Demo reminder has been truncated to ${lengthHardLimit} characters`);
   }

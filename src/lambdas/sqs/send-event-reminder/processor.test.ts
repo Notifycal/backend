@@ -293,16 +293,21 @@ describe('Messaging processor', () => {
 
       expect(result).toBe('insufficient-credits');
       expect(sendMessageFn).not.toHaveBeenCalled();
-      expect(safePublishFn).toHaveBeenCalledWith({
-        ...validActionableEvent,
-        eventType: 'InsufficientCreditsReminderNotSent',
-        data: {
-          originalEvent: {
-            ...validActionableEvent.data
-          },
-          error: creditOperationResult
-        }
-      });
+      expect(safePublishFn).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: validActionableEvent.userId,
+          idp: validActionableEvent.idp,
+          idpId: validActionableEvent.idpId,
+          correlationId: validActionableEvent.correlationId,
+          eventType: 'InsufficientCreditsReminderNotSent',
+          data: {
+            originalEvent: {
+              ...validActionableEvent.data
+            },
+            error: creditOperationResult
+          }
+        })
+      );
     });
 
     it('should return an error if unknown error when deducting credits - let caller deal with it', async () => {
@@ -357,16 +362,21 @@ describe('Messaging processor', () => {
 
       expect(result).toBe('demo-limit-reached');
       expect(sendMessageFn).not.toHaveBeenCalled();
-      expect(safePublishFn).toHaveBeenCalledWith({
-        ...validDemoEvent,
-        eventType: 'DemoReminderLimitReachedNotSent',
-        data: {
-          originalEvent: {
-            ...validDemoEvent.data
-          },
-          error: demoLimitError
-        }
-      });
+      expect(safePublishFn).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: validDemoEvent.userId,
+          idp: validDemoEvent.idp,
+          idpId: validDemoEvent.idpId,
+          correlationId: validDemoEvent.correlationId,
+          eventType: 'DemoReminderLimitReachedNotSent',
+          data: {
+            originalEvent: {
+              ...validDemoEvent.data
+            },
+            error: demoLimitError
+          }
+        })
+      );
     });
 
     describe('lowCreditsDetected event', () => {
@@ -396,14 +406,19 @@ describe('Messaging processor', () => {
         );
 
         if (expectSendLowCreditsDetectedEvent) {
-          expect(safePublishFn).toHaveBeenCalledWith({
-            ...validActionableEvent,
-            eventType: 'LowCreditsDetected',
-            data: {
-              originalEvent: validActionableEvent.data,
-              lastCreditReductionResult: creditResult
-            }
-          });
+          expect(safePublishFn).toHaveBeenCalledWith(
+            expect.objectContaining({
+              userId: validActionableEvent.userId,
+              idp: validActionableEvent.idp,
+              idpId: validActionableEvent.idpId,
+              correlationId: validActionableEvent.correlationId,
+              eventType: 'LowCreditsDetected',
+              data: {
+                originalEvent: validActionableEvent.data,
+                lastCreditReductionResult: creditResult
+              }
+            })
+          );
         } else {
           expect(safePublishFn).not.toHaveBeenCalledWith(
             expect.objectContaining({ eventType: 'LowCreditsDetected' })
@@ -475,16 +490,21 @@ describe('Messaging processor', () => {
           )
         };
 
-        const safePublishSpy = await testLowCreditsScenario(invalidCreditResult, false);
+        const safePublishFn = await testLowCreditsScenario(invalidCreditResult, false);
 
-        expect(safePublishSpy).toHaveBeenCalledWith({
-          ...validActionableEvent,
-          eventType: 'InsufficientCreditsReminderNotSent',
-          data: {
-            originalEvent: validActionableEvent.data,
-            error: invalidCreditResult
-          }
-        });
+        expect(safePublishFn).toHaveBeenCalledWith(
+          expect.objectContaining({
+            userId: validActionableEvent.userId,
+            idp: validActionableEvent.idp,
+            idpId: validActionableEvent.idpId,
+            correlationId: validActionableEvent.correlationId,
+            eventType: 'InsufficientCreditsReminderNotSent',
+            data: {
+              originalEvent: validActionableEvent.data,
+              error: invalidCreditResult
+            }
+          })
+        );
       });
 
       // eslint-disable-next-line vitest/expect-expect

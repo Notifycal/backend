@@ -1,12 +1,13 @@
 import type { DynamoDBPersistenceOptions } from '@aws-lambda-powertools/idempotency/dynamodb/types';
 import type { Logger } from '@aws-lambda-powertools/logger';
-import type { EmailToBeSentAttemptFailedEvent } from '@model/app-events/EmailToBeSentAttemptFailedEvent';
+import { emailToBeSentAttemptFailedEvent } from '@model/app-events/EmailToBeSentAttemptFailedEvent';
 import type { EmailToBeSentAttemptSkippedEvent } from '@model/app-events/EmailToBeSentAttemptSkippedEvent';
 import type { EmailToBeSentEvent } from '@model/app-events/EmailToBeSentEvent';
 import type { EmailingTopicConfig } from '@model/Config';
 import type { MailgunEndpointConfig } from '@model/vendor/mailgun/config';
 import type { EmailSendSuccessResponse } from '@model/vendor/mailgun/schemas';
 import { AbstractIdempotentProcessor } from '@services/abstract-idempotent-processor';
+import { extractErrorMessage } from '@services/common/error-handling';
 import { SnsService } from '@services/sns';
 import type { Context } from 'aws-lambda';
 import { Processor } from './processor';
@@ -48,14 +49,7 @@ export class IdempotentProcessor extends AbstractIdempotentProcessor<EmailSendSu
 
   private onError(event: EmailToBeSentEvent): (error: unknown) => Promise<void> {
     return (error: unknown) => {
-      const errorEvent: EmailToBeSentAttemptFailedEvent = {
-        ...event,
-        eventType: 'EmailToBeSentAttemptFailed' as const,
-        data: {
-          ...event.data,
-          errorPayload: error
-        }
-      };
+      const errorEvent = emailToBeSentAttemptFailedEvent(event, extractErrorMessage(error));
       return this.snsService.safePublish(errorEvent);
     };
   }

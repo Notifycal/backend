@@ -109,16 +109,20 @@ describe('Email processor', () => {
         validEvent.data.inlineAttachments,
         validEvent.data.tags.concat(['NoPhoneNumberForCalendarEventFound'])
       );
-      expect(safePublishSpy).toHaveBeenCalledWith({
-        ...validEvent,
-        eventType: 'EmailToBeSentAttemptSent',
-        data: {
-          ...validEvent.data,
-          vendorResponse: validEmailServiceResponse
-        }
-      });
+      expect(safePublishSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: validEvent.userId,
+          idp: validEvent.idp,
+          idpId: validEvent.idpId,
+          correlationId: validEvent.correlationId,
+          eventType: 'EmailToBeSentAttemptSent',
+          data: {
+            ...validEvent.data,
+            vendorResponse: validEmailServiceResponse
+          }
+        })
+      );
       expect(loggerInfoSpy).toHaveBeenCalledWith('Sending an email through Mailgun');
-
       expect(loggerInfoSpy).toHaveBeenCalledWith('Attempt to publish an event');
     });
 
@@ -132,14 +136,19 @@ describe('Email processor', () => {
 
       expect(result).toStrictEqual(expectedFakeResponse);
       expect(sendEmailSpy).not.toHaveBeenCalled();
-      expect(safePublishSpy).toHaveBeenCalledWith({
-        ...validEvent,
-        eventType: 'EmailToBeSentAttemptSent',
-        data: {
-          ...validEvent.data,
-          vendorResponse: expectedFakeResponse
-        }
-      });
+      expect(safePublishSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: validEvent.userId,
+          idp: validEvent.idp,
+          idpId: validEvent.idpId,
+          correlationId: validEvent.correlationId,
+          eventType: 'EmailToBeSentAttemptSent',
+          data: {
+            ...validEvent.data,
+            vendorResponse: expectedFakeResponse
+          }
+        })
+      );
     });
 
     it('should return an error if email sending fails - let caller deal with it', async () => {

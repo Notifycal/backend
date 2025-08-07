@@ -31,7 +31,7 @@ export class SnsService extends BaseAwsMessagingService {
       Message: JSON.stringify(event),
       MessageAttributes: this.messageAttributes(event),
       MessageDeduplicationId: event.eventId,
-      MessageGroupId: '1'
+      MessageGroupId: event.userId
     });
     return this._client.send(publishCommand).then(
       (result) => {
@@ -39,7 +39,8 @@ export class SnsService extends BaseAwsMessagingService {
           eventId: event.eventId,
           result: result,
           eventType: event.eventType,
-          userId: event.userId
+          userId: event.userId,
+          topicArn: this._config.topicArn
         });
         return result;
       },
@@ -53,8 +54,8 @@ export class SnsService extends BaseAwsMessagingService {
   public safePublish<TEvent extends BaseEvent | BaseSystemEvent>(event: TEvent): Promise<void> {
     return doSafely(
       () => this.publish(event),
-      () => {
-        this.logger.info('Moving on after the error...');
+      (error) => {
+        this.logger.info('Moving on after the error...', { error });
       }
     );
   }

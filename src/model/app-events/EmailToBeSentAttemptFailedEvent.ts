@@ -1,7 +1,8 @@
 import { emailingSendErrorPayloadResponse } from '@model/vendor/mailgun/schemas';
 import type { z } from 'zod';
 import { eventSchemaGenerator } from './BaseEvent';
-import { emailToBeSentEventSchema } from './EmailToBeSentEvent';
+import { createEventBase } from './common';
+import { type EmailToBeSentEvent, emailToBeSentEventSchema } from './EmailToBeSentEvent';
 
 export const emailToBeSentAttemptFailedEventSchema = eventSchemaGenerator(
   'EmailToBeSentAttemptFailed',
@@ -9,3 +10,18 @@ export const emailToBeSentAttemptFailedEventSchema = eventSchemaGenerator(
 );
 
 export type EmailToBeSentAttemptFailedEvent = z.infer<typeof emailToBeSentAttemptFailedEventSchema>;
+
+export function emailToBeSentAttemptFailedEvent(
+  originalEvent: EmailToBeSentEvent,
+  errorPayload: string
+): EmailToBeSentAttemptFailedEvent {
+  return {
+    ...createEventBase('EmailToBeSentAttemptFailed', originalEvent, {
+      correlationId: originalEvent.correlationId
+    }),
+    data: {
+      ...originalEvent.data,
+      errorPayload
+    }
+  };
+}

@@ -7,6 +7,7 @@ import {
   type ActionableEventFoundEvent
 } from './ActionableEventFoundEvent';
 import { eventSchemaGenerator } from './BaseEvent';
+import { createEventBase } from './common';
 
 export const actionableEventReminderAttemptSentEventSchema = eventSchemaGenerator(
   'ActionableEventReminderAttemptSent',
@@ -26,8 +27,9 @@ export function actionableEventReminderAttemptSent(
   creditDeductionResult: CreditDeductionResult<'deduct'>
 ): ActionableEventReminderAttemptSentEvent {
   return {
-    ...originalEvent,
-    eventType: 'ActionableEventReminderAttemptSent',
+    ...createEventBase('ActionableEventReminderAttemptSent', originalEvent, {
+      correlationId: originalEvent.correlationId
+    }),
     data: {
       ...originalEvent.data,
       messageUUID: messageSentUUID,
