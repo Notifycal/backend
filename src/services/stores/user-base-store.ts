@@ -62,15 +62,8 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
       ProjectionExpression: projections.join(', ')
     };
 
-    return this.queryCommandRunner<UserStoreRecord<TIdpName>>(queryCmdInput).then(
-      (user) => {
-        if (user && user.UserStatus !== 'banned') {
-          return user;
-        } else {
-          return undefined;
-        }
-      },
-      (error) => rejectWithMessageAndError(`User with id '${id}' could not be retrieved`, error)
+    return this.queryCommandRunner<UserStoreRecord<TIdpName>>(queryCmdInput).catch((error) =>
+      rejectWithMessageAndError(`User with id '${id}' could not be retrieved`, error)
     );
   }
 
