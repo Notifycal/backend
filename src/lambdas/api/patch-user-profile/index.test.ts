@@ -183,6 +183,49 @@ describe('PATCH User profile', () => {
     });
   });
 
+  it.each([
+    {
+      description: 'SMS sender identifier is missing',
+      senderContact: undefined
+    },
+    {
+      description: 'SMS sender identifier is too long',
+      senderContact: {
+        type: 'sms',
+        identifier: 'elevenChars9' as SMSSenderId
+      }
+    },
+    {
+      description: 'SMS sender identifier has special characters',
+      senderContact: {
+        type: 'sms',
+        identifier: 'Invalid@#$' as SMSSenderId
+      }
+    }
+  ])('fail to patch a user with 400 if $description', async ({ senderContact }) => {
+    const invalidBody = {
+      business: {
+        name: 'Some business name',
+        address: 'Some address',
+        ...(senderContact && { senderContact })
+      },
+      calendars: validBody.calendars
+    };
+    const event = (await testAuthedEvent(
+      invalidBody,
+      {},
+      accessTokenSchema,
+      validAccessToken
+    )) as unknown as APIGatewayProxyEvent;
+    const updateUserFn = vi.fn();
+
+    return testit(event, updateUserFn).then((resp) => {
+      assert(resp, responseError(400));
+
+      expect(updateUserFn).not.toHaveBeenCalled();
+    });
+  });
+
   it('fail to return a user with 401 if no authorization present', async () => {
     const event = testEvent({}, {}) as unknown as APIGatewayProxyEvent;
     const updateUserFn = vi.fn();
