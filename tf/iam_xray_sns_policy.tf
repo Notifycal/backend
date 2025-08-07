@@ -24,11 +24,7 @@ data "aws_iam_policy_document" "xray_sns_policydoc" {
     condition {
       test     = "StringEquals"
       variable = "aws:SourceArn"
-      values = [
-        # Add new topics here
-        module.actionable_event_found_topic.sns_topic_arn,
-        module.user_calendar_fetched_topic.sns_topic_arn
-      ]
+      values   = local.all_sns_topics
     }
   }
 }
