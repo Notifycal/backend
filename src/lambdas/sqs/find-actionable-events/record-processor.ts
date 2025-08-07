@@ -8,7 +8,13 @@ import { userFetchedEventsParsingFailed } from '@model/app-events/UserFetchedEve
 import type { IdpConfigs } from '@model/Config';
 import type { ParsingError } from '@model/Errors';
 import type { ServiceResponse } from '@model/ServiceResponse';
-import type { CalendarEvent, CountryCode, DateTime, EventId } from '@notifycal/shared/types';
+import type {
+  CalendarEvent,
+  CountryCode,
+  DateTime,
+  EventId,
+  SenderContact
+} from '@notifycal/shared/types';
 import type { PhoneNumberE164 } from '@own-types/model';
 import { eventsStartTimeWithin } from '@services/calendar-events';
 import type { MetricDimensions } from '@services/observability/metrics';
@@ -49,9 +55,9 @@ function fetchCalendarEvents(
   );
 }
 
-function extractCountryCode(senderDetails: Record['body']['data']['senderDetails']): CountryCode {
+function extractCountryCode(senderDetails: SenderContact): CountryCode {
   return match(senderDetails)
-    .with({ type: 'phone' }, (phone) => phone.countryCode)
+    .with({ type: 'sms' }, () => 'ES' as CountryCode)
     .with({ type: 'rcs' }, () => 'ES' as CountryCode)
     .exhaustive();
 }
@@ -65,7 +71,7 @@ function fetchAttendeePhoneNumbersForCalendarEvent(
 ): Promise<Array<CalendarEventWithAnAttendeePhoneNumber>> {
   return phoneExtractor(
     calendarEvent,
-    extractCountryCode(event.data.senderDetails),
+    extractCountryCode(event.data.senderDetails), // Hint: this is used to help with the reading of the receiver's phone out of the calendar event info
     event.idp,
     event.sensitiveData.idpAuthorization,
     idpConfigs,

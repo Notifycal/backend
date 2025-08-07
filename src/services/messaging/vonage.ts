@@ -5,8 +5,8 @@ import { Vonage } from '@vonage/server-sdk';
 import { rethrowError } from '@services/common/error-handling';
 
 import type { Logger } from '@aws-lambda-powertools/logger';
-import type { ReceiverStandardContact, SenderStandardContact } from '@model/app-events/common';
-import type { Brand, Uuid } from '@notifycal/shared/types';
+import type { ReceiverStandardContact } from '@model/app-events/common';
+import type { Brand, SenderContact, Uuid } from '@notifycal/shared/types';
 import type { Url } from '@own-types/model';
 import { withIntegrationMetrics } from '@services/observability/metrics';
 import { match } from 'ts-pattern';
@@ -34,7 +34,7 @@ export class VonageMessagingService {
 
   public async sendMessage(
     messageBody: string,
-    sender: SenderStandardContact,
+    sender: SenderContact,
     receiver: ReceiverStandardContact,
     clientRef: string,
     webhookUrl: Url
@@ -42,11 +42,11 @@ export class VonageMessagingService {
     try {
       const messageObject = match(sender)
         .with(
-          { type: 'phone' },
-          (phoneSender) =>
+          { type: 'sms' },
+          (smsSender) =>
             new SMS({
               to: receiver.phoneNumber,
-              from: phoneSender.phoneNumber,
+              from: smsSender.identifier,
               clientRef,
               text: messageBody,
               webhookUrl,

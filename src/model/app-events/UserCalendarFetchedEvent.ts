@@ -1,13 +1,13 @@
-import { calendarSchema } from '@notifycal/shared/schemas';
+import { calendarSchema, senderSchema } from '@notifycal/shared/schemas';
 import type { BusinessAddress, BusinessName, TemplateId } from '@notifycal/shared/types';
 import { z } from 'zod';
 import { eventSchemaGenerator } from './BaseEvent';
-import { runSchema, senderStandardSchema } from './common';
+import { runSchema } from './common';
 
 const data = z.object({
   run: runSchema,
   calendar: calendarSchema,
-  senderDetails: senderStandardSchema,
+  senderDetails: senderSchema,
   template: z.object({
     id: z.string().transform((data) => data as TemplateId),
     fields: z.object({
