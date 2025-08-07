@@ -9,6 +9,7 @@ import type {
   EventId,
   IdpId,
   IdpName,
+  SMSSenderId,
   TimeZone,
   UserId,
   Uuid
@@ -61,9 +62,8 @@ const validActionableEventEvent: ActionableEventFoundEvent = {
       timeZone: 'Europe/Madrid' as TimeZone
     },
     senderDetails: {
-      type: 'phone',
-      phoneNumber: '+34666999888' as PhoneNumberE164,
-      countryCode: 'ES'
+      type: 'sms',
+      identifier: 'NotifyCal' as SMSSenderId
     },
     message: `This is some message`
   },

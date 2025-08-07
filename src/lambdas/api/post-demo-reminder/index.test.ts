@@ -11,6 +11,7 @@ import type {
   IdpId,
   IdpName,
   PhoneNumber,
+  SMSSenderId,
   TemplateId,
   TimeZone,
   UserId
@@ -66,9 +67,8 @@ function validUserConfig(
     ],
     Business: {
       SenderContact: {
-        Type: 'phone',
-        PhoneNumber: '666999888' as PhoneNumber,
-        CountryCode: 'ES'
+        Type: 'sms',
+        Identifier: 'NotifyCal' as SMSSenderId
       },
       Name: 'Test Business' as BusinessName,
       Address: address,
@@ -92,6 +92,11 @@ const validRequestBody: Event['body'] = {
   startTime: {
     dateTime: validDateTime,
     timeZone: validTimeZone
+  },
+  receiverContact: {
+    type: 'phone',
+    countryCode: 'ES',
+    phoneNumber: '666777888' as PhoneNumber
   }
 };
 
@@ -111,10 +116,15 @@ describe('Post Demo Reminder', () => {
 
     const result = await testit(validEvent, getUserConfigAndDemoReminderCountFn, publishFn);
 
-    const senderAndReceiver = {
+    const receiverDetails = {
       type: 'phone' as const,
       countryCode: 'ES',
-      phoneNumber: `+34666999888` as PhoneNumberE164
+      phoneNumber: `+34666777888` as PhoneNumberE164
+    };
+
+    const senderDetails = {
+      type: 'sms' as const,
+      identifier: 'NotifyCal' as SMSSenderId
     };
 
     expect(result.statusCode).toBe(202);
@@ -124,8 +134,8 @@ describe('Post Demo Reminder', () => {
         eventType: 'DemoReminderToBeSent',
         userId: validIdentity.userId,
         data: {
-          receiverDetails: senderAndReceiver,
-          senderDetails: senderAndReceiver,
+          receiverDetails,
+          senderDetails,
           message:
             "Don't forget your appointment at Test Business! On 01/10/2023 at 14:00 at Test Address. If you can't make it, let us know."
         }
@@ -165,10 +175,15 @@ describe('Post Demo Reminder', () => {
 
       const result = await testit(validEvent, getUserConfigAndDemoReminderCountFn, publishFn);
 
-      const senderAndReceiver = {
+      const receiverDetails = {
         type: 'phone' as const,
         countryCode: 'ES',
-        phoneNumber: `+34666999888` as PhoneNumberE164
+        phoneNumber: `+34666777888` as PhoneNumberE164
+      };
+
+      const senderDetails = {
+        type: 'sms' as const,
+        identifier: 'NotifyCal' as SMSSenderId
       };
 
       expect(result.statusCode).toBe(202);
@@ -179,8 +194,8 @@ describe('Post Demo Reminder', () => {
           eventType: 'DemoReminderToBeSent',
           userId: validIdentity.userId,
           data: {
-            receiverDetails: senderAndReceiver,
-            senderDetails: senderAndReceiver,
+            receiverDetails,
+            senderDetails,
             message: test.expectedMessage
           }
         })

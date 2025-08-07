@@ -17,6 +17,7 @@ import {
   type EventId,
   type IdpId,
   type RCSSenderId,
+  type SMSSenderId,
   type TemplateId,
   type TimeZone,
   type UserId
@@ -86,9 +87,8 @@ export const auditTrailActionableEventFoundEvent: AuditTrailStoreRecord = {
       timeZone: 'Europe/Madrid' as TimeZone
     },
     senderDetails: {
-      type: 'phone',
-      phoneNumber: '+34666999888' as PhoneNumberE164,
-      countryCode: 'ES'
+      type: 'sms',
+      identifier: 'NotifyCal' as SMSSenderId
     },
     message: `This is some message`
   },
@@ -126,9 +126,8 @@ export const validActionableEventEvent: ActionableEventFoundEvent = {
       timeZone: 'Europe/Madrid' as TimeZone
     },
     senderDetails: {
-      type: 'phone',
-      phoneNumber: '+34666999888' as PhoneNumberE164,
-      countryCode: 'ES'
+      type: 'sms',
+      identifier: 'NotifyCal' as SMSSenderId
     },
     message: `This is some message`
   },
@@ -149,9 +148,8 @@ export const validDemoReminderToBeSentEvent: DemoReminderToBeSentEvent = {
       countryCode: 'ES'
     },
     senderDetails: {
-      type: 'phone',
-      phoneNumber: '+34666999888' as PhoneNumberE164,
-      countryCode: 'ES'
+      type: 'sms',
+      identifier: 'NotifyCal' as SMSSenderId
     },
     message: 'This is a demo message'
   },

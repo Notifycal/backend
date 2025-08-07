@@ -11,7 +11,7 @@ import type {
   IdpId,
   IdpName,
   LanguageCode,
-  PhoneNumber,
+  SMSSenderId,
   TemplateId,
   TimeZone,
   UnixTimestamp,
@@ -61,9 +61,8 @@ async function* validLiveUsers(): AsyncGenerator<
           Name: 'businessName1' as BusinessName,
           Address: 'businessNameAddress1' as BusinessAddress,
           SenderContact: {
-            Type: 'phone',
-            CountryCode: 'ES',
-            PhoneNumber: '666777888' as PhoneNumber
+            Type: 'sms',
+            Identifier: 'NotifyCal' as SMSSenderId
           },
           Language: 'en',
           TimeZone: 'Europe/London' as TimeZone,
@@ -98,9 +97,8 @@ async function* validLiveUsers(): AsyncGenerator<
           Name: 'businessName2' as BusinessName,
           Address: 'businessNameAddress2' as BusinessAddress,
           SenderContact: {
-            Type: 'phone',
-            CountryCode: 'ES',
-            PhoneNumber: '666777888' as PhoneNumber
+            Type: 'sms',
+            Identifier: 'NotifyCal' as SMSSenderId
           },
           Language: 'en',
           TimeZone: 'Europe/London' as TimeZone,
@@ -138,9 +136,8 @@ async function* validLiveUsers(): AsyncGenerator<
           Name: 'businessName3' as BusinessName,
           Address: 'businessNameAddress3' as BusinessAddress,
           SenderContact: {
-            Type: 'phone',
-            CountryCode: 'ES',
-            PhoneNumber: '666777888' as PhoneNumber
+            Type: 'sms',
+            Identifier: 'NotifyCal' as SMSSenderId
           },
           Language: 'en',
           TimeZone: 'Europe/London' as TimeZone,
@@ -184,9 +181,8 @@ async function* validLiveUsersWithoutACalendar(): AsyncGenerator<
           Name: 'businessName1' as BusinessName,
           Address: 'businessNameAddress1' as BusinessAddress,
           SenderContact: {
-            Type: 'phone',
-            CountryCode: 'ES',
-            PhoneNumber: '666777888' as PhoneNumber
+            Type: 'sms',
+            Identifier: 'NotifyCal' as SMSSenderId
           },
           Language: 'en',
           TimeZone: 'Europe/London' as TimeZone,
@@ -221,9 +217,8 @@ async function* validLiveUsersWithoutACalendar(): AsyncGenerator<
           Name: 'businessName2' as BusinessName,
           Address: 'businessNameAddress2' as BusinessAddress,
           SenderContact: {
-            Type: 'phone',
-            CountryCode: 'ES',
-            PhoneNumber: '666777888' as PhoneNumber
+            Type: 'sms',
+            Identifier: 'NotifyCal' as SMSSenderId
           },
           Language: 'en',
           TimeZone: 'Europe/London' as TimeZone,
@@ -267,9 +262,8 @@ async function* oneRejectionInBetweenLiveUsers(): AsyncGenerator<
           Name: 'businessName4' as BusinessName,
           Address: 'businessNameAddress4' as BusinessAddress,
           SenderContact: {
-            Type: 'phone',
-            CountryCode: 'ES',
-            PhoneNumber: '666777888' as PhoneNumber
+            Type: 'sms',
+            Identifier: 'NotifyCal' as SMSSenderId
           },
           Language: 'en',
           TimeZone: 'Europe/London' as TimeZone,
@@ -309,9 +303,8 @@ async function* oneRejectionInBetweenLiveUsers(): AsyncGenerator<
           Name: 'businessName5' as BusinessName,
           Address: 'businessNameAddress5' as BusinessAddress,
           SenderContact: {
-            Type: 'phone',
-            CountryCode: 'ES',
-            PhoneNumber: '666777888' as PhoneNumber
+            Type: 'sms',
+            Identifier: 'NotifyCal' as SMSSenderId
           },
           Language: 'en',
           TimeZone: 'Europe/London' as TimeZone,
