@@ -40,31 +40,24 @@ export class VonageMessagingService {
     webhookUrl: Url
   ): Promise<Uuid> {
     try {
+      const baseConfig = {
+        to: receiver.phoneNumber,
+        from: sender.identifier,
+        clientRef,
+        text: messageBody,
+        webhookUrl
+      };
       const messageObject = match(sender)
         .with(
           { type: 'sms' },
-          (smsSender) =>
+          () =>
             new SMS({
-              to: receiver.phoneNumber,
-              from: smsSender.identifier,
-              clientRef,
-              text: messageBody,
-              webhookUrl,
+              ...baseConfig,
               channel: Channels.SMS,
               messageType: MessageTypes.TEXT
             })
         )
-        .with(
-          { type: 'rcs' },
-          (rcsSender) =>
-            new RCSText({
-              to: receiver.phoneNumber,
-              from: rcsSender.identifier,
-              clientRef,
-              text: messageBody,
-              webhookUrl
-            })
-        )
+        .with({ type: 'rcs' }, () => new RCSText(baseConfig))
         .exhaustive();
       const { messageUUID } = await withIntegrationMetrics('Vonage', 'SendEventReminder', () =>
         this._client.messages.send(messageObject)
