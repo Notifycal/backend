@@ -7,7 +7,7 @@ import type {
   DateTime,
   Email,
   IdpId,
-  PhoneNumber,
+  SMSSenderId,
   TemplateId,
   UnixTimestamp,
   User,
@@ -38,9 +38,8 @@ export function validUserStoreRecord(userId: UserId): UserStoreRecord<'google.co
         Name: 'Test Business' as BusinessName,
         Address: '123 Test St, Test City, TX 12345' as BusinessAddress,
         SenderContact: {
-          Type: 'phone',
-          PhoneNumber: '666777888' as PhoneNumber,
-          CountryCode: 'ES'
+          Type: 'sms',
+          Identifier: 'NotifyCal' as SMSSenderId
         },
         Language: 'en',
         CompanyIndustry: {
@@ -83,9 +82,8 @@ export function validUser(userId: UserId): User<'google.com'> {
         name: 'Test Business' as BusinessName,
         address: '123 Test St, Test City, TX 12345' as BusinessAddress,
         senderContact: {
-          type: 'phone',
-          countryCode: 'ES',
-          phoneNumber: '666777888' as PhoneNumber
+          type: 'sms',
+          identifier: 'NotifyCal' as SMSSenderId
         },
         language: 'en',
         companyIndustry: {

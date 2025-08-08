@@ -1,4 +1,4 @@
-import { countryCodeSchema, emailSchema, rcsSenderSchema } from '@notifycal/shared/schemas';
+import { countryCodeSchema, emailSchema } from '@notifycal/shared/schemas';
 import type {
   CorrelationId,
   DateTime,
@@ -24,10 +24,7 @@ export const runSchema = z.object({
   slidingWindowInMinutes: z.coerce.number().int().positive()
 });
 
-export const eventIdSchema = z
-  .string()
-  .uuid()
-  .transform((data) => data as EventId);
+export const eventIdSchema = z.uuid().transform((data) => data as EventId);
 
 export const phoneE164Schema = z.object({
   type: z.literal('phone'),
@@ -38,7 +35,6 @@ export const phoneE164Schema = z.object({
   countryCode: countryCodeSchema
 });
 
-export const senderStandardSchema = z.union([rcsSenderSchema, phoneE164Schema]);
 export const receiverStandardSchema = phoneE164Schema;
 
 export type PhoneStandardContact = z.infer<typeof phoneE164Schema>;

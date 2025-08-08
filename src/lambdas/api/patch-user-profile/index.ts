@@ -6,17 +6,11 @@ import { toStoreRecord } from '@model/store/ReminderConfigStoreRecord';
 import { reminderConfigSchema } from '@notifycal/shared/types';
 import { errorHandler, successHandler } from '@services/common/api-response-handlers';
 import { UserBaseStore } from '@services/stores/user-base-store';
-import { senderValidator } from '@utils/phone';
 import type { APIGatewayProxyResult, Context } from 'aws-lambda';
 import type { z } from 'zod';
 import { type PatchUserProfileConfig, readPatchUserConfig } from './config';
 
-export const bodySchema = reminderConfigSchema.extend({
-  business: reminderConfigSchema.shape.business.extend({
-    ...reminderConfigSchema.shape.business.shape,
-    senderContact: reminderConfigSchema.shape.business.shape.senderContact.refine(senderValidator)
-  })
-});
+export const bodySchema = reminderConfigSchema;
 
 const eventSchema = authedEventSchema<PatchUserProfileConfig>().extend({
   body: JSONStringified(bodySchema)

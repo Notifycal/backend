@@ -10,6 +10,7 @@ import {
   type IdpName,
   type PhoneNumber,
   type ReminderConfigTransformed,
+  type SMSSenderId,
   type UserId
 } from '@notifycal/shared/types';
 import { UserBaseStore } from '@services/stores/user-base-store';
@@ -46,9 +47,8 @@ describe('PATCH User profile', () => {
       name: 'someBusinessName' as BusinessName,
       address: 'someBusinessAddress' as BusinessAddress,
       senderContact: {
-        type: 'phone',
-        countryCode: 'ES',
-        phoneNumber: '666888999' as PhoneNumber
+        type: 'sms',
+        identifier: 'NotifyCal' as SMSSenderId
       },
       language: 'en',
       companyIndustry: {
@@ -95,9 +95,8 @@ describe('PATCH User profile', () => {
             Name: 'someBusinessName' as BusinessName,
             Address: 'someBusinessAddress' as BusinessAddress,
             SenderContact: {
-              Type: 'phone',
-              CountryCode: 'ES',
-              PhoneNumber: '666888999' as PhoneNumber
+              Type: 'sms',
+              Identifier: 'NotifyCal' as SMSSenderId
             },
             Language: 'en',
             CompanyIndustry: {
@@ -166,6 +165,49 @@ describe('PATCH User profile', () => {
           countryCode: 'ES',
           phoneNumber: '111222333' as PhoneNumber
         }
+      },
+      calendars: validBody.calendars
+    };
+    const event = (await testAuthedEvent(
+      invalidBody,
+      {},
+      accessTokenSchema,
+      validAccessToken
+    )) as unknown as APIGatewayProxyEvent;
+    const updateUserFn = vi.fn();
+
+    return testit(event, updateUserFn).then((resp) => {
+      assert(resp, responseError(400));
+
+      expect(updateUserFn).not.toHaveBeenCalled();
+    });
+  });
+
+  it.each([
+    {
+      description: 'SMS sender identifier is missing',
+      senderContact: undefined
+    },
+    {
+      description: 'SMS sender identifier is too long',
+      senderContact: {
+        type: 'sms',
+        identifier: 'elevenChars9' as SMSSenderId
+      }
+    },
+    {
+      description: 'SMS sender identifier has special characters',
+      senderContact: {
+        type: 'sms',
+        identifier: 'Invalid@#$' as SMSSenderId
+      }
+    }
+  ])('fail to patch a user with 400 if $description', async ({ senderContact }) => {
+    const invalidBody = {
+      business: {
+        name: 'Some business name',
+        address: 'Some address',
+        ...(senderContact && { senderContact })
       },
       calendars: validBody.calendars
     };

@@ -5,8 +5,8 @@ import { Vonage } from '@vonage/server-sdk';
 import { rethrowError } from '@services/common/error-handling';
 
 import type { Logger } from '@aws-lambda-powertools/logger';
-import type { ReceiverStandardContact, SenderStandardContact } from '@model/app-events/common';
-import type { Brand, Uuid } from '@notifycal/shared/types';
+import type { ReceiverStandardContact } from '@model/app-events/common';
+import type { Brand, SenderContact, Uuid } from '@notifycal/shared/types';
 import type { Url } from '@own-types/model';
 import { withIntegrationMetrics } from '@services/observability/metrics';
 import { match } from 'ts-pattern';
@@ -34,37 +34,30 @@ export class VonageMessagingService {
 
   public async sendMessage(
     messageBody: string,
-    sender: SenderStandardContact,
+    sender: SenderContact,
     receiver: ReceiverStandardContact,
     clientRef: string,
     webhookUrl: Url
   ): Promise<Uuid> {
     try {
+      const baseConfig = {
+        to: receiver.phoneNumber,
+        from: sender.identifier,
+        clientRef,
+        text: messageBody,
+        webhookUrl
+      };
       const messageObject = match(sender)
         .with(
-          { type: 'phone' },
-          (phoneSender) =>
+          { type: 'sms' },
+          () =>
             new SMS({
-              to: receiver.phoneNumber,
-              from: phoneSender.phoneNumber,
-              clientRef,
-              text: messageBody,
-              webhookUrl,
+              ...baseConfig,
               channel: Channels.SMS,
               messageType: MessageTypes.TEXT
             })
         )
-        .with(
-          { type: 'rcs' },
-          (rcsSender) =>
-            new RCSText({
-              to: receiver.phoneNumber,
-              from: rcsSender.identifier,
-              clientRef,
-              text: messageBody,
-              webhookUrl
-            })
-        )
+        .with({ type: 'rcs' }, () => new RCSText(baseConfig))
         .exhaustive();
       const { messageUUID } = await withIntegrationMetrics('Vonage', 'SendEventReminder', () =>
         this._client.messages.send(messageObject)

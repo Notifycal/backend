@@ -17,7 +17,6 @@ import { SnsService } from '@services/sns';
 import { interpolate } from '@services/template';
 import { allSettledAllOrErrorHandler } from '@utils/promises';
 import { DateTime as DT } from 'luxon';
-import { match } from 'ts-pattern';
 import { v4 } from 'uuid';
 import type { ActionableEventsConfig } from './config';
 import type { Record } from './schema';
@@ -26,6 +25,8 @@ interface CalendarEventWithAnAttendeePhoneNumber {
   calendarEvent: CalendarEvent;
   attendeePhoneNumber: PhoneNumberE164;
 }
+
+const defaultCountryCodeForPhoneParsing: CountryCode = 'ES';
 
 function fetchCalendarEvents(
   event: Record['body'],
@@ -49,13 +50,6 @@ function fetchCalendarEvents(
   );
 }
 
-function extractCountryCode(senderDetails: Record['body']['data']['senderDetails']): CountryCode {
-  return match(senderDetails)
-    .with({ type: 'phone' }, (phone) => phone.countryCode)
-    .with({ type: 'rcs' }, () => 'ES' as CountryCode)
-    .exhaustive();
-}
-
 function fetchAttendeePhoneNumbersForCalendarEvent(
   calendarEvent: CalendarEvent,
   event: Record['body'],
@@ -65,7 +59,7 @@ function fetchAttendeePhoneNumbersForCalendarEvent(
 ): Promise<Array<CalendarEventWithAnAttendeePhoneNumber>> {
   return phoneExtractor(
     calendarEvent,
-    extractCountryCode(event.data.senderDetails),
+    defaultCountryCodeForPhoneParsing,
     event.idp,
     event.sensitiveData.idpAuthorization,
     idpConfigs,
@@ -117,7 +111,7 @@ function buildActionableEvents(
         receiverDetails: {
           type: 'phone',
           phoneNumber: attendeePhoneNumber,
-          countryCode: extractCountryCode(event.data.senderDetails)
+          countryCode: defaultCountryCodeForPhoneParsing
         },
         senderDetails: event.data.senderDetails,
         message: interpolate(

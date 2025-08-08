@@ -173,9 +173,8 @@ const validActionableEventFoundQSPObject = {
   'originalEvent[data][receiverDetails][type]': 'phone',
   'originalEvent[data][receiverDetails][countryCode]': 'ES',
 
-  'originalEvent[data][senderDetails][phoneNumber]': '+34654321987',
-  'originalEvent[data][senderDetails][type]': 'phone',
-  'originalEvent[data][senderDetails][countryCode]': 'ES',
+  'originalEvent[data][senderDetails][type]': 'sms',
+  'originalEvent[data][senderDetails][identifier]': 'NotifyCal',
 
   'originalEvent[data][calendar][id]': 'someCalendarId',
   'originalEvent[data][calendar][name]': 'Some Calendar Name',
@@ -214,9 +213,8 @@ const validDemoReminderToBeSentQSPObject = {
   'originalEvent[data][receiverDetails][type]': 'phone',
   'originalEvent[data][receiverDetails][countryCode]': 'ES',
 
-  'originalEvent[data][senderDetails][phoneNumber]': '+34654321987',
-  'originalEvent[data][senderDetails][type]': 'phone',
-  'originalEvent[data][senderDetails][countryCode]': 'ES',
+  'originalEvent[data][senderDetails][type]': 'sms',
+  'originalEvent[data][senderDetails][identifier]': 'NotifyCal',
 
   'creditDeductionResult[success]': 'true',
   'creditDeductionResult[result]': 'Success',
@@ -351,14 +349,13 @@ describe('POST Event reminder delivery status webhook', () => {
           )
         },
         senderDetails: {
-          phoneNumber: eventQSP['originalEvent[data][senderDetails][phoneNumber]'],
-          type: eventQSP['originalEvent[data][senderDetails][type]'],
-          countryCode: eventQSP['originalEvent[data][senderDetails][countryCode]']
+          identifier: eventQSP['originalEvent[data][senderDetails][identifier]'],
+          type: eventQSP['originalEvent[data][senderDetails][type]']
         },
         receiverDetails: {
           phoneNumber: eventQSP['originalEvent[data][receiverDetails][phoneNumber]'],
           type: eventQSP['originalEvent[data][receiverDetails][type]'],
-          countryCode: eventQSP['originalEvent[data][senderDetails][countryCode]']
+          countryCode: eventQSP['originalEvent[data][receiverDetails][countryCode]']
         },
         calendar: {
           id: eventQSP['originalEvent[data][calendar][id]'],
@@ -486,14 +483,13 @@ describe('POST Event reminder delivery status webhook', () => {
           )
         },
         senderDetails: {
-          phoneNumber: eventQSP['originalEvent[data][senderDetails][phoneNumber]'],
-          type: eventQSP['originalEvent[data][senderDetails][type]'],
-          countryCode: eventQSP['originalEvent[data][senderDetails][countryCode]']
+          identifier: eventQSP['originalEvent[data][senderDetails][identifier]'],
+          type: eventQSP['originalEvent[data][senderDetails][type]']
         },
         receiverDetails: {
           phoneNumber: eventQSP['originalEvent[data][receiverDetails][phoneNumber]'],
           type: eventQSP['originalEvent[data][receiverDetails][type]'],
-          countryCode: eventQSP['originalEvent[data][senderDetails][countryCode]']
+          countryCode: eventQSP['originalEvent[data][receiverDetails][countryCode]']
         },
         calendar: {
           id: eventQSP['originalEvent[data][calendar][id]'],
@@ -616,14 +612,13 @@ describe('POST Event reminder delivery status webhook', () => {
           )
         },
         senderDetails: {
-          phoneNumber: eventQSP['originalEvent[data][senderDetails][phoneNumber]'],
-          type: eventQSP['originalEvent[data][senderDetails][type]'],
-          countryCode: eventQSP['originalEvent[data][senderDetails][countryCode]']
+          identifier: eventQSP['originalEvent[data][senderDetails][identifier]'],
+          type: eventQSP['originalEvent[data][senderDetails][type]']
         },
         receiverDetails: {
           phoneNumber: eventQSP['originalEvent[data][receiverDetails][phoneNumber]'],
           type: eventQSP['originalEvent[data][receiverDetails][type]'],
-          countryCode: eventQSP['originalEvent[data][senderDetails][countryCode]']
+          countryCode: eventQSP['originalEvent[data][receiverDetails][countryCode]']
         },
         calendar: {
           id: eventQSP['originalEvent[data][calendar][id]'],
@@ -717,14 +712,13 @@ describe('POST Event reminder delivery status webhook', () => {
         },
         messageUUID: validChosenBody.message_uuid,
         senderDetails: {
-          phoneNumber: eventQSP['originalEvent[data][senderDetails][phoneNumber]'],
-          type: eventQSP['originalEvent[data][senderDetails][type]'],
-          countryCode: eventQSP['originalEvent[data][senderDetails][countryCode]']
+          identifier: eventQSP['originalEvent[data][senderDetails][identifier]'],
+          type: eventQSP['originalEvent[data][senderDetails][type]']
         },
         receiverDetails: {
           phoneNumber: eventQSP['originalEvent[data][receiverDetails][phoneNumber]'],
           type: eventQSP['originalEvent[data][receiverDetails][type]'],
-          countryCode: eventQSP['originalEvent[data][senderDetails][countryCode]']
+          countryCode: eventQSP['originalEvent[data][receiverDetails][countryCode]']
         },
         demoCounterIncrementResult: {
           success: Boolean(eventQSP['creditDeductionResult[success]']),
@@ -823,14 +817,13 @@ describe('POST Event reminder delivery status webhook', () => {
         },
         messageUUID: validChosenBodyWithError.message_uuid,
         senderDetails: {
-          phoneNumber: eventQSP['originalEvent[data][senderDetails][phoneNumber]'],
-          type: eventQSP['originalEvent[data][senderDetails][type]'],
-          countryCode: eventQSP['originalEvent[data][senderDetails][countryCode]']
+          identifier: eventQSP['originalEvent[data][senderDetails][identifier]'],
+          type: eventQSP['originalEvent[data][senderDetails][type]']
         },
         receiverDetails: {
           phoneNumber: eventQSP['originalEvent[data][receiverDetails][phoneNumber]'],
           type: eventQSP['originalEvent[data][receiverDetails][type]'],
-          countryCode: eventQSP['originalEvent[data][senderDetails][countryCode]']
+          countryCode: eventQSP['originalEvent[data][receiverDetails][countryCode]']
         },
         demoCounterIncrementResult: {
           success: Boolean(eventQSP['creditDeductionResult[success]']),
@@ -922,14 +915,13 @@ describe('POST Event reminder delivery status webhook', () => {
           )
         },
         senderDetails: {
-          phoneNumber: eventQSP['originalEvent[data][senderDetails][phoneNumber]'],
-          type: eventQSP['originalEvent[data][senderDetails][type]'],
-          countryCode: eventQSP['originalEvent[data][senderDetails][countryCode]']
+          identifier: eventQSP['originalEvent[data][senderDetails][identifier]'],
+          type: eventQSP['originalEvent[data][senderDetails][type]']
         },
         receiverDetails: {
           phoneNumber: eventQSP['originalEvent[data][receiverDetails][phoneNumber]'],
           type: eventQSP['originalEvent[data][receiverDetails][type]'],
-          countryCode: eventQSP['originalEvent[data][senderDetails][countryCode]']
+          countryCode: eventQSP['originalEvent[data][receiverDetails][countryCode]']
         },
         calendar: {
           id: eventQSP['originalEvent[data][calendar][id]'],
@@ -1029,14 +1021,13 @@ describe('POST Event reminder delivery status webhook', () => {
         },
         messageUUID: validChosenBodyWithExactMatch.message_uuid,
         senderDetails: {
-          phoneNumber: eventQSP['originalEvent[data][senderDetails][phoneNumber]'],
-          type: eventQSP['originalEvent[data][senderDetails][type]'],
-          countryCode: eventQSP['originalEvent[data][senderDetails][countryCode]']
+          identifier: eventQSP['originalEvent[data][senderDetails][identifier]'],
+          type: eventQSP['originalEvent[data][senderDetails][type]']
         },
         receiverDetails: {
           phoneNumber: eventQSP['originalEvent[data][receiverDetails][phoneNumber]'],
           type: eventQSP['originalEvent[data][receiverDetails][type]'],
-          countryCode: eventQSP['originalEvent[data][senderDetails][countryCode]']
+          countryCode: eventQSP['originalEvent[data][receiverDetails][countryCode]']
         },
         demoCounterIncrementResult: {
           success: Boolean(eventQSP['creditDeductionResult[success]']),

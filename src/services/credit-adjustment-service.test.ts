@@ -10,7 +10,14 @@ import type {
   DemoCounterDecrementResult
 } from '@model/Credits';
 import type { VonageWebhookMessageStatusPayload } from '@model/vendor/vonage/schemas';
-import type { CorrelationId, IdpId, IdpName, UserId, Uuid } from '@notifycal/shared/types';
+import type {
+  CorrelationId,
+  IdpId,
+  IdpName,
+  SMSSenderId,
+  UserId,
+  Uuid
+} from '@notifycal/shared/types';
 import type { PhoneNumberE164 } from '@own-types/model';
 import { validActionableEventEvent } from '@testing/data/app-events';
 import { v4 } from 'uuid';
@@ -146,9 +153,8 @@ const validDemoReminderWebhookData: WebhookCorrelationData = {
         countryCode: 'ES'
       },
       senderDetails: {
-        type: 'phone',
-        phoneNumber: '+34666999888' as PhoneNumberE164,
-        countryCode: 'ES'
+        type: 'sms',
+        identifier: 'NotifyCal' as SMSSenderId
       }
     }
   },
