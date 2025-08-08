@@ -26,7 +26,6 @@ describe(SubscriptionService, () => {
     idpId: 'google-user-123' as IdpId,
     email: 'test@gmail.com' as Email
   };
-  const mockSnsService = { safePublish: vi.fn(() => Promise.resolve()) } as unknown as SnsService;
 
   const validTierToCreditsMap: Record<TierId, number> = {
     good: 100,
@@ -120,6 +119,9 @@ describe(SubscriptionService, () => {
       tier: TierId = validGoodTier,
       map = validTierToCreditsMap
     ): Promise<CreditAdditionResult<'reset'>> {
+      const mockSnsService = {
+        safePublish: vi.fn(() => Promise.resolve())
+      } as unknown as SnsService;
       const service = new SubscriptionService(
         { resetSubscriptionCredits: resetFn } as unknown as CreditsService<IdpName>,
         map,
@@ -183,6 +185,9 @@ describe(SubscriptionService, () => {
       tier: TierId = validGoodTier,
       map = validTierToCreditsMap
     ): Promise<CreditAdditionResult<'reset'>> {
+      const mockSnsService = {
+        safePublish: vi.fn(() => Promise.resolve())
+      } as unknown as SnsService;
       const service = new SubscriptionService(
         { resetSubscriptionCredits: resetFn } as unknown as CreditsService<IdpName>,
         map,
@@ -293,6 +298,9 @@ describe(SubscriptionService, () => {
       curr: TierId,
       currentPlanPaidPercentage: Percentage
     ): Promise<CreditAdditionResult<'add'>> {
+      const mockSnsService = {
+        safePublish: vi.fn(() => Promise.resolve())
+      } as unknown as SnsService;
       const service = new SubscriptionService(
         { addCredits: addFn } as unknown as CreditsService<IdpName>,
         validTierToCreditsMap,
@@ -330,6 +338,9 @@ describe(SubscriptionService, () => {
       clearFn: () => Promise<CreditDeductionResult<'clear'>>,
       reason: 'unpaid' | 'cancelled'
     ): Promise<CreditDeductionResult<'clear'>> {
+      const mockSnsService = {
+        safePublish: vi.fn(() => Promise.resolve())
+      } as unknown as SnsService;
       const service = new SubscriptionService(
         { clearSubscriptionCredits: clearFn } as unknown as CreditsService<IdpName>,
         validTierToCreditsMap,
@@ -341,18 +352,34 @@ describe(SubscriptionService, () => {
   });
 
   describe('scheduleDowngrade', () => {
-    it('should resolve immediately without side effects', async () => {
-      await expect(testItScheduleDowngrade()).resolves.toBeUndefined();
+    it('should publish an event indicating a downgrade has been scheduled for next moth with correct tier information', async () => {
+      const validTiers = { current: validBestTier, next: validGoodTier };
+      const safePublishFn = vi.fn(() => Promise.resolve());
+
+      await expect(testItScheduleDowngrade(validTiers, safePublishFn)).resolves.toBeUndefined();
+
+      expect(safePublishFn).toHaveBeenCalledTimes(1);
+      expect(safePublishFn).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: {
+            tiers: validTiers
+          }
+        })
+      );
     });
 
-    function testItScheduleDowngrade(): Promise<void> {
+    function testItScheduleDowngrade(
+      tiers = { current: validGoodTier, next: validBetterTier },
+      safePublishFn = vi.fn(() => Promise.resolve())
+    ): Promise<void> {
+      const mockSnsService = { safePublish: safePublishFn } as unknown as SnsService;
       const service = new SubscriptionService(
         {} as CreditsService<IdpName>,
         validTierToCreditsMap,
         mockSnsService,
         logger
       );
-      return service.scheduleDowngrade(validIdentity);
+      return service.scheduleDowngrade(validIdentity, tiers);
     }
   });
 });
