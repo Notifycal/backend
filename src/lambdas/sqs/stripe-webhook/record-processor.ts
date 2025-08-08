@@ -64,7 +64,7 @@ export function defaultEventHandlers(
     ],
     ['customer.subscription.paused', (e) => new SubscriptionPausedHandler(e, logger)],
     ['customer.subscription.resumed', (e) => new SubscriptionResumedHandler(e, logger)],
-    ['invoice.created', (e) => new InvoiceCreatedHandler(e, logger)],
+    ['invoice.created', (e) => new InvoiceCreatedHandler(e, stripeService, logger)],
     [
       'invoice.payment_succeeded',
       (e) =>

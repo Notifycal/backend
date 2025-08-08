@@ -241,6 +241,38 @@ export class StripeService {
     return this.getSubscriptions(stripeCustomerId).then((subscriptions) => subscriptions.length);
   }
 
+  public forcePaymentCollection(invoiceId: string): Promise<void> {
+    return this.stripeClient.invoices
+      .finalizeInvoice(invoiceId, {
+        auto_advance: true
+      })
+      .then((finalizeResult) => {
+        this.logger.info(`Result of finalizing invoice`, {
+          invoiceId,
+          result: finalizeResult
+        });
+        if (finalizeResult.status === 'open') {
+          return this.stripeClient.invoices.pay(finalizeResult.id!).then(
+            (payResult) => {
+              logger.info('Successfully charged renewal immediately', {
+                payResult
+              });
+            },
+            (error) => {
+              logger.warn(
+                'Failed to immediately collect renewal payment. Invoice will be charged in normal Stripe retry cycle. The downside is upgrades might not be correctly handled until then (1 hour).',
+                { error }
+              );
+            }
+          );
+        }
+        this.logger.info(
+          `The result of finalizing a draft renewal invoice has not been the invoice is open`
+        );
+        return Promise.resolve();
+      });
+  }
+
   public totalPaidInSubscriptionInvoicesWithinBillingCycle(
     subscriptionId: string,
     billingCycleStart: UnixTimestamp,
