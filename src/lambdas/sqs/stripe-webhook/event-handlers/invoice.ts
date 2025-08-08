@@ -16,11 +16,8 @@ export class InvoiceCreatedHandler
   extends BaseHandler
   implements EventHandler<Stripe.InvoiceCreatedEvent>
 {
-  public constructor(
-    stripeEventType: StripeEventType,
-    private readonly logger: Logger
-  ) {
-    super(stripeEventType);
+  public constructor(stripeEventType: StripeEventType, logger: Logger) {
+    super(stripeEventType, logger);
   }
 
   public handle(
@@ -49,9 +46,9 @@ export class InvoicePaymentSucceededHandler
     private readonly subscriptionService: SubscriptionService<IdpName>,
     private readonly topupService: TopupService<IdpName>,
     private readonly stripeService: StripeService,
-    private readonly logger: Logger
+    logger: Logger
   ) {
-    super(stripeEventType);
+    super(stripeEventType, logger);
   }
 
   public handle(
@@ -269,11 +266,8 @@ export class InvoicePaymentFailedHandler
   extends BaseHandler
   implements EventHandler<Stripe.InvoicePaymentFailedEvent>
 {
-  public constructor(
-    stripeEventType: StripeEventType,
-    private readonly logger: Logger
-  ) {
-    super(stripeEventType);
+  public constructor(stripeEventType: StripeEventType, logger: Logger) {
+    super(stripeEventType, logger);
   }
 
   public handle(

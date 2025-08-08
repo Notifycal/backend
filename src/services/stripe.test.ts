@@ -71,7 +71,7 @@ describe(StripeService, () => {
     vi.mocked(HttpClient.prototype.getAxiosInstance).mockResolvedValue({} as AxiosInstance);
     vi.mocked(Stripe).mockImplementation(mockConstructor);
 
-    await StripeService.withConfig(validApiKey);
+    await StripeService.withConfig(validApiKey, logger);
 
     expect(HttpClient).toHaveBeenCalledWith(undefined, undefined, 'Stripe');
     expect(mockConstructor).toHaveBeenCalledTimes(1);
@@ -860,7 +860,7 @@ describe(StripeService, () => {
 
     setupMocks(mockStripeInstance);
 
-    const stripeService = await StripeService.withConfig(validApiKey);
+    const stripeService = await StripeService.withConfig(validApiKey, logger);
     return stripeService.createCustomer(userIdentity);
   }
 
@@ -884,7 +884,7 @@ describe(StripeService, () => {
 
     setupMocks(mockStripeInstance);
 
-    const stripeService = await StripeService.withConfig(validApiKey);
+    const stripeService = await StripeService.withConfig(validApiKey, logger);
     return stripeService.createCheckoutSession(
       stripeCustomerId,
       userIdentity,
@@ -926,7 +926,7 @@ describe(StripeService, () => {
 
     setupMocks(mockStripeInstance);
 
-    const stripeService = await StripeService.withConfig(validApiKey);
+    const stripeService = await StripeService.withConfig(validApiKey, logger);
     return stripeService.createCustomerPortalSession(
       stripeCustomerId,
       returnUrl,
@@ -951,7 +951,7 @@ describe(StripeService, () => {
 
     setupMocks(mockStripeInstance);
 
-    const stripeService = await StripeService.withConfig(validApiKey);
+    const stripeService = await StripeService.withConfig(validApiKey, logger);
     return stripeService.countSubscriptions(stripeCustomerId);
   }
 

@@ -115,7 +115,7 @@ export async function recordProcessor(
   const creditsService = new CreditsService(userStore, logger);
   const { tiers, topups } = config.paymentPlans;
   const snsService = SnsService.withConfig(config.paymentWebhookTopicConfig, logger);
-  const stripeService = await StripeService.withConfig(config.stripeAuthConfig.apiKey);
+  const stripeService = await StripeService.withConfig(config.stripeAuthConfig.apiKey, logger);
   const subscriptionService = new SubscriptionService(
     creditsService,
     toProductToCreditsMap(tiers),

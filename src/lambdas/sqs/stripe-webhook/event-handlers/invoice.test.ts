@@ -510,7 +510,7 @@ describe(InvoicePaymentSucceededHandler, () => {
     const upgradeFn = vi.fn().mockResolvedValue(undefined);
     const downgradeFn = vi.fn();
     const addTopupFn = vi.fn();
-    const totalPaidInBillingCycleWithRespectToCurrentPlanFn = vi.fn(() => Promise.resolve(700));
+    const totalPaidInSubscriptionInvoicesWithinBillingCycleFn = vi.fn(() => Promise.resolve(700));
 
     await testIt(
       validEvent(validUpgradeInvoice),
@@ -521,7 +521,7 @@ describe(InvoicePaymentSucceededHandler, () => {
       downgradeFn,
       addTopupFn,
       validTiers,
-      totalPaidInBillingCycleWithRespectToCurrentPlanFn
+      totalPaidInSubscriptionInvoicesWithinBillingCycleFn
     );
 
     expect(upgradeFn).toHaveBeenCalledTimes(1);
@@ -571,7 +571,7 @@ describe(InvoicePaymentSucceededHandler, () => {
     const upgradeFn = vi.fn().mockResolvedValue(undefined);
     const downgradeFn = vi.fn();
     const addTopupFn = vi.fn();
-    const totalPaidInBillingCycleWithRespectToCurrentPlanFn = vi.fn(() => Promise.resolve(2450));
+    const totalPaidInSubscriptionInvoicesWithinBillingCycleFn = vi.fn(() => Promise.resolve(2450));
 
     const goodToBestUpgrade: Stripe.Invoice = {
       ...validUpgradeInvoice,
@@ -593,7 +593,7 @@ describe(InvoicePaymentSucceededHandler, () => {
       downgradeFn,
       addTopupFn,
       validTiers,
-      totalPaidInBillingCycleWithRespectToCurrentPlanFn
+      totalPaidInSubscriptionInvoicesWithinBillingCycleFn
     );
 
     expect(upgradeFn).toHaveBeenCalledWith(
@@ -920,7 +920,7 @@ describe(InvoicePaymentSucceededHandler, () => {
       quantity: number
     ) => Promise<CreditAdditionResult<'add'>>,
     tiers: TierMap,
-    totalPaidInSubscriptionInvoicesWithinPeriodFn?: () => Promise<number>,
+    totalPaidInSubscriptionInvoicesWithinBillingCycleFn?: () => Promise<number>,
     topups: TopupMap = validTopups
   ): Promise<void> {
     const subscriptionServiceMock = {
@@ -941,7 +941,8 @@ describe(InvoicePaymentSucceededHandler, () => {
     } as unknown as Logger;
 
     const stripeServiceMock = {
-      totalPaidInSubscriptionInvoicesWithinPeriod: totalPaidInSubscriptionInvoicesWithinPeriodFn
+      totalPaidInSubscriptionInvoicesWithinBillingCycle:
+        totalPaidInSubscriptionInvoicesWithinBillingCycleFn
     } as unknown as StripeService;
 
     const handler = new InvoicePaymentSucceededHandler(

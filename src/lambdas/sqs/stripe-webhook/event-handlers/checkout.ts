@@ -9,11 +9,8 @@ export class CheckoutSessionCompletedHandler
   extends BaseHandler
   implements EventHandler<Stripe.CheckoutSessionCompletedEvent>
 {
-  public constructor(
-    stripeEventType: StripeEventType,
-    private readonly logger: Logger
-  ) {
-    super(stripeEventType);
+  public constructor(stripeEventType: StripeEventType, logger: Logger) {
+    super(stripeEventType, logger);
   }
 
   public handle(
