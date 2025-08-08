@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.56.2](https://github.com/Notifycal/backend/compare/v0.56.1...v0.56.2) (2025-08-08)
+
+
+### Bug Fixes
+
+* banned logic ([#938](https://github.com/Notifycal/backend/issues/938)) ([5253eba](https://github.com/Notifycal/backend/commit/5253eba581fcc7d95837ab054bee58c0fd52c2ff))
+* **deps:** Update AWS packages to v3.862.0 ([#932](https://github.com/Notifycal/backend/issues/932)) ([b591300](https://github.com/Notifycal/backend/commit/b59130032c18ead8f2d6e23c45a6badc9c39fbb0))
+* **deps:** Update AWS packages to v3.863.0 ([#942](https://github.com/Notifycal/backend/issues/942)) ([0d17c9a](https://github.com/Notifycal/backend/commit/0d17c9a2302ef3b4f61d9fa987d58ebce3c1e681))
+* **deps:** Update dependency @vonage/server-sdk to v3.22.3 ([#941](https://github.com/Notifycal/backend/issues/941)) ([19579db](https://github.com/Notifycal/backend/commit/19579db58094eb1c9f1b5af488c5567bd61481a6))
+* event ids were being reused from original event ([#933](https://github.com/Notifycal/backend/issues/933)) ([29cf128](https://github.com/Notifycal/backend/commit/29cf1282205e2758e3abbafeca1176e4d002f56a))
+* update the whole service as per fucking regulations. Phone numbe… ([#937](https://github.com/Notifycal/backend/issues/937)) ([e8db1e1](https://github.com/Notifycal/backend/commit/e8db1e1478d44aa0ea6bc42a9a101a0549c3a36b))
+* xray sns messaging topic ([#930](https://github.com/Notifycal/backend/issues/930)) ([043b7a6](https://github.com/Notifycal/backend/commit/043b7a61d5f55210aa004c8890f384e830220646))
+
 ## [0.56.1](https://github.com/Notifycal/backend/compare/v0.56.0...v0.56.1) (2025-08-06)
 
 
