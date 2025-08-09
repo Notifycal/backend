@@ -77,7 +77,8 @@ describe(BaseHandler, () => {
       expect(totalPaidInSubscriptionInvoicesWithinPeriodFn).toHaveBeenCalledWith(
         'sub_test_123',
         1640908800,
-        1640995200
+        1640995200,
+        validInvoice
       );
     });
 
@@ -125,7 +126,8 @@ describe(BaseHandler, () => {
       expect(totalPaidInSubscriptionInvoicesWithinPeriodFn).toHaveBeenCalledWith(
         'sub_string_123',
         1640908800,
-        1640995200
+        1640995200,
+        validInvoice
       );
     });
 
@@ -147,7 +149,8 @@ describe(BaseHandler, () => {
       expect(totalPaidInSubscriptionInvoicesWithinPeriodFn).toHaveBeenCalledWith(
         'sub_object_123',
         1640908800,
-        1640995200
+        1640995200,
+        validInvoice
       );
     });
 
