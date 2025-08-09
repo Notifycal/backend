@@ -276,7 +276,8 @@ export class StripeService {
   public totalPaidInSubscriptionInvoicesWithinBillingCycle(
     subscriptionId: string,
     billingCycleStart: UnixTimestamp,
-    billingCycleEnd: UnixTimestamp
+    billingCycleEnd: UnixTimestamp,
+    invoice: Stripe.Invoice
   ): Promise<number> {
     // In order to understand Stripe stuff and this filtering, here are the [docs](https://docs.stripe.com/api/invoices/object)
     const creationOrRenewalOrUpgrade: Array<Stripe.Invoice.BillingReason> = [
@@ -294,20 +295,36 @@ export class StripeService {
     };
 
     return this.getInvoicesInPeriod(subscriptionId, billingCycleStart, billingCycleEnd).then(
-      (invoices) => {
-        const fetchedInvoicesToCalculateTotalInBillingCycle = invoices.data;
+      (invoicesInPeriodEventuallyConsistent) => {
+        // Workaround: because the parameter 'created' of stripe.invoices.list does not work properly/filter as expected - it returns nothing -,
+        // we are using stripe.invoices.search API.
+        // Invoices Search API is eventuallly consistent [as per docs](https://docs.stripe.com/api/subscriptions/search), therefore,
+        // sometimes the just created upgrade invoice does not get retrieved by the API.
+        // They claim data is searchable in less than a minute under normal conditions.
+        // That's why we look it up and if it is not present we add it to the list for the calculation.
+        const fetchedInvoicesToCalculateTotalInBillingCycle =
+          invoicesInPeriodEventuallyConsistent.data.some((i) => i.id === invoice.id)
+            ? invoicesInPeriodEventuallyConsistent.data
+            : [invoice, ...invoicesInPeriodEventuallyConsistent.data];
+
         const allInvoicesSatisyingThePredicate =
           fetchedInvoicesToCalculateTotalInBillingCycle.filter(billingReasonPredicate);
         const totalPaidWithinBillingCycle = allInvoicesSatisyingThePredicate.reduce(
           (sum, invoice) => sum + invoice.amount_paid,
           0
         );
+        const fetchedInvoicesToCalculateTotalInBillingCycleIds =
+          fetchedInvoicesToCalculateTotalInBillingCycle.map((v) => v.id);
+        const allInvoicesSatisyingThePredicateIds = allInvoicesSatisyingThePredicate.map(
+          (v) => v.id
+        );
         this.logger.appendKeys({
           subscriptionId,
           periodStart: billingCycleStart,
           periodEnd: billingCycleEnd,
-          fetchedInvoicesToCalculateTotalInBillingCycle,
-          allInvoicesSatisyingThePredicate,
+          invoicesInPeriodEventuallyConsistent,
+          fetchedInvoicesToCalculateTotalInBillingCycleIds,
+          allInvoicesSatisyingThePredicateIds,
           totalPaidWithinBillingCycle
         });
         this.logger.info(`Relevant information related to upgrade`);
@@ -320,13 +337,9 @@ export class StripeService {
     subscriptionId: string,
     periodStart: UnixTimestamp,
     periodEnd: UnixTimestamp
-  ): Stripe.ApiListPromise<Stripe.Invoice> {
-    return this.stripeClient.invoices.list({
-      subscription: subscriptionId,
-      created: {
-        gte: periodStart,
-        lte: periodEnd
-      }
+  ): Stripe.ApiSearchResultPromise<Stripe.Invoice> {
+    return this.stripeClient.invoices.search({
+      query: `subscription:"${subscriptionId}" AND created>=${periodStart} AND created<=${periodEnd}`
     });
   }
 }

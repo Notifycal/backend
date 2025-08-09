@@ -104,7 +104,12 @@ export abstract class BaseHandler {
     })
       .then(({ periodStart, periodEnd, subscriptionId, currentPlanAmount }) =>
         stripeService
-          .totalPaidInSubscriptionInvoicesWithinBillingCycle(subscriptionId, periodStart, periodEnd)
+          .totalPaidInSubscriptionInvoicesWithinBillingCycle(
+            subscriptionId,
+            periodStart,
+            periodEnd,
+            invoice
+          )
           .then((totalPaidInCurrentBillingCycle) => ({
             totalPaidInCurrentBillingCycle,
             currentPlanAmount
