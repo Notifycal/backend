@@ -1,0 +1,188 @@
+{
+  "id": "in_1RuD6rPKMnU7QmpUSYd9AyPZ",
+  "object": "invoice",
+  "account_country": "ES",
+  "account_name": "dev",
+  "account_tax_ids": null,
+  "amount_due": 1000,
+  "amount_overpaid": 0,
+  "amount_paid": 1000,
+  "amount_remaining": 0,
+  "amount_shipping": 0,
+  "application": null,
+  "attempt_count": 0,
+  "attempted": true,
+  "auto_advance": false,
+  "automatic_tax": {
+    "disabled_reason": null,
+    "enabled": false,
+    "liability": null,
+    "provider": null,
+    "status": null
+  },
+  "automatically_finalizes_at": null,
+  "billing_reason": "subscription_create",
+  "collection_method": "charge_automatically",
+  "created": 1754747209,
+  "currency": "eur",
+  "custom_fields": null,
+  "customer": "cus_SpssbDApAOSoDF",
+  "customer_address": {
+    "city": "Alcorcón",
+    "country": "ES",
+    "line1": "Avenida de Leganés ",
+    "line2": null,
+    "postal_code": "28923",
+    "state": "M"
+  },
+  "customer_email": "notifycal@gmail.com",
+  "customer_name": "SergioMS",
+  "customer_phone": null,
+  "customer_shipping": null,
+  "customer_tax_exempt": "none",
+  "customer_tax_ids": [],
+  "default_payment_method": null,
+  "default_source": null,
+  "default_tax_rates": [],
+  "description": null,
+  "discounts": [],
+  "due_date": null,
+  "effective_at": 1754747216,
+  "ending_balance": 0,
+  "footer": null,
+  "from_invoice": null,
+  "hosted_invoice_url": "https://invoice.stripe.com/i/acct_1RWhqGPKMnU7QmpU/test_YWNjdF8xUldocUdQS01uVTdRbXBVLF9TcHNzZjkxQTN4cTdaU0sxSGZUbmhYSDhQNzlGa3pSLDE0NTI4ODg4Mg0200TPDQWrbA?s=ap",
+  "invoice_pdf": "https://pay.stripe.com/invoice/acct_1RWhqGPKMnU7QmpU/test_YWNjdF8xUldocUdQS01uVTdRbXBVLF9TcHNzZjkxQTN4cTdaU0sxSGZUbmhYSDhQNzlGa3pSLDE0NTI4ODg4Mg0200TPDQWrbA/pdf?s=ap",
+  "issuer": {
+    "type": "self"
+  },
+  "last_finalization_error": null,
+  "latest_revision": null,
+  "lines": {
+    "object": "list",
+    "data": [
+      {
+        "id": "il_1RuD6qPKMnU7QmpU9FNqDEgg",
+        "object": "line_item",
+        "amount": 1000,
+        "currency": "eur",
+        "description": "1 × Good Plan (at €10.00 / month)",
+        "discount_amounts": [],
+        "discountable": true,
+        "discounts": [],
+        "invoice": "in_1RuD6rPKMnU7QmpUSYd9AyPZ",
+        "livemode": false,
+        "metadata": {},
+        "parent": {
+          "invoice_item_details": null,
+          "subscription_item_details": {
+            "invoice_item": null,
+            "proration": false,
+            "proration_details": {
+              "credited_items": null
+            },
+            "subscription": "sub_1RuD6sPKMnU7QmpUWeWrQx8V",
+            "subscription_item": "si_SpssN98e9babe8"
+          },
+          "type": "subscription_item_details"
+        },
+        "period": {
+          "end": 1757425609,
+          "start": 1754747209
+        },
+        "pretax_credit_amounts": [],
+        "pricing": {
+          "price_details": {
+            "price": "price_1RWiUMPKMnU7QmpU9BKe7Djp",
+            "product": "prod_SRbhTxZ8V1DJrX"
+          },
+          "type": "price_details",
+          "unit_amount_decimal": "1000"
+        },
+        "quantity": 1,
+        "taxes": [
+          {
+            "amount": 174,
+            "tax_behavior": "inclusive",
+            "tax_rate_details": {
+              "tax_rate": "txr_1RWiULPKMnU7QmpUICmXbqHV"
+            },
+            "taxability_reason": "not_available",
+            "taxable_amount": 826,
+            "type": "tax_rate_details"
+          }
+        ]
+      }
+    ],
+    "has_more": false,
+    "total_count": 1,
+    "url": "/v1/invoices/in_1RuD6rPKMnU7QmpUSYd9AyPZ/lines"
+  },
+  "livemode": false,
+  "metadata": {},
+  "next_payment_attempt": null,
+  "number": "BFEA675F-0156",
+  "on_behalf_of": null,
+  "parent": {
+    "quote_details": null,
+    "subscription_details": {
+      "metadata": {},
+      "subscription": "sub_1RuD6sPKMnU7QmpUWeWrQx8V"
+    },
+    "type": "subscription_details"
+  },
+  "payment_settings": {
+    "default_mandate": null,
+    "payment_method_options": {
+      "acss_debit": null,
+      "bancontact": null,
+      "card": {
+        "request_three_d_secure": "automatic"
+      },
+      "customer_balance": null,
+      "konbini": null,
+      "sepa_debit": null,
+      "us_bank_account": null
+    },
+    "payment_method_types": [
+      "card"
+    ]
+  },
+  "period_end": 1754747209,
+  "period_start": 1754747209,
+  "post_payment_credit_notes_amount": 0,
+  "pre_payment_credit_notes_amount": 0,
+  "receipt_number": null,
+  "rendering": null,
+  "shipping_cost": null,
+  "shipping_details": null,
+  "starting_balance": 0,
+  "statement_descriptor": null,
+  "status": "paid",
+  "status_transitions": {
+    "finalized_at": 1754747216,
+    "marked_uncollectible_at": null,
+    "paid_at": 1754747209,
+    "voided_at": null
+  },
+  "subtotal": 1000,
+  "subtotal_excluding_tax": 826,
+  "test_clock": "clock_1RuD6jPKMnU7QmpUIZgZ7FaV",
+  "total": 1000,
+  "total_discount_amounts": [],
+  "total_excluding_tax": 826,
+  "total_pretax_credit_amounts": [],
+  "total_taxes": [
+    {
+      "amount": 174,
+      "tax_behavior": "inclusive",
+      "tax_rate_details": {
+        "tax_rate": "txr_1RWiULPKMnU7QmpUICmXbqHV"
+      },
+      "taxability_reason": "not_available",
+      "taxable_amount": 826,
+      "type": "tax_rate_details"
+    }
+  ],
+  "webhooks_delivered_at": 1754747209
+}
