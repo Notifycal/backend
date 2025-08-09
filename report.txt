@@ -1,0 +1,117 @@
+
+> backend@0.56.2 test
+> vitest --watch=false src/lambdas/stripe-invoice-list-created-bug.test.ts
+
+
+ RUN  v3.2.4 /home/sj11/gitrepos/notifycal/backend
+      Coverage enabled with v8
+
+
+=====================================
+STRIPE TEST CLOCK BUG DEMONSTRATION
+=====================================
+
+Step 1: Fetching most recent invoice (upgrade) for subscription...
+
+Invoice ID: in_1RuD8EPKMnU7QmpUfqb7ME0d
+Billing Reason: subscription_update
+Customer ID: cus_SpssbDApAOSoDF
+Invoice Created: 1757425609 (2025-09-09T13:46:49.000Z)
+
+-----------------------------------
+Step 2: Extracting period dates using YOUR webhook logic...
+
+🔍 Period boundaries (from your logic):
+   periodStart: 1757425609 (2025-09-09T13:46:49.000Z) [from invoice.period_start]
+   periodEnd:   1760017609 (2025-10-09T13:46:49.000Z) [from currentPlanLineItem.period.end]
+   Customer ID: cus_SpssbDApAOSoDF
+   Subscription ID: sub_1RuD6sPKMnU7QmpUWeWrQx8V
+
+-----------------------------------
+Step 3: Querying ALL invoices WITHOUT created filter...
+
+✅ Found 3 paid invoices WITHOUT filter:
+
+  Invoice 1: in_1RuD8EPKMnU7QmpUfqb7ME0d
+    Created:        1757425609 (2025-09-09T13:46:49.000Z)
+    Period:         2025-09-09T13:46:49.000Z to 2025-09-09T13:46:49.000Z
+    Billing Reason: subscription_update
+    Amount Paid:    50 EUR
+    Status:         paid
+    ✅ IN PERIOD: created (1757425609) is between [1757425609, 1760017609]
+
+  Invoice 2: in_1RuD7QPKMnU7QmpUspxULeWf
+    Created:        1757425609 (2025-09-09T13:46:49.000Z)
+    Period:         2025-08-09T13:46:49.000Z to 2025-09-09T13:46:49.000Z
+    Billing Reason: subscription_cycle
+    Amount Paid:    10 EUR
+    Status:         paid
+    ✅ IN PERIOD: created (1757425609) is between [1757425609, 1760017609]
+
+  Invoice 3: in_1RuD6rPKMnU7QmpUSYd9AyPZ
+    Created:        1754747209 (2025-08-09T13:46:49.000Z)
+    Period:         2025-08-09T13:46:49.000Z to 2025-08-09T13:46:49.000Z
+    Billing Reason: subscription_create
+    Amount Paid:    10 EUR
+    Status:         paid
+    ❌ OUT OF PERIOD: created (1754747209) is NOT between [1757425609, 1760017609]
+
+
+📊 Summary: 2 invoices SHOULD be returned when filtering by created
+   Expected invoice IDs: in_1RuD8EPKMnU7QmpUfqb7ME0d, in_1RuD7QPKMnU7QmpUspxULeWf
+
+-----------------------------------
+Step 4: Querying invoices WITH created filter (following your logic)...
+
+🔍 Using filter:
+   customer:    "cus_SpssbDApAOSoDF"
+   subscription: "sub_1RuD6sPKMnU7QmpUWeWrQx8V"
+   status:      "paid"
+   created.gte: 1757425609 (2025-09-09T13:46:49.000Z)
+   created.lte: 1760017609 (2025-10-09T13:46:49.000Z)
+
+❌ Found 0 invoices WITH created filter
+
+   ⚠️  NO INVOICES RETURNED - THIS IS THE BUG!
+
+   The query with created filter returned 0 results even though:
+   - There are 2 invoices with created timestamps in the range
+   - The timestamps are clearly within [1757425609, 1760017609]
+
+-----------------------------------
+Step 5: Isolation tests to confirm the bug...
+
+Test A - Only created.gte: 0 invoices ❌ (FAILS)
+Test B - Only created.lte: 3 invoices ✅ (WORKS)
+Test C - Wide range (1 to 2033): 3 invoices ✅ (WORKS)
+Test D - Without subscription filter: 0 invoices ❌ (ALSO FAILS)
+
+-----------------------------------
+Step 6: Test Clock verification...
+
+✅ Using Test Clock: clock_1RuD6jPKMnU7QmpUIZgZ7FaV
+   This confirms the bug occurs with Test Clocks
+
+=====================================
+FINAL RESULTS
+=====================================
+
+Expected invoices (should be in period): 2
+Actual invoices returned with filter:    0
+
+🐛 BUG CONFIRMED: created.gte filter returns 0 results with Test Clock!
+
+This is a Stripe API bug where:
+1. The created.gte filter fails with Test Clock future timestamps
+2. The same query without created filter works correctly
+3. The created.lte filter works, but created.gte does not
+ ❯ src/lambdas/stripe-invoice-list-created-bug.test.ts (1 test | 1 failed) 2687ms
+   × Stripe Test Clock Bug Demonstration > should demonstrate that created.gte filter fails with Test Clock after renewal 2682ms
+     → The created filter should return the same invoices that are in the period: expected [] to have a length of 2 but got +0
+
+ Test Files  1 failed (1)
+      Tests  1 failed (1)
+Type Errors  no errors
+   Start at  15:49:10
+   Duration  4.23s (transform 47ms, setup 27ms, collect 118ms, tests 2.69s, environment 0ms, prepare 84ms)
+
