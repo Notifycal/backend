@@ -30,7 +30,7 @@ jobs:
       infra: ${{ steps.filter.outputs.tf }}
       backend: ${{ steps.filter.outputs.backend }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           ref: ${{ github.head_ref || github.ref_name }}
       - name: Validate commits with commitlint
@@ -65,7 +65,7 @@ jobs:
       github.event.pull_request.draft == false &&
       (needs.preflight.outputs.backend == 'true' || github.event_name != 'pull_request')
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Generate .npmrc
         run: |
           echo "//npm.pkg.github.com/:_authToken=${{secrets.GITHUB_TOKEN}}" > .npmrc
@@ -129,7 +129,7 @@ jobs:
           app_id: ${{ secrets.NOTIFYCAL_CICD_APP_ID }}
           private_key: ${{ secrets.NOTIFYCAL_CICD_APP_SECRET }}
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           ref: ${{ github.head_ref || github.ref_name }}
           token: ${{ steps.gh-app-auth.outputs.token }}
@@ -263,7 +263,7 @@ jobs:
       id-token: write
     if: github.event_name != 'pull_request'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - uses: actions/download-artifact@v5
         with:
