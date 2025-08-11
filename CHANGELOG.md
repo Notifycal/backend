@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.56.4](https://github.com/Notifycal/backend/compare/v0.56.3...v0.56.4) (2025-08-11)
+
+
+### Bug Fixes
+
+* axios http client base url ([#956](https://github.com/Notifycal/backend/issues/956)) ([ecda262](https://github.com/Notifycal/backend/commit/ecda262ec3e86a6e7a9371d81f20170a30f37704))
+* trigger alert for events ([#954](https://github.com/Notifycal/backend/issues/954)) ([7870e6f](https://github.com/Notifycal/backend/commit/7870e6fdf95e1c174f26edec316a228a57a47483))
+
 ## [0.56.3](https://github.com/Notifycal/backend/compare/v0.56.2...v0.56.3) (2025-08-11)
 
 
