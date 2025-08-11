@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.56.3](https://github.com/Notifycal/backend/compare/v0.56.2...v0.56.3) (2025-08-11)
+
+
+### Bug Fixes
+
+* **deps:** Update AWS packages to v3.864.0 ([#949](https://github.com/Notifycal/backend/issues/949)) ([39308c8](https://github.com/Notifycal/backend/commit/39308c86d409495e6be4059289f6b261376efaa1))
+* **deps:** Update dependency googleapis to v155.0.1 ([#950](https://github.com/Notifycal/backend/issues/950)) ([0dd8072](https://github.com/Notifycal/backend/commit/0dd80722f2cad7f1c8cebea571afb951fe6816bf))
+* **deps:** Update dependency radashi to v12.6.1 ([#952](https://github.com/Notifycal/backend/issues/952)) ([94bcd08](https://github.com/Notifycal/backend/commit/94bcd080a9b9d7f0784943458e11a04435be386e))
+* extend schedule downgrade event data. Logging ([#944](https://github.com/Notifycal/backend/issues/944)) ([9bcd1fc](https://github.com/Notifycal/backend/commit/9bcd1fc65ba44e8521e0f8dd02fa5749e92c7848))
+* upgrade right after renewal - within the first hour. And the stripe method that calculates the amount paid within billing cycle ([#947](https://github.com/Notifycal/backend/issues/947)) ([e1b3a79](https://github.com/Notifycal/backend/commit/e1b3a791ca294e21b91e5cbdc98ee56dcca038db))
+
 ## [0.56.2](https://github.com/Notifycal/backend/compare/v0.56.1...v0.56.2) (2025-08-08)
 
 
