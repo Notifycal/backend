@@ -19,7 +19,7 @@ locals {
             dynamodb : {
               NewImage : {
                 EventType : {
-                  S : ["LowCreditsDetected", "InsufficientCreditReminderNotSent"]
+                  S : ["LowCreditsDetected", "InsufficientCreditsReminderNotSent"]
                 }
               }
             }
