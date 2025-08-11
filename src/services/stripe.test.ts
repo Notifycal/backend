@@ -1,4 +1,5 @@
 /* eslint-disable camelcase */
+import type { Logger } from '@aws-lambda-powertools/logger';
 import { logger } from '@common/powertools';
 import type { Tier, Topup } from '@model/PaymentPlans';
 import type {
@@ -7,6 +8,7 @@ import type {
   IdpName,
   LanguageCode,
   StripeCustomerId,
+  UnixTimestamp,
   UserId,
   UserIdentity
 } from '@notifycal/shared/types';
@@ -20,7 +22,10 @@ import { StripeService } from './stripe';
 vi.mock('stripe');
 vi.mock('@common/powertools', () => ({
   logger: {
-    info: vi.fn()
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    appendKeys: vi.fn()
   }
 }));
 vi.mock('@services/common/http-client');
@@ -71,7 +76,7 @@ describe(StripeService, () => {
     vi.mocked(HttpClient.prototype.getAxiosInstance).mockResolvedValue({} as AxiosInstance);
     vi.mocked(Stripe).mockImplementation(mockConstructor);
 
-    await StripeService.withConfig(validApiKey);
+    await StripeService.withConfig(validApiKey, logger);
 
     expect(HttpClient).toHaveBeenCalledWith(undefined, undefined, 'Stripe');
     expect(mockConstructor).toHaveBeenCalledTimes(1);
@@ -845,6 +850,407 @@ describe(StripeService, () => {
     });
   });
 
+  describe('forcePaymentCollection', () => {
+    it('should finalize and pay draft invoice successfully', async () => {
+      const validInvoiceId = 'in_test123';
+      const validFinalizedInvoice = {
+        id: validInvoiceId,
+        status: 'open'
+      };
+      const validPayResult = {
+        id: validInvoiceId,
+        status: 'paid'
+      };
+
+      const finalizeInvoiceFn = vi.fn().mockResolvedValue(validFinalizedInvoice);
+      const payInvoiceFn = vi.fn().mockResolvedValue(validPayResult);
+
+      await testForcePaymentCollection(validInvoiceId, finalizeInvoiceFn, payInvoiceFn);
+
+      expect(finalizeInvoiceFn).toHaveBeenCalledTimes(1);
+      expect(finalizeInvoiceFn).toHaveBeenCalledWith(validInvoiceId, {
+        auto_advance: true
+      });
+      expect(payInvoiceFn).toHaveBeenCalledTimes(1);
+      expect(payInvoiceFn).toHaveBeenCalledWith(validInvoiceId);
+    });
+
+    it('should not attempt to pay when finalize result status is not open', async () => {
+      const validInvoiceId = 'in_test123';
+      const validFinalizedInvoice = {
+        id: validInvoiceId,
+        status: 'paid'
+      };
+
+      const finalizeInvoiceFn = vi.fn().mockResolvedValue(validFinalizedInvoice);
+      const payInvoiceFn = vi.fn();
+
+      await testForcePaymentCollection(validInvoiceId, finalizeInvoiceFn, payInvoiceFn);
+
+      expect(finalizeInvoiceFn).toHaveBeenCalledTimes(1);
+      expect(payInvoiceFn).not.toHaveBeenCalled();
+    });
+
+    it('should continue when pay fails but not throw error', async () => {
+      const validInvoiceId = 'in_test123';
+      const validFinalizedInvoice = {
+        id: validInvoiceId,
+        status: 'open'
+      };
+
+      const finalizeInvoiceFn = vi.fn().mockResolvedValue(validFinalizedInvoice);
+      const payInvoiceFn = vi.fn().mockRejectedValue(new Error('Payment failed'));
+
+      const result = testForcePaymentCollection(validInvoiceId, finalizeInvoiceFn, payInvoiceFn);
+
+      await expect(result).resolves.toBeUndefined();
+      expect(finalizeInvoiceFn).toHaveBeenCalledTimes(1);
+      expect(payInvoiceFn).toHaveBeenCalledTimes(1);
+    });
+
+    it('should throw error when finalize fails', async () => {
+      const validInvoiceId = 'in_test123';
+      const finalizeError = new Error('Finalize failed');
+
+      const finalizeInvoiceFn = vi.fn().mockRejectedValue(finalizeError);
+      const payInvoiceFn = vi.fn();
+
+      await expect(
+        testForcePaymentCollection(validInvoiceId, finalizeInvoiceFn, payInvoiceFn)
+      ).rejects.toThrow('Finalize failed');
+
+      expect(finalizeInvoiceFn).toHaveBeenCalledTimes(1);
+      expect(payInvoiceFn).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('totalPaidInSubscriptionInvoicesWithinBillingCycle', () => {
+    const validSubscriptionId = 'sub_123456';
+    const validBillingCycleStart = 1703980800 as UnixTimestamp;
+    const validBillingCycleEnd = 1704067200 as UnixTimestamp;
+
+    it('should calculate total paid amount for subscription invoices in billing cycle', async () => {
+      const validInvoice = {
+        id: 'in_upgrade123',
+        status: 'paid',
+        billing_reason: 'subscription_update',
+        amount_paid: 1000
+      };
+      const validSearchResult = {
+        data: [
+          {
+            id: 'in_create123',
+            status: 'paid',
+            billing_reason: 'subscription_create',
+            amount_paid: 2000
+          },
+          {
+            id: 'in_cycle123',
+            status: 'paid',
+            billing_reason: 'subscription_cycle',
+            amount_paid: 2500
+          }
+        ]
+      };
+
+      const searchInvoicesFn = vi.fn().mockResolvedValue(validSearchResult);
+
+      const result = await testTotalPaidInBillingCycle(
+        validSubscriptionId,
+        validBillingCycleStart,
+        validBillingCycleEnd,
+        validInvoice,
+        searchInvoicesFn
+      );
+
+      expect(result).toBe(5500);
+      expect(searchInvoicesFn).toHaveBeenCalledTimes(1);
+      expect(searchInvoicesFn).toHaveBeenCalledWith({
+        query: `subscription:"${validSubscriptionId}" AND created>=${validBillingCycleStart} AND created<=${validBillingCycleEnd}`
+      });
+    });
+
+    it('should exclude invoices with amount_paid = 0', async () => {
+      const validInvoice = {
+        id: 'in_upgrade123',
+        status: 'paid',
+        billing_reason: 'subscription_update',
+        amount_paid: 1000
+      };
+      const validSearchResult = {
+        data: [
+          {
+            id: 'in_downgrade123',
+            status: 'paid',
+            billing_reason: 'subscription_update',
+            amount_paid: 0
+          },
+          {
+            id: 'in_create123',
+            status: 'paid',
+            billing_reason: 'subscription_create',
+            amount_paid: 2000
+          }
+        ]
+      };
+
+      const searchInvoicesFn = vi.fn().mockResolvedValue(validSearchResult);
+
+      const result = await testTotalPaidInBillingCycle(
+        validSubscriptionId,
+        validBillingCycleStart,
+        validBillingCycleEnd,
+        validInvoice,
+        searchInvoicesFn
+      );
+
+      expect(result).toBe(3000);
+    });
+
+    it('should exclude unpaid invoices', async () => {
+      const validInvoice = {
+        id: 'in_upgrade123',
+        status: 'paid',
+        billing_reason: 'subscription_update',
+        amount_paid: 1000
+      };
+      const validSearchResult = {
+        data: [
+          {
+            id: 'in_unpaid123',
+            status: 'open',
+            billing_reason: 'subscription_create',
+            amount_paid: 2000
+          },
+          {
+            id: 'in_create123',
+            status: 'paid',
+            billing_reason: 'subscription_create',
+            amount_paid: 2000
+          }
+        ]
+      };
+
+      const searchInvoicesFn = vi.fn().mockResolvedValue(validSearchResult);
+
+      const result = await testTotalPaidInBillingCycle(
+        validSubscriptionId,
+        validBillingCycleStart,
+        validBillingCycleEnd,
+        validInvoice,
+        searchInvoicesFn
+      );
+
+      expect(result).toBe(3000);
+    });
+
+    it('should exclude invoices with irrelevant billing reasons', async () => {
+      const validInvoice = {
+        id: 'in_upgrade123',
+        status: 'paid',
+        billing_reason: 'subscription_update',
+        amount_paid: 1000
+      };
+      const validSearchResult = {
+        data: [
+          {
+            id: 'in_manual123',
+            status: 'paid',
+            billing_reason: 'manual',
+            amount_paid: 500
+          },
+          {
+            id: 'in_create123',
+            status: 'paid',
+            billing_reason: 'subscription_create',
+            amount_paid: 2000
+          }
+        ]
+      };
+
+      const searchInvoicesFn = vi.fn().mockResolvedValue(validSearchResult);
+
+      const result = await testTotalPaidInBillingCycle(
+        validSubscriptionId,
+        validBillingCycleStart,
+        validBillingCycleEnd,
+        validInvoice,
+        searchInvoicesFn
+      );
+
+      expect(result).toBe(3000);
+    });
+
+    it('should include target invoice when not found in search results', async () => {
+      const validInvoice = {
+        id: 'in_upgrade123',
+        status: 'paid',
+        billing_reason: 'subscription_update',
+        amount_paid: 1000
+      };
+      const validSearchResult = {
+        data: [
+          {
+            id: 'in_create123',
+            status: 'paid',
+            billing_reason: 'subscription_create',
+            amount_paid: 2000
+          }
+        ]
+      };
+
+      const searchInvoicesFn = vi.fn().mockResolvedValue(validSearchResult);
+
+      const result = await testTotalPaidInBillingCycle(
+        validSubscriptionId,
+        validBillingCycleStart,
+        validBillingCycleEnd,
+        validInvoice,
+        searchInvoicesFn
+      );
+
+      expect(result).toBe(3000);
+    });
+
+    it('should not duplicate target invoice when already in search results', async () => {
+      const validInvoice = {
+        id: 'in_upgrade123',
+        status: 'paid',
+        billing_reason: 'subscription_update',
+        amount_paid: 1000
+      };
+      const validSearchResult = {
+        data: [
+          validInvoice,
+          {
+            id: 'in_create123',
+            status: 'paid',
+            billing_reason: 'subscription_create',
+            amount_paid: 2000
+          }
+        ]
+      };
+
+      const searchInvoicesFn = vi.fn().mockResolvedValue(validSearchResult);
+
+      const result = await testTotalPaidInBillingCycle(
+        validSubscriptionId,
+        validBillingCycleStart,
+        validBillingCycleEnd,
+        validInvoice,
+        searchInvoicesFn
+      );
+
+      expect(result).toBe(3000);
+    });
+
+    it('should handle empty search results', async () => {
+      const validInvoice = {
+        id: 'in_upgrade123',
+        status: 'paid',
+        billing_reason: 'subscription_update',
+        amount_paid: 1000
+      };
+      const validSearchResult = {
+        data: []
+      };
+
+      const searchInvoicesFn = vi.fn().mockResolvedValue(validSearchResult);
+
+      const result = await testTotalPaidInBillingCycle(
+        validSubscriptionId,
+        validBillingCycleStart,
+        validBillingCycleEnd,
+        validInvoice,
+        searchInvoicesFn
+      );
+
+      expect(result).toBe(1000);
+    });
+
+    it('should throw error when search fails', async () => {
+      const validInvoice = {
+        id: 'in_upgrade123',
+        status: 'paid',
+        billing_reason: 'subscription_update',
+        amount_paid: 1000
+      };
+      const searchError = new Error('Search failed');
+
+      const searchInvoicesFn = vi.fn().mockRejectedValue(searchError);
+
+      await expect(
+        testTotalPaidInBillingCycle(
+          validSubscriptionId,
+          validBillingCycleStart,
+          validBillingCycleEnd,
+          validInvoice,
+          searchInvoicesFn
+        )
+      ).rejects.toThrow('Search failed');
+    });
+  });
+
+  async function testForcePaymentCollection(
+    invoiceId: string,
+    finalizeInvoiceFn: () => Promise<{ id: string; status: string }>,
+    payInvoiceFn: () => Promise<{ id: string; status: string }>
+  ): Promise<void> {
+    const mockStripeInstance = {
+      ...testClocksMockFn(),
+      invoices: {
+        finalizeInvoice: finalizeInvoiceFn,
+        pay: payInvoiceFn
+      }
+    } as unknown as Stripe;
+
+    setupMocks(mockStripeInstance);
+
+    const mockLogger = {
+      info: vi.fn(),
+      warn: vi.fn(),
+      error: vi.fn(),
+      appendKeys: vi.fn()
+    } as unknown as Logger;
+
+    const stripeService = await StripeService.withConfig(validApiKey, mockLogger);
+    return stripeService.forcePaymentCollection(invoiceId);
+  }
+
+  async function testTotalPaidInBillingCycle(
+    subscriptionId: string,
+    billingCycleStart: UnixTimestamp,
+    billingCycleEnd: UnixTimestamp,
+    invoice: { id: string; status: string; billing_reason: string; amount_paid: number },
+    searchInvoicesFn: () => Promise<{
+      data: Array<{ id: string; status: string; billing_reason: string; amount_paid: number }>;
+    }>
+  ): Promise<number> {
+    const mockStripeInstance = {
+      ...testClocksMockFn(),
+      invoices: {
+        search: searchInvoicesFn
+      }
+    } as unknown as Stripe;
+
+    setupMocks(mockStripeInstance);
+
+    const mockLogger = {
+      info: vi.fn(),
+      warn: vi.fn(),
+      error: vi.fn(),
+      appendKeys: vi.fn()
+    } as unknown as Logger;
+
+    const stripeService = await StripeService.withConfig(validApiKey, mockLogger);
+    return stripeService.totalPaidInSubscriptionInvoicesWithinBillingCycle(
+      subscriptionId,
+      billingCycleStart,
+      billingCycleEnd,
+      invoice as unknown as Stripe.Invoice
+    );
+  }
+
   async function testCreateCustomer(
     userIdentity: UserIdentity<IdpName>,
     createCustomerFn: () => Promise<{ id: string }>,
@@ -860,7 +1266,7 @@ describe(StripeService, () => {
 
     setupMocks(mockStripeInstance);
 
-    const stripeService = await StripeService.withConfig(validApiKey);
+    const stripeService = await StripeService.withConfig(validApiKey, logger);
     return stripeService.createCustomer(userIdentity);
   }
 
@@ -884,7 +1290,7 @@ describe(StripeService, () => {
 
     setupMocks(mockStripeInstance);
 
-    const stripeService = await StripeService.withConfig(validApiKey);
+    const stripeService = await StripeService.withConfig(validApiKey, logger);
     return stripeService.createCheckoutSession(
       stripeCustomerId,
       userIdentity,
@@ -926,7 +1332,7 @@ describe(StripeService, () => {
 
     setupMocks(mockStripeInstance);
 
-    const stripeService = await StripeService.withConfig(validApiKey);
+    const stripeService = await StripeService.withConfig(validApiKey, logger);
     return stripeService.createCustomerPortalSession(
       stripeCustomerId,
       returnUrl,
@@ -951,7 +1357,7 @@ describe(StripeService, () => {
 
     setupMocks(mockStripeInstance);
 
-    const stripeService = await StripeService.withConfig(validApiKey);
+    const stripeService = await StripeService.withConfig(validApiKey, logger);
     return stripeService.countSubscriptions(stripeCustomerId);
   }
 

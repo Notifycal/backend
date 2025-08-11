@@ -18,9 +18,30 @@ export class InvoiceCreatedHandler
 {
   public constructor(
     stripeEventType: StripeEventType,
-    private readonly logger: Logger
+    private readonly stripeService: StripeService,
+    logger: Logger
   ) {
-    super(stripeEventType);
+    super(stripeEventType, logger);
+  }
+
+  private forcePaymentCollectionOnRenewalDraftInvoice(invoice: Stripe.Invoice): Promise<void> {
+    const invoiceId = invoice.id;
+    if (!invoiceId) {
+      this.logger.error(
+        `Invoice with no id. Avoiding error to protect other customers. Moving on...`,
+        {
+          invoice
+        }
+      );
+      return Promise.resolve();
+    }
+    if (invoice.status === 'draft' && invoice.billing_reason === 'subscription_cycle') {
+      return this.stripeService.forcePaymentCollection(invoiceId).catch((error) => {
+        this.logger.error('Could not for payment collection on renewal invoice:', { error });
+        return Promise.resolve();
+      });
+    }
+    return Promise.resolve();
   }
 
   public handle(
@@ -34,7 +55,7 @@ export class InvoiceCreatedHandler
       amount: invoice.amount_due,
       userId: userIdentity.userId
     });
-    return Promise.resolve();
+    return this.forcePaymentCollectionOnRenewalDraftInvoice(event.data.object);
   }
 }
 
@@ -49,9 +70,9 @@ export class InvoicePaymentSucceededHandler
     private readonly subscriptionService: SubscriptionService<IdpName>,
     private readonly topupService: TopupService<IdpName>,
     private readonly stripeService: StripeService,
-    private readonly logger: Logger
+    logger: Logger
   ) {
-    super(stripeEventType);
+    super(stripeEventType, logger);
   }
 
   public handle(
@@ -272,11 +293,8 @@ export class InvoicePaymentFailedHandler
   extends BaseHandler
   implements EventHandler<Stripe.InvoicePaymentFailedEvent>
 {
-  public constructor(
-    stripeEventType: StripeEventType,
-    private readonly logger: Logger
-  ) {
-    super(stripeEventType);
+  public constructor(stripeEventType: StripeEventType, logger: Logger) {
+    super(stripeEventType, logger);
   }
 
   public handle(

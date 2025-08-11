@@ -1,3 +1,4 @@
+import { logger } from '@common/powertools';
 import type { UnixTimestamp } from '@notifycal/shared/types';
 import type { StripeService } from '@services/stripe';
 import type Stripe from 'stripe';
@@ -67,7 +68,7 @@ describe(BaseHandler, () => {
       const validInvoice = createValidInvoice([currentPlanLineItem]);
       const totalPaidInSubscriptionInvoicesWithinPeriodFn = vi.fn(() => Promise.resolve(2500));
 
-      const result = await testTotalPaidInBillingCycleWithRespectToCurrentPlan(
+      const result = await testTotalPaidInSubscriptionInvoicesWithinBillingCycle(
         validInvoice,
         totalPaidInSubscriptionInvoicesWithinPeriodFn
       );
@@ -76,7 +77,8 @@ describe(BaseHandler, () => {
       expect(totalPaidInSubscriptionInvoicesWithinPeriodFn).toHaveBeenCalledWith(
         'sub_test_123',
         1640908800,
-        1640995200
+        1640995200,
+        validInvoice
       );
     });
 
@@ -87,7 +89,7 @@ describe(BaseHandler, () => {
       const validInvoice = createValidInvoice([currentPlanLineItem]);
       const totalPaidInSubscriptionInvoicesWithinPeriodFn = vi.fn(() => Promise.resolve(2500));
 
-      const result = await testTotalPaidInBillingCycleWithRespectToCurrentPlan(
+      const result = await testTotalPaidInSubscriptionInvoicesWithinBillingCycle(
         validInvoice,
         totalPaidInSubscriptionInvoicesWithinPeriodFn
       );
@@ -102,7 +104,7 @@ describe(BaseHandler, () => {
       const validInvoice = createValidInvoice([currentPlanLineItem]);
       const totalPaidInSubscriptionInvoicesWithinPeriodFn = vi.fn(() => Promise.resolve(5838)); // €58.38
 
-      const result = await testTotalPaidInBillingCycleWithRespectToCurrentPlan(
+      const result = await testTotalPaidInSubscriptionInvoicesWithinBillingCycle(
         validInvoice,
         totalPaidInSubscriptionInvoicesWithinPeriodFn
       );
@@ -115,7 +117,7 @@ describe(BaseHandler, () => {
       const validInvoice = createValidInvoice([currentPlanLineItem]);
       const totalPaidInSubscriptionInvoicesWithinPeriodFn = vi.fn(() => Promise.resolve(2500));
 
-      const result = await testTotalPaidInBillingCycleWithRespectToCurrentPlan(
+      const result = await testTotalPaidInSubscriptionInvoicesWithinBillingCycle(
         validInvoice,
         totalPaidInSubscriptionInvoicesWithinPeriodFn
       );
@@ -124,7 +126,8 @@ describe(BaseHandler, () => {
       expect(totalPaidInSubscriptionInvoicesWithinPeriodFn).toHaveBeenCalledWith(
         'sub_string_123',
         1640908800,
-        1640995200
+        1640995200,
+        validInvoice
       );
     });
 
@@ -137,7 +140,7 @@ describe(BaseHandler, () => {
       const validInvoice = createValidInvoice([currentPlanLineItem]);
       const totalPaidInSubscriptionInvoicesWithinPeriodFn = vi.fn(() => Promise.resolve(2500));
 
-      const result = await testTotalPaidInBillingCycleWithRespectToCurrentPlan(
+      const result = await testTotalPaidInSubscriptionInvoicesWithinBillingCycle(
         validInvoice,
         totalPaidInSubscriptionInvoicesWithinPeriodFn
       );
@@ -146,7 +149,8 @@ describe(BaseHandler, () => {
       expect(totalPaidInSubscriptionInvoicesWithinPeriodFn).toHaveBeenCalledWith(
         'sub_object_123',
         1640908800,
-        1640995200
+        1640995200,
+        validInvoice
       );
     });
 
@@ -155,7 +159,7 @@ describe(BaseHandler, () => {
       const totalPaidInSubscriptionInvoicesWithinPeriodFn = vi.fn(() => Promise.resolve(2500));
 
       await expect(
-        testTotalPaidInBillingCycleWithRespectToCurrentPlan(
+        testTotalPaidInSubscriptionInvoicesWithinBillingCycle(
           invalidInvoice,
           totalPaidInSubscriptionInvoicesWithinPeriodFn
         )
@@ -174,7 +178,7 @@ describe(BaseHandler, () => {
       const totalPaidInSubscriptionInvoicesWithinPeriodFn = vi.fn(() => Promise.resolve(2500));
 
       await expect(
-        testTotalPaidInBillingCycleWithRespectToCurrentPlan(
+        testTotalPaidInSubscriptionInvoicesWithinBillingCycle(
           invalidInvoice,
           totalPaidInSubscriptionInvoicesWithinPeriodFn
         )
@@ -188,7 +192,7 @@ describe(BaseHandler, () => {
       const totalPaidInSubscriptionInvoicesWithinPeriodFn = vi.fn(() => Promise.resolve(2500));
 
       await expect(
-        testTotalPaidInBillingCycleWithRespectToCurrentPlan(
+        testTotalPaidInSubscriptionInvoicesWithinBillingCycle(
           invalidInvoice,
           totalPaidInSubscriptionInvoicesWithinPeriodFn
         )
@@ -205,7 +209,7 @@ describe(BaseHandler, () => {
       const totalPaidInSubscriptionInvoicesWithinPeriodFn = vi.fn(() => Promise.resolve(2500));
 
       await expect(
-        testTotalPaidInBillingCycleWithRespectToCurrentPlan(
+        testTotalPaidInSubscriptionInvoicesWithinBillingCycle(
           invalidInvoice,
           totalPaidInSubscriptionInvoicesWithinPeriodFn
         )
@@ -220,7 +224,7 @@ describe(BaseHandler, () => {
       );
 
       await expect(
-        testTotalPaidInBillingCycleWithRespectToCurrentPlan(
+        testTotalPaidInSubscriptionInvoicesWithinBillingCycle(
           validInvoice,
           totalPaidInSubscriptionInvoicesWithinPeriodFn
         )
@@ -325,10 +329,10 @@ describe(BaseHandler, () => {
 
 class TestableBaseHandler extends BaseHandler {
   public constructor() {
-    super('invoice.payment_succeeded');
+    super('invoice.payment_succeeded', logger);
   }
 
-  public testTotalPaidInBillingCycleWithRespectToCurrentPlan(
+  public totalPaidInSubscriptionInvoicesWithinBillingCycle(
     invoice: Stripe.Invoice,
     stripeService: StripeService
   ) {
@@ -352,16 +356,17 @@ class TestableBaseHandler extends BaseHandler {
   }
 }
 
-function testTotalPaidInBillingCycleWithRespectToCurrentPlan(
+function testTotalPaidInSubscriptionInvoicesWithinBillingCycle(
   invoice: Stripe.Invoice,
-  totalPaidInSubscriptionInvoicesWithinPeriodFn: () => Promise<number>
+  totalPaidInSubscriptionInvoicesWithinBillingCycleFn: () => Promise<number>
 ) {
   const stripeServiceMock = {
-    totalPaidInSubscriptionInvoicesWithinPeriod: totalPaidInSubscriptionInvoicesWithinPeriodFn
+    totalPaidInSubscriptionInvoicesWithinBillingCycle:
+      totalPaidInSubscriptionInvoicesWithinBillingCycleFn
   } as unknown as StripeService;
 
   const handler = new TestableBaseHandler();
-  return handler.testTotalPaidInBillingCycleWithRespectToCurrentPlan(invoice, stripeServiceMock);
+  return handler.totalPaidInSubscriptionInvoicesWithinBillingCycle(invoice, stripeServiceMock);
 }
 
 function testExtractSubscriptionIdFromInvoice(invoice: Stripe.Invoice) {

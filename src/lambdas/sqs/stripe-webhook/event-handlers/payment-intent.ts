@@ -9,11 +9,8 @@ export class PaymentIntentSucceededHandler
   extends BaseHandler
   implements EventHandler<Stripe.PaymentIntentSucceededEvent>
 {
-  public constructor(
-    stripeEventType: StripeEventType,
-    private readonly logger: Logger
-  ) {
-    super(stripeEventType);
+  public constructor(stripeEventType: StripeEventType, logger: Logger) {
+    super(stripeEventType, logger);
   }
 
   public handle(
@@ -35,11 +32,8 @@ export class PaymentIntentFailedHandler
   extends BaseHandler
   implements EventHandler<Stripe.PaymentIntentPaymentFailedEvent>
 {
-  public constructor(
-    stripeEventType: StripeEventType,
-    private readonly logger: Logger
-  ) {
-    super(stripeEventType);
+  public constructor(stripeEventType: StripeEventType, logger: Logger) {
+    super(stripeEventType, logger);
   }
 
   public handle(

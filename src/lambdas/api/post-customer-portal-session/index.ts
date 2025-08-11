@@ -25,7 +25,7 @@ async function lambdaHandler(
   const apiKey = stripeAuthConfig.apiKey;
 
   const userBaseStore = UserBaseStore.withConfig(userBaseStoreConfig, logger);
-  const stripeService = await StripeService.withConfig(apiKey);
+  const stripeService = await StripeService.withConfig(apiKey, logger);
 
   const frontendUrl = validateRequestHeaderOrigin({
     headers: event.headers || {},

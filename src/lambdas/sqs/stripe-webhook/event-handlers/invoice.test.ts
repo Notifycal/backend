@@ -17,7 +17,7 @@ import type { TopupService } from '@services/topup';
 import { validPaymentPlans } from '@testing/data/pricing';
 import type Stripe from 'stripe';
 import { describe, expect, it, vi, type Mock } from 'vitest';
-import { InvoicePaymentSucceededHandler } from './invoice';
+import { InvoiceCreatedHandler, InvoicePaymentSucceededHandler } from './invoice';
 
 describe(InvoicePaymentSucceededHandler, () => {
   const validIdentity: UserIdentity<IdpName> = {
@@ -533,7 +533,7 @@ describe(InvoicePaymentSucceededHandler, () => {
     const upgradeFn = vi.fn().mockResolvedValue(undefined);
     const downgradeFn = vi.fn();
     const addTopupFn = vi.fn();
-    const totalPaidInBillingCycleWithRespectToCurrentPlanFn = vi.fn(() => Promise.resolve(700));
+    const totalPaidInSubscriptionInvoicesWithinBillingCycleFn = vi.fn(() => Promise.resolve(700));
 
     await testIt(
       validEvent(validUpgradeInvoice),
@@ -544,7 +544,7 @@ describe(InvoicePaymentSucceededHandler, () => {
       downgradeFn,
       addTopupFn,
       validTiers,
-      totalPaidInBillingCycleWithRespectToCurrentPlanFn
+      totalPaidInSubscriptionInvoicesWithinBillingCycleFn
     );
 
     expect(upgradeFn).toHaveBeenCalledTimes(1);
@@ -597,7 +597,7 @@ describe(InvoicePaymentSucceededHandler, () => {
     const upgradeFn = vi.fn().mockResolvedValue(undefined);
     const downgradeFn = vi.fn();
     const addTopupFn = vi.fn();
-    const totalPaidInBillingCycleWithRespectToCurrentPlanFn = vi.fn(() => Promise.resolve(2450));
+    const totalPaidInSubscriptionInvoicesWithinBillingCycleFn = vi.fn(() => Promise.resolve(2450));
 
     const goodToBestUpgrade: Stripe.Invoice = {
       ...validUpgradeInvoice,
@@ -619,7 +619,7 @@ describe(InvoicePaymentSucceededHandler, () => {
       downgradeFn,
       addTopupFn,
       validTiers,
-      totalPaidInBillingCycleWithRespectToCurrentPlanFn
+      totalPaidInSubscriptionInvoicesWithinBillingCycleFn
     );
 
     expect(upgradeFn).toHaveBeenCalledWith(
@@ -1046,7 +1046,7 @@ describe(InvoicePaymentSucceededHandler, () => {
       quantity: number
     ) => Promise<CreditAdditionResult<'add'>>,
     tiers: TierMap,
-    totalPaidInSubscriptionInvoicesWithinPeriodFn?: () => Promise<number>,
+    totalPaidInSubscriptionInvoicesWithinBillingCycleFn?: () => Promise<number>,
     topups: TopupMap = validTopups
   ): Promise<void> {
     const subscriptionServiceMock = {
@@ -1067,7 +1067,8 @@ describe(InvoicePaymentSucceededHandler, () => {
     } as unknown as Logger;
 
     const stripeServiceMock = {
-      totalPaidInSubscriptionInvoicesWithinPeriod: totalPaidInSubscriptionInvoicesWithinPeriodFn
+      totalPaidInSubscriptionInvoicesWithinBillingCycle:
+        totalPaidInSubscriptionInvoicesWithinBillingCycleFn
     } as unknown as StripeService;
 
     const handler = new InvoicePaymentSucceededHandler(
@@ -1079,6 +1080,169 @@ describe(InvoicePaymentSucceededHandler, () => {
       stripeServiceMock,
       loggerMock
     );
+
+    return handler.handle(event, userIdentity);
+  }
+});
+
+describe(InvoiceCreatedHandler, () => {
+  const validIdentity: UserIdentity<IdpName> = {
+    userId: 'user-123' as UserId,
+    email: 'user@example.com' as Email,
+    idp: 'google.com',
+    idpId: '42524352354' as IdpId
+  };
+
+  const validDraftRenewalInvoice: Stripe.Invoice = {
+    id: 'in_draft_renewal_123',
+    customer: 'cus_test456',
+    status: 'draft',
+    billing_reason: 'subscription_cycle',
+    created: 1703980800,
+    period_start: 1640908800,
+    amount_due: 2000,
+    lines: {
+      data: []
+    }
+  } as unknown as Stripe.Invoice;
+
+  const validOpenRenewalInvoice: Stripe.Invoice = {
+    ...validDraftRenewalInvoice,
+    status: 'open'
+  } as Stripe.Invoice;
+
+  const validDraftCreateInvoice: Stripe.Invoice = {
+    ...validDraftRenewalInvoice,
+    billing_reason: 'subscription_create'
+  } as Stripe.Invoice;
+
+  const validInvoiceWithoutId: Stripe.Invoice = {
+    ...validDraftRenewalInvoice,
+    id: null
+  } as unknown as Stripe.Invoice;
+
+  it('should force payment collection for draft renewal invoice successfully', async () => {
+    const forcePaymentCollectionFn = vi.fn().mockResolvedValue(undefined);
+
+    await testIt(validEvent(validDraftRenewalInvoice), validIdentity, forcePaymentCollectionFn);
+
+    expect(forcePaymentCollectionFn).toHaveBeenCalledTimes(1);
+    expect(forcePaymentCollectionFn).toHaveBeenCalledWith(validDraftRenewalInvoice.id);
+  });
+
+  it('should not force payment collection for open renewal invoice', async () => {
+    const forcePaymentCollectionFn = vi.fn();
+
+    await testIt(validEvent(validOpenRenewalInvoice), validIdentity, forcePaymentCollectionFn);
+
+    expect(forcePaymentCollectionFn).not.toHaveBeenCalled();
+  });
+
+  it('should not force payment collection for draft subscription_create invoice', async () => {
+    const forcePaymentCollectionFn = vi.fn();
+
+    await testIt(validEvent(validDraftCreateInvoice), validIdentity, forcePaymentCollectionFn);
+
+    expect(forcePaymentCollectionFn).not.toHaveBeenCalled();
+  });
+
+  it('should not throw error when invoice has no id', async () => {
+    const forcePaymentCollectionFn = vi.fn();
+
+    await testIt(validEvent(validInvoiceWithoutId), validIdentity, forcePaymentCollectionFn);
+
+    expect(forcePaymentCollectionFn).not.toHaveBeenCalled();
+  });
+
+  it('should continue when forcePaymentCollection fails', async () => {
+    const forcePaymentCollectionFn = vi
+      .fn()
+      .mockRejectedValue(new Error('Payment collection failed'));
+
+    const result = testIt(
+      validEvent(validDraftRenewalInvoice),
+      validIdentity,
+      forcePaymentCollectionFn
+    );
+
+    await expect(result).resolves.toBeUndefined();
+    expect(forcePaymentCollectionFn).toHaveBeenCalledTimes(1);
+    expect(forcePaymentCollectionFn).toHaveBeenCalledWith(validDraftRenewalInvoice.id);
+  });
+
+  it('should log error when invoice has no id', async () => {
+    const forcePaymentCollectionFn = vi.fn();
+    const loggerMock = {
+      info: vi.fn(),
+      error: vi.fn()
+    };
+
+    const handler = new InvoiceCreatedHandler(
+      'invoice.created',
+      { forcePaymentCollection: forcePaymentCollectionFn } as unknown as StripeService,
+      loggerMock as unknown as Logger
+    );
+
+    await handler.handle(validEvent(validInvoiceWithoutId), validIdentity);
+
+    expect(loggerMock.error).toHaveBeenCalledWith(
+      'Invoice with no id. Avoiding error to protect other customers. Moving on...',
+      {
+        invoice: validInvoiceWithoutId
+      }
+    );
+  });
+
+  it('should log error when forcePaymentCollection fails', async () => {
+    const paymentError = new Error('Payment collection failed');
+    const forcePaymentCollectionFn = vi.fn().mockRejectedValue(paymentError);
+    const loggerMock = {
+      info: vi.fn(),
+      error: vi.fn()
+    };
+
+    const handler = new InvoiceCreatedHandler(
+      'invoice.created',
+      { forcePaymentCollection: forcePaymentCollectionFn } as unknown as StripeService,
+      loggerMock as unknown as Logger
+    );
+
+    await handler.handle(validEvent(validDraftRenewalInvoice), validIdentity);
+
+    expect(loggerMock.error).toHaveBeenCalledWith(
+      'Could not for payment collection on renewal invoice:',
+      { error: paymentError }
+    );
+  });
+
+  function validEvent(invoice: Stripe.Invoice): Stripe.InvoiceCreatedEvent {
+    const event: Stripe.InvoiceCreatedEvent = {
+      id: 'evt_test',
+      object: 'event',
+      created: Date.now(),
+      data: {
+        object: invoice
+      },
+      type: 'invoice.created'
+    } as Stripe.InvoiceCreatedEvent;
+    return event;
+  }
+
+  function testIt(
+    event: Stripe.InvoiceCreatedEvent,
+    userIdentity: UserIdentity<IdpName>,
+    forcePaymentCollectionFn: (invoiceId: string) => Promise<void>
+  ): Promise<void> {
+    const stripeServiceMock = {
+      forcePaymentCollection: forcePaymentCollectionFn
+    } as unknown as StripeService;
+
+    const loggerMock = {
+      info: vi.fn(),
+      error: vi.fn()
+    } as unknown as Logger;
+
+    const handler = new InvoiceCreatedHandler('invoice.created', stripeServiceMock, loggerMock);
 
     return handler.handle(event, userIdentity);
   }

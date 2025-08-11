@@ -18,6 +18,7 @@ module "stripe_webhook" {
     "customer.subscription.resumed",
     "invoice.payment_succeeded",
     "invoice.payment_failed",
+    "invoice.created",
     "checkout.session.completed"
   ]
   integration_config = {

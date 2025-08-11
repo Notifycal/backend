@@ -9,11 +9,8 @@ export class CustomerCreatedHandler
   extends BaseHandler
   implements EventHandler<Stripe.CustomerCreatedEvent>
 {
-  public constructor(
-    stripeEventType: StripeEventType,
-    private readonly logger: Logger
-  ) {
-    super(stripeEventType);
+  public constructor(stripeEventType: StripeEventType, logger: Logger) {
+    super(stripeEventType, logger);
   }
 
   public handle(
@@ -34,11 +31,8 @@ export class CustomerUpdatedHandler
   extends BaseHandler
   implements EventHandler<Stripe.CustomerUpdatedEvent>
 {
-  public constructor(
-    stripeEventType: StripeEventType,
-    private readonly logger: Logger
-  ) {
-    super(stripeEventType);
+  public constructor(stripeEventType: StripeEventType, logger: Logger) {
+    super(stripeEventType, logger);
   }
 
   public handle(
@@ -60,11 +54,8 @@ export class CustomerDeletedHandler
   extends BaseHandler
   implements EventHandler<Stripe.CustomerDeletedEvent>
 {
-  public constructor(
-    stripeEventType: StripeEventType,
-    private readonly logger: Logger
-  ) {
-    super(stripeEventType);
+  public constructor(stripeEventType: StripeEventType, logger: Logger) {
+    super(stripeEventType, logger);
   }
 
   public handle(

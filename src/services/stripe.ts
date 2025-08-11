@@ -1,4 +1,5 @@
 /* eslint-disable camelcase */
+import type { Logger } from '@aws-lambda-powertools/logger';
 import { logger } from '@common/powertools';
 import type { Tier, Topup } from '@model/PaymentPlans';
 import type {
@@ -19,12 +20,16 @@ export class StripeService {
   private readonly stripeClient: Stripe;
   private readonly liveMode: boolean;
 
-  private constructor(stripeClient: Stripe, liveMode: boolean) {
+  private constructor(
+    stripeClient: Stripe,
+    liveMode: boolean,
+    private readonly logger: Logger
+  ) {
     this.stripeClient = stripeClient;
     this.liveMode = liveMode;
   }
 
-  public static async withConfig(apiKey: string): Promise<StripeService> {
+  public static async withConfig(apiKey: string, logger: Logger): Promise<StripeService> {
     const httpClient = new HttpClient(undefined, undefined, 'Stripe');
     const stripeClient = new Stripe(apiKey, {
       apiVersion: '2025-07-30.basil',
@@ -36,7 +41,7 @@ export class StripeService {
       () => true
     );
 
-    return new StripeService(stripeClient, liveMode);
+    return new StripeService(stripeClient, liveMode, logger);
   }
 
   private createTestClock(userEmail: Email): Promise<string> {
@@ -236,10 +241,43 @@ export class StripeService {
     return this.getSubscriptions(stripeCustomerId).then((subscriptions) => subscriptions.length);
   }
 
-  public totalPaidInSubscriptionInvoicesWithinPeriod(
+  public forcePaymentCollection(invoiceId: string): Promise<void> {
+    return this.stripeClient.invoices
+      .finalizeInvoice(invoiceId, {
+        auto_advance: true
+      })
+      .then((finalizeResult) => {
+        this.logger.info(`Result of finalizing invoice`, {
+          invoiceId,
+          result: finalizeResult
+        });
+        if (finalizeResult.status === 'open') {
+          return this.stripeClient.invoices.pay(finalizeResult.id!).then(
+            (payResult) => {
+              logger.info('Successfully charged renewal immediately', {
+                payResult
+              });
+            },
+            (error) => {
+              logger.warn(
+                'Failed to immediately collect renewal payment. Invoice will be charged in normal Stripe retry cycle. The downside is upgrades might not be correctly handled until then (1 hour).',
+                { error }
+              );
+            }
+          );
+        }
+        this.logger.info(
+          `The result of finalizing a draft renewal invoice has not been the invoice is open`
+        );
+        return Promise.resolve();
+      });
+  }
+
+  public totalPaidInSubscriptionInvoicesWithinBillingCycle(
     subscriptionId: string,
-    periodStart: UnixTimestamp,
-    periodEnd: UnixTimestamp
+    billingCycleStart: UnixTimestamp,
+    billingCycleEnd: UnixTimestamp,
+    invoice: Stripe.Invoice
   ): Promise<number> {
     // In order to understand Stripe stuff and this filtering, here are the [docs](https://docs.stripe.com/api/invoices/object)
     const creationOrRenewalOrUpgrade: Array<Stripe.Invoice.BillingReason> = [
@@ -255,24 +293,53 @@ export class StripeService {
         i.amount_paid > 0 // 'total' !== 'amount paid'. From docs: total -> "Total after discounts and taxes" whereas amount_paid has no interpretation.
       );
     };
-    return this.getInvoicesInPeriod(subscriptionId, periodStart, periodEnd).then((invoices) => {
-      return invoices.data
-        .filter(billingReasonPredicate)
-        .reduce((sum, invoice) => sum + invoice.amount_paid, 0);
-    });
+
+    return this.getInvoicesInPeriod(subscriptionId, billingCycleStart, billingCycleEnd).then(
+      (invoicesInPeriodEventuallyConsistent) => {
+        // Workaround: because the parameter 'created' of stripe.invoices.list does not work properly/filter as expected - it returns nothing -,
+        // we are using stripe.invoices.search API.
+        // Invoices Search API is eventuallly consistent [as per docs](https://docs.stripe.com/api/subscriptions/search), therefore,
+        // sometimes the just created upgrade invoice does not get retrieved by the API.
+        // They claim data is searchable in less than a minute under normal conditions.
+        // That's why we look it up and if it is not present we add it to the list for the calculation.
+        const fetchedInvoicesToCalculateTotalInBillingCycle =
+          invoicesInPeriodEventuallyConsistent.data.some((i) => i.id === invoice.id)
+            ? invoicesInPeriodEventuallyConsistent.data
+            : [invoice, ...invoicesInPeriodEventuallyConsistent.data];
+
+        const allInvoicesSatisyingThePredicate =
+          fetchedInvoicesToCalculateTotalInBillingCycle.filter(billingReasonPredicate);
+        const totalPaidWithinBillingCycle = allInvoicesSatisyingThePredicate.reduce(
+          (sum, invoice) => sum + invoice.amount_paid,
+          0
+        );
+        const fetchedInvoicesToCalculateTotalInBillingCycleIds =
+          fetchedInvoicesToCalculateTotalInBillingCycle.map((v) => v.id);
+        const allInvoicesSatisyingThePredicateIds = allInvoicesSatisyingThePredicate.map(
+          (v) => v.id
+        );
+        this.logger.appendKeys({
+          subscriptionId,
+          periodStart: billingCycleStart,
+          periodEnd: billingCycleEnd,
+          invoicesInPeriodEventuallyConsistent,
+          fetchedInvoicesToCalculateTotalInBillingCycleIds,
+          allInvoicesSatisyingThePredicateIds,
+          totalPaidWithinBillingCycle
+        });
+        this.logger.info(`Relevant information related to upgrade`);
+        return totalPaidWithinBillingCycle;
+      }
+    );
   }
 
   private getInvoicesInPeriod(
     subscriptionId: string,
     periodStart: UnixTimestamp,
     periodEnd: UnixTimestamp
-  ): Stripe.ApiListPromise<Stripe.Invoice> {
-    return this.stripeClient.invoices.list({
-      subscription: subscriptionId,
-      created: {
-        gte: periodStart,
-        lte: periodEnd
-      }
+  ): Stripe.ApiSearchResultPromise<Stripe.Invoice> {
+    return this.stripeClient.invoices.search({
+      query: `subscription:"${subscriptionId}" AND created>=${periodStart} AND created<=${periodEnd}`
     });
   }
 }

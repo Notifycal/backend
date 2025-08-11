@@ -10,11 +10,8 @@ export class SubscriptionCreatedHandler
   extends BaseHandler
   implements EventHandler<Stripe.CustomerSubscriptionCreatedEvent>
 {
-  public constructor(
-    stripeEventType: StripeEventType,
-    private readonly logger: Logger
-  ) {
-    super(stripeEventType);
+  public constructor(stripeEventType: StripeEventType, logger: Logger) {
+    super(stripeEventType, logger);
   }
 
   public handle(
@@ -39,9 +36,9 @@ export class SubscriptionUpdatedHandler
   public constructor(
     stripeEventType: StripeEventType,
     private readonly subscriptionService: SubscriptionService<IdpName>,
-    private readonly logger: Logger
+    logger: Logger
   ) {
-    super(stripeEventType);
+    super(stripeEventType, logger);
   }
 
   public handle(
@@ -83,9 +80,9 @@ export class SubscriptionDeletedHandler
   public constructor(
     stripeEventType: StripeEventType,
     private readonly subscriptionService: SubscriptionService<IdpName>,
-    private readonly logger: Logger
+    logger: Logger
   ) {
-    super(stripeEventType);
+    super(stripeEventType, logger);
   }
 
   public handle(
@@ -108,11 +105,8 @@ export class SubscriptionPausedHandler
   extends BaseHandler
   implements EventHandler<Stripe.CustomerSubscriptionPausedEvent>
 {
-  public constructor(
-    stripeEventType: StripeEventType,
-    private readonly logger: Logger
-  ) {
-    super(stripeEventType);
+  public constructor(stripeEventType: StripeEventType, logger: Logger) {
+    super(stripeEventType, logger);
   }
 
   public handle(
@@ -133,11 +127,8 @@ export class SubscriptionResumedHandler
   extends BaseHandler
   implements EventHandler<Stripe.CustomerSubscriptionResumedEvent>
 {
-  public constructor(
-    stripeEventType: StripeEventType,
-    private readonly logger: Logger
-  ) {
-    super(stripeEventType);
+  public constructor(stripeEventType: StripeEventType, logger: Logger) {
+    super(stripeEventType, logger);
   }
 
   public handle(

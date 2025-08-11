@@ -1,3 +1,4 @@
+import type { Logger } from '@aws-lambda-powertools/logger';
 import type { Percentage, UnixTimestamp } from '@notifycal/shared/types';
 import type { StripeService } from '@services/stripe';
 import { calculateRemainingPercentageFromAmounts } from '@utils/maths';
@@ -6,7 +7,10 @@ import type Stripe from 'stripe';
 import type { StripeEventType } from '../stripe-schemas';
 
 export abstract class BaseHandler {
-  protected constructor(protected readonly stripeEventType: StripeEventType) {}
+  protected constructor(
+    protected readonly stripeEventType: StripeEventType,
+    protected readonly logger: Logger
+  ) {}
 
   protected handleError(operation: string): (error: unknown) => Promise<never> {
     return (error: unknown) =>
@@ -100,12 +104,21 @@ export abstract class BaseHandler {
     })
       .then(({ periodStart, periodEnd, subscriptionId, currentPlanAmount }) =>
         stripeService
-          .totalPaidInSubscriptionInvoicesWithinPeriod(subscriptionId, periodStart, periodEnd)
+          .totalPaidInSubscriptionInvoicesWithinBillingCycle(
+            subscriptionId,
+            periodStart,
+            periodEnd,
+            invoice
+          )
           .then((totalPaidInCurrentBillingCycle) => ({
             totalPaidInCurrentBillingCycle,
             currentPlanAmount
           }))
       )
+      .then((totalPaidInCurrentBillingCycle) => {
+        this.logger.info(`Total paid in current billing cycle`, { totalPaidInCurrentBillingCycle });
+        return totalPaidInCurrentBillingCycle;
+      })
       .then(({ totalPaidInCurrentBillingCycle, currentPlanAmount }) =>
         calculateRemainingPercentageFromAmounts(totalPaidInCurrentBillingCycle, currentPlanAmount)
       );
