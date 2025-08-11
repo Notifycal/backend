@@ -144,11 +144,34 @@ describe(InvoicePaymentSucceededHandler, () => {
     }
   } as Stripe.Invoice;
 
+  const validBestLineItemRefund: Stripe.InvoiceLineItem = {
+    id: 'il_test_best_refund',
+    subscription: 'sub_test_123',
+    period: {
+      end: 1757087480
+    },
+    pricing: {
+      price_details: {
+        price: validTiers.best.priceId
+      }
+    },
+    plan: {
+      amount: 6000
+    },
+    amount: -5790 // refund from best tier
+  } as unknown as Stripe.InvoiceLineItem;
+
+  const validBetterLineItemForDowngrade: Stripe.InvoiceLineItem = {
+    ...validBetterLineItem,
+    amount: 2413 // charge for better tier (less than refund)
+  } as unknown as Stripe.InvoiceLineItem;
+
   const validDowngradeInvoice: Stripe.Invoice = {
     ...validUpgradeInvoice,
-    amount_paid: 0,
+    amount_paid: 0, // no additional payment needed because refund > charge
+    total: -3377, // negative total indicates net refund
     lines: {
-      data: [validInvoiceLineItemGoodRefund, validBetterLineItemRefund]
+      data: [validBestLineItemRefund, validBetterLineItemForDowngrade]
     }
   } as Stripe.Invoice;
 
@@ -557,7 +580,10 @@ describe(InvoicePaymentSucceededHandler, () => {
     );
 
     expect(downgradeFn).toHaveBeenCalledTimes(1);
-    expect(downgradeFn).toHaveBeenCalledWith(validIdentity);
+    expect(downgradeFn).toHaveBeenCalledWith(validIdentity, {
+      current: validTiers.best.id,
+      next: validTiers.better.id
+    });
     expect(upgradeFn).not.toHaveBeenCalled();
     expect(createFn).not.toHaveBeenCalled();
     expect(renewFn).not.toHaveBeenCalled();
@@ -867,6 +893,106 @@ describe(InvoicePaymentSucceededHandler, () => {
     );
 
     expectNoServiceCallsMade(createFn, renewFn, upgradeFn, downgradeFn, addTopupFn);
+  });
+
+  it('should throw error when no line item has negative amount in subscription update', async () => {
+    const createFn = vi.fn();
+    const renewFn = vi.fn();
+    const upgradeFn = vi.fn();
+    const downgradeFn = vi.fn();
+    const addTopupFn = vi.fn();
+
+    const noNegativeAmountInvoice: Stripe.Invoice = {
+      ...validUpgradeInvoice,
+      lines: {
+        data: [validBetterLineItem, validBestLineItem]
+      }
+    } as Stripe.Invoice;
+
+    const result = testIt(
+      validEvent(noNegativeAmountInvoice),
+      validIdentity,
+      createFn,
+      renewFn,
+      upgradeFn,
+      downgradeFn,
+      addTopupFn,
+      validTiers
+    );
+
+    await expect(result).rejects.toThrow(
+      'Error while doing upgrade-subscription: tiers could not be extracted out of the invoice'
+    );
+
+    expectNoServiceCallsMade(createFn, renewFn, upgradeFn, downgradeFn, addTopupFn);
+  });
+
+  it('should throw error when no line item has positive amount in subscription update', async () => {
+    const createFn = vi.fn();
+    const renewFn = vi.fn();
+    const upgradeFn = vi.fn();
+    const downgradeFn = vi.fn();
+    const addTopupFn = vi.fn();
+
+    const noPositiveAmountInvoice: Stripe.Invoice = {
+      ...validUpgradeInvoice,
+      amount_paid: 0, // Force downgrade logic
+      lines: {
+        data: [validInvoiceLineItemGoodRefund, validBetterLineItemRefund]
+      }
+    } as Stripe.Invoice;
+
+    const result = testIt(
+      validEvent(noPositiveAmountInvoice),
+      validIdentity,
+      createFn,
+      renewFn,
+      upgradeFn,
+      downgradeFn,
+      addTopupFn,
+      validTiers
+    );
+
+    await expect(result).rejects.toThrow(
+      'Error while doing downgrade-subscription: tiers could not be extracted out of the invoice'
+    );
+
+    expectNoServiceCallsMade(createFn, renewFn, upgradeFn, downgradeFn, addTopupFn);
+  });
+
+  it('should correctly extract tiers based on amount sign regardless of order', async () => {
+    const createFn = vi.fn();
+    const renewFn = vi.fn();
+    const upgradeFn = vi.fn().mockResolvedValue(undefined);
+    const downgradeFn = vi.fn();
+    const addTopupFn = vi.fn();
+    const totalPaidInBillingCycleWithRespectToCurrentPlanFn = vi.fn(() => Promise.resolve(700));
+
+    const reorderedUpgradeInvoice: Stripe.Invoice = {
+      ...validUpgradeInvoice,
+      lines: {
+        data: [validBetterLineItem, validInvoiceLineItemGoodRefund]
+      }
+    } as Stripe.Invoice;
+
+    await testIt(
+      validEvent(reorderedUpgradeInvoice),
+      validIdentity,
+      createFn,
+      renewFn,
+      upgradeFn,
+      downgradeFn,
+      addTopupFn,
+      validTiers,
+      totalPaidInBillingCycleWithRespectToCurrentPlanFn
+    );
+
+    expect(upgradeFn).toHaveBeenCalledWith(
+      validIdentity,
+      validTiers.good.id,
+      validTiers.better.id,
+      expect.any(Number)
+    );
   });
 
   function validEvent(invoice: Stripe.Invoice): Stripe.InvoicePaymentSucceededEvent {

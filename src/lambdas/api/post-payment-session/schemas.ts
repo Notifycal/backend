@@ -8,9 +8,14 @@ const languagePartialSchema = {
   language: languageCodeSchema
 };
 
-const tierIdSchemas = tierIds.map((tier) => z.literal(tier));
+const _tierIdSchemas = tierIds.map((tier) => z.literal(tier));
+export const tierIdSchemas = z.union([
+  _tierIdSchemas[0]!,
+  _tierIdSchemas[1]!,
+  ..._tierIdSchemas.slice(2)
+]);
 const tierCheckoutSessionSchema = z.object({
-  tier: z.union([tierIdSchemas[0]!, tierIdSchemas[1]!, ...tierIdSchemas.slice(2)]),
+  tier: tierIdSchemas,
   ...languagePartialSchema
 });
 const topupCheckoutSessionSchema = z.object({

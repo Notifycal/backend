@@ -164,16 +164,16 @@ export class InvoicePaymentSucceededHandler
 
   private extractUpdateTiers(
     invoice: Stripe.Invoice
-  ): Promise<{ previousTier: TierId; currentTier: TierId }> {
-    const previousTierInvoiceLineItem = invoice.lines.data[0];
-    const currentTierInvoiceLineItem = invoice.lines.data[1];
+  ): Promise<{ refundedTier: TierId; chargedTier: TierId }> {
+    const refundedTierInvoiceLineItem = invoice.lines.data.find((i) => i.amount < 0);
+    const chargedTierInvoiceLineItem = invoice.lines.data.find((i) => i.amount > 0);
     return Promise.all([
-      this.extractProduct(previousTierInvoiceLineItem, this.tiers),
-      this.extractProduct(currentTierInvoiceLineItem, this.tiers)
+      this.extractProduct(refundedTierInvoiceLineItem, this.tiers),
+      this.extractProduct(chargedTierInvoiceLineItem, this.tiers)
     ]).then(
-      ([previousTier, currentTier]) => ({
-        previousTier,
-        currentTier
+      ([refundedTier, chargedTier]) => ({
+        refundedTier,
+        chargedTier
       }),
       (error) =>
         Promise.reject(
@@ -187,7 +187,7 @@ export class InvoicePaymentSucceededHandler
   private async executeSubscriptionUpdate(
     userIdentity: UserIdentity<IdpName>,
     invoice: Stripe.Invoice,
-    tiers: { previousTier: TierId; currentTier: TierId },
+    tiers: { refundedTier: TierId; chargedTier: TierId },
     updateType: 'upgrade-subscription' | 'downgrade-subscription' | 'undetermined'
   ): Promise<void> {
     return match(updateType)
@@ -196,8 +196,8 @@ export class InvoicePaymentSucceededHandler
           .then((currentPlanPaidPercentage) =>
             this.subscriptionService.upgrade(
               userIdentity,
-              tiers.previousTier,
-              tiers.currentTier,
+              tiers.refundedTier,
+              tiers.chargedTier,
               currentPlanPaidPercentage
             )
           )
@@ -208,7 +208,10 @@ export class InvoicePaymentSucceededHandler
       })
       .with('downgrade-subscription', () =>
         this.subscriptionService
-          .scheduleDowngrade(userIdentity)
+          .scheduleDowngrade(userIdentity, {
+            current: tiers.refundedTier,
+            next: tiers.chargedTier
+          })
           .catch((error) => this.errorHandler('downgrade-subscription')(error))
       )
       .with('undetermined', () =>
