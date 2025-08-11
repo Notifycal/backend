@@ -29,8 +29,9 @@ export class HttpClient {
     auth: AxiosBasicCredentials | undefined,
     targetName: IntegrationVendorName
   ) {
+    // Gotcha: careful here typescheck isn't strict at all. Make sure the property it is being uused match the type. Spread operator is masking it.
     this.axiosInstance = axios.create({
-      ...(baseUrl && { baseUrl: baseUrl }),
+      ...(baseUrl && { baseURL: baseUrl }),
       ...(auth && { auth: auth }),
       restResourceName: 'notused'
     });
