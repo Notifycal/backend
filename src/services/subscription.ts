@@ -170,13 +170,17 @@ export class SubscriptionService<TIdpName extends IdpName> {
     );
   }
 
-  public scheduleDowngrade(userIdentity: UserIdentity<TIdpName>): Promise<void> {
+  public scheduleDowngrade(
+    userIdentity: UserIdentity<TIdpName>,
+    tiers: { current: TierId; next: TierId }
+  ): Promise<void> {
     logger.info('Downgrade scheduled. Nothing to do. Credits will be reset on next cycle', {
-      userId: userIdentity.userId
+      userId: userIdentity.userId,
+      tiers
     });
 
     return this.snsService.safePublish(
-      SubscriptionEvents.subscriptionDowngradeScheduledEvent(userIdentity)
+      SubscriptionEvents.subscriptionDowngradeScheduledEvent(userIdentity, tiers)
     );
   }
 

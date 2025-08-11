@@ -450,8 +450,9 @@ describe('SubscriptionService Event Publishing', () => {
     it('should publish SubscriptionDowngradeScheduled event', async () => {
       const safePublishFn = vi.fn().mockResolvedValue(undefined);
       const service = testIt({}, safePublishFn);
+      const tiers = { current: 'best' as const, next: 'better' as const };
 
-      await service.scheduleDowngrade(validIdentity);
+      await service.scheduleDowngrade(validIdentity, tiers);
 
       expect(safePublishFn).toHaveBeenCalledTimes(1);
       expect(safePublishFn).toHaveBeenCalledWith(
@@ -460,7 +461,9 @@ describe('SubscriptionService Event Publishing', () => {
           userId: validUserId,
           idp: 'google.com',
           idpId: 'google-user-123',
-          data: {}
+          data: {
+            tiers
+          }
         })
       );
     });
