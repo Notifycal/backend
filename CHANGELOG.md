@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.56.5](https://github.com/Notifycal/backend/compare/v0.56.4...v0.56.5) (2025-08-14)
+
+
+### Bug Fixes
+
+* **deps:** Update AWS packages ([#963](https://github.com/Notifycal/backend/issues/963)) ([ceae816](https://github.com/Notifycal/backend/commit/ceae8167208882cfc0b41bc4a787474b1b9e4caa))
+* **deps:** Update dependency @vonage/server-sdk to v3.22.4 ([#964](https://github.com/Notifycal/backend/issues/964)) ([c9595b4](https://github.com/Notifycal/backend/commit/c9595b4d5e06a5c4e2932b36216cef50984ab21a))
+* **deps:** Update dependency googleapis to v156 ([#971](https://github.com/Notifycal/backend/issues/971)) ([2d65e31](https://github.com/Notifycal/backend/commit/2d65e3160b0b2bbc8433407416024e8863be39c7))
+* **deps:** Update dependency libphonenumber-js to v1.12.11 ([#967](https://github.com/Notifycal/backend/issues/967)) ([f8a0a7d](https://github.com/Notifycal/backend/commit/f8a0a7d85bb64e377288efe3261c09e115595b34))
+* **deps:** Update Middy middleware packages to v6.4.3 ([#970](https://github.com/Notifycal/backend/issues/970)) ([72aac57](https://github.com/Notifycal/backend/commit/72aac573f5f3ca332558494127003811ee75517b))
+
 ## [0.56.4](https://github.com/Notifycal/backend/compare/v0.56.3...v0.56.4) (2025-08-11)
 
 
