@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.56.6](https://github.com/Notifycal/backend/compare/v0.56.5...v0.56.6) (2025-08-20)
+
+
+### Bug Fixes
+
+* **deps:** Update @notifycal/shared and zod ([#975](https://github.com/Notifycal/backend/issues/975)) ([9ed67f9](https://github.com/Notifycal/backend/commit/9ed67f916c333b9b0de60854b4c313c122bf467a))
+* **deps:** Update dependency @notifycal/shared to v7.3.0 ([#978](https://github.com/Notifycal/backend/issues/978)) ([40fb5be](https://github.com/Notifycal/backend/commit/40fb5be70b11c3d81aca63f5b36086aa4056a8f7))
+* **deps:** Update dependency @notifycal/shared to v7.4.0 ([#980](https://github.com/Notifycal/backend/issues/980)) ([6fe0b70](https://github.com/Notifycal/backend/commit/6fe0b707b1824255aaddbe2452f19d2f4be3465f))
+* **deps:** Update dependency @vonage/server-sdk to v3.24.1 ([#976](https://github.com/Notifycal/backend/issues/976)) ([26abebd](https://github.com/Notifycal/backend/commit/26abebd8c2e5fd001a264659883a1c4901c6446d))
+* **deps:** Update dependency libphonenumber-js to v1.12.13 ([#981](https://github.com/Notifycal/backend/issues/981)) ([2112aed](https://github.com/Notifycal/backend/commit/2112aed6398ef0ef4facdbe50b78817afdefd271))
+* **deps:** Update Node.js Dependencies ([#973](https://github.com/Notifycal/backend/issues/973)) ([e8d8fa7](https://github.com/Notifycal/backend/commit/e8d8fa744298533343b95ecef545f859e2f041dc))
+
 ## [0.56.5](https://github.com/Notifycal/backend/compare/v0.56.4...v0.56.5) (2025-08-14)
 
 
