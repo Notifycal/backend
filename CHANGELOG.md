@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.56.7](https://github.com/Notifycal/backend/compare/v0.56.6...v0.56.7) (2025-08-20)
+
+
+### Bug Fixes
+
+* **deps:** Update AWS packages to v3.872.0 ([#983](https://github.com/Notifycal/backend/issues/983)) ([e6ddfa0](https://github.com/Notifycal/backend/commit/e6ddfa03302c770900499202d2c6c2a101efafaa))
+* **deps:** Update dependency radashi to v12.6.2 ([#982](https://github.com/Notifycal/backend/issues/982)) ([b2aca02](https://github.com/Notifycal/backend/commit/b2aca0210fcc66f30d9ffbf2767997adb45707dd))
+
 ## [0.56.6](https://github.com/Notifycal/backend/compare/v0.56.5...v0.56.6) (2025-08-20)
 
 
