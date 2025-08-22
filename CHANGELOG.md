@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.56.8](https://github.com/Notifycal/backend/compare/v0.56.7...v0.56.8) (2025-08-22)
+
+
+### Bug Fixes
+
+* **deps:** Update AWS packages to v3.873.0 ([#986](https://github.com/Notifycal/backend/issues/986)) ([7850380](https://github.com/Notifycal/backend/commit/7850380d607698b5c39410a2d47573ef02132702))
+* **deps:** Update dependency @notifycal/shared to v7.6.2 ([#987](https://github.com/Notifycal/backend/issues/987)) ([86999cd](https://github.com/Notifycal/backend/commit/86999cd96862ab4186843d26a899f81af321f0af))
+* **deps:** Update dependency googleapis to v157 ([#990](https://github.com/Notifycal/backend/issues/990)) ([09abeb1](https://github.com/Notifycal/backend/commit/09abeb1058a7c81b93618baed62e335bcb1a5b17))
+* shared import so compatible with backend ([#989](https://github.com/Notifycal/backend/issues/989)) ([8d2234f](https://github.com/Notifycal/backend/commit/8d2234fcc6fb3b914c59c857835b6d1a299e23cb))
+
 ## [0.56.7](https://github.com/Notifycal/backend/compare/v0.56.6...v0.56.7) (2025-08-20)
 
 
