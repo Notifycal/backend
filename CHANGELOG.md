@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.56.9](https://github.com/Notifycal/backend/compare/v0.56.8...v0.56.9) (2025-08-26)
+
+
+### Bug Fixes
+
+* **deps:** Update dependency @aws-sdk/client-sqs to v3.875.0 ([#998](https://github.com/Notifycal/backend/issues/998)) ([67468c3](https://github.com/Notifycal/backend/commit/67468c37a0464d20d31d896c1989d3c617187cbc))
+* **deps:** Update dependency @notifycal/shared to v7.6.3 ([#992](https://github.com/Notifycal/backend/issues/992)) ([ef1994b](https://github.com/Notifycal/backend/commit/ef1994b2f99236e0510e5bf3a01cba27f2f2e198))
+* **deps:** Update dependency google-auth-library to v10.3.0 ([#999](https://github.com/Notifycal/backend/issues/999)) ([3b065ba](https://github.com/Notifycal/backend/commit/3b065baae8f51e158d5e59bc74f5c7911e6d9c5f))
+* **deps:** Update Middy middleware packages to v6.4.4 ([#995](https://github.com/Notifycal/backend/issues/995)) ([1ce7610](https://github.com/Notifycal/backend/commit/1ce7610d7a14d3ec757e52c51b1971f80185ee5d))
+
 ## [0.56.8](https://github.com/Notifycal/backend/compare/v0.56.7...v0.56.8) (2025-08-22)
 
 
