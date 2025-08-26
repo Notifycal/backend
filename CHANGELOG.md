@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.56.10](https://github.com/Notifycal/backend/compare/v0.56.9...v0.56.10) (2025-08-26)
+
+
+### Bug Fixes
+
+* **deps:** Update @notifycal/shared and zod ([#1000](https://github.com/Notifycal/backend/issues/1000)) ([c0517ce](https://github.com/Notifycal/backend/commit/c0517cefbd83267814a244f2a6b5f5f07e057fd9))
+* **deps:** Update AWS packages to v2.25.2 ([#1001](https://github.com/Notifycal/backend/issues/1001)) ([0fd813e](https://github.com/Notifycal/backend/commit/0fd813ed629b2abcdbb4d0ea04def3cd83cf1ba8))
+
 ## [0.56.9](https://github.com/Notifycal/backend/compare/v0.56.8...v0.56.9) (2025-08-26)
 
 
