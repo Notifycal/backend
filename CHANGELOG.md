@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.56.11](https://github.com/Notifycal/backend/compare/v0.56.10...v0.56.11) (2025-08-27)
+
+
+### Bug Fixes
+
+* **deps:** Update AWS packages to v3.876.0 ([#1004](https://github.com/Notifycal/backend/issues/1004)) ([57fa8bc](https://github.com/Notifycal/backend/commit/57fa8bc817899f4220c96af593017964d95cba6d))
+* **deps:** Update dependency googleapis to v158 ([#1006](https://github.com/Notifycal/backend/issues/1006)) ([7905693](https://github.com/Notifycal/backend/commit/79056939e2666ec1fa32ee04c69ea3666b075fbe))
+* **deps:** Update dependency libphonenumber-js to v1.12.14 ([#1003](https://github.com/Notifycal/backend/issues/1003)) ([f20c2d8](https://github.com/Notifycal/backend/commit/f20c2d8718f5027aeebf9bd91db88b685a66f988))
+
 ## [0.56.10](https://github.com/Notifycal/backend/compare/v0.56.9...v0.56.10) (2025-08-26)
 
 
