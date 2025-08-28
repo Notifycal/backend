@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.57.0](https://github.com/Notifycal/backend/compare/v0.56.11...v0.57.0) (2025-08-28)
+
+
+### Features
+
+* country to sms cost map ssm param for service discovery ([#1012](https://github.com/Notifycal/backend/issues/1012)) ([6260d4b](https://github.com/Notifycal/backend/commit/6260d4b3e5399d832f8667fdcb4e74c2ff62cf37))
+
+
+### Bug Fixes
+
+* **deps:** Update @notifycal/shared and zod ([#1009](https://github.com/Notifycal/backend/issues/1009)) ([4c0c330](https://github.com/Notifycal/backend/commit/4c0c330acd8c5e7f2171b4a8c31644aa4b670c82))
+* **deps:** Update dependency @notifycal/shared to v7.9.0 ([#1013](https://github.com/Notifycal/backend/issues/1013)) ([0c7289c](https://github.com/Notifycal/backend/commit/0c7289c12b088612a4d64e5ce6511d51b9021579))
+* **deps:** Update dependency googleapis to v159 ([#1010](https://github.com/Notifycal/backend/issues/1010)) ([cfa1002](https://github.com/Notifycal/backend/commit/cfa1002b1c2a94c449a3178a82e6c7905a2ab509))
+* **deps:** Update dependency stripe to v18.5.0 ([#1008](https://github.com/Notifycal/backend/issues/1008)) ([0a1794c](https://github.com/Notifycal/backend/commit/0a1794cd917b8831b0fb388827fb972548dd854c))
+
 ## [0.56.11](https://github.com/Notifycal/backend/compare/v0.56.10...v0.56.11) (2025-08-27)
 
 
