@@ -32,7 +32,7 @@ export class StripeService {
   public static async withConfig(apiKey: string, logger: Logger): Promise<StripeService> {
     const httpClient = new HttpClient(undefined, undefined, 'Stripe');
     const stripeClient = new Stripe(apiKey, {
-      apiVersion: '2025-07-30.basil',
+      apiVersion: '2025-08-27.basil',
       httpClient: new AxiosHttpClient(httpClient.getAxiosInstance())
     });
 
