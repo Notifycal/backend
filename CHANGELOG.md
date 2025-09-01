@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.57.1](https://github.com/Notifycal/backend/compare/v0.57.0...v0.57.1) (2025-09-01)
+
+
+### Bug Fixes
+
+* billing redirect now that billing has been replaced by dashboard ([#1018](https://github.com/Notifycal/backend/issues/1018)) ([b2f05d8](https://github.com/Notifycal/backend/commit/b2f05d8064d1bbbb3ae9d3283f1187eb1787805a))
+* **deps:** Update @notifycal/shared and zod ([#1020](https://github.com/Notifycal/backend/issues/1020)) ([e425be1](https://github.com/Notifycal/backend/commit/e425be1e2373ae32627024a1cba2a1d7a8cac58c))
+* **deps:** Update AWS packages to v3.879.0 ([#1016](https://github.com/Notifycal/backend/issues/1016)) ([7e6b729](https://github.com/Notifycal/backend/commit/7e6b729e8bd272234061c35a233895f9341a0f0c))
+* **deps:** Update dependency @notifycal/shared to v7.9.2 ([#1022](https://github.com/Notifycal/backend/issues/1022)) ([d263dc1](https://github.com/Notifycal/backend/commit/d263dc17d971c5c329e779bc15a88f60e64f4fab))
+* **deps:** Update dependency libphonenumber-js to v1.12.15 ([#1015](https://github.com/Notifycal/backend/issues/1015)) ([8dacfe8](https://github.com/Notifycal/backend/commit/8dacfe8a7d5f896ad16b3e6e3f1e6d933c6b27a8))
+
 ## [0.57.0](https://github.com/Notifycal/backend/compare/v0.56.11...v0.57.0) (2025-08-28)
 
 
