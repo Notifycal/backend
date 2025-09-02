@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.57.2](https://github.com/Notifycal/backend/compare/v0.57.1...v0.57.2) (2025-09-02)
+
+
+### Bug Fixes
+
+* **deps:** Update dependency @notifycal/shared to v7.10.0 ([#1026](https://github.com/Notifycal/backend/issues/1026)) ([458166d](https://github.com/Notifycal/backend/commit/458166d0d2c347aa49474246ea4e8431c5d5d60e))
+
 ## [0.57.1](https://github.com/Notifycal/backend/compare/v0.57.0...v0.57.1) (2025-09-01)
 
 
