@@ -1,5 +1,107 @@
 # Changelog
 
+## [0.57.1](https://github.com/Notifycal/backend/compare/v0.57.0...v0.57.1) (2025-09-01)
+
+
+### Bug Fixes
+
+* billing redirect now that billing has been replaced by dashboard ([#1018](https://github.com/Notifycal/backend/issues/1018)) ([b2f05d8](https://github.com/Notifycal/backend/commit/b2f05d8064d1bbbb3ae9d3283f1187eb1787805a))
+* **deps:** Update @notifycal/shared and zod ([#1020](https://github.com/Notifycal/backend/issues/1020)) ([e425be1](https://github.com/Notifycal/backend/commit/e425be1e2373ae32627024a1cba2a1d7a8cac58c))
+* **deps:** Update AWS packages to v3.879.0 ([#1016](https://github.com/Notifycal/backend/issues/1016)) ([7e6b729](https://github.com/Notifycal/backend/commit/7e6b729e8bd272234061c35a233895f9341a0f0c))
+* **deps:** Update dependency @notifycal/shared to v7.9.2 ([#1022](https://github.com/Notifycal/backend/issues/1022)) ([d263dc1](https://github.com/Notifycal/backend/commit/d263dc17d971c5c329e779bc15a88f60e64f4fab))
+* **deps:** Update dependency libphonenumber-js to v1.12.15 ([#1015](https://github.com/Notifycal/backend/issues/1015)) ([8dacfe8](https://github.com/Notifycal/backend/commit/8dacfe8a7d5f896ad16b3e6e3f1e6d933c6b27a8))
+
+## [0.57.0](https://github.com/Notifycal/backend/compare/v0.56.11...v0.57.0) (2025-08-28)
+
+
+### Features
+
+* country to sms cost map ssm param for service discovery ([#1012](https://github.com/Notifycal/backend/issues/1012)) ([6260d4b](https://github.com/Notifycal/backend/commit/6260d4b3e5399d832f8667fdcb4e74c2ff62cf37))
+
+
+### Bug Fixes
+
+* **deps:** Update @notifycal/shared and zod ([#1009](https://github.com/Notifycal/backend/issues/1009)) ([4c0c330](https://github.com/Notifycal/backend/commit/4c0c330acd8c5e7f2171b4a8c31644aa4b670c82))
+* **deps:** Update dependency @notifycal/shared to v7.9.0 ([#1013](https://github.com/Notifycal/backend/issues/1013)) ([0c7289c](https://github.com/Notifycal/backend/commit/0c7289c12b088612a4d64e5ce6511d51b9021579))
+* **deps:** Update dependency googleapis to v159 ([#1010](https://github.com/Notifycal/backend/issues/1010)) ([cfa1002](https://github.com/Notifycal/backend/commit/cfa1002b1c2a94c449a3178a82e6c7905a2ab509))
+* **deps:** Update dependency stripe to v18.5.0 ([#1008](https://github.com/Notifycal/backend/issues/1008)) ([0a1794c](https://github.com/Notifycal/backend/commit/0a1794cd917b8831b0fb388827fb972548dd854c))
+
+## [0.56.11](https://github.com/Notifycal/backend/compare/v0.56.10...v0.56.11) (2025-08-27)
+
+
+### Bug Fixes
+
+* **deps:** Update AWS packages to v3.876.0 ([#1004](https://github.com/Notifycal/backend/issues/1004)) ([57fa8bc](https://github.com/Notifycal/backend/commit/57fa8bc817899f4220c96af593017964d95cba6d))
+* **deps:** Update dependency googleapis to v158 ([#1006](https://github.com/Notifycal/backend/issues/1006)) ([7905693](https://github.com/Notifycal/backend/commit/79056939e2666ec1fa32ee04c69ea3666b075fbe))
+* **deps:** Update dependency libphonenumber-js to v1.12.14 ([#1003](https://github.com/Notifycal/backend/issues/1003)) ([f20c2d8](https://github.com/Notifycal/backend/commit/f20c2d8718f5027aeebf9bd91db88b685a66f988))
+
+## [0.56.10](https://github.com/Notifycal/backend/compare/v0.56.9...v0.56.10) (2025-08-26)
+
+
+### Bug Fixes
+
+* **deps:** Update @notifycal/shared and zod ([#1000](https://github.com/Notifycal/backend/issues/1000)) ([c0517ce](https://github.com/Notifycal/backend/commit/c0517cefbd83267814a244f2a6b5f5f07e057fd9))
+* **deps:** Update AWS packages to v2.25.2 ([#1001](https://github.com/Notifycal/backend/issues/1001)) ([0fd813e](https://github.com/Notifycal/backend/commit/0fd813ed629b2abcdbb4d0ea04def3cd83cf1ba8))
+
+## [0.56.9](https://github.com/Notifycal/backend/compare/v0.56.8...v0.56.9) (2025-08-26)
+
+
+### Bug Fixes
+
+* **deps:** Update dependency @aws-sdk/client-sqs to v3.875.0 ([#998](https://github.com/Notifycal/backend/issues/998)) ([67468c3](https://github.com/Notifycal/backend/commit/67468c37a0464d20d31d896c1989d3c617187cbc))
+* **deps:** Update dependency @notifycal/shared to v7.6.3 ([#992](https://github.com/Notifycal/backend/issues/992)) ([ef1994b](https://github.com/Notifycal/backend/commit/ef1994b2f99236e0510e5bf3a01cba27f2f2e198))
+* **deps:** Update dependency google-auth-library to v10.3.0 ([#999](https://github.com/Notifycal/backend/issues/999)) ([3b065ba](https://github.com/Notifycal/backend/commit/3b065baae8f51e158d5e59bc74f5c7911e6d9c5f))
+* **deps:** Update Middy middleware packages to v6.4.4 ([#995](https://github.com/Notifycal/backend/issues/995)) ([1ce7610](https://github.com/Notifycal/backend/commit/1ce7610d7a14d3ec757e52c51b1971f80185ee5d))
+
+## [0.56.8](https://github.com/Notifycal/backend/compare/v0.56.7...v0.56.8) (2025-08-22)
+
+
+### Bug Fixes
+
+* **deps:** Update AWS packages to v3.873.0 ([#986](https://github.com/Notifycal/backend/issues/986)) ([7850380](https://github.com/Notifycal/backend/commit/7850380d607698b5c39410a2d47573ef02132702))
+* **deps:** Update dependency @notifycal/shared to v7.6.2 ([#987](https://github.com/Notifycal/backend/issues/987)) ([86999cd](https://github.com/Notifycal/backend/commit/86999cd96862ab4186843d26a899f81af321f0af))
+* **deps:** Update dependency googleapis to v157 ([#990](https://github.com/Notifycal/backend/issues/990)) ([09abeb1](https://github.com/Notifycal/backend/commit/09abeb1058a7c81b93618baed62e335bcb1a5b17))
+* shared import so compatible with backend ([#989](https://github.com/Notifycal/backend/issues/989)) ([8d2234f](https://github.com/Notifycal/backend/commit/8d2234fcc6fb3b914c59c857835b6d1a299e23cb))
+
+## [0.56.7](https://github.com/Notifycal/backend/compare/v0.56.6...v0.56.7) (2025-08-20)
+
+
+### Bug Fixes
+
+* **deps:** Update AWS packages to v3.872.0 ([#983](https://github.com/Notifycal/backend/issues/983)) ([e6ddfa0](https://github.com/Notifycal/backend/commit/e6ddfa03302c770900499202d2c6c2a101efafaa))
+* **deps:** Update dependency radashi to v12.6.2 ([#982](https://github.com/Notifycal/backend/issues/982)) ([b2aca02](https://github.com/Notifycal/backend/commit/b2aca0210fcc66f30d9ffbf2767997adb45707dd))
+
+## [0.56.6](https://github.com/Notifycal/backend/compare/v0.56.5...v0.56.6) (2025-08-20)
+
+
+### Bug Fixes
+
+* **deps:** Update @notifycal/shared and zod ([#975](https://github.com/Notifycal/backend/issues/975)) ([9ed67f9](https://github.com/Notifycal/backend/commit/9ed67f916c333b9b0de60854b4c313c122bf467a))
+* **deps:** Update dependency @notifycal/shared to v7.3.0 ([#978](https://github.com/Notifycal/backend/issues/978)) ([40fb5be](https://github.com/Notifycal/backend/commit/40fb5be70b11c3d81aca63f5b36086aa4056a8f7))
+* **deps:** Update dependency @notifycal/shared to v7.4.0 ([#980](https://github.com/Notifycal/backend/issues/980)) ([6fe0b70](https://github.com/Notifycal/backend/commit/6fe0b707b1824255aaddbe2452f19d2f4be3465f))
+* **deps:** Update dependency @vonage/server-sdk to v3.24.1 ([#976](https://github.com/Notifycal/backend/issues/976)) ([26abebd](https://github.com/Notifycal/backend/commit/26abebd8c2e5fd001a264659883a1c4901c6446d))
+* **deps:** Update dependency libphonenumber-js to v1.12.13 ([#981](https://github.com/Notifycal/backend/issues/981)) ([2112aed](https://github.com/Notifycal/backend/commit/2112aed6398ef0ef4facdbe50b78817afdefd271))
+* **deps:** Update Node.js Dependencies ([#973](https://github.com/Notifycal/backend/issues/973)) ([e8d8fa7](https://github.com/Notifycal/backend/commit/e8d8fa744298533343b95ecef545f859e2f041dc))
+
+## [0.56.5](https://github.com/Notifycal/backend/compare/v0.56.4...v0.56.5) (2025-08-14)
+
+
+### Bug Fixes
+
+* **deps:** Update AWS packages ([#963](https://github.com/Notifycal/backend/issues/963)) ([ceae816](https://github.com/Notifycal/backend/commit/ceae8167208882cfc0b41bc4a787474b1b9e4caa))
+* **deps:** Update dependency @vonage/server-sdk to v3.22.4 ([#964](https://github.com/Notifycal/backend/issues/964)) ([c9595b4](https://github.com/Notifycal/backend/commit/c9595b4d5e06a5c4e2932b36216cef50984ab21a))
+* **deps:** Update dependency googleapis to v156 ([#971](https://github.com/Notifycal/backend/issues/971)) ([2d65e31](https://github.com/Notifycal/backend/commit/2d65e3160b0b2bbc8433407416024e8863be39c7))
+* **deps:** Update dependency libphonenumber-js to v1.12.11 ([#967](https://github.com/Notifycal/backend/issues/967)) ([f8a0a7d](https://github.com/Notifycal/backend/commit/f8a0a7d85bb64e377288efe3261c09e115595b34))
+* **deps:** Update Middy middleware packages to v6.4.3 ([#970](https://github.com/Notifycal/backend/issues/970)) ([72aac57](https://github.com/Notifycal/backend/commit/72aac573f5f3ca332558494127003811ee75517b))
+
+## [0.56.4](https://github.com/Notifycal/backend/compare/v0.56.3...v0.56.4) (2025-08-11)
+
+
+### Bug Fixes
+
+* axios http client base url ([#956](https://github.com/Notifycal/backend/issues/956)) ([ecda262](https://github.com/Notifycal/backend/commit/ecda262ec3e86a6e7a9371d81f20170a30f37704))
+* trigger alert for events ([#954](https://github.com/Notifycal/backend/issues/954)) ([7870e6f](https://github.com/Notifycal/backend/commit/7870e6fdf95e1c174f26edec316a228a57a47483))
+
 ## [0.56.3](https://github.com/Notifycal/backend/compare/v0.56.2...v0.56.3) (2025-08-11)
 
 

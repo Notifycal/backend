@@ -81,7 +81,7 @@ describe(StripeService, () => {
     expect(HttpClient).toHaveBeenCalledWith(undefined, undefined, 'Stripe');
     expect(mockConstructor).toHaveBeenCalledTimes(1);
     expect(mockConstructor).toHaveBeenCalledWith(validApiKey, {
-      apiVersion: '2025-07-30.basil',
+      apiVersion: '2025-08-27.basil',
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       httpClient: expect.any(Object)
     });
