@@ -146,9 +146,9 @@ a {
 }
 
 .thanks {
-  font-weight: 500;
-  color: var(--primary-color);
-  font-size: 18px;
+  font-weight: bold;
+  color: var(--accent2-color);
+  font-size: 16px;
 }
 
 .footer {
