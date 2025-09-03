@@ -135,7 +135,7 @@ describe(EmailTemplateService, () => {
     expect(emailEvent.data.htmlBody).toContain('<html>');
     expect(emailEvent.data.htmlBody).toContain('<head>');
     expect(emailEvent.data.htmlBody).toContain('<meta charset="UTF-8">');
-    expect(emailEvent.data.htmlBody).toContain('<body>');
+    expect(emailEvent.data.htmlBody).toContain('<body style=');
   });
 
   it('should use baseTemplate layout components', () => {
@@ -152,10 +152,10 @@ describe(EmailTemplateService, () => {
       validOptions
     );
 
-    expect(emailEvent.data.htmlBody).toContain('<div class="pattern-bg">');
-    expect(emailEvent.data.htmlBody).toContain('<div class="email-container">');
-    expect(emailEvent.data.htmlBody).toContain('<div class="email-header">');
-    expect(emailEvent.data.htmlBody).toContain('<div class="footer">');
+    expect(emailEvent.data.htmlBody).toContain('<div class="pattern-bg" style=');
+    expect(emailEvent.data.htmlBody).toContain('<div class="email-container" style=');
+    expect(emailEvent.data.htmlBody).toContain('<div class="email-header" style=');
+    expect(emailEvent.data.htmlBody).toContain('<div class="footer" style=');
     expect(emailEvent.data.htmlBody).toContain('&copy; 2025 Notifycal');
   });
 
@@ -173,10 +173,10 @@ describe(EmailTemplateService, () => {
       validOptions
     );
 
-    expect(emailEvent.data.htmlBody).toContain('<div class="content">');
+    expect(emailEvent.data.htmlBody).toContain('<div class="content" style=');
     expect(emailEvent.data.htmlBody).toContain('<h1>Test Header</h1>');
-    expect(emailEvent.data.htmlBody).toContain('<p>Test Message</p>');
-    expect(emailEvent.data.htmlBody).toContain('<p>Dynamic Value</p>');
+    expect(emailEvent.data.htmlBody).toContain('Test Message');
+    expect(emailEvent.data.htmlBody).toContain('Dynamic Value');
   });
 
   it('should include common translations in template data', () => {

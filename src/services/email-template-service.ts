@@ -40,6 +40,7 @@ export class EmailTemplateService {
         ...commonTranslations[language],
         ...specificTranslations[language],
         logoSrc: `cid:${logoFilename}`,
+        feedbackUrl: 'https://app.notifycal.com/feedback',
         ...dynamicVariables
       };
 

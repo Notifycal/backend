@@ -136,7 +136,7 @@ export async function sendEmail(event: EmailToBeSentEvent): Promise<void> {
   const service = new EmailService(
     `https://api.eu.mailgun.net`,
     `nonprod.notifycal.com`,
-    `replace with real api key`,
+    `replace with real api key. NEVER EVER COMMIT IT`,
     logger
   );
   await service

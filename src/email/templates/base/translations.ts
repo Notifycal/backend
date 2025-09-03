@@ -2,6 +2,7 @@ import type { LanguageCode } from '@notifycal/shared/types';
 
 export interface EmailCommonTranslations extends Record<string, string> {
   appName: string;
+  greeting: string;
   helpOfferText: string;
   helpOfferLinkText: string;
   thankYou: string;
