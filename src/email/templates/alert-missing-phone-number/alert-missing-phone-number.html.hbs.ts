@@ -6,7 +6,7 @@ export const alertMissingPhoneNumberPartialTemplate = /*html*/ `
     <span class="tip-title">{{tipTitle}}</span>
     <span class="tip-content">{{tipContent}}</span>
     <div style="margin-top: 12px;">
-        {{visitNotifycalFaq}} 
-        <a href="{{notifycalFaqUrl}}" target="_blank" class="action-link">Notifycal FAQ</a>
+        <span>{{visitNotifycalFaq}}</span>
+        <a href="{{notifycalFaqUrl}}" class="action-link">Notifycal FAQ</a>
     </div>
 </div>`;

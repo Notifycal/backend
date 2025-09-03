@@ -16,6 +16,7 @@ import type {
   EmailInlineAttachementBase64,
   EmailSubject
 } from '@own-types/model';
+import juice from 'juice';
 import { TemplateCompiler } from './template-compiler';
 
 export class EmailTemplateService {
@@ -39,6 +40,7 @@ export class EmailTemplateService {
         ...commonTranslations[language],
         ...specificTranslations[language],
         logoSrc: `cid:${logoFilename}`,
+        feedbackUrl: 'https://app.notifycal.com/feedback',
         ...dynamicVariables
       };
 
@@ -75,7 +77,12 @@ export class EmailTemplateService {
       from: sender,
       to: email,
       subject: emailTemplate.subject,
-      htmlBody: emailTemplate.htmlBody,
+      htmlBody: juice(emailTemplate.htmlBody, {
+        removeStyleTags: true,
+        preserveImportant: true,
+        inlinePseudoElements: true,
+        resolveCSSVariables: true
+      }) as EmailHtmlBody,
       tags: [],
       subEventType,
       inlineAttachments: emailTemplate.inlineAttachments,
