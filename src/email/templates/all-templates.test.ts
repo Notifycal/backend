@@ -1,5 +1,5 @@
 import { logger } from '@common/powertools';
-import { logo } from '@email/assets/logo.png.base64';
+import { isologo } from '@email/assets/isologo.base64';
 import { doIUseEmail } from '@jsx-email/doiuse-email';
 import type { EmailWithName } from '@model/app-events/common';
 import type { EmailToBeSentEvent } from '@model/app-events/EmailToBeSentEvent';
@@ -15,10 +15,13 @@ import { alertMissingPhoneNumberTemplate } from './alert-missing-phone-number/tr
 import { insufficientCreditsTemplate } from './insufficient-credits/translations';
 import { lowCreditsDetectedTemplate } from './low-credits-detected/translations';
 
+const sendTestingEmail = true; // Toggle to send real emails and be able to test it on a email client. Remember setting up the real api key if true.
+const apiKey = `replace with real api key. NEVER EVER COMMIT IT`;
+
 const billingUrl = 'https://app.notifycal.com/billing';
 const feedbackUrl = 'https://app.notifycal.com/feedback';
 const logoOverride = {
-  logoSrc: `data:image/png;base64,${logo}` //Override logoSrc template variable slightly differenty to be able to render it.
+  logoSrc: `data:image/png;base64,${isologo}` //Override logoSrc template variable slightly differenty to be able to render it on a browser.
 };
 
 const templates = [
@@ -27,7 +30,7 @@ const templates = [
     template: lowCreditsDetectedTemplate.withDynamicVariables({
       billingUrl,
       feedbackUrl,
-      ...logoOverride
+      ...(sendTestingEmail ? {} : logoOverride)
     })
   },
   {
@@ -35,7 +38,7 @@ const templates = [
     template: insufficientCreditsTemplate.withDynamicVariables({
       billingUrl,
       feedbackUrl,
-      ...logoOverride
+      ...(sendTestingEmail ? {} : logoOverride)
     })
   },
   {
@@ -43,7 +46,7 @@ const templates = [
     template: alertMissingPhoneNumberTemplate.withDynamicVariables({
       notifycalFaqUrl: 'https://notifycal.com/faq',
       feedbackUrl,
-      ...logoOverride
+      ...(sendTestingEmail ? {} : logoOverride)
     })
   }
 ];
@@ -123,8 +126,7 @@ export async function testEmailTemplate(
   mkdirSync(outputDirectory, { recursive: true });
   writeFileSync(path.resolve(outputDirectory, `${templateName}.${lang}.html`), emailData.htmlBody);
 
-  // await sendEmail(emailEvent); // Toggle to send real email.resolve()s
-  return Promise.resolve();
+  return sendTestingEmail ? sendEmail(emailEvent) : Promise.resolve();
 }
 
 export async function sendEmail(event: EmailToBeSentEvent): Promise<void> {
@@ -136,7 +138,7 @@ export async function sendEmail(event: EmailToBeSentEvent): Promise<void> {
   const service = new EmailService(
     `https://api.eu.mailgun.net`,
     `nonprod.notifycal.com`,
-    `replace with real api key. NEVER EVER COMMIT IT`,
+    apiKey,
     logger
   );
   await service

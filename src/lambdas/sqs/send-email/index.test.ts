@@ -48,7 +48,7 @@ const validEvent: EmailToBeSentEvent = {
     tags: ['OneTag'],
     subEventType: 'NoPhoneNumberForCalendarEventFound',
     inlineAttachments: {
-      'logo.png': {
+      'isologo.png': {
         type: 'inline',
         contentType: 'images/png' as ContentType,
         base64Content: 'ewrgwergwergwrg' as EmailInlineAttachementBase64

@@ -1,5 +1,5 @@
 import type { Logger } from '@aws-lambda-powertools/logger';
-import { logo } from '@email/assets/logo.png.base64';
+import { isologo } from '@email/assets/isologo.base64';
 import { baseTemplate } from '@email/templates/base/base-template.html.hbs';
 import { commonTranslations } from '@email/templates/base/translations';
 import type {
@@ -35,7 +35,7 @@ export class EmailTemplateService {
     const compiledTemplate = this.templateCompiler.compile(baseTemplate);
 
     return (language: LanguageCode): EmailTemplateResult => {
-      const logoFilename = `logo.png`;
+      const logoFilename = `isologo.png`;
       const templateData: TEmailTemplateData = {
         ...commonTranslations[language],
         ...specificTranslations[language],
@@ -50,7 +50,7 @@ export class EmailTemplateService {
         inlineAttachments: {
           [logoFilename]: {
             type: 'inline',
-            base64Content: logo as EmailInlineAttachementBase64,
+            base64Content: isologo as EmailInlineAttachementBase64,
             contentType: 'image/png' as ContentType
           }
         }

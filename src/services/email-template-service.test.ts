@@ -1,5 +1,5 @@
 import { logger } from '@common/powertools';
-import { logo } from '@email/assets/logo.png.base64';
+import { isologo } from '@email/assets/isologo.base64';
 import { commonTranslations } from '@email/templates/base/translations';
 import type { EventCreationOptions, EventSourceIdentity } from '@model/app-events/common';
 import type { EmailToBeSentEvent } from '@model/app-events/EmailToBeSentEvent';
@@ -107,9 +107,9 @@ describe(EmailTemplateService, () => {
       tags: [],
       subEventType: validSubEventType,
       inlineAttachments: {
-        'logo.png': {
+        'isologo.png': {
           type: 'inline',
-          base64Content: logo,
+          base64Content: isologo,
           contentType: 'image/png'
         }
       },
@@ -302,7 +302,7 @@ describe(EmailTemplateService, () => {
       validOptions
     );
 
-    expect(emailEvent.data.htmlBody).toContain('cid:logo.png');
+    expect(emailEvent.data.htmlBody).toContain('cid:isologo.png');
   });
 
   it('should override logoSrc when provided in dynamic variables', () => {

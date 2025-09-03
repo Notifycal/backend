@@ -7,15 +7,16 @@ export const baseTemplate = /*html*/ `<!DOCTYPE html>
     <title>{{appName}} - {{subject}}</title>
     <style>
 :root {
-  --primary-color: #5bba47;
-  --secondary-color: #5784d7;
-  --accent-color: #f8f9fa;
+  --primary-color: #35D759;
+  --secondary-color: #355E5C;
+  --accent-color: #FBFAF9;
   --border-color: #e4e7eb;
-  --dark-gray: #404040;
-  --light-gray: #f7f7f7a4;
-  --background-color: #ffffff;
-  --text-color: #333;
-  --text-help-box-color: #666;
+  --primary-100-color: #d9f7df;
+  --dark-gray-color: #667085;
+  --light-gray-color: #f7f7f7a4;
+  --background-color: #FBFAF9;
+  --text-color: #212121;
+  --text-help-box-color: #545454;
   --border-radius: 8px;
 }
 
@@ -25,7 +26,7 @@ body {
     'Helvetica Neue', sans-serif;
   line-height: 1.6;
   color: var(--text-color);
-  background-color: var(--light-gray);
+  background-color: var(--light-gray-color);
   margin: 0;
   padding: 0;
 }
@@ -39,7 +40,7 @@ body {
 }
 
 .email-header {
-  background-color: white;
+  background-color: var(--secondary-color);
   padding: 25px 30px;
   text-align: center;
   border-bottom: 1px solid var(--border-color);
@@ -58,7 +59,7 @@ body {
 .title {
   font-size: 22px;
   font-weight: 600;
-  color: var(--dark-gray);
+  color: var(--dark-gray-color);
   margin-top: 0;
   margin-bottom: 25px;
   padding-bottom: 15px;
@@ -76,7 +77,7 @@ a {
 }
 
 .tip-box {
-  background-color: var(--background-color);
+  background-color: var(--primary-100-color);
   border: 1px solid var(--border-color);
   padding: 18px 20px;
   margin: 25px 0;
@@ -122,7 +123,7 @@ a {
 }
 
 .help-box {
-  background-color: var(--light-gray);
+  background-color: var(--light-gray-color);
   padding: 16px 20px;
   margin: 25px 0;
   border-radius: var(--border-radius);
@@ -136,7 +137,7 @@ a {
 }
 
 .help-link {
-  color: var(--dark-gray);
+  color: var(--dark-gray-color);
 }
 
 .thanks {
@@ -148,9 +149,10 @@ a {
 .footer {
   text-align: center;
   padding: 20px 30px;
-  background-color: var(--accent-color);
-  color: var(--dark-gray);
+  background-color: var(--secondary-color);
+  color: white;
   font-size: 14px;
+  font-weigth: bold;
   border-top: 1px solid var(--border-color);
 }
 
