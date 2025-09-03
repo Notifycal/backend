@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.57.4](https://github.com/Notifycal/backend/compare/v0.57.3...v0.57.4) (2025-09-03)
+
+
+### Bug Fixes
+
+* adapt email branding. Update logo ([#1033](https://github.com/Notifycal/backend/issues/1033)) ([e019245](https://github.com/Notifycal/backend/commit/e0192453b57467ab3d9726f7802514fec231df07))
+
 ## [0.57.3](https://github.com/Notifycal/backend/compare/v0.57.2...v0.57.3) (2025-09-03)
 
 
