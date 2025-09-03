@@ -17,6 +17,7 @@ import { lowCreditsDetectedTemplate } from './low-credits-detected/translations'
 
 const sendTestingEmail = false; // Toggle to send real emails and be able to test it on a email client. Remember setting up the real api key if true.
 const apiKey = `replace with real api key. NEVER EVER COMMIT IT`;
+const validEmailTo = `test@gmail.com` as Email;
 
 const billingUrl = 'https://app.notifycal.com/billing';
 const feedbackUrl = 'https://app.notifycal.com/feedback';
@@ -26,7 +27,7 @@ const logoOverride = {
 
 const templates = [
   {
-    name: 'low-credits-detected',
+    name: 'LowCreditsDetected' as const,
     template: lowCreditsDetectedTemplate.withDynamicVariables({
       billingUrl,
       feedbackUrl,
@@ -34,7 +35,7 @@ const templates = [
     })
   },
   {
-    name: 'insufficient-credits',
+    name: 'InsufficientCreditsReminderNotSent' as const,
     template: insufficientCreditsTemplate.withDynamicVariables({
       billingUrl,
       feedbackUrl,
@@ -42,7 +43,7 @@ const templates = [
     })
   },
   {
-    name: 'alert-missing-phone-number',
+    name: 'NoPhoneNumberForCalendarEventFound' as const,
     template: alertMissingPhoneNumberTemplate.withDynamicVariables({
       notifycalFaqUrl: 'https://notifycal.com/faq',
       feedbackUrl,
@@ -65,7 +66,7 @@ describe('all email templates', () => {
 });
 
 async function testEmailTemplate(
-  templateName: string,
+  templateName: EmailToBeSentEvent['data']['subEventType'],
   templateConfig: EmailTemplateConfig,
   lang: LanguageCode,
   outputDirectory: string
@@ -76,7 +77,7 @@ async function testEmailTemplate(
     { name: 'Test Sender', email: 'sender@example.com' as Email },
     lang,
     templateConfig,
-    'LowCreditsDetected',
+    templateName,
     {},
     { userId: 'test-user' as UserId, idp: 'google.com', idpId: 'srvbgrgr' as IdpId },
     { correlationId: 'test-correlation' as CorrelationId }
@@ -135,7 +136,6 @@ export async function sendEmail(event: EmailToBeSentEvent): Promise<void> {
     name: 'Unit Test',
     email: 'info@nonprod.notifycal.com' as Email
   };
-  const validEmail = 'sergio.anger@gmail.com' as Email;
   const service = new EmailService(
     `https://api.eu.mailgun.net`,
     `nonprod.notifycal.com`,
@@ -145,7 +145,7 @@ export async function sendEmail(event: EmailToBeSentEvent): Promise<void> {
   await service
     .sendEmail(
       validSender,
-      validEmail,
+      validEmailTo,
       `Testing ${event.data.subEventType}` as EmailSubject,
       event.data.htmlBody,
       {},

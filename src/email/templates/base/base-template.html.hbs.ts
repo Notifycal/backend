@@ -159,6 +159,7 @@ a {
   font-size: 14px;
   font-weight: bold;
   border-top: 1px solid var(--border-color);
+  display: block;
 }
 
 .pattern-bg {
