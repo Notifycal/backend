@@ -9,12 +9,17 @@ export const baseTemplate = /*html*/ `<!DOCTYPE html>
 :root {
   --primary-color: #35D759;
   --secondary-color: #355E5C;
+  --accent1-color: #FFC33F;
+  --accent2-color: #9F38C8;
   --accent-color: #FBFAF9;
   --border-color: #e4e7eb;
   --primary-100-color: #d9f7df;
+  --primary-50-color: #f0fcf2;
+  --secondary-100-color: #e6efee;
+  --accent2-100-color: #f3e8f9;
   --dark-gray-color: #667085;
   --light-gray-color: #f7f7f7a4;
-  --background-color: #FBFAF9;
+  --background-color: #f0fcf2;
   --text-color: #212121;
   --text-help-box-color: #545454;
   --border-radius: 8px;
@@ -44,7 +49,7 @@ body {
   padding: 25px 30px;
   text-align: center;
   border-bottom: 1px solid var(--border-color);
-  border-top: 5px solid var(--secondary-color);
+  border-top: 5px solid var(--primary-color);
 }
 
 .logo {
@@ -77,8 +82,8 @@ a {
 }
 
 .tip-box {
-  background-color: var(--primary-100-color);
-  border: 1px solid var(--border-color);
+  background-color: var(--primary-50-color);
+  border: 1px solid var(--primary-color);
   padding: 18px 20px;
   margin: 25px 0;
   border-radius: var(--border-radius);
@@ -150,9 +155,9 @@ a {
   text-align: center;
   padding: 20px 30px;
   background-color: var(--secondary-color);
-  color: white;
+  color: var(--primary-color);
   font-size: 14px;
-  font-weigth: bold;
+  font-weight: bold;
   border-top: 1px solid var(--border-color);
 }
 

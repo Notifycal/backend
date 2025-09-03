@@ -15,7 +15,7 @@ import { alertMissingPhoneNumberTemplate } from './alert-missing-phone-number/tr
 import { insufficientCreditsTemplate } from './insufficient-credits/translations';
 import { lowCreditsDetectedTemplate } from './low-credits-detected/translations';
 
-const sendTestingEmail = true; // Toggle to send real emails and be able to test it on a email client. Remember setting up the real api key if true.
+const sendTestingEmail = false; // Toggle to send real emails and be able to test it on a email client. Remember setting up the real api key if true.
 const apiKey = `replace with real api key. NEVER EVER COMMIT IT`;
 
 const billingUrl = 'https://app.notifycal.com/billing';
@@ -51,37 +51,6 @@ const templates = [
   }
 ];
 
-function validateEmailCompatibility(htmlBody: string): void {
-  const compatibilityResult = doIUseEmail(htmlBody, {
-    emailClients: ['gmail.*', 'outlook.*', 'apple-mail.*', 'yahoo.*', 'thunderbird.*']
-  });
-  if (!compatibilityResult.success) {
-    const criticalErrors = compatibilityResult.errors.filter((error: string) => {
-      const lowercaseError = error.toLowerCase();
-
-      const errorWhitelist = [
-        'class selector` is not supported by `gmail.mobile-webmail',
-        'border-radius` is not supported by `outlook.windows',
-        '<body> element` is not supported'
-      ];
-
-      const isWhitelisted = errorWhitelist.some((whitelistItem) =>
-        lowercaseError.includes(whitelistItem.toLowerCase())
-      );
-      return !isWhitelisted;
-    });
-
-    if (criticalErrors.length > 0) {
-      console.warn('Critical email compatibility errors (not whitelisted) found:');
-      criticalErrors.forEach((error: string, index: number) => {
-        console.warn(`${index + 1}. ${error}`);
-      });
-    }
-
-    expect(criticalErrors).toHaveLength(0);
-  }
-}
-
 describe('all email templates', () => {
   // eslint-disable-next-line vitest/require-hook
   templates.forEach(({ name, template }) => {
@@ -95,7 +64,7 @@ describe('all email templates', () => {
   });
 });
 
-export async function testEmailTemplate(
+async function testEmailTemplate(
   templateName: string,
   templateConfig: EmailTemplateConfig,
   lang: LanguageCode,
@@ -127,6 +96,38 @@ export async function testEmailTemplate(
   writeFileSync(path.resolve(outputDirectory, `${templateName}.${lang}.html`), emailData.htmlBody);
 
   return sendTestingEmail ? sendEmail(emailEvent) : Promise.resolve();
+}
+
+function validateEmailCompatibility(htmlBody: string): void {
+  const compatibilityResult = doIUseEmail(htmlBody, {
+    emailClients: ['gmail.*', 'outlook.*', 'apple-mail.*', 'yahoo.*', 'thunderbird.*']
+  });
+  if (!compatibilityResult.success) {
+    const criticalErrors = compatibilityResult.errors.filter((error: string) => {
+      const lowercaseError = error.toLowerCase();
+
+      const errorWhitelist = [
+        'class selector` is not supported by `gmail.mobile-webmail',
+        'border-radius` is not supported by `outlook.windows',
+        '<body> element` is not supported'
+      ];
+
+      const isWhitelisted = errorWhitelist.some((whitelistItem) =>
+        lowercaseError.includes(whitelistItem.toLowerCase())
+      );
+      return !isWhitelisted;
+    });
+
+    if (criticalErrors.length > 0) {
+      console.warn('Critical email compatibility errors (not whitelisted) found:');
+      criticalErrors.forEach((error: string, index: number) => {
+        console.warn(`${index + 1}. ${error}`);
+      });
+    }
+
+    // eslint-disable-next-line vitest/max-expects
+    expect(criticalErrors).toHaveLength(0);
+  }
 }
 
 export async function sendEmail(event: EmailToBeSentEvent): Promise<void> {
