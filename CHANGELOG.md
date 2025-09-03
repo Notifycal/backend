@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.57.3](https://github.com/Notifycal/backend/compare/v0.57.2...v0.57.3) (2025-09-03)
+
+
+### Bug Fixes
+
+* email rendering ([#1030](https://github.com/Notifycal/backend/issues/1030)) ([bfd2590](https://github.com/Notifycal/backend/commit/bfd2590bb7b4bb38afa4aa3bc5387d29cd18dc35))
+
 ## [0.57.2](https://github.com/Notifycal/backend/compare/v0.57.1...v0.57.2) (2025-09-02)
 
 
