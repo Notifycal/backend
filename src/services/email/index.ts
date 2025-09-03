@@ -50,7 +50,7 @@ export class EmailService {
     form.append('html', htmlBody);
     Object.entries(attachmentsInline).forEach(([name, attachment]) => {
       if (name && attachment) {
-        form.append(`inline`, atob(attachment.base64Content), {
+        form.append(`inline`, Buffer.from(attachment.base64Content, 'base64'), {
           filename: name,
           contentType: attachment.contentType
         });

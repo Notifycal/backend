@@ -12,15 +12,18 @@ export const baseTemplate = /*html*/ `<!DOCTYPE html>
             --accent-color: #f8f9fa;
             --border-color: #e4e7eb;
             --dark-gray: #404040;
-            --light-gray: #f7f7f7;
+            --light-gray: #f7f7f7a4;
+            --background-color: #ffffff;
+            --text-color: #333;
+            --text-help-box-color: #666;
             --border-radius: 8px;
         }
         
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
             line-height: 1.6;
-            color: #333;
-            background-color: #f5f5f5;
+            color: var(--text-color);
+            background-color: var(--light-gray);
             margin: 0;
             padding: 0;
         }
@@ -30,9 +33,7 @@ export const baseTemplate = /*html*/ `<!DOCTYPE html>
             margin: 20px auto;
             background-color: white;
             border-radius: var(--border-radius);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-            overflow: hidden;
-            border: 1px solid var(--border-color);
+            border: 2px solid var(--border-color);
         }
         
         .email-header {
@@ -40,16 +41,7 @@ export const baseTemplate = /*html*/ `<!DOCTYPE html>
             padding: 25px 30px;
             text-align: center;
             border-bottom: 1px solid var(--border-color);
-            position: relative;
-        }
-        
-        .header-accent {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 5px;
-            background-color: var(--secondary-color);
+            border-top: 5px solid var(--secondary-color);
         }
         
         .logo {
@@ -73,18 +65,22 @@ export const baseTemplate = /*html*/ `<!DOCTYPE html>
         
         p {
             margin-bottom: 16px;
-            color: #555;
+            color: var(--text-color);
             font-size: 16px;
+        }
+
+        a {
+            text-decoration: underline;
         }
         
         .tip-box {
-            background-color: #f0f7ff;
-            border: 1px solid #d0e1fd;
+            background-color: var(--background-color);
+            border: 1px solid var(--border-color);
             padding: 18px 20px;
             margin: 25px 0;
             border-radius: var(--border-radius);
-            position: relative;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            font-size: 16px;
+            color: var(--text-color);
         }
         
         .tip-icon {
@@ -98,7 +94,6 @@ export const baseTemplate = /*html*/ `<!DOCTYPE html>
             line-height: 24px;
             font-weight: bold;
             margin-right: 8px;
-            font-size: 14px;
             vertical-align: middle;
         }
         
@@ -107,14 +102,12 @@ export const baseTemplate = /*html*/ `<!DOCTYPE html>
             color: var(--secondary-color);
             margin-right: 5px;
             vertical-align: middle;
-            font-size: 16px;
         }
         
         .tip-content {
-            color: #555;
+            color: var(--text-color);
             display: block;
             margin-top: 8px;
-            font-size: 16px;
         }
         
         .action-link {
@@ -126,9 +119,6 @@ export const baseTemplate = /*html*/ `<!DOCTYPE html>
             font-size: 16px;
         }
         
-        .action-link:hover {
-            text-decoration: underline;
-        }
         
         .help-box {
             background-color: var(--light-gray);
@@ -136,12 +126,16 @@ export const baseTemplate = /*html*/ `<!DOCTYPE html>
             margin: 25px 0;
             border-radius: var(--border-radius);
             border: 1px solid var(--border-color);
-            color: #666;
+            color: var(--text-help-box-color);
         }
         
         .help-box p {
             margin: 0;
             font-size: 13px;
+        }
+
+        .help-link {
+            color: var(--dark-gray)
         }
         
         .thanks {
@@ -154,30 +148,29 @@ export const baseTemplate = /*html*/ `<!DOCTYPE html>
             text-align: center;
             padding: 20px 30px;
             background-color: var(--accent-color);
-            color: #777;
+            color: var(--dark-gray);
             font-size: 14px;
             border-top: 1px solid var(--border-color);
         }
         
         .pattern-bg {
-            background-color: #fcfcfc;
-            background-image: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23f0f0f0' fill-opacity='0.6' fill-rule='evenodd'%3E%3Ccircle cx='3' cy='3' r='3'/%3E%3Ccircle cx='13' cy='13' r='3'/%3E%3C/g%3E%3C/svg%3E");
+            background-color: var(--background-color);
             padding: 40px 20px;
         }
         
-        @media only screen and (max-width: 480px) {
-            .email-container {
-                margin: 0;
-                border-radius: 0;
-            }
-            
-            .content, .email-header {
-                padding: 20px;
-            }
-            
-            .pattern-bg {
-                padding: 20px 10px;
-            }
+        /* Mobile-friendly defaults */
+        .email-container {
+            width: 100% !important;
+            max-width: 600px !important;
+            min-width: 320px !important;
+        }
+        
+        .content, .email-header {
+            padding: 20px !important;
+        }
+        
+        .pattern-bg {
+            padding: 20px 10px !important;
         }
     </style>
 </head>
@@ -185,7 +178,6 @@ export const baseTemplate = /*html*/ `<!DOCTYPE html>
     <div class="pattern-bg">
         <div class="email-container">
             <div class="email-header">
-                <div class="header-accent"></div>
                 <img src="{{logoSrc}}" alt="{{appName}}" class="logo">
             </div>
             
@@ -197,7 +189,7 @@ export const baseTemplate = /*html*/ `<!DOCTYPE html>
                 <p class="thanks">{{thankYou}}</p>
 
                 <div class="help-box">
-                    <p>{{helpOfferText}} <a href="{{feedbackUrl}}" target="_blank" style="color: #666; text-decoration: underline;">{{helpOfferLinkText}}</a></p>
+                    <p>{{helpOfferText}} <a href="{{feedbackUrl}}" class="help-link">{{helpOfferLinkText}}</a></p>
                 </div>
             </div>
             
