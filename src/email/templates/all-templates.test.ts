@@ -51,8 +51,7 @@ function validateEmailCompatibility(htmlBody: string): void {
   if (!compatibilityResult.success) {
     const criticalErrors = compatibilityResult.errors.filter((error: string) => {
       const lowercaseError = error.toLowerCase();
-      const isWhitelisted =
-        lowercaseError.includes('<body> element') || lowercaseError.includes('border-radius');
+      const isWhitelisted = lowercaseError.includes('<body> element');
       return !isWhitelisted;
     });
 

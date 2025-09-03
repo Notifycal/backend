@@ -1,6 +1,7 @@
 import type { Logger } from '@aws-lambda-powertools/logger';
 import { logo } from '@email/assets/logo.png.base64';
 import { baseTemplate } from '@email/templates/base/base-template.html.hbs';
+import baseCss from '@email/templates/base/style.css';
 import { commonTranslations } from '@email/templates/base/translations';
 import type {
   EmailWithName,
@@ -76,7 +77,7 @@ export class EmailTemplateService {
       from: sender,
       to: email,
       subject: emailTemplate.subject,
-      htmlBody: juice(emailTemplate.htmlBody, {
+      htmlBody: juice.inlineContent(emailTemplate.htmlBody, baseCss, {
         removeStyleTags: true,
         preserveImportant: true,
         inlinePseudoElements: true,
