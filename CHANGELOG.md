@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.1](https://github.com/Notifycal/backend/compare/v1.0.0...v1.0.1) (2025-09-04)
+
+
+### Bug Fixes
+
+* **deps:** Update AWS packages to v3.882.0 ([#1045](https://github.com/Notifycal/backend/issues/1045)) ([d62e137](https://github.com/Notifycal/backend/commit/d62e137497ee301a4090dd2c4dbbb80d87102467))
+* **deps:** Update dependency @notifycal/shared to v7.10.1 ([#1042](https://github.com/Notifycal/backend/issues/1042)) ([97498ea](https://github.com/Notifycal/backend/commit/97498eaf864deeb43e75b2e53b962b7ff58ea4db))
+
 ## [1.0.0](https://github.com/Notifycal/backend/compare/v0.57.5...v1.0.0) (2025-09-04)
 
 
