@@ -1,4 +1,6 @@
 data "aws_ssm_parameter" "slack_bot_token" {
+  provider = aws.shared_secrets
+
   count = local.observability_count
   name  = "/providers/slack/botsecops/slack_token"
 }
