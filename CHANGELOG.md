@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.57.5](https://github.com/Notifycal/backend/compare/v0.57.4...v0.57.5) (2025-09-04)
+
+
+### Bug Fixes
+
+* patch user profile. Respect all user statuses except for onboard… ([#1036](https://github.com/Notifycal/backend/issues/1036)) ([5880fd7](https://github.com/Notifycal/backend/commit/5880fd7135bb24f2bb93f993769aa361bfa88d17))
+
 ## [0.57.4](https://github.com/Notifycal/backend/compare/v0.57.3...v0.57.4) (2025-09-03)
 
 
