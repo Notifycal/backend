@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.0.0](https://github.com/Notifycal/backend/compare/v0.57.5...v1.0.0) (2025-09-04)
+
+
+### ⚠ BREAKING CHANGES
+
+* go live ([#1038](https://github.com/Notifycal/backend/issues/1038))
+
+### Features
+
+* go live ([#1038](https://github.com/Notifycal/backend/issues/1038)) ([2e2205a](https://github.com/Notifycal/backend/commit/2e2205a48c72ff76f8b6b76f4c97fe39aa6b8d96))
+
 ## [0.57.5](https://github.com/Notifycal/backend/compare/v0.57.4...v0.57.5) (2025-09-04)
 
 
