@@ -132,21 +132,40 @@ export class UserBaseStore<TIdpName extends IdpName> extends BaseStore<UserBaseS
     });
   }
 
-  public updateUser(
-    id: UserId,
-    status: UserStatus,
-    config: ReminderConfigStoreRecord
-  ): Promise<null> {
-    return this.updateCommandRunner({
-      Key: {
-        UserId: id
-      },
-      ExpressionAttributeValues: {
-        ':userStatus': status,
-        ':config': config
-      },
-      UpdateExpression: 'set UserStatus = :userStatus, Config = :config'
-    }).then(() => null);
+  private buildUpdateUserCommand(
+    userId: UserId,
+    config: ReminderConfigStoreRecord,
+    additionalExpression = '',
+    additionalValues = {},
+    condition?: string
+  ): Parameters<typeof this.updateCommandRunner>[0] {
+    return {
+      Key: { UserId: userId },
+      ExpressionAttributeValues: { ':config': config, ...additionalValues },
+      UpdateExpression: `set Config = :config${additionalExpression}`,
+      ...(condition && { ConditionExpression: condition })
+    };
+  }
+
+  public updateUser(id: UserId, config: ReminderConfigStoreRecord): Promise<null> {
+    const onboardingStatus: UserStatus = 'onboarding';
+
+    return this.updateCommandRunner(
+      this.buildUpdateUserCommand(
+        id,
+        config,
+        ', UserStatus = :userStatus',
+        { ':userStatus': 'demo', ':onboardingStatus': onboardingStatus },
+        'UserStatus = :onboardingStatus'
+      )
+    )
+      .catch((error) => {
+        if (this.isConditionalCheckFailedError(error)) {
+          return this.updateCommandRunner(this.buildUpdateUserCommand(id, config));
+        }
+        throw error;
+      })
+      .then(() => null);
   }
 
   public setStripeCustomerId(id: UserId, stripeCustomerId: StripeCustomerId): Promise<null> {
