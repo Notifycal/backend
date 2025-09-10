@@ -17,7 +17,12 @@ export function recordProcessorCurried(
       config.auditTrailBaseStoreConfig,
       _logger
     );
-    return recordProcessor(record, auditTrailBaseStore, _logger);
+    return recordProcessor(
+      record,
+      config.auditTrailBaseStoreConfig.recordTtlInDays,
+      auditTrailBaseStore,
+      _logger
+    );
   };
 }
 

@@ -20,6 +20,7 @@ import {
   type SMSSenderId,
   type TemplateId,
   type TimeZone,
+  type UnixTimestamp,
   type UserId
 } from '@notifycal/shared/types';
 import type { PhoneNumberE164 } from '@own-types/model';
@@ -99,7 +100,8 @@ export const auditTrailActionableEventFoundEvent: AuditTrailStoreRecord = {
   IdpId: '45346356356' as IdpId,
   EventType: 'ActionableEventFound',
   HappenedAt: '2024-01-02T15:04:50Z' as DateTime,
-  Origin: 'somewhere' as AuditTrailStoreRecordOrigin
+  Origin: 'somewhere' as AuditTrailStoreRecordOrigin,
+  ExpiresAt: 123456789 as UnixTimestamp
 };
 
 export const validActionableEventEvent: ActionableEventFoundEvent = {
@@ -218,7 +220,8 @@ export const auditTrailNoPhoneNumberForCalendarEventFoundEvent: AuditTrailStoreR
       timeZone: 'Europe/Madrid' as TimeZone
     }
   },
-  Origin: 'somewhere' as AuditTrailStoreRecordOrigin
+  Origin: 'somewhere' as AuditTrailStoreRecordOrigin,
+  ExpiresAt: 123456789 as UnixTimestamp
 };
 
 export const lowCreditsDetectedEvent: AuditTrailStoreRecord = {
@@ -233,7 +236,8 @@ export const lowCreditsDetectedEvent: AuditTrailStoreRecord = {
   IdpId: '45346356356' as IdpId,
   EventType: 'LowCreditsDetected',
   HappenedAt: '2024-01-02T15:04:50Z' as DateTime,
-  Origin: 'somewhere' as AuditTrailStoreRecordOrigin
+  Origin: 'somewhere' as AuditTrailStoreRecordOrigin,
+  ExpiresAt: 123456789 as UnixTimestamp
 };
 
 export const insufficientCreditsReminderNotSentEvent: AuditTrailStoreRecord = {
@@ -248,5 +252,6 @@ export const insufficientCreditsReminderNotSentEvent: AuditTrailStoreRecord = {
   IdpId: '45346356357' as IdpId,
   EventType: 'InsufficientCreditsReminderNotSent',
   HappenedAt: '2024-01-02T15:04:51Z' as DateTime,
-  Origin: 'somewhere' as AuditTrailStoreRecordOrigin
+  Origin: 'somewhere' as AuditTrailStoreRecordOrigin,
+  ExpiresAt: 123456789 as UnixTimestamp
 };

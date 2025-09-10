@@ -3,8 +3,10 @@ import type { EventBridgeEvent } from '@aws-lambda-powertools/parser/types';
 import { logger } from '@common/powertools';
 import type { BaseEvent } from '@model/app-events/BaseEvent';
 import type { NoPhoneNumberForCalendarEventFoundEvent } from '@model/app-events/NoPhoneNumberForCalendarEventFoundEvent';
-import type { BaseStoreConfig } from '@services/common/base-store';
-import { AuditTrailBaseStore } from '@services/stores/audit-trail-base-store';
+import {
+  type AuditTrailBaseStoreConfig,
+  AuditTrailBaseStore
+} from '@services/stores/audit-trail-base-store';
 import {
   noPhoneNumberForCalendarEventFoundEvent,
   userCalendarFetchedEvent
@@ -70,5 +72,10 @@ function testit(
     // eslint-disable-next-line @typescript-eslint/unbound-method
     .mocked(AuditTrailBaseStore.withConfig)
     .mockReturnValue(auditTrailBaseStoreMock as unknown as AuditTrailBaseStore);
-  return recordProcessor(record, new auditTrailBaseStore({} as BaseStoreConfig, _logger), _logger);
+  return recordProcessor(
+    record,
+    180,
+    new auditTrailBaseStore({} as AuditTrailBaseStoreConfig, _logger),
+    _logger
+  );
 }
