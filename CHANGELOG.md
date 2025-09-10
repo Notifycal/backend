@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.0.2](https://github.com/Notifycal/backend/compare/v1.0.1...v1.0.2) (2025-09-09)
+
+
+### Bug Fixes
+
+* **deps:** Update AWS packages to v3.883.0 ([#1050](https://github.com/Notifycal/backend/issues/1050)) ([1dcea0a](https://github.com/Notifycal/backend/commit/1dcea0a33cd9e6ce6630c90487c62ec9c6079c51))
+* **deps:** Update dependency luxon to v3.7.2 ([#1046](https://github.com/Notifycal/backend/issues/1046)) ([5714756](https://github.com/Notifycal/backend/commit/57147560246d670658d30895e559dc76e927f2d5))
+* **deps:** Update dependency uuid to v12 ([#1051](https://github.com/Notifycal/backend/issues/1051)) ([329b576](https://github.com/Notifycal/backend/commit/329b5767a78daf9f4e455b950cc6a66d111be500))
+* **deps:** Update dependency uuid to v13 ([#1056](https://github.com/Notifycal/backend/issues/1056)) ([b80a217](https://github.com/Notifycal/backend/commit/b80a21755df9d790f4cb670b4c4a2ac875338180))
+* **deps:** Update Middy middleware packages to v6.4.5 ([#1057](https://github.com/Notifycal/backend/issues/1057)) ([39145ef](https://github.com/Notifycal/backend/commit/39145eff39ef2d3f88c26270c3fb80560941762d))
+
 ## [1.0.1](https://github.com/Notifycal/backend/compare/v1.0.0...v1.0.1) (2025-09-04)
 
 
