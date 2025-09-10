@@ -337,12 +337,16 @@ variable "api_gateway_logging" {
   }
 
   validation {
-    condition     = var.api_gateway_logging.execution_logs_retention > 0 && var.api_gateway_logging.execution_logs_retention <= 3653
-    error_message = "execution_logs_retention must be between 1 and 3653 days"
+    condition = contains([
+      1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731, 1827, 3653
+    ], var.api_gateway_logging.execution_logs_retention)
+    error_message = "execution_logs_retention must be one of the AWS CloudWatch supported values: 1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731, 1827, 3653"
   }
 
   validation {
-    condition     = var.api_gateway_logging.access_logs_retention > 0 && var.api_gateway_logging.access_logs_retention <= 3653
-    error_message = "access_logs_retention must be between 1 and 3653 days"
+    condition = contains([
+      1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731, 1827, 3653
+    ], var.api_gateway_logging.access_logs_retention)
+    error_message = "access_logs_retention must be one of the AWS CloudWatch supported values: 1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731, 1827, 3653"
   }
 }
