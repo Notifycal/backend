@@ -326,9 +326,7 @@ variable "lambda_logging" {
   }
 
   validation {
-    condition = contains([
-      1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731, 1827, 3653
-    ], var.lambda_logging.retention_in_days)
-    error_message = "retention_in_days must be one of the AWS CloudWatch supported values: 1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731, 1827, 3653"
+    condition     = contains(local.aws_log_group_retention_values, var.lambda_logging.retention_in_days)
+    error_message = "lambda logs retention_in_days ${local.log_retention_validation_message}"
   }
 }
