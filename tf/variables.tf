@@ -315,3 +315,34 @@ variable "stripe_admin_webhook_url" {
   sensitive   = true
   default     = null
 }
+
+variable "api_gateway_logging" {
+  description = "API Gateway logging configuration. Log retention default valuea matches what the privacy policy states."
+  type = object({
+    data_trace_enabled       = optional(bool, false)
+    logging_level            = optional(string, "ERROR")
+    execution_logs_retention = optional(number, 180)
+    access_logs_retention    = optional(number, 180)
+  })
+  default = {
+    data_trace_enabled       = false
+    logging_level            = "ERROR"
+    execution_logs_retention = 180
+    access_logs_retention    = 180
+  }
+
+  validation {
+    condition     = contains(["ERROR", "INFO", "OFF"], var.api_gateway_logging.logging_level)
+    error_message = "logging_level must be one of: ERROR, INFO, OFF"
+  }
+
+  validation {
+    condition     = var.api_gateway_logging.execution_logs_retention > 0 && var.api_gateway_logging.execution_logs_retention <= 3653
+    error_message = "execution_logs_retention must be between 1 and 3653 days"
+  }
+
+  validation {
+    condition     = var.api_gateway_logging.access_logs_retention > 0 && var.api_gateway_logging.access_logs_retention <= 3653
+    error_message = "access_logs_retention must be between 1 and 3653 days"
+  }
+}
