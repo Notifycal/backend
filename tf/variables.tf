@@ -315,3 +315,20 @@ variable "stripe_admin_webhook_url" {
   sensitive   = true
   default     = null
 }
+
+variable "lambda_logging" {
+  description = "Lambda logging configuration. Log retention default value matches what the privacy policy states."
+  type = object({
+    retention_in_days = optional(number, 180)
+  })
+  default = {
+    retention_in_days = 180
+  }
+
+  validation {
+    condition = contains([
+      1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731, 1827, 3653
+    ], var.lambda_logging.retention_in_days)
+    error_message = "retention_in_days must be one of the AWS CloudWatch supported values: 1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731, 1827, 3653"
+  }
+}

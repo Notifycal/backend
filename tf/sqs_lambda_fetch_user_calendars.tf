@@ -55,9 +55,10 @@ module "fetch_user_calendars_lambda" {
 
   layers = local.lambdas_layers
 
-  logging_log_format    = var.lambdas_logging_log_format
-  attach_tracing_policy = local.lambdas_attach_tracing_policy
-  tracing_mode          = local.lambdas_tracing_mode
+  cloudwatch_logs_retention_in_days = var.lambda_logging.retention_in_days
+  logging_log_format                = var.lambdas_logging_log_format
+  attach_tracing_policy             = local.lambdas_attach_tracing_policy
+  tracing_mode                      = local.lambdas_tracing_mode
 
   # These 2 go together, if create_async_event_config is set to false (its default),
   # lambdas will retry up to 2 times
