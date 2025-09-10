@@ -316,6 +316,13 @@ variable "stripe_admin_webhook_url" {
   default     = null
 }
 
+locals {
+  aws_log_group_retention_values = [
+    1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731, 1827, 3653
+  ]
+  log_retention_validation_message = "must be one of the AWS CloudWatch supported values: ${join(", ", local.aws_log_group_retention_values)}"
+}
+
 variable "api_gateway_logging" {
   description = "API Gateway logging configuration. Log retention default valuea matches what the privacy policy states."
   type = object({
@@ -337,16 +344,12 @@ variable "api_gateway_logging" {
   }
 
   validation {
-    condition = contains([
-      1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731, 1827, 3653
-    ], var.api_gateway_logging.execution_logs_retention)
-    error_message = "execution_logs_retention must be one of the AWS CloudWatch supported values: 1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731, 1827, 3653"
+    condition     = contains(local.aws_log_group_retention_values, var.api_gateway_logging.execution_logs_retention)
+    error_message = "execution_logs_retention ${local.log_retention_validation_message}"
   }
 
   validation {
-    condition = contains([
-      1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731, 1827, 3653
-    ], var.api_gateway_logging.access_logs_retention)
-    error_message = "access_logs_retention must be one of the AWS CloudWatch supported values: 1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731, 1827, 3653"
+    condition     = contains(local.aws_log_group_retention_values, var.api_gateway_logging.access_logs_retention)
+    error_message = "access_logs_retention ${local.log_retention_validation_message}"
   }
 }
