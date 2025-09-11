@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0.1](https://github.com/Notifycal/backend/compare/v2.0.0...v2.0.1) (2025-09-11)
+
+
+### Bug Fixes
+
+* iac validation ([#1068](https://github.com/Notifycal/backend/issues/1068)) ([35b2ec5](https://github.com/Notifycal/backend/commit/35b2ec53e3b57854b66237a187a71ee45c494f27))
+
 ## [2.0.0](https://github.com/Notifycal/backend/compare/v1.0.2...v2.0.0) (2025-09-11)
 
 
