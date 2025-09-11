@@ -13,8 +13,8 @@
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.12.0 |
-| <a name="provider_awscc"></a> [awscc](#provider\_awscc) | 1.55.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | >= 5.0 |
+| <a name="provider_awscc"></a> [awscc](#provider\_awscc) | >= 1.0 |
 
 ## Modules
 
@@ -78,6 +78,8 @@
 | [aws_cloudwatch_event_target.all_events](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_event_target) | resource |
 | [aws_cloudwatch_event_target.fetch_user_calendars_event_target](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_event_target) | resource |
 | [aws_cloudwatch_log_data_protection_policy.no_credentials_in_logs](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_log_data_protection_policy) | resource |
+| [aws_cloudwatch_log_group.api_access_logs](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_log_group) | resource |
+| [aws_cloudwatch_log_group.api_execution_logs](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_log_group) | resource |
 | [aws_cloudwatch_metric_alarm.integration_error_rate_alarms](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_metric_alarm) | resource |
 | [aws_cloudwatch_metric_alarm.lambda_concurrent_executions](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_metric_alarm) | resource |
 | [aws_cloudwatch_metric_alarm.lambda_duration](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_metric_alarm) | resource |
@@ -131,6 +133,7 @@
 | <a name="input_allowed_origins"></a> [allowed\_origins](#input\_allowed\_origins) | Allowed origins specified in response headers by API gateway lambdas(TLDR: CORS). The value matching the request header origin will be set in the response | `list(string)` | n/a | yes |
 | <a name="input_api_gateway_custom_domain_enabled"></a> [api\_gateway\_custom\_domain\_enabled](#input\_api\_gateway\_custom\_domain\_enabled) | Controls the creation of a custom domain for API Gateway and the domain it is accessible from | `bool` | `true` | no |
 | <a name="input_api_gateway_custom_domain_ttl"></a> [api\_gateway\_custom\_domain\_ttl](#input\_api\_gateway\_custom\_domain\_ttl) | TTL for the custom DNS record for API Gateway. | `number` | `300` | no |
+| <a name="input_api_gateway_logging"></a> [api\_gateway\_logging](#input\_api\_gateway\_logging) | API Gateway logging configuration. Log retention default value matches what the privacy policy states. | <pre>object({<br/>    data_trace_enabled       = optional(bool, false)<br/>    logging_level            = optional(string, "ERROR")<br/>    execution_logs_retention = optional(number, 180)<br/>    access_logs_retention    = optional(number, 180)<br/>  })</pre> | <pre>{<br/>  "access_logs_retention": 180,<br/>  "data_trace_enabled": false,<br/>  "execution_logs_retention": 180,<br/>  "logging_level": "ERROR"<br/>}</pre> | no |
 | <a name="input_api_stage_name"></a> [api\_stage\_name](#input\_api\_stage\_name) | n/a | `string` | n/a | yes |
 | <a name="input_app_version"></a> [app\_version](#input\_app\_version) | n/a | `string` | n/a | yes |
 | <a name="input_aws_region"></a> [aws\_region](#input\_aws\_region) | n/a | `string` | n/a | yes |
