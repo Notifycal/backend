@@ -88,6 +88,7 @@ module "audit_trail_lambda" {
   allowed_triggers     = local.audit_trail_allowed_triggers
 
   environment_variables = merge({
-    AUDIT_TRAIL_TABLE_NAME = aws_dynamodb_table.audit_trail_events.name
+    AUDIT_TRAIL_TABLE_NAME         = aws_dynamodb_table.audit_trail_events.name
+    AUDIT_TRAIL_RECORD_TTL_IN_DAYS = 180
   }, local.common_lambda_env_vars)
 }

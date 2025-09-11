@@ -7,7 +7,12 @@ import {
   systemSchema
 } from '@model/app-events/BaseEvent';
 import { eventIdSchema } from '@model/app-events/common';
-import { dateTimeSchema, idpIdSchema, userIdSchema } from '@notifycal/shared/schemas';
+import {
+  dateTimeSchema,
+  idpIdSchema,
+  unixTimestampSchema,
+  userIdSchema
+} from '@notifycal/shared/schemas';
 import type { Brand, CapitalizeKeys, IdpName, UserIdentity } from '@notifycal/shared/types';
 import { z } from 'zod';
 
@@ -26,7 +31,8 @@ export const genericAuditTrailStoreRecordSchema = z.object({
   EventId: eventIdSchema,
   CorrelationId: correlationIdSchema,
   Data: dataSchema,
-  Origin: originSchema
+  Origin: originSchema,
+  ExpiresAt: unixTimestampSchema
 });
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, @typescript-eslint/explicit-module-boundary-types

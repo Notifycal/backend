@@ -18,7 +18,8 @@ const validSqsBatchEvent: SQSEvent = {
 function setEnv() {
   const config: AuditTrailConfig = {
     auditTrailBaseStoreConfig: {
-      tableName: 'some-table-name'
+      tableName: 'some-table-name',
+      recordTtlInDays: 180
     }
   };
   setEnvAuditTrailBaseStoreConfig(config.auditTrailBaseStoreConfig);

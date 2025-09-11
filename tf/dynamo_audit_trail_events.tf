@@ -7,6 +7,10 @@ resource "aws_dynamodb_table" "audit_trail_events" {
     name = "EventId"
     type = "S"
   }
+  ttl {
+    attribute_name = "ExpiresAt"
+    enabled        = true
+  }
 
   deletion_protection_enabled = var.deletion_protection_enabled
 

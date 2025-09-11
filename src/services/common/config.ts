@@ -225,7 +225,8 @@ export function readIdpConfigs(env: Environment): IdpEndpointConfig {
 export function readAuditTrailBaseStoreConfig(env: Environment): AuditTrailBaseStoreEndpointConfig {
   return {
     auditTrailBaseStoreConfig: {
-      tableName: env.get('AUDIT_TRAIL_TABLE_NAME').required().asString()
+      tableName: env.get('AUDIT_TRAIL_TABLE_NAME').required().asString(),
+      recordTtlInDays: env.get('AUDIT_TRAIL_RECORD_TTL_IN_DAYS').default(180).asIntPositive()
     }
   };
 }

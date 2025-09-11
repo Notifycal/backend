@@ -6,15 +6,23 @@ import type {
   AuditTrailStoreRecord,
   AuditTrailStoreRecordOrigin
 } from '@model/store/AuditTrailStoreRecord';
-import type { CorrelationId, DateTime, EventId, UserId } from '@notifycal/shared/types';
+import type {
+  CorrelationId,
+  DateTime,
+  EventId,
+  UnixTimestamp,
+  UserId
+} from '@notifycal/shared/types';
 import { rethrowError } from '@services/common/error-handling';
 import { setupLoggerForAuditStoreRecordProcessing } from '@services/common/logger';
 import type { AuditTrailBaseStore } from '@services/stores/audit-trail-base-store';
 import type MetricsAggregator from '@utils/MetricsAggregator';
+import { DateTime as DT } from 'luxon';
 import { match, P } from 'ts-pattern';
 import type { Record } from './schema';
 
-function toStoreRecord(r: Record): AuditTrailStoreRecord {
+function toStoreRecord(r: Record, ttlInDays: number): AuditTrailStoreRecord {
+  const expiresAt = DT.now().plus({ day: ttlInDays }).toUnixInteger() as UnixTimestamp;
   return match(r)
     .with(
       { body: { eventType: P.any, eventId: P.string, happenedAt: P.string } },
@@ -27,7 +35,8 @@ function toStoreRecord(r: Record): AuditTrailStoreRecord {
         EventType: event.eventType,
         HappenedAt: event.happenedAt,
         Data: event.data,
-        Origin: eventSourceARN as AuditTrailStoreRecordOrigin
+        Origin: eventSourceARN as AuditTrailStoreRecordOrigin,
+        ExpiresAt: expiresAt
       })
     )
     .with(
@@ -41,7 +50,8 @@ function toStoreRecord(r: Record): AuditTrailStoreRecord {
         EventType: event['detail-type'] as EventType,
         HappenedAt: event.time as DateTime,
         Data: event,
-        Origin: eventSourceARN as AuditTrailStoreRecordOrigin
+        Origin: eventSourceARN as AuditTrailStoreRecordOrigin,
+        ExpiresAt: expiresAt
       })
     )
     .exhaustive();
@@ -85,10 +95,11 @@ function withEventMetric(
 
 export function recordProcessor(
   record: Record,
+  recordTtlInDays: number,
   auditTrailBaseStore: AuditTrailBaseStore,
   logger: Logger
 ): Promise<void> {
-  const storeRecord = toStoreRecord(record);
+  const storeRecord = toStoreRecord(record, recordTtlInDays);
   setupLoggerForAuditStoreRecordProcessing(storeRecord, logger);
   return auditTrailBaseStore
     .put(storeRecord)

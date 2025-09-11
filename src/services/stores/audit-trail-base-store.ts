@@ -2,7 +2,9 @@ import type { Logger } from '@aws-lambda-powertools/logger';
 import type { AuditTrailStoreRecord } from '@model/store/AuditTrailStoreRecord';
 import { type BaseStoreConfig, BaseStore } from '@services/common/base-store';
 
-export type AuditTrailBaseStoreConfig = BaseStoreConfig;
+export interface AuditTrailBaseStoreConfig extends BaseStoreConfig {
+  recordTtlInDays: number;
+}
 export type AuditTrailBaseStoreEndpointConfig = {
   auditTrailBaseStoreConfig: AuditTrailBaseStoreConfig;
 };
