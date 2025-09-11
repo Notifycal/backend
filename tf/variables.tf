@@ -311,6 +311,14 @@ variable "stripe_admin_webhook_url" {
   default     = null
 }
 
+locals {
+  aws_log_group_retention_values = [
+    1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731, 1827, 3653
+  ]
+  log_retention_validation_message = "must be one of the AWS CloudWatch supported values: ${join(", ", local.aws_log_group_retention_values)}"
+  aws_logging_format_values        = ["JSON", "Text"]
+}
+
 variable "lambda_logging" {
   description = "Lambda logging configuration. Log retention default value matches what the privacy policy states."
   type = object({
@@ -327,7 +335,38 @@ variable "lambda_logging" {
   }
 
   validation {
-    condition     = contains(["JSON", "Text"], var.lambda_logging.format)
-    error_message = "lambda logging format is invalid"
+    condition     = contains(local.aws_logging_format_values, var.lambda_logging.format)
+    error_message = "lambda logging format must be one of ${local.aws_logging_format_values}"
+  }
+}
+
+variable "api_gateway_logging" {
+  description = "API Gateway logging configuration. Log retention default value matches what the privacy policy states."
+  type = object({
+    data_trace_enabled       = optional(bool, false)
+    logging_level            = optional(string, "ERROR")
+    execution_logs_retention = optional(number, 180)
+    access_logs_retention    = optional(number, 180)
+  })
+  default = {
+    data_trace_enabled       = false
+    logging_level            = "ERROR"
+    execution_logs_retention = 180
+    access_logs_retention    = 180
+  }
+
+  validation {
+    condition     = contains(["ERROR", "INFO", "OFF"], var.api_gateway_logging.logging_level)
+    error_message = "logging_level must be one of: ERROR, INFO, OFF"
+  }
+
+  validation {
+    condition     = contains(local.aws_log_group_retention_values, var.api_gateway_logging.execution_logs_retention)
+    error_message = "execution_logs_retention ${local.log_retention_validation_message}"
+  }
+
+  validation {
+    condition     = contains(local.aws_log_group_retention_values, var.api_gateway_logging.access_logs_retention)
+    error_message = "access_logs_retention ${local.log_retention_validation_message}"
   }
 }

@@ -49,6 +49,26 @@ resource "aws_api_gateway_deployment" "api_deployment" {
   }
 }
 
+resource "aws_cloudwatch_log_group" "api_execution_logs" {
+  // Gotcha: name needs to match the log group name that API GW would use if log group is not created explitly so it picks it up
+  name              = "API-Gateway-Execution-Logs_${aws_api_gateway_rest_api.rest_api.id}/${var.api_stage_name}"
+  retention_in_days = var.api_gateway_logging.execution_logs_retention
+  tags = {
+    Service = "API Gateway"
+    LogType = "execution"
+  }
+}
+
+resource "aws_cloudwatch_log_group" "api_access_logs" {
+  name              = "/aws/apigateway/access-logs-${aws_api_gateway_rest_api.rest_api.id}/${var.api_stage_name}"
+  retention_in_days = var.api_gateway_logging.access_logs_retention
+
+  tags = {
+    Service = "API Gateway"
+    LogType = "access"
+  }
+}
+
 resource "aws_api_gateway_stage" "stage" {
   deployment_id = aws_api_gateway_deployment.api_deployment.id
   rest_api_id   = aws_api_gateway_rest_api.rest_api.id
@@ -56,6 +76,30 @@ resource "aws_api_gateway_stage" "stage" {
   # Need this to force a deployment on a change to the file as tf
   # doesn't always seem to pick it up
   description = md5(local.rendered_openapi_spec)
+
+  access_log_settings {
+    destination_arn = aws_cloudwatch_log_group.api_access_logs.arn
+    format = jsonencode({
+      requestId        = "$context.requestId"
+      ip               = "$sourceIp"
+      caller           = "$context.caller"
+      user             = "$context.user"
+      requestTime      = "$requestTime"
+      httpMethod       = "$httpMethod"
+      resourcePath     = "$resourcePath"
+      status           = "$status"
+      protocol         = "$protocol"
+      responseLength   = "$responseLength"
+      responseTime     = "$responseTime"
+      error            = "$error.message"
+      integrationError = "$integration.error"
+    })
+  }
+
+  depends_on = [
+    aws_cloudwatch_log_group.api_execution_logs,
+    aws_cloudwatch_log_group.api_access_logs
+  ]
 }
 
 resource "aws_api_gateway_method_settings" "method_settings" {
@@ -66,8 +110,8 @@ resource "aws_api_gateway_method_settings" "method_settings" {
   method_path = "*/*"
 
   settings {
-    data_trace_enabled = true
+    data_trace_enabled = var.api_gateway_logging.data_trace_enabled
     metrics_enabled    = true
-    logging_level      = "INFO"
+    logging_level      = var.api_gateway_logging.logging_level
   }
 }
