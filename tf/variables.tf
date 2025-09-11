@@ -324,7 +324,7 @@ locals {
 }
 
 variable "api_gateway_logging" {
-  description = "API Gateway logging configuration. Log retention default valuea matches what the privacy policy states."
+  description = "API Gateway logging configuration. Log retention default value matches what the privacy policy states."
   type = object({
     data_trace_enabled       = optional(bool, false)
     logging_level            = optional(string, "ERROR")
