@@ -64,7 +64,7 @@ module "audit_trail_lambda" {
   layers = local.lambdas_layers
 
   cloudwatch_logs_retention_in_days = var.lambda_logging.retention_in_days
-  logging_log_format                = var.lambdas_logging_log_format
+  logging_log_format                = var.lambda_logging.format
   attach_tracing_policy             = local.lambdas_attach_tracing_policy
   tracing_mode                      = local.lambdas_tracing_mode
 

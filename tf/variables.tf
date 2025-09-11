@@ -45,11 +45,6 @@ variable "lambdas_live_alias_name" {
   default = "live"
 }
 
-variable "lambdas_logging_log_format" {
-  type    = string
-  default = "JSON"
-}
-
 variable "lambdas_runtime" {
   type    = string
   default = "nodejs22.x"
@@ -320,6 +315,7 @@ variable "lambda_logging" {
   description = "Lambda logging configuration. Log retention default value matches what the privacy policy states."
   type = object({
     retention_in_days = optional(number, 180)
+    format            = optional(string, "JSON")
   })
   default = {
     retention_in_days = 180
@@ -328,5 +324,10 @@ variable "lambda_logging" {
   validation {
     condition     = contains(local.aws_log_group_retention_values, var.lambda_logging.retention_in_days)
     error_message = "lambda logs retention_in_days ${local.log_retention_validation_message}"
+  }
+
+  validation {
+    condition     = contains(["JSON", "Text"], var.lambda_logging.format)
+    error_message = "lambda logging format is invalid"
   }
 }
