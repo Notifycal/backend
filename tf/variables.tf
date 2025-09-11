@@ -336,7 +336,7 @@ variable "lambda_logging" {
 
   validation {
     condition     = contains(local.aws_logging_format_values, var.lambda_logging.format)
-    error_message = "lambda logging format must be one of ${local.aws_logging_format_values}"
+    error_message = "lambda logging format must be one of these values: ${join(", ", local.aws_logging_format_values)}"
   }
 }
 
