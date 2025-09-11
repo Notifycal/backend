@@ -1,5 +1,26 @@
 # Changelog
 
+## [2.0.0](https://github.com/Notifycal/backend/compare/v1.0.2...v2.0.0) (2025-09-11)
+
+
+### ⚠ BREAKING CHANGES
+
+* force major version released cause title of 2 previous commits did not follow conventional commits
+
+### Features
+
+* audit trail record ttl ([#1066](https://github.com/Notifycal/backend/issues/1066)) ([80f3e84](https://github.com/Notifycal/backend/commit/80f3e841bb3e143c683ad1fc6315687155005306))
+* **breaking:** api gateway log retention. Breaking change due to the… ([#1064](https://github.com/Notifycal/backend/issues/1064)) ([cc684fe](https://github.com/Notifycal/backend/commit/cc684fe3f9baa3624e2f483b2fa998b2b4c729b6))
+* force major version released cause title of 2 previous commits did not follow conventional commits ([82b01d4](https://github.com/Notifycal/backend/commit/82b01d43eee7b6812e06d41e8ec640683fd75ca5))
+* lambda log retention ([#1065](https://github.com/Notifycal/backend/issues/1065)) ([f9208d0](https://github.com/Notifycal/backend/commit/f9208d084d5cfbaf8177cc2e5460ca9cde7e239d))
+
+
+### Bug Fixes
+
+* **deps:** Update AWS packages to v3.886.0 ([#1067](https://github.com/Notifycal/backend/issues/1067)) ([684cecb](https://github.com/Notifycal/backend/commit/684cecbe88fe7568800cd933355d8f699f81ef84))
+* **deps:** Update dependency @notifycal/shared to v7.11.0 ([#1060](https://github.com/Notifycal/backend/issues/1060)) ([1b3e6a2](https://github.com/Notifycal/backend/commit/1b3e6a261d6e1a022a9d825dda8d20e3fdc775b2))
+* **deps:** Update dependency @notifycal/shared to v7.12.0 ([#1063](https://github.com/Notifycal/backend/issues/1063)) ([f5350e5](https://github.com/Notifycal/backend/commit/f5350e5e262a1eab3f060f7dad34d8425284832b))
+
 ## [1.0.2](https://github.com/Notifycal/backend/compare/v1.0.1...v1.0.2) (2025-09-09)
 
 
