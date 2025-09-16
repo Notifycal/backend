@@ -1,5 +1,20 @@
 # Changelog
 
+## [2.0.2](https://github.com/Notifycal/backend/compare/v2.0.1...v2.0.2) (2025-09-16)
+
+
+### Bug Fixes
+
+* brace-expansion packages security vulnerability ([#1085](https://github.com/Notifycal/backend/issues/1085)) ([15e822f](https://github.com/Notifycal/backend/commit/15e822f0e302779eeef901ec066522408af0b61d))
+* **deps:** Update AWS packages ([#1072](https://github.com/Notifycal/backend/issues/1072)) ([caa2777](https://github.com/Notifycal/backend/commit/caa27773cd035a9a93fdc950b1648e014cbabc14))
+* **deps:** Update AWS packages to v2.26.1 ([#1084](https://github.com/Notifycal/backend/issues/1084)) ([e0dbcca](https://github.com/Notifycal/backend/commit/e0dbccaf4e0a77be39ae415f2074a52486c764a2))
+* **deps:** Update AWS packages to v3.888.0 ([#1079](https://github.com/Notifycal/backend/issues/1079)) ([f4b29d4](https://github.com/Notifycal/backend/commit/f4b29d480da3ed1a6a848207df8592ddda50f45d))
+* **deps:** Update dependency @vonage/server-sdk to v3.24.3 ([#1077](https://github.com/Notifycal/backend/issues/1077)) ([08b2c5a](https://github.com/Notifycal/backend/commit/08b2c5a38b105fd57e2f7ca550cac1edb6531ac2))
+* **deps:** Update dependency axios to v1.12.0 ([#1073](https://github.com/Notifycal/backend/issues/1073)) ([5d69493](https://github.com/Notifycal/backend/commit/5d694933d17bc7c32b748a10d2e9f5394ab8ba94))
+* **deps:** Update dependency axios to v1.12.2 ([#1082](https://github.com/Notifycal/backend/issues/1082)) ([81ac189](https://github.com/Notifycal/backend/commit/81ac189300671e94bb0a38c53d679b45d64d2392))
+* **deps:** Update Node.js Dependencies ([#1075](https://github.com/Notifycal/backend/issues/1075)) ([b4d0428](https://github.com/Notifycal/backend/commit/b4d0428fa1563e61d0f22cc3ec7904b83b96279b))
+* pricing ([#1086](https://github.com/Notifycal/backend/issues/1086)) ([77d6d92](https://github.com/Notifycal/backend/commit/77d6d92f23b468577d8cdaad948127433ca450b7))
+
 ## [2.0.1](https://github.com/Notifycal/backend/compare/v2.0.0...v2.0.1) (2025-09-11)
 
 
