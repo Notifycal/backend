@@ -5,7 +5,7 @@ locals {
       price_id            = try(stripe_price.monthly_prices[key].id, stripe_price.topup_prices[key].id)
       name                = config.name
       price_eur           = config.price_cents / 100
-      number_of_reminders = floor(config.price_cents / 100 / var.country_to_sms_cost_map["ES"])
+      number_of_reminders = floor(config.credits / var.country_to_sms_cost_map["ES"])
       credits             = config.credits
     }
   }
