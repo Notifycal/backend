@@ -370,3 +370,26 @@ variable "api_gateway_logging" {
     error_message = "access_logs_retention ${local.log_retention_validation_message}"
   }
 }
+
+variable "backup_config" {
+  description = <<-EOT
+    DynamoDB backup configuration implementing a 3-tier retention strategy:
+    - Days 0-35: PITR active + weekly safety backups (max 5 retained)
+    - Days 35-90: Weekly backups only (~8 backups)
+    - Days 90-180: Monthly backups (3 backups)
+    - Day 180: Automatic deletion (GDPR compliance)
+
+    If null, no backups are created. Enabled by default.
+  EOT
+
+  type = object({
+    pitr_retention_days     = optional(number, 35)
+    weekly_during_pitr_days = optional(number, 35)
+    weekly_post_pitr_days   = optional(number, 90)
+    monthly_retention_days  = optional(number, 180)
+    cold_storage_after_days = optional(number, 14)
+    weekly_cron             = optional(string, "cron(0 6 ? * MON-FRI *)")
+    monthly_cron            = optional(string, "cron(0 6 1 * ? *)")
+  })
+  default = null
+}
