@@ -8,17 +8,12 @@ output "backup_vault_name" {
   value       = aws_backup_vault.dynamodb_vault.name
 }
 
-output "weekly_during_pitr_plan_arn" {
-  description = "ARN of the weekly backup plan during PITR period"
-  value       = aws_backup_plan.weekly_during_pitr.arn
+output "backup_plan_arns" {
+  description = "Map of backup plan ARNs by tier name"
+  value       = { for k, v in aws_backup_plan.tiers : k => v.arn }
 }
 
-output "weekly_post_pitr_plan_arn" {
-  description = "ARN of the weekly backup plan post PITR period"
-  value       = aws_backup_plan.weekly_post_pitr.arn
-}
-
-output "monthly_plan_arn" {
-  description = "ARN of the monthly backup plan"
-  value       = aws_backup_plan.monthly.arn
+output "backup_plan_ids" {
+  description = "Map of backup plan IDs by tier name"
+  value       = { for k, v in aws_backup_plan.tiers : k => v.id }
 }

@@ -11,12 +11,16 @@ variable "table_name" {
 variable "backup_config" {
   description = "Backup configuration for the DynamoDB table"
   type = object({
-    weekly_during_pitr_days = number
-    weekly_post_pitr_days   = number
-    monthly_retention_days  = number
-    cold_storage_after_days = number
-    weekly_cron             = string
-    monthly_cron            = string
+    pitr_enabled        = bool
+    pitr_retention_days = number
+    backup_tiers = list(object({
+      name                = string
+      rule_name           = optional(string)
+      frequency_cron      = string
+      retention_days      = number
+      cold_storage_days   = optional(number)
+      description         = optional(string)
+    }))
   })
 }
 

@@ -58,8 +58,8 @@ resource "aws_dynamodb_table" "users" {
   deletion_protection_enabled = var.deletion_protection_enabled
 
   point_in_time_recovery {
-    enabled                 = local.backup_enabled
-    recovery_period_in_days = try(var.backup_config.pitr_retention_days, null)
+    enabled                 = local.backup_enabled && var.backup_config.pitr_enabled
+    recovery_period_in_days = local.backup_enabled ? var.backup_config.pitr_retention_days : null
   }
 }
 

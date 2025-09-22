@@ -373,23 +373,67 @@ variable "api_gateway_logging" {
 
 variable "backup_config" {
   description = <<-EOT
-    DynamoDB backup configuration implementing a 3-tier retention strategy:
-    - Days 0-35: PITR active + weekly safety backups (max 5 retained)
-    - Days 35-90: Weekly backups only (~8 backups)
-    - Days 90-180: Monthly backups (3 backups)
-    - Day 180: Automatic deletion (GDPR compliance)
+    DynamoDB backup configuration with flexible tier strategy.
+    Each tier defines frequency, retention, and storage class.
+    Includes validations for AWS Backup restrictions.
 
-    If null, no backups are created. Enabled by default.
+    Default implements 2-tier strategy:
+    - Days 0-35: PITR active
+    - Days 35-105: Weekly backups (warm storage only)
+    - Days 105-180: Monthly backups (cold storage after 14 days)
+    - Day 180: Automatic deletion (GDPR compliance)
   EOT
 
   type = object({
-    pitr_retention_days     = optional(number, 35)
-    weekly_during_pitr_days = optional(number, 35)
-    weekly_post_pitr_days   = optional(number, 90)
-    monthly_retention_days  = optional(number, 180)
-    cold_storage_after_days = optional(number, 14)
-    weekly_cron             = optional(string, "cron(0 6 ? * MON-FRI *)")
-    monthly_cron            = optional(string, "cron(0 6 1 * ? *)")
+    # PITR configuration
+    pitr_enabled        = optional(bool, true)
+    pitr_retention_days = optional(number, 35)
+
+    # Backup tiers array
+    backup_tiers = optional(list(object({
+      name              = string
+      rule_name         = optional(string)
+      frequency_cron    = string
+      retention_days    = number
+      cold_storage_days = optional(number)
+      description       = optional(string)
+      })), [
+      {
+        name              = "weekly"
+        rule_name         = "Weekly"
+        frequency_cron    = "cron(0 6 ? * MON-FRI)"
+        retention_days    = 105
+        cold_storage_days = null
+        description       = "Weekly backups for short-term retention"
+      },
+      {
+        name              = "monthly"
+        rule_name         = "Monthly"
+        frequency_cron    = "cron(0 6 1 * ? *)"
+        retention_days    = 180
+        cold_storage_days = 14
+        description       = "Monthly backups with cold storage for long-term retention"
+      }
+    ])
   })
-  default = null
+  default = {}
+
+  validation {
+    condition = alltrue([
+      for tier in var.backup_config.backup_tiers :
+      tier.cold_storage_days == null ? true : tier.retention_days >= (tier.cold_storage_days + 90)
+    ])
+    error_message = "AWS requires minimum 90 days between cold storage and deletion. Each tier with cold_storage_days must have retention_days >= (cold_storage_days + 90)."
+  }
+
+
+  validation {
+    condition     = var.backup_config.pitr_retention_days >= 1 && var.backup_config.pitr_retention_days <= 35
+    error_message = "PITR retention must be between 1 and 35 days (AWS DynamoDB limit)."
+  }
+
+  validation {
+    condition     = length(distinct([for tier in var.backup_config.backup_tiers : tier.name])) == length(var.backup_config.backup_tiers)
+    error_message = "Backup tier names must be unique within the configuration."
+  }
 }

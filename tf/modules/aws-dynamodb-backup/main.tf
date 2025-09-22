@@ -1,5 +1,5 @@
 locals {
-  resource_prefix = "dynamodb-backup-${var.table_name}-${var.environment}"
+  resource_prefix = var.table_name
 }
 
 resource "aws_backup_vault" "dynamodb_vault" {
@@ -49,95 +49,36 @@ resource "aws_kms_alias" "backup_key_alias" {
 
 data "aws_caller_identity" "current" {}
 
-resource "aws_backup_plan" "weekly_during_pitr" {
-  name = "${local.resource_prefix}-weekly-during-pitr"
+resource "aws_backup_plan" "tiers" {
+  for_each = { for tier in var.backup_config.backup_tiers : tier.name => tier }
+
+  name = "${local.resource_prefix}-${each.key}"
 
   rule {
-    rule_name         = "WeeklyDuringPITR"
+    rule_name         = each.value.rule_name != null ? each.value.rule_name : title(each.key)
     target_vault_name = aws_backup_vault.dynamodb_vault.name
-    schedule          = var.backup_config.weekly_cron
+    schedule          = each.value.frequency_cron
 
     lifecycle {
-      cold_storage_after                        = var.backup_config.cold_storage_after_days
-      delete_after                              = var.backup_config.weekly_during_pitr_days
-      opt_in_to_archive_for_supported_resources = true
+      delete_after       = each.value.retention_days
+      cold_storage_after = each.value.cold_storage_days
+      opt_in_to_archive_for_supported_resources = each.value.cold_storage_days != null
     }
 
     recovery_point_tags = {
       Environment = var.environment
       Table       = var.table_name
-      BackupType  = "WeeklyDuringPITR"
+      BackupTier  = each.key
     }
   }
-
 }
 
-resource "aws_backup_plan" "weekly_post_pitr" {
-  name = "${local.resource_prefix}-weekly-post-pitr"
+resource "aws_backup_selection" "tiers" {
+  for_each = { for tier in var.backup_config.backup_tiers : tier.name => tier }
 
-  rule {
-    rule_name         = "WeeklyPostPITR"
-    target_vault_name = aws_backup_vault.dynamodb_vault.name
-    schedule          = var.backup_config.weekly_cron
-
-    lifecycle {
-      cold_storage_after                        = var.backup_config.cold_storage_after_days
-      delete_after                              = var.backup_config.weekly_post_pitr_days
-      opt_in_to_archive_for_supported_resources = true
-    }
-
-    recovery_point_tags = {
-      Environment = var.environment
-      Table       = var.table_name
-      BackupType  = "WeeklyPostPITR"
-    }
-  }
-
-}
-
-resource "aws_backup_plan" "monthly" {
-  name = "${local.resource_prefix}-monthly"
-
-  rule {
-    rule_name         = "Monthly"
-    target_vault_name = aws_backup_vault.dynamodb_vault.name
-    schedule          = var.backup_config.monthly_cron
-
-    lifecycle {
-      cold_storage_after                        = var.backup_config.cold_storage_after_days
-      delete_after                              = var.backup_config.monthly_retention_days
-      opt_in_to_archive_for_supported_resources = true
-    }
-
-    recovery_point_tags = {
-      Environment = var.environment
-      Table       = var.table_name
-      BackupType  = "Monthly"
-    }
-  }
-
-}
-
-resource "aws_backup_selection" "weekly_during_pitr" {
   iam_role_arn = aws_iam_role.backup_role.arn
-  name         = "${local.resource_prefix}-weekly-during-pitr-selection"
-  plan_id      = aws_backup_plan.weekly_during_pitr.id
-
-  resources = [var.table_arn]
-}
-
-resource "aws_backup_selection" "weekly_post_pitr" {
-  iam_role_arn = aws_iam_role.backup_role.arn
-  name         = "${local.resource_prefix}-weekly-post-pitr-selection"
-  plan_id      = aws_backup_plan.weekly_post_pitr.id
-
-  resources = [var.table_arn]
-}
-
-resource "aws_backup_selection" "monthly" {
-  iam_role_arn = aws_iam_role.backup_role.arn
-  name         = "${local.resource_prefix}-monthly-selection"
-  plan_id      = aws_backup_plan.monthly.id
+  name         = "${local.resource_prefix}-${each.key}-sel"
+  plan_id      = aws_backup_plan.tiers[each.key].id
 
   resources = [var.table_arn]
 }
