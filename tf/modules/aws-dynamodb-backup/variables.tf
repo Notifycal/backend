@@ -14,12 +14,12 @@ variable "backup_config" {
     pitr_enabled        = bool
     pitr_retention_days = number
     backup_tiers = list(object({
-      name                = string
-      rule_name           = optional(string)
-      frequency_cron      = string
-      retention_days      = number
-      cold_storage_days   = optional(number)
-      description         = optional(string)
+      name              = string
+      rule_name         = optional(string)
+      frequency_cron    = string
+      retention_days    = number
+      cold_storage_days = optional(number)
+      description       = optional(string)
     }))
   })
 }
@@ -27,4 +27,10 @@ variable "backup_config" {
 variable "environment" {
   description = "Environment name"
   type        = string
+}
+
+variable "deletion_protection_enabled" {
+  type        = bool
+  default     = true
+  description = "Whether to prevent deletion of backup vault when it contains recovery points"
 }

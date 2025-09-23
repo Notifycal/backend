@@ -31,8 +31,9 @@ module "audit_trail_backup" {
   count  = local.backup_enabled ? 1 : 0
   source = "./modules/aws-dynamodb-backup"
 
-  table_arn     = aws_dynamodb_table.audit_trail_events.arn
-  table_name    = local.audit_trail_table_name
-  backup_config = var.backup_config
-  environment   = var.environment
+  table_arn                   = aws_dynamodb_table.audit_trail_events.arn
+  table_name                  = local.audit_trail_table_name
+  backup_config               = var.backup_config
+  environment                 = var.environment
+  deletion_protection_enabled = var.deletion_protection_enabled
 }

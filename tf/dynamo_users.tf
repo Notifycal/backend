@@ -67,8 +67,9 @@ module "users_backup" {
   count  = local.backup_enabled ? 1 : 0
   source = "./modules/aws-dynamodb-backup"
 
-  table_arn     = aws_dynamodb_table.users.arn
-  table_name    = local.users_table_name
-  backup_config = var.backup_config
-  environment   = var.environment
+  table_arn                   = aws_dynamodb_table.users.arn
+  table_name                  = local.users_table_name
+  backup_config               = var.backup_config
+  environment                 = var.environment
+  deletion_protection_enabled = var.deletion_protection_enabled
 }
