@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.1.0](https://github.com/Notifycal/backend/compare/v2.0.3...v2.1.0) (2025-09-23)
+
+
+### Features
+
+* backups ([#1101](https://github.com/Notifycal/backend/issues/1101)) ([409dcfa](https://github.com/Notifycal/backend/commit/409dcfa53b1c6e07fdafb0c3d506fb6b0d709dbe))
+
+
+### Bug Fixes
+
+* **deps:** Update @notifycal/shared and zod ([#1110](https://github.com/Notifycal/backend/issues/1110)) ([1482ed5](https://github.com/Notifycal/backend/commit/1482ed5fb6d67559700050bea5fe0419454f4a04))
+
 ## [2.0.3](https://github.com/Notifycal/backend/compare/v2.0.2...v2.0.3) (2025-09-23)
 
 
