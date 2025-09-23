@@ -26,6 +26,7 @@
 | <a name="module_alert_for_missing_phone_number_lambda"></a> [alert\_for\_missing\_phone\_number\_lambda](#module\_alert\_for\_missing\_phone\_number\_lambda) | terraform-aws-modules/lambda/aws | ~> 8.0 |
 | <a name="module_api_rest_topic"></a> [api\_rest\_topic](#module\_api\_rest\_topic) | ./modules/sns | n/a |
 | <a name="module_apigateway_custom_domain"></a> [apigateway\_custom\_domain](#module\_apigateway\_custom\_domain) | ./modules/api_gateway_external_domain | n/a |
+| <a name="module_audit_trail_backup"></a> [audit\_trail\_backup](#module\_audit\_trail\_backup) | ./modules/aws-dynamodb-backup | n/a |
 | <a name="module_audit_trail_lambda"></a> [audit\_trail\_lambda](#module\_audit\_trail\_lambda) | terraform-aws-modules/lambda/aws | ~> 8.0 |
 | <a name="module_audit_trail_queue"></a> [audit\_trail\_queue](#module\_audit\_trail\_queue) | ./modules/sqs | n/a |
 | <a name="module_demo_reminder_to_be_sent_queue"></a> [demo\_reminder\_to\_be\_sent\_queue](#module\_demo\_reminder\_to\_be\_sent\_queue) | ./modules/sqs | n/a |
@@ -65,6 +66,7 @@
 | <a name="module_stripe_webhook_queue"></a> [stripe\_webhook\_queue](#module\_stripe\_webhook\_queue) | ./modules/sqs | n/a |
 | <a name="module_user_calendar_fetched_queue"></a> [user\_calendar\_fetched\_queue](#module\_user\_calendar\_fetched\_queue) | ./modules/sqs | n/a |
 | <a name="module_user_calendar_fetched_topic"></a> [user\_calendar\_fetched\_topic](#module\_user\_calendar\_fetched\_topic) | ./modules/sns | n/a |
+| <a name="module_users_backup"></a> [users\_backup](#module\_users\_backup) | ./modules/aws-dynamodb-backup | n/a |
 
 ## Resources
 
@@ -137,6 +139,7 @@
 | <a name="input_api_stage_name"></a> [api\_stage\_name](#input\_api\_stage\_name) | n/a | `string` | n/a | yes |
 | <a name="input_app_version"></a> [app\_version](#input\_app\_version) | n/a | `string` | n/a | yes |
 | <a name="input_aws_region"></a> [aws\_region](#input\_aws\_region) | n/a | `string` | n/a | yes |
+| <a name="input_backup_config"></a> [backup\_config](#input\_backup\_config) | DynamoDB backup configuration with flexible tier strategy.<br/>Each tier defines frequency, retention, and storage class.<br/>Includes validations for AWS Backup restrictions.<br/><br/>Default implements 2-tier strategy:<br/>- Days 0-35: PITR active<br/>- Days 35-105: Weekly backups (warm storage only)<br/>- Days 105-180: Monthly backups (cold storage after 14 days)<br/>- Day 180: Automatic deletion (GDPR compliance) | <pre>object({<br/>    # PITR configuration<br/>    pitr_enabled        = optional(bool, true)<br/>    pitr_retention_days = optional(number, 35)<br/><br/>    # Backup tiers array<br/>    backup_tiers = optional(list(object({<br/>      name              = string<br/>      rule_name         = optional(string)<br/>      frequency_cron    = string<br/>      retention_days    = number<br/>      cold_storage_days = optional(number)<br/>      description       = optional(string)<br/>      })), [<br/>      {<br/>        name              = "weekly"<br/>        rule_name         = "Weekly"<br/>        frequency_cron    = "cron(0 6 ? * MON-FRI)"<br/>        retention_days    = 105<br/>        cold_storage_days = null<br/>        description       = "Weekly backups for short-term retention"<br/>      },<br/>      {<br/>        name              = "monthly"<br/>        rule_name         = "Monthly"<br/>        frequency_cron    = "cron(0 6 1 * ? *)"<br/>        retention_days    = 180<br/>        cold_storage_days = 14<br/>        description       = "Monthly backups with cold storage for long-term retention"<br/>      }<br/>    ])<br/>  })</pre> | `{}` | no |
 | <a name="input_base_domain"></a> [base\_domain](#input\_base\_domain) | n/a | `string` | `"notifycal.com"` | no |
 | <a name="input_country_to_sms_cost_map"></a> [country\_to\_sms\_cost\_map](#input\_country\_to\_sms\_cost\_map) | n/a | `map(number)` | n/a | yes |
 | <a name="input_customer_portal_configuration_id"></a> [customer\_portal\_configuration\_id](#input\_customer\_portal\_configuration\_id) | ID to reference the customer portal configuration | `string` | n/a | yes |
