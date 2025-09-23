@@ -385,11 +385,8 @@ variable "backup_config" {
   EOT
 
   type = object({
-    # PITR configuration
     pitr_enabled        = optional(bool, true)
     pitr_retention_days = optional(number, 35)
-
-    # Backup tiers array
     backup_tiers = optional(list(object({
       name              = string
       rule_name         = optional(string)
@@ -419,7 +416,7 @@ variable "backup_config" {
   default = {}
 
   validation {
-    condition = alltrue([
+    condition = var.backup_config == null ? true : alltrue([
       for tier in var.backup_config.backup_tiers :
       tier.cold_storage_days == null ? true : tier.retention_days >= (tier.cold_storage_days + 90)
     ])
@@ -428,12 +425,12 @@ variable "backup_config" {
 
 
   validation {
-    condition     = var.backup_config.pitr_retention_days >= 1 && var.backup_config.pitr_retention_days <= 35
+    condition     = var.backup_config == null ? true : (var.backup_config.pitr_retention_days >= 1 && var.backup_config.pitr_retention_days <= 35)
     error_message = "PITR retention must be between 1 and 35 days (AWS DynamoDB limit)."
   }
 
   validation {
-    condition     = length(distinct([for tier in var.backup_config.backup_tiers : tier.name])) == length(var.backup_config.backup_tiers)
+    condition     = var.backup_config == null ? true : length(distinct([for tier in var.backup_config.backup_tiers : tier.name])) == length(var.backup_config.backup_tiers)
     error_message = "Backup tier names must be unique within the configuration."
   }
 }
