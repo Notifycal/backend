@@ -1,5 +1,21 @@
 # Changelog
 
+## [2.0.3](https://github.com/Notifycal/backend/compare/v2.0.2...v2.0.3) (2025-09-23)
+
+
+### Bug Fixes
+
+* **deps:** Update @notifycal/shared and zod ([#1089](https://github.com/Notifycal/backend/issues/1089)) ([7e22cda](https://github.com/Notifycal/backend/commit/7e22cdae21f0df59c36d49e0e9d43b7b8f42875c))
+* **deps:** Update AWS packages to v3.890.0 ([#1090](https://github.com/Notifycal/backend/issues/1090)) ([0fa00be](https://github.com/Notifycal/backend/commit/0fa00be36df14a44e4e26b1bb060c52f1a173256))
+* **deps:** Update AWS packages to v3.891.0 ([#1095](https://github.com/Notifycal/backend/issues/1095)) ([0f2125e](https://github.com/Notifycal/backend/commit/0f2125e7cdb4cd3084a91da1bd3414b92bb4d621))
+* **deps:** Update AWS packages to v3.893.0 ([#1103](https://github.com/Notifycal/backend/issues/1103)) ([6c56f79](https://github.com/Notifycal/backend/commit/6c56f79401e8103020fbe7cc6dfc814a09c8beba))
+* **deps:** Update AWS packages to v3.894.0 ([#1109](https://github.com/Notifycal/backend/issues/1109)) ([41fc2a4](https://github.com/Notifycal/backend/commit/41fc2a4aa1f79df5f54c0b1431b1e33ec4b0f5db))
+* **deps:** Update dependency @notifycal/shared to v7.13.1 ([#1098](https://github.com/Notifycal/backend/issues/1098)) ([a812d12](https://github.com/Notifycal/backend/commit/a812d12cd2167c0c5c82ce686712a54493959d44))
+* **deps:** Update dependency @vonage/server-sdk to v3.25.0 ([#1091](https://github.com/Notifycal/backend/issues/1091)) ([c14c1d1](https://github.com/Notifycal/backend/commit/c14c1d19c4f402f5de7499198449c73e9f594d31))
+* **deps:** Update dependency @vonage/server-sdk to v3.25.1 ([#1107](https://github.com/Notifycal/backend/issues/1107)) ([9eac50e](https://github.com/Notifycal/backend/commit/9eac50ecd27cd65998b2614cf725092791ad587e))
+* **deps:** Update dependency googleapis to v160 ([#1093](https://github.com/Notifycal/backend/issues/1093)) ([524b006](https://github.com/Notifycal/backend/commit/524b006aa87140ea64d31634bbb15971c38ed19d))
+* **deps:** Update dependency libphonenumber-js to v1.12.18 ([#1104](https://github.com/Notifycal/backend/issues/1104)) ([43e669c](https://github.com/Notifycal/backend/commit/43e669cd327b5a7702e003e308e1a66216399f1f))
+
 ## [2.0.2](https://github.com/Notifycal/backend/compare/v2.0.1...v2.0.2) (2025-09-16)
 
 
