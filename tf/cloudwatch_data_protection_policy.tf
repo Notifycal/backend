@@ -18,7 +18,7 @@ resource "aws_cloudwatch_log_data_protection_policy" "no_credentials_in_logs" {
           "arn:aws:dataprotection::aws:data-identifier/PgpPrivateKey",
           "arn:aws:dataprotection::aws:data-identifier/PkcsPrivateKey",
           "arn:aws:dataprotection::aws:data-identifier/PuttyPrivateKey",
-          "PrivatekeyGeneric"
+          "BeginEndGeneric"
         ],
         Operation = {
           Audit = {
@@ -34,7 +34,7 @@ resource "aws_cloudwatch_log_data_protection_policy" "no_credentials_in_logs" {
           "arn:aws:dataprotection::aws:data-identifier/PgpPrivateKey",
           "arn:aws:dataprotection::aws:data-identifier/PkcsPrivateKey",
           "arn:aws:dataprotection::aws:data-identifier/PuttyPrivateKey",
-          "PrivatekeyGeneric"
+          "BeginEndGeneric"
         ]
         Operation = {
           Deidentify = {
@@ -47,8 +47,8 @@ resource "aws_cloudwatch_log_data_protection_policy" "no_credentials_in_logs" {
     Configuration = {
       CustomDataIdentifier = [
         {
-          Name  = "PrivatekeyGeneric",
-          Regex = "-{5}BEGIN PRIVATE KEY-{5}.*-{5}END PRIVATE KEY-{5}"
+          Name  = "BeginEndGeneric"
+          Regex = "-{5}BEGIN.*-{5}.*-{5}END.*-{5}"
         }
       ]
     }
