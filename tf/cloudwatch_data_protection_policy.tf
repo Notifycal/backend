@@ -47,8 +47,8 @@ resource "aws_cloudwatch_log_data_protection_policy" "no_credentials_in_logs" {
     Configuration = {
       CustomDataIdentifier = [
         {
-          Name  = "BeginEndGeneric"
-          Regex = "-{5}BEGIN.*-{5}.*-{5}END.*-{5}"
+          Name  = "BeginEndGeneric",
+          Regex = "-{5}BEGIN[A-Z ]+-{5}(?:\\\\.|[^\"])*?-{5}END[A-Z ]+-{5}\\\\n?"
         }
       ]
     }
