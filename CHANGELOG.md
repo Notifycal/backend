@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.1.2](https://github.com/Notifycal/backend/compare/v2.1.1...v2.1.2) (2025-09-25)
+
+
+### Bug Fixes
+
+* **deps:** Update AWS packages to v2.27.0 ([#1120](https://github.com/Notifycal/backend/issues/1120)) ([d2b214d](https://github.com/Notifycal/backend/commit/d2b214d5fac466d0132bf8b35493c4df4f03a59a))
+* **deps:** Update AWS packages to v3.895.0 ([#1117](https://github.com/Notifycal/backend/issues/1117)) ([b0d1e11](https://github.com/Notifycal/backend/commit/b0d1e1148a8fb8ece733a041a774ec046a87478c))
+* **deps:** Update AWS packages to v3.896.0 ([#1123](https://github.com/Notifycal/backend/issues/1123)) ([d1b50a5](https://github.com/Notifycal/backend/commit/d1b50a559206cdf9b2c8bef9135e02dac4683114))
+* **deps:** Update dependency @notifycal/shared to v7.14.0 ([#1121](https://github.com/Notifycal/backend/issues/1121)) ([d7d75be](https://github.com/Notifycal/backend/commit/d7d75beea22a49123f207fa5297c1bc1564c2bab))
+* **deps:** Update dependency libphonenumber-js to v1.12.22 ([#1119](https://github.com/Notifycal/backend/issues/1119)) ([142dd5d](https://github.com/Notifycal/backend/commit/142dd5ddac7419cddfac154beb7bd111aab439aa))
+* include anything with -----BEGIN and END----- in CW data protection ([#1122](https://github.com/Notifycal/backend/issues/1122)) ([eba7965](https://github.com/Notifycal/backend/commit/eba79659a342cfdb2f37fdaf1a564d2333430f85))
+
 ## [2.1.1](https://github.com/Notifycal/backend/compare/v2.1.0...v2.1.1) (2025-09-23)
 
 
