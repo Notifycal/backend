@@ -16,7 +16,7 @@ import type { JsonObject } from '@own-types/model';
 import { extractErrorMessage, rethrowError, throwError } from '@services/common/error-handling';
 import { withIntegrationMetrics } from '@services/observability/metrics';
 import { partitionByError } from '@utils/array';
-import { isWithinBoundaries } from '@utils/datetime';
+import { areSameDay, isWithinBoundaries } from '@utils/datetime';
 import { google, type calendar_v3 } from 'googleapis';
 import { z } from 'zod';
 import { BaseGoogle } from './base-service';
@@ -52,15 +52,11 @@ export class GoogleCalendar extends BaseGoogle {
         // In plain language, yield events which start time is within boundaries(inclusive). Also include all day events based on parameter.
         // This is necessary due to Google Calendar API nature to be able to implement sliding windows so that we don't process events twice.
         {
-          const _isWithinBoundaries = isWithinBoundaries(
-            e.startTime,
-            lowerBoundStartTime,
-            upperBoundStartTime
-          );
           if (e.isAllDayEvent) {
-            return includeAllDayEvents && _isWithinBoundaries;
+            const isSameDay = areSameDay(e.startTime, lowerBoundStartTime, upperBoundStartTime);
+            return includeAllDayEvents && isSameDay;
           } else {
-            return _isWithinBoundaries;
+            return isWithinBoundaries(e.startTime, lowerBoundStartTime, upperBoundStartTime);
           }
         }
       );

@@ -15,6 +15,14 @@ export function isWithinBoundaries(
   );
 }
 
+export function areSameDay(date1: DateTime, date2: DateTime, date3: DateTime): boolean {
+  const d1 = DT.fromISO(date1, { zone: 'utc' });
+  const d2 = DT.fromISO(date2, { zone: 'utc' });
+  const d3 = DT.fromISO(date3, { zone: 'utc' });
+
+  return d1.hasSame(d2, 'day') && d2.hasSame(d3, 'day');
+}
+
 export function timezoneValidator(arg: TimeZone, ctx?: z.RefinementCtx): boolean {
   if (!arg) {
     if (ctx) {
