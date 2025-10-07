@@ -164,7 +164,10 @@ describe('GoogleCalendar Service eventsWithinPeriod', () => {
     expect(result.successList).toStrictEqual([]);
   });
 
-  it('should include all-day events if the flag is true', async () => {
+  it('should include all-day events if the flag is true, even when boundaries are 10:00-10:30 UTC', async () => {
+    const lowerBound: DateTime = '2025-02-20T10:00:00Z' as DateTime;
+    const upperBound: DateTime = '2025-02-20T10:29:59.999Z' as DateTime;
+
     const eventsListFn = vi
       .fn<() => Promise<GaxiosResponse<calendar_v3.Schema$Events>>>()
       .mockResolvedValue({
@@ -172,10 +175,17 @@ describe('GoogleCalendar Service eventsWithinPeriod', () => {
         status: 200
       } as GaxiosResponse<calendar_v3.Schema$Events>);
 
-    const result = await testit(eventsListFn, true);
+    const result = await testit(
+      eventsListFn,
+      true,
+      fakeIdpConfigs['google.com'],
+      lowerBound,
+      upperBound
+    );
 
     expect(result.successList).toHaveLength(1);
     expect(result.successList[0]!.id).toBe('event2');
+    expect(result.successList[0]!.isAllDayEvent).toBe(true);
   });
 
   it('should exclude all-day events if the flag is false', async () => {
@@ -242,7 +252,9 @@ describe('GoogleCalendar Service eventsWithinPeriod', () => {
   function testit(
     eventsListMock: Mock<() => Promise<MinimalGaxiosResponse<calendar_v3.Schema$Events>>>,
     includeAllDayEvents: boolean = false,
-    config = fakeIdpConfigs['google.com']
+    config = fakeIdpConfigs['google.com'],
+    lowerBound: DateTime = lowerBoundStartTime,
+    upperBound: DateTime = upperBoundStartTime
   ): Promise<ServiceResponse<CalendarEvent, ParsingError>> {
     vi.mock('googleapis');
     vi.mocked(google.calendar).mockReturnValue({
@@ -254,12 +266,7 @@ describe('GoogleCalendar Service eventsWithinPeriod', () => {
       config,
       'some-refresh-token',
       logger
-    ).eventsStartTimeWithin(
-      calendarId,
-      lowerBoundStartTime,
-      upperBoundStartTime,
-      includeAllDayEvents
-    );
+    ).eventsStartTimeWithin(calendarId, lowerBound, upperBound, includeAllDayEvents);
   }
 });
 

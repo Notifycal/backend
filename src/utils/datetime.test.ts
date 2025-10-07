@@ -3,7 +3,7 @@ import type { Period } from '@own-types/model';
 import { DateTime as DT } from 'luxon';
 import { describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
-import { remainingPeriodPercentage, timezoneValidator } from './datetime';
+import { areSameDay, remainingPeriodPercentage, timezoneValidator } from './datetime';
 
 export const dateTimeSchema = z.iso
   .datetime()
@@ -150,6 +150,96 @@ describe(timezoneValidator, () => {
 
     expect(result).toBe(true);
     expect(mockContext.addIssue).not.toHaveBeenCalled();
+  });
+});
+
+describe(areSameDay, () => {
+  it('should return true when all three dates are the same day at different hours', () => {
+    const date1: DateTime = '2025-02-20T00:00:00.000Z' as DateTime;
+    const date2: DateTime = '2025-02-20T10:00:00.000Z' as DateTime;
+    const date3: DateTime = '2025-02-20T23:59:59.999Z' as DateTime;
+
+    const result = areSameDay(date1, date2, date3);
+
+    expect(result).toBe(true);
+  });
+
+  it('should return true when all three dates are exactly the same', () => {
+    const date: DateTime = '2025-02-20T12:00:00.000Z' as DateTime;
+
+    const result = areSameDay(date, date, date);
+
+    expect(result).toBe(true);
+  });
+
+  it('should return false when first date is different day', () => {
+    const date1: DateTime = '2025-02-19T23:59:59.999Z' as DateTime;
+    const date2: DateTime = '2025-02-20T10:00:00.000Z' as DateTime;
+    const date3: DateTime = '2025-02-20T10:30:00.000Z' as DateTime;
+
+    const result = areSameDay(date1, date2, date3);
+
+    expect(result).toBe(false);
+  });
+
+  it('should return false when second date is different day', () => {
+    const date1: DateTime = '2025-02-20T00:00:00.000Z' as DateTime;
+    const date2: DateTime = '2025-02-21T10:00:00.000Z' as DateTime;
+    const date3: DateTime = '2025-02-20T23:59:59.999Z' as DateTime;
+
+    const result = areSameDay(date1, date2, date3);
+
+    expect(result).toBe(false);
+  });
+
+  it('should return false when third date is different day', () => {
+    const date1: DateTime = '2025-02-20T10:00:00.000Z' as DateTime;
+    const date2: DateTime = '2025-02-20T10:30:00.000Z' as DateTime;
+    const date3: DateTime = '2025-02-21T00:00:00.001Z' as DateTime;
+
+    const result = areSameDay(date1, date2, date3);
+
+    expect(result).toBe(false);
+  });
+
+  it('should return false when all three dates are different days', () => {
+    const date1: DateTime = '2025-02-18T12:00:00.000Z' as DateTime;
+    const date2: DateTime = '2025-02-19T12:00:00.000Z' as DateTime;
+    const date3: DateTime = '2025-02-20T12:00:00.000Z' as DateTime;
+
+    const result = areSameDay(date1, date2, date3);
+
+    expect(result).toBe(false);
+  });
+
+  it('should handle dates across different months correctly', () => {
+    const date1: DateTime = '2025-01-31T23:00:00.000Z' as DateTime;
+    const date2: DateTime = '2025-02-01T01:00:00.000Z' as DateTime;
+    const date3: DateTime = '2025-01-31T12:00:00.000Z' as DateTime;
+
+    const result = areSameDay(date1, date2, date3);
+
+    expect(result).toBe(false);
+  });
+
+  it('should handle dates across different years correctly', () => {
+    const date1: DateTime = '2024-12-31T23:00:00.000Z' as DateTime;
+    const date2: DateTime = '2025-01-01T01:00:00.000Z' as DateTime;
+    const date3: DateTime = '2024-12-31T12:00:00.000Z' as DateTime;
+
+    const result = areSameDay(date1, date2, date3);
+
+    expect(result).toBe(false);
+  });
+
+  it('should compare dates in UTC regardless of input timezone notation', () => {
+    const date1: DateTime = '2025-02-20T00:00:00Z' as DateTime;
+    const date2: DateTime = '2025-02-20T12:00:00.000Z' as DateTime;
+    const date3: DateTime = '2025-02-20T23:59:59Z' as DateTime;
+
+    const result = areSameDay(date1, date2, date3);
+
+    expect(result).toBe(true);
   });
 });
 
