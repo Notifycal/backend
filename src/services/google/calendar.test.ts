@@ -201,6 +201,85 @@ describe('GoogleCalendar Service eventsWithinPeriod', () => {
     expect(result.successList).toStrictEqual([]);
   });
 
+  it('should filter events by startTime after Google API returns broader results (timeMin=endTime, timeMax=startTime)', async () => {
+    const queryTimeMin: DateTime = '2025-02-06T20:00:00.000Z' as DateTime;
+    const queryTimeMax: DateTime = '2025-02-06T21:00:00.000Z' as DateTime;
+
+    const event2_startsBeforeWindow_endsDuringWindow: calendar_v3.Schema$Event = {
+      id: 'event-2',
+      summary: 'Google API includes (end>timeMin), we filter out (start before window)',
+      start: { dateTime: '2025-02-06T19:45:00Z' },
+      end: { dateTime: '2025-02-06T20:15:00Z' }
+    };
+
+    const event3_startsAtLowerBound_endsWithinWindow: calendar_v3.Schema$Event = {
+      id: 'event-3',
+      summary: 'Google API includes, we keep (start at lower bound)',
+      start: { dateTime: '2025-02-06T20:00:00Z' },
+      end: { dateTime: '2025-02-06T20:30:00Z' }
+    };
+
+    const event4_startsWithinWindow_endsWithinWindow: calendar_v3.Schema$Event = {
+      id: 'event-4',
+      summary: 'Google API includes, we keep (start and end within window)',
+      start: { dateTime: '2025-02-06T20:15:00Z' },
+      end: { dateTime: '2025-02-06T20:45:00Z' }
+    };
+
+    const event5_startsWithinWindow_endsAtUpperBound: calendar_v3.Schema$Event = {
+      id: 'event-5',
+      summary: 'Google API includes, we keep (start within, end at upper bound)',
+      start: { dateTime: '2025-02-06T20:30:00Z' },
+      end: { dateTime: '2025-02-06T21:00:00Z' }
+    };
+
+    const event6_startsWithinWindow_endsOutsideWindow: calendar_v3.Schema$Event = {
+      id: 'event-6',
+      summary: 'Google API includes, we keep (start within, end after)',
+      start: { dateTime: '2025-02-06T20:45:00Z' },
+      end: { dateTime: '2025-02-06T21:15:00Z' }
+    };
+
+    const event8_allDayEvent: calendar_v3.Schema$Event = {
+      id: 'event-8',
+      summary: 'Google API includes, we filter out (all-day, flag=false)',
+      start: { date: '2025-02-06' },
+      end: { date: '2025-02-07' }
+    };
+
+    const eventsListFn = vi
+      .fn<() => Promise<GaxiosResponse<calendar_v3.Schema$Events>>>()
+      .mockResolvedValue({
+        data: {
+          items: [
+            event2_startsBeforeWindow_endsDuringWindow,
+            event3_startsAtLowerBound_endsWithinWindow,
+            event4_startsWithinWindow_endsWithinWindow,
+            event5_startsWithinWindow_endsAtUpperBound,
+            event6_startsWithinWindow_endsOutsideWindow,
+            event8_allDayEvent
+          ],
+          timeZone: 'UTC'
+        },
+        status: 200
+      } as GaxiosResponse<calendar_v3.Schema$Events>);
+
+    const result = await testit(
+      eventsListFn,
+      false,
+      fakeIdpConfigs['google.com'],
+      queryTimeMin,
+      queryTimeMax
+    );
+
+    expect(result.successList.map((e) => e.id)).toStrictEqual([
+      'event-3',
+      'event-4',
+      'event-5',
+      'event-6'
+    ]);
+  });
+
   it('should handle errors when event parsing fails', async () => {
     const eventsListFn = vi
       .fn<() => Promise<GaxiosResponse<calendar_v3.Schema$Events>>>()
