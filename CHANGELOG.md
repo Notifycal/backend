@@ -1,5 +1,24 @@
 # Changelog
 
+## [2.1.3](https://github.com/Notifycal/backend/compare/v2.1.2...v2.1.3) (2025-10-07)
+
+
+### Bug Fixes
+
+* all day event ([#1155](https://github.com/Notifycal/backend/issues/1155)) ([5dc9e90](https://github.com/Notifycal/backend/commit/5dc9e9067fc1da8978dcc77cc03526f4107ac074))
+* **deps:** Update AWS packages to v3.899.0 ([#1135](https://github.com/Notifycal/backend/issues/1135)) ([46a2b62](https://github.com/Notifycal/backend/commit/46a2b62778ab9ef0f7abdae2194c873ce259378c))
+* **deps:** Update AWS packages to v3.901.0 ([#1142](https://github.com/Notifycal/backend/issues/1142)) ([0f54275](https://github.com/Notifycal/backend/commit/0f542756b45b3c4f44d0d15dda2c2ee5e538930e))
+* **deps:** Update AWS packages to v3.902.0 ([#1147](https://github.com/Notifycal/backend/issues/1147)) ([00d2567](https://github.com/Notifycal/backend/commit/00d256760137ea4408a525952e1bd36d90093516))
+* **deps:** Update dependency @notifycal/shared to v7.14.1 ([#1125](https://github.com/Notifycal/backend/issues/1125)) ([04ec6d4](https://github.com/Notifycal/backend/commit/04ec6d49353ddf2531f237d93a1c301f42b7e563))
+* **deps:** Update dependency google-auth-library to v10.3.1 ([#1134](https://github.com/Notifycal/backend/issues/1134)) ([7c8afeb](https://github.com/Notifycal/backend/commit/7c8afebd1ea18780d654200168b33f45d3b68cc4))
+* **deps:** Update dependency google-auth-library to v10.4.0 ([#1139](https://github.com/Notifycal/backend/issues/1139)) ([d8b680d](https://github.com/Notifycal/backend/commit/d8b680d032a8e44e92802cf300dff61ef045619e))
+* **deps:** Update dependency googleapis to v161 ([#1140](https://github.com/Notifycal/backend/issues/1140)) ([153abdd](https://github.com/Notifycal/backend/commit/153abdde17f59623678ab340d022d24ed211636e))
+* **deps:** Update dependency juice to v11.0.2 ([#1131](https://github.com/Notifycal/backend/issues/1131)) ([ce88c1a](https://github.com/Notifycal/backend/commit/ce88c1ad9d25b165a329e34fa729a69763b3764a))
+* **deps:** Update dependency juice to v11.0.3 ([#1137](https://github.com/Notifycal/backend/issues/1137)) ([e9f240e](https://github.com/Notifycal/backend/commit/e9f240e5e4c2a5c2100b37928805b943077c536f))
+* **deps:** Update dependency libphonenumber-js to v1.12.23 ([#1129](https://github.com/Notifycal/backend/issues/1129)) ([f334757](https://github.com/Notifycal/backend/commit/f33475721a6208d7d0e296221f4e2bb76097445c))
+* **deps:** Update Terraform aws to v6.14.1 ([#1130](https://github.com/Notifycal/backend/issues/1130)) ([0943781](https://github.com/Notifycal/backend/commit/094378128033bb7b07c9c8eb44ce2dc15ffe9870))
+* **deps:** Update Terraform aws to v6.15.0 ([#1153](https://github.com/Notifycal/backend/issues/1153)) ([af20e5b](https://github.com/Notifycal/backend/commit/af20e5beabcef658310e2abd1d33b246e28fdc2b))
+
 ## [2.1.2](https://github.com/Notifycal/backend/compare/v2.1.1...v2.1.2) (2025-09-25)
 
 
