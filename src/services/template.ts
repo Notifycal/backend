@@ -13,8 +13,15 @@ export function interpolate(
   businessName: BusinessName,
   businessAddress: BusinessAddress,
   startTime: DateTime,
-  timeZone: TimeZone
+  timeZone: TimeZone,
+  isAllDayEvent: boolean
 ): string {
   const localDateTime = DT.fromISO(startTime, { zone: timeZone });
-  return templateMap[templateId].interpolate(businessName, businessAddress, localDateTime);
+  const showTime = !isAllDayEvent;
+  return templateMap[templateId].interpolate(
+    businessName,
+    businessAddress,
+    localDateTime,
+    showTime
+  );
 }

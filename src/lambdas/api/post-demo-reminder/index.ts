@@ -56,7 +56,8 @@ function buildEvent(
     userReminderConfig.Business.Name,
     userReminderConfig.Business.Address,
     requestBody.startTime.dateTime,
-    requestBody.startTime.timeZone
+    requestBody.startTime.timeZone,
+    false
   );
   return {
     eventId: eventId as EventId,
