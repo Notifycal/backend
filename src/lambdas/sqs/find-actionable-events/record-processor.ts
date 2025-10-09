@@ -119,7 +119,8 @@ function buildActionableEvents(
           event.data.template.fields.business.name,
           event.data.template.fields.business.address,
           calendarEvent.startTime,
-          calendarEvent.timeZone
+          calendarEvent.timeZone,
+          calendarEvent.isAllDayEvent
         )
       }
     };
