@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.1.4](https://github.com/Notifycal/backend/compare/v2.1.3...v2.1.4) (2025-10-09)
+
+
+### Bug Fixes
+
+* **deps:** Update AWS packages to v3.906.0 ([#1159](https://github.com/Notifycal/backend/issues/1159)) ([abae154](https://github.com/Notifycal/backend/commit/abae1544d9ae3ba894e7eba643c721cb4e9b5fe8))
+* update templates to not show time for all day event reminders ([#1157](https://github.com/Notifycal/backend/issues/1157)) ([8219b40](https://github.com/Notifycal/backend/commit/8219b40ec1f3b4ad1945b27100d8fe6b2a359d65))
+
 ## [2.1.3](https://github.com/Notifycal/backend/compare/v2.1.2...v2.1.3) (2025-10-07)
 
 
