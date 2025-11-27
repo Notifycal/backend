@@ -25,7 +25,7 @@ echo
 
 echo "Creating adhoc build..."
 pushd "${REPO_PATH}" > /dev/null
-npm run build && npm run package && pushd dist && unzip -o build.zip && popd
+npm install && npm run build && npm run package && pushd dist && unzip -o build.zip && popd
 popd > /dev/null
 
 exit 0;
