@@ -105,7 +105,8 @@ async function lambdaHandler(
   const { language } = event.body;
 
   const selectedProduct = match(event.body)
-    .with({ tier: P.string }, ({ tier }) => paymentPlans.tiers[tier])
+    .with({ tier: 'good-trial' }, () => paymentPlans.tiers['good'])
+    .with({ tier: P.string }, ({ tier }) => paymentPlans.tiers[tier as 'good' | 'better' | 'best'])
     .with({ topup: P.string }, ({ topup }) => paymentPlans.topups[topup])
     .exhaustive();
 
