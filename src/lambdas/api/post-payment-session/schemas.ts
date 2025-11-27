@@ -1,5 +1,6 @@
 import { JSONStringified } from '@aws-lambda-powertools/parser/helpers';
 import { authedEventSchema } from '@model/lambda-events/ApiGatewayEvents';
+import { freeTrialTierId } from '@model/PaymentPlans';
 import { languageCodeSchema, tierIds, topupIds } from '@notifycal/shared/schemas';
 import { z } from 'zod';
 import type { PostPaymentCheckoutSessionConfig } from './config';
@@ -10,6 +11,7 @@ const languagePartialSchema = {
 
 const _tierIdSchemas = tierIds.map((tier) => z.literal(tier));
 export const tierIdSchemas = z.union([
+  z.literal(freeTrialTierId),
   _tierIdSchemas[0]!,
   _tierIdSchemas[1]!,
   ..._tierIdSchemas.slice(2)
