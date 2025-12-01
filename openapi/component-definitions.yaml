@@ -221,6 +221,7 @@ components:
       description: user's choice for monthly subscription plan
       enum:
         - good
+        - good-trial
         - better
         - best
 

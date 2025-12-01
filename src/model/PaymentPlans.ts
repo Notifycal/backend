@@ -8,7 +8,7 @@ export interface Tier {
   priceId: string;
   credits: number;
 }
-export type TierWithTrial = Omit<Tier, 'id'> & { id: TierId | FreeTrialTierId };
+export type TierWithFreeTrial = Omit<Tier, 'id'> & { id: TierId | FreeTrialTierId };
 export type TierMap = Record<TierId, Tier>;
 
 export interface Topup {

@@ -1,7 +1,7 @@
 /* eslint-disable camelcase */
 import type { Logger } from '@aws-lambda-powertools/logger';
 import { logger } from '@common/powertools';
-import type { TierWithTrial, Topup } from '@model/PaymentPlans';
+import type { TierWithFreeTrial, Topup } from '@model/PaymentPlans';
 import type {
   Email,
   IdpName,
@@ -92,7 +92,7 @@ export class StripeService {
   public createCheckoutSession(
     stripeCustomerId: StripeCustomerId,
     userIdentity: UserIdentity<IdpName>,
-    product: TierWithTrial | Topup,
+    product: TierWithFreeTrial | Topup,
     language: LanguageCode,
     successRedirectUrl: Url,
     cancelRedirectUrl: Url,
