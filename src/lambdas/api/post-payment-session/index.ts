@@ -2,7 +2,7 @@ import { MetricUnit } from '@aws-lambda-powertools/metrics';
 import { corsErrorResponse } from '@common/cors-middleware';
 import { protectedEndpointMiddleware } from '@common/lambda-middleware';
 import { logger, metrics } from '@common/powertools';
-import type { Tier, Topup } from '@model/PaymentPlans';
+import type { TierWithFreeTrial, Topup } from '@model/PaymentPlans';
 import type { IdpName, StripeCustomerId, UserIdentity } from '@notifycal/shared/types';
 import type { Url } from '@own-types/model';
 import {
@@ -65,7 +65,7 @@ function createCustomerOrRetrieve(
 
 function checkEligibility(
   stripeCustomerId: StripeCustomerId,
-  selectedProduct: Tier | Topup,
+  selectedProduct: TierWithFreeTrial | Topup,
   stripeService: StripeService,
   userIdentity: UserIdentity<IdpName>
 ): Promise<{ eligible: boolean; stripeCustomerId: StripeCustomerId }> {
@@ -105,7 +105,11 @@ async function lambdaHandler(
   const { language } = event.body;
 
   const selectedProduct = match(event.body)
-    .with({ tier: P.string }, ({ tier }) => paymentPlans.tiers[tier])
+    .with({ tier: 'good-trial' }, ({ tier }) => ({
+      ...paymentPlans.tiers['good'],
+      id: tier
+    }))
+    .with({ tier: P.string }, ({ tier }) => paymentPlans.tiers[tier as 'good' | 'better' | 'best'])
     .with({ topup: P.string }, ({ topup }) => paymentPlans.topups[topup])
     .exhaustive();
 

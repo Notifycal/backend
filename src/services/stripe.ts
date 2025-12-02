@@ -1,7 +1,7 @@
 /* eslint-disable camelcase */
 import type { Logger } from '@aws-lambda-powertools/logger';
 import { logger } from '@common/powertools';
-import type { Tier, Topup } from '@model/PaymentPlans';
+import type { TierWithFreeTrial, Topup } from '@model/PaymentPlans';
 import type {
   Email,
   IdpName,
@@ -92,15 +92,32 @@ export class StripeService {
   public createCheckoutSession(
     stripeCustomerId: StripeCustomerId,
     userIdentity: UserIdentity<IdpName>,
-    product: Tier | Topup,
+    product: TierWithFreeTrial | Topup,
     language: LanguageCode,
     successRedirectUrl: Url,
     cancelRedirectUrl: Url,
     taxId: string
   ): Promise<Url | null> {
     const { userId, idp, idpId, email } = userIdentity;
+    const freeTrialParamsOptional: Partial<Stripe.Checkout.SessionCreateParams> =
+      product.id === 'good-trial'
+        ? {
+            payment_method_collection: 'if_required' as const,
+            subscription_data: {
+              trial_period_days: 30,
+              trial_settings: {
+                end_behavior: {
+                  missing_payment_method: 'cancel' as const
+                }
+              }
+            }
+          }
+        : {};
     const productConfig: Partial<Stripe.Checkout.SessionCreateParams> = match(product.type)
-      .with('tier', () => ({ mode: 'subscription' as const }))
+      .with('tier', () => ({
+        mode: 'subscription' as const,
+        ...freeTrialParamsOptional
+      }))
       .with('topup', () => ({
         mode: 'payment' as const,
         // From Docs: Generate a post-purchase Invoice for one-time payments.
