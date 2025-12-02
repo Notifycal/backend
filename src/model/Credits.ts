@@ -203,8 +203,9 @@ export type CreditAdditionOperationType = z.infer<typeof creditAdditionOperation
 const defaultCreditBalanceSchema = creditBalancesSchema();
 export type CreditBalances = z.infer<typeof defaultCreditBalanceSchema>;
 
-export interface CreditDeductionSuccess<TOperationType extends CreditDeductionOperationType>
-  extends z.infer<typeof creditDeductionSuccessSchema> {
+export interface CreditDeductionSuccess<
+  TOperationType extends CreditDeductionOperationType
+> extends z.infer<typeof creditDeductionSuccessSchema> {
   readonly operationDetails: Extract<CreditDeductionOperationDetails, { type: TOperationType }>;
 }
 
@@ -219,8 +220,9 @@ export type CreditDeductionResult<TOperationType extends CreditDeductionOperatio
   | CreditDeductionSuccess<TOperationType>
   | CreditDeductionError;
 
-export interface CreditAdditionSuccess<TOperationType extends CreditAdditionOperationType>
-  extends z.infer<typeof creditAdditionSuccessSchema> {
+export interface CreditAdditionSuccess<
+  TOperationType extends CreditAdditionOperationType
+> extends z.infer<typeof creditAdditionSuccessSchema> {
   readonly operationDetails: Extract<CreditAdditionOperationDetails, { type: TOperationType }>;
 }
 

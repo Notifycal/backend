@@ -25,8 +25,10 @@ export function authedEventSchema<TEndpointConfig, TAccessToken = AccessToken>()
   });
 }
 
-export interface APIGatewayProxyEventWithRequestContext<TEndpointConfig, TAccessToken = AccessToken>
-  extends APIGatewayProxyEventBase<TAccessToken> {
+export interface APIGatewayProxyEventWithRequestContext<
+  TEndpointConfig,
+  TAccessToken = AccessToken
+> extends APIGatewayProxyEventBase<TAccessToken> {
   lambdaConfig: TEndpointConfig;
 }
 
