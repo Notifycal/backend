@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.2.2](https://github.com/Notifycal/backend/compare/v2.2.1...v2.2.2) (2025-12-02)
+
+
+### Bug Fixes
+
+* **deps:** Update dependency libphonenumber-js to v1.12.31 ([#1299](https://github.com/Notifycal/backend/issues/1299)) ([8a15cad](https://github.com/Notifycal/backend/commit/8a15cad0e6b48e3679b7cf59d66a6ff3833486dd))
+* stop abuses of free trial ([#1297](https://github.com/Notifycal/backend/issues/1297)) ([f059132](https://github.com/Notifycal/backend/commit/f059132c034ee086b116822311e1076e46ca886e))
+
 ## [2.2.1](https://github.com/Notifycal/backend/compare/v2.2.0...v2.2.1) (2025-12-02)
 
 
