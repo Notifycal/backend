@@ -157,7 +157,7 @@
 | <a name="input_lambda_logging"></a> [lambda\_logging](#input\_lambda\_logging) | Lambda logging configuration. Log retention default value matches what the privacy policy states. | <pre>object({<br/>    retention_in_days = optional(number, 180)<br/>    format            = optional(string, "JSON")<br/>  })</pre> | <pre>{<br/>  "retention_in_days": 180<br/>}</pre> | no |
 | <a name="input_lambdas_handler_name"></a> [lambdas\_handler\_name](#input\_lambdas\_handler\_name) | n/a | `string` | `"index.handler"` | no |
 | <a name="input_lambdas_live_alias_name"></a> [lambdas\_live\_alias\_name](#input\_lambdas\_live\_alias\_name) | n/a | `string` | `"live"` | no |
-| <a name="input_lambdas_runtime"></a> [lambdas\_runtime](#input\_lambdas\_runtime) | n/a | `string` | `"nodejs22.x"` | no |
+| <a name="input_lambdas_runtime"></a> [lambdas\_runtime](#input\_lambdas\_runtime) | n/a | `string` | `"nodejs24.x"` | no |
 | <a name="input_mailgun_auth"></a> [mailgun\_auth](#input\_mailgun\_auth) | n/a | <pre>object({<br/>    api_key = string<br/>  })</pre> | n/a | yes |
 | <a name="input_mailgun_config"></a> [mailgun\_config](#input\_mailgun\_config) | n/a | <pre>object({<br/>    base_url    = string<br/>    domain_name = string<br/>  })</pre> | n/a | yes |
 | <a name="input_messaging_config"></a> [messaging\_config](#input\_messaging\_config) | n/a | <pre>object({<br/>    enabled = bool<br/>  })</pre> | <pre>{<br/>  "enabled": true<br/>}</pre> | no |
