@@ -193,7 +193,7 @@ export class StripeService {
       .with(
         P.union('subscription_cancel', 'subscription_update', 'payment_method_update'),
         (flowType) => {
-          return this.getSubscriptions(stripeCustomerId).then((subscriptions) => {
+          return this.getActiveSubscriptions(stripeCustomerId).then((subscriptions) => {
             const hasSubscriptions = subscriptions.length > 0;
             const subscription = subscriptions[0];
             const subscriptionId = subscription?.id;
@@ -247,15 +247,23 @@ export class StripeService {
         status: 'all',
         limit: 100
       })
-      .then((subscriptions) =>
-        subscriptions.data.filter(
-          (subscription) => subscription.status === 'active' || subscription.status === 'past_due'
-        )
-      );
+      .then((subscriptions) => subscriptions.data);
   }
 
-  public countSubscriptions(stripeCustomerId: StripeCustomerId): Promise<number> {
-    return this.getSubscriptions(stripeCustomerId).then((subscriptions) => subscriptions.length);
+  public getActiveSubscriptions(
+    stripeCustomerId: StripeCustomerId
+  ): Promise<Array<Stripe.Subscription>> {
+    return this.getSubscriptions(stripeCustomerId).then((subscriptions) =>
+      subscriptions.filter(
+        (subscription) => subscription.status === 'active' || subscription.status === 'past_due'
+      )
+    );
+  }
+
+  public countActiveSubscriptions(stripeCustomerId: StripeCustomerId): Promise<number> {
+    return this.getActiveSubscriptions(stripeCustomerId).then(
+      (subscriptions) => subscriptions.length
+    );
   }
 
   public forcePaymentCollection(invoiceId: string): Promise<void> {
