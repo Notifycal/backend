@@ -1,4 +1,4 @@
-import type { TierId, TopupId } from '@notifycal/shared/types';
+import type { FreeTrialTierId, TierId, TopupId } from '@notifycal/shared/types';
 
 export interface Tier {
   type: 'tier';
@@ -7,6 +7,7 @@ export interface Tier {
   credits: number;
 }
 export type TierMap = Record<TierId, Tier>;
+export type TierWithFreeTrial = Omit<Tier, 'id'> & { id: TierId | FreeTrialTierId };
 
 export interface Topup {
   type: 'topup';
