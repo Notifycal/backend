@@ -47,7 +47,7 @@ variable "lambdas_live_alias_name" {
 
 variable "lambdas_runtime" {
   type    = string
-  default = "nodejs22.x"
+  default = "nodejs24.x"
 }
 
 variable "lambdas_handler_name" {
