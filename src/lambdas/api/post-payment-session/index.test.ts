@@ -247,6 +247,207 @@ describe('POST Payment checkout session', () => {
     });
   });
 
+  describe('Free trial products', () => {
+    const validFreeTrialRequestBody = {
+      tier: 'good-trial',
+      language: 'es'
+    };
+
+    it('should create checkout session successfully for free trial when customer has never had subscriptions', async () => {
+      const event = (await testAuthedEvent(
+        validFreeTrialRequestBody,
+        {},
+        accessTokenSchema,
+        validAccessToken
+      )) as unknown as APIGatewayProxyEvent;
+
+      const getStripeCustomerIdFn = vi.fn().mockResolvedValue(validStripeCustomerId);
+      const setStripeCustomerIdFn = vi.fn().mockResolvedValue(undefined);
+      const createCustomerFn = vi.fn().mockResolvedValue(validStripeCustomerId);
+      const createCheckoutSessionFn = vi.fn().mockResolvedValue(validCheckoutUrl);
+      const countSubscriptionsFn = vi.fn().mockResolvedValue(0);
+      const getSubscriptionsFn = vi.fn().mockResolvedValue([]);
+      const addMetricFn = vi.spyOn(metrics, 'addMetric');
+
+      const resp = await testIt(
+        event,
+        getStripeCustomerIdFn,
+        setStripeCustomerIdFn,
+        createCustomerFn,
+        createCheckoutSessionFn,
+        countSubscriptionsFn,
+        defaultConfig,
+        getSubscriptionsFn
+      );
+
+      assert(resp, responseSuccess({ result: { url: validCheckoutUrl } }));
+
+      expect(getStripeCustomerIdFn).toHaveBeenCalledTimes(1);
+      expect(getSubscriptionsFn).toHaveBeenCalledTimes(1);
+      expect(getSubscriptionsFn).toHaveBeenCalledWith(validStripeCustomerId);
+      expect(countSubscriptionsFn).not.toHaveBeenCalled();
+      expect(createCheckoutSessionFn).toHaveBeenCalledTimes(1);
+      expect(createCheckoutSessionFn).toHaveBeenCalledWith(
+        validStripeCustomerId,
+        validIdentity,
+        { ...defaultConfig.paymentPlans.tiers.good, id: 'good-trial' },
+        'es',
+        `${defaultConfig.corsConfig.allowedOrigins[0]}/success`,
+        `${defaultConfig.corsConfig.allowedOrigins[0]}/cancel-subscription`,
+        defaultConfig.stripeCheckoutConfig.taxId
+      );
+      expect(addMetricFn).toHaveBeenCalledWith('PaymentSessionCreated', MetricUnit.Count, 1, {
+        tier: validFreeTrialRequestBody.tier,
+        userId: validUserId
+      });
+    });
+
+    it('should return 400 when customer attempts free trial but has had previous subscriptions', async () => {
+      const event = (await testAuthedEvent(
+        validFreeTrialRequestBody,
+        {},
+        accessTokenSchema,
+        validAccessToken
+      )) as unknown as APIGatewayProxyEvent;
+
+      const getStripeCustomerIdFn = vi.fn().mockResolvedValue(validStripeCustomerId);
+      const setStripeCustomerIdFn = vi.fn().mockResolvedValue(undefined);
+      const createCustomerFn = vi.fn().mockResolvedValue(validStripeCustomerId);
+      const createCheckoutSessionFn = vi.fn().mockResolvedValue(validCheckoutUrl);
+      const countSubscriptionsFn = vi.fn().mockResolvedValue(0);
+      const getSubscriptionsFn = vi.fn().mockResolvedValue([{ id: 'sub_old', status: 'canceled' }]);
+      const loggerInfoFn = vi.spyOn(logger, 'info');
+      const addMetricFn = vi.spyOn(metrics, 'addMetric');
+
+      const resp = await testIt(
+        event,
+        getStripeCustomerIdFn,
+        setStripeCustomerIdFn,
+        createCustomerFn,
+        createCheckoutSessionFn,
+        countSubscriptionsFn,
+        defaultConfig,
+        getSubscriptionsFn
+      );
+
+      assert(resp, responseError(400));
+
+      expect(getStripeCustomerIdFn).toHaveBeenCalledTimes(1);
+      expect(getSubscriptionsFn).toHaveBeenCalledTimes(1);
+      expect(getSubscriptionsFn).toHaveBeenCalledWith(validStripeCustomerId);
+      expect(countSubscriptionsFn).not.toHaveBeenCalled();
+      expect(createCheckoutSessionFn).not.toHaveBeenCalled();
+      expect(loggerInfoFn).toHaveBeenCalledWith(
+        'Customer has already had a subscription and cannot use free trial',
+        {
+          userId: validUserId,
+          stripeCustomerId: validStripeCustomerId,
+          totalSubscriptions: 1
+        }
+      );
+      expect(addMetricFn).toHaveBeenCalledWith(
+        'PaymentSessionBlockedDueToFreeTrialAbuse',
+        MetricUnit.Count,
+        1,
+        {
+          tier: validFreeTrialRequestBody.tier,
+          userId: validUserId
+        }
+      );
+    });
+
+    it('should return 400 when customer attempts free trial with multiple previous subscriptions', async () => {
+      const event = (await testAuthedEvent(
+        validFreeTrialRequestBody,
+        {},
+        accessTokenSchema,
+        validAccessToken
+      )) as unknown as APIGatewayProxyEvent;
+
+      const getStripeCustomerIdFn = vi.fn().mockResolvedValue(validStripeCustomerId);
+      const setStripeCustomerIdFn = vi.fn().mockResolvedValue(undefined);
+      const createCustomerFn = vi.fn().mockResolvedValue(validStripeCustomerId);
+      const createCheckoutSessionFn = vi.fn().mockResolvedValue(validCheckoutUrl);
+      const countSubscriptionsFn = vi.fn().mockResolvedValue(0);
+      const getSubscriptionsFn = vi.fn().mockResolvedValue([
+        { id: 'sub_old1', status: 'canceled' },
+        { id: 'sub_old2', status: 'canceled' },
+        { id: 'sub_old3', status: 'incomplete' }
+      ]);
+      const loggerInfoFn = vi.spyOn(logger, 'info');
+      const addMetricFn = vi.spyOn(metrics, 'addMetric');
+
+      const resp = await testIt(
+        event,
+        getStripeCustomerIdFn,
+        setStripeCustomerIdFn,
+        createCustomerFn,
+        createCheckoutSessionFn,
+        countSubscriptionsFn,
+        defaultConfig,
+        getSubscriptionsFn
+      );
+
+      assert(resp, responseError(400));
+
+      expect(loggerInfoFn).toHaveBeenCalledWith(
+        'Customer has already had a subscription and cannot use free trial',
+        {
+          userId: validUserId,
+          stripeCustomerId: validStripeCustomerId,
+          totalSubscriptions: 3
+        }
+      );
+      expect(addMetricFn).toHaveBeenCalledWith(
+        'PaymentSessionBlockedDueToFreeTrialAbuse',
+        MetricUnit.Count,
+        1,
+        {
+          tier: validFreeTrialRequestBody.tier,
+          userId: validUserId
+        }
+      );
+    });
+
+    it('should handle get subscriptions error and return failure response', async () => {
+      const event = (await testAuthedEvent(
+        validFreeTrialRequestBody,
+        {},
+        accessTokenSchema,
+        validAccessToken
+      )) as unknown as APIGatewayProxyEvent;
+
+      const invalidStripeError = new Error('Failed to get subscriptions');
+      const getStripeCustomerIdFn = vi.fn().mockResolvedValue(validStripeCustomerId);
+      const setStripeCustomerIdFn = vi.fn().mockResolvedValue(undefined);
+      const createCustomerFn = vi.fn().mockResolvedValue(validStripeCustomerId);
+      const createCheckoutSessionFn = vi.fn().mockResolvedValue(validCheckoutUrl);
+      const countSubscriptionsFn = vi.fn().mockResolvedValue(0);
+      const getSubscriptionsFn = vi.fn().mockRejectedValue(invalidStripeError);
+      const addMetricFn = vi.spyOn(metrics, 'addMetric');
+
+      const resp = await testIt(
+        event,
+        getStripeCustomerIdFn,
+        setStripeCustomerIdFn,
+        createCustomerFn,
+        createCheckoutSessionFn,
+        countSubscriptionsFn,
+        defaultConfig,
+        getSubscriptionsFn
+      );
+
+      assert(resp, responseError(500));
+
+      expect(getSubscriptionsFn).toHaveBeenCalledTimes(1);
+      expect(createCheckoutSessionFn).not.toHaveBeenCalled();
+      expect(addMetricFn).toHaveBeenCalledWith('PaymentSessionFailed', MetricUnit.Count, 1, {
+        tier: validFreeTrialRequestBody.tier,
+        userId: validUserId
+      });
+    });
+  });
+
   describe('Topup products', () => {
     it('should create checkout session successfully for topup even with active subscriptions', async () => {
       const event = (await testAuthedEvent(
@@ -659,7 +860,8 @@ describe('POST Payment checkout session', () => {
     createCustomerFn: () => Promise<StripeCustomerId>,
     createCheckoutSessionFn: () => Promise<Url | null>,
     countSubscriptionsFn: () => Promise<number>,
-    config: PostPaymentCheckoutSessionConfig = defaultConfig
+    config: PostPaymentCheckoutSessionConfig = defaultConfig,
+    getSubscriptionsFn: () => Promise<Array<unknown>> = vi.fn().mockResolvedValue([])
   ): Promise<APIGatewayProxyResult> {
     setEnv(config);
 
@@ -673,7 +875,8 @@ describe('POST Payment checkout session', () => {
     vi.mocked(StripeService.withConfig).mockResolvedValue({
       createCustomer: createCustomerFn,
       createCheckoutSession: createCheckoutSessionFn,
-      countSubscriptions: countSubscriptionsFn
+      countActiveSubscriptions: countSubscriptionsFn,
+      getSubscriptions: getSubscriptionsFn
     } as unknown as StripeService);
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call

@@ -116,7 +116,7 @@ describe(StripeService, () => {
       const stripeError = new Error('Customer creation failed');
       const createCustomerFn = vi.fn().mockRejectedValue(stripeError);
 
-      await expect(testCreateCustomer(validIdentity, createCustomerFn)).rejects.toThrow(
+      await expect(testCreateCustomer(validIdentity, createCustomerFn)).rejects.toThrowError(
         'Customer creation failed'
       );
     });
@@ -509,7 +509,7 @@ describe(StripeService, () => {
           validCancelUrl,
           createSessionFn
         )
-      ).rejects.toThrow('Stripe API error');
+      ).rejects.toThrowError('Stripe API error');
     });
 
     it('should include all required fields in checkout session', async () => {
@@ -723,7 +723,7 @@ describe(StripeService, () => {
           createPortalSessionFn,
           listSubscriptionsFn
         )
-      ).rejects.toThrow('Portal session creation failed');
+      ).rejects.toThrowError('Portal session creation failed');
     });
 
     it('should throw error when subscription listing fails', async () => {
@@ -741,7 +741,49 @@ describe(StripeService, () => {
           createPortalSessionFn,
           listSubscriptionsFn
         )
-      ).rejects.toThrow('Failed to list subscriptions');
+      ).rejects.toThrowError('Failed to list subscriptions');
+    });
+  });
+
+  describe('getSubscriptions', () => {
+    it('should return empty array when customer has no subscriptions', async () => {
+      const listSubscriptionsFn = vi.fn().mockResolvedValue({ data: [] });
+
+      const result = await testGetSubscriptions(validStripeCustomerId, listSubscriptionsFn);
+
+      expect(result).toStrictEqual([]);
+      expect(listSubscriptionsFn).toHaveBeenCalledTimes(1);
+      expect(listSubscriptionsFn).toHaveBeenCalledWith({
+        customer: validStripeCustomerId,
+        status: 'all',
+        limit: 100
+      });
+    });
+
+    it('should return all subscriptions when customer has multiple subscriptions with different statuses', async () => {
+      const validAllStatusesSubscriptions = [
+        { id: 'sub_1', status: 'active' },
+        { id: 'sub_2', status: 'canceled' },
+        { id: 'sub_3', status: 'past_due' },
+        { id: 'sub_4', status: 'incomplete' }
+      ];
+      const listSubscriptionsFn = vi.fn().mockResolvedValue({
+        data: validAllStatusesSubscriptions
+      });
+
+      const result = await testGetSubscriptions(validStripeCustomerId, listSubscriptionsFn);
+
+      expect(result).toStrictEqual(validAllStatusesSubscriptions);
+      expect(result).toHaveLength(4);
+    });
+
+    it('should throw error when Stripe API fails', async () => {
+      const stripeError = new Error('Failed to list subscriptions');
+      const listSubscriptionsFn = vi.fn().mockRejectedValue(stripeError);
+
+      await expect(
+        testGetSubscriptions(validStripeCustomerId, listSubscriptionsFn)
+      ).rejects.toThrowError('Failed to list subscriptions');
     });
   });
 
@@ -848,7 +890,7 @@ describe(StripeService, () => {
 
       await expect(
         testCountSubscriptions(validStripeCustomerId, listSubscriptionsFn)
-      ).rejects.toThrow('Failed to list subscriptions');
+      ).rejects.toThrowError('Failed to list subscriptions');
     });
   });
 
@@ -919,7 +961,7 @@ describe(StripeService, () => {
 
       await expect(
         testForcePaymentCollection(validInvoiceId, finalizeInvoiceFn, payInvoiceFn)
-      ).rejects.toThrow('Finalize failed');
+      ).rejects.toThrowError('Finalize failed');
 
       expect(finalizeInvoiceFn).toHaveBeenCalledTimes(1);
       expect(payInvoiceFn).not.toHaveBeenCalled();
@@ -1189,7 +1231,7 @@ describe(StripeService, () => {
           validInvoice,
           searchInvoicesFn
         )
-      ).rejects.toThrow('Search failed');
+      ).rejects.toThrowError('Search failed');
     });
   });
 
@@ -1344,6 +1386,25 @@ describe(StripeService, () => {
     );
   }
 
+  async function testGetSubscriptions(
+    stripeCustomerId: StripeCustomerId,
+    listSubscriptionsFn: () => Promise<{
+      data: Array<{ id: string; status: string; cancel_at_period_end?: boolean }>;
+    }>
+  ): Promise<Array<unknown>> {
+    const mockStripeInstance = {
+      ...testClocksMockFn(),
+      subscriptions: {
+        list: listSubscriptionsFn
+      }
+    } as unknown as Stripe;
+
+    setupMocks(mockStripeInstance);
+
+    const stripeService = await StripeService.withConfig(validApiKey, logger);
+    return stripeService.getSubscriptions(stripeCustomerId);
+  }
+
   async function testCountSubscriptions(
     stripeCustomerId: StripeCustomerId,
     listSubscriptionsFn: () => Promise<{
@@ -1360,7 +1421,7 @@ describe(StripeService, () => {
     setupMocks(mockStripeInstance);
 
     const stripeService = await StripeService.withConfig(validApiKey, logger);
-    return stripeService.countSubscriptions(stripeCustomerId);
+    return stripeService.countActiveSubscriptions(stripeCustomerId);
   }
 
   function setupMocks(mockStripeInstance: Stripe): void {

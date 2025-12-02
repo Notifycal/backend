@@ -63,27 +63,51 @@ function createCustomerOrRetrieve(
     });
 }
 
+type EligibilityResult =
+  | { eligible: true; stripeCustomerId: StripeCustomerId }
+  | {
+      eligible: false;
+      stripeCustomerId: StripeCustomerId;
+      reason: 'active_subscription' | 'previous_subscription';
+    };
+
 function checkEligibility(
   stripeCustomerId: StripeCustomerId,
   selectedProduct: TierWithFreeTrial | Topup,
   stripeService: StripeService,
   userIdentity: UserIdentity<IdpName>
-): Promise<{ eligible: boolean; stripeCustomerId: StripeCustomerId }> {
+): Promise<EligibilityResult> {
   if (selectedProduct.type === 'topup') {
     return Promise.resolve({ eligible: true, stripeCustomerId });
   }
 
-  return stripeService.countSubscriptions(stripeCustomerId).then((activeSubscriptionCount) => {
-    if (activeSubscriptionCount >= 1) {
-      logger.info('Customer already has an active subscription', {
-        userId: userIdentity.userId,
-        stripeCustomerId,
-        activeSubscriptionCount
-      });
-      return { eligible: false, stripeCustomerId };
-    }
-    return { eligible: true, stripeCustomerId };
-  });
+  if (selectedProduct.id === 'good-trial') {
+    return stripeService.getSubscriptions(stripeCustomerId).then((allSubscriptions) => {
+      if (allSubscriptions.length > 0) {
+        logger.info('Customer has already had a subscription and cannot use free trial', {
+          userId: userIdentity.userId,
+          stripeCustomerId,
+          totalSubscriptions: allSubscriptions.length
+        });
+        return { eligible: false, stripeCustomerId, reason: 'previous_subscription' as const };
+      }
+      return { eligible: true, stripeCustomerId };
+    });
+  }
+
+  return stripeService
+    .countActiveSubscriptions(stripeCustomerId)
+    .then((activeSubscriptionCount) => {
+      if (activeSubscriptionCount >= 1) {
+        logger.info('Customer already has an active subscription', {
+          userId: userIdentity.userId,
+          stripeCustomerId,
+          activeSubscriptionCount
+        });
+        return { eligible: false, stripeCustomerId, reason: 'active_subscription' as const };
+      }
+      return { eligible: true, stripeCustomerId };
+    });
 }
 
 async function lambdaHandler(
@@ -140,13 +164,30 @@ async function lambdaHandler(
     )
     .then((eligibilityResult) => {
       if (!eligibilityResult.eligible) {
-        metrics.addMetric(
-          'PaymentSessionBlockedDueToActiveSubscription',
-          MetricUnit.Count,
-          1,
-          dimensions
-        );
-        return Promise.resolve(errorHandler(409)('Customer already has an active subscription'));
+        return match(eligibilityResult.reason)
+          .with('active_subscription', () => {
+            metrics.addMetric(
+              'PaymentSessionBlockedDueToActiveSubscription',
+              MetricUnit.Count,
+              1,
+              dimensions
+            );
+            return Promise.resolve(
+              errorHandler(409)('Customer already has an active subscription')
+            );
+          })
+          .with('previous_subscription', () => {
+            metrics.addMetric(
+              'PaymentSessionBlockedDueToFreeTrialAbuse',
+              MetricUnit.Count,
+              1,
+              dimensions
+            );
+            return Promise.resolve(
+              errorHandler(400)('Customer has already had a subscription and cannot use free trial')
+            );
+          })
+          .exhaustive();
       }
 
       return stripeService
