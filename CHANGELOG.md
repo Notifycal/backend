@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.2.1](https://github.com/Notifycal/backend/compare/v2.2.0...v2.2.1) (2025-12-02)
+
+
+### Bug Fixes
+
+* **deps:** Update dependency @notifycal/shared to v7.16.1 ([#1295](https://github.com/Notifycal/backend/issues/1295)) ([eb221cd](https://github.com/Notifycal/backend/commit/eb221cd45a48c21ba5a4fe7d9de9336eaa3370dc))
+* vulnerabilities ([#1294](https://github.com/Notifycal/backend/issues/1294)) ([9a51d22](https://github.com/Notifycal/backend/commit/9a51d229065f3cc2078a775d222307f221a445b3))
+
 ## [2.2.0](https://github.com/Notifycal/backend/compare/v2.1.5...v2.2.0) (2025-12-02)
 
 
