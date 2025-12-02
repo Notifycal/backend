@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.2.0](https://github.com/Notifycal/backend/compare/v2.1.5...v2.2.0) (2025-12-02)
+
+
+### Features
+
+* free trial ([#1284](https://github.com/Notifycal/backend/issues/1284)) ([e48bcc1](https://github.com/Notifycal/backend/commit/e48bcc1a44c33ec98a0b43b38fa74202736bce60))
+
+
+### Bug Fixes
+
+* **deps:** Update @notifycal/shared and zod [WON'T MERGE] ([#1292](https://github.com/Notifycal/backend/issues/1292)) ([cd49af1](https://github.com/Notifycal/backend/commit/cd49af1ad6ce0190034c685c8b9bbc05771bca27))
+
 ## [2.1.5](https://github.com/Notifycal/backend/compare/v2.1.4...v2.1.5) (2025-12-02)
 
 
