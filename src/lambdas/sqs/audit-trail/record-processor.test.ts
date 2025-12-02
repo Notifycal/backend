@@ -68,14 +68,10 @@ function testit(
   const auditTrailBaseStoreMock = {
     put: vi.fn().mockImplementation(putFn)
   };
-  const auditTrailBaseStore = vi
-    // eslint-disable-next-line @typescript-eslint/unbound-method
-    .mocked(AuditTrailBaseStore.withConfig)
-    .mockReturnValue(auditTrailBaseStoreMock as unknown as AuditTrailBaseStore);
   return recordProcessor(
     record,
     180,
-    new auditTrailBaseStore({} as AuditTrailBaseStoreConfig, _logger),
+    auditTrailBaseStoreMock as unknown as AuditTrailBaseStore,
     _logger
   );
 }

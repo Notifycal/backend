@@ -536,12 +536,11 @@ describe('Messaging processor', () => {
         MessagingEndpointConfig &
         MessagingAlertingEndpointConfig = defaultConfig
     ): Promise<Uuid> {
-      vi.mocked(MessagingService).mockImplementation(
-        () =>
-          ({
-            sendMessage: sendMessageFn
-          }) as unknown as MessagingService
-      );
+      vi.mocked(MessagingService).mockImplementation(function () {
+        return {
+          sendMessage: sendMessageFn
+        } as unknown as MessagingService;
+      });
 
       const snsServiceMock = {
         safePublish: safePublishFn

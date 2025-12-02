@@ -71,7 +71,9 @@ describe(StripeService, () => {
     }) as unknown as Stripe;
 
   it('should initialize Stripe client with correct API key and version', async () => {
-    const mockConstructor = vi.fn(() => testClocksMockFn());
+    const mockConstructor = vi.fn(function () {
+      return testClocksMockFn();
+    });
     // eslint-disable-next-line @typescript-eslint/unbound-method
     vi.mocked(HttpClient.prototype.getAxiosInstance).mockResolvedValue({} as AxiosInstance);
     vi.mocked(Stripe).mockImplementation(mockConstructor);
