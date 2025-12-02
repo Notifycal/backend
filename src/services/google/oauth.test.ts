@@ -175,15 +175,18 @@ function testIt(
   mockIdGenerated: Uuid = validUserId,
   originHeaderValue: Url = 'http://localhost/callback' as Url
 ): Promise<[UserIdentity<'google.com'>, AuthorizationForIdp<'google.com'>]> {
-  vi.mock('google-auth-library');
-  vi.mocked(OAuth2Client).mockReturnValue({
-    verifyIdToken: vi.fn().mockImplementation(verifyIdTokenFn),
-    getToken: vi.fn().mockImplementation(getTokenFn),
-    get gaxios() {
-      return null;
-    }
-  } as unknown as OAuth2Client);
-  vi.mock('@services/id-generator');
+  vi.mock(import('google-auth-library'));
+  vi.mocked(OAuth2Client).mockImplementation(
+    () =>
+      ({
+        verifyIdToken: vi.fn().mockImplementation(verifyIdTokenFn),
+        getToken: vi.fn().mockImplementation(getTokenFn),
+        get gaxios() {
+          return null;
+        }
+      }) as unknown as OAuth2Client
+  );
+  vi.mock(import('@services/id-generator'));
   vi.mocked(idGenerator).mockReturnValue(mockIdGenerated);
   return GoogleOAuth.withConfig(validConfig, originHeaderValue, logger).verifyIdentity(
     validGoogleCode

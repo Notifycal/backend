@@ -19,7 +19,7 @@ export const createSqsHandlerTestSuite =
     setEnv: () => void;
     validBatchEvent: SQSEvent | DynamoDBStreamEvent;
     recordProcessorMockFn: () => MockedFunction<
-      (record: TRecord, config: TConfig) => Promise<void>
+      (record: TRecord, config: TConfig, ...args: Array<never>) => Promise<void>
     >;
   }): SuiteFactory =>
   () => {

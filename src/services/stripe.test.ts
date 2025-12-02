@@ -1367,6 +1367,8 @@ describe(StripeService, () => {
     vi.mocked(HttpClient.prototype.getAxiosInstance).mockResolvedValue(
       mockAxiosInstance as AxiosInstance
     );
-    vi.mocked(Stripe).mockImplementation(() => mockStripeInstance);
+    vi.mocked(Stripe).mockImplementation(function () {
+      return mockStripeInstance;
+    });
   }
 });

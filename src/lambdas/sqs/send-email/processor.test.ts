@@ -25,9 +25,9 @@ import { SnsService } from '@services/sns';
 import { describe, expect, it, vi } from 'vitest';
 import { Processor } from './processor';
 
-vi.mock('@services/sns');
-vi.mock('@common/powertools');
-vi.mock('@services/email');
+vi.mock(import('@services/sns'));
+vi.mock(import('@common/powertools'));
+vi.mock(import('@services/email'));
 
 const defaultConfig: MailgunEndpointConfig & EmailingTopicConfig = {
   mailgunConfig: {
@@ -176,9 +176,12 @@ describe('Email processor', () => {
       // eslint-disable-next-line @typescript-eslint/unbound-method
       vi.mocked(SnsService.withConfig).mockReturnValue(snsServiceMock as unknown as SnsService);
       const snsService = SnsService.withConfig({} as SnsTopicConfig, logger);
-      vi.mocked(EmailService).mockReturnValue({
-        sendEmail: sendEmailFn
-      } as unknown as EmailService);
+      vi.mocked(EmailService).mockImplementation(
+        () =>
+          ({
+            sendEmail: sendEmailFn
+          }) as unknown as EmailService
+      );
 
       const messageProcessor = new Processor(
         config.mailgunConfig,
