@@ -79,7 +79,9 @@ export const validStripeCheckoutSessionCompletedEvent: EventBridgeEvent<
         name: 'Jenny Rosen',
         phone: null,
         tax_exempt: 'none',
-        tax_ids: []
+        tax_ids: [],
+        business_name: null,
+        individual_name: null
       },
       customer_email: null,
       discounts: [],
