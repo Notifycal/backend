@@ -3,10 +3,7 @@ import type { EventBridgeEvent } from '@aws-lambda-powertools/parser/types';
 import { logger } from '@common/powertools';
 import type { BaseEvent } from '@model/app-events/BaseEvent';
 import type { NoPhoneNumberForCalendarEventFoundEvent } from '@model/app-events/NoPhoneNumberForCalendarEventFoundEvent';
-import {
-  type AuditTrailBaseStoreConfig,
-  AuditTrailBaseStore
-} from '@services/stores/audit-trail-base-store';
+import type { AuditTrailBaseStore } from '@services/stores/audit-trail-base-store';
 import {
   noPhoneNumberForCalendarEventFoundEvent,
   userCalendarFetchedEvent
