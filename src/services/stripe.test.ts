@@ -19,17 +19,17 @@ import { Stripe } from 'stripe';
 import { describe, expect, it, vi, type MockInstance } from 'vitest';
 import { StripeService } from './stripe';
 
-vi.mock('stripe');
-vi.mock('@common/powertools', () => ({
+vi.mock(import('stripe'));
+vi.mock(import('@common/powertools'), () => ({
   logger: {
     info: vi.fn(),
     warn: vi.fn(),
     error: vi.fn(),
     appendKeys: vi.fn()
-  }
+  } as unknown as Logger
 }));
-vi.mock('@services/common/http-client');
-vi.mock('./stripe-axios-client');
+vi.mock(import('@services/common/http-client'));
+vi.mock(import('./stripe-axios-client'));
 
 const validApiKey = 'sk_test_123456789';
 
@@ -81,7 +81,7 @@ describe(StripeService, () => {
     expect(HttpClient).toHaveBeenCalledWith(undefined, undefined, 'Stripe');
     expect(mockConstructor).toHaveBeenCalledTimes(1);
     expect(mockConstructor).toHaveBeenCalledWith(validApiKey, {
-      apiVersion: '2025-08-27.basil',
+      apiVersion: '2025-11-17.clover',
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       httpClient: expect.any(Object)
     });
