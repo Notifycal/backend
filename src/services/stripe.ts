@@ -266,6 +266,14 @@ export class StripeService {
     );
   }
 
+  public endTrialAndResetBillingCycle(subscriptionId: string): Promise<Stripe.Subscription> {
+    this.logger.info('Ending trial and resetting billing cycle', { subscriptionId });
+    return this.stripeClient.subscriptions.update(subscriptionId, {
+      trial_end: 'now',
+      proration_behavior: 'none'
+    });
+  }
+
   public forcePaymentCollection(invoiceId: string): Promise<void> {
     return this.stripeClient.invoices
       .finalizeInvoice(invoiceId, {

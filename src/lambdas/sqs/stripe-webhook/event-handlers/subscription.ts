@@ -1,5 +1,6 @@
 import type { Logger } from '@aws-lambda-powertools/logger';
 import type { IdpName, UserIdentity } from '@notifycal/shared/types';
+import type { StripeService } from '@services/stripe';
 import type { SubscriptionService } from '@services/subscription';
 import type Stripe from 'stripe';
 import type { StripeEventType } from '../stripe-schemas';
@@ -36,6 +37,7 @@ export class SubscriptionUpdatedHandler
   public constructor(
     stripeEventType: StripeEventType,
     private readonly subscriptionService: SubscriptionService<IdpName>,
+    private readonly stripeService: StripeService,
     logger: Logger
   ) {
     super(stripeEventType, logger);
@@ -68,6 +70,44 @@ export class SubscriptionUpdatedHandler
       return this.subscriptionService
         .cancel(userIdentity, 'unpaid')
         .then(() => {}, this.handleError('subscription-unpaid'));
+    }
+    if (subscription.status === 'trialing') {
+      return this.handleTrialWithPaymentMethodAdded(subscription, previousAttributes, userIdentity);
+    }
+    return Promise.resolve();
+  }
+
+  private handleTrialWithPaymentMethodAdded(
+    subscription: Stripe.Subscription,
+    previousAttributes: Stripe.CustomerSubscriptionUpdatedEvent['data']['previous_attributes'],
+    userIdentity: UserIdentity<IdpName>
+  ): Promise<void> {
+    const hasPaymentMethod = subscription.default_payment_method !== null;
+    const paymentMethodJustAdded =
+      previousAttributes &&
+      'default_payment_method' in previousAttributes &&
+      previousAttributes.default_payment_method !== subscription.default_payment_method;
+
+    if (hasPaymentMethod && paymentMethodJustAdded) {
+      this.logger.info('Payment method added during trial, ending trial now', {
+        subscriptionId: subscription.id,
+        customerId: subscription.customer,
+        previousPaymentMethod: previousAttributes.default_payment_method,
+        currentPaymentMethod: subscription.default_payment_method,
+        userId: userIdentity.userId
+      });
+
+      return this.stripeService
+        .endTrialAndResetBillingCycle(subscription.id)
+        .then((updatedSubscription) => {
+          this.logger.info('Successfully ended trial and reset billing cycle', {
+            subscriptionId: updatedSubscription.id,
+            newStatus: updatedSubscription.status,
+            billingCycleAnchor: updatedSubscription.billing_cycle_anchor,
+            trialEnd: updatedSubscription.trial_end,
+            userId: userIdentity.userId
+          });
+        }, this.handleError('end-trial-on-payment-method-added'));
     }
     return Promise.resolve();
   }
