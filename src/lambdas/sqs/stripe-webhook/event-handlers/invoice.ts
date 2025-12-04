@@ -140,6 +140,15 @@ export class InvoicePaymentSucceededHandler
     invoice: Stripe.Invoice
   ): Promise<void> {
     const updateType = this.determineUpdateType(invoice);
+
+    if (updateType === 'trial-ending') {
+      this.logger.info('Detected trial ending update, treating as subscription renewal', {
+        invoiceId: invoice.id,
+        userId: userIdentity.userId
+      });
+      return this.renewHandler(invoice, userIdentity);
+    }
+
     return this.extractUpdateTiers(invoice).then(
       (tiers) => this.executeSubscriptionUpdate(userIdentity, invoice, tiers, updateType),
       (error) =>
@@ -154,7 +163,20 @@ export class InvoicePaymentSucceededHandler
 
   private determineUpdateType(
     invoice: Stripe.Invoice
-  ): 'upgrade-subscription' | 'downgrade-subscription' | 'undetermined' {
+  ): 'upgrade-subscription' | 'downgrade-subscription' | 'trial-ending' | 'undetermined' {
+    const lineItems = invoice.lines.data;
+    const singleItem = lineItems[0];
+
+    if (
+      lineItems.length === 1 &&
+      singleItem &&
+      (singleItem as { proration?: boolean }).proration === false &&
+      singleItem.amount > 0 &&
+      invoice.amount_paid > 0
+    ) {
+      return 'trial-ending';
+    }
+
     return invoice.amount_paid > 0
       ? 'upgrade-subscription'
       : invoice.amount_paid === 0

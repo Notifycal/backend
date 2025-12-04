@@ -995,6 +995,139 @@ describe(InvoicePaymentSucceededHandler, () => {
     );
   });
 
+  it('should handle trial ending as renewal when subscription_update has 1 line item with proration false', async () => {
+    const createFn = vi.fn();
+    const renewFn = vi.fn().mockResolvedValue(validSuccessResult);
+    const upgradeFn = vi.fn();
+    const downgradeFn = vi.fn();
+    const addTopupFn = vi.fn();
+
+    const trialEndingLineItem: Stripe.InvoiceLineItem = {
+      ...validBetterLineItem,
+      proration: false
+    } as Stripe.InvoiceLineItem & { proration: boolean };
+
+    const trialEndingInvoice: Stripe.Invoice = {
+      id: 'in_trial_ending_123',
+      customer: 'cus_test456',
+      amount_paid: 2500,
+      amount_due: 2500,
+      billing_reason: 'subscription_update',
+      created: 1703980800,
+      period_start: 1754409080,
+      lines: {
+        data: [trialEndingLineItem]
+      }
+    } as Stripe.Invoice;
+
+    await testIt(
+      validEvent(trialEndingInvoice),
+      validIdentity,
+      createFn,
+      renewFn,
+      upgradeFn,
+      downgradeFn,
+      addTopupFn,
+      validTiers
+    );
+
+    expect(renewFn).toHaveBeenCalledTimes(1);
+    expect(renewFn).toHaveBeenCalledWith(validIdentity, validTiers.better.id);
+    expect(createFn).not.toHaveBeenCalled();
+    expect(upgradeFn).not.toHaveBeenCalled();
+    expect(downgradeFn).not.toHaveBeenCalled();
+    // eslint-disable-next-line vitest/max-expects
+    expect(addTopupFn).not.toHaveBeenCalled();
+  });
+
+  it('should not treat normal upgrade as trial ending when it has 2 line items', async () => {
+    const createFn = vi.fn();
+    const renewFn = vi.fn();
+    const upgradeFn = vi.fn().mockResolvedValue(undefined);
+    const downgradeFn = vi.fn();
+    const addTopupFn = vi.fn();
+    const totalPaidInSubscriptionInvoicesWithinBillingCycleFn = vi.fn(() => Promise.resolve(700));
+
+    await testIt(
+      validEvent(validUpgradeInvoice),
+      validIdentity,
+      createFn,
+      renewFn,
+      upgradeFn,
+      downgradeFn,
+      addTopupFn,
+      validTiers,
+      totalPaidInSubscriptionInvoicesWithinBillingCycleFn
+    );
+
+    expect(upgradeFn).toHaveBeenCalledTimes(1);
+    expect(renewFn).not.toHaveBeenCalled();
+  });
+
+  it('should not treat subscription_update as trial ending when amount_paid is 0', async () => {
+    const createFn = vi.fn();
+    const renewFn = vi.fn();
+    const upgradeFn = vi.fn();
+    const downgradeFn = vi.fn().mockResolvedValue(undefined);
+    const addTopupFn = vi.fn();
+
+    await testIt(
+      validEvent(validDowngradeInvoice),
+      validIdentity,
+      createFn,
+      renewFn,
+      upgradeFn,
+      downgradeFn,
+      addTopupFn,
+      validTiers
+    );
+
+    expect(downgradeFn).toHaveBeenCalledTimes(1);
+    expect(renewFn).not.toHaveBeenCalled();
+  });
+
+  it('should not treat subscription_update as trial ending when line item has proration true', async () => {
+    const createFn = vi.fn();
+    const renewFn = vi.fn();
+    const upgradeFn = vi.fn().mockResolvedValue(undefined);
+    const downgradeFn = vi.fn();
+    const addTopupFn = vi.fn();
+    const totalPaidInSubscriptionInvoicesWithinBillingCycleFn = vi.fn(() => Promise.resolve(700));
+
+    const proratedLineItem: Stripe.InvoiceLineItem = {
+      ...validBetterLineItem,
+      proration: true
+    } as Stripe.InvoiceLineItem & { proration: boolean };
+
+    const proratedSingleItemInvoice: Stripe.Invoice = {
+      id: 'in_prorated_single_123',
+      customer: 'cus_test456',
+      amount_paid: 2500,
+      amount_due: 2500,
+      billing_reason: 'subscription_update',
+      created: 1703980800,
+      period_start: 1754409080,
+      lines: {
+        data: [proratedLineItem, validInvoiceLineItemGoodRefund]
+      }
+    } as Stripe.Invoice;
+
+    await testIt(
+      validEvent(proratedSingleItemInvoice),
+      validIdentity,
+      createFn,
+      renewFn,
+      upgradeFn,
+      downgradeFn,
+      addTopupFn,
+      validTiers,
+      totalPaidInSubscriptionInvoicesWithinBillingCycleFn
+    );
+
+    expect(upgradeFn).toHaveBeenCalledTimes(1);
+    expect(renewFn).not.toHaveBeenCalled();
+  });
+
   function validEvent(invoice: Stripe.Invoice): Stripe.InvoicePaymentSucceededEvent {
     const event: Stripe.InvoicePaymentSucceededEvent = {
       id: 'evt_test',

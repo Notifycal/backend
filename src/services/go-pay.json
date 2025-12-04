@@ -1,0 +1,311 @@
+{
+  "object": {
+    "id": "in_1Sad1kPKMnU7QmpUWuNAiL74",
+    "object": "invoice",
+    "account_country": "ES",
+    "account_name": "dev",
+    "account_tax_ids": null,
+    "amount_due": 1600,
+    "amount_overpaid": 0,
+    "amount_paid": 1600,
+    "amount_remaining": 0,
+    "amount_shipping": 0,
+    "application": null,
+    "application_fee_amount": null,
+    "attempt_count": 1,
+    "attempted": true,
+    "auto_advance": false,
+    "automatic_tax": {
+      "disabled_reason": null,
+      "enabled": false,
+      "liability": null,
+      "provider": null,
+      "status": null
+    },
+    "automatically_finalizes_at": null,
+    "billing_reason": "subscription_update",
+    "charge": "ch_3Sad1kPKMnU7QmpU0n8IEkXR",
+    "collection_method": "charge_automatically",
+    "created": 1765460997,
+    "currency": "eur",
+    "custom_fields": null,
+    "customer": "cus_TXiLL80kWuMUMK",
+    "customer_address": {
+      "city": "Alcorcón",
+      "country": "ES",
+      "line1": "Avenida de Leganés",
+      "line2": null,
+      "postal_code": "28923",
+      "state": "M"
+    },
+    "customer_email": "notifycal@gmail.com",
+    "customer_name": "Sergio martin Sancghez",
+    "customer_phone": null,
+    "customer_shipping": null,
+    "customer_tax_exempt": "none",
+    "customer_tax_ids": [],
+    "default_payment_method": null,
+    "default_source": null,
+    "default_tax_rates": [],
+    "description": null,
+    "discount": null,
+    "discounts": [],
+    "due_date": null,
+    "effective_at": 1765460997,
+    "ending_balance": 0,
+    "footer": null,
+    "from_invoice": null,
+    "hosted_invoice_url": "https://invoice.stripe.com/i/acct_1RWhqGPKMnU7QmpU/test_YWNjdF8xUldocUdQS01uVTdRbXBVLF9UWGlTbDgyUmViNHhCRXNMejcyMlVsbU80TDJramk5LDE1NTM5NzQyMw0200DvIPn3vh?s=ap",
+    "invoice_pdf": "https://pay.stripe.com/invoice/acct_1RWhqGPKMnU7QmpU/test_YWNjdF8xUldocUdQS01uVTdRbXBVLF9UWGlTbDgyUmViNHhCRXNMejcyMlVsbU80TDJramk5LDE1NTM5NzQyMw0200DvIPn3vh/pdf?s=ap",
+    "issuer": {
+      "type": "self"
+    },
+    "last_finalization_error": null,
+    "latest_revision": null,
+    "lines": {
+      "object": "list",
+      "data": [
+        {
+          "id": "il_1SdAFlPKMnU7QmpUyYn1LYcq",
+          "object": "line_item",
+          "amount": 1600,
+          "amount_excluding_tax": 1322,
+          "currency": "eur",
+          "description": "1 × Solo (at €16.00 / month)",
+          "discount_amounts": [],
+          "discountable": true,
+          "discounts": [],
+          "invoice": "in_1Sad1kPKMnU7QmpUWuNAiL74",
+          "livemode": false,
+          "metadata": {},
+          "parent": {
+            "invoice_item_details": null,
+            "subscription_item_details": {
+              "invoice_item": null,
+              "proration": false,
+              "proration_details": {
+                "credited_items": null
+              },
+              "subscription": "sub_1SacvPPKMnU7QmpUmB40yA8T",
+              "subscription_item": "si_TXiMZhbOU7cdO1"
+            },
+            "type": "subscription_item_details"
+          },
+          "period": {
+            "end": 1768139397,
+            "start": 1765460997
+          },
+          "plan": {
+            "id": "price_1SXiCnPKMnU7QmpU7nHib5fG",
+            "object": "plan",
+            "active": true,
+            "aggregate_usage": null,
+            "amount": 1600,
+            "amount_decimal": "1600",
+            "billing_scheme": "per_unit",
+            "created": 1764161541,
+            "currency": "eur",
+            "interval": "month",
+            "interval_count": 1,
+            "livemode": false,
+            "metadata": {
+              "price_eur": "16",
+              "tier": "good"
+            },
+            "meter": null,
+            "nickname": null,
+            "product": "prod_SRbhTxZ8V1DJrX",
+            "tiers_mode": null,
+            "transform_usage": null,
+            "trial_period_days": null,
+            "usage_type": "licensed"
+          },
+          "pretax_credit_amounts": [],
+          "price": {
+            "id": "price_1SXiCnPKMnU7QmpU7nHib5fG",
+            "object": "price",
+            "active": true,
+            "billing_scheme": "per_unit",
+            "created": 1764161541,
+            "currency": "eur",
+            "custom_unit_amount": null,
+            "livemode": false,
+            "lookup_key": null,
+            "metadata": {
+              "price_eur": "16",
+              "tier": "good"
+            },
+            "nickname": null,
+            "product": "prod_SRbhTxZ8V1DJrX",
+            "recurring": {
+              "aggregate_usage": null,
+              "interval": "month",
+              "interval_count": 1,
+              "meter": null,
+              "trial_period_days": null,
+              "usage_type": "licensed"
+            },
+            "tax_behavior": "inclusive",
+            "tiers_mode": null,
+            "transform_quantity": null,
+            "type": "recurring",
+            "unit_amount": 1600,
+            "unit_amount_decimal": "1600"
+          },
+          "pricing": {
+            "price_details": {
+              "price": "price_1SXiCnPKMnU7QmpU7nHib5fG",
+              "product": "prod_SRbhTxZ8V1DJrX"
+            },
+            "type": "price_details",
+            "unit_amount_decimal": "1600"
+          },
+          "proration": false,
+          "proration_details": {
+            "credited_items": null
+          },
+          "quantity": 1,
+          "subscription": "sub_1SacvPPKMnU7QmpUmB40yA8T",
+          "subscription_item": "si_TXiMZhbOU7cdO1",
+          "tax_amounts": [
+            {
+              "amount": 278,
+              "inclusive": true,
+              "tax_rate": "txr_1RWiULPKMnU7QmpUICmXbqHV",
+              "taxability_reason": null,
+              "taxable_amount": 1322
+            }
+          ],
+          "tax_rates": [
+            {
+              "id": "txr_1RWiULPKMnU7QmpUICmXbqHV",
+              "object": "tax_rate",
+              "active": true,
+              "country": null,
+              "created": 1749147965,
+              "description": "Spanish Value Added Tax",
+              "display_name": "Spanish VAT",
+              "effective_percentage": 21,
+              "flat_amount": null,
+              "inclusive": true,
+              "jurisdiction": "ES",
+              "jurisdiction_level": null,
+              "livemode": false,
+              "metadata": {
+                "country": "ES",
+                "type": "VAT"
+              },
+              "percentage": 21,
+              "rate_type": "percentage",
+              "state": null,
+              "tax_type": null
+            }
+          ],
+          "taxes": [
+            {
+              "amount": 278,
+              "tax_behavior": "inclusive",
+              "tax_rate_details": {
+                "tax_rate": "txr_1RWiULPKMnU7QmpUICmXbqHV"
+              },
+              "taxability_reason": "not_available",
+              "taxable_amount": 1322,
+              "type": "tax_rate_details"
+            }
+          ],
+          "type": "subscription",
+          "unit_amount_excluding_tax": "1322"
+        }
+      ],
+      "has_more": false,
+      "total_count": 1,
+      "url": "/v1/invoices/in_1Sad1kPKMnU7QmpUWuNAiL74/lines"
+    },
+    "livemode": false,
+    "metadata": {},
+    "next_payment_attempt": null,
+    "number": "BFEA675F-0242",
+    "on_behalf_of": null,
+    "paid": true,
+    "paid_out_of_band": false,
+    "parent": {
+      "quote_details": null,
+      "subscription_details": {
+        "metadata": {},
+        "subscription": "sub_1SacvPPKMnU7QmpUmB40yA8T"
+      },
+      "type": "subscription_details"
+    },
+    "payment_intent": "pi_3Sad1kPKMnU7QmpU0hP41BY3",
+    "payment_settings": {
+      "default_mandate": null,
+      "payment_method_options": {
+        "acss_debit": null,
+        "bancontact": null,
+        "card": {
+          "request_three_d_secure": "automatic"
+        },
+        "customer_balance": null,
+        "konbini": null,
+        "sepa_debit": null,
+        "us_bank_account": null
+      },
+      "payment_method_types": ["card"]
+    },
+    "period_end": 1765460997,
+    "period_start": 1765460997,
+    "post_payment_credit_notes_amount": 0,
+    "pre_payment_credit_notes_amount": 0,
+    "quote": null,
+    "receipt_number": null,
+    "rendering": null,
+    "rendering_options": null,
+    "shipping_cost": null,
+    "shipping_details": null,
+    "starting_balance": 0,
+    "statement_descriptor": null,
+    "status": "paid",
+    "status_transitions": {
+      "finalized_at": 1765460997,
+      "marked_uncollectible_at": null,
+      "paid_at": 1765460997,
+      "voided_at": null
+    },
+    "subscription": "sub_1SacvPPKMnU7QmpUmB40yA8T",
+    "subscription_details": {
+      "metadata": {}
+    },
+    "subtotal": 1600,
+    "subtotal_excluding_tax": 1322,
+    "tax": 278,
+    "test_clock": "clock_1SacuvPKMnU7QmpUGVoOW9MX",
+    "total": 1600,
+    "total_discount_amounts": [],
+    "total_excluding_tax": 1322,
+    "total_pretax_credit_amounts": [],
+    "total_tax_amounts": [
+      {
+        "amount": 278,
+        "inclusive": true,
+        "tax_rate": "txr_1RWiULPKMnU7QmpUICmXbqHV",
+        "taxability_reason": null,
+        "taxable_amount": 1322
+      }
+    ],
+    "total_taxes": [
+      {
+        "amount": 278,
+        "tax_behavior": "inclusive",
+        "tax_rate_details": {
+          "tax_rate": "txr_1RWiULPKMnU7QmpUICmXbqHV"
+        },
+        "taxability_reason": "not_available",
+        "taxable_amount": 1322,
+        "type": "tax_rate_details"
+      }
+    ],
+    "transfer_data": null,
+    "webhooks_delivered_at": 1765460997
+  },
+  "previous_attributes": null
+}
