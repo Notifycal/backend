@@ -1,5 +1,16 @@
 # Changelog
 
+## [2.2.3](https://github.com/Notifycal/backend/compare/v2.2.2...v2.2.3) (2025-12-04)
+
+
+### Bug Fixes
+
+* **deps:** Update AWS packages to v3.943.0 ([#1301](https://github.com/Notifycal/backend/issues/1301)) ([71daae5](https://github.com/Notifycal/backend/commit/71daae574e0e194a2b89bd1a4b2dddf5bd835383))
+* **deps:** Update dependency googleapis to v167 ([#1307](https://github.com/Notifycal/backend/issues/1307)) ([174911b](https://github.com/Notifycal/backend/commit/174911b5dc37f3181beec9cc634fff2826239cfd))
+* **deps:** Update dependency jsonwebtoken to v9.0.3 ([#1308](https://github.com/Notifycal/backend/issues/1308)) ([dc71255](https://github.com/Notifycal/backend/commit/dc7125573501b9feba3247d867c6efb050b0296b))
+* email links ([#1310](https://github.com/Notifycal/backend/issues/1310)) ([e35aea3](https://github.com/Notifycal/backend/commit/e35aea3066c26171c6b0242b5fb41dc2ce21ef28))
+* free trial when credits run out ([#1309](https://github.com/Notifycal/backend/issues/1309)) ([a9d8797](https://github.com/Notifycal/backend/commit/a9d8797a7f8cb2ac12595218338c49aabaac1620))
+
 ## [2.2.2](https://github.com/Notifycal/backend/compare/v2.2.1...v2.2.2) (2025-12-02)
 
 
