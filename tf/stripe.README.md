@@ -80,3 +80,8 @@ Each time a new Stripe environment is created (sandbox or production), the Custo
 3. Under **Subscription**, configure:
    - **Downgrades**: Set to "Wait until end of billing period to update"
    - This ensures downgrade changes don't take effect immediately
+
+1. Log into your Stripe Dashboard
+2. Go to **Settings** → **Billing** → **Subscriptions and emails**
+3. Under **Email notifications and customer management**, configure:
+   ![free trial config](./docs/images/free-trial-config.png)
