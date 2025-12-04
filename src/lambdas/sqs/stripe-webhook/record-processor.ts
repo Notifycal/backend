@@ -56,7 +56,7 @@ export function defaultEventHandlers(
     ['customer.subscription.created', (e) => new SubscriptionCreatedHandler(e, logger)],
     [
       'customer.subscription.updated',
-      (e) => new SubscriptionUpdatedHandler(e, subscriptionService, logger)
+      (e) => new SubscriptionUpdatedHandler(e, subscriptionService, stripeService, logger)
     ],
     [
       'customer.subscription.deleted',
