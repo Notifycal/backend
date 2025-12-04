@@ -7,7 +7,7 @@ interface EmailTextVariables extends Record<string, string> {
   mainMessage: string;
   tipTitle: string;
   tipContent: string;
-  topupAction: string;
+  billingAction: string;
 }
 
 interface EmailDynamicVariables extends Record<string, string> {
@@ -22,7 +22,7 @@ const specificTranslations: Record<LanguageCode, EmailTextVariables> = {
     tipTitle: 'Acción Requerida',
     tipContent:
       'Recargue su cuenta inmediatamente para reanudar el envío de recordatorios y asegurar que sus citas no se pierdan.',
-    topupAction: 'Recargar Cuenta Ahora'
+    billingAction: 'Recargar Cuenta Ahora'
   },
   en: {
     subject: 'Urgent: Insufficient Credits - Reminder Not Sent',
@@ -31,7 +31,7 @@ const specificTranslations: Record<LanguageCode, EmailTextVariables> = {
     tipTitle: 'Action Required',
     tipContent:
       'Top up your account immediately to resume sending reminders and ensure your appointments are not missed.',
-    topupAction: 'Top Up Account Now'
+    billingAction: 'Top Up Account Now'
   },
   ca: {
     subject: 'Urgent: Crèdits insuficients - Recordatori no enviat',
@@ -40,7 +40,7 @@ const specificTranslations: Record<LanguageCode, EmailTextVariables> = {
     tipTitle: 'Acció Requerida',
     tipContent:
       "Recarregueu el vostre compte immediatament per reprendre l'enviament de recordatoris i assegurar que no es perdin les vostres cites.",
-    topupAction: 'Recarregar Compte Ara'
+    billingAction: 'Recarregar Compte Ara'
   }
 };
 

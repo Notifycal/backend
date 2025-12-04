@@ -45,7 +45,7 @@ const templates = [
   {
     name: 'NoPhoneNumberForCalendarEventFound' as const,
     template: alertMissingPhoneNumberTemplate.withDynamicVariables({
-      notifycalFaqUrl: 'https://notifycal.com/faq',
+      notifycalFaqUrl: 'https://notifycal.com/#faq',
       feedbackUrl,
       ...(sendTestingEmail ? {} : logoOverride)
     })
