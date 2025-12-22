@@ -103,7 +103,7 @@ jobs:
           else
             exit 0;
           fi
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v6
         # Only produces artifacts when running on push or manually
         if: github.event_name != 'pull_request'
         with:
