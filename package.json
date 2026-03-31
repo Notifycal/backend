@@ -97,7 +97,7 @@
     "prettier": "^3.5.1",
     "spectral-aws-apigateway-ruleset": "^3.0.0",
     "ts-node": "^10.9.2",
-    "typescript": "^5.7.3",
+    "typescript": "^6.0.0",
     "typescript-eslint": "^8.24.1",
     "vite": "^7.0.0",
     "vite-tsconfig-paths": "^6.0.0",
